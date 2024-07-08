@@ -14,6 +14,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
@@ -130,7 +132,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"locale":                     u.Locale,
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
-		"remote_id":                  SafeDereference(u.RemoteId),
+		"remote_id":                  u.GetRemoteID(),
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -144,11 +146,11 @@ func (u *User) Auditable() map[string]interface{} {
 func (u *User) LogClone() any {
 	return map[string]interface{}{
 		"id":              u.Id,
-		"create_at":       MillisToString(u.CreateAt),
-		"update_at":       MillisToString(u.UpdateAt),
-		"delete_at":       MillisToString(u.DeleteAt),
+		"create_at":       u.CreateAt,
+		"update_at":       u.UpdateAt,
+		"delete_at":       u.DeleteAt,
 		"username":        u.Username,
-		"auth_data":       SafeDereference(u.AuthData),
+		"auth_data":       u.GetAuthData(),
 		"auth_service":    u.AuthService,
 		"email":           u.Email,
 		"email_verified":  u.EmailVerified,
@@ -160,7 +162,7 @@ func (u *User) LogClone() any {
 		"locale":          u.Locale,
 		"timezone":        u.Timezone,
 		"mfa_active":      u.MfaActive,
-		"remote_id":       SafeDereference(u.RemoteId),
+		"remote_id":       u.GetRemoteID(),
 	}
 }
 
@@ -365,7 +367,7 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || (!IsValidEmail(u.Email) && !u.IsRemote()) {
 		return InvalidUserError("email", u.Id, u.Email)
 	}
 
@@ -395,10 +397,6 @@ func (u *User) IsValid() *AppError {
 
 	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
 		return InvalidUserError("auth_data_pwd", u.Id, *u.AuthData)
-	}
-
-	if len(u.Password) > UserPasswordMaxLength {
-		return InvalidUserError("password_limit", u.Id, "")
 	}
 
 	if !IsValidLocale(u.Locale) {
@@ -449,7 +447,7 @@ func NormalizeEmail(email string) string {
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
-func (u *User) PreSave() {
+func (u *User) PreSave() *AppError {
 	if u.Id == "" {
 		u.Id = NewId()
 	}
@@ -496,7 +494,15 @@ func (u *User) PreSave() {
 	}
 
 	if u.Password != "" {
-		u.Password = HashPassword(u.Password)
+		hashed, err := HashPassword(u.Password)
+		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		} else if err != nil {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_hash.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		}
+		u.Password = hashed
 	}
 
 	cs := u.GetCustomStatus()
@@ -504,6 +510,8 @@ func (u *User) PreSave() {
 		cs.PreSave()
 		u.SetCustomStatus(cs)
 	}
+
+	return nil
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -656,6 +664,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
+		delete(u.Props, UserPropsKeyRemoteEmail)
 	}
 	if len(options) != 0 && !options["fullname"] {
 		u.FirstName = ""
@@ -676,6 +685,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewString("")
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -891,15 +901,16 @@ func (u *User) GetTimezoneLocation() *time.Location {
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
-	return u.RemoteId != nil && *u.RemoteId != ""
+	return SafeDereference(u.RemoteId) != ""
 }
 
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
-	if u.RemoteId != nil {
-		return *u.RemoteId
-	}
-	return ""
+	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetAuthData() string {
+	return SafeDereference(u.AuthData)
 }
 
 // GetProp fetches a prop value by name.
@@ -945,13 +956,13 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
+func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(hash)
+	return string(hash), nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)

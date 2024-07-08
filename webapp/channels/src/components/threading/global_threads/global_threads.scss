@@ -9,11 +9,20 @@
     }
 }
 
-.GlobalThreads {
-    --border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+.rhs-open #channel_view.channel-view {
+    &:has(.GlobalThreads) {
+        padding-right: 0;
 
+        .ThreadPane,
+        .no-results__holder {
+            padding-right: 18px;
+        }
+    }
+}
+
+.GlobalThreads {
     .GlobalThreads___header {
-        border-bottom: var(--border);
+        border-bottom: var(--border-default);
         grid-area: header;
     }
 
@@ -23,13 +32,14 @@
     }
 
     .ThreadList {
-        border-right: var(--border);
         grid-area: list;
     }
 
     .ThreadPane,
     .ThreadList + .no-results__holder {
+        box-shadow: var(--elevation-2);
         grid-area: pane;
+        outline: var(--border-light);
     }
 
     > .no-results__holder {
@@ -59,19 +69,15 @@
 
     display: grid;
     overflow: hidden;
-    grid-template-areas:
-        'header header'
-        'list pane';
+    grid-template-areas: 'list pane';
 
     // 2-column
     grid-template-columns: var(--list) var(--pane);
-    grid-template-rows: 63px 1fr;
+    grid-template-rows: 1fr;
 
     // single column
     @media screen and (max-width: 1020px) {
-        grid-template-areas:
-            'header header'
-            'main main';
+        grid-template-areas: 'main main';
 
         &:not(.thread-selected) {
             .ThreadList {
@@ -104,14 +110,12 @@
     }
 
     @media screen and (max-width: 768px) {
-        grid-template-rows: 0 1fr;
-
         > .Header {
             display: none;
         }
 
         .Header {
-            border-top: var(--border);
+            border-top: var(--border-default);
         }
     }
 

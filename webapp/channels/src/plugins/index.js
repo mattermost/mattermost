@@ -153,6 +153,7 @@ export function loadPlugin(manifest) {
         script.id = 'plugin_' + manifest.id;
         script.type = 'text/javascript';
         script.src = getSiteURL() + bundlePath;
+        script.defer = true;
         script.onload = onLoad;
         script.onerror = onError;
 

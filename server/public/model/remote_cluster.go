@@ -51,7 +51,7 @@ func (bm *Bitmask) UnsetBit(flag Bitmask) {
 
 type RemoteCluster struct {
 	RemoteId     string  `json:"remote_id"`
-	RemoteTeamId string  `json:"remote_team_id"`
+	RemoteTeamId string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	Name         string  `json:"name"`
 	DisplayName  string  `json:"display_name"`
 	SiteURL      string  `json:"site_url"`
@@ -124,6 +124,37 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
 	return nil
+}
+
+func (rc *RemoteCluster) Sanitize() {
+	rc.Token = ""
+	rc.RemoteToken = ""
+}
+
+type RemoteClusterPatch struct {
+	DisplayName *string `json:"display_name"`
+}
+
+func (rcp *RemoteClusterPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"display_name": rcp.DisplayName,
+	}
+}
+
+func (rc *RemoteCluster) Patch(patch *RemoteClusterPatch) {
+	if patch.DisplayName != nil {
+		rc.DisplayName = *patch.DisplayName
+	}
+}
+
+type RemoteClusterWithPassword struct {
+	*RemoteCluster
+	Password string `json:"password"`
+}
+
+type RemoteClusterWithInvite struct {
+	RemoteCluster *RemoteCluster `json:"remote_cluster"`
+	Invite        string         `json:"invite"`
 }
 
 func newIDFromBytes(b []byte) string {
@@ -251,7 +282,8 @@ type RemoteClusterFrame struct {
 func (f *RemoteClusterFrame) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"remote_id": f.RemoteId,
-		"msg":       f.Msg,
+		"msg_id":    f.Msg.Id,
+		"topic":     f.Msg.Topic,
 	}
 }
 
@@ -311,7 +343,7 @@ type RemoteClusterPing struct {
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
 	RemoteId     string `json:"remote_id"`
-	RemoteTeamId string `json:"remote_team_id"`
+	RemoteTeamId string `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	SiteURL      string `json:"site_url"`
 	Token        string `json:"token"`
 }
@@ -392,6 +424,13 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	return json.Unmarshal(plain, &rci)
 }
 
+type RemoteClusterAcceptInvite struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	Invite      string `json:"invite"`
+	Password    string `json:"password"`
+}
+
 // RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll
 type RemoteClusterQueryFilter struct {
 	ExcludeOffline bool
@@ -402,5 +441,6 @@ type RemoteClusterQueryFilter struct {
 	OnlyConfirmed  bool
 	PluginID       string
 	OnlyPlugins    bool
+	ExcludePlugins bool
 	RequireOptions Bitmask
 }

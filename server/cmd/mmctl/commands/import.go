@@ -257,6 +257,21 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	bypassUpload, _ := command.Flags().GetBool("bypass-upload")
 	if bypassUpload {
 		if isLocal {
+			// First, we validate whether the server is in HA.
+			config, _, err := c.GetOldClientConfig(context.TODO(), "")
+			if err != nil {
+				return err
+			}
+
+			enableCluster, err := strconv.ParseBool(config["EnableCluster"])
+			if err != nil {
+				return fmt.Errorf("failed to parse EnableCluster: %w", err)
+			}
+
+			if enableCluster {
+				return errors.New("--bypass-upload flag doesn't work if the server is in HA. Because the file has to be present locally on the server where the job request hits. Please disable HA and try again.")
+			}
+
 			// in local mode, we tell the server to directly read from this file.
 			if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
 				return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)
@@ -293,24 +308,6 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	return nil
 }
 
-func printJob(job *model.Job) {
-	if job.StartAt > 0 {
-		printer.PrintT(fmt.Sprintf(`  ID: {{.Id}}
-  Status: {{.Status}}
-  Created: %s
-  Started: %s
-  Data: {{.Data}}
-`,
-			time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
-	} else {
-		printer.PrintT(fmt.Sprintf(`  ID: {{.Id}}
-  Status: {{.Status}}
-  Created: %s
-`,
-			time.Unix(job.CreateAt/1000, 0)), job)
-	}
-}
-
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
 	job, _, err := c.GetJob(context.TODO(), args[0])
 	if err != nil {
@@ -322,53 +319,8 @@ func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 	return nil
 }
 
-func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error {
-	page, err := command.Flags().GetInt("page")
-	if err != nil {
-		return err
-	}
-	perPage, err := command.Flags().GetInt("per-page")
-	if err != nil {
-		return err
-	}
-	showAll, err := command.Flags().GetBool("all")
-	if err != nil {
-		return err
-	}
-
-	if showAll {
-		page = 0
-	}
-
-	for {
-		jobs, _, err := c.GetJobsByType(context.TODO(), jobType, page, perPage)
-		if err != nil {
-			return fmt.Errorf("failed to get jobs: %w", err)
-		}
-
-		if len(jobs) == 0 {
-			if !showAll || page == 0 {
-				printer.Print("No jobs found")
-			}
-			return nil
-		}
-
-		for _, job := range jobs {
-			printJob(job)
-		}
-
-		if !showAll {
-			break
-		}
-
-		page++
-	}
-
-	return nil
-}
-
 func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JobTypeImportProcess)
+	return jobListCmdF(c, command, model.JobTypeImportProcess, "")
 }
 
 type Statistics struct {

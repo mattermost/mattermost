@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 type testHandler struct {
@@ -207,6 +209,53 @@ func TestOpenDialog(t *testing.T) {
 		request.Dialog.IntroductionText = ""
 		_, err := client.OpenInteractiveDialog(context.Background(), request)
 		require.NoError(t, err)
+	})
+
+	t.Run("Should pass with too long display name of elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Very very long Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
+	t.Run("Should pass with same elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
 	})
 
 	t.Run("Should pass with nil elements slice", func(t *testing.T) {

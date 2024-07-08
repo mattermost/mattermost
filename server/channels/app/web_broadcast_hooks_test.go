@@ -87,9 +87,11 @@ func TestPostedAckHook_Process(t *testing.T) {
 	hook := &postedAckBroadcastHook{}
 	userID := model.NewId()
 	webConn := &platform.WebConn{
-		UserId:   userID,
-		Platform: &platform.PlatformService{},
+		UserId:    userID,
+		Platform:  &platform.PlatformService{},
+		PostedAck: true,
 	}
+	webConn.Active.Store(true)
 	webConn.SetSession(&model.Session{})
 
 	t.Run("should ack if user is in the list of users to notify", func(t *testing.T) {
@@ -140,15 +142,34 @@ func TestPostedAckHook_Process(t *testing.T) {
 		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
 	})
 
-	t.Run("should not ack for mobile app", func(t *testing.T) {
-		mobileWebConn := &platform.WebConn{
-			UserId:   userID,
-			Platform: &platform.PlatformService{},
+	t.Run("should not ack if posted ack is false", func(t *testing.T) {
+		noAckWebConn := &platform.WebConn{
+			UserId:    userID,
+			Platform:  &platform.PlatformService{},
+			PostedAck: false,
 		}
-		mobileWebConn.SetSession(&model.Session{Props: map[string]string{"isMobile": "true"}})
+		noAckWebConn.Active.Store(true)
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
-		hook.Process(msg, mobileWebConn, map[string]any{
+		hook.Process(msg, noAckWebConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeDirect,
+			"users":          []string{},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+
+	t.Run("should not ack if connection is not active", func(t *testing.T) {
+		inactiveWebConn := &platform.WebConn{
+			UserId:    userID,
+			Platform:  &platform.PlatformService{},
+			PostedAck: false,
+		}
+		inactiveWebConn.Active.Store(true)
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, inactiveWebConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
 			"users":          []string{},

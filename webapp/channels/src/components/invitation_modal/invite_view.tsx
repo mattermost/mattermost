@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -20,7 +20,6 @@ import {getAnalyticsCategory} from 'components/onboarding_tasks';
 import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import {getTrackFlowRole, getRoleForTrackFlow, getSourceForTrackFlow} from 'utils/utils';
 
@@ -56,7 +55,7 @@ export type Props = InviteState & {
     onChannelsInputChange: (channelsInputValue: string) => void;
     onClose: () => void;
     currentTeam: Team;
-    currentChannel: Channel;
+    currentChannel?: Channel;
     setCustomMessage: (message: string) => void;
     toggleCustomMessage: () => void;
     channelsLoader: (value: string, callback?: (channels: Channel[]) => void) => Promise<Channel[]>;
@@ -133,42 +132,37 @@ export default function InviteView(props: Props) {
 
     const errorProperties = {
         showError: false,
-        errorMessageId: '',
-        errorMessageDefault: '',
+        errorMessage: messages.exceededMaxBatch,
         errorMessageValues: {
-            text: '',
+            text: Constants.MAX_ADD_MEMBERS_BATCH.toString(),
         },
-        extraErrorText: '',
     };
 
     if (props.usersEmails.length > Constants.MAX_ADD_MEMBERS_BATCH) {
         errorProperties.showError = true;
-        errorProperties.errorMessageId = t(
-            'invitation_modal.invite_members.exceeded_max_add_members_batch',
-        );
-        errorProperties.errorMessageDefault = 'No more than **{text}** people can be invited at once';
-        errorProperties.errorMessageValues.text = Constants.MAX_ADD_MEMBERS_BATCH.toString();
     }
 
-    let placeholder = formatMessage({
-        id: 'invite_modal.add_invites',
-        defaultMessage: 'Enter a name or email address',
-    });
-    let noMatchMessageId = t(
-        'invitation_modal.members.users_emails_input.no_user_found_matching',
-    );
-    let noMatchMessageDefault =
-        'No one found matching **{text}**. Enter their email to invite them.';
-
-    if (!props.emailInvitationsEnabled) {
+    let placeholder;
+    let noMatchMessage;
+    if (props.emailInvitationsEnabled) {
+        placeholder = formatMessage({
+            id: 'invite_modal.add_invites',
+            defaultMessage: 'Enter a name or email address',
+        });
+        noMatchMessage = messages.noUserFound;
+    } else {
         placeholder = formatMessage({
             id: 'invitation_modal.members.search-and-add.placeholder-email-disabled',
             defaultMessage: 'Add members',
         });
-        noMatchMessageId = t(
-            'invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled',
-        );
-        noMatchMessageDefault = 'No one found matching **{text}**';
+        noMatchMessage = messages.noUserFoundEmailDisabled;
+    }
+
+    let validAddressMessage;
+    if (props.inviteType === InviteType.MEMBER) {
+        validAddressMessage = messages.validAddressMember;
+    } else {
+        validAddressMessage = messages.validAddressGuest;
     }
 
     const isInviteValid = useMemo(() => {
@@ -233,12 +227,8 @@ export default function InviteView(props: Props) {
                         props.onChangeUsersEmails(usersEmails);
                     }}
                     value={props.usersEmails}
-                    validAddressMessageId={props.inviteType === InviteType.MEMBER ? t(
-                        'invitation_modal.members.users_emails_input.valid_email',
-                    ) : t('invitation_modal.guests.users_emails_input.valid_email')}
-                    validAddressMessageDefault={props.inviteType === InviteType.MEMBER ? 'Invite **{email}** as a team member' : 'Invite **{email}** as a guest'}
-                    noMatchMessageId={noMatchMessageId}
-                    noMatchMessageDefault={noMatchMessageDefault}
+                    validAddressMessage={validAddressMessage}
+                    noMatchMessage={noMatchMessage}
                     onInputChange={props.onUsersInputChange}
                     inputValue={props.usersEmailsSearch}
                     emailInvitationsEnabled={props.emailInvitationsEnabled}
@@ -287,3 +277,26 @@ export default function InviteView(props: Props) {
         </>
     );
 }
+
+const messages = defineMessages({
+    exceededMaxBatch: {
+        id: 'invitation_modal.invite_members.exceeded_max_add_members_batch',
+        defaultMessage: 'No more than **{text}** people can be invited at once',
+    },
+    noUserFound: {
+        id: 'invitation_modal.members.users_emails_input.no_user_found_matching',
+        defaultMessage: 'No one found matching **{text}**. Enter their email to invite them.',
+    },
+    noUserFoundEmailDisabled: {
+        id: 'invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled',
+        defaultMessage: 'No one found matching **{text}**',
+    },
+    validAddressGuest: {
+        id: 'invitation_modal.guests.users_emails_input.valid_email',
+        defaultMessage: 'Invite **{email}** as a guest',
+    },
+    validAddressMember: {
+        id: 'invitation_modal.members.users_emails_input.valid_email',
+        defaultMessage: 'Invite **{email}** as a team member',
+    },
+});

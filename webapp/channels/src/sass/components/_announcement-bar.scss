@@ -1,10 +1,9 @@
 @charset 'UTF-8';
 
 .announcement-bar {
-    z-index: 999;
     display: flex;
     overflow: hidden;
-    width: 100%;
+    width: 100vw;
     min-height: $announcement-bar-height;
     max-height: $announcement-bar-height;
     align-items: center;
@@ -19,6 +18,7 @@
         width: 100%;
         align-items: center;
         justify-content: center;
+        padding: 0 32px;
         white-space: nowrap;
 
         > span {
@@ -63,7 +63,6 @@
         }
 
         &.announcement-bar__close {
-            position: absolute;
             top: 5px;
             right: 0;
             padding: 0 10px;
@@ -88,11 +87,7 @@
         content: "\00a0 ";
     }
 
-    .content__icon,
-    i {
-        margin-right: 4px;
-        color: #fff;
-        font-family: 'compass-icons';
+    .icon {
         font-size: 16px;
     }
 

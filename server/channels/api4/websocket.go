@@ -17,6 +17,7 @@ import (
 const (
 	connectionIDParam   = "connection_id"
 	sequenceNumberParam = "sequence_number"
+	postedAckParam      = "posted_ack"
 )
 
 func (api *API) InitWebSocket() {
@@ -43,11 +44,14 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket: ws,
-		Session:   *c.AppContext.Session(),
-		TFunc:     c.AppContext.T,
-		Locale:    "",
-		Active:    true,
+		WebSocket:     ws,
+		Session:       *c.AppContext.Session(),
+		TFunc:         c.AppContext.T,
+		Locale:        "",
+		Active:        true,
+		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress: c.AppContext.IPAddress(),
+		XForwardedFor: c.AppContext.XForwardedFor(),
 	}
 	// The WebSocket upgrade request coming from mobile is missing the
 	// user agent so we need to fallback on the session's metadata.

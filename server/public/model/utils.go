@@ -415,11 +415,6 @@ func GetTimeForMillis(millis int64) time.Time {
 	return time.UnixMilli(millis)
 }
 
-// MillisToString returns a given milliseconds since epoch as a string using [time.Time.String].
-func MillisToString(millis int64) string {
-	return time.UnixMilli(millis).String()
-}
-
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
 func PadDateStringZeros(dateString string) string {
 	parts := strings.Split(dateString, "-")
@@ -848,4 +843,17 @@ func filterBlocklist(r rune) rune {
 
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+}
+
+func sliceToMapKey(s ...string) map[string]any {
+	m := make(map[string]any)
+	for i := range s {
+		m[s[i]] = struct{}{}
+	}
+
+	if len(s) != len(m) {
+		panic("duplicate keys")
+	}
+
+	return m
 }

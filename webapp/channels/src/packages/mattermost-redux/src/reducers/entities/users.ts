@@ -6,7 +6,7 @@ import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
-import type {UserAccessToken, UserProfile, UserStatus, UsersState} from '@mattermost/types/users';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
 import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -16,6 +16,12 @@ function profilesToSet(state: RelationOneToManyUnique<Team, UserProfile>, action
     const users: UserProfile[] = Object.values(action.data);
 
     return users.reduce((nextState, user) => addProfileToSet(nextState, id, user.id), state);
+}
+
+function removeProfilesFromSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
+    const id = action.id;
+    const users: UserProfile[] = Object.values(action.data);
+    return users.reduce((nextState, user) => removeProfileFromSet(nextState, {type: '', data: {id, user_id: user.id}}), state);
 }
 
 function profileListToSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction, replace = false) {
@@ -82,7 +88,7 @@ function removeProfileFromSet(state: RelationOneToManyUnique<Team, UserProfile>,
     };
 }
 
-function currentUserId(state = '', action: AnyAction) {
+function currentUserId(state: UsersState['currentUserId'] = '', action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME: {
         const data = action.data;
@@ -102,7 +108,7 @@ function currentUserId(state = '', action: AnyAction) {
     return state;
 }
 
-function mySessions(state: Array<{id: string}> = [], action: AnyAction) {
+function mySessions(state: UsersState['mySessions'] = [], action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_SESSIONS:
         return [...action.data];
@@ -169,6 +175,11 @@ function receiveUserProfile(state: IDMappedObjects<UserProfile>, received: UserP
         ...received,
     };
 
+    // If there was a remote_id but not anymore, remove it
+    if (existing.remote_id && !received.remote_id) {
+        delete merged.remote_id;
+    }
+
     // MM-53377:
     // For non-admin users, certain API responses don't return details for the current user that would be sanitized
     // out for others. This currently includes:
@@ -207,7 +218,7 @@ function receiveUserProfile(state: IDMappedObjects<UserProfile>, received: UserP
     };
 }
 
-function profiles(state: IDMappedObjects<UserProfile> = {}, action: AnyAction) {
+function profiles(state: UsersState['profiles'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME:
     case UserTypes.RECEIVED_PROFILE: {
@@ -386,6 +397,9 @@ function profilesNotInChannel(state: UsersState['profilesNotInChannel'] = {}, ac
     case UserTypes.RECEIVED_PROFILES_NOT_IN_CHANNEL:
         return profilesToSet(state, action);
 
+    case UserTypes.RECEIVED_PROFILES_IN_CHANNEL:
+        return removeProfilesFromSet(state, action);
+
     case UserTypes.RECEIVED_PROFILE_IN_CHANNEL:
         return removeProfileFromSet(state, action);
 
@@ -485,29 +499,10 @@ function profilesNotInGroup(state: UsersState['profilesNotInGroup'] = {}, action
     }
 }
 
-function addToState<T>(state: Record<string, T>, key: string, value: T): Record<string, T> {
-    if (state[key] === value) {
-        return state;
-    }
-
-    return {
-        ...state,
-        [key]: value,
-    };
-}
-
-function dndEndTimes(state: RelationOneToOne<UserProfile, number> = {}, action: AnyAction) {
+function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_STATUS: {
-        const userId = action.data.user_id;
-        const endTime = action.data.dnd_end_time;
-
-        return addToState(state, userId, endTime);
-    }
-    case UserTypes.RECEIVED_STATUSES: {
-        const userStatuses: UserStatus[] = action.data;
-
-        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.dnd_end_time || 0), state);
+    case UserTypes.RECEIVED_DND_END_TIMES: {
+        return {...state, ...action.data};
     }
     case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
         if (state[action.data.user_id]) {
@@ -527,16 +522,8 @@ function dndEndTimes(state: RelationOneToOne<UserProfile, number> = {}, action: 
 
 function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_STATUS: {
-        const userId = action.data.user_id;
-        const status = action.data.status;
-
-        return addToState(state, userId, status);
-    }
     case UserTypes.RECEIVED_STATUSES: {
-        const userStatuses: UserStatus[] = action.data;
-
-        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.status), state);
+        return {...state, ...action.data};
     }
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
@@ -557,16 +544,8 @@ function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: Any
 
 function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_STATUS: {
-        const userId = action.data.user_id;
-        const manual = action.data.manual;
-
-        return addToState(state, userId, manual);
-    }
-    case UserTypes.RECEIVED_STATUSES: {
-        const userStatuses: UserStatus[] = action.data;
-
-        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.manual || false), state);
+    case UserTypes.RECEIVED_STATUSES_IS_MANUAL: {
+        return {...state, ...action.data};
     }
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
@@ -585,7 +564,7 @@ function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, acti
     }
 }
 
-function myUserAccessTokens(state: Record<string, UserAccessToken> = {}, action: AnyAction) {
+function myUserAccessTokens(state: UsersState['myUserAccessTokens'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN: {
         const nextState = {...state};
@@ -666,20 +645,8 @@ function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyActio
 
 function lastActivity(state: UsersState['lastActivity'] = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_STATUS: {
-        const nextState = Object.assign({}, state);
-        nextState[action.data.user_id] = action.data.last_activity_at;
-
-        return nextState;
-    }
-    case UserTypes.RECEIVED_STATUSES: {
-        const nextState = Object.assign({}, state);
-
-        for (const s of action.data) {
-            nextState[s.user_id] = s.last_activity_at;
-        }
-
-        return nextState;
+    case UserTypes.RECEIVED_LAST_ACTIVITIES: {
+        return {...state, ...action.data};
     }
     case UserTypes.LOGOUT_SUCCESS:
         return {};

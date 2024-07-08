@@ -187,7 +187,7 @@ describe('User Management', () => {
             cy.get('#input_searchTerm').clear().type(gitlabUser.email).wait(TIMEOUTS.HALF_SEC);
 
             // # Open actions menu.
-            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify Switch to Email/Password is visible.
             cy.findByText('Switch to Email/Password').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
@@ -220,6 +220,17 @@ describe('User Management', () => {
 
         // # Check if user's session is automatically logged out and the user is redirected to the login page
         cy.url().should('contain', '/login');
+    });
+
+    it("MM-58840 Users - can't navigate to invalid URL", () => {
+        // # Login as sysadmin.
+        cy.apiLogin(sysadmin);
+
+        // # Visit the invalid URL.
+        cy.visit('/admin_console/user_management/user/invalid');
+
+        // * Verify that the user is redirected to the default page.
+        cy.url().should('include', '/admin_console/about/license');
     });
 
     function resetUserEmail(oldEmail, newEmail, errorMsg) {

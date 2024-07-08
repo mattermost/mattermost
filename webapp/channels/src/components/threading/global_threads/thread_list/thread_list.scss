@@ -8,8 +8,8 @@
 
     .Header {
         padding-right: 12px;
-        padding-left: 14px;
-        border-bottom: var(--border);
+        padding-left: 12px;
+        border-bottom: var(--border-default);
         color: rgba(var(--center-channel-color-rgb), 0.75);
         grid-area: header;
 
@@ -18,17 +18,28 @@
             display: flex;
             height: 100%;
             justify-content: center;
-            padding: 13px 0;
+            padding: 12px 0;
 
             + .tab-button-wrapper {
                 margin-left: 4px;
             }
+
+            Button {
+                display: flex;
+                max-width: 100%;
+
+                .Button_label {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+            }
         }
 
         .left {
-            display: flex;
+            display: grid;
             height: 100%;
-            align-items: center;
+            grid-template-columns: minmax(0, auto) minmax(0, auto);
         }
 
         .right-anchor {
@@ -69,7 +80,7 @@
     }
 
     .ThreadItem {
-        border-bottom: var(--border);
+        border-bottom: var(--border-default);
     }
 
     .virtualized-thread-list {

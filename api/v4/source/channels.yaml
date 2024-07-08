@@ -180,7 +180,9 @@
               type: array
               items:
                 type: string
-        description: User ids to be in the group message channel
+              minItems: 3
+              maxItems: 8
+        description: User ids to be in the group message channel.
         required: true
       responses:
         "201":
@@ -408,7 +410,7 @@
               type: array
               items:
                 type: string
-        description: List of channel ids
+        description: List of channel ids.
         required: true
       responses:
         "200":
@@ -1307,7 +1309,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of members per page. There is a maximum limit of 200 members.
+          description: The number of members per page.
           schema:
             type: integer
             default: 60
@@ -1329,8 +1331,8 @@
     post:
       tags:
         - channels
-      summary: Add user to channel
-      description: Add a user to a channel by creating a channel member object.
+      summary: Add user(s) to channel
+      description: Add a user(s) to a channel by creating a channel member object(s).
       operationId: AddChannelMember
       parameters:
         - name: channel_id
@@ -1344,12 +1346,17 @@
           application/json:
             schema:
               type: object
-              required:
-                - user_id
               properties:
                 user_id:
                   type: string
-                  description: The ID of user to add into the channel
+                  description: The ID of user to add into the channel, for backwards compatibility.
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  maxItems: 1000
+                  description: The IDs of users to add into the channel, required if 'user_id' doess not exist.
                 post_root_id:
                   type: string
                   description: The ID of root post where link to add channel member
@@ -1392,7 +1399,7 @@
               type: array
               items:
                 type: string
-        description: List of user ids
+        description: List of user ids.
         required: true
       responses:
         "200":

@@ -1687,10 +1687,6 @@
     "translation": "Πρόσκληση από ασφαλή σύνδεση"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Δεν ήταν δυνατή η αποκρυπτογράφηση πρόσκλησης. Εσφαλμένος κωδικός πρόσβασης ή κατεστραμμένη πρόσκληση: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[ενέργεια]"
   },
@@ -2911,10 +2907,6 @@
     "translation": "Η άδεια χρήσης σας Enterprise Edition έχει λήξει και ορισμένες δυνατότητες ενδέχεται να είναι απενεργοποιημένες. Παρακαλούμε ανανεώστε την άδειά σας τώρα."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Ανανέωση άδειας χρήσης τώρα"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Προβολή μηνύματος"
   },
@@ -3443,24 +3435,12 @@
     "translation": "Η συνδρομή σας στο Mattermost είναι έτοιμη για ανανέωση"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Συνδεθείτε στο Λογαριασμό Πελάτη σας για να ανανεώσετε"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, η συνδρομή σας έχει οριστεί να λήξει σε {{.Days}} ημέρες. Ελπίζουμε να απολαμβάνετε την ευέλικτη, ασφαλή ομαδική συνεργασία που δίνει το Mattermost. Ανανεώστε σύντομα για να διασφαλίσετε ότι η ομάδα σας θα συνεχίσει να απολαμβάνει αυτά τα οφέλη."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Η άδειά σας είναι έτοιμη για ανανέωση"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Ανανεώστε τώρα"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Αποτυχία δημιουργίας συνδέσμου για ανανέωση άδειας χρήσης"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
