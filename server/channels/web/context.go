@@ -30,6 +30,7 @@ type Context struct {
 // LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
 	// finish populating the context data, in case the session wasn't available during MakeAuditRecord
+	// (e.g., api4/user.go login)
 	if rec.Actor.UserId == "" {
 		rec.Actor.UserId = c.AppContext.Session().UserId
 	}
