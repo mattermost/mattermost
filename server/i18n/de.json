@@ -7067,10 +7067,6 @@
     "translation": "Einladung von sicherer Verbindung"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Konnte Einladung nicht entschlüsseln. Falsches Passwort oder beschädigte Einladung: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Konnte keine sicheren Verbindungen holen: {{.Error}}"
   },
@@ -10052,5 +10048,21 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Der Auftragsstatus kann nicht aktualisiert werden. Ungültiger Status gesetzt"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Logs können nicht in den Puffer geschrieben werden"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Es gab einen internen Fehler beim Speichern des Passworts."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Es gab einen internen Fehler beim Speichern des Passworts."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Dein Passwort darf nicht mehr als 72 Zeichen enthalten."
   }
 ]
