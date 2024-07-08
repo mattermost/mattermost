@@ -5854,10 +5854,6 @@
     "translation": "Lệnh kho tiện ích không hỗ trợ trên thiết bị của bạn."
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Không thể giải mã lời mời. Mật khẩu không chính xác hoặc lời mời bị hỏng: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.name.help",
     "translation": "Tên kết nối an toàn"
   },
