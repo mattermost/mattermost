@@ -86,7 +86,6 @@ function userPreferences(state: Record<string, PreferencesType> = {}, action: An
         return setAllUserPreferences(action.data);
 
     case PreferenceTypes.RECEIVED_USER_PREFERENCES: {
-        console.log('UUUUUU');
         const nextState = {...state};
 
         const data = action.data as PreferenceType[];
@@ -98,8 +97,6 @@ function userPreferences(state: Record<string, PreferencesType> = {}, action: An
                 nextState[preference.user_id][getKey(preference)] = preference;
             }
         }
-
-        console.log({nextState});
 
         return nextState;
     }

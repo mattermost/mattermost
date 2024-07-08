@@ -1,16 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getLanguages, isLanguageAvailable} from 'i18n/i18n';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 import timezones from 'timezones.json';
-import {Preferences} from 'utils/constants';
 
 import {CollapsedThreads} from '@mattermost/types/config';
-import type {PreferencesType} from '@mattermost/types/lib/preferences';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
@@ -20,20 +16,24 @@ import {
     get,
     isCollapsedThreadsAllowed,
     getCollapsedThreadsPreference,
-    getFromPreferences
+    getFromPreferences,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {
     generateCurrentTimezoneLabel,
     getCurrentTimezoneFull,
     getCurrentTimezoneLabel,
-    getTimezoneForUserProfile
+    getTimezoneForUserProfile,
 } from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
+import {getLanguages, isLanguageAvailable} from 'i18n/i18n';
+import {Preferences} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
-import UserSettingsDisplay, {OwnProps} from './user_settings_display';
+import type {OwnProps} from './user_settings_display';
+import UserSettingsDisplay from './user_settings_display';
 
 export function makeMapStateToProps() {
     return (state: GlobalState, props: OwnProps) => {
@@ -73,10 +73,7 @@ export function makeMapStateToProps() {
         let linkPreviewDisplay: string;
         let oneClickReactionsOnPosts: string;
 
-        console.log({userPreferences: props.userPreferences});
-
-        if (props.adminMode) {
-            console.log('AAAAAAA');
+        if (props.adminMode && props.userPreferences) {
             availabilityStatusOnPosts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
             militaryTime = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT);
             teammateNameDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay);
@@ -88,7 +85,6 @@ export function makeMapStateToProps() {
             linkPreviewDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT);
             oneClickReactionsOnPosts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT);
         } else {
-            console.log('BBBBBBBBB');
             availabilityStatusOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
             militaryTime = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT);
             teammateNameDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay);
@@ -100,19 +96,6 @@ export function makeMapStateToProps() {
             linkPreviewDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT);
             oneClickReactionsOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT);
         }
-
-        console.log({
-            availabilityStatusOnPosts,
-            militaryTime,
-            teammateNameDisplay,
-            channelDisplayMode,
-            messageDisplay,
-            colorizeUsernames,
-            collapseDisplay,
-            clickToReply,
-            linkPreviewDisplay,
-            oneClickReactionsOnPosts,
-        });
 
         return {
             lockTeammateNameDisplay,

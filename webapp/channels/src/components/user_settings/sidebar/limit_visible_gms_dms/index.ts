@@ -9,13 +9,10 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
-import LimitVisibleGMsDMs, {OwnProps} from './limit_visible_gms_dms';
+import type {OwnProps} from './limit_visible_gms_dms';
+import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-    console.log('############################################');
-    console.log({adminMode: ownProps.adminMode});
-    console.log('############################################');
-
     return {
         currentUserId: ownProps.adminMode ? ownProps.currentUserId : getCurrentUserId(state),
         dmGmLimit: ownProps.adminMode && ownProps.userPreferences ? getUserVisibleDmGmLimit(ownProps.userPreferences) : getVisibleDmGmLimit(state),

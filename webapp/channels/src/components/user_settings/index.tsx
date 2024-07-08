@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {PreferencesType} from '@mattermost/types/lib/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
@@ -14,7 +15,6 @@ import NotificationsTab from './notifications';
 import PluginTab from './plugin';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
-import {PreferencesType} from "@mattermost/types/lib/preferences";
 
 export type Props = {
     user: UserProfile;
@@ -32,10 +32,6 @@ export type Props = {
 };
 
 export default function UserSettings(props: Props) {
-    if (props.adminMode && props.userPreferences) {
-        console.log({LL: props.userPreferences['advanced_settings--formatting'].value});
-    }
-
     if (props.activeTab === 'profile') {
         return (
             <div>

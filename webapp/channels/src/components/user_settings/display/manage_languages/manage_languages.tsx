@@ -1,14 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Language} from 'i18n/i18n';
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -16,6 +13,10 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
+
+import type {Language} from 'i18n/i18n';
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;

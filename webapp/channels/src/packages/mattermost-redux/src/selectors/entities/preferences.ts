@@ -77,7 +77,6 @@ export function makeGetUserCategory(userID: string): (state: GlobalState, catego
         (state) => getUserPreferences(state, userID),
         (state: GlobalState, category: string) => category,
         (preferences, category) => {
-            console.log('999999999999');
             const prefix = category + '--';
             const prefsInCategory: PreferenceType[] = [];
 

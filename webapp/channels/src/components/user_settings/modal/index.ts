@@ -29,7 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         currentUser: ownProps.adminMode && ownProps.userID ? getUser(state, ownProps.userID) : getCurrentUser(state),
-        userPreferences: ownProps.adminMode && ownProps.userID? getUserPreferences(state, ownProps.userID) : undefined,
+        userPreferences: ownProps.adminMode && ownProps.userID ? getUserPreferences(state, ownProps.userID) : undefined,
         sendEmailNotifications,
         requireEmailVerification,
         pluginSettings: getPluginUserSettings(state),

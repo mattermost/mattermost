@@ -6,12 +6,8 @@ import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getDisplayName, toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {PreferenceType} from '@mattermost/types/lib/preferences';
-import {PreferencesType} from '@mattermost/types/lib/preferences';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -26,6 +22,7 @@ import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
+import UserSettingsModal from 'components/user_settings/modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AtIcon from 'components/widgets/icons/at_icon';
@@ -33,20 +30,12 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getDisplayName, toTitleCase} from 'utils/utils';
+
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
-
-import UserSettingsModal from 'components/user_settings/modal';
-
-import {Client4} from 'mattermost-redux/client';
-
-import {raw} from 'concurrently/dist/src/defaults';
-
-import {PreferenceTypes} from 'mattermost-redux/action_types';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import {getUserPreferences} from 'mattermost-redux/actions/preferences';
-import Confirm from "components/mfa/confirm";
 
 export type Params = {
     user_id?: UserProfile['id'];
@@ -309,7 +298,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     handleConfirmEditUserSettingsModal = async () => {
         await this.foo();
         this.closeConfirmEditUserSettingsModal();
-    }
+    };
 
     foo = async () => {
         // LOL
@@ -317,16 +306,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             return;
         }
 
-        console.log({user: this.state.user});
-
-        // const userPreferences: PreferencesType = {};
-        // const rawUserPreferences: PreferencesType[] = await Client4.getUserPreferences(this.state.user.id);
-        // rawUserPreferences.forEach((preference: PreferenceType) => {
-        //     userPreferences[getPreferenceKey(preference.category, preference.name)] = preference;
-        // });
-
         try {
-            const {data, error} = await this.props.getUserPreferences(this.state.user.id) as ActionResult<PreferenceType, ServerError>;
+            const {data, error} = await this.props.getUserPreferences(this.state.user.id);
             if (!data) {
                 throw new Error(error ? error.message : 'Unknown error');
             }
@@ -339,34 +320,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             });
         }
 
-        // if (data) {
-        //     this.setState({
-        //         user: data,
-        //         emailField: data.email, // Set emailField to the email of the user for editing purposes
-        //         isLoading: false,
-        //     });
-        // } else {
-        //     throw new Error(error ? error.message : 'Unknown error');
-        // }
-
         this.props.openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
             dialogType: UserSettingsModal,
             dialogProps: {
-                isContentProductSettings: true,
-
-                // currentUser: this.state.user,
-                // userPreferences,
-
-                userID: this.state.user.id,
                 adminMode: true,
+                isContentProductSettings: true,
+                userID: this.state.user.id,
             },
         });
     };
 
     render() {
-        console.log({email: this.state.user?.email});
-
         return (
             <div className='SystemUserDetail wrapper--fixed'>
                 <AdminHeader withBackButton={true}>

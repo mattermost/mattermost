@@ -4,12 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {PreferencesType} from '@mattermost/types/lib/preferences';
+
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 import ShowUnreadsCategory from './show_unreads_category';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
-import {PreferencesType} from "@mattermost/types/lib/preferences";
 
 export interface Props {
     updateSection: (section: string) => void;

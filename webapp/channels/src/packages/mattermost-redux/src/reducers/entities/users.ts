@@ -222,7 +222,6 @@ function profiles(state: UsersState['profiles'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME:
     case UserTypes.RECEIVED_PROFILE: {
-        console.log({ZZZZZZZZ: action.data});
         const user = action.data;
 
         return receiveUserProfile(state, user);

@@ -20,8 +20,8 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
 
-import type {Language} from 'i18n/i18n';
 import {getLanguageInfo} from 'i18n/i18n';
+import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
@@ -31,7 +31,6 @@ import ManageTimezones from './manage_timezones';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
-import {patchUser} from "mattermost-redux/actions/users";
 
 const Preferences = Constants.Preferences;
 
@@ -162,8 +161,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     };
 
     constructor(props: Props) {
-        console.log('CCCC');
-
         super(props);
 
         this.state = {
@@ -237,7 +234,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     };
 
     handleSubmit = async () => {
-        console.log('handle submit called....');
         const userId = this.props.user.id;
 
         const timePreference = {

@@ -6,11 +6,8 @@ import {Modal} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-import Constants from 'utils/constants';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {stopTryNotificationRing} from 'utils/notification_sounds';
 
-import type {PreferencesType} from '@mattermost/types/lib/preferences';
+import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -19,10 +16,12 @@ import ConfirmModal from 'components/confirm_modal';
 import SettingsSidebar from 'components/settings_sidebar';
 import UserSettings from 'components/user_settings';
 
+import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {getDisplayName} from 'utils/utils';
+
 import type {PluginConfiguration} from 'types/plugins/user_settings';
-import modal from "components/user_settings/modal/index";
-import {getDisplayName, getDisplayNameByUser} from "utils/utils";
-import {Badge} from "@mui/base";
 
 export type OwnProps = {
     userID?: string;
@@ -58,11 +57,6 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
-
-        console.log({
-            adminMode: this.props.adminMode,
-            currentUser: this.props.currentUser,
-        });
 
         this.state = {
             active_tab: props.isContentProductSettings ? 'notifications' : 'profile',

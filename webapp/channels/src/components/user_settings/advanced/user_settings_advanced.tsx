@@ -6,9 +6,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
-import Constants, {AdvancedSections, Preferences} from 'utils/constants';
-import {isMac} from 'utils/user_agent';
-import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
@@ -20,6 +17,10 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import ConfirmModal from 'components/confirm_modal';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
+
+import Constants, {AdvancedSections, Preferences} from 'utils/constants';
+import {isMac} from 'utils/user_agent';
+import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
@@ -86,7 +87,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     getStateFromProps = (): State => {
-        console.log({getStateFromProps: this.props.advancedSettingsCategory});
         const advancedSettings = this.props.advancedSettingsCategory;
         const settings: Settings = {
             send_on_ctrl_enter: this.props.sendOnCtrlEnter,
@@ -327,10 +327,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     renderFormattingSection = () => {
-        if (this.props.adminMode) {
-            console.log({state: this.state.settings.formatting, props: this.props.userPreferences['advanced_settings--formatting'].value});
-        }
-
         const active = this.props.activeSection === 'formatting';
         let max = null;
         if (active) {
@@ -909,8 +905,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 syncDraftsSectionDivider = <div className='divider-light'/>;
             }
         }
-
-        console.log({mm: this.props.userPreferences});
 
         return (
             <div>

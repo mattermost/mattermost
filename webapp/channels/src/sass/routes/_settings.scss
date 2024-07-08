@@ -77,15 +77,15 @@
         .modal-header {
             .adminModeBadge {
                 display: flex;
-                padding: 2px var(--spacing-xxxs, 6px);
+                height: 22px;
                 align-items: center;
-                gap: 6px;
+                padding: 2px var(--spacing-xxxs, 6px);
                 border-radius: 4px;
                 background: var(--error-text);
                 color: white;
-                font-weight: 600;
-                height: 22px;
                 font-size: 12px;
+                font-weight: 600;
+                gap: 6px;
             }
         }
 
@@ -220,8 +220,8 @@
             .settings-links {
                 overflow: auto;
                 width: 232px;
-                background: rgba(var(--center-channel-color-rgb), 0.04);
                 padding: 16px;
+                background: rgba(var(--center-channel-color-rgb), 0.04);
 
                 .nav {
                     margin: 0;
@@ -560,10 +560,10 @@
                 padding: 6px 15px;
                 border-radius: 4px;
                 color: $gray;
+                font-weight: 600;
                 text-align: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-                font-weight: 600;
 
                 &:hover {
                     background-color: rgba(var(--center-channel-color-rgb), 0.04);
@@ -586,14 +586,6 @@
                 font-size: 18px;
                 text-align: center;
             }
-
-            //&:hover {
-            //    button,
-            //    button:hover,
-            //    button:focus {
-            //        background: var(--sidebar-text-hover-bg);
-            //    }
-            //}
 
             &.active {
                 div {

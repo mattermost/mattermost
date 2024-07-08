@@ -3,25 +3,25 @@
 
 /* eslint-disable max-lines */
 
-import {update} from 'lodash';
 import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
-import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
-import {stopTryNotificationRing} from 'utils/notification_sounds';
-import {a11yFocus} from 'utils/utils';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PreferencesType} from '@mattermost/types/lib/preferences';
+import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
+
+import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {a11yFocus} from 'utils/utils';
 
 import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notification_setting';
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
@@ -193,8 +193,6 @@ function getDefaultStateFromProps(props: Props): State {
         channelKey = props.user.notify_props?.channel === 'true';
     }
 
-    console.log({xxxenableEmail: enableEmail});
-
     return {
         desktopActivity: desktop,
         desktopThreads,
@@ -236,8 +234,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 
     handleSubmit = async () => {
-        console.log({where: 'handleSubmit', user: this.props.user});
-
         const data: UserNotifyProps = {...this.props.user.notify_props};
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
@@ -291,7 +287,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isSaving: true});
         stopTryNotificationRing();
 
-        // const {data: updatedUser, error} = await this.props.updateMe({notify_props: data});
         let updatedUser: UserProfile | undefined;
         let error;
 
@@ -305,8 +300,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             updatedUser = response.data;
             error = response.error;
         }
-
-        console.log({updatedUser});
 
         if (updatedUser) {
             this.handleUpdateSection('');
@@ -977,8 +970,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const autoResponderSection = this.createAutoResponderSection();
 
         const areAllSectionsInactive = this.props.activeSection === '';
-
-        console.log({enableEmail: this.state.enableEmail});
 
         return (
             <div id='notificationSettings'>
