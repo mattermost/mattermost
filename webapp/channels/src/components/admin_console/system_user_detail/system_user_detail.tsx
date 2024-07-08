@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getDisplayName, toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -31,17 +30,19 @@ import AtIcon from 'components/widgets/icons/at_icon';
 import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import WithTooltip from 'components/with_tooltip';
+
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getDisplayName, toTitleCase} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
-import WithTooltip from 'components/with_tooltip';
-
-import classNames from 'classnames';
 
 export type Params = {
     user_id?: UserProfile['id'];
-    canAdminManageUserSettings: boolean;
+    isProOrEnterprise: boolean;
+    userHasWriteUserPermission: boolean;
 };
 
 export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
@@ -437,7 +438,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     )}
 
                                     {
-                                        this.props.canAdminManageUserSettings &&
+                                        this.props.userHasWriteUserPermission &&
+                                        this.props.isProOrEnterprise &&
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
@@ -450,7 +452,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     }
 
                                     {
-                                        !this.props.canAdminManageUserSettings &&
+                                        this.props.userHasWriteUserPermission &&
+                                        !this.props.isProOrEnterprise &&
                                         <WithTooltip
                                             id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({
