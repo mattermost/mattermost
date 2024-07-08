@@ -4,7 +4,7 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
-import {injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
@@ -20,6 +20,9 @@ import SettingsSidebar from 'components/settings_sidebar';
 import UserSettings from 'components/user_settings';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
+import modal from "components/user_settings/modal/index";
+import {getDisplayName, getDisplayNameByUser} from "utils/utils";
+import {Badge} from "@mui/base";
 
 export type OwnProps = {
     userID?: string;
@@ -290,13 +293,24 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             return (<div/>);
         }
 
-        const modalTitle = this.props.isContentProductSettings ? formatMessage({
-            id: 'global_header.productSettings',
-            defaultMessage: 'Settings',
-        }) : formatMessage({
-            id: 'user.settings.modal.title',
-            defaultMessage: 'Profile',
-        });
+        let modalTitle: string;
+
+        if (this.props.adminMode) {
+            modalTitle = formatMessage({
+                id: 'userSettings.adminMode.modal_header',
+                defaultMessage: "{userDisplayName}'s Settings",
+            }, {
+                userDisplayName: getDisplayName(this.props.currentUser),
+            });
+        } else {
+            modalTitle = this.props.isContentProductSettings ? formatMessage({
+                id: 'global_header.productSettings',
+                defaultMessage: 'Settings',
+            }) : formatMessage({
+                id: 'user.settings.modal.title',
+                defaultMessage: 'Profile',
+            });
+        }
 
         return (
             <Modal
@@ -319,6 +333,16 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     >
                         {modalTitle}
                     </Modal.Title>
+
+                    {
+                        this.props.adminMode &&
+                        <div className='adminModeBadge'>
+                            <FormattedMessage
+                                id='userSettings.adminMode.admin_mode_badge'
+                                defaultMessage='Admin Mode'
+                            />
+                        </div>
+                    }
                 </Modal.Header>
                 <Modal.Body ref={this.modalBodyRef}>
                     <div className='settings-table'>

@@ -3791,6 +3791,8 @@
   "gif_picker.input.label": "Search for GIFs",
   "gif_picker.input.placeholder": "Search GIPHY",
   "global_header.productSettings": "Settings",
+  "userSettings.adminMode.modal_header": "{userDisplayName}'s Settings",
+  "userSettings.adminMode.admin_mode_badge": "Admin Mode",
   "global_header.productSwitchMenu": "Product switch menu",
   "globalThreads.heading": "Followed threads",
   "globalThreads.noThreads.subtitle": "Any threads you are mentioned in or have participated in will show here along with any threads you have followed.",

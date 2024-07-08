@@ -74,6 +74,21 @@
             margin: 0 auto;
         }
 
+        .modal-header {
+            .adminModeBadge {
+                display: flex;
+                padding: 2px var(--spacing-xxxs, 6px);
+                align-items: center;
+                gap: 6px;
+                border-radius: 4px;
+                background: var(--error-text);
+                color: white;
+                font-weight: 600;
+                height: 22px;
+                font-size: 12px;
+            }
+        }
+
         li {
             list-style: none;
         }
@@ -542,7 +557,7 @@
             button {
                 overflow: hidden;
                 width: 100%;
-                padding: 8px 15px;
+                padding: 6px 15px;
                 border-radius: 4px;
                 color: $gray;
                 text-align: left;
