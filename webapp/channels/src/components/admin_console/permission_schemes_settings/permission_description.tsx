@@ -4,11 +4,11 @@
 import React, {useState, useRef} from 'react';
 import type {MouseEvent} from 'react';
 import {Overlay} from 'react-bootstrap';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import ExternalLink from 'components/external_link';
 import Tooltip from 'components/tooltip';
 
 import {generateId} from 'utils/utils';
@@ -57,12 +57,25 @@ const PermissionDescription = ({
 
     let content: string | JSX.Element = '';
     if (inherited && inherited.name) {
+        const formattedName = intl.formatMessage(rolesRolesStrings[inherited.name]);
         content = (
             <span className='inherit-link-wrapper'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.permissions.inherited_from'
-                    defaultMessage='Inherited from [{name}]().'
-                    values={{name: intl.formatMessage(rolesRolesStrings[inherited.name])}}
+                    defaultMessage='Inherited from <link>{name}</link>.'
+                    values={{
+                        name: formattedName,
+                        link: (text: string) => (
+                            <ExternalLink
+                                href=''
+                                rel='noopener noreferrer'
+                                target='_blank'
+                                location='permission_scheme_settings'
+                            >
+                                {text}
+                            </ExternalLink>
+                        ),
+                    }}
                 />
             </span>
         );
