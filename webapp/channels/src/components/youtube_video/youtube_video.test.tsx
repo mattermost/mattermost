@@ -31,6 +31,7 @@ describe('YoutubeVideo', () => {
                 url: 'linkForThumbnail',
             }],
         },
+        youtubeReferrerPolicy: false,
     };
 
     const initialState: DeepPartial<GlobalState> = {
