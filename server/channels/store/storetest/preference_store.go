@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store) {
+func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("PreferenceSave", func(t *testing.T) { testPreferenceSave(t, rctx, ss) })
 	t.Run("PreferenceGet", func(t *testing.T) { testPreferenceGet(t, rctx, ss) })
 	t.Run("PreferenceGetCategory", func(t *testing.T) { testPreferenceGetCategory(t, rctx, ss) })
@@ -24,7 +24,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, rctx, ss) })
 	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, rctx, ss) })
 	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, rctx, ss) })
-	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss) })
+	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss, s) })
 }
 
 func testPreferenceSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -403,7 +403,7 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.S
 	assert.NoError(t, nErr, "newer preference should not have been deleted")
 }
 
-func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Store) {
+func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	userId1 := model.NewId()
 	userId2 := model.NewId()
 	userId3 := model.NewId()
@@ -456,8 +456,14 @@ func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Sto
 		},
 	}
 
-	err := ss.Preference().Save(preferences)
-	require.NoError(t, err)
+	// Can't insert with Save methods because the values are invalid
+	_, execerr := s.GetMasterX().NamedExec(`
+		INSERT INTO
+		    Preferences(UserId, Category, Name, Value)
+		VALUES
+		    (:UserId, :Category, :Name, :Value);
+	`, preferences)
+	require.NoError(t, execerr)
 
 	count, err := ss.Preference().DeleteInvalidVisibleDmsGms()
 	require.NoError(t, err)
