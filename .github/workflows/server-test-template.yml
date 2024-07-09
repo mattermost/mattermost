@@ -74,7 +74,7 @@ jobs:
             server/report.xml
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
+        uses: lieut-data/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls (upstream https://github.com/mikepenz/action-junit-report)
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: server/report.xml
