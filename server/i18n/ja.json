@@ -10056,5 +10056,37 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "ジョブの状態を更新できませんでした。無効なステータスが設定されました"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "インスタンスサイトのURLを取得できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "リモートクラスタの招待を承認できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "base64文字列をデコードできませんでした"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "リモートクラスタが削除されていません"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "提供されたパスワードを使用してリモートクラスタの招待を暗号化できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "リモートクラスターが見つかりません"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "提供されたパスワードを使用してリモートクラスタの招待を復号化できませんでした"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "カスタムステータスを設定できませんでした。"
   }
 ]
