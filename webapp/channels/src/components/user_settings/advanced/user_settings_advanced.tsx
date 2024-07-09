@@ -805,7 +805,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         let makeConfirmationModal: ReactNode = '';
         const currentUser = this.props.currentUser;
 
-        if (currentUser.auth_service === '' && this.props.enableUserDeactivation) {
+        if (currentUser.auth_service === '' && this.props.enableUserDeactivation && !this.props.adminMode) {
             const active = this.props.activeSection === 'deactivateAccount';
             let max = null;
             if (active) {
@@ -947,6 +947,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
+                        adminMode={this.props.adminMode}
+                        currentUserId={this.props.currentUser.id}
                     />
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}

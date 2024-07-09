@@ -303,12 +303,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     handleConfirmEditUserSettingsModal = async () => {
-        await this.foo();
+        await this.openUserSettingsModal();
         this.closeConfirmEditUserSettingsModal();
     };
 
-    foo = async () => {
-        // LOL
+    openUserSettingsModal = async () => {
         if (!this.state.user) {
             return;
         }

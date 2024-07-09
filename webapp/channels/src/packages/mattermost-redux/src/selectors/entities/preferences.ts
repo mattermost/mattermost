@@ -46,6 +46,11 @@ export function getBool(state: GlobalState, category: string, name: string, defa
     return value !== 'false';
 }
 
+export function getBoolFromPreferences(userPreferences: PreferencesType, category: string, name: string, defaultValue = false): boolean {
+    const value = getFromPreferences(userPreferences, category, name, String(defaultValue));
+    return value !== 'false';
+}
+
 export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0): number {
     const value = get(state, category, name, defaultValue);
     return parseInt(value, 10);
