@@ -7968,10 +7968,6 @@
     "translation": "Покана от защитена връзка"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не може да дешифрира поканата. Неправилна парола или повредена покана: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[действие]"
   },

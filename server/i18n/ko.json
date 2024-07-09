@@ -6980,10 +6980,6 @@
     "translation": "보안 연결에서 초대"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "초대를 해독할 수 없습니다. 잘못된 암호 또는 손상 초대: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "보안 연결을 가져올 수 없음: {{.Error}}"
   },
