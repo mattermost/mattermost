@@ -11,9 +11,161 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
 )
+
+func TestUserAuditable(t *testing.T) {
+	t.Run("zero value", func(t *testing.T) {
+		var u User
+		m := u.Auditable()
+		require.NotNil(t, m)
+		assert.Equal(t, "", m["remote_id"])
+	})
+
+	t.Run("values set", func(t *testing.T) {
+		id := NewId()
+		now := GetMillis()
+		u := User{
+			Id:             id,
+			CreateAt:       now,
+			UpdateAt:       now,
+			DeleteAt:       now,
+			Username:       "some user_name",
+			Password:       "some password",
+			AuthData:       NewString("some_auth_data"),
+			AuthService:    UserAuthServiceLdap,
+			Email:          "test@example.org",
+			EmailVerified:  true,
+			Position:       "some position",
+			Roles:          strings.Join([]string{ChannelAdminRoleId, SystemManagerRoleId}, ","),
+			AllowMarketing: true,
+			Props: StringMap{
+				"foo": "bar",
+			},
+			NotifyProps: StringMap{
+				"bar": "foo",
+			},
+			Locale:    DefaultLocale,
+			Timezone:  timezones.DefaultUserTimezone(),
+			MfaActive: true,
+			RemoteId:  NewString("some_remote"),
+		}
+		m := u.Auditable()
+
+		expected := map[string]any{
+			"id":              id,
+			"create_at":       now,
+			"update_at":       now,
+			"delete_at":       now,
+			"username":        "some user_name",
+			"auth_service":    "ldap",
+			"email":           "test@example.org",
+			"email_verified":  true,
+			"position":        "some position",
+			"roles":           "channel_admin,system_manager",
+			"allow_marketing": true,
+			"props": StringMap{
+				"foo": "bar",
+			},
+			"notify_props": StringMap{
+				"bar": "foo",
+			},
+			"last_password_update":       int64(0),
+			"last_picture_update":        int64(0),
+			"failed_attempts":            0,
+			"locale":                     "en",
+			"timezone":                   StringMap(timezones.DefaultUserTimezone()),
+			"mfa_active":                 true,
+			"remote_id":                  "some_remote",
+			"last_activity_at":           int64(0),
+			"is_bot":                     false,
+			"bot_description":            "",
+			"bot_last_icon_update":       int64(0),
+			"terms_of_service_id":        "",
+			"terms_of_service_create_at": int64(0),
+			"disable_welcome_email":      false,
+		}
+
+		assert.Equal(t, expected, m)
+	})
+}
+
+func TestUserLogClone(t *testing.T) {
+	t.Run("zero value", func(t *testing.T) {
+		var u User
+		l := u.LogClone()
+		require.NotNil(t, l)
+
+		m, ok := l.(map[string]interface{})
+		require.True(t, ok)
+		assert.Equal(t, "", m["remote_id"])
+	})
+
+	t.Run("values set", func(t *testing.T) {
+		id := NewId()
+		now := GetMillis()
+
+		u := User{
+			Id:             id,
+			CreateAt:       now,
+			UpdateAt:       now,
+			DeleteAt:       now,
+			Username:       "some user_name",
+			Password:       "some password",
+			AuthData:       NewString("some_auth_data"),
+			AuthService:    UserAuthServiceLdap,
+			Email:          "test@example.org",
+			EmailVerified:  true,
+			Position:       "some position",
+			Roles:          strings.Join([]string{ChannelAdminRoleId, SystemManagerRoleId}, ","),
+			AllowMarketing: true,
+			Props: StringMap{
+				"foo": "bar",
+			},
+			NotifyProps: StringMap{
+				"bar": "foo",
+			},
+			Locale:    DefaultLocale,
+			Timezone:  timezones.DefaultUserTimezone(),
+			MfaActive: true,
+			RemoteId:  NewString("some_remote"),
+		}
+
+		l := u.LogClone()
+		m, ok := l.(map[string]interface{})
+		require.True(t, ok)
+
+		expected := map[string]any{
+			"id":              id,
+			"create_at":       now,
+			"update_at":       now,
+			"delete_at":       now,
+			"username":        "some user_name",
+			"auth_data":       "some_auth_data",
+			"auth_service":    "ldap",
+			"email":           "test@example.org",
+			"email_verified":  true,
+			"position":        "some position",
+			"roles":           "channel_admin,system_manager",
+			"allow_marketing": true,
+			"props": StringMap{
+				"foo": "bar",
+			},
+			"notify_props": StringMap{
+				"bar": "foo",
+			},
+			"locale":     "en",
+			"timezone":   StringMap(timezones.DefaultUserTimezone()),
+			"mfa_active": true,
+			"remote_id":  "some_remote",
+		}
+
+		assert.Equal(t, expected, m)
+	})
+}
 
 func TestUserDeepCopy(t *testing.T) {
 	id := NewId()
@@ -47,10 +199,17 @@ func TestUserDeepCopy(t *testing.T) {
 
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
-	user.PreSave()
+	err := user.PreSave()
+	require.Nil(t, err)
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+}
+
+func TestUserPreSavePwdTooLong(t *testing.T) {
+	user := User{Password: strings.Repeat("1234567890", 8)}
+	err := user.PreSave()
+	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
 }
 
 func TestUserPreUpdate(t *testing.T) {

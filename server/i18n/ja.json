@@ -8158,10 +8158,6 @@
     "translation": "安全な接続からの招待"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "招待を復号できませんでした。不正なパスワードか、招待が壊れています: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[アクション]"
   },
@@ -10032,5 +10028,33 @@
   {
     "id": "app.user.save.groupname.app_error",
     "translation": "そのユーザー名がすでに存在するか判断できませんでした"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "ログをバッファーに書き込めませんでした"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "パスワードの保存中に内部エラーが発生しました。"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "パスワードの保存中に内部エラーが発生しました。"
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "パスワードは72文字以内でなければなりません。"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "無効なステータスが設定されました"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "このジョブ種別を管理する権限がありません"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "ジョブの状態を更新できませんでした。無効なステータスが設定されました"
   }
 ]

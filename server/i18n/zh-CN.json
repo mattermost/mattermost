@@ -7922,10 +7922,6 @@
     "translation": "来自安全连接的邀请"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "无法解密邀请。错误的密码或破损的邀请：{{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[操作]"
   },
