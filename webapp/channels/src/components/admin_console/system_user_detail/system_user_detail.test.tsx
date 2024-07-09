@@ -16,7 +16,7 @@ import {shallowWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
 
 describe('SystemUserDetail', () => {
     const defaultProps: Props = {
-        isProOrEnterprise: false,
+        isEnterprise: false,
         userHasWriteUserPermission: false,
         mfaEnabled: false,
         patchUser: jest.fn(),

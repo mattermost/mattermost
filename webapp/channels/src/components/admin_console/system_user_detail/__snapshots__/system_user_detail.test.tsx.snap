@@ -217,6 +217,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         id="admin.user_item.manageSettings.confirm_dialog.body"
         values={
           Object {
+            "br": [Function],
             "userDisplayName": "",
           }
         }
@@ -458,6 +459,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         id="admin.user_item.manageSettings.confirm_dialog.body"
         values={
           Object {
+            "br": [Function],
             "userDisplayName": "",
           }
         }

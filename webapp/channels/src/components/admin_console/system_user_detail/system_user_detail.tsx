@@ -40,7 +40,7 @@ import type {PropsFromRedux} from './index';
 import './system_user_detail.scss';
 
 export type OwnProps = {
-    isProOrEnterprise: boolean;
+    isEnterprise: boolean;
     userHasWriteUserPermission: boolean;
 }
 
@@ -441,7 +441,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                                     {
                                         this.props.userHasWriteUserPermission &&
-                                        this.props.isProOrEnterprise &&
+                                        this.props.isEnterprise &&
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
@@ -455,16 +455,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                                     {
                                         this.props.userHasWriteUserPermission &&
-                                        !this.props.isProOrEnterprise &&
+                                        !this.props.isEnterprise &&
                                         <WithTooltip
                                             id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({
-                                                id: 'free.professional_feature.professional',
-                                                defaultMessage: 'Professional feature',
+                                                id: 'generic.enterprise_feature',
+                                                defaultMessage: 'Enterprise feature',
                                             })}
                                             hint={defineMessage({
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',
-                                                defaultMessage: 'Please upgrade to professional to manage user settings',
+                                                defaultMessage: 'Please upgrade to Enterprise to manage user settings',
                                             })}
                                             placement='top'
                                         >

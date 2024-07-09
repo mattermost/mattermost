@@ -26,7 +26,7 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const license = getLicense(state);
     const isLicensed = license.IsLicensed === 'true';
-    const isProOrEnterprise = isLicensed && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise || license.SkuShortName === LicenseSkus.E20);
+    const isEnterprise = isLicensed && (license.SkuShortName === LicenseSkus.Enterprise);
 
     const clientConfig = getConfig(state);
     const consoleAccess = getConsoleAccess(state);
@@ -34,7 +34,7 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
-        isProOrEnterprise,
+        isEnterprise,
         userHasWriteUserPermission,
     };
 }
