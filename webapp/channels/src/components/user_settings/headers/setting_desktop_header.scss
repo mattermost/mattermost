@@ -4,6 +4,14 @@
     justify-content: space-between;
 
     .userSettingDesktopHeaderInfo {
+        margin-top: -20px;
+
+        span {
+            .btn {
+                height: unset;
+            }
+        }
+
         a {
             font-size: 12px;
         }
