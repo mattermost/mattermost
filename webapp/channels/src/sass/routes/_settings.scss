@@ -75,6 +75,8 @@
         }
 
         .modal-header {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
             .adminModeBadge {
                 display: flex;
                 height: 22px;
@@ -455,11 +457,11 @@
                 }
 
                 .divider-dark {
-                    border-bottom: 1px solid #aaa;
+                    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                 }
 
                 .divider-light {
-                    border-bottom: 1px solid lightgrey;
+                    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
                     & + .divider-light {
                         display: none;

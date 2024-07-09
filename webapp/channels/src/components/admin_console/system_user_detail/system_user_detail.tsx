@@ -595,7 +595,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <FormattedMessage
                             id='admin.user_item.manageSettings.confirm_dialog.body'
                             defaultMessage="You are about to access {userDisplayName}'s account settings. Any modifications you make will take effect immediately in their account. {userDisplayName} retains the ability to view and modify these settings at any time.\n\nAre you sure you want to proceed with managing {userDisplayName}'s settings?"
-                            values={{userDisplayName: this.state.user ? getDisplayName(this.state.user) : ''}}
+                            values={{
+                                userDisplayName: this.state.user ? getDisplayName(this.state.user) : '',
+                                br: (x: React.ReactNode) => (<><br/>{x}</>),
+                            }}
                         />
                     }
                     confirmButtonText={
