@@ -176,7 +176,6 @@ jobs:
         id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
-          REPORT_TYPE: ${{ inputs.REPORT_TYPE }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT

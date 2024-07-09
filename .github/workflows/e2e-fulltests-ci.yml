@@ -135,6 +135,7 @@ jobs:
               _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
               ### For ref generation: assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
               COMMIT_SHA="$(git rev-parse --verify HEAD)"
+              REF=v9.10.0 # TODO just for testing, remove before merging!
               BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
               SERVER_IMAGE_TAG="$(cut -c2- <<<$REF)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
               SERVER_IMAGE_ORG=mattermost
