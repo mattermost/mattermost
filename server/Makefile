@@ -145,7 +145,7 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v0.28.2
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
@@ -162,6 +162,8 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 else
   ALL_PACKAGES=$(TE_PACKAGES)
 endif
+
+CONFIG_FILE_PATH ?= ./config/config.json
 
 all: run ## Alias for 'run'.
 
@@ -271,8 +273,8 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory.
 	@echo Downloading prepackaged plugins: $(PLUGIN_PACKAGES)
 	mkdir -p prepackaged_plugins
 	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
+		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
@@ -648,38 +650,39 @@ run-job-server: ## Runs the background job server.
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
 
-	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "localhost"|g' ../config/config.json
-	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' ../config/config.json
-	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' ../config/config.json
-	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' ../config/config.json
-	@sed -i'' -e 's|"UserFilter": ".*"|"UserFilter": ""|g' ../config/config.json
-	@sed -i'' -e 's|"GroupFilter": ".*"|"GroupFilter": ""|g' ../config/config.json
-	@sed -i'' -e 's|"GuestFilter": ".*"|"GuestFilter": ""|g' ../config/config.json
-	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' ../config/config.json
-	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' ../config/config.json
-	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' ../config/config.json
-	@sed -i'' -e 's|"PositionAttribute": ".*"|"PositionAttribute": "title"|g' ../config/config.json
-	@sed -i'' -e 's|"EmailAttribute": ".*"|"EmailAttribute": "mail"|g' ../config/config.json
-	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' ../config/config.json
-	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' ../config/config.json
-	@sed -i'' -e 's|"LoginIdAttribute": ".*"|"LoginIdAttribute": "uid"|g' ../config/config.json
-	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' ../config/config.json
-	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' ../config/config.json
+	# Check if jq is installed
+	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
+
+	TMPDIR=$(mktemp -d)
+	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/ldap.mmsettings.json > ${TMPDIR}/config.json
+	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
+	rm ${TMPDIR}/config.json
 
 config-saml: ## Configures SAML.
 	@echo Setting up configuration for local SAML with keycloak, please ensure your keycloak is running on http://localhost:8484
 
-	@cp build/docker/keycloak/keycloak.crt ../config/saml-idp.crt
+	# Check if jq is installed
+	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
 
-	@sed -i'' -e 's|"Verify": true|"Verify": false|g' ../config/config.json
-	@sed -i'' -e 's|"Encrypt": true|"Encrypt": false|g' ../config/config.json
-	@sed -i'' -e 's|"SignRequest": true|"SignRequest": false|g' ../config/config.json
-	@sed -i'' -e 's|"IdpURL": ".*"|"IdpURL": "http://localhost:8484/realms/mattermost/protocol/saml"|g' ../config/config.json
-	@sed -i'' -e 's|"IdpDescriptorURL": ".*"|"IdpDescriptorURL": "http://localhost:8484/realms/mattermost"|g' ../config/config.json
-	@sed -i'' -e 's|"IdpMetadataURL": ".*"|"IdpMetadataURL": "http://localhost:8484/realms/mattermost/protocol/saml/descriptor"|g' ../config/config.json
-	@sed -i'' -e 's|"ServiceProviderIdentifier": ".*"|"ServiceProviderIdentifier": "mattermost"|g' ../config/config.json
-	@sed -i'' -e 's|"AssertionConsumerServiceURL": ".*"|"AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml"|g' ../config/config.json
-	@sed -i'' -e 's|"IdpCertificateFile": ".*"|"IdpCertificateFile": "saml-idp.crt"|g' ../config/config.json
+	@cp build/docker/keycloak/keycloak.crt ./config/saml-idp.crt
+
+	TMPDIR=$(mktemp -d)
+	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/saml.mmsettings.json > ${TMPDIR}/config.json
+	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
+	rm ${TMPDIR}/config.json
+
+config-openid: ## Configures OpenID.
+	@echo Setting up configuration for local OpenID with keycloak, please ensure your keycloak is running on http://localhost:8484
+
+	# Check if jq is installed
+	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
+
+	TMPDIR=$(mktemp -d)
+	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/openid.mmsettings.json > ${TMPDIR}/config.json
+	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
+	rm ${TMPDIR}/config.json
+
+	@echo Finished setting up configuration for local OpenID with keycloak
 
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default

@@ -7864,10 +7864,6 @@
     "translation": "Convite de conexão segura"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Não foi possível descriptografar o convite. Senha incorreta ou convite corrompido: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[ação]"
   },
