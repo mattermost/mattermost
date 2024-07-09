@@ -211,6 +211,7 @@ export type ClientConfig = {
     ServiceEnvironment: string;
     UniqueEmojiReactionLimitPerPost: string;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
+    YoutubeReferrerPolicy: 'true' | 'false';
 };
 
 export type License = {
@@ -786,6 +787,7 @@ export type ExperimentalSettings = {
     DisableAppBar: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
     DelayChannelAutocomplete: boolean;
+    YoutubeReferrerPolicy: boolean;
 };
 
 export type AnalyticsSettings = {

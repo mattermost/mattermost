@@ -16,7 +16,7 @@ import {
     TeamSettings,
 } from '@mattermost/types/config';
 import testConfig from '@e2e-test.config';
-
+    
 export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
@@ -580,6 +580,7 @@ const defaultServerConfig: AdminConfig = {
         DisableAppBar: false,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
+        YoutubeReferrerPolicy: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
