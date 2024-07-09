@@ -88,11 +88,14 @@ type RedisOptions struct {
 // NewProvider creates a new CacheProvider
 func NewRedisProvider(opts *RedisOptions) Provider {
 	client := redis.NewClient(&redis.Options{
-		Addr:           opts.RedisAddr,
-		Password:       opts.RedisPassword,
-		DB:             opts.RedisDB,
-		MaxActiveConns: opts.MaxActiveConns,
-		MaxIdleConns:   opts.MaxIdleConns,
+		Addr:            opts.RedisAddr,
+		Password:        opts.RedisPassword,
+		DB:              opts.RedisDB,
+		MaxActiveConns:  opts.MaxActiveConns,
+		MaxIdleConns:    opts.MaxIdleConns,
+		// ReadTimeout:     10 * time.Second,
+		// WriteTimeout:    10 * time.Second,
+		ConnMaxIdleTime: 1 * time.Minute,
 	})
 	return &redisProvider{client: client}
 }
