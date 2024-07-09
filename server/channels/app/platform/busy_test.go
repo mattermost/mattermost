@@ -144,6 +144,9 @@ func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError)    
 func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
+func (c *ClusterMock) UploadLogs() ([]string, error) {
+	return []string{}, nil
+}
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
