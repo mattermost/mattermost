@@ -104,6 +104,10 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
     };
 
     handleSubmit = async () => {
+        if (!this.props.currentUserId) {
+            return;
+        }
+
         this.setState({isSaving: true});
 
         await this.props.savePreferences(this.props.currentUserId, [{

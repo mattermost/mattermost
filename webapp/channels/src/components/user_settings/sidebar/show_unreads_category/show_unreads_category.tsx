@@ -80,6 +80,11 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
     };
 
     handleSubmit = async () => {
+        if (!this.props.currentUserId) {
+            // Only for type safety, won't actually happen
+            return;
+        }
+
         this.setState({isSaving: true});
 
         await this.props.savePreferences(this.props.currentUserId, [{

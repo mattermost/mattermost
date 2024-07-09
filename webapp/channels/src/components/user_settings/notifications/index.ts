@@ -35,7 +35,7 @@ const mapStateToProps = (state: GlobalState, props: OwnProps) => {
     return {
         sendPushNotifications,
         enableAutoResponder,
-        isCollapsedThreadsEnabled: props.adminMode ? isCollapsedThreadsEnabledForUser(state, props.userPreferences) : isCollapsedThreadsEnabled(state),
+        isCollapsedThreadsEnabled: props.adminMode && props.userPreferences ? isCollapsedThreadsEnabledForUser(state, props.userPreferences) : isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
         isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
         isEnterpriseReady,

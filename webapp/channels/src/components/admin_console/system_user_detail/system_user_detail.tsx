@@ -39,13 +39,16 @@ import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
 
-export type Params = {
-    user_id?: UserProfile['id'];
+export type OwnProps = {
     isProOrEnterprise: boolean;
     userHasWriteUserPermission: boolean;
+}
+
+export type Params = {
+    user_id?: UserProfile['id'];
 };
 
-export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
+export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps & OwnProps;
 
 export type State = {
     user?: UserProfile;

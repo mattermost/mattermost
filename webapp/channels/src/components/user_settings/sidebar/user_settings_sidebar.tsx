@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PreferencesType} from '@mattermost/types/lib/preferences';
+import type {PreferencesType} from '@mattermost/types/preferences';
 
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 import ShowUnreadsCategory from './show_unreads_category';

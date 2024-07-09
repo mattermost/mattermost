@@ -149,7 +149,7 @@ describe('mapStateToProps', () => {
     } as unknown as GlobalState;
 
     test('configuration default to true', () => {
-        const props = mapStateToProps(initialState);
+        const props = mapStateToProps(initialState, {adminMode: false, currentUserId: ''});
         expect(props.joinLeave).toEqual('true');
     });
 
@@ -163,7 +163,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState);
+        const props = mapStateToProps(testState, {currentUserId: '', adminMode: false});
         expect(props.joinLeave).toEqual('false');
     });
 
@@ -186,7 +186,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState);
+        const props = mapStateToProps(testState, {adminMode: false, currentUserId: ''});
         expect(props.joinLeave).toEqual('true');
     });
 
@@ -204,7 +204,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState);
+        const props = mapStateToProps(testState, {adminMode: false, currentUserId: ''});
         expect(props.joinLeave).toEqual('false');
     });
 });
