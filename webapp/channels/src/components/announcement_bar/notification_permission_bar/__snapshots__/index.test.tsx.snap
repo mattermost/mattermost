@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationPermissionBar should not render the notification bar if Notifications are not supported 1`] = `<div />`;
+
+exports[`NotificationPermissionBar should not render the notification bar if user is not logged in 1`] = `<div />`;
+
+exports[`NotificationPermissionBar should render the notification bar when conditions are met 1`] = `
+<div>
+  <div
+    class="_StyledDiv-BRlth ksRYxX announcement-bar"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <i
+        class="icon icon-alert-circle-outline"
+      />
+      <span>
+        We need your permission to show desktop notifications.
+      </span>
+      <button>
+        Enable notifications
+      </button>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
+`;

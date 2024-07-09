@@ -111,3 +111,20 @@ export function showNotification(
         };
     };
 }
+
+export function isNotificationAPISupported() {
+    return ('Notification' in window) && (typeof Notification.requestPermission === 'function');
+}
+
+export async function requestNotificationPermission() {
+    if (!isNotificationAPISupported()) {
+        return null;
+    }
+
+    try {
+        const notificationPermission = await Notification.requestPermission();
+        return notificationPermission;
+    } catch (error) {
+        return null;
+    }
+}

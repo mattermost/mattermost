@@ -3,11 +3,10 @@
 
 /* eslint-disable global-require */
 
-// to enable being a typescript file
-export const a = '';
 import configureStore from 'tests/test_store';
 
 import type {showNotification} from './notifications';
+import {isNotificationAPISupported, requestNotificationPermission} from './notifications';
 
 declare global {
     interface Window {
@@ -128,5 +127,66 @@ describe('Notifications.showNotification', () => {
 
         // Try again
         await expect(store.dispatch(Notifications.showNotification())).resolves.toBeTruthy();
+    });
+});
+
+describe('Notifications.isNotificationAPISupported', () => {
+    beforeEach(() => {
+        window.Notification = {
+            requestPermission: jest.fn(),
+        };
+    });
+
+    afterEach(() => {
+        delete (window as any).Notification;
+    });
+
+    it('should return true if Notification is supported', () => {
+        expect(isNotificationAPISupported()).toBe(true);
+    });
+
+    it('should return false if Notification is not supported', () => {
+        delete (window as any).Notification;
+
+        expect(isNotificationAPISupported()).toBe(false);
+    });
+
+    it('should return false if requestPermission is not a function', () => {
+        (window as any).Notification = {};
+
+        expect(isNotificationAPISupported()).toBe(false);
+    });
+});
+
+describe('Notifications.requestNotificationPermission', () => {
+    beforeEach(() => {
+        (window as any).Notification = {
+            requestPermission: jest.fn(),
+        };
+    });
+
+    afterEach(() => {
+        delete (window as any).Notification;
+    });
+
+    it('should return the permission if Notification.requestPermission resolves', async () => {
+        (window as any).Notification.requestPermission = jest.fn().mockResolvedValue('granted');
+
+        const permission = await requestNotificationPermission();
+        expect(permission).toBe('granted');
+    });
+
+    it('should return null if Notification is not supported', async () => {
+        delete (window as any).Notification;
+
+        const permission = await requestNotificationPermission();
+        expect(permission).toBeNull();
+    });
+
+    it('should return null if requestPermission throws an error', async () => {
+        (window as any).Notification.requestPermission = jest.fn().mockRejectedValue('some error');
+
+        const permission = await requestNotificationPermission();
+        expect(permission).toBeNull();
     });
 });
