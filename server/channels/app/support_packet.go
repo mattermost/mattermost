@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"path"
 	"runtime"
 	"runtime/pprof"
 	"strings"
@@ -58,6 +59,35 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 
 		if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
+		}
+	}
+
+	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
+		logFiles, err := a.Cluster().UploadLogs()
+		if err != nil {
+			c.Logger().Error("TODO1 ", mlog.Err(err))
+			warnings = append(warnings, err.Error())
+		}
+
+		for _, logFile := range logFiles {
+			b, err := a.FileBackend().ReadFile(path.Join("logs", logFile))
+			if err != nil {
+				c.Logger().Error("TODO 2", mlog.Err(err))
+				warnings = append(warnings, err.Error())
+				continue
+			}
+
+			fileDatas = append(fileDatas, model.FileData{
+				Filename: logFile,
+				Body:     b,
+			})
+
+			err = a.FileBackend().RemoveFile(path.Join("logs", logFile))
+			if err != nil {
+				c.Logger().Error("TODO 3", mlog.Err(err))
+				warnings = append(warnings, err.Error())
+				continue
+			}
 		}
 	}
 

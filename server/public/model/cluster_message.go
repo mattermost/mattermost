@@ -45,6 +45,8 @@ const (
 	// Gossip communication
 	ClusterGossipEventRequestGetLogs            = "gossip_request_get_logs"
 	ClusterGossipEventResponseGetLogs           = "gossip_response_get_logs"
+	ClusterGossipEventRequestUploadLogs         = "gossip_request_upload_logs"
+	ClusterGossipEventResponseUploadLogs        = "gossip_response_upload_logs"
 	ClusterGossipEventRequestGetClusterStats    = "gossip_request_cluster_stats"
 	ClusterGossipEventResponseGetClusterStats   = "gossip_response_cluster_stats"
 	ClusterGossipEventRequestGetPluginStatuses  = "gossip_request_plugin_statuses"
