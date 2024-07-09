@@ -119,7 +119,7 @@ jobs:
               _IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # The variable's value is 'UNSTABLE' if report type is for unstable tests, otherwise it's empty
               _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
               ### For ref generation: ignore both 'inputs.PR_NUMBER' and 'inputs.ref', and use master branch directly. Note that the commit_sha is still used for reporting the test result, and for the testing scripts and test cases
-              COMMIT_SHA="$(git rev-parse --verify master)"
+              COMMIT_SHA="$(git rev-parse --verify origin/master)"
               BRANCH=master
               SERVER_IMAGE_TAG=master
               SERVER_IMAGE_ORG=mattermostdevelopment
