@@ -147,7 +147,7 @@ jobs:
               COMPUTED_REPORT_TYPE=RELEASE
               ### Run sanity assertions after variable generations
               git show-ref --verify "refs/tags/${REF}"     # 'inputs.ref' must be a tag, for release report types
-              git show-ref --verify "refs/heads/${BRANCH}" # The release branch computed from the given tag must exist
+              git show-ref --verify "refs/remotes/origin/${BRANCH}" # The release branch computed from the given tag must exist
               ;;
             *)
               echo "Fatal: unimplemented test type. Aborting."
