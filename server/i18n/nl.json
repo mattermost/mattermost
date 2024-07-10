@@ -10076,5 +10076,37 @@
   {
     "id": "model.user.pre_save.password_too_long.app_error",
     "translation": "Je wachtwoord mag niet meer dan 72 tekens bevatten."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Kon de url van de instantie-site niet ophalen"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Kan de uitnodiging voor de externe cluster niet accepteren"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Kon de base64 string niet decoderen"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster is niet verwijderd"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Kan de uitnodiging van de externe cluster niet versleutelen met het opgegeven wachtwoord"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Externe Cluster niet gevonden"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Kon de uitnodiging voor de externe cluster niet decoderen met het opgegeven wachtwoord"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Kan aangepaste status niet instellen."
   }
 ]
