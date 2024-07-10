@@ -79,7 +79,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchContainer().click();
 
         // * Verify Accessibility support in search input
-        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search')
+        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search');
         cy.uiGetSearchBox().find('input').focus();
         cy.get('#searchHints').should('be.visible');
 

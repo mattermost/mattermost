@@ -82,8 +82,8 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
         if (label) {
             label = label.toLowerCase();
         }
-        return label
-    }
+        return label;
+    };
 
     if ((searchType === '' || searchType === 'messages' || searchType === 'files') && providerResults) {
         return (

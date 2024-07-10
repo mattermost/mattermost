@@ -140,7 +140,6 @@ const NewSearch = (): JSX.Element => {
     const runSearch = useCallback((searchType: string, searchTerms: string) => {
         dispatch(updateSearchType(searchType));
         dispatch(updateSearchTerms(searchTerms));
-        console.log(searchType, searchTerms)
 
         if (searchType === '' || searchType === 'messages' || searchType === 'files') {
             dispatch(showSearchResults(false));

@@ -29,7 +29,7 @@ describe('Search', () => {
         cy.uiGetSearchContainer().should('be.visible').click();
         cy.uiGetSearchBox().
             type(`${term}{enter}`).
-            wait(TIMEOUTS.ONE_SEC)
+            wait(TIMEOUTS.ONE_SEC);
         cy.uiGetSearchContainer().should('be.visible').click();
         cy.uiGetSearchBox().clear();
 

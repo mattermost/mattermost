@@ -37,12 +37,12 @@ describe('Search', () => {
         // # Post a message
         cy.postMessage(searchWord);
 
-        cy.uiGetSearchContainer().click()
+        cy.uiGetSearchContainer().click();
 
         // * Search word in searchBox and validate searchWord
-        cy.uiGetSearchBox().find('input').type(searchWord + '{enter}')
+        cy.uiGetSearchBox().find('input').type(searchWord + '{enter}');
 
-        cy.uiGetSearchContainer().click()
+        cy.uiGetSearchContainer().click();
         cy.uiGetSearchBox().find('input').should('have.value', searchWord);
 
         // # Click on "x" displayed on searchbox
@@ -53,7 +53,7 @@ describe('Search', () => {
         // # RHS should be visible with search results
         cy.get('#search-items-container').should('be.visible');
 
-        cy.uiGetSearchContainer().click()
+        cy.uiGetSearchContainer().click();
 
         assertSearchHintFilesOrMessages();
     });
@@ -74,7 +74,7 @@ describe('Search', () => {
             // # Visit town-square.
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
-            cy.uiGetSearchContainer().click()
+            cy.uiGetSearchContainer().click();
 
             // # Search for posts from that user
             cy.uiGetSearchBox().find('input').type(testSearch, {force: true}).wait(TIMEOUTS.HALF_SEC);
@@ -92,7 +92,7 @@ describe('Search', () => {
             cy.get('#search-items-container').should('be.visible');
 
             // * Search query clear icon is still present
-            cy.uiGetSearchContainer().click()
+            cy.uiGetSearchContainer().click();
 
             // # Hover search query clear icon
             cy.get('.input-clear-x').first().trigger('mouseover', {force: true}).then(($span) => {
@@ -110,7 +110,7 @@ describe('Search', () => {
         cy.postMessage('hello');
 
         // # Click on searchbox
-        cy.uiGetSearchContainer().should('be.visible').click()
+        cy.uiGetSearchContainer().should('be.visible').click();
 
         // * Check the contents in search options
         assertSearchHintFilesOrMessages();
@@ -164,7 +164,7 @@ describe('Search', () => {
         // # Post message
         cy.postMessage(testMessage);
 
-        cy.uiGetSearchContainer().click()
+        cy.uiGetSearchContainer().click();
 
         // # Search for `Hell*`
         cy.uiGetSearchBox().find('input').type('Hell*{enter}').wait(TIMEOUTS.HALF_SEC);

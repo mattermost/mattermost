@@ -96,7 +96,7 @@ describe('Leave an archived channel', () => {
                 cy.visit(previousChannel);
 
                 // # Search for content from an archived channel
-                cy.uiGetSearchContainer().click()
+                cy.uiGetSearchContainer().click();
                 cy.uiGetSearchBox().find('input').clear().type(`${messageD}{enter}`);
 
                 // # Open the channel from search results
@@ -108,7 +108,7 @@ describe('Leave an archived channel', () => {
                 cy.url().should('contain', `${testTeam.name}/channels/${archivedChannelD.name}`);
 
                 // # Search for content from a different archived channel
-                cy.uiGetSearchContainer().click()
+                cy.uiGetSearchContainer().click();
                 cy.uiGetSearchBox().find('input').clear().type(`${messageC}{enter}`);
 
                 // # Open the channel from search result by clicking Jump

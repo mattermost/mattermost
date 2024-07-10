@@ -89,6 +89,7 @@ describe('Search', () => {
             cy.uiGetPostTextBox().clear().type('{enter}');
 
             cy.uiGetSearchContainer().should('be.visible').click();
+
             //# Type "in:" text in search input
             cy.uiGetSearchBox().find('input').type('in:');
 
@@ -100,7 +101,7 @@ describe('Search', () => {
             cy.uiGetSearchBox().find('.suggestion-list__main').contains(sortedUsernames.join(',')).click();
 
             //# Search for the message
-            cy.uiGetSearchBox().find('input').type(`word-file{enter}`);
+            cy.uiGetSearchBox().find('input').type('word-file{enter}');
 
             // # Click the files tab
             cy.get('.files-tab').should('be.visible').click();

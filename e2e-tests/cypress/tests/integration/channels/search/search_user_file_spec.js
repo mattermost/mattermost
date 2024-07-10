@@ -59,7 +59,7 @@ describe('Search in DMs', () => {
         cy.get('.post-image__thumbnail').should('be.visible');
         cy.uiGetPostTextBox().clear().type('{enter}');
 
-        cy.uiGetSearchContainer().should('be.visible').click()
+        cy.uiGetSearchContainer().should('be.visible').click();
 
         // # Type `in:` in searchbox
         cy.uiGetSearchBox().find('input').type('in:');
