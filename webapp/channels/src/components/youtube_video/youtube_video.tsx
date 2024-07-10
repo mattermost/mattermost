@@ -15,7 +15,7 @@ type Props = {
     link: string;
     show: boolean;
     metadata?: OpenGraphMetadata;
-    youtubeReferrerPolicy: boolean;
+    youtubeReferrerPolicy?: boolean;
 }
 
 type State = {
