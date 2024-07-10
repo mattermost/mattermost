@@ -212,6 +212,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		// save the updated username and email in props
 		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
 		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		// TODO:  MM-59398:  allow patching username with munged, unique name
 
 		patch := &model.UserPatch{
 			Nickname:  &user.Nickname,
