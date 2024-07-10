@@ -8043,10 +8043,6 @@
     "translation": "Güvenli bağlantıdan davet"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Davetin şifresi çözülemedi. Parola yanlış ya da davet bozuk: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },

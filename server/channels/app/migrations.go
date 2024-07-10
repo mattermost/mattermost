@@ -598,7 +598,7 @@ func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", err)
+		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", appErr)
 	}
 
 	return nil
@@ -619,7 +619,7 @@ func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for deleting empty drafts: %w", err)
+		return fmt.Errorf("failed to start job for deleting empty drafts: %w", appErr)
 	}
 
 	return nil
@@ -640,7 +640,7 @@ func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", err)
+		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", appErr)
 	}
 
 	return nil
