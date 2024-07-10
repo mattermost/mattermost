@@ -72,6 +72,14 @@
             flex-direction: column;
             padding: 0;
             margin: 0 auto;
+
+            .loadingIndicator {
+                display: block;
+                width: 32px;
+                height: 32px;
+                margin: 36px auto 48px;
+                font-size: 32px;
+            }
         }
 
         .modal-header {
