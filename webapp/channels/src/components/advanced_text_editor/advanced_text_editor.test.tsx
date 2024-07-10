@@ -19,8 +19,6 @@ import type {PostDraft} from 'types/store/draft';
 
 import AdavancedTextEditor from './advanced_text_editor';
 
-global.ResizeObserver = require('resize-observer-polyfill');
-
 const currentUserId = 'current_user_id';
 const channelId = 'current_channel_id';
 
