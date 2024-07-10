@@ -411,8 +411,6 @@ if (targetIsDevServer) {
                 '/api': {
                     ...proxyToServer,
                     ws: true,
-                    changeOrigin: true,
-                    secure: false,
                 },
                 '/plugins': proxyToServer,
                 '/static/plugins': proxyToServer,
