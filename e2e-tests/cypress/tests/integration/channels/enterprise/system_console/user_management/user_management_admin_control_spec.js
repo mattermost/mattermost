@@ -44,7 +44,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
         gotoUserConfigurationPage(testUser);
 
-        openManageUserSettingModal(testUser);
+        verifyManageUserSettingModal(testUser);
 
         cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
         cy.get('#notificationCommentsNever').should('be.checked');
@@ -83,7 +83,7 @@ describe('User Management', () => {
         cy.url().should('include', `user_management/user/${user.id}`);
     }
 
-    function openManageUserSettingModal(user) {
+    function verifyManageUserSettingModal(user) {
         cy.get('.manageUserSettingsBtn').should('be.visible').should('have.text', 'Manage User Settings').click();
         cy.get('#confirmModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
 
@@ -135,7 +135,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
 
         gotoUserConfigurationPage(user);
-        openManageUserSettingModal(user);
+        verifyManageUserSettingModal(user);
         cy.apiLogout();
     }
 });
