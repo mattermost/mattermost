@@ -10066,5 +10066,37 @@
   {
     "id": "api.user.update_password.password_hash.app_error",
     "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Не удалось принять приглашение удаленного кластера"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Не удалось декодировать строку base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Удаленный (remote) кластер не был удален"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Не удалось зашифровать приглашение на удаленный кластер с помощью предоставленного пароля"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Удаленный (remote) кластер не найден"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Невозможно установить пользовательский статус."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Не удалось получить URL сайта экземпляра"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Не удалось расшифровать приглашение удаленного кластера с помощью предоставленного пароля"
   }
 ]
