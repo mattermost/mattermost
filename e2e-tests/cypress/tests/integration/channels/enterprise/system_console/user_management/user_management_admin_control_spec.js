@@ -38,7 +38,7 @@ describe('User Management', () => {
         });
     });
 
-    it('Verify manage user\'s settins option is visible in the user configuration page', () => {
+    it('Verify Admin can change user\'s settings from the user management in admin console', () => {
         cy.apiAdminLogin();
 
         cy.visit('/admin_console/user_management/users');
