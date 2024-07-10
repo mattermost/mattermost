@@ -26,6 +26,7 @@ export interface Props {
     onEmojiClose: () => void;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
+    onAddCustomEmojiClick?: () => void;
     enableGifPicker?: boolean;
 }
 
@@ -176,6 +177,7 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                     onEmojiClick={this.props.onEmojiClick}
                     handleFilterChange={this.handleFilterChange}
                     handleEmojiPickerClose={this.handleEmojiPickerClose}
+                    onAddCustomEmojiClick={this.props.onAddCustomEmojiClick}
                 />
             </div>
         );

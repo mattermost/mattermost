@@ -1687,10 +1687,6 @@
     "translation": "Πρόσκληση από ασφαλή σύνδεση"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Δεν ήταν δυνατή η αποκρυπτογράφηση πρόσκλησης. Εσφαλμένος κωδικός πρόσβασης ή κατεστραμμένη πρόσκληση: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[ενέργεια]"
   },

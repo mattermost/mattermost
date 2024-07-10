@@ -10,6 +10,7 @@ import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/type
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
@@ -313,6 +314,12 @@ export default class Client4 {
 
     getChannelSchemeRoute(channelId: string) {
         return `${this.getChannelRoute(channelId)}/scheme`;
+    }
+    getChannelBookmarksRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks`;
+    }
+    getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -1605,7 +1612,15 @@ export default class Client4 {
         includeDeleted: boolean | undefined,
         excludePolicyConstrained: boolean | undefined
     ): Promise<ChannelsWithTotalCount>;
-    getAllChannels(page = 0, perPage = PER_PAGE_DEFAULT, notAssociatedToGroup = '', excludeDefaultChannels = false, includeTotalCount = false, includeDeleted = false, excludePolicyConstrained = false) {
+    getAllChannels(
+        page = 0,
+        perPage = PER_PAGE_DEFAULT,
+        notAssociatedToGroup = '',
+        excludeDefaultChannels = false,
+        includeTotalCount = false,
+        includeDeleted = false,
+        excludePolicyConstrained = false,
+    ) {
         const queryData = {
             page,
             per_page: perPage,
@@ -1811,6 +1826,16 @@ export default class Client4 {
         );
     };
 
+    addToChannels = (userIds: string[], channelId: string, postRootId = '') => {
+        this.trackEvent('api', 'api_channels_add_members', {channel_id: channelId});
+
+        const members = {user_ids: userIds, channel_id: channelId, post_root_id: postRootId};
+        return this.doFetch<ChannelMembership[]>(
+            `${this.getChannelMembersRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(members)},
+        );
+    };
+
     addToChannel = (userId: string, channelId: string, postRootId = '') => {
         this.trackEvent('api', 'api_channels_add_member', {channel_id: channelId});
 
@@ -1951,7 +1976,44 @@ export default class Client4 {
         );
     };
 
-    // Channel Category Routes
+    // Channel Bookmark Routes
+
+    getChannelBookmarks = (channelId: string, bookmarksSince?: number) => {
+        return this.doFetch<ChannelBookmark[]>(
+            `${this.getChannelBookmarksRoute(channelId)}${buildQueryString({bookmarks_since: bookmarksSince})}`,
+            {method: 'get'},
+        );
+    };
+
+    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmarkCreate, connectionId: string) => {
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarksRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(channelBookmark), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    deleteChannelBookmark = (channelId: string, channelBookmarkId: string, connectionId: string) => {
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+            {method: 'delete', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
+        return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
+            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number, connectionId: string) => {
+        return this.doFetch<ChannelBookmark[]>(
+            `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
+            {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    //  Channel Category Routes
 
     getChannelCategories = (userId: string, teamId: string) => {
         return this.doFetch<OrderedChannelCategories>(
@@ -2373,7 +2435,7 @@ export default class Client4 {
         return url;
     }
 
-    uploadFile = (fileFormData: any) => {
+    uploadFile = (fileFormData: any, isBookmark?: boolean) => {
         this.trackEvent('api', 'api_files_upload');
         const request: any = {
             method: 'post',
@@ -2381,7 +2443,7 @@ export default class Client4 {
         };
 
         return this.doFetch<FileUploadResponse>(
-            `${this.getFilesRoute()}`,
+            `${this.getFilesRoute()}${buildQueryString({bookmark: isBookmark})}`,
             request,
         );
     };
