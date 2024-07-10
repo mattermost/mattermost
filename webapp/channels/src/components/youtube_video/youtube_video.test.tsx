@@ -66,6 +66,17 @@ describe('YoutubeVideo', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', () => {
+        const wrapper = shallow(
+            <YoutubeVideo
+                {...baseProps}
+                youtubeReferrerPolicy={true}
+            />,
+        );
+        wrapper.setState({playing: true});
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should use url if secure_url is not present', () => {
         const props = {
             ...baseProps,
