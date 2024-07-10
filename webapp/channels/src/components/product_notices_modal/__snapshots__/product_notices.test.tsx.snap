@@ -7,6 +7,7 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
   bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <span>
       Download
@@ -56,6 +57,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
     </React.Fragment>
   }
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Done"
@@ -83,7 +85,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
       message="descr"
     />
   </span>
-  <ExternalLink
+  <ForwardRef
     className="GenericModal__button actionButton"
     href="http://download.com/path"
     id="actionButton"
@@ -91,7 +93,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
     onClick={[Function]}
   >
     Download
-  </ExternalLink>
+  </ForwardRef>
   <div
     className="productNotices__imageDiv"
   />
@@ -125,6 +127,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
   bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <React.Fragment>
       <Memo(MemoizedFormattedMessage)
@@ -154,7 +157,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
       message="your eyes only! [test](https://test.com)"
     />
   </span>
-  <ExternalLink
+  <ForwardRef
     className="GenericModal__button actionButton"
     href="http://download.com/path"
     id="actionButton"
@@ -162,7 +165,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
     onClick={[Function]}
   >
     Download
-  </ExternalLink>
+  </ForwardRef>
   <div
     className="productNotices__imageDiv"
   >

@@ -568,6 +568,10 @@ func (c *Client4) exportRoute(name string) string {
 	return fmt.Sprintf(c.exportsRoute()+"/%v", name)
 }
 
+func (c *Client4) remoteClusterRoute() string {
+	return "/remotecluster"
+}
+
 func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
@@ -3730,6 +3734,23 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 	return ch, BuildResponse(r), nil
 }
 
+// AddChannelMembers adds users to a channel and return an array of channel members.
+func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId string, userIds []string) ([]*ChannelMember, *Response, error) {
+	requestBody := map[string]any{"user_ids": userIds, "post_root_id": postRootId}
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", StringInterfaceToJSON(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelMember
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("AddChannelMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
 func (c *Client4) AddChannelMemberWithRootId(ctx context.Context, channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
@@ -5860,6 +5881,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	}
 	defer closeBody(r)
 	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
+}
+
+// Download logs as mattermost.log file
+func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, "/logs/download", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DownloadLogs", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -8667,10 +8702,158 @@ func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (Re
 	return rci, BuildResponse(r), nil
 }
 
+func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filter RemoteClusterQueryFilter) ([]*RemoteCluster, *Response, error) {
+	v := url.Values{}
+	if page != 0 {
+		v.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		v.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	if filter.ExcludeOffline {
+		v.Set("exclude_offline", "true")
+	}
+	if filter.InChannel != "" {
+		v.Set("in_channel", filter.InChannel)
+	}
+	if filter.NotInChannel != "" {
+		v.Set("not_in_channel", filter.NotInChannel)
+	}
+	if filter.Topic != "" {
+		v.Set("topic", filter.Topic)
+	}
+	if filter.CreatorId != "" {
+		v.Set("creator_id", filter.CreatorId)
+	}
+	if filter.OnlyConfirmed {
+		v.Set("only_confirmed", "true")
+	}
+	if filter.PluginID != "" {
+		v.Set("plugin_id", filter.PluginID)
+	}
+	if filter.OnlyPlugins {
+		v.Set("only_plugins", "true")
+	}
+	if filter.ExcludePlugins {
+		v.Set("exclude_plugins", "true")
+	}
+	url := c.remoteClusterRoute()
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rcs []*RemoteCluster
+	json.NewDecoder(r.Body).Decode(&rcs)
+
+	return rcs, BuildResponse(r), nil
+}
+
+func (c *Client4) CreateRemoteCluster(ctx context.Context, rcWithPassword *RemoteClusterWithPassword) (*RemoteClusterWithInvite, *Response, error) {
+	rcJSON, err := json.Marshal(rcWithPassword)
+	if err != nil {
+		return nil, nil, NewAppError("CreateRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.remoteClusterRoute(), string(rcJSON))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rcWithInvite RemoteClusterWithInvite
+	if err := json.NewDecoder(r.Body).Decode(&rcWithInvite); err != nil {
+		return nil, nil, NewAppError("CreateRemoteCluster", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &rcWithInvite, BuildResponse(r), nil
+}
+
+func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite *RemoteClusterAcceptInvite) (*RemoteCluster, *Response, error) {
+	rcAcceptInviteJSON, err := json.Marshal(rcAcceptInvite)
+	if err != nil {
+		return nil, nil, NewAppError("RemoteClusterAcceptInvite", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	url := fmt.Sprintf("%s/accept_invite", c.remoteClusterRoute())
+	r, err := c.DoAPIPost(ctx, url, string(rcAcceptInviteJSON))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rc RemoteCluster
+	if err := json.NewDecoder(r.Body).Decode(&rc); err != nil {
+		return nil, nil, NewAppError("RemoteClusterAcceptInvite", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &rc, BuildResponse(r), nil
+}
+
+func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteClusterId, password string) (string, *Response, error) {
+	url := fmt.Sprintf("%s/%s/generate_invite", c.remoteClusterRoute(), remoteClusterId)
+	r, err := c.DoAPIPost(ctx, url, MapToJSON(map[string]string{"password": password}))
+	if err != nil {
+		return "", BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		return "", nil, NewAppError("GenerateRemoteClusterInvite", "api.read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return string(b), BuildResponse(r), nil
+}
+
+func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) (*RemoteCluster, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rc *RemoteCluster
+	json.NewDecoder(r.Body).Decode(&rc)
+
+	return rc, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string, patch *RemoteClusterPatch) (*RemoteCluster, *Response, error) {
+	patchJSON, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("PatchRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	url := fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId)
+	r, err := c.DoAPIPatchBytes(ctx, url, patchJSON)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rc RemoteCluster
+	if err := json.NewDecoder(r.Body).Decode(&rc); err != nil {
+		return nil, nil, NewAppError("PatchRemoteCluster", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &rc, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.permissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, err := c.DoAPIGet(ctx, url, "")
+	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
+	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}
