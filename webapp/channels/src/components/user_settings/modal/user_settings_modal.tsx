@@ -36,6 +36,8 @@ export type Props = OwnProps & {
     intl: IntlShape;
     actions: {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
+        getUserPreferences: (userID: string) => Promise<unknown>;
+        getUser: (userID: string) => Promise<unknown>;
     };
     pluginSettings: {[pluginId: string]: PluginConfiguration};
 }
@@ -91,6 +93,16 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
+        if (this.props.adminMode && this.props.userID) {
+            if (!this.props.userPreferences) {
+                this.props.actions.getUserPreferences(this.props.userID);
+            }
+
+            if (!this.props.currentUser) {
+                this.props.actions.getUser(this.props.userID);
+            }
+        }
+
         document.addEventListener('keydown', this.handleKeyDown);
     }
 

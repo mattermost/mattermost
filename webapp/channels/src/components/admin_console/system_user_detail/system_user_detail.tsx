@@ -312,20 +312,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             return;
         }
 
-        try {
-            const {data, error} = await this.props.getUserPreferences(this.state.user.id);
-            if (!data) {
-                throw new Error(error ? error.message : 'Unknown error');
-            }
-        } catch (error) {
-            console.log('SystemUserDetails-toggleOpenManageUserSettingsModal: ', error); // eslint-disable-line no-console
-
-            this.setState({
-                isLoading: false,
-                error: this.props.intl.formatMessage({id: 'admin.user_item.userNotFound', defaultMessage: 'Cannot load User'}),
-            });
-        }
-
         this.props.openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
             dialogType: UserSettingsModal,
