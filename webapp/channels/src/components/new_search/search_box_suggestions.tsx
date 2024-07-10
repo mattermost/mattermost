@@ -93,28 +93,37 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
                     if (!providerResults.component) {
                         return null;
                     }
+                    if (idx !== selectedOption) {
+                        return null;
+                    }
+                    return (
+                        <div
+                            aria-live='polite'
+                            role='alert'
+                            className='sr-only'
+                            key={providerResults.terms[idx]}
+                        >
+                            {idx === selectedOption ? generateLabel(item) : ''}
+                        </div>
+                    );
+                })}
+                {providerResults.items.map((item, idx) => {
+                    if (!providerResults.component) {
+                        return null;
+                    }
                     const Component = providerResults.component as React.ComponentType<SuggestionProps<any>>;
                     return (
-                        <>
-                            <div
-                                aria-live='polite'
-                                role='alert'
-                                className='sr-only'
-                            >
-                                {idx === selectedOption ? generateLabel(item) : ''}
-                            </div>
-                            <Component
-                                key={providerResults.terms[idx]}
-                                item={item as UserProfile}
-                                term={providerResults.terms[idx]}
-                                matchedPretext={providerResults.matchedPretext}
-                                isSelection={idx === selectedOption}
-                                onClick={updateSearchValue}
-                                onMouseMove={() => {
-                                    setSelectedOption(idx);
-                                }}
-                            />
-                        </>
+                        <Component
+                            key={providerResults.terms[idx]}
+                            item={item as UserProfile}
+                            term={providerResults.terms[idx]}
+                            matchedPretext={providerResults.matchedPretext}
+                            isSelection={idx === selectedOption}
+                            onClick={updateSearchValue}
+                            onMouseMove={() => {
+                                setSelectedOption(idx);
+                            }}
+                        />
                     );
                 })}
             </SuggestionsBody>
