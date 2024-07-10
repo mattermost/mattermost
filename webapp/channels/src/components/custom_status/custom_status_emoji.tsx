@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -45,6 +45,37 @@ function CustomStatusEmoji({
 
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, customStatus));
     const customStatusEnabled = useSelector(isCustomStatusEnabled);
+
+    const [placement, setPlacement] = useState('bottom');
+    const emojiRef = useRef<HTMLSpanElement>(null);
+
+    const handleMouseEnter = useCallback(() => {
+        if (emojiRef.current) {
+            const boundingRect = emojiRef.current.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const threshold = windowHeight * 0.8;
+
+            if (boundingRect.bottom >= threshold) {
+                setPlacement('top');
+            } else {
+                setPlacement('bottom');
+            }
+        }
+    }, [emojiRef]);
+
+    useEffect(() => {
+        const emojiElement = emojiRef.current;
+        if (emojiElement) {
+            emojiElement.addEventListener('mouseenter', handleMouseEnter);
+        }
+
+        return () => {
+            if (emojiElement) {
+                emojiElement.removeEventListener('mouseenter', handleMouseEnter);
+            }
+        };
+    }, [handleMouseEnter, emojiRef.current]);
+
     if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
         return null;
     }
@@ -78,23 +109,26 @@ function CustomStatusEmoji({
                         )}
                     </div>
                     {customStatus.expires_at &&
-                        customStatus.duration !==
-                            CustomStatusDuration.DONT_CLEAR && (
+                        customStatus.duration !== 
+                        CustomStatusDuration.DONT_CLEAR && (
                         <div>
                             <ExpiryTime
                             time={customStatus.expires_at}
                             timezone={timezone}
                             className='custom-status-expiry'
-                        />
+                            />
                         </div>
                     )}
                 </>
             }
             emoji={customStatus.emoji}
             emojiStyle='large'
-            placement='bottom'
+            placement={placement}
         >
-            <span style={spanStyle}>{statusEmoji}</span>
+            <span
+                ref={emojiRef}
+                style={spanStyle}
+            >{statusEmoji}</span>
         </WithTooltip>
     );
 }
