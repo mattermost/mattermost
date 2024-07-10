@@ -10054,5 +10054,49 @@
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
     "translation": "Nie udało się zapisać logów do bufora"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Wystąpił wewnętrzny błąd podczas zapisywania hasła."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Wystąpił wewnętrzny błąd podczas zapisywania hasła."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Nie można uzyskać adresu URL strony instancji"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Nie można zdekodować ciągu base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Zdalny klaster nie został usunięty"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Nie znaleziono zdalnego klastra"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Nie udało się odszyfrować zaproszenia do zdalnego klastra przy użyciu podanego hasła"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Nie można ustawić niestandardowego statusu."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Nie udało się zaakceptować zaproszenia do zdalnego klastra"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Nie udało się zaszyfrować zaproszenia do zdalnego klastra przy użyciu podanego hasła"
   }
 ]
