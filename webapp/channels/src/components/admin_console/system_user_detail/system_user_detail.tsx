@@ -338,6 +338,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     render() {
+        const showManageUserSettings = this.props.userHasWriteUserPermission && this.props.isEnterprise;
+        const showLockedManageUserSettings = this.props.userHasWriteUserPermission && !this.props.isEnterprise;
+
         return (
             <div className='SystemUserDetail wrapper--fixed'>
                 <AdminHeader withBackButton={true}>
@@ -440,8 +443,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     )}
 
                                     {
-                                        this.props.userHasWriteUserPermission &&
-                                        this.props.isEnterprise &&
+                                        showManageUserSettings &&
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
@@ -454,8 +456,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     }
 
                                     {
-                                        this.props.userHasWriteUserPermission &&
-                                        !this.props.isEnterprise &&
+                                        showLockedManageUserSettings &&
                                         <WithTooltip
                                             id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({

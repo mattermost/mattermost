@@ -62,39 +62,10 @@ export function makeMapStateToProps() {
             userLocale = config.DefaultClientLocale as string;
         }
 
-        let availabilityStatusOnPosts: string;
-        let militaryTime: string;
-        let teammateNameDisplay: string;
-        let channelDisplayMode: string;
-        let messageDisplay: string;
-        let colorizeUsernames: string;
-        let collapseDisplay: string;
-        let clickToReply: string;
-        let linkPreviewDisplay: string;
-        let oneClickReactionsOnPosts: string;
-
+        let getPreference = (prefCategory: string, prefName: string, defaultValue: string) => get(state, prefCategory, prefName, defaultValue);
         if (props.adminMode && props.userPreferences) {
-            availabilityStatusOnPosts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
-            militaryTime = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT);
-            teammateNameDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay);
-            channelDisplayMode = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT);
-            messageDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT);
-            colorizeUsernames = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT);
-            collapseDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT);
-            clickToReply = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT);
-            linkPreviewDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT);
-            oneClickReactionsOnPosts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT);
-        } else {
-            availabilityStatusOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
-            militaryTime = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT);
-            teammateNameDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay);
-            channelDisplayMode = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT);
-            messageDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT);
-            colorizeUsernames = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT);
-            collapseDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT);
-            clickToReply = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT);
-            linkPreviewDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT);
-            oneClickReactionsOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT);
+            const preferences = props.userPreferences;
+            getPreference = (prefCategory: string, prefName: string, defaultValue: string) => getFromPreferences(preferences, prefCategory, prefName, defaultValue);
         }
 
         return {
@@ -112,16 +83,16 @@ export function makeMapStateToProps() {
             collapsedReplyThreadsAllowUserPreference: isCollapsedThreadsAllowed(state) && getConfig(state).CollapsedThreads !== CollapsedThreads.ALWAYS_ON,
             collapsedReplyThreads: getCollapsedThreadsPreference(state),
             currentUserTimezone: getUserCurrentTimezone(userTimezone) as string,
-            availabilityStatusOnPosts,
-            militaryTime,
-            teammateNameDisplay,
-            channelDisplayMode,
-            messageDisplay,
-            colorizeUsernames,
-            collapseDisplay,
-            clickToReply,
-            linkPreviewDisplay,
-            oneClickReactionsOnPosts,
+            availabilityStatusOnPosts: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT),
+            militaryTime: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT),
+            teammateNameDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay),
+            channelDisplayMode: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT),
+            messageDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT),
+            colorizeUsernames: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT),
+            collapseDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT),
+            clickToReply: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT),
+            linkPreviewDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT),
+            oneClickReactionsOnPosts: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT),
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,

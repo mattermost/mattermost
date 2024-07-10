@@ -39,14 +39,14 @@
 }
 
 .AdminUserCard__user-info {
+    overflow: hidden;
+    min-width: 0;
     align-self: flex-end;
     padding: 0;
     margin-left: 20px;
     color: #fff;
     font-size: 20px;
     font-weight: normal;
-    min-width: 0;
-    overflow: hidden;
     text-overflow: ellipsis;
 }
 

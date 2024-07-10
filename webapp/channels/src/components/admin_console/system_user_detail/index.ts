@@ -18,15 +18,14 @@ import {getConsoleAccess} from 'selectors/admin_console';
 
 import {it} from 'components/admin_console/admin_definition';
 
-import {LicenseSkus} from 'utils/constants';
+import {isEnterpriseOrE20License} from 'utils/license_utils';
 
 import SystemUserDetail from './system_user_detail';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const license = getLicense(state);
-    const isLicensed = license.IsLicensed === 'true';
-    const isEnterprise = isLicensed && (license.SkuShortName === LicenseSkus.Enterprise);
+    const isEnterprise = isEnterpriseOrE20License(license);
 
     const clientConfig = getConfig(state);
     const consoleAccess = getConsoleAccess(state);
