@@ -133,6 +133,7 @@ const defaultServerConfig: AdminConfig = {
         CorsDebug: false,
         AllowCookiesForSubdomains: false,
         ExtendSessionLengthWithActivity: true,
+        TerminateSessionsOnPasswordChange: false,
         SessionLengthWebInDays: 30,
         SessionLengthWebInHours: 720,
         SessionLengthMobileInDays: 30,
