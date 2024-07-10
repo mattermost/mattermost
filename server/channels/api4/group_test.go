@@ -439,6 +439,14 @@ func TestLinkGroupTeam(t *testing.T) {
 		assert.NotNil(t, groupSyncable)
 	})
 
+	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
+		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		groupSyncable, response, err = th.SystemManagerClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, groupSyncable)
+	})
+
 	t.Run("Custom groups can't be linked", func(t *testing.T) {
 		gid := model.NewId()
 		gCustom, appErr := th.App.CreateGroup(&model.Group{
@@ -550,6 +558,14 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	t.Run("System admins are allowed to link", func(t *testing.T) {
 		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, groupSyncable)
+	})
+
+	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
+		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		groupSyncable, response, err = th.SystemManagerClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		assert.NotNil(t, groupSyncable)
@@ -667,6 +683,13 @@ func TestUnlinkGroupTeam(t *testing.T) {
 		CheckOKStatus(t, response)
 	})
 
+	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
+		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		response, err = th.SystemManagerClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
 	t.Run("Custom groups can't get unlinked", func(t *testing.T) {
 		gid := model.NewId()
 		g2, appErr := th.App.CreateGroup(&model.Group{
@@ -774,6 +797,13 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	t.Run("System admins are allowed to unlink", func(t *testing.T) {
 		response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
+	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
+		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		response, err = th.SystemManagerClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 	})
