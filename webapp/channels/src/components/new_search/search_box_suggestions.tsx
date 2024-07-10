@@ -60,6 +60,31 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
         SearchPluginSuggestions = [];
     }
 
+    const generateLabel = (item: any) => {
+        let label = '';
+        if (item.username) {
+            label = item.username;
+            if ((item.first_name || item.last_name) && item.nickname) {
+                label += ` ${item.first_name} ${item.last_name} ${item.nickname}`;
+            } else if (item.nickname) {
+                label += ` ${item.nickname}`;
+            } else if (item.first_name || item.last_name) {
+                label += ` ${item.first_name} ${item.last_name}`;
+            }
+        } else if (item.type === 'D' || item.type === 'G') {
+            label = item.display_name;
+        } else if (item.type === 'P' || item.type === 'O') {
+            label = item.name;
+        } else if (item.emoji) {
+            label = item.name;
+        }
+
+        if (label) {
+            label = label.toLowerCase();
+        }
+        return label
+    }
+
     if ((searchType === '' || searchType === 'messages' || searchType === 'files') && providerResults) {
         return (
             <SuggestionsBody>
@@ -70,17 +95,26 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
                     }
                     const Component = providerResults.component as React.ComponentType<SuggestionProps<any>>;
                     return (
-                        <Component
-                            key={providerResults.terms[idx]}
-                            item={item as UserProfile}
-                            term={providerResults.terms[idx]}
-                            matchedPretext={providerResults.matchedPretext}
-                            isSelection={idx === selectedOption}
-                            onClick={updateSearchValue}
-                            onMouseMove={() => {
-                                setSelectedOption(idx);
-                            }}
-                        />
+                        <>
+                            <div
+                                aria-live='polite'
+                                role='alert'
+                                className='sr-only'
+                            >
+                                {idx === selectedOption ? generateLabel(item) : ''}
+                            </div>
+                            <Component
+                                key={providerResults.terms[idx]}
+                                item={item as UserProfile}
+                                term={providerResults.terms[idx]}
+                                matchedPretext={providerResults.matchedPretext}
+                                isSelection={idx === selectedOption}
+                                onClick={updateSearchValue}
+                                onMouseMove={() => {
+                                    setSelectedOption(idx);
+                                }}
+                            />
+                        </>
                     );
                 })}
             </SuggestionsBody>

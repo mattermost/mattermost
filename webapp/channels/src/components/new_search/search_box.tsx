@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
@@ -55,6 +56,7 @@ const CloseIcon = styled.button`
 `;
 
 const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
+    const intl = useIntl();
     const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
     const [searchType, setSearchType] = useState<string>('messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
@@ -127,7 +129,12 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
     }, [searchType]);
 
     return (
-        <SearchBoxContainer ref={ref} id='searchBox'>
+        <SearchBoxContainer
+            ref={ref}
+            id='searchBox'
+            aria-label={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+            aria-describedby='searchHints'
+        >
             <CloseIcon
                 className='btn btn-icon btn-m'
                 onClick={closeHandler}
