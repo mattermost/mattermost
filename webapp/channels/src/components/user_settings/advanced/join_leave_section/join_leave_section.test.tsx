@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import React from 'react';
-import {AdvancedSections} from 'utils/constants';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
@@ -12,6 +10,9 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import JoinLeaveSection from 'components/user_settings/advanced/join_leave_section/join_leave_section';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {AdvancedSections} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 

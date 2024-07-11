@@ -7,8 +7,6 @@ import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -21,6 +19,7 @@ import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_c
 import BlockableLink from 'components/admin_console/blockable_link';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import TeamList from 'components/admin_console/system_user_detail/team_list';
+import {ConfirmManageUserSettingsModal} from 'components/admin_console/system_users/system_users_list_actions/confirmManageUserSettingsModal';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
@@ -34,12 +33,12 @@ import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {toTitleCase} from 'utils/utils';
+
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
-import {
-    ConfirmManageUserSettingsModal,
-} from 'components/admin_console/system_users/system_users_list_actions/confirmManageUserSettingsModal';
 
 export type OwnProps = {
     isEnterprise: boolean;
