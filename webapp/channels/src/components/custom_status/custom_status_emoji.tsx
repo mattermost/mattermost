@@ -76,7 +76,7 @@ function CustomStatusEmoji({
                             emojiName={customStatus.emoji}
                             size={14}
                             emojiStyle={{
-                                marginTop: 2,
+                                marginTop: -1,
                             }}
                         />
                         {customStatus.text &&

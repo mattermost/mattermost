@@ -2293,6 +2293,30 @@ func TestRestoreChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
+	// Make BasicUser, a User Manager
+	oldRoles := th.BasicUser.Roles
+
+	// Because the permissions get set on initialization,
+	// remove the manage_team permission from the User Management Role
+	th.RemovePermissionFromRole(model.PermissionManageTeam.Id, model.SystemUserManagerRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId, false)
+	defer func() {
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, oldRoles, false)
+	}()
+	th.App.Srv().InvalidateAllCaches()
+	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+
+	_, resp, err = th.Client.RestoreChannel(context.Background(), publicChannel1.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	_, resp, err = th.Client.RestoreChannel(context.Background(), privateChannel1.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	th.Client.DeleteChannel(context.Background(), publicChannel1.Id)
+	th.Client.DeleteChannel(context.Background(), privateChannel1.Id)
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		defer func() {
 			client.DeleteChannel(context.Background(), publicChannel1.Id)
@@ -2684,6 +2708,85 @@ func TestViewChannel(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.ViewChannel(context.Background(), th.BasicUser.Id, view)
 	require.NoError(t, err)
+}
+
+func TestReadMultipleChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	user := th.BasicUser
+
+	t.Run("Should successfully mark public channels as read for self", func(t *testing.T) {
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		require.NoError(t, err)
+		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id, "")
+		require.NoError(t, err)
+
+		channelResponse, _, err := client.ReadMultipleChannels(context.Background(), user.Id, []string{channel.Id, channel2.Id})
+		require.NoError(t, err)
+		require.Equal(t, "OK", channelResponse.Status, "invalid status return")
+		require.Equal(t, channel.LastPostAt, channelResponse.LastViewedAtTimes[channel.Id], "wrong number of viewed at times")
+		require.Equal(t, channel2.LastPostAt, channelResponse.LastViewedAtTimes[channel2.Id], "wrong number of viewed at times")
+	})
+
+	t.Run("Should successfully mark private channels as read for self", func(t *testing.T) {
+		channel, _, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		require.NoError(t, err)
+
+		// private channel without membership should be ignored
+		channelResponse, _, err := client.ReadMultipleChannels(context.Background(), user.Id, []string{channel.Id, th.BasicPrivateChannel2.Id})
+		require.NoError(t, err)
+		require.Equal(t, "OK", channelResponse.Status, "invalid status return")
+		require.Equal(t, 1, len(channelResponse.LastViewedAtTimes), "unexpected response")
+		require.Equal(t, channel.LastPostAt, channelResponse.LastViewedAtTimes[channel.Id], "wrong number of viewed at times")
+	})
+
+	t.Run("Should fail marking public/private channels for other user", func(t *testing.T) {
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		require.NoError(t, err)
+
+		_, _, err = client.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id})
+		require.Error(t, err)
+	})
+
+	t.Run("Admin should succeed in marking public/private channels for other user", func(t *testing.T) {
+		adminClient := th.SystemAdminClient
+		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		require.NoError(t, err)
+		privateChannel, _, err := adminClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		require.NoError(t, err)
+
+		channelResponse, _, err := adminClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id, privateChannel.Id})
+		require.NoError(t, err)
+		require.Equal(t, "OK", channelResponse.Status, "invalid status return")
+		require.Equal(t, channel.LastPostAt, channelResponse.LastViewedAtTimes[channel.Id], "wrong number of viewed at times")
+		require.Equal(t, privateChannel.LastPostAt, channelResponse.LastViewedAtTimes[privateChannel.Id], "wrong number of viewed at times")
+	})
+
+	t.Run("SystemManager should succeed in marking public/private channels for other user", func(t *testing.T) {
+		th.LoginSystemManager()
+		sysMgrClient := th.SystemManagerClient
+
+		channel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		require.NoError(t, err)
+		privateChannel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		require.NoError(t, err)
+
+		_, _, err = sysMgrClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id, privateChannel.Id})
+		require.Error(t, err)
+	})
+
+	t.Run("SystemManager without editOtherUsers should fail in marking public/private channels for other user", func(t *testing.T) {
+		sysMgrClient := th.SystemManagerClient
+		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemManagerRoleId)
+
+		defer func() {
+			th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemManagerRoleId)
+		}()
+
+		_, _, err := sysMgrClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{th.BasicChannel.Id})
+		require.Error(t, err)
+	})
 }
 
 func TestGetChannelUnread(t *testing.T) {
