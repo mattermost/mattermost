@@ -13,7 +13,7 @@ exports[`components/FileInfoPreview should match snapshot, can download files 1`
     />
     <img
       alt="file preview"
-      src={null}
+      src=""
     />
   </a>
   <div
@@ -45,7 +45,7 @@ exports[`components/FileInfoPreview should match snapshot, cannot download files
     />
     <img
       alt="file preview"
-      src={null}
+      src=""
     />
   </span>
   <div

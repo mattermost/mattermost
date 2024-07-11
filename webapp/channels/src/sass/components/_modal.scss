@@ -165,6 +165,10 @@
             font-weight: bold;
             text-align: left;
         }
+
+        & .btn + .btn {
+            margin-left: 8px;
+        }
     }
 
     &.modal-image {

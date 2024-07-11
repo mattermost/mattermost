@@ -506,6 +506,19 @@
     }
 }
 
+.post-body__info {
+    display: flex;
+    color:  rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    gap: 4px;
+    margin-block-start: 4px;
+
+    &__icon{
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        padding-block-start: 1px;
+    }
+}
+
 .post-body__footer {
     display: inline-flex;
     align-items: center;
@@ -1048,8 +1061,7 @@
     p {
         width: 100%;
         margin: 0;
-        font-size: 13.5px;
-        line-height: 1.6em;
+        line-height: 20px;
         white-space: pre-wrap;
         word-break: break-word;
     }
@@ -1453,8 +1465,6 @@
 
         ul,
         ol {
-            font-size: 13.5px;
-
             p {
                 margin-bottom: 0;
             }

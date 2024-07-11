@@ -8424,10 +8424,6 @@
     "translation": "دعوت از اتصال امن"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "دعوت رمزگشایی نشد. رمز عبور نادرست یا دعوت نامه خراب است: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },
@@ -8518,5 +8514,9 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "شما نمی توانید یک تاییدیه را در یک کانال بایگانی شده حذف کنید."
   }
 ]
