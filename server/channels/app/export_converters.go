@@ -269,3 +269,11 @@ func ImportLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role)
 		Scheme: data,
 	}
 }
+
+func ImportFollowerFromThreadMember(threadMember *model.ThreadMembershipForExport) *imports.ThreadFollowerImportData {
+	return &imports.ThreadFollowerImportData{
+		User:           &threadMember.UserName,
+		LastViewAt:     &threadMember.LastViewed,
+		UnreadMentions: &threadMember.UnreadMentions,
+	}
+}

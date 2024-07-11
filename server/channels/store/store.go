@@ -321,6 +321,7 @@ type ChannelMemberHistoryStore interface {
 }
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
+	GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error)
 
 	Get(id string) (*model.Thread, error)
 	GetTotalUnreadThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)

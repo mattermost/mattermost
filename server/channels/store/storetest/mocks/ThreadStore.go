@@ -259,6 +259,36 @@ func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership
 	return r0, r1
 }
 
+// GetThreadMembershipsForExport provides a mock function with given fields: postID
+func (_m *ThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error) {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadMembershipsForExport")
+	}
+
+	var r0 []*model.ThreadMembershipForExport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.ThreadMembershipForExport, error)); ok {
+		return rf(postID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.ThreadMembershipForExport); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ThreadMembershipForExport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadUnreadReplyCount provides a mock function with given fields: threadMembership
 func (_m *ThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
 	ret := _m.Called(threadMembership)

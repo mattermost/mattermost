@@ -170,6 +170,8 @@ type PostImportData struct {
 	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
+
+	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
 }
 
 type DirectChannelImportData struct {
@@ -194,6 +196,8 @@ type DirectPostImportData struct {
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
+
+	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
 }
 
 type SchemeImportData struct {
@@ -235,4 +239,10 @@ type AttachmentImportData struct {
 type ComparablePreference struct {
 	Category string
 	Name     string
+}
+
+type ThreadFollowerImportData struct {
+	User           *string `json:"user"`
+	LastViewAt     *int64  `json:"last_view_at"`
+	UnreadMentions *int64  `json:"unread_mentions"`
 }

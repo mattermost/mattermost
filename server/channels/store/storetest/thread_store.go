@@ -1201,6 +1201,75 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			})
 		}
 	})
+
+	t.Run(("GetThreadMembershipsForExport"), func(t *testing.T) {
+		t.Run("Get members for thread, ensure usernames", func(t *testing.T) {
+			members, err := ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 has 1 member
+			assert.Len(t, members, 1)
+
+			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 1)
+
+			u, err := ss.User().Get(context.Background(), userIDs[0])
+			require.NoError(t, err)
+
+			assert.Equal(t, u.Username, members[0].UserName)
+
+			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post2.Id)
+			require.NoError(t, err)
+
+			// team1channel1post2 has 2 members
+			assert.Len(t, members, 2)
+
+			userIDs, err = ss.Thread().GetThreadFollowers(team1channel1post2.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 2)
+
+			for i := range userIDs {
+				u, err := ss.User().Get(context.Background(), userIDs[i])
+				require.NoError(t, err)
+
+				assert.Equal(t, u.Username, members[i].UserName)
+			}
+		})
+
+		t.Run("Get members for a thread, ensure only following members are exported", func(t *testing.T) {
+			createThreadMembership(user2ID, team1channel1post1.Id, false)
+
+			members, err := ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 should have 2 members
+			assert.Len(t, members, 2)
+
+			_, err = ss.Thread().MaintainMembership(user2ID, team1channel1post1.Id, store.ThreadMembershipOpts{
+				Following:             false,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: false,
+				UpdateParticipants:    true,
+			})
+			require.NoError(t, err)
+
+			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 should have 1 followin member
+			assert.Len(t, members, 1)
+
+			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 1)
+
+			u, err := ss.User().Get(context.Background(), userIDs[0])
+			require.NoError(t, err)
+
+			assert.Equal(t, u.Username, members[0].UserName)
+		})
+	})
 }
 
 func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store) {

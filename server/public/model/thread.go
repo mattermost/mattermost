@@ -126,3 +126,9 @@ type ThreadMembership struct {
 	// threads with the mention count.
 	UnreadMentions int64 `json:"unread_mentions"`
 }
+
+type ThreadMembershipForExport struct {
+	UserName       string `json:"user_name"`
+	LastViewed     int64  `json:"last_view"`
+	UnreadMentions int64  `json:"unread_mentions"`
+}

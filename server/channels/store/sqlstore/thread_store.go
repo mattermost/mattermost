@@ -505,6 +505,28 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	return users, nil
 }
 
+func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error) {
+	members := []*model.ThreadMembershipForExport{}
+
+	fetchConditions := sq.And{
+		sq.Eq{"PostId": postID},
+		sq.Eq{"Following": true},
+	}
+
+	query := s.getQueryBuilder().
+		Select("Users.UserName, ThreadMemberships.LastViewed, ThreadMemberships.UnreadMentions").
+		From("ThreadMemberships").
+		InnerJoin("Users ON ThreadMemberships.UserId = Users.Id").
+		Where(fetchConditions)
+
+	err := s.GetReplicaX().SelectBuilder(&members, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get thread members for thread id=%s", postID)
+	}
+
+	return members, nil
+}
+
 func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
 		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
