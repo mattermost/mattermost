@@ -142,7 +142,7 @@ const AdvanceTextEditor = ({
     const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [showPreview, setShowPreview] = useState(false);
-    const [showFormattingSpacer, setShowFormattingSpacer] = useState(showPreview);
+    const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
@@ -312,14 +312,14 @@ const AdvanceTextEditor = ({
 
         if (!hasDraftMessage) {
             // if we do not have a message we can just render the default state
-            setShowFormattingSpacer(false);
+            setIsMessageLong(false);
             return;
         }
 
         if (width >= maxWidth) {
-            setShowFormattingSpacer(true);
+            setIsMessageLong(true);
         } else {
-            setShowFormattingSpacer(false);
+            setIsMessageLong(false);
         }
     }, [hasDraftMessage]);
 
@@ -509,6 +509,7 @@ const AdvanceTextEditor = ({
         />
     );
 
+    const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
     return (
         <form
             id={postId ? undefined : 'create_post'}
@@ -587,7 +588,7 @@ const AdvanceTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
-                        {showFormattingSpacer || showPreview || attachmentPreview || isRHS ? (
+                        {showFormattingSpacer ? (
                             <FormattingBarSpacer>
                                 {formattingBar}
                             </FormattingBarSpacer>
