@@ -72,6 +72,14 @@
             flex-direction: column;
             padding: 0;
             margin: 0 auto;
+
+            .loadingIndicator {
+                display: block;
+                width: 32px;
+                height: 32px;
+                margin: 36px auto 48px;
+                font-size: 32px;
+            }
         }
 
         .modal-header {
@@ -79,10 +87,15 @@
 
             .adminModeBadge {
                 display: flex;
+                width: 86px;
+                min-width: 86px;
                 height: 22px;
                 align-items: center;
                 padding: 2px var(--spacing-xxxs, 6px);
                 border-radius: 4px;
+                margin-top: 10px;
+                margin-bottom: auto;
+                margin-left: 24px;
                 background: var(--error-text);
                 color: white;
                 font-size: 12px;

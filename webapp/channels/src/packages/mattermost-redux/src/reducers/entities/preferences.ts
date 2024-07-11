@@ -24,8 +24,8 @@ function setAllPreferences(preferences: PreferenceType[]): any {
     return nextState;
 }
 
-function setAllUserPreferences(preferences: PreferenceType[]): any {
-    const nextState: any = {};
+function setAllUserPreferences(preferences: PreferenceType[]): {[key: string]: PreferencesType} {
+    const nextState: {[key: string]: PreferencesType} = {};
     if (preferences.length === 0) {
         return nextState;
     }

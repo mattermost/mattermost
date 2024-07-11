@@ -34,33 +34,20 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
         const enableUserDeactivation = config.EnableUserDeactivation === 'true';
         const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
-        let sendOnCtrlEnter: string;
-        let codeBlockOnCtrlEnter: string;
-        let formatting: string;
-        let joinLeave: string;
-        let syncDrafts: string;
-
+        let getPreference = (prefCategory: string, prefName: string, defaultValue: string) => get(state, prefCategory, prefName, defaultValue);
         if (props.adminMode && props.userPreferences) {
-            sendOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
-            codeBlockOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
-            formatting = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
-            joinLeave = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString());
-            syncDrafts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
-        } else {
-            sendOnCtrlEnter = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
-            codeBlockOnCtrlEnter = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
-            formatting = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
-            joinLeave = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString());
-            syncDrafts = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
+            // This ties the function to the current value of userPreferences for the current execution of this function
+            const preferences = props.userPreferences;
+            getPreference = (prefCategory, prefName, defaultValue) => getFromPreferences(preferences, prefCategory, prefName, defaultValue);
         }
 
         return {
             advancedSettingsCategory: getAdvancedSettingsCategory(state, Preferences.CATEGORY_ADVANCED_SETTINGS),
-            sendOnCtrlEnter,
-            codeBlockOnCtrlEnter,
-            formatting,
-            joinLeave,
-            syncDrafts,
+            sendOnCtrlEnter: getPreference(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false'),
+            codeBlockOnCtrlEnter: getPreference(Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true'),
+            formatting: getPreference(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true'),
+            joinLeave: getPreference(Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString()),
+            syncDrafts: getPreference(Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true'),
             currentUser: props.adminMode && props.currentUser ? props.currentUser : getCurrentUser(state),
             unreadScrollPosition: props.adminMode && props.userPreferences ? getUnreadScrollPositionFromPreference(props.userPreferences) : getUnreadScrollPositionPreference(state),
             enablePreviewFeatures,

@@ -19,6 +19,7 @@ import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_c
 import BlockableLink from 'components/admin_console/blockable_link';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import TeamList from 'components/admin_console/system_user_detail/team_list';
+import {ConfirmManageUserSettingsModal} from 'components/admin_console/system_users/system_users_list_actions/confirmManageUserSettingsModal';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
@@ -33,22 +34,17 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getDisplayName, toTitleCase} from 'utils/utils';
+import {toTitleCase} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
 
-export type OwnProps = {
-    isEnterprise: boolean;
-    userHasWriteUserPermission: boolean;
-}
-
 export type Params = {
     user_id?: UserProfile['id'];
 };
 
-export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps & OwnProps;
+export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
 
 export type State = {
     user?: UserProfile;
@@ -63,7 +59,6 @@ export type State = {
     showResetPasswordModal: boolean;
     showDeactivateMemberModal: boolean;
     showTeamSelectorModal: boolean;
-    showConfirmEditUserSettingModal: boolean;
 };
 
 export class SystemUserDetail extends PureComponent<Props, State> {
@@ -81,7 +76,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             showResetPasswordModal: false,
             showDeactivateMemberModal: false,
             showTeamSelectorModal: false,
-            showConfirmEditUserSettingModal: false,
         };
     }
 
@@ -295,35 +289,23 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     openConfirmEditUserSettingsModal = () => {
-        this.setState({showConfirmEditUserSettingModal: true});
-    };
+        if (!this.state.user) {
+            return;
+        }
 
-    closeConfirmEditUserSettingsModal = () => {
-        this.setState({showConfirmEditUserSettingModal: false});
-    };
-
-    handleConfirmEditUserSettingsModal = async () => {
-        await this.openUserSettingsModal();
-        this.closeConfirmEditUserSettingsModal();
+        this.props.openModal({
+            modalId: ModalIdentifiers.CONFIRM_MANAGE_USER_SETTINGS_MODAL,
+            dialogType: ConfirmManageUserSettingsModal,
+            dialogProps: {
+                user: this.state.user,
+                onConfirm: this.openUserSettingsModal,
+            },
+        });
     };
 
     openUserSettingsModal = async () => {
         if (!this.state.user) {
             return;
-        }
-
-        try {
-            const {data, error} = await this.props.getUserPreferences(this.state.user.id);
-            if (!data) {
-                throw new Error(error ? error.message : 'Unknown error');
-            }
-        } catch (error) {
-            console.log('SystemUserDetails-toggleOpenManageUserSettingsModal: ', error); // eslint-disable-line no-console
-
-            this.setState({
-                isLoading: false,
-                error: this.props.intl.formatMessage({id: 'admin.user_item.userNotFound', defaultMessage: 'Cannot load User'}),
-            });
         }
 
         this.props.openModal({
@@ -440,8 +422,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     )}
 
                                     {
-                                        this.props.userHasWriteUserPermission &&
-                                        this.props.isEnterprise &&
+                                        this.props.showManageUserSettings &&
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
@@ -454,8 +435,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     }
 
                                     {
-                                        this.props.userHasWriteUserPermission &&
-                                        !this.props.isEnterprise &&
+                                        this.props.showLockedManageUserSettings &&
                                         <WithTooltip
                                             id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({
@@ -582,34 +562,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     onCancel={this.toggleCloseModalDeactivateMember}
                 />
 
-                <ConfirmModal
-                    show={this.state.showConfirmEditUserSettingModal}
-                    title={
-                        <FormattedMessage
-                            id='userSettings.adminMode.modal_header'
-                            defaultMessage="Manage {userDisplayName}'s Settings"
-                            values={{userDisplayName: this.state.user ? getDisplayName(this.state.user) : ''}}
-                        />
-                    }
-                    message={
-                        <FormattedMessage
-                            id='admin.user_item.manageSettings.confirm_dialog.body'
-                            defaultMessage="You are about to access {userDisplayName}'s account settings. Any modifications you make will take effect immediately in their account. {userDisplayName} retains the ability to view and modify these settings at any time.\n\nAre you sure you want to proceed with managing {userDisplayName}'s settings?"
-                            values={{
-                                userDisplayName: this.state.user ? getDisplayName(this.state.user) : '',
-                                br: (x: React.ReactNode) => (<><br/>{x}</>),
-                            }}
-                        />
-                    }
-                    confirmButtonText={
-                        <FormattedMessage
-                            id='admin.user_item.manageSettings'
-                            defaultMessage='Manage User Settings'
-                        />
-                    }
-                    onConfirm={this.handleConfirmEditUserSettingsModal}
-                    onCancel={this.closeConfirmEditUserSettingsModal}
-                />
                 {this.state.showTeamSelectorModal && (
                     <TeamSelectorModal
                         onModalDismissed={this.toggleCloseTeamSelectorModal}

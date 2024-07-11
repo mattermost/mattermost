@@ -16,23 +16,19 @@ import type {OwnProps} from './performance_debugging_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
-    const performanceDebuggingEnabled = isPerformanceDebuggingEnabled(state);
-
+    let getPreference = (prefCategory: string, prefName: string) => getBool(state, prefCategory, prefName);
     if (props.adminMode && props.currentUserId) {
         const userPreferences = getUserPreferences(state, props.currentUserId);
-        return {
-            disableClientPlugins: getBoolFromPreferences(userPreferences, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS),
-            disableTelemetry: getBoolFromPreferences(userPreferences, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TELEMETRY),
-            disableTypingMessages: getBoolFromPreferences(userPreferences, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES),
-            performanceDebuggingEnabled,
-        };
+        getPreference = (prefCategory: string, prefName: string) => getBoolFromPreferences(userPreferences, prefCategory, prefName);
     }
+
     return {
-        currentUserId: getCurrentUserId(state),
-        disableClientPlugins: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS),
-        disableTelemetry: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TELEMETRY),
-        disableTypingMessages: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES),
-        performanceDebuggingEnabled,
+        currentUserId: props.adminMode ? props.currentUserId : getCurrentUserId(state),
+        disableClientPlugins: getPreference(Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS),
+        disableTelemetry: getPreference(Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TELEMETRY),
+        disableTypingMessages: getPreference(Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES),
+        performanceDebuggingEnabled: isPerformanceDebuggingEnabled(state),
+
     };
 }
 

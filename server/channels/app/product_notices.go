@@ -28,7 +28,7 @@ const MinSecondsBetweenRepeatViewings = 60 * 60
 var noticesCache = utils.RequestCache{}
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
-	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
+	client model.NoticeClientType, serverVersion, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
 	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer, searchEngineName, searchEngineVer string,
 	notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
@@ -76,9 +76,9 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if current server version is notice range
 	if !isCloud && cnd.ServerVersion != nil {
-		serverVersion, err := semver.NewVersion(model.CurrentVersion)
+		serverVersionSemver, err := semver.NewVersion(serverVersion)
 		if err != nil {
-			mlog.Warn("Version number is not in semver format", mlog.String("version_number", model.CurrentVersion))
+			mlog.Warn("Version number is not in semver format", mlog.String("version_number", serverVersion))
 			return false, nil
 		}
 		for _, v := range cnd.ServerVersion {
@@ -86,7 +86,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 			if err != nil {
 				return false, errors.Wrapf(err, "Cannot parse version range %s", v)
 			}
-			if !c.Check(serverVersion) {
+			if !c.Check(serverVersionSemver) {
 				return false, nil
 			}
 		}
@@ -268,6 +268,7 @@ func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client mod
 			a.Srv().Store().Preference(),
 			userID,
 			client,
+			model.CurrentVersion,
 			clientVersion,
 			a.ch.cachedPostCount,
 			a.ch.cachedUserCount,
