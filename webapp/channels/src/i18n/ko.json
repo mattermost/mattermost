@@ -768,6 +768,8 @@
   "admin.experimental.userStatusAwayTimeout.desc": "이 설정은 사용자가 Mattermost 사용 중 자리를 비울 때 사용자 상태 표시를 \"자리 비움\"으로 변경되는 시간(초)을 정의합니다.",
   "admin.experimental.userStatusAwayTimeout.example": "예: \"300\"",
   "admin.experimental.userStatusAwayTimeout.title": "사용자 상태 자리 비움 시간초과 :",
+  "admin.experimental.youtubeReferrerPolicy.desc": "활성화 시, 임베디드 유튜브 비디오의 Referrer 정책이 \"strict-origin-when-cross-origin\"로 설정되어 유튜브 비디오 미리보기가 사용할 수 없음으로 표시되는 문제를 해결하며 사용자의 개인 정보 보호를 보호하면서 웹 기능(분석, 로깅 및 타사 통합)을 지원하기 위한 일부 참조 데이터를 제공합니다. 비활성화 시, Referrer 정책이 \"no-referrer\"로 설정되어 사용자의 개인 정보 보호를 강화하고 소스 URL을 공개하지 않지만 분석 도구에서 사용자 참여 및 트래픽 소스를 추적하는 능력이 제한됩니다.",
+  "admin.experimental.youtubeReferrerPolicy.title": "유튜브 Referrer Policy 설정 :",
   "admin.false": "비활성화",
   "admin.file.enableFileAttachments": "파일 공유:",
   "admin.file.enableFileAttachmentsDesc": "이 설정이 비활성화되면 이 서버에서 파일을 공유할 수 없게 됩니다. 모바일 장치를 포함한 클라이언트와 장치들로부터 파일과 이미지를 업로드하는 메시지들이 거부됩니다.",
