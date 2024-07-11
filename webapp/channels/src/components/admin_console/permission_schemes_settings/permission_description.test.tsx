@@ -84,11 +84,7 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         );
         expect(wrapper).toMatchSnapshot();
 
-        const c = wrapper.find('.permission-description');
-        console.log(c.text());
-        console.log(c.childAt(0).text());
-        console.log(c.children().first().text());
-        wrapper.find('ExternalLink').children().first().simulate('click');
+        wrapper.find('ForwardRef').children().first().simulate('click');
         expect(selectRow).toBeCalled();
     });
 });

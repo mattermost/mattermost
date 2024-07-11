@@ -44,7 +44,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
         >
           <span>
             Inherited from 
-            <ExternalLink
+            <ForwardRef
               href=""
               key=".$.1"
               location="permission_scheme_settings"
@@ -60,7 +60,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
               >
                 All Members
               </a>
-            </ExternalLink>
+            </ForwardRef>
             .
           </span>
         </FormattedMessage>
@@ -147,9 +147,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
     show={false}
     target={null}
   >
-    <Tooltip
-      id="7c13e772-78a9-4f57-947d-5977630a566a"
-    >
+    <Tooltip>
       <span>
         This is a clickable description
       </span>
@@ -173,9 +171,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
     show={false}
     target={null}
   >
-    <Tooltip
-      id="d2b70e96-168e-43d8-a774-00ba33c05641"
-    >
+    <Tooltip>
       This is the description
     </Tooltip>
   </Overlay>

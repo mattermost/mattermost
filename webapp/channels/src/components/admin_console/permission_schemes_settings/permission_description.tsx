@@ -32,7 +32,6 @@ const PermissionDescription = ({
     inherited,
 }: Props): JSX.Element => {
     const [open, setOpen] = useState(false);
-    const randomId = generateId();
     const contentRef = useRef<HTMLSpanElement>(null);
     const intl = useIntl();
 
@@ -88,7 +87,7 @@ const PermissionDescription = ({
             placement='top'
             target={(contentRef.current as HTMLSpanElement)}
         >
-            <Tooltip id={randomId}>
+            <Tooltip>
                 {content}
             </Tooltip>
         </Overlay>
