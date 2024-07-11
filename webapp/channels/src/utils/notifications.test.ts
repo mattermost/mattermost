@@ -21,7 +21,15 @@ describe('Notifications.showNotification', () => {
     let store: ReturnType<typeof configureStore>;
 
     beforeEach(() => {
-        // Re-import utils/notifications for every test to reset requestedNotificationPermission
+        // Re-initialize window.Notification so that tests can modify it as needed. By default, everything exists,
+        // we've never requested permissions before, and any request for permissions will be denied.
+        window.Notification = jest.fn(() => ({
+            close: jest.fn(),
+        }));
+        window.Notification.requestPermission = jest.fn(() => Promise.resolve('denied'));
+        window.Notification.permission = 'default';
+
+        // Reset and re-import utils/notifications for every test to reset requestedNotificationPermission
         jest.resetModules();
         Notifications = require('utils/notifications');
 
@@ -48,10 +56,8 @@ describe('Notifications.showNotification', () => {
         expect(window.Notification).not.toHaveBeenCalled();
     });
 
-    it('should request permissions, promise style, if not previously requested and do nothing when permission is denied', async () => {
-        window.Notification = jest.fn();
-        window.Notification.requestPermission = () => Promise.resolve('denied');
-        window.Notification.permission = 'default';
+    it('should request permissions, promise style, if not previously requested and not show a notification when permission is denied', async () => {
+        window.Notification.requestPermission.mockResolvedValue('denied');
 
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
             status: 'not_sent',
@@ -60,14 +66,12 @@ describe('Notifications.showNotification', () => {
         expect(window.Notification).not.toHaveBeenCalled();
     });
 
-    it('should request permissions, callback style, if not previously requested and do nothing when permission is denied', async () => {
-        window.Notification = jest.fn();
+    it('should request permissions, callback style, if not previously requested and not show a notification when permission is denied', async () => {
         window.Notification.requestPermission = (callback: NotificationPermissionCallback) => {
             if (callback) {
                 callback('denied');
             }
         };
-        window.Notification.permission = 'default';
 
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
             status: 'not_sent',
@@ -77,9 +81,7 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should request permissions, promise style, if not previously requested and show notification when permission is granted', async () => {
-        window.Notification = jest.fn();
-        window.Notification.requestPermission = () => Promise.resolve('granted');
-        window.Notification.permission = 'denied';
+        window.Notification.requestPermission.mockResolvedValue('granted');
 
         const n = {};
         window.Notification.mockReturnValueOnce(n);
@@ -104,16 +106,11 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should request permissions, callback style, if not previously requested and show notification when permission is granted', async () => {
-        window.Notification = jest.fn();
         window.Notification.requestPermission = (callback: NotificationPermissionCallback) => {
             if (callback) {
                 callback('granted');
             }
         };
-        window.Notification.permission = 'denied';
-
-        const n = {};
-        window.Notification.mockReturnValueOnce(n);
 
         await expect(store.dispatch(Notifications.showNotification({
             body: 'body',
@@ -135,9 +132,7 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should do nothing if permissions previously requested but not granted', async () => {
-        window.Notification = jest.fn();
-        window.Notification.requestPermission = () => Promise.resolve('denied');
-        window.Notification.permission = 'denied';
+        window.Notification.requestPermission.mockResolvedValue('denied');
 
         // Call one to deny and mark as already requested, do nothing, throw nothing
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
@@ -153,9 +148,7 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should only request permissions once if permissions are granted in response to that request', async () => {
-        window.Notification = jest.fn();
-        window.Notification.requestPermission = jest.fn().mockResolvedValueOnce('granted');
-        window.Notification.permission = 'default';
+        window.Notification.requestPermission.mockResolvedValue('granted');
 
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
             status: 'success',
@@ -173,9 +166,7 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should only request permissions once if request gets denied', async () => {
-        window.Notification = jest.fn();
-        window.Notification.requestPermission = jest.fn().mockResolvedValueOnce('denied');
-        window.Notification.permission = 'default';
+        window.Notification.requestPermission.mockResolvedValue('denied');
 
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
             status: 'not_sent',
@@ -195,9 +186,7 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should only request permissions once if request gets ignored', async () => {
-        window.Notification = jest.fn();
-        window.Notification.requestPermission = jest.fn().mockResolvedValueOnce('default');
-        window.Notification.permission = 'default';
+        window.Notification.requestPermission.mockResolvedValue('default');
 
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
             status: 'not_sent',
@@ -212,5 +201,47 @@ describe('Notifications.showNotification', () => {
         });
         expect(window.Notification).toHaveBeenCalledTimes(0);
         expect(window.Notification.requestPermission).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not request permission if it was granted during a previous session', async () => {
+        window.Notification.permission = 'granted';
+
+        // Reload utils/notifications to set requestedNotificationPermission to true based on Notification.permission
+        jest.resetModules();
+        Notifications = require('utils/notifications');
+
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
+            status: 'success',
+        });
+        expect(window.Notification).toHaveBeenCalledTimes(1);
+        expect(window.Notification.requestPermission).toHaveBeenCalledTimes(0);
+
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
+            status: 'success',
+        });
+        expect(window.Notification).toHaveBeenCalledTimes(2);
+        expect(window.Notification.requestPermission).toHaveBeenCalledTimes(0);
+    });
+
+    it('should not request permission if it was denied during a previous session', async () => {
+        window.Notification.permission = 'denied';
+
+        // Reload utils/notifications to set requestedNotificationPermission to true based on Notification.permission
+        jest.resetModules();
+        Notifications = require('utils/notifications');
+
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
+            status: 'not_sent',
+            reason: 'notifications_permission_previously_denied',
+        });
+        expect(window.Notification).toHaveBeenCalledTimes(0);
+        expect(window.Notification.requestPermission).toHaveBeenCalledTimes(0);
+
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
+            status: 'not_sent',
+            reason: 'notifications_permission_previously_denied',
+        });
+        expect(window.Notification).toHaveBeenCalledTimes(0);
+        expect(window.Notification.requestPermission).toHaveBeenCalledTimes(0);
     });
 });

@@ -14,7 +14,7 @@ export type NotificationResult = {
     data?: string;
 }
 
-let requestedNotificationPermission = false;
+let requestedNotificationPermission = Boolean('Notification' in window && Notification.permission !== 'default');
 
 // showNotification displays a platform notification with the configured parameters.
 //
