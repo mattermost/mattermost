@@ -12,7 +12,7 @@ import (
 )
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
-func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error) {
+func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName, creatorId string, siteURL string) (*model.RemoteCluster, error) {
 	rc := &model.RemoteCluster{
 		RemoteId:    invite.RemoteId,
 		Name:        name,
@@ -29,7 +29,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 	}
 
 	// confirm the invitation with the originating site
-	frame, err := makeConfirmFrame(rcSaved, teamId, siteURL)
+	frame, err := makeConfirmFrame(rcSaved, siteURL)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 	return rcSaved, nil
 }
 
-func makeConfirmFrame(rc *model.RemoteCluster, teamId string, siteURL string) (*model.RemoteClusterFrame, error) {
+func makeConfirmFrame(rc *model.RemoteCluster, siteURL string) (*model.RemoteClusterFrame, error) {
 	confirm := model.RemoteClusterInvite{
 		RemoteId: rc.RemoteId,
 		SiteURL:  siteURL,
