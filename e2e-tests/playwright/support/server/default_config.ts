@@ -16,7 +16,7 @@ import {
     TeamSettings,
 } from '@mattermost/types/config';
 import testConfig from '@e2e-test.config';
-    
+
 export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
