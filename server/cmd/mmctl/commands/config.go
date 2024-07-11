@@ -193,12 +193,15 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		val.Set(reflect.ValueOf(newValue))
 		return nil
 	case reflect.Slice:
-		if val.Type().Elem().Kind() != reflect.String {
-			return errors.New("unsupported type of slice")
-		}
 		v := reflect.ValueOf(newValue)
 		if v.Kind() != reflect.Slice {
-			return errors.New("target value is of type Array and provided value is not")
+			// Special case when setting a string to a byte slice
+			if val.Type().Elem().Kind() == reflect.Uint8 && v.Kind() == reflect.String {
+				s := newValue.(string)
+				v = reflect.ValueOf([]byte(s))
+			} else {
+				return errors.Errorf("target value is of type %v and provided value is %v", val.Kind(), v.Kind())
+			}
 		}
 		val.Set(v)
 		return nil
@@ -206,7 +209,7 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		bits := val.Type().Bits()
 		v, err := strconv.ParseInt(newValue.(string), 10, bits)
 		if err != nil {
-			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
+			return fmt.Errorf("target value is of type %v and provided value is not, err: %v", val.Kind(), err)
 		}
 		val.SetInt(v)
 		return nil
@@ -214,7 +217,7 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		bits := val.Type().Bits()
 		v, err := strconv.ParseFloat(newValue.(string), bits)
 		if err != nil {
-			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
+			return fmt.Errorf("target value is of type %v and provided value is not, err: %v", val.Kind(), err)
 		}
 		val.SetFloat(v)
 		return nil
@@ -224,12 +227,12 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 	case reflect.Bool:
 		v, err := strconv.ParseBool(newValue.(string))
 		if err != nil {
-			return errors.New("target value is of type Bool and provided value is not")
+			return fmt.Errorf("target value is of type %v and provided value is not, err: %v", val.Kind(), err)
 		}
 		val.SetBool(v)
 		return nil
 	default:
-		return errors.New("target value type is not supported")
+		return errors.Errorf("value type %v is not supported", val.Kind())
 	}
 }
 
