@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
@@ -18,6 +19,7 @@ import {isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
+import {getShowManageUserSettings} from 'selectors/admin_console';
 
 import ManageRolesModal from 'components/admin_console/manage_roles_modal';
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal';
@@ -30,8 +32,6 @@ import {
 import * as Menu from 'components/menu';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import UserSettingsModal from 'components/user_settings/modal';
-
-import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';
@@ -53,6 +53,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
     const isLicensed = useSelector(getLicense)?.IsLicensed === 'true';
+    const showManageUserSettings = useSelector(getShowManageUserSettings);
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
         if (user.delete_at > 0) {
@@ -225,25 +226,28 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }}
             />
 
-            <Menu.Item
-                id={`${menuItemIdPrefix}-manageTeams`}
-                labels={
-                    <FormattedMessage
-                        id='admin.user_item.manageSettings'
-                        defaultMessage='Manage User Settings'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.CONFIRM_MANAGE_USER_SETTINGS_MODAL,
-                        dialogType: ConfirmManageUserSettingsModal,
-                        dialogProps: {
-                            user,
-                            onConfirm: openUserSettingsModal,
-                        },
-                    }));
-                }}
-            />
+            {
+                showManageUserSettings &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-manageTeams`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.user_item.manageSettings'
+                            defaultMessage='Manage User Settings'
+                        />
+                    }
+                    onClick={() => {
+                        dispatch(openModal({
+                            modalId: ModalIdentifiers.CONFIRM_MANAGE_USER_SETTINGS_MODAL,
+                            dialogType: ConfirmManageUserSettingsModal,
+                            dialogProps: {
+                                user,
+                                onConfirm: openUserSettingsModal,
+                            },
+                        }));
+                    }}
+                />
+            }
 
             {config.ServiceSettings?.EnableUserAccessTokens &&
             <Menu.Item
