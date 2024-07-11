@@ -53,6 +53,36 @@ describe('SystemUserDetail', () => {
         const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should show manage user settings button as activated', () => {
+        const props = {
+            ...defaultProps,
+            isEnterprise: true,
+            userHasWriteUserPermission: true,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should show manage user settings button as disabled when no license', () => {
+        const props = {
+            ...defaultProps,
+            isEnterprise: false,
+            userHasWriteUserPermission: true,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should not show manage user settings button when user doesnt have permission', () => {
+        const props = {
+            ...defaultProps,
+            isEnterprise: true,
+            userHasWriteUserPermission: false,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
 });
 
 describe('getUserAuthenticationTextField', () => {

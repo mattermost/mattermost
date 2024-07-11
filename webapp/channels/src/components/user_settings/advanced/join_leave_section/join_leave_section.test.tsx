@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import React from 'react';
+import {AdvancedSections} from 'utils/constants';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
@@ -10,9 +12,6 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import JoinLeaveSection from 'components/user_settings/advanced/join_leave_section/join_leave_section';
-
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {AdvancedSections} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -206,5 +205,40 @@ describe('mapStateToProps', () => {
         });
         const props = mapStateToProps(testState, {adminMode: false, currentUserId: ''});
         expect(props.joinLeave).toEqual('false');
+    });
+
+    test('should read from preferences in props in admin mode', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'false',
+                    },
+                },
+            },
+        });
+
+        const userPreferences = {
+            [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
+                category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+                user_id: 'user_1',
+                value: 'true',
+            },
+        };
+
+        const propsWithAdminMode = mapStateToProps(testState, {
+            currentUserId: 'user_1',
+            adminMode: true,
+            userPreferences,
+        });
+        expect(propsWithAdminMode.joinLeave).toEqual('true');
+
+        const propsWithoutAdminMode = mapStateToProps(testState, {
+            currentUserId: 'user_1',
+            adminMode: false,
+            userPreferences,
+        });
+        expect(propsWithoutAdminMode.joinLeave).toEqual('false');
     });
 });
