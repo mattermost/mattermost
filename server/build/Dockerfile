@@ -1,4 +1,4 @@
-FROM ubuntu:jammy-20230308@sha256:7a57c69fe1e9d5b97c5fe649849e79f2cfc3bf11d10bbd5218b4eb61716aebe6
+FROM ubuntu:focal-20191030
 
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
