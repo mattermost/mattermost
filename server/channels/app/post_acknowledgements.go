@@ -42,7 +42,7 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 	}
 
 	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Error resolving persistent notification",
 			mlog.String("sender_id", userID),
 			mlog.String("post_id", post.RootId),
