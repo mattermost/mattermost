@@ -7,6 +7,8 @@ import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -33,23 +35,15 @@ import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {toTitleCase} from 'utils/utils';
-
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
-
-export type OwnProps = {
-    isEnterprise: boolean;
-    userHasWriteUserPermission: boolean;
-}
 
 export type Params = {
     user_id?: UserProfile['id'];
 };
 
-export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps & OwnProps;
+export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
 
 export type State = {
     user?: UserProfile;
@@ -325,9 +319,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     render() {
-        const showManageUserSettings = this.props.userHasWriteUserPermission && this.props.isEnterprise;
-        const showLockedManageUserSettings = this.props.userHasWriteUserPermission && !this.props.isEnterprise;
-
         return (
             <div className='SystemUserDetail wrapper--fixed'>
                 <AdminHeader withBackButton={true}>
@@ -430,7 +421,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     )}
 
                                     {
-                                        showManageUserSettings &&
+                                        this.props.showManageUserSettings &&
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
@@ -443,7 +434,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     }
 
                                     {
-                                        showLockedManageUserSettings &&
+                                        this.props.showLockedManageUserSettings &&
                                         <WithTooltip
                                             id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({
