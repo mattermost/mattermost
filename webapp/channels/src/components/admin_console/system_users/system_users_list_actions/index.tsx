@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
@@ -32,6 +31,8 @@ import {
 import * as Menu from 'components/menu';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import UserSettingsModal from 'components/user_settings/modal';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';

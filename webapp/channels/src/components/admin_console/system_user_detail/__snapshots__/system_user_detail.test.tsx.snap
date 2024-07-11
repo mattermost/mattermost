@@ -917,38 +917,6 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                 id="admin.user_item.makeActive"
               />
             </button>
-            <WithTooltip
-              hint={
-                Object {
-                  "defaultMessage": "Please upgrade to Enterprise to manage user settings",
-                  "id": "admin.user_item.manageSettings.disabled_tooltip",
-                }
-              }
-              id="adminUserSettingUpdateDisabled"
-              placement="top"
-              title={
-                Object {
-                  "defaultMessage": "Enterprise feature",
-                  "id": "generic.enterprise_feature",
-                }
-              }
-            >
-              <button
-                className="manageUserSettingsBtn btn disabled"
-              >
-                <div
-                  className="RestrictedIndicator__content"
-                >
-                  <i
-                    className="RestrictedIndicator__icon-tooltip icon icon-key-variant"
-                  />
-                </div>
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Manage User Settings"
-                  id="admin.user_item.manageSettings"
-                />
-              </button>
-            </WithTooltip>
           </React.Fragment>
         }
         isLoading={true}

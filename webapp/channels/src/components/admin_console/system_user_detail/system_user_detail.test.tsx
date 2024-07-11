@@ -16,8 +16,8 @@ import {shallowWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
 
 describe('SystemUserDetail', () => {
     const defaultProps: Props = {
-        isEnterprise: false,
-        userHasWriteUserPermission: false,
+        showManageUserSettings: false,
+        showLockedManageUserSettings: false,
         mfaEnabled: false,
         patchUser: jest.fn(),
         updateUserMfa: jest.fn(),
@@ -57,8 +57,7 @@ describe('SystemUserDetail', () => {
     test('should show manage user settings button as activated', () => {
         const props = {
             ...defaultProps,
-            isEnterprise: true,
-            userHasWriteUserPermission: true,
+            showManageUserSettings: true,
         };
         const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
@@ -67,8 +66,7 @@ describe('SystemUserDetail', () => {
     test('should show manage user settings button as disabled when no license', () => {
         const props = {
             ...defaultProps,
-            isEnterprise: false,
-            userHasWriteUserPermission: true,
+            showLockedManageUserSettings: false,
         };
         const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
@@ -77,8 +75,7 @@ describe('SystemUserDetail', () => {
     test('should not show manage user settings button when user doesnt have permission', () => {
         const props = {
             ...defaultProps,
-            isEnterprise: true,
-            userHasWriteUserPermission: false,
+            showManageUserSettings: false,
         };
         const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
