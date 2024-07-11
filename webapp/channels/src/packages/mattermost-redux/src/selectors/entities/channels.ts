@@ -1259,7 +1259,10 @@ export function getChannelModerations(state: GlobalState, channelId: string): Ch
 }
 
 const EMPTY_OBJECT = {};
-export function getChannelMemberCountsByGroup(state: GlobalState, channelId: string): ChannelMemberCountsByGroup {
+export function getChannelMemberCountsByGroup(state: GlobalState, channelId?: string): ChannelMemberCountsByGroup {
+    if (!channelId) {
+        return EMPTY_OBJECT;
+    }
     return state.entities.channels.channelMemberCountsByGroup[channelId] || EMPTY_OBJECT;
 }
 
