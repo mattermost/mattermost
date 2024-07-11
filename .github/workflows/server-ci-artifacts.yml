@@ -117,6 +117,30 @@ jobs:
           echo "Image Digest: \`${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
 
+  scan-docker-image:
+    runs-on: ubuntu-22.04
+    needs:
+      - build-docker
+    env:
+      POLICY: "DevOps Vulnerabilities Policy"
+    steps:
+      - name: cd/setup-wizcli
+        run: |
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          chmod +x wizcli
+          ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
+
+      - name: cd/download-container-image
+        run: |
+          docker pull mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}
+
+      - name: cd/scan-image
+        run: |
+          ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }} --policy "$POLICY”
+
   update-failure-final-status:
     if: failure() || cancelled()
     runs-on: ubuntu-22.04
