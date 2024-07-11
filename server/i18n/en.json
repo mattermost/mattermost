@@ -9487,6 +9487,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Invalid value for limit_visible_dms_gms."
+  },
+  {
     "id": "model.preference.is_valid.name.app_error",
     "translation": "Invalid name."
   },
