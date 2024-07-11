@@ -11,8 +11,6 @@ import type {Role} from '@mattermost/types/roles';
 import ExternalLink from 'components/external_link';
 import Tooltip from 'components/tooltip';
 
-import {generateId} from 'utils/utils';
-
 import type {AdditionalValues} from './permissions_tree/types';
 import {rolesRolesStrings} from './strings/roles';
 
