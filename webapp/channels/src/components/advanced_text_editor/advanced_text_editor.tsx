@@ -680,11 +680,11 @@ const AdvanceTextEditor = ({
 
     return (
         <>
-            {showDndWarning && <DoNotDisturbWarning displayName={currentChannel?.display_name || ''}/>}
+            {showDndWarning && <DoNotDisturbWarning displayName={currentChannel?.display_name || Utils.getDisplayName(teammate)}/>}
             {showRemoteUserHour && (
                 <RemoteUserHour
                     teammate={teammate}
-                    displayName={currentChannel?.display_name || ''}
+                    displayName={currentChannel?.display_name || Utils.getDisplayName(teammate)}
                 />
             )}
             <div
