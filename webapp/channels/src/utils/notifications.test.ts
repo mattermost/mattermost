@@ -67,10 +67,7 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should request permissions, callback style, if not previously requested and not show a notification when permission is denied', async () => {
-        window.Notification.requestPermission = (callback: NotificationPermissionCallback) => {
-            if (callback) {
-                callback('denied');
-            }
+        window.Notification.requestPermission = (callback: NotificationPermissionCallback) => callback?.('denied');
         };
 
         await expect(store.dispatch(Notifications.showNotification())).resolves.toMatchObject({
