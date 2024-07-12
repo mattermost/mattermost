@@ -129,8 +129,11 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		if err != nil {
 			rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
 		}
-		if vendorName == "" && vendorVersion == "" {
+
+		if vendorName == "" {
 			vendorName = "unknown"
+		}
+		if vendorVersion == "" {
 			vendorVersion = "unknown"
 		}
 	}
