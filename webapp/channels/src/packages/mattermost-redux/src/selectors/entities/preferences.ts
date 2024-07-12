@@ -50,8 +50,8 @@ export function getBool(state: GlobalState, category: string, name: string, defa
     return value !== 'false';
 }
 
-export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0): number {
-    const value = get(state, category, name, defaultValue);
+export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0, userPreferences?: PreferencesType): number {
+    const value = get(state, category, name, defaultValue, userPreferences);
     return parseInt(value, 10);
 }
 
@@ -320,15 +320,9 @@ export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
     return isConfiguredForFeature && isConfiguredForUser;
 }
 
-export function getVisibleDmGmLimit(state: GlobalState) {
+export function getVisibleDmGmLimit(state: GlobalState, userPreferences?: PreferencesType) {
     const defaultLimit = 40;
-    return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-}
-
-export function getUserVisibleDmGmLimit(userPreferences: PreferencesType) {
-    const defaultLimit = 40;
-    const value = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-    return parseInt(value, 10);
+    return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit, userPreferences);
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {
