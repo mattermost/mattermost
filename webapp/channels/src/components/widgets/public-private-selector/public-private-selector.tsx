@@ -7,12 +7,11 @@ import {useIntl} from 'react-intl';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import CheckCircleIcon from 'components/widgets/icons/check_circle_icon';
 import GlobeCircleSolidIcon from 'components/widgets/icons/globe_circle_solid_icon';
 import LockCircleSolidIcon from 'components/widgets/icons/lock_circle_solid_icon';
 import UpgradeBadge from 'components/widgets/icons/upgrade_badge_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -58,20 +57,43 @@ const BigButtonSelector = ({
     const button = (
         <button
             id={`public-private-selector-button-${id}`}
-            className={classNames('public-private-selector-button', {selected, disabled, locked})}
+            className={classNames('public-private-selector-button', {
+                selected,
+                disabled,
+                locked,
+            })}
             onClick={handleOnClick}
         >
-            <IconSVG className={classNames('public-private-selector-button-icon', iconClassName)}/>
+            <IconSVG
+                className={classNames(
+                    'public-private-selector-button-icon',
+                    iconClassName,
+                )}
+            />
             <div className='public-private-selector-button-text'>
-                <div className={classNames('public-private-selector-button-title', titleClassName)}>
+                <div
+                    className={classNames(
+                        'public-private-selector-button-title',
+                        titleClassName,
+                    )}
+                >
                     {title}
-                    {locked && <UpgradeBadge className='public-private-selector-button-icon-upgrade'/>}
+                    {locked && (
+                        <UpgradeBadge className='public-private-selector-button-icon-upgrade'/>
+                    )}
                 </div>
-                <div className={classNames('public-private-selector-button-description', descriptionClassName)}>
+                <div
+                    className={classNames(
+                        'public-private-selector-button-description',
+                        descriptionClassName,
+                    )}
+                >
                     {description}
                 </div>
             </div>
-            {selected && <CheckCircleIcon className='public-private-selector-button-icon-check'/>}
+            {selected && (
+                <CheckCircleIcon className='public-private-selector-button-icon-check'/>
+            )}
         </button>
     );
 
@@ -79,20 +101,14 @@ const BigButtonSelector = ({
         return button;
     }
 
-    const tooltipContainer = (
-        <Tooltip id={'public-private-selector-button-tooltip'}>
-            {tooltip}
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id="'public-private-selector-button-tooltip'"
             placement='top'
-            overlay={tooltipContainer}
+            title={tooltip}
         >
             {button}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
