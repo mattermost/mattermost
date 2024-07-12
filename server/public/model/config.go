@@ -205,6 +205,8 @@ const (
 	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 1
 	ElasticsearchSettingsDefaultRequestTimeoutSeconds       = 30
 	ElasticsearchSettingsDefaultBatchSize                   = 10000
+	ElasticsearchSettingsESBackend                          = "elasticsearch"
+	ElasticsearchSettingsOSBackend                          = "opensearch"
 
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
@@ -2763,6 +2765,7 @@ func (s *NativeAppSettings) SetDefaults() {
 
 type ElasticsearchSettings struct {
 	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Backend                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2793,6 +2796,10 @@ type ElasticsearchSettings struct {
 func (s *ElasticsearchSettings) SetDefaults() {
 	if s.ConnectionURL == nil {
 		s.ConnectionURL = NewString(ElasticsearchSettingsDefaultConnectionURL)
+	}
+
+	if s.Backend == nil {
+		s.Backend = NewString(ElasticsearchSettingsESBackend)
 	}
 
 	if s.Username == nil {
@@ -3070,12 +3077,6 @@ func (s *CloudSettings) SetDefaults() {
 	if s.Disable == nil {
 		s.Disable = NewBool(false)
 	}
-}
-
-type ProductSettings struct {
-}
-
-func (s *ProductSettings) SetDefaults() {
 }
 
 type PluginState struct {
@@ -3510,7 +3511,6 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
-	ProductSettings           ProductSettings // Deprecated: Remove in next major version:: https://mattermost.atlassian.net/browse/MM-56655
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3611,7 +3611,6 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -4171,6 +4170,10 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
+	}
+
+	if *s.Backend != ElasticsearchSettingsOSBackend && *s.Backend != ElasticsearchSettingsESBackend {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.invalid_backend.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

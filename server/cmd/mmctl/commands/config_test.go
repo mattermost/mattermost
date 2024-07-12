@@ -6,6 +6,7 @@ package commands
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -922,4 +924,81 @@ func TestCloudRestricted(t *testing.T) {
 
 		require.True(t, cloudRestricted(cfg, parseConfigPath(path)))
 	})
+}
+
+func TestSetConfigValue(t *testing.T) {
+	tests := map[string]struct {
+		path           string
+		config         *model.Config
+		args           []string
+		expectedConfig *model.Config
+	}{
+		"bool": {
+			path: "LogSettings.EnableConsole",
+			args: []string{"true"},
+			config: &model.Config{LogSettings: model.LogSettings{
+				EnableConsole: model.NewBool(false),
+			}},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				EnableConsole: model.NewBool(true),
+			}},
+		},
+		"string": {
+			path: "LogSettings.ConsoleLevel",
+			args: []string{"foo"},
+			config: &model.Config{LogSettings: model.LogSettings{
+				ConsoleLevel: model.NewString("ConsoleLevel"),
+			}},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				ConsoleLevel: model.NewString("foo"),
+			}},
+		},
+		"int": {
+			path: "LogSettings.MaxFieldSize",
+			args: []string{"123"},
+			config: &model.Config{LogSettings: model.LogSettings{
+				MaxFieldSize: model.NewInt(0),
+			}},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				MaxFieldSize: model.NewInt(123),
+			}},
+		},
+		"int64": {
+			path: "ServiceSettings.TLSStrictTransportMaxAge",
+			config: &model.Config{ServiceSettings: model.ServiceSettings{
+				TLSStrictTransportMaxAge: model.NewInt64(0),
+			}},
+			args: []string{"123"},
+			expectedConfig: &model.Config{ServiceSettings: model.ServiceSettings{
+				TLSStrictTransportMaxAge: model.NewInt64(123),
+			}},
+		},
+		"string slice": {
+			path: "SqlSettings.DataSourceReplicas",
+			args: []string{"abc", "def"},
+			config: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{},
+			}},
+			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"abc", "def"},
+			}},
+		},
+		"json.RawMessage": {
+			path: "LogSettings.AdvancedLoggingJSON",
+			config: &model.Config{LogSettings: model.LogSettings{
+				AdvancedLoggingJSON: nil,
+			}},
+			args: []string{`{"console1":{"Type":"console"}}`},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`{"console1":{"Type":"console"}}`),
+			}},
+		},
+	}
+
+	for name, tc := range tests {
+		err := setConfigValue(parseConfigPath(tc.path), tc.config, tc.args)
+		require.NoError(t, err)
+
+		assert.Equal(t, tc.expectedConfig, tc.config, name)
+	}
 }
