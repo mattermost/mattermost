@@ -18,6 +18,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         updateMe: jest.fn(() => Promise.resolve({})),
+        patchUser: jest.fn(() => Promise.resolve({})),
         isCollapsedThreadsEnabled: true,
         sendPushNotifications: false,
         enableAutoResponder: false,
