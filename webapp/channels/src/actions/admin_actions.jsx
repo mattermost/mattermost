@@ -464,6 +464,19 @@ export function registerAdminConsoleCustomSetting(pluginId, key, component, {sho
     };
 }
 
+export function registerAdminConsoleCustomSection(pluginId, key, component) {
+    return (storeDispatch) => {
+        storeDispatch({
+            type: ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION,
+            data: {
+                pluginId,
+                key,
+                component,
+            },
+        });
+    };
+}
+
 export async function getSamlMetadataFromIdp(success, error, samlMetadataURL) {
     const {data, error: err} = await dispatch(AdminActions.getSamlMetadataFromIdp(samlMetadataURL));
     if (data && success) {

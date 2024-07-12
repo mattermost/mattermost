@@ -92,6 +92,9 @@ type PluginSetting struct {
 }
 
 type PluginSettingsSection struct {
+	// A unique identifier for this section.
+	Key string `json:"key" yaml:"key"`
+
 	// Optional text to display as section title.
 	Title string `json:"title" yaml:"title"`
 
@@ -106,6 +109,9 @@ type PluginSettingsSection struct {
 
 	// Optional text to display below the settings. Supports Markdown formatting.
 	Footer string `json:"footer" yaml:"footer"`
+
+	// If true, the section will load the custom component registered using `registry.registerAdminConsoleCustomSection`
+	Custom bool `json:"custom" yaml:"custom"`
 }
 
 type PluginSettingsSchema struct {
@@ -360,6 +366,10 @@ func (s *PluginSettingsSchema) isValid() error {
 }
 
 func (s *PluginSettingsSection) IsValid() error {
+	if s.Key == "" {
+		return errors.New("invalid empty Key")
+	}
+
 	for _, setting := range s.Settings {
 		err := setting.isValid()
 		if err != nil {

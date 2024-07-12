@@ -137,8 +137,20 @@ func TestPluginSettingsSectionIsValid(t *testing.T) {
 		Section       PluginSettingsSection
 		ExpectedError string
 	}{
+		"missing key": {
+			Section: PluginSettingsSection{
+				Settings: []*PluginSetting{
+					{
+						Type:        "custom",
+						Placeholder: "some Text",
+					},
+				},
+			},
+			ExpectedError: "invalid empty Key",
+		},
 		"invalid setting": {
 			Section: PluginSettingsSection{
+				Key: "sectionKey",
 				Settings: []*PluginSetting{
 					{
 						Type: "invalid",
@@ -149,11 +161,13 @@ func TestPluginSettingsSectionIsValid(t *testing.T) {
 		},
 		"valid empty": {
 			Section: PluginSettingsSection{
+				Key:      "sectionKey",
 				Settings: []*PluginSetting{},
 			},
 		},
 		"valid": {
 			Section: PluginSettingsSection{
+				Key: "sectionKey",
 				Settings: []*PluginSetting{
 					{
 						Type:        "custom",

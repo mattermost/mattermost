@@ -48,11 +48,13 @@ export type PluginSettingsSchema = {
 };
 
 export type PluginSettingSection = {
+    key: string;
     title?: string;
     subtitle?: string;
     settings: PluginSetting[];
     header?: string;
     footer?: string;
+    custom?: boolean;
 };
 
 export type PluginSetting = {

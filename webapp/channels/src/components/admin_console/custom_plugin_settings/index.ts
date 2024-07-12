@@ -13,12 +13,12 @@ import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
-import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
+import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'selectors/admin_console';
 
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 
-import type {AdminConsolePluginComponent} from 'types/store/plugins';
+import type {AdminConsolePluginComponent, AdminConsolePluginCustomSection} from 'types/store/plugins';
 
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
@@ -34,9 +34,10 @@ function makeGetPluginSchema() {
         'makeGetPluginSchema',
         (state: GlobalState, pluginId: string) => state.entities.admin.plugins?.[pluginId],
         (state: GlobalState, pluginId: string) => getAdminConsoleCustomComponents(state, pluginId),
+        (state: GlobalState, pluginId: string) => getAdminConsoleCustomSections(state, pluginId),
         (state) => appsFeatureFlagEnabled(state),
         isCurrentLicenseCloud,
-        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, appsFeatureFlagIsEnabled, isCloudLicense) => {
+        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, customSections: Record<string, AdminConsolePluginCustomSection>, appsFeatureFlagIsEnabled, isCloudLicense) => {
             if (!plugin) {
                 return null;
             }
@@ -87,12 +88,37 @@ function makeGetPluginSchema() {
 
             const parsePluginSettingSections = (sections: PluginSettingSection[]) => {
                 return sections.map((section) => {
+                    const key = section.key.toLowerCase();
+                    let component;
+                    let settings: Array<Partial<AdminDefinitionSetting>> = [];
+                    if (section.custom) {
+                        if (customSections[key]) {
+                            component = customSections[key]?.component;
+                        } else {
+                            // Show warning banner for custom sections when the plugin is disabled.
+                            settings = [{
+                                type: Constants.SettingsTypes.TYPE_BANNER,
+                                label: defineMessage({
+                                    id: 'admin.plugin.customSection.pluginDisabledWarning',
+                                    defaultMessage: 'In order to view this section, enable the plugin and click Save.',
+                                }),
+                                banner_type: 'warning',
+                            }];
+                        }
+                    }
+
+                    if (settings.length === 0) {
+                        settings = parsePluginSettings(section.settings) as Array<Partial<AdminDefinitionSetting>>;
+                    }
+
                     return {
+                        key,
                         title: section.title,
                         subtitle: section.subtitle,
-                        settings: parsePluginSettings(section.settings),
+                        settings,
                         header: section.header,
                         footer: section.footer,
+                        component,
                     };
                 });
             };

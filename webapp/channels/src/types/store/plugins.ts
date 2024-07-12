@@ -49,6 +49,7 @@ export type PluginsState = {
     postTypes: {
         [postType: string]: PostPluginComponent;
     };
+
     postCardTypes: {
         [postType: string]: PostPluginComponent;
     };
@@ -56,11 +57,19 @@ export type PluginsState = {
     adminConsoleReducers: {
         [pluginId: string]: any;
     };
+
     adminConsoleCustomComponents: {
         [pluginId: string]: {
             [settingName: string]: AdminConsolePluginComponent;
         };
     };
+
+    adminConsoleCustomSections: {
+        [pluginId: string]: {
+            [sectionKey: string]: AdminConsolePluginCustomSection;
+        };
+    };
+
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
     };
@@ -147,6 +156,12 @@ export type AdminConsolePluginComponent = {
     options: {
         showTitle: boolean;
     };
+};
+
+export type AdminConsolePluginCustomSection = {
+    pluginId: string;
+    key: string;
+    component: React.Component;
 };
 
 export type PostWillRenderEmbedPluginComponent = {
