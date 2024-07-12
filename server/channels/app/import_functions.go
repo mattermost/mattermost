@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"slices"
 	"strings"
 	"sync"
 
@@ -1605,16 +1604,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		post.UserId = user.Id
 		post.CreateAt = *line.Post.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
-
-		if line.Post.Replies != nil {
-			replies := *line.Post.Replies
-			post.ReplyCount = int64(len(replies))
-			// Post replies are not guaranteed to be sorted by CreateAt, so we sort them here.
-			slices.SortFunc(replies, func(a, b imports.ReplyImportData) int {
-				return int(*a.CreateAt - *b.CreateAt)
-			})
-			post.LastReplyAt = *replies[len(replies)-1].CreateAt
-		}
 
 		if line.Post.Type != nil {
 			post.Type = *line.Post.Type
