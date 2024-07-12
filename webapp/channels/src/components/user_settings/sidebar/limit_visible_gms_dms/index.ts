@@ -15,7 +15,7 @@ import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const userPreferences = ownProps.adminMode && ownProps.userPreferences ? ownProps.userPreferences : undefined;
     return {
-        currentUserId: ownProps.adminMode ? ownProps.currentUserId : getCurrentUserId(state),
+        userId: ownProps.adminMode ? ownProps.userId : getCurrentUserId(state),
         dmGmLimit: getVisibleDmGmLimit(state, userPreferences),
     };
 }

@@ -24,7 +24,7 @@ import type {OwnProps} from './user_settings_advanced';
 import AdvancedSettingsDisplay from './user_settings_advanced';
 
 function makeMapStateToProps(state: GlobalState, props: OwnProps) {
-    const getAdvancedSettingsCategory = props.adminMode ? makeGetUserCategory(props.currentUser.id) : makeGetCategory();
+    const getAdvancedSettingsCategory = props.adminMode ? makeGetUserCategory(props.user.id) : makeGetCategory();
 
     return (state: GlobalState, props: OwnProps) => {
         const config = getConfig(state);
@@ -42,7 +42,7 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
             formatting: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true', userPreferences),
             joinLeave: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString(), userPreferences),
             syncDrafts: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true', userPreferences),
-            currentUser: props.adminMode && props.currentUser ? props.currentUser : getCurrentUser(state),
+            user: props.adminMode && props.user ? props.user : getCurrentUser(state),
             unreadScrollPosition: getUnreadScrollPositionPreference(state, userPreferences),
             enablePreviewFeatures,
             enableUserDeactivation,

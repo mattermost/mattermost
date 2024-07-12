@@ -16,10 +16,10 @@ import type {OwnProps} from './performance_debugging_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
-    const userPreferences = props.adminMode && props.currentUserId ? getUserPreferences(state, props.currentUserId) : undefined;
+    const userPreferences = props.adminMode && props.userId ? getUserPreferences(state, props.userId) : undefined;
 
     return {
-        currentUserId: props.adminMode ? props.currentUserId : getCurrentUserId(state),
+        userId: props.adminMode ? props.userId : getCurrentUserId(state),
         disableClientPlugins: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS, undefined, userPreferences),
         disableTelemetry: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TELEMETRY, undefined, userPreferences),
         disableTypingMessages: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES, undefined, userPreferences),

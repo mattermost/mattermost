@@ -17,7 +17,7 @@ import ShowUnreadsCategory from './show_unreads_category';
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     const userPreferences = props.adminMode && props.userPreferences ? props.userPreferences : undefined;
     return {
-        currentUserId: props.adminMode ? props.currentUserId : getCurrentUserId(state),
+        userId: props.adminMode ? props.userId : getCurrentUserId(state),
         showUnreadsCategory: shouldShowUnreadsCategory(state, userPreferences),
     };
 }
