@@ -939,7 +939,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         renderOnOffLabel={this.renderOnOffLabel}
                         adminMode={this.props.adminMode}
                         userPreferences={this.props.userPreferences}
-                        currentUserId={this.props.currentUser.id}
+                        userId={this.props.currentUser.id}
                     />
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}

@@ -22,7 +22,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
     const userPreference = props.adminMode && props.userPreferences ? props.userPreferences : undefined;
 
     return {
-        currentUserId: props.adminMode ? props.currentUserId : getCurrentUserId(state),
+        userId: props.adminMode ? props.userId : getCurrentUserId(state),
         joinLeave: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage.toString(), userPreference),
     };
 }
