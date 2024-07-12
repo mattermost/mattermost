@@ -21,7 +21,7 @@ func (api *API) InitReports() {
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin()) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
@@ -52,7 +52,7 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin()) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
