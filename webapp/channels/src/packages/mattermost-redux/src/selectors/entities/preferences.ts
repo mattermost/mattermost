@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {CollapsedThreads} from '@mattermost/types/config';
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
@@ -16,6 +16,10 @@ export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceT
     return state.entities.preferences.myPreferences;
 }
 
+export function getUserPreferences(state: GlobalState, userID: string): { [x: string]: PreferenceType } {
+    return state.entities.preferences.userPreferences[userID];
+}
+
 export function get(state: GlobalState, category: string, name: string, defaultValue: any = '') {
     const key = getPreferenceKey(category, name);
     const prefs = getMyPreferences(state);
@@ -27,8 +31,23 @@ export function get(state: GlobalState, category: string, name: string, defaultV
     return prefs[key].value;
 }
 
+export function getFromPreferences(preferences: PreferencesType, category: string, name: string, defaultValue: any = '') {
+    const key = getPreferenceKey(category, name);
+
+    if (!(key in preferences)) {
+        return defaultValue;
+    }
+
+    return preferences[key].value;
+}
+
 export function getBool(state: GlobalState, category: string, name: string, defaultValue = false): boolean {
     const value = get(state, category, name, String(defaultValue));
+    return value !== 'false';
+}
+
+export function getBoolFromPreferences(userPreferences: PreferencesType, category: string, name: string, defaultValue = false): boolean {
+    const value = getFromPreferences(userPreferences, category, name, String(defaultValue));
     return value !== 'false';
 }
 
@@ -41,6 +60,26 @@ export function makeGetCategory(): (state: GlobalState, category: string) => Pre
     return createSelector(
         'makeGetCategory',
         getMyPreferences,
+        (state: GlobalState, category: string) => category,
+        (preferences, category) => {
+            const prefix = category + '--';
+            const prefsInCategory: PreferenceType[] = [];
+
+            for (const key in preferences) {
+                if (key.startsWith(prefix)) {
+                    prefsInCategory.push(preferences[key]);
+                }
+            }
+
+            return prefsInCategory;
+        },
+    );
+}
+
+export function makeGetUserCategory(userID: string): (state: GlobalState, category: string) => PreferenceType[] {
+    return createSelector(
+        'makeGetCategory',
+        (state) => getUserPreferences(state, userID),
         (state: GlobalState, category: string) => category,
         (preferences, category) => {
             const prefix = category + '--';
@@ -180,29 +219,42 @@ export function makeGetStyleFromTheme<Style>(): (state: GlobalState, getStyleFro
     );
 }
 
+export function calculateUserShouldShowUnreadsCategory(userPreferences: PreferencesType, serverDefault?: string): boolean {
+    const userPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION);
+    const oldUserPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, '');
+
+    return calculateShouldShowUnreadsCategory(userPreference, oldUserPreference, serverDefault);
+}
+
+export function calculateShouldShowUnreadsCategory(userPreference: string, oldUserPreference: string, serverDefault?: string): boolean {
+    // Prefer the show_unread_section user preference over the previous version
+    if (userPreference) {
+        return userPreference === 'true';
+    }
+
+    if (oldUserPreference) {
+        return JSON.parse(oldUserPreference).unreads_at_top === 'true';
+    }
+
+    // The user setting is not set, so use the system default
+    return serverDefault === General.DEFAULT_ON;
+}
+
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.
 export const shouldShowUnreadsCategory: (state: GlobalState) => boolean = createSelector(
     'shouldShowUnreadsCategory',
     (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION),
     (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, ''),
     (state: GlobalState) => getConfig(state).ExperimentalGroupUnreadChannels,
-    (userPreference, oldUserPreference, serverDefault) => {
-        // Prefer the show_unread_section user preference over the previous version
-        if (userPreference) {
-            return userPreference === 'true';
-        }
-
-        if (oldUserPreference) {
-            return JSON.parse(oldUserPreference).unreads_at_top === 'true';
-        }
-
-        // The user setting is not set, so use the system default
-        return serverDefault === General.DEFAULT_ON;
-    },
+    calculateShouldShowUnreadsCategory,
 );
 
 export function getUnreadScrollPositionPreference(state: GlobalState): string {
     return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
+}
+
+export function getUnreadScrollPositionFromPreference(userPreferences: PreferencesType): string {
+    return getFromPreferences(userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
 }
 
 export function getCollapsedThreadsPreference(state: GlobalState): string {
@@ -221,6 +273,22 @@ export function getCollapsedThreadsPreference(state: GlobalState): string {
     );
 }
 
+export function getCollapsedThreadsPreferenceFromPreferences(state: GlobalState, userPreferences: PreferencesType): string {
+    const configValue = getConfig(state)?.CollapsedThreads;
+    let preferenceDefault = Preferences.COLLAPSED_REPLY_THREADS_OFF;
+
+    if (configValue === CollapsedThreads.DEFAULT_ON || configValue === CollapsedThreads.ALWAYS_ON) {
+        preferenceDefault = Preferences.COLLAPSED_REPLY_THREADS_ON;
+    }
+
+    return getFromPreferences(
+        userPreferences,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.COLLAPSED_REPLY_THREADS,
+        preferenceDefault,
+    );
+}
+
 export function isCollapsedThreadsAllowed(state: GlobalState): boolean {
     return Boolean(getConfig(state)) && getConfig(state).CollapsedThreads !== undefined && getConfig(state).CollapsedThreads !== CollapsedThreads.DISABLED;
 }
@@ -228,6 +296,13 @@ export function isCollapsedThreadsAllowed(state: GlobalState): boolean {
 export function isCollapsedThreadsEnabled(state: GlobalState): boolean {
     const isAllowed = isCollapsedThreadsAllowed(state);
     const userPreference = getCollapsedThreadsPreference(state);
+
+    return isAllowed && (userPreference === Preferences.COLLAPSED_REPLY_THREADS_ON || getConfig(state).CollapsedThreads === CollapsedThreads.ALWAYS_ON);
+}
+
+export function isCollapsedThreadsEnabledForUser(state: GlobalState, userPreferences: PreferencesType): boolean {
+    const isAllowed = isCollapsedThreadsAllowed(state);
+    const userPreference = getCollapsedThreadsPreferenceFromPreferences(state, userPreferences);
 
     return isAllowed && (userPreference === Preferences.COLLAPSED_REPLY_THREADS_ON || getConfig(state).CollapsedThreads === CollapsedThreads.ALWAYS_ON);
 }
@@ -262,6 +337,12 @@ export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
 export function getVisibleDmGmLimit(state: GlobalState) {
     const defaultLimit = 40;
     return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
+}
+
+export function getUserVisibleDmGmLimit(userPreferences: PreferencesType) {
+    const defaultLimit = 40;
+    const value = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
+    return parseInt(value, 10);
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {

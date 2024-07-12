@@ -7,7 +7,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -28,7 +28,8 @@ import PerformanceDebuggingSection from './performance_debugging_section';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
+type PreReleaseFeaturesType = Record<string, {label: string; description: string}>;
+const PreReleaseFeatures: PreReleaseFeaturesType = Constants.PRE_RELEASE_FEATURES;
 
 type Settings = {
     [key: string]: string | undefined;
@@ -39,8 +40,13 @@ type Settings = {
     sync_drafts: Props['syncDrafts'];
 };
 
-export type Props = {
+export type OwnProps = {
+    adminMode?: boolean;
     currentUser: UserProfile;
+    userPreferences?: PreferencesType;
+}
+
+export type Props = OwnProps & {
     advancedSettingsCategory: PreferenceType[];
     sendOnCtrlEnter: string;
     codeBlockOnCtrlEnter: string;
@@ -63,7 +69,7 @@ export type Props = {
 };
 
 type State = {
-    preReleaseFeatures: typeof PreReleaseFeatures;
+    preReleaseFeatures: PreReleaseFeaturesType;
     settings: Settings;
     enabledFeatures: number;
     isSaving: boolean;
@@ -92,7 +98,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         };
 
         const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
-        delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
 
         let enabledFeatures = 0;
@@ -161,6 +166,10 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleSubmit = async (settings: string[]): Promise<void> => {
+        if (!this.props.currentUser) {
+            return;
+        }
+
         const preferences: PreferenceType[] = [];
         const {actions, currentUser} = this.props;
         const userId = currentUser.id;
@@ -709,7 +718,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             const inputs = [];
 
             this.state.preReleaseFeaturesKeys.forEach((key) => {
-                const feature = this.state.preReleaseFeatures[key as keyof typeof PreReleaseFeatures];
+                const feature = this.state.preReleaseFeatures[key as keyof PreReleaseFeaturesType];
                 inputs.push(
                     <div key={'advancedPreviewFeatures_' + feature.label}>
                         <div className='checkbox'>
@@ -796,7 +805,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         let makeConfirmationModal: ReactNode = '';
         const currentUser = this.props.currentUser;
 
-        if (currentUser.auth_service === '' && this.props.enableUserDeactivation) {
+        if (currentUser.auth_service === '' && this.props.enableUserDeactivation && !this.props.adminMode) {
             const active = this.props.activeSection === 'deactivateAccount';
             let max = null;
             if (active) {
@@ -928,6 +937,9 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         areAllSectionsInactive={this.props.activeSection === ''}
                         onUpdateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}
+                        adminMode={this.props.adminMode}
+                        userPreferences={this.props.userPreferences}
+                        currentUserId={this.props.currentUser.id}
                     />
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
@@ -935,6 +947,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
+                        adminMode={this.props.adminMode}
+                        currentUserId={this.props.currentUser.id}
                     />
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}

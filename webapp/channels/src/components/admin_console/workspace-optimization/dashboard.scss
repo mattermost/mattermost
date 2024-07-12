@@ -24,7 +24,6 @@
 }
 
 .WorkspaceOptimizationDashboard {
-    background-color: #fff;
 
     button[class*=' StyledChip'],
     button[class^='StyledChip'] {
@@ -146,7 +145,8 @@
             &__title {
                 margin-bottom: 8px;
                 color: var(--sys-denim-center-channel-text);
-                font-size: 22px;
+                font-family: Metropolis, sans-serif;
+                font-size: 20px;
                 font-weight: 700;
                 line-height: 28px;
             }
@@ -179,10 +179,19 @@
         margin-left: 4px;
 
         li.accordion-card {
+            overflow: hidden;
             box-sizing: border-box;
-            border: 1px solid rgba(63, 67, 80, 0.08) !important;
+            border: var(--border-light);
+            border-radius: var(--radius-s);
             margin-top: 16px;
             background-color: var(--sys-center-channel-bg);
+
+            &:has(.accordion-card-header[role="button"]){
+                &:hover {
+                    border: var(--border-dark);
+                    box-shadow: var(--elevation-2);
+                }
+            }
 
             .accordion-card-header {
                 max-height: 92px;

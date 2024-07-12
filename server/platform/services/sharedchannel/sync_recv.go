@@ -20,6 +20,7 @@ import (
 var (
 	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
 	ErrChannelIDMismatch = errors.New("channelID mismatch")
+	ErrUserDMPermission  = errors.New("users cannot DM each other")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -208,12 +209,15 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
+		// save the updated username and email in props
+		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
+		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		// TODO:  MM-59398:  allow patching username with munged, unique name
+
 		patch := &model.UserPatch{
-			Username:  &user.Username,
 			Nickname:  &user.Nickname,
 			FirstName: &user.FirstName,
 			LastName:  &user.LastName,
-			Email:     &user.Email,
 			Props:     user.Props,
 			Position:  &user.Position,
 			Locale:    &user.Locale,
@@ -224,20 +228,23 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	}
 
-	// Add user to team. We do this here regardless of whether the user was
+	// Add user to team and channel. We do this here regardless of whether the user was
 	// just created or patched since there are three steps to adding a user
 	// (insert rec, add to team, add to channel) and any one could fail.
 	// Instead of undoing what succeeded on any failure we simply do all steps each
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
-	// added and exit quickly.
-	if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
-		return nil, fmt.Errorf("error adding sync user to Team: %w", err)
+	// added and exit quickly.  Not needed for DMs where teamId is empty.
+	if channel.TeamId != "" {
+		// add user to team
+		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
+			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
+		}
+		// add user to channel
+		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
+			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
+		}
 	}
 
-	// add user to channel
-	if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
-		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
-	}
 	return userSaved, nil
 }
 
@@ -249,13 +256,9 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
 
-	// save the original username and email in props (if not already done by another remote)
-	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
-		user.SetProp(KeyRemoteUsername, user.Username)
-	}
-	if _, ok := user.GetProp(KeyRemoteEmail); !ok {
-		user.SetProp(KeyRemoteEmail, user.Email)
-	}
+	// save the original username and email in props
+	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
+	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
@@ -267,7 +270,7 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 		}
 
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
-		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
+		user.Email = model.NewId()
 
 		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
 			field, ok := isConflictError(err)
@@ -300,8 +303,8 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	// preserve existing real username/email since Patch will over-write them;
 	// the real username/email in props can be updated if they don't contain colons,
 	// meaning the update is coming from the user's origin server (not munged).
-	realUsername, _ := user.GetProp(KeyRemoteUsername)
-	realEmail, _ := user.GetProp(KeyRemoteEmail)
+	realUsername, _ := user.GetProp(model.UserPropsKeyRemoteUsername)
+	realEmail, _ := user.GetProp(model.UserPropsKeyRemoteEmail)
 
 	if patch.Username != nil && !strings.Contains(*patch.Username, ":") {
 		realUsername = *patch.Username
@@ -312,8 +315,8 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 
 	user.Patch(patch)
 	user = sanitizeUserForSync(user)
-	user.SetProp(KeyRemoteUsername, realUsername)
-	user.SetProp(KeyRemoteEmail, realEmail)
+	user.SetProp(model.UserPropsKeyRemoteUsername, realUsername)
+	user.SetProp(model.UserPropsKeyRemoteEmail, realEmail)
 
 	// Apply a suffix to the username until it is unique.
 	for i := 1; i <= MaxUpsertRetries; i++ {
@@ -321,7 +324,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 			suffix = strconv.FormatInt(int64(i), 10)
 		}
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
-		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
+		user.Email = model.NewId()
 
 		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
 			field, ok := isConflictError(err)

@@ -566,18 +566,17 @@ func TestNoticeValidation(t *testing.T) {
 				clientVersion = "1.2.3"
 			}
 
-			model.CurrentVersion = tt.args.serverVersion
-			if model.CurrentVersion == "" {
-				model.CurrentVersion = "5.26.1"
-				defer func() {
-					model.CurrentVersion = ""
-				}()
+			serverVersion := tt.args.serverVersion
+			if serverVersion == "" {
+				serverVersion = "5.26.1"
 			}
+
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),
 				th.App.Srv().Store().Preference(),
 				"test",
 				tt.args.client,
+				serverVersion,
 				clientVersion,
 				tt.args.postCount,
 				tt.args.userCount,

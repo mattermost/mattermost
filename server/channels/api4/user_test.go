@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -181,6 +182,47 @@ func TestCreateUserAudit(t *testing.T) {
 
 	require.Contains(t, string(data), email)
 	require.NotContains(t, string(data), password)
+}
+
+func TestUserLoginAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "adv.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptions(t, options)
+	defer th.TearDown()
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	user, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Equal(t, th.BasicUser.Id, user.Id)
+
+	sess, resp, err := th.Client.GetSessions(context.Background(), user.Id, "")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, sess, 1)
+	assert.Equal(t, th.BasicUser.Id, sess[0].UserId)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Audit.Flush()
+	require.NoError(t, err)
+
+	require.NoError(t, logFile.Sync())
+
+	data, err := io.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+
+	// ensure we are auditing the user_id and session_id
+	require.Contains(t, string(data), fmt.Sprintf("\"event_name\":\"login\",\"status\":\"success\",\"actor\":{\"user_id\":\"%s\",\"session_id\":\"%s\"", user.Id, sess[0].Id))
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
@@ -4632,6 +4674,26 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer func() { th.Client.AuthToken = oldSessionToken }()
 
 		assertToken(t, th, rtoken, th.BasicUser.Id)
+	})
+
+	t.Run("create user access token for remote user as a system admin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		// make a remote user
+		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
+			Username: "remoteuser",
+			RemoteId: model.NewString(model.NewId()),
+			Password: model.NewId(),
+			Email:    "remoteuser@example.com",
+		})
+		require.Nil(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), remoteUser.Id, "test token")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp) // remote users are not allowed to have access tokens
 	})
 
 	t.Run("create access token as oauth session", func(t *testing.T) {

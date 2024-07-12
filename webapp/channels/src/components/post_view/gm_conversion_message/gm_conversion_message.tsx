@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -36,7 +36,20 @@ function GMConversionMessage(props: Props): JSX.Element {
         ),
     );
 
-    const convertedByUserUsername = userProfiles.find((user) => user.id === convertedByUserId)!.username;
+    const convertedByUsername = useMemo(() => {
+        const convertedByUser = userProfiles.find((user) => user.id === convertedByUserId);
+
+        if (!convertedByUser) {
+            return (
+                <FormattedMessage
+                    id='api.channel.group_message_converted_to.someone'
+                    defaultMessage='Someone'
+                />
+            );
+        }
+        return renderUsername(convertedByUser.username);
+    }, [convertedByUserId, userProfiles]);
+
     const gmMembersUsernames = userProfiles.map((user) => renderUsername(user.username));
 
     if (!convertedByUserId || !gmMembersDuringConversionIDs || gmMembersDuringConversionIDs.length === 0) {
@@ -50,7 +63,7 @@ function GMConversionMessage(props: Props): JSX.Element {
             id='api.channel.group_message_converted_to.private_channel'
             defaultMessage='{convertedBy} created this channel from a group message with {gmMembers}.'
             values={{
-                convertedBy: renderUsername(convertedByUserUsername),
+                convertedBy: convertedByUsername,
                 gmMembers: intl.formatList(gmMembersUsernames),
             }}
         />

@@ -4,17 +4,18 @@
 import {connect} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
+import {getUserVisibleDmGmLimit, getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
+import type {OwnProps} from './limit_visible_gms_dms';
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 
-function mapStateToProps(state: GlobalState) {
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {
-        currentUserId: getCurrentUserId(state),
-        dmGmLimit: getVisibleDmGmLimit(state),
+        currentUserId: ownProps.adminMode ? ownProps.currentUserId : getCurrentUserId(state),
+        dmGmLimit: ownProps.adminMode && ownProps.userPreferences ? getUserVisibleDmGmLimit(ownProps.userPreferences) : getVisibleDmGmLimit(state),
     };
 }
 
