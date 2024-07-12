@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
-	"path"
 	"runtime"
 	"runtime/pprof"
 	"strings"
@@ -70,9 +69,12 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		}
 
 		for _, logFile := range logFiles {
-			b, err := a.FileBackend().ReadFile(path.Join("logs", logFile))
+			b, err := a.FileBackend().ReadFile(logFile)
 			if err != nil {
-				c.Logger().Error("TODO 2", mlog.Err(err))
+				c.Logger().Error("SUPPORT PACKET: failed to read log file from file store",
+					mlog.Err(err),
+					mlog.String("logFile", logFile),
+				)
 				warnings = append(warnings, err.Error())
 				continue
 			}
@@ -82,7 +84,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 				Body:     b,
 			})
 
-			err = a.FileBackend().RemoveFile(path.Join("logs", logFile))
+			err = a.FileBackend().RemoveFile(logFile)
 			if err != nil {
 				c.Logger().Error("TODO 3", mlog.Err(err))
 				warnings = append(warnings, err.Error())
