@@ -10,8 +10,7 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type EditTableRowProps = {
     allowedIPRange: AllowedIPRange;
@@ -33,8 +32,14 @@ const EditTableRow = ({
     hoveredRow,
 }: EditTableRowProps) => {
     const {formatMessage} = useIntl();
-    const editTooltip = <Tooltip id='edit-tooltip'>{formatMessage({id: 'admin.ip_filtering.edit', defaultMessage: 'Edit'})}</Tooltip>;
-    const deleteTooltip = <Tooltip id='delete-tooltip'>{formatMessage({id: 'admin.ip_filtering.delete', defaultMessage: 'Delete'})}</Tooltip>;
+    const editTooltip = formatMessage({
+        id: 'admin.ip_filtering.edit',
+        defaultMessage: 'Edit',
+    });
+    const deleteTooltip = formatMessage({
+        id: 'admin.ip_filtering.delete',
+        defaultMessage: 'Delete',
+    });
     return (
         <div
             className='Row'
@@ -46,9 +51,10 @@ const EditTableRow = ({
             <div className='Actions'>
                 {hoveredRow === index && (
                     <>
-                        <OverlayTrigger
+                        <WithTooltip
+                            id='edit-tooltip'
                             placement='top'
-                            overlay={editTooltip}
+                            title={editTooltip}
                         >
                             <div
                                 className='edit'
@@ -58,23 +64,27 @@ const EditTableRow = ({
                             >
                                 <PencilOutlineIcon size={20}/>
                             </div>
-                        </OverlayTrigger>
-                        <OverlayTrigger
+                        </WithTooltip>
+
+                        <WithTooltip
+                            id='delete-tooltip'
                             placement='top'
-                            overlay={deleteTooltip}
+                            title={deleteTooltip}
                         >
                             <div
                                 className='delete'
                                 aria-label='Delete'
                                 role='button'
-                                onClick={() => handleConfirmDeleteFilter(allowedIPRange)}
+                                onClick={() =>
+                                    handleConfirmDeleteFilter(allowedIPRange)
+                                }
                             >
                                 <TrashCanOutlineIcon
                                     size={20}
                                     color='red'
                                 />
                             </div>
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </>
                 )}
             </div>
