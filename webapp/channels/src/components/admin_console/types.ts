@@ -167,8 +167,8 @@ type AdminDefinitionConfigSchemaSettings = {
     header?: string | MessageDescriptor;
 }
 
-type AdminDefinitionConfigSchemaSection = {
-    title: string;
+export type AdminDefinitionConfigSchemaSection = {
+    title?: string;
     subtitle?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;

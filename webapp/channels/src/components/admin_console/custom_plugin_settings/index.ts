@@ -5,7 +5,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
 
-import type {PluginRedux} from '@mattermost/types/plugins';
+import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -25,7 +25,7 @@ import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition';
 import {escapePathPart} from '../schema_admin_settings';
-import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema} from '../types';
+import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 
@@ -44,9 +44,8 @@ function makeGetPluginSchema() {
             const escapedPluginId = escapePathPart(plugin.id);
             const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
 
-            let settings: Array<Partial<AdminDefinitionSetting>> = [];
-            if (plugin.settings_schema && plugin.settings_schema.settings) {
-                settings = plugin.settings_schema.settings.map((setting) => {
+            const parsePluginSettings = (settings: PluginSetting[]) => {
+                return settings.map((setting) => {
                     const key = setting.key.toLowerCase();
                     let component = null;
                     let bannerType = '';
@@ -83,7 +82,27 @@ function makeGetPluginSchema() {
                         component,
                         showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
                     };
-                }) as Array<Partial<AdminDefinitionSetting>>;
+                });
+            };
+
+            const parsePluginSettingSections = (sections: PluginSettingSection[]) => {
+                return sections.map((section) => {
+                    return {
+                        title: section.title,
+                        subtitle: section.subtitle,
+                        settings: parsePluginSettings(section.settings),
+                        header: section.header,
+                        footer: section.footer,
+                    };
+                });
+            };
+
+            let sections: AdminDefinitionConfigSchemaSection[] = [];
+            let settings: Array<Partial<AdminDefinitionSetting>> = [];
+            if (plugin.settings_schema && plugin.settings_schema.sections) {
+                sections = parsePluginSettingSections(plugin.settings_schema.sections) as AdminDefinitionConfigSchemaSection[];
+            } else if (plugin.settings_schema && plugin.settings_schema.settings) {
+                settings = parsePluginSettings(plugin.settings_schema.settings) as Array<Partial<AdminDefinitionSetting>>;
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
@@ -93,22 +112,34 @@ function makeGetPluginSchema() {
                 } else {
                     pluginEnableSetting.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
                 }
-                settings.unshift(pluginEnableSetting);
+
+                if (sections.length > 0) {
+                    sections[0].settings.unshift(pluginEnableSetting as AdminDefinitionSetting);
+                } else {
+                    settings.unshift(pluginEnableSetting);
+                }
             }
 
-            settings.forEach((s) => {
+            const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {
                 if (s.isDisabled) {
                     s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
                 } else {
                     s.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
                 }
-            });
+            };
+
+            if (sections.length > 0) {
+                sections.forEach((section) => section.settings.forEach(checkDisableSetting));
+            } else {
+                settings.forEach(checkDisableSetting);
+            }
 
             return {
                 ...plugin.settings_schema,
                 id: plugin.id,
                 name: plugin.name,
-                settings,
+                settings: sections.length > 0 ? undefined : settings,
+                sections: sections.length > 0 ? sections : undefined,
                 translate: Boolean(plugin.translate),
             } as AdminDefinitionSubSectionSchema;
         },

@@ -136,7 +136,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
-                schema={{...plugin.settings_schema, id: plugin.id, name: plugin.name, settings}}
+                schema={{...plugin.settings_schema, id: plugin.id, name: plugin.name, settings, sections: undefined}}
                 patchConfig={jest.fn()}
             />,
         );
@@ -170,7 +170,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                         Plugins: {},
                     } as PluginSettings,
                 }}
-                schema={{...plugin.settings_schema, id: plugin.id, name: plugin.name, settings}}
+                schema={{...plugin.settings_schema, id: plugin.id, name: plugin.name, settings, sections: undefined}}
                 patchConfig={jest.fn()}
             />,
         );
