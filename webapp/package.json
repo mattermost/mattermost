@@ -51,6 +51,13 @@
     "webpack-cli": "5.0.2",
     "webpack-dev-server": "4.13.3"
   },
+  "overrides": {
+    "@types/react": "17.0.71",
+    "@types/scheduler": "0.16.8",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "styled-components": "5.3.6"
+  },
   "workspaces": [
     "channels",
     "platform/client",
