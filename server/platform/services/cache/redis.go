@@ -10,19 +10,20 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/redis/go-redis/v9"
+
+	"github.com/redis/rueidis"
 	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Redis struct {
 	name          string
-	client        *redis.Client
+	client        rueidis.Client
 	defaultExpiry time.Duration
 	metrics       einterfaces.MetricsInterface
 }
 
-func NewRedis(opts *CacheOptions, client *redis.Client) (*Redis, error) {
+func NewRedis(opts *CacheOptions, client rueidis.Client) (*Redis, error) {
 	if opts.Name == "" {
 		return nil, errors.New("no name specified for cache")
 	}
@@ -39,7 +40,12 @@ func (r *Redis) Purge() error {
 	if err != nil {
 		return err
 	}
-	return r.client.Del(context.Background(), keys...).Err()
+	return r.client.Do(context.Background(),
+		r.client.B().Del().
+			Key(keys...).
+			Build(),
+	).Error()
+	// return r.client.Del(context.Background(), keys...).Err()
 }
 
 func (r *Redis) Set(key string, value any) error {
@@ -75,7 +81,16 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 		return err
 	}
 
-	return r.client.Set(context.Background(), r.name+":"+key, buf, ttl).Err()
+	// return r.client.Pipeline().Set(context.Background(), r.name+":"+key, buf, ttl).Err()
+
+	return r.client.Do(context.Background(),
+		r.client.B().Set().
+			Key(r.name+":"+key).
+			Value(rueidis.BinaryString(buf)).
+			Ex(ttl).
+			Build(),
+	).Error()
+	// return r.client.Set(context.Background(), r.name+":"+key, buf, ttl).Err()
 }
 
 // Get the content stored in the cache for the given key, and decode it into the value interface.
@@ -88,9 +103,15 @@ func (r *Redis) Get(key string, value any) error {
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Get", elapsed)
 		}
 	}()
-	val, err := r.client.Get(context.Background(), r.name+":"+key).Result()
+	val, err := r.client.Do(context.Background(),
+		r.client.B().Get().
+			Key(r.name+":"+key).
+			Build(),
+	).AsBytes()
+	// val, err := r.client.Get(context.Background(), r.name+":"+key).Result()
 	if err != nil {
-		if errors.Is(err, redis.Nil) {
+		if rueidis.IsRedisNil(err) {
+			// if errors.Is(err, redis.Nil) {
 			return ErrKeyNotFound
 		}
 		return err
@@ -98,7 +119,7 @@ func (r *Redis) Get(key string, value any) error {
 
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
-		_, err := msgpVal.UnmarshalMsg([]byte(val))
+		_, err := msgpVal.UnmarshalMsg(val)
 		return err
 	}
 
@@ -113,18 +134,18 @@ func (r *Redis) Get(key string, value any) error {
 	switch v := value.(type) {
 	case **model.User:
 		var u model.User
-		_, err := u.UnmarshalMsg([]byte(val))
+		_, err := u.UnmarshalMsg(val)
 		*v = &u
 		return err
 	case *map[string]*model.User:
 		var u model.UserMap
-		_, err := u.UnmarshalMsg([]byte(val))
+		_, err := u.UnmarshalMsg(val)
 		*v = u
 		return err
 	}
 
 	// Slow path for other structs.
-	return msgpack.Unmarshal([]byte(val), value)
+	return msgpack.Unmarshal(val, value)
 }
 
 // Remove deletes the value for a given key.
@@ -136,7 +157,13 @@ func (r *Redis) Remove(key string) error {
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Del", elapsed)
 		}
 	}()
-	return r.client.Del(context.Background(), r.name+":"+key).Err()
+
+	return r.client.Do(context.Background(),
+		r.client.B().Del().
+			Key(r.name+":"+key).
+			Build(),
+	).Error()
+	// return r.client.Del(context.Background(), r.name+":"+key).Err()
 }
 
 // Keys returns a slice of the keys in the cache.
@@ -148,8 +175,15 @@ func (r *Redis) Keys() ([]string, error) {
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Keys", elapsed)
 		}
 	}()
+
+	return r.client.Do(context.Background(),
+		r.client.B().Keys().
+			Pattern(r.name+":*").
+			Build(),
+	).AsStrSlice()
+
 	// TODO: migrate to a function that works on a batch of keys.
-	return r.client.Keys(context.Background(), r.name+":*").Result()
+	// return r.client.Keys(context.Background(), r.name+":*").Result()
 }
 
 // Len returns the number of items in the cache.
@@ -162,7 +196,12 @@ func (r *Redis) Len() (int, error) {
 		}
 	}()
 	// TODO: migrate to scan
-	keys, err := r.client.Keys(context.Background(), r.name+":*").Result()
+	keys, err := r.client.Do(context.Background(),
+		r.client.B().Keys().
+			Pattern(r.name+":*").
+			Build(),
+	).AsStrSlice()
+	// keys, err := r.client.Keys(context.Background(), r.name+":*").Result()
 	if err != nil {
 		return 0, err
 	}

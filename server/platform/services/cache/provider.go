@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/redis/go-redis/v9"
+	"github.com/redis/rueidis"
 )
 
 // CacheOptions contains options for initializing a cache
@@ -73,7 +73,7 @@ func (c *cacheProvider) Type() string {
 }
 
 type redisProvider struct {
-	client  *redis.Client
+	client  rueidis.Client
 	metrics einterfaces.MetricsInterface
 }
 
@@ -87,16 +87,23 @@ type RedisOptions struct {
 
 // NewProvider creates a new CacheProvider
 func NewRedisProvider(opts *RedisOptions) Provider {
-	client := redis.NewClient(&redis.Options{
-		Addr:            opts.RedisAddr,
-		Password:        opts.RedisPassword,
-		DB:              opts.RedisDB,
-		MaxActiveConns:  opts.MaxActiveConns,
-		MaxIdleConns:    opts.MaxIdleConns,
-		// ReadTimeout:     10 * time.Second,
-		// WriteTimeout:    10 * time.Second,
-		ConnMaxIdleTime: 1 * time.Minute,
+	client, _ := rueidis.NewClient(rueidis.ClientOption{
+		InitAddress:       []string{opts.RedisAddr},
+		Password:          opts.RedisPassword,
+		SelectDB:          opts.RedisDB,
+		ForceSingleClient: true,
+		//TODO: look into MaxFlushDelay
 	})
+	// client := redis.NewClient(&redis.Options{
+	// 	Addr:           opts.RedisAddr,
+	// 	Password:       opts.RedisPassword,
+	// 	DB:             opts.RedisDB,
+	// 	MaxActiveConns: opts.MaxActiveConns,
+	// 	MaxIdleConns:   opts.MaxIdleConns,
+	// 	// ReadTimeout:     10 * time.Second,
+	// 	// WriteTimeout:    10 * time.Second,
+	// 	ConnMaxIdleTime: 1 * time.Minute,
+	// })
 	return &redisProvider{client: client}
 }
 
@@ -109,7 +116,8 @@ func (r *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
 
 // Connect opens a new connection to the cache using specific provider parameters.
 func (r *redisProvider) Connect() (string, error) {
-	res, err := r.client.Ping(context.Background()).Result()
+	res, err := r.client.Do(context.Background(), r.client.B().Ping().Build()).ToString()
+	// res, err := r.client.Ping(context.Background()).Result()
 	if err != nil {
 		return "", fmt.Errorf("unable to establish connection with redis: %v", err)
 	}
@@ -126,5 +134,6 @@ func (r *redisProvider) Type() string {
 
 // Close releases any resources used by the cache provider.
 func (r *redisProvider) Close() error {
-	return r.client.Close()
+	r.client.Close()
+	return nil
 }
