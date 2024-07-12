@@ -9831,6 +9831,22 @@ func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string,
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.MaintainMultipleFromImport(memberships)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MaintainMultipleFromImport", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) MarkAllAsRead(userID string, threadIds []string) error {
 	start := time.Now()
 
@@ -9925,6 +9941,22 @@ func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.SaveMultipleMemberships(memberships)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.SaveMultipleMemberships", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {

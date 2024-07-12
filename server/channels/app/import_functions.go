@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"sync"
 
@@ -1567,11 +1568,13 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	var (
-		postsWithData         = []postAndData{}
-		postsForCreateList    = []*model.Post{}
-		postsForCreateMap     = map[string]int{}
-		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]int{}
+		postsWithData                = []postAndData{}
+		postsForCreateList           = []*model.Post{}
+		postsForCreateMap            = map[string]int{}
+		postsForOverwriteList        = []*model.Post{}
+		postsForOverwriteMap         = map[string]int{}
+		threadMembersToCreateMap     = map[string][]*model.ThreadMembership{}
+		threadMembersToOverwriteList = []*model.ThreadMembership{}
 	)
 
 	for _, line := range lines {
@@ -1603,6 +1606,16 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		post.CreateAt = *line.Post.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.Post.Replies != nil {
+			replies := *line.Post.Replies
+			post.ReplyCount = int64(len(replies))
+			// Post replies are not guaranteed to be sorted by CreateAt, so we sort them here.
+			slices.SortFunc(replies, func(a, b imports.ReplyImportData) int {
+				return int(*a.CreateAt - *b.CreateAt)
+			})
+			post.LastReplyAt = *replies[len(replies)-1].CreateAt
+		}
+
 		if line.Post.Type != nil {
 			post.Type = *line.Post.Type
 		}
@@ -1614,6 +1627,47 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 		if line.Post.IsPinned != nil {
 			post.IsPinned = *line.Post.IsPinned
+		}
+		if line.Post.ThreadFollowers != nil {
+			threadMemberships := []*model.ThreadMembership{}
+			participants := make([]*model.User, len(*line.Post.ThreadFollowers))
+
+			for i, member := range *line.Post.ThreadFollowers {
+				user, ok := users[strings.ToLower(*member.User)]
+				if !ok {
+					// maybe it's a user on target instance but not in the import data.
+					// This is a rare case, but we need or can to handle it.
+					// alternatively, we can continue and discard this follower as maybe they
+					// were deleted.
+					var uErr error
+					user, uErr = a.Srv().Store().User().GetByUsername(*member.User)
+					if uErr != nil {
+						return line.LineNumber, model.NewAppError("importMultiplePostLines", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(uErr)
+					}
+				}
+				membership := &model.ThreadMembership{
+					PostId:    post.Id, // empty if it's a new post, will set later while inserting to the DB.
+					UserId:    user.Id,
+					Following: true,
+				}
+
+				if member.LastViewAt != nil {
+					membership.LastViewed = *member.LastViewAt
+				}
+				if member.UnreadMentions != nil {
+					membership.UnreadMentions = *member.UnreadMentions
+				}
+				// We only need the user ID to update the thread.
+				participants[i] = &model.User{Id: user.Id}
+				threadMemberships = append(threadMemberships, membership)
+			}
+			post.Participants = participants
+
+			if post.Id == "" {
+				threadMembersToCreateMap[getPostStrID(post)] = threadMemberships
+			} else {
+				threadMembersToOverwriteList = append(threadMembersToOverwriteList, threadMemberships...)
+			}
 		}
 
 		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id, extractContent)
@@ -1634,11 +1688,13 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			postsForOverwriteList = append(postsForOverwriteList, post)
 			postsForOverwriteMap[getPostStrID(post)] = line.LineNumber
 		}
+		// Tip: the post ID is getting populated after the post is saved, if it's a new post. Otherwise, it's already set.
 		postsWithData = append(postsWithData, postAndData{post: post, postData: line.Post, team: team, lineNumber: line.LineNumber})
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, idx, nErr := a.Srv().Store().Post().SaveMultiple(postsForCreateList); nErr != nil {
+		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		if nErr != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			var retErr *model.AppError
@@ -1659,6 +1715,36 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			}
 			return 0, retErr
 		}
+
+		var membersToCreate []*model.ThreadMembership
+		for _, post := range postsForCreateList {
+			members, ok := threadMembersToCreateMap[getPostStrID(post)]
+			if !ok {
+				continue
+			}
+
+			for _, member := range members {
+				if post.Id == "" {
+					appErr := model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(errors.New("post id cannot be empty"))
+					if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
+						return lineNumber, appErr
+					}
+					return 0, appErr
+				}
+				member.PostId = post.Id
+			}
+
+			membersToCreate = append(membersToCreate, members...)
+		}
+
+		// we have an assumption here is that all these memberships should be brand new because the corresponfing posts
+		// do not exist in the target until the import.
+		if _, err := a.Srv().Store().Thread().SaveMultipleMemberships(membersToCreate); err != nil {
+			// we don't know the line number of the post that caused the error
+			// so we return 0. But at this stage, it's unlikely to receive an error
+			// due to the thread member itself, mostl likely it's due to the DB connection etc.
+			return 0, model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
@@ -1669,6 +1755,15 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			}
 		}
 		return 0, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Update thread memberships for posts that were overwritten. Here some of the memberships
+	// can be brand new, needs to be updated or an older membership should not get updated.
+	// MaintainMembership method has some logic within to handle those decisions. Unfortunately
+	// some application code leaked to the store layer here, which should be revisited when there
+	// is resource (eg. time, human or maybe AI).
+	if _, sErr := a.Srv().Store().Thread().MaintainMultipleFromImport(threadMembersToOverwriteList); sErr != nil {
+		return 0, model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
 	}
 
 	for _, postWithData := range postsWithData {
