@@ -461,6 +461,7 @@ export const ModalIdentifiers = {
     EXPORT_ERROR_MODAL: 'export_error_modal',
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
+    CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
 };
 
 export const UserStatuses = {

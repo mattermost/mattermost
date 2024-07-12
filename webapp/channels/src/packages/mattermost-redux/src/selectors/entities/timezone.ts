@@ -41,14 +41,16 @@ export const getCurrentTimezone = createSelector(
     },
 );
 
+export function generateCurrentTimezoneLabel(timezone: string) {
+    if (!timezone) {
+        return '';
+    }
+
+    return getTimezoneLabel(timezones, timezone);
+}
+
 export const getCurrentTimezoneLabel = createSelector(
     'getCurrentTimezoneLabel',
     getCurrentTimezone,
-    (timezone) => {
-        if (!timezone) {
-            return '';
-        }
-
-        return getTimezoneLabel(timezones, timezone);
-    },
+    generateCurrentTimezoneLabel,
 );

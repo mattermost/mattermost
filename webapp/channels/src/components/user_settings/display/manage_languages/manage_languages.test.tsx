@@ -23,6 +23,7 @@ describe('components/user_settings/display/manage_languages/manage_languages', (
         updateSection: jest.fn(),
         actions: {
             updateMe: jest.fn(() => Promise.resolve({})),
+            patchUser: jest.fn(() => Promise.resolve({})),
         },
     };
 

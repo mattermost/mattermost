@@ -8131,10 +8131,6 @@
     "translation": "Uitnodiging aangemaakt."
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kon de uitnodiging niet decoderen. Onjuist wachtwoord of ongeldige uitnodiging: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Kon beveiligde verbindingen niet ophalen: {{.Error}}"
   },
@@ -10064,5 +10060,21 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Kan taakstatus niet bijwerken. Ongeldige status ingesteld"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Fout bij het schrijven van de logs naar buffer"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Er is een interne fout opgetreden bij het opslaan van het wachtwoord."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Er is een interne fout opgetreden bij het opslaan van het wachtwoord."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Je wachtwoord mag niet meer dan 72 tekens bevatten."
   }
 ]

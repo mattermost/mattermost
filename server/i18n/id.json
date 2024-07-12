@@ -3298,10 +3298,6 @@
     "translation": "Nama tampilan untuk koneksi aman"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Tidak dapat mendekripsi undangan. Kata sandi salah atau undangan rusak: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.invite_summary",
     "translation": "Kirimkan undangan terenkripsi AES 256-bit berikut ini ke Admin Sistem Mattermost eksternal bersama dengan kata sandi. Mereka akan menggunakan perintah garis miring `{{.Command}}` untuk menerima undangan.\n\n```\n{{.Undangan}}\n```\n\n**Pastikan koneksi aman dapat mengakses instance Mattermost Anda melalui** {{.SiteURL}}"
   },
