@@ -27,6 +27,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     };
 
     const requiredProps = {
+        adminMode: false,
         user: user as UserProfile,
         updateSection: jest.fn(),
         activeSection: '',
@@ -72,6 +73,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             autoUpdateTimezone: jest.fn(),
             savePreferences: jest.fn(),
             updateMe: jest.fn(),
+            patchUser: jest.fn(),
         },
 
         configTeammateNameDisplay: '',

@@ -5,7 +5,7 @@ import React from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -16,10 +16,15 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
 
-type Props = {
+export type OwnProps = {
+    adminMode?: boolean;
+    currentUserId: string;
+    userPreferences?: PreferencesType;
+}
+
+type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
     joinLeave?: string;
     onUpdateSection: (section?: string) => void;
     renderOnOffLabel: (label: string) => ReactNode;

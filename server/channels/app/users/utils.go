@@ -42,7 +42,7 @@ func (us *UserService) sanitizeProfiles(users []*model.User, asAdmin bool) []*mo
 func (us *UserService) SanitizeProfile(user *model.User, asAdmin bool) {
 	options := us.GetSanitizeOptions(asAdmin)
 
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, asAdmin)
 }
 
 func (us *UserService) GetSanitizeOptions(asAdmin bool) map[string]bool {

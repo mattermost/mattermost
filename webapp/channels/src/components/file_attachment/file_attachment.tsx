@@ -52,6 +52,7 @@ interface Props extends PropsFromRedux {
     * Display in compact format
     */
     compactDisplay?: boolean;
+    disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
 }
 
@@ -190,6 +191,7 @@ export default function FileAttachment(props: Props) {
             defaultItems.push(
                 <Menu.ItemAction
                     data-title='Public Image'
+                    key={fileInfo.id + '_publiclinkmenuitem'}
                     onClick={handleGetPublicLink}
                     ariaLabel={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
                     text={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
@@ -284,7 +286,10 @@ export default function FileAttachment(props: Props) {
                 onClick={onAttachmentClick}
             >
                 {loaded ? (
-                    <FileThumbnail fileInfo={fileInfo}/>
+                    <FileThumbnail
+                        fileInfo={fileInfo}
+                        disablePreview={props.disablePreview}
+                    />
                 ) : (
                     <div className='post-image__load'/>
                 )}
