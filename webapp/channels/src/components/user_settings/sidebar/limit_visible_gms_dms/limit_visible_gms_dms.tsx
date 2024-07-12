@@ -25,7 +25,7 @@ type Limit = {
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    currentUserId: string;
     userPreferences?: PreferencesType;
 }
 

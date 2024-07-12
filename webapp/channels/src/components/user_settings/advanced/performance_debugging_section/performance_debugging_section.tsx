@@ -16,7 +16,7 @@ import type {PropsFromRedux} from './index';
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    currentUserId: string;
 }
 
 type Props = PropsFromRedux & OwnProps & {

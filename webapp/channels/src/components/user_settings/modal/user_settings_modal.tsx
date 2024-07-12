@@ -16,7 +16,7 @@ import ConfirmModal from 'components/confirm_modal';
 import SettingsSidebar from 'components/settings_sidebar';
 import UserSettings from 'components/user_settings';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SmartLoader from 'components/widgets/smartLoader';
+import SmartLoader from 'components/widgets/smart_loader';
 
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';

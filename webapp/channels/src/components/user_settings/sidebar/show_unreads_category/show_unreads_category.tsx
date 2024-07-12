@@ -18,7 +18,7 @@ import {a11yFocus} from 'utils/utils';
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    currentUserId: string;
     userPreferences?: PreferencesType;
 }
 

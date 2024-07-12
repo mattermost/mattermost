@@ -18,7 +18,7 @@ export interface Props {
     closeModal: () => void;
     collapseModal: () => void;
     adminMode?: boolean;
-    currentUserId?: string;
+    currentUserId: string;
     userPreferences?: PreferencesType;
 }
 
