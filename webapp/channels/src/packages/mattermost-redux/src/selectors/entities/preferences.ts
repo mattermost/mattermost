@@ -239,12 +239,8 @@ export const shouldShowUnreadsCategory: (state: GlobalState, userPreferences?: P
     },
 );
 
-export function getUnreadScrollPositionPreference(state: GlobalState): string {
-    return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
-}
-
-export function getUnreadScrollPositionFromPreference(userPreferences: PreferencesType): string {
-    return getFromPreferences(userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
+export function getUnreadScrollPositionPreference(state: GlobalState, userPreference?: PreferencesType): string {
+    return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT, userPreference);
 }
 
 export function getCollapsedThreadsPreference(state: GlobalState): string {

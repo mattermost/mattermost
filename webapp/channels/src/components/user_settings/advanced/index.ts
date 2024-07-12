@@ -10,7 +10,6 @@ import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actio
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     get,
-    getUnreadScrollPositionFromPreference,
     getUnreadScrollPositionPreference,
     makeGetCategory, makeGetUserCategory,
     syncedDraftsAreAllowed,
@@ -44,7 +43,7 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
             joinLeave: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString(), userPreferences),
             syncDrafts: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true', userPreferences),
             currentUser: props.adminMode && props.currentUser ? props.currentUser : getCurrentUser(state),
-            unreadScrollPosition: props.adminMode && props.userPreferences ? getUnreadScrollPositionFromPreference(props.userPreferences) : getUnreadScrollPositionPreference(state),
+            unreadScrollPosition: getUnreadScrollPositionPreference(state, userPreferences),
             enablePreviewFeatures,
             enableUserDeactivation,
             syncedDraftsAreAllowed: syncedDraftsAreAllowed(state),
