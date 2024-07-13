@@ -6784,10 +6784,6 @@
     "translation": "Запрошення від безпечного з'єднання"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не вдалося розшифрувати запрошення. Неправильний пароль або зіпсоване запрошення: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[дія]"
   },

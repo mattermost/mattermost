@@ -7935,10 +7935,6 @@
     "translation": "Inbjudan från säker anslutning"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kunde inte dekryptera inbjudan. Felaktigt lösenord eller skadad inbjudan: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[åtgärd]"
   },
@@ -10040,5 +10036,33 @@
   {
     "id": "app.user.save.groupname.app_error",
     "translation": "Kan inte avgöra om användarnamnet redan finns"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Det går inte att uppdatera status på jobb. Ogiltig status inställd"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Du har inte behörighet att hantera denna typ av jobb"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Ogiltig status inställd"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Misslyckades med att skriva loggar till buffert"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Det uppstod ett internt fel när lösenordet sparades."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ditt lösenord kan inte innehålla fler än 72 tecken."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Det uppstod ett internt fel när lösenordet sparades."
   }
 ]

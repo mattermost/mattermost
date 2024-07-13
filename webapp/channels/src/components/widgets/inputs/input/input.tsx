@@ -19,7 +19,7 @@ export enum SIZE {
     LARGE = 'large',
 }
 
-export type CustomMessageInputType = {type: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
+export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
     required?: boolean;
@@ -225,14 +225,15 @@ const Input = React.forwardRef((
             </fieldset>
             {customInputLabel && (
                 <div className={`Input___customMessage Input___${customInputLabel.type}`}>
-                    <i
-                        className={classNames(`icon ${customInputLabel.type}`, {
-                            'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
-                            'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
-                            'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
-                            'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
-                        })}
-                    />
+                    {customInputLabel.type && (
+                        <i
+                            className={classNames(`icon ${customInputLabel.type}`, {
+                                'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
+                                'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
+                                'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
+                                'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
+                            })}
+                        />)}
                     <span>{customInputLabel.value}</span>
                 </div>
             )}
