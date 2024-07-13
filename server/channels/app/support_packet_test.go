@@ -402,15 +402,19 @@ func TestCreateSupportPacketMetadata(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.App.createSupportPacketMetadata(th.Context)
-	require.NoError(t, err)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "metadata.yaml", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
+	t.Run("Happy path", func(t *testing.T) {
+		fileData, err := th.App.createSupportPacketMetadata(th.Context)
+		require.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "metadata.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
 
-	metadate, err := model.ParsePacketMetadata(fileData.Body)
-	assert.NoError(t, err)
-	require.NotNil(t, metadate)
-	assert.Equal(t, model.SupportPacketType, metadate.Type)
+		metadate, err := model.ParsePacketMetadata(fileData.Body)
+		assert.NoError(t, err)
+		require.NotNil(t, metadate)
+		assert.Equal(t, model.SupportPacketType, metadate.Type)
+		assert.Equal(t, model.CurrentVersion, metadate.ServerVersion)
+		assert.NotEmpty(t, metadate.ServerID)
+		assert.NotEmpty(t, metadate.GeneratedAt)
+	})
 }
