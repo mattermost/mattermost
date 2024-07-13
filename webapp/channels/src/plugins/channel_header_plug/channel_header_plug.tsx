@@ -29,74 +29,69 @@ type CustomMenuProps = {
     children?: React.ReactNode;
     onClose: () => void;
     rootCloseEvent?: 'click' | 'mousedown';
-    bsRole: string;
+
+    /** bsRole is used to signal to React Bootstrap's Dropdown component that this is the menu */
+    bsRole: 'menu';
 }
 
 export const maxComponentsBeforeDropdown = 15;
 
-class CustomMenu extends React.PureComponent<CustomMenuProps> {
-    handleRootClose = () => {
-        this.props.onClose();
-    };
-
-    render() {
-        const {
-            open,
-            rootCloseEvent,
-            children,
-        } = this.props;
-
-        return (
-            <RootCloseWrapper
-                disabled={!open}
-                onRootClose={this.handleRootClose}
-                event={rootCloseEvent}
+const CustomMenu = React.forwardRef<HTMLUListElement, CustomMenuProps>(({
+    onClose,
+    open,
+    rootCloseEvent,
+    children,
+}, ref) => {
+    return (
+        <RootCloseWrapper
+            disabled={!open}
+            onRootClose={onClose}
+            event={rootCloseEvent}
+        >
+            <ul
+                ref={ref}
+                role='menu'
+                className='dropdown-menu channel-header_plugin-dropdown'
             >
-                <ul
-                    role='menu'
-                    className='dropdown-menu channel-header_plugin-dropdown'
-                >
-                    {children}
-                </ul>
-            </RootCloseWrapper>
-        );
-    }
-}
+                {children}
+            </ul>
+        </RootCloseWrapper>
+    );
+});
+CustomMenu.displayName = 'CustomMenu';
 
 type CustomToggleProps = {
     children?: React.ReactNode;
     dropdownOpen?: boolean;
     onClick?: (e: React.MouseEvent) => void;
-    bsRole: string;
+
+    /** bsRole is used to signal to React Bootstrap's Dropdown component that this is the toggle to open the menu */
+    bsRole: 'toggle';
 }
 
-class CustomToggle extends React.PureComponent<CustomToggleProps> {
-    handleClick = (e: React.MouseEvent) => {
-        if (this.props.onClick) {
-            this.props.onClick(e);
-        }
-    };
-
-    render() {
-        const {children} = this.props;
-
-        let activeClass = '';
-        if (this.props.dropdownOpen) {
-            activeClass = ' channel-header__icon--active';
-        }
-
-        return (
-            <button
-                id='pluginChannelHeaderButtonDropdown'
-                className={'channel-header__icon channel-header__icon--wide ' + activeClass}
-                type='button'
-                onClick={this.handleClick}
-            >
-                {children}
-            </button>
-        );
+const CustomToggle = React.forwardRef<HTMLButtonElement, CustomToggleProps>(({
+    children,
+    dropdownOpen,
+    onClick,
+}, ref) => {
+    let activeClass = '';
+    if (dropdownOpen) {
+        activeClass = ' channel-header__icon--active';
     }
-}
+
+    return (
+        <button
+            id='pluginChannelHeaderButtonDropdown'
+            ref={ref}
+            className={'channel-header__icon channel-header__icon--wide ' + activeClass}
+            type='button'
+            onClick={onClick}
+        >
+            {children}
+        </button>
+    );
+});
+CustomToggle.displayName = 'CustomToggle';
 
 type ChannelHeaderPlugProps = {
     intl: IntlShape;

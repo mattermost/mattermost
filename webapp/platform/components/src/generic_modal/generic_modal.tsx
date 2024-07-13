@@ -27,7 +27,6 @@ export type Props = {
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
     enforceFocus?: boolean;
-    container?: React.ReactNode | React.ReactNodeArray;
     ariaLabel?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
@@ -188,7 +187,6 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 onExited={this.props.onExited}
                 backdrop={this.props.backdrop}
                 backdropClassName={this.props.backdropClassName}
-                container={this.props.container}
                 keyboard={this.props.keyboardEscape}
             >
                 <div
