@@ -9,7 +9,7 @@ import {
     getSuggestionsSplitByMultiple,
     includesAnAdminRole,
     applyRolesFilters,
-    filterProfilesStartingWithTermOrPositionMatchingWithTerm,
+    nameSuggestionsForUser,
 } from 'mattermost-redux/utils/user_utils';
 
 import TestHelper from '../../test/test_helper';
@@ -57,6 +57,56 @@ describe('user utils', () => {
         it('should return empty string when user does not exist and useDefaultUserName param is false', () => {
             let noUserObj;
             expect(displayUsername(noUserObj, 'UNKNOWN_PREFERENCE', false)).toBe('');
+        });
+    });
+
+    describe('nameSuggestionsForUser', () => {
+        const userObj = TestHelper.getUserMock({
+            username: 'test.user',
+            nickname: 'tester',
+            first_name: 'Test',
+            last_name: 'UsEr NaMe',
+            position: 'Software Engineer at Mattermost',
+            email: 'test.user_name@example.com',
+        });
+
+        it('should return correct suggestions for user', () => {
+            const suggestions = nameSuggestionsForUser(userObj);
+            const expectedSuggestions = [
+                'test.user', '.user', 'user',
+                'test', 'user name', 'test user name', 'tester',
+                'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
+                'test.user_name@example.com', 'example.com',
+            ];
+            expect(suggestions).toEqual(expectedSuggestions);
+        });
+
+        it('should gracefully handle missing values for fields', () => {
+            const suggestions: string[] = nameSuggestionsForUser({...userObj,
+                username: '',
+                nickname: '',
+                first_name: '',
+                last_name: '',
+                position: '',
+                email: '',
+            });
+            expect(suggestions).toEqual(expect.arrayContaining(['']));
+        });
+
+        it('should handle different split username characters correctly', () => {
+            const suggestions: string[] = nameSuggestionsForUser({...userObj, username: 'john-doe_jr'});
+            const expectedUsernameSuggestions: string[] = [
+                'john-doe_jr', '-doe_jr', 'doe_jr', '_jr', 'jr',
+            ];
+            expect(suggestions).toEqual(expect.arrayContaining(expectedUsernameSuggestions));
+        });
+
+        it('should split position on whitespace', () => {
+            const suggestions: string[] = nameSuggestionsForUser({...userObj, position: 'test-position split is corre_ct'});
+            const expectedPositionSuggestions: string[] = [
+                'test-position split is corre_ct', 'split is corre_ct', 'is corre_ct', 'corre_ct',
+            ];
+            expect(suggestions).toEqual(expect.arrayContaining(expectedPositionSuggestions));
         });
     });
 
@@ -145,106 +195,6 @@ describe('user utils', () => {
 
         it('should ignore leading @ for firstname', () => {
             expect(filterProfilesStartingWithTerm(users, '@first')).toEqual([userA, userB]);
-        });
-    });
-
-    describe('filterProfilesStartingWithTermOrPositionMatchingWithTerm', () => {
-        const userA = TestHelper.getUserMock({
-            id: '100',
-            username: 'testUser.split_10-',
-            nickname: 'nick',
-            first_name: 'First',
-            last_name: 'Last1',
-            position: 'Software Engineer at Mattermost',
-        });
-        const userB = TestHelper.getUserMock({
-            id: '101',
-            username: 'extraPerson-split',
-            nickname: 'somebody',
-            first_name: 'First',
-            last_name: 'Last2',
-            email: 'left@right.com',
-            position: 'Business Analyst',
-        });
-        const users = [userA, userB];
-
-        it('should match all for empty filter', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, '')).toEqual([userA, userB]);
-        });
-
-        it('should filter out results which do not match', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'testBad')).toEqual([]);
-        });
-
-        it('should match by username', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'testUser')).toEqual([userA]);
-        });
-
-        it('should match by split part of the username', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'split')).toEqual([userA, userB]);
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, '10')).toEqual([userA]);
-        });
-
-        it('should match by firstname', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'First')).toEqual([userA, userB]);
-        });
-
-        it('should match by lastname prefix', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'Last')).toEqual([userA, userB]);
-        });
-
-        it('should match by lastname fully', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'Last2')).toEqual([userB]);
-        });
-
-        it('should match by fullname prefix', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'First Last')).toEqual([userA, userB]);
-        });
-
-        it('should match by fullname fully', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'First Last1')).toEqual([userA]);
-        });
-
-        it('should match by fullname case-insensitive', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'first LAST')).toEqual([userA, userB]);
-        });
-
-        it('should match by nickname', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'some')).toEqual([userB]);
-        });
-
-        it('should not match by nickname substring', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'body')).toEqual([]);
-        });
-
-        it('should match by email prefix', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'left')).toEqual([userB]);
-        });
-
-        it('should match by email domain', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'right')).toEqual([userB]);
-        });
-
-        it('should match by full email', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'left@right.com')).toEqual([userB]);
-        });
-
-        it('should ignore leading @ for username', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, '@testUser')).toEqual([userA]);
-        });
-
-        it('should ignore leading @ for firstname', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, '@first')).toEqual([userA, userB]);
-        });
-
-        it('should match by partial position', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'Analyst')).toEqual([userB]);
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'engineer at mattermost')).toEqual([userA]);
-        });
-
-        it('should match by full position', () => {
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'business analyst')).toEqual([userB]);
-            expect(filterProfilesStartingWithTermOrPositionMatchingWithTerm(users, 'software engineer at mattermost')).toEqual([userA]);
         });
     });
 
