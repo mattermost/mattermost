@@ -14,7 +14,12 @@ import {AdvancedSections} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
-type Props = PropsFromRedux & {
+export type OwnProps = {
+    adminMode?: boolean;
+    currentUserId?: string;
+}
+
+type Props = PropsFromRedux & OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
     onUpdateSection: (section?: string) => void;
@@ -111,6 +116,10 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
     const [disableTypingMessages, setDisableTypingMessages] = useState(props.disableTypingMessages);
 
     const handleSubmit = useCallback(() => {
+        if (!props.currentUserId) {
+            return;
+        }
+
         const preferences = [];
 
         if (disableClientPlugins !== props.disableClientPlugins) {
@@ -138,7 +147,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
             });
         }
 
-        if (preferences.length !== 0) {
+        if (preferences.length !== 0 && props.currentUserId) {
             props.savePreferences(props.currentUserId, preferences);
         }
 
