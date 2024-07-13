@@ -12,12 +12,17 @@ import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
     tooltipDirection?: 'top' | 'right' | 'bottom' | 'left';
-    text: string;
+    text?: string;
     className?: string;
 }
 
 const CustomStatusText = (props: ComponentProps) => {
-    const {tooltipDirection, text, className} = props;
+    const {
+        tooltipDirection = 'bottom',
+        text = '',
+        className = '',
+    } = props;
+
     const customStatusEnabled = useSelector((state: GlobalState) => {
         return isCustomStatusEnabled(state);
     });
@@ -56,12 +61,6 @@ const CustomStatusText = (props: ComponentProps) => {
             {customStatusTextComponent}
         </WithTooltip>
     );
-};
-
-CustomStatusText.defaultProps = {
-    tooltipDirection: 'bottom',
-    text: '',
-    className: '',
 };
 
 export default CustomStatusText;

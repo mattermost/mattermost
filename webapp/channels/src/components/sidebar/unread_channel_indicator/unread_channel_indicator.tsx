@@ -51,10 +51,4 @@ function UnreadChannelIndicator(props: Props) {
     );
 }
 
-UnreadChannelIndicator.defaultProps = {
-    show: false,
-    extraClass: '',
-    content: '',
-};
-
 export default UnreadChannelIndicator;

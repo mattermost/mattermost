@@ -34,7 +34,6 @@ type Props = StaticProps & {
     isCollapsed: boolean;
     isCollapsible: boolean;
     isDragging?: boolean;
-    isDraggingOver?: boolean;
     muted: boolean;
     onClick: (event: React.MouseEvent<HTMLElement>) => void;
 }
@@ -64,7 +63,7 @@ export const SidebarCategoryHeader = React.forwardRef((props: Props, ref?: React
                 <i
                     className={classNames('icon icon-chevron-down', {
                         'icon-rotate-minus-90': props.isCollapsed,
-                        'hide-arrow': !props.isCollapsible,
+                        'hide-arrow': !(props.isCollapsible ?? false),
                     })}
                 />
                 <div
@@ -78,9 +77,4 @@ export const SidebarCategoryHeader = React.forwardRef((props: Props, ref?: React
         </div>
     );
 });
-SidebarCategoryHeader.defaultProps = {
-    isCollapsible: true,
-    isDragging: false,
-    isDraggingOver: false,
-};
 SidebarCategoryHeader.displayName = 'SidebarCategoryHeader';

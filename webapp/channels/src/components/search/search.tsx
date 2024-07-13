@@ -94,9 +94,12 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         enableFindShortcut,
         hideSearchBar,
         isMobileView,
-        searchTerms,
+        isSideBarRight = false,
+        searchTerms = '',
         searchType,
-        hideMobileSearchBarInRHS,
+        channelDisplayName = '',
+        getFocus,
+        hideMobileSearchBarInRHS = false,
     } = props;
 
     const intl = useIntl();
@@ -392,7 +395,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                 'channel-header__icon',
                 {'channel-header__icon--active': props.isMentionSearch},
             )}
-            buttonId={props.isSideBarRight ? 'sbrChannelHeaderMentionButton' : 'channelHeaderMentionButton'}
+            buttonId={isSideBarRight ? 'sbrChannelHeaderMentionButton' : 'channelHeaderMentionButton'}
             onClick={searchMentions}
             tooltip={intl.formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}
             tooltipShortcut={mentionsShortcut}
@@ -409,7 +412,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                 'channel-header__icon ',
                 {'channel-header__icon--active': props.isFlaggedPosts},
             )}
-            buttonId={props.isSideBarRight ? 'sbrChannelHeaderFlagButton' : 'channelHeaderFlagButton'}
+            buttonId={isSideBarRight ? 'sbrChannelHeaderFlagButton' : 'channelHeaderFlagButton'}
             onClick={getFlagged}
             tooltip={intl.formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             isRhsOpen={props.isRhsOpen}
@@ -437,7 +440,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
 
         return (
             <Popover
-                id={`${props.isSideBarRight ? 'sbr-' : ''}searchbar-help-popup`}
+                id={`${isSideBarRight ? 'sbr-' : ''}searchbar-help-popup`}
                 placement='bottom'
                 className={helpClass}
             >
@@ -461,7 +464,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         <>
             <div className='sidebar-collapse__container'>
                 <div
-                    id={props.isSideBarRight ? 'sbrSidebarCollapse' : 'sidebarCollapse'}
+                    id={isSideBarRight ? 'sbrSidebarCollapse' : 'sidebarCollapse'}
                     className='sidebar-collapse'
                     onClick={handleClose}
                 >
@@ -483,9 +486,9 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                 setKeepFocused={setKeepInputFocused}
                 isFocused={focused}
                 suggestionProviders={suggestionProviders.current}
-                isSideBarRight={props.isSideBarRight}
+                isSideBarRight={isSideBarRight}
                 isSearchingTerm={props.isSearchingTerm}
-                getFocus={props.getFocus}
+                getFocus={getFocus}
                 searchTerms={searchTerms}
                 searchType={searchType}
                 clearSearchType={() => actions.updateSearchType('')}
@@ -496,7 +499,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     );
 
     // when inserted in RHSSearchNav component, just return SearchBar
-    if (!props.isSideBarRight) {
+    if (!isSideBarRight) {
         if (hideSearchBar) {
             return (
                 <HeaderIconWrapper
@@ -544,7 +547,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     isPinnedPosts={props.isPinnedPosts}
                     isChannelFiles={props.isChannelFiles}
                     shrink={handleShrink}
-                    channelDisplayName={props.channelDisplayName}
+                    channelDisplayName={channelDisplayName}
                     isOpened={props.isSideBarRightOpen}
                     updateSearchTerms={handleAddSearchTerm}
                     handleSearchHintSelection={handleSearchHintSelection}
@@ -560,15 +563,5 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         </div>
     );
 };
-
-const defaultProps: Partial<Props> = {
-    searchTerms: '',
-    channelDisplayName: '',
-    isSideBarRight: false,
-    hideMobileSearchBarInRHS: false,
-    getFocus: () => {},
-};
-
-Search.defaultProps = defaultProps;
 
 export default React.memo(Search);

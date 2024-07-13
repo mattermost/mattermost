@@ -17,7 +17,12 @@ interface ComponentProps {
     onClick?: () => void;
 }
 
-const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => {
+const RenderEmoji = ({
+    emojiName,
+    emojiStyle = {},
+    size = 16,
+    onClick,
+}: ComponentProps) => {
     const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
 
     if (!emojiName) {
@@ -50,12 +55,6 @@ const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => 
             }}
         />
     );
-};
-
-RenderEmoji.defaultProps = {
-    emoji: '',
-    emojiStyle: {},
-    size: 16,
 };
 
 export default React.memo(RenderEmoji);

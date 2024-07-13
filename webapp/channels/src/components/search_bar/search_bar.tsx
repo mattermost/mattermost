@@ -43,14 +43,15 @@ type Props = {
     children?: React.ReactNode;
 }
 
-const defaultProps: Partial<Props> = {
-    isSideBarRight: false,
-    getFocus: (): void => {},
-    children: null,
-};
-
 const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element => {
-    const {isFocused, keepFocused, searchTerms, suggestionProviders} = props;
+    const {
+        getFocus = () => {},
+        isFocused,
+        isSideBarRight = false,
+        keepFocused,
+        searchTerms,
+        suggestionProviders,
+    } = props;
 
     const searchRef = useRef<SuggestionBoxComponent>();
     const intl = useIntl();
@@ -101,14 +102,14 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
 
     const getSearch = (node: SuggestionBoxComponent): void => {
         searchRef.current = node;
-        if (props.getFocus) {
-            props.getFocus(props.handleFocus);
+        if (getFocus) {
+            getFocus(props.handleFocus);
         }
     };
 
     return (
         <div
-            id={props.isSideBarRight ? 'sbrSearchFormContainer' : 'searchFormContainer'}
+            id={isSideBarRight ? 'sbrSearchFormContainer' : 'searchFormContainer'}
             className='search-form__container'
         >
             <form
@@ -153,12 +154,12 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     ref={getSearch}
-                    id={props.isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
+                    id={isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
                     tabIndex='0'
                     className={'search-bar form-control a11y__region'}
                     containerClass='w-full'
                     data-a11y-sort-order='9'
-                    aria-describedby={props.isSideBarRight ? 'sbr-searchbar-help-popup' : 'searchbar-help-popup'}
+                    aria-describedby={isSideBarRight ? 'sbr-searchbar-help-popup' : 'searchbar-help-popup'}
                     aria-label={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                     placeholder={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                     value={props.searchTerms}
@@ -181,7 +182,5 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         </div>
     );
 };
-
-SearchBar.defaultProps = defaultProps;
 
 export default SearchBar;

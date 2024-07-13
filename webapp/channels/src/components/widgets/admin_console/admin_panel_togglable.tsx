@@ -19,8 +19,8 @@ type Props = {
 };
 
 const AdminPanelTogglable = ({
-    className,
-    open,
+    className = '',
+    open = true,
     subtitle,
     title,
     children,
@@ -39,11 +39,6 @@ const AdminPanelTogglable = ({
             {children}
         </AdminPanel>
     );
-};
-
-AdminPanelTogglable.defaultProps = {
-    className: '',
-    open: true,
 };
 
 export default AdminPanelTogglable;
