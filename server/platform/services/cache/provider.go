@@ -87,6 +87,7 @@ type RedisOptions struct {
 
 // NewProvider creates a new CacheProvider
 func NewRedisProvider(opts *RedisOptions) Provider {
+	// TODO: bring back this error
 	client, _ := rueidis.NewClient(rueidis.ClientOption{
 		InitAddress:       []string{opts.RedisAddr},
 		Password:          opts.RedisPassword,

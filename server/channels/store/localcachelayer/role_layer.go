@@ -10,7 +10,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 type LocalCacheRoleStore struct {
@@ -60,12 +62,33 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	var foundRoles []*model.Role
 	var rolesToQuery []string
 
-	for _, roleName := range names {
+	// for _, roleName := range names {
+	// 	var role *model.Role
+	// 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, roleName, &role); err == nil {
+	// 		foundRoles = append(foundRoles, role)
+	// 	} else {
+	// 		rolesToQuery = append(rolesToQuery, roleName)
+	// 	}
+	// }
+
+	var toPass []any
+	for i := 0; i < len(names); i++ {
 		var role *model.Role
-		if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, roleName, &role); err == nil {
-			foundRoles = append(foundRoles, role)
-		} else {
-			rolesToQuery = append(rolesToQuery, roleName)
+		toPass = append(toPass, &role)
+	}
+	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, names, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				mlog.Error("error in cache: ", mlog.Err(err))
+			}
+			rolesToQuery = append(rolesToQuery, names[i])
+		}
+	}
+	for i := range names {
+		gotRole := *(toPass[i].(**model.Role))
+		if gotRole != nil {
+			foundRoles = append(foundRoles, gotRole)
 		}
 	}
 

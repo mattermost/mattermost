@@ -10,8 +10,10 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 type LocalCacheUserStore struct {
@@ -155,24 +157,53 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	remainingUserIds := make([]string, 0)
 
 	fromMaster := false
-	for _, userId := range userIds {
-		var cacheItem *model.User
-		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
-			if options.Since == 0 || cacheItem.UpdateAt > options.Since {
-				users = append(users, cacheItem)
+	var toPass []any
+	for i := 0; i < len(userIds); i++ {
+		var user *model.User
+		toPass = append(toPass, &user)
+	}
+	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, userIds, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				mlog.Error("error in cache: ", mlog.Err(err))
 			}
-		} else {
 			// If it was invalidated, then we need to query master.
 			s.userProfileByIdsMut.Lock()
-			if s.userProfileByIdsInvalidations[userId] {
+			if s.userProfileByIdsInvalidations[userIds[i]] {
 				fromMaster = true
 				// And then remove the key from the map.
-				delete(s.userProfileByIdsInvalidations, userId)
+				delete(s.userProfileByIdsInvalidations, userIds[i])
 			}
 			s.userProfileByIdsMut.Unlock()
-			remainingUserIds = append(remainingUserIds, userId)
+			remainingUserIds = append(remainingUserIds, userIds[i])
 		}
 	}
+
+	for i := range userIds {
+		gotUser := *(toPass[i].(**model.User))
+		if (gotUser != nil) && (options.Since == 0 || gotUser.UpdateAt > options.Since) {
+			users = append(users, gotUser)
+		}
+	}
+	// for _, userId := range userIds {
+	// 	var cacheItem *model.User
+	// 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
+	// 		if options.Since == 0 || cacheItem.UpdateAt > options.Since {
+	// 			users = append(users, cacheItem)
+	// 		}
+	// 	} else {
+	// 		// If it was invalidated, then we need to query master.
+	// 		s.userProfileByIdsMut.Lock()
+	// 		if s.userProfileByIdsInvalidations[userId] {
+	// 			fromMaster = true
+	// 			// And then remove the key from the map.
+	// 			delete(s.userProfileByIdsInvalidations, userId)
+	// 		}
+	// 		s.userProfileByIdsMut.Unlock()
+	// 		remainingUserIds = append(remainingUserIds, userId)
+	// 	}
+	// }
 
 	if len(remainingUserIds) > 0 {
 		if fromMaster {
@@ -230,23 +261,54 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	uniqIDs := dedup(ids)
 
 	fromMaster := false
-	for _, id := range uniqIDs {
-		var cachedUser *model.User
-		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
-			cachedUsers = append(cachedUsers, cachedUser)
-		} else {
+	var toPass []any
+	for i := 0; i < len(uniqIDs); i++ {
+		var user *model.User
+		toPass = append(toPass, &user)
+	}
+
+	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, uniqIDs, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				mlog.Error("error in cache: ", mlog.Err(err))
+			}
 			// If it was invalidated, then we need to query master.
 			s.userProfileByIdsMut.Lock()
-			if s.userProfileByIdsInvalidations[id] {
+			if s.userProfileByIdsInvalidations[uniqIDs[i]] {
 				fromMaster = true
 				// And then remove the key from the map.
-				delete(s.userProfileByIdsInvalidations, id)
+				delete(s.userProfileByIdsInvalidations, uniqIDs[i])
 			}
 			s.userProfileByIdsMut.Unlock()
-
-			notCachedUserIds = append(notCachedUserIds, id)
+			notCachedUserIds = append(notCachedUserIds, uniqIDs[i])
 		}
 	}
+
+	for i := range uniqIDs {
+		gotUser := *(toPass[i].(**model.User))
+		if gotUser != nil {
+			cachedUsers = append(cachedUsers, gotUser)
+		}
+	}
+
+	// for _, id := range uniqIDs {
+	// 	var cachedUser *model.User
+	// 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
+	// 		cachedUsers = append(cachedUsers, cachedUser)
+	// 	} else {
+	// 		// If it was invalidated, then we need to query master.
+	// 		s.userProfileByIdsMut.Lock()
+	// 		if s.userProfileByIdsInvalidations[id] {
+	// 			fromMaster = true
+	// 			// And then remove the key from the map.
+	// 			delete(s.userProfileByIdsInvalidations, id)
+	// 		}
+	// 		s.userProfileByIdsMut.Unlock()
+
+	// 		notCachedUserIds = append(notCachedUserIds, id)
+	// 	}
+	// }
 
 	if len(notCachedUserIds) > 0 {
 		if fromMaster {

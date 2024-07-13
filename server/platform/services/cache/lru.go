@@ -81,6 +81,15 @@ func (l *LRU) Get(key string, value any) error {
 	return l.get(key, value)
 }
 
+func (l *LRU) GetMulti(keys []string, values []any) []error {
+	errs := make([]error, 0, len(values))
+	for i, key := range keys {
+		errs = append(errs, l.get(key, values[i]))
+	}
+
+	return errs
+}
+
 // Remove deletes the value for a key.
 func (l *LRU) Remove(key string) error {
 	l.lock.Lock()

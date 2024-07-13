@@ -291,7 +291,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	// Needed before loading license
-	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
@@ -301,7 +301,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	ps.sessionCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,

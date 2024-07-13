@@ -479,6 +479,22 @@ func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, val
 	return err
 }
 
+func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, values []any) []error {
+	errs := cache.GetMulti(keys, values)
+	for _, err := range errs {
+		if err == nil {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter(cache.Name())
+			}
+			continue
+		}
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter(cache.Name())
+		}
+	}
+	return errs
+}
+
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 	cache.Purge()
 	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {

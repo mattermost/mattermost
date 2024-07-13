@@ -6,6 +6,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -146,6 +147,80 @@ func (r *Redis) Get(key string, value any) error {
 
 	// Slow path for other structs.
 	return msgpack.Unmarshal(val, value)
+}
+
+func (r *Redis) GetMulti(keys []string, values []any) []error {
+	now := time.Now()
+	defer func() {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		if r.metrics != nil {
+			r.metrics.ObserveRedisEndpointDuration(r.name, "GetMulti", elapsed)
+		}
+	}()
+
+	errs := make([]error, len(keys))
+	newKeys := make([]string, len(keys))
+	for i := range keys {
+		newKeys[i] = r.name + ":" + keys[i]
+	}
+	vals, err := r.client.Do(context.Background(),
+		r.client.B().Mget().
+			Key(newKeys...).
+			Build(),
+	).ToArray()
+	if err != nil {
+		for i := range errs {
+			errs[i] = err
+		}
+		return errs
+	}
+
+	if len(vals) != len(keys) {
+		for i := range errs {
+			errs[i] = fmt.Errorf("length of returned vals %d, does not match length of keys %d", len(vals), len(keys))
+		}
+		return errs
+	}
+
+	for i, val := range vals {
+		if val.IsNil() {
+			errs[i] = ErrKeyNotFound
+			continue
+		}
+
+		buf, err := val.AsBytes()
+		if err != nil {
+			errs[i] = err
+			continue
+		}
+
+		// We use a fast path for hot structs.
+		if msgpVal, ok := values[i].(msgp.Unmarshaler); ok {
+			_, err := msgpVal.UnmarshalMsg(buf)
+			errs[i] = err
+			continue
+		}
+
+		switch v := values[i].(type) {
+		case **model.User:
+			var u model.User
+			_, err := u.UnmarshalMsg(buf)
+			*v = &u
+			errs[i] = err
+			continue
+		case *map[string]*model.User:
+			var u model.UserMap
+			_, err := u.UnmarshalMsg(buf)
+			*v = u
+			errs[i] = err
+			continue
+		}
+
+		// Slow path for other structs.
+		errs[i] = msgpack.Unmarshal(buf, values[i])
+	}
+
+	return errs
 }
 
 // Remove deletes the value for a given key.

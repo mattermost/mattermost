@@ -82,6 +82,14 @@ func (L LRUStriped) Get(key string, value any) error {
 	return L.keyBucket(key).Get(key, value)
 }
 
+func (L LRUStriped) GetMulti(keys []string, values []any) []error {
+	errs := make([]error, 0, len(values))
+	for i, key := range keys {
+		errs = append(errs, L.keyBucket(key).Get(key, values[i]))
+	}
+	return errs
+}
+
 // Remove does the same as LRU.Remove
 func (L LRUStriped) Remove(key string) error {
 	return L.keyBucket(key).Remove(key)

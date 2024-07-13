@@ -5,10 +5,13 @@ package localcachelayer
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 type LocalCacheChannelStore struct {
@@ -242,14 +245,37 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	var channelsToQuery []string
 
 	if allowFromCache {
-		for _, id := range ids {
-			var ch *model.Channel
-			if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &ch); err == nil {
-				foundChannels = append(foundChannels, ch)
-			} else {
-				channelsToQuery = append(channelsToQuery, id)
+		var toPass []any
+		for i := 0; i < len(ids); i++ {
+			var channel *model.Channel
+			toPass = append(toPass, &channel)
+		}
+
+		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
+		for i, err := range errs {
+			if err != nil {
+				if err != cache.ErrKeyNotFound {
+					mlog.Error("error in cache: ", mlog.Err(err))
+				}
+				channelsToQuery = append(channelsToQuery, ids[i])
 			}
 		}
+
+		for i := range ids {
+			gotChannel := *(toPass[i].(**model.Channel))
+			if gotChannel != nil {
+				foundChannels = append(foundChannels, gotChannel)
+			}
+		}
+
+		// for _, id := range ids {
+		// 	var ch *model.Channel
+		// 	if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &ch); err == nil {
+		// 		foundChannels = append(foundChannels, ch)
+		// 	} else {
+		// 		channelsToQuery = append(channelsToQuery, id)
+		// 	}
+		// }
 	}
 
 	if channelsToQuery == nil {
@@ -326,21 +352,45 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 	if allowFromCache {
 		var misses []string
 		visited := make(map[string]struct{})
+		var newKeys []string
 		for _, name := range names {
 			if _, ok := visited[name]; ok {
 				continue
 			}
 			visited[name] = struct{}{}
-			var cacheItem *model.Channel
+			newKeys = append(newKeys, teamId+name)
+		}
 
-			if err := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name, &cacheItem); err == nil {
-				if includeArchivedChannels || cacheItem.DeleteAt == 0 {
-					channels = append(channels, cacheItem)
+		var toPass []any
+		for i := 0; i < len(newKeys); i++ {
+			var channel *model.Channel
+			toPass = append(toPass, &channel)
+		}
+
+		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, newKeys, toPass)
+		for i, err := range errs {
+			if err != nil {
+				if err != cache.ErrKeyNotFound {
+					mlog.Error("error in cache: ", mlog.Err(err))
 				}
-			} else {
-				misses = append(misses, name)
+				misses = append(misses, strings.TrimPrefix(newKeys[i], teamId))
 			}
 		}
+
+		for i := range newKeys {
+			gotChannel := *(toPass[i].(**model.Channel))
+			if (gotChannel != nil) && (includeArchivedChannels || gotChannel.DeleteAt == 0) {
+				channels = append(channels, gotChannel)
+			}
+		}
+		// var cacheItem *model.Channel
+		// if err := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name, &cacheItem); err == nil {
+		// 	if includeArchivedChannels || cacheItem.DeleteAt == 0 {
+		// 		channels = append(channels, cacheItem)
+		// 	}
+		// } else {
+		// 	misses = append(misses, name)
+		// }
 		names = misses
 	}
 
@@ -428,15 +478,37 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	counts := make(map[string]int64)
 	remainingChannels := make([]string, 0)
 
-	for _, channelID := range channelIDs {
+	var toPass []any
+	for i := 0; i < len(channelIDs); i++ {
 		var cacheItem int64
-		err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelID, &cacheItem)
-		if err == nil {
-			counts[channelID] = cacheItem
-		} else {
-			remainingChannels = append(remainingChannels, channelID)
+		toPass = append(toPass, &cacheItem)
+	}
+
+	errs := s.rootStore.doMultiReadCache(s.rootStore.reaction.rootStore.channelMemberCountsCache, channelIDs, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				mlog.Error("error in cache: ", mlog.Err(err))
+			}
+			remainingChannels = append(remainingChannels, channelIDs[i])
 		}
 	}
+	for i := range channelIDs {
+		gotCount := *(toPass[i].(*int64))
+		// TODO: This will improve once we combine with the above loop.
+		if gotCount != 0 {
+			counts[channelIDs[i]] = gotCount
+		}
+	}
+	// for _, channelID := range channelIDs {
+	// 	var cacheItem int64
+	// 	err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelID, &cacheItem)
+	// 	if err == nil {
+	// 		counts[channelID] = cacheItem
+	// 	} else {
+	// 		remainingChannels = append(remainingChannels, channelID)
+	// 	}
+	// }
 
 	if len(remainingChannels) > 0 {
 		remainingChannels, err := s.ChannelStore.GetChannelsMemberCount(remainingChannels)

@@ -26,6 +26,7 @@ func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
 	mockCacheProvider.On("NewCache", mock.Anything).
 		Return(cache.NewLRU(&cache.CacheOptions{Size: 128}), nil)
+	mockCacheProvider.On("Type").Return("lru")
 	return &mockCacheProvider
 }
 
