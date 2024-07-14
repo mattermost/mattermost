@@ -41,6 +41,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		"cpu profile":     a.createCPUProfile,
 		"heap profile":    a.createHeapProfile,
 		"goroutines":      a.createGoroutineProfile,
+		"metadata":        a.createSupportPacketMetadata,
 	}
 
 	if options.IncludeLogs {
@@ -409,6 +410,24 @@ func (a *App) createGoroutineProfile(_ request.CTX) (*model.FileData, error) {
 	fileData := &model.FileData{
 		Filename: "goroutines",
 		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
+func (a *App) createSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
+	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.TelemetryId(), a.License(), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate packet metadata")
+	}
+
+	b, err := yaml.Marshal(metadata)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal packet metadata into yaml")
+	}
+
+	fileData := &model.FileData{
+		Filename: model.PacketMetadataFileName,
+		Body:     b,
 	}
 	return fileData, nil
 }
