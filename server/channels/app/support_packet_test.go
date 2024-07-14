@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
+	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
@@ -46,7 +48,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	defer th.TearDown()
 
 	licenseUsers := 100
-	license := model.NewTestLicense()
+	license := model.NewTestLicense("ldap")
 	license.Features.Users = model.NewInt(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
@@ -147,6 +149,34 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		assert.Equal(t, "mock", packet.FileDriver)
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
+	})
+
+	t.Run("no LDAP vendor info", func(t *testing.T) {
+		ldapMock := &emocks.LdapInterface{}
+		ldapMock.On(
+			"GetVendorNameAndVendorVersion",
+			mock.AnythingOfType("*request.Context"),
+		).Return("", "", nil)
+		th.App.Channels().Ldap = ldapMock
+
+		packet := generateSupportPacket(t)
+
+		assert.Equal(t, "unknown", packet.LdapVendorName)
+		assert.Equal(t, "unknown", packet.LdapVendorVersion)
+	})
+
+	t.Run("found LDAP vendor info", func(t *testing.T) {
+		ldapMock := &emocks.LdapInterface{}
+		ldapMock.On(
+			"GetVendorNameAndVendorVersion",
+			mock.AnythingOfType("*request.Context"),
+		).Return("some vendor", "v1.0.0", nil)
+		th.App.Channels().Ldap = ldapMock
+
+		packet := generateSupportPacket(t)
+
+		assert.Equal(t, "some vendor", packet.LdapVendorName)
+		assert.Equal(t, "v1.0.0", packet.LdapVendorVersion)
 	})
 }
 
@@ -347,7 +377,7 @@ func TestGetMattermostLog(t *testing.T) {
 		*cfg.LogSettings.EnableFile = false
 	})
 
-	fileData, err := th.App.getMattermostLog(th.Context)
+	fileData, err := th.App.GetMattermostLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 
@@ -367,7 +397,7 @@ func TestGetMattermostLog(t *testing.T) {
 	logLocation := config.GetLogFileLocation(dir)
 
 	// There is no mattermost.log file yet, so this fails
-	fileData, err = th.App.getMattermostLog(th.Context)
+	fileData, err = th.App.GetMattermostLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "failed read mattermost log file at path "+logLocation)
 
@@ -376,7 +406,7 @@ func TestGetMattermostLog(t *testing.T) {
 	err = os.WriteFile(logLocation, d1, 0777)
 	require.NoError(t, err)
 
-	fileData, err = th.App.getMattermostLog(th.Context)
+	fileData, err = th.App.GetMattermostLog(th.Context)
 	require.NoError(t, err)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "mattermost.log", fileData.Filename)

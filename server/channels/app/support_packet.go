@@ -44,7 +44,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 	}
 
 	if options.IncludeLogs {
-		functions["mattermost log"] = a.getMattermostLog
+		functions["mattermost log"] = a.GetMattermostLog
 		functions["notification log"] = a.getNotificationsLog
 	}
 
@@ -123,8 +123,19 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* LDAP */
 
 	var vendorName, vendorVersion string
-	if ldapInterface := a.Ldap(); ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion(c)
+	ldap := a.Ldap()
+	if ldap != nil {
+		vendorName, vendorVersion, err = ldap.GetVendorNameAndVendorVersion(c)
+		if err != nil {
+			rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
+		}
+
+		if vendorName == "" {
+			vendorName = "unknown"
+		}
+		if vendorVersion == "" {
+			vendorVersion = "unknown"
+		}
 	}
 
 	/* Elastic Search */
@@ -321,7 +332,7 @@ func (a *App) getNotificationsLog(_ request.CTX) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) getMattermostLog(_ request.CTX) (*model.FileData, error) {
+func (a *App) GetMattermostLog(ctx request.CTX) (*model.FileData, error) {
 	if !*a.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 	}

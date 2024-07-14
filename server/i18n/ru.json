@@ -5533,7 +5533,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -5801,11 +5801,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 118+"
+    "translation": "Версия 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 118+"
+    "translation": "Версия 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5813,7 +5813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 16.2+"
+    "translation": "Версия 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -7984,10 +7984,6 @@
     "translation": "Приглашение от защищенного соединения"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не удалось расшифровать приглашение. Неправильный пароль или испорченное приглашение: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[действие]"
   },
@@ -10026,5 +10022,49 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Невозможно перейти к началу файла экспорта."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Команда с таким URL уже существует."
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "У вас нет прав на управление этим типом задания"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Невозможно обновить статус задания. Установлен неверный статус"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Ошибка при определении количества учётных записей системного администратора."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Невозможно понизить роль последнего системного администратора."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Невозможно определить, существует ли уже это имя пользователя"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Установлен неверный статус"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Не удалось записать журналы в буфер"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ваш пароль должен содержать не более 72 символов."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
   }
 ]

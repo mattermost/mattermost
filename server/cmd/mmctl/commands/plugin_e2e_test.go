@@ -170,9 +170,9 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 	})
 
 	const (
-		jiraURL        = "https://plugins-store.test.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
+		jiraURL        = "https://plugins.releases.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
 		jiraPluginID   = "jira"
-		githubURL      = "https://plugins-store.test.mattermost.com/release/mattermost-plugin-github-v2.0.0.tar.gz"
+		githubURL      = "https://plugins.releases.mattermost.com/release/mattermost-plugin-github-v2.0.0.tar.gz"
 		githubPluginID = "github"
 	)
 
@@ -216,7 +216,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 	s.RunForSystemAdminAndLocal("install a nonexistent plugin", func(c client.Client) {
 		printer.Clean()
 
-		const pluginURL = "https://plugins-store.test.mattermost.com/release/mattermost-nonexistent-plugin-v2.0.0.tar.gz"
+		const pluginURL = "https://plugins.releases.mattermost.com/release/mattermost-nonexistent-plugin-v2.0.0.tar.gz"
 		var expected error
 		expected = multierror.Append(expected, errors.New("An error occurred while downloading the plugin.")) //nolint:revive
 
@@ -287,7 +287,7 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 	s.SetupTestHelper().InitBasic()
 
 	const (
-		jiraURL       = "https://plugins-store.test.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
+		jiraURL       = "https://plugins.releases.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
 		jiraPluginID  = "jira"
 		dummyPluginID = "randompluginxz" // This will be used to check response when tried to delete this plugin with randomchars which was not installed/enabled already
 	)
