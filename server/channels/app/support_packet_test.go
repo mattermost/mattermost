@@ -214,6 +214,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		var rFileNames []string
 		testFiles := []string{
 			"support_packet.yaml",
+			"metadata.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"mattermost.log",
@@ -238,6 +239,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 		testFiles := []string{
 			"support_packet.yaml",
+			"metadata.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"cpu.prof",
@@ -267,6 +269,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 		testFiles := []string{
 			"support_packet.yaml",
+			"metadata.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"cpu.prof",
@@ -423,4 +426,25 @@ func TestCreateSanitizedConfigFile(t *testing.T) {
 	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.NoError(t, err)
+}
+
+func TestCreateSupportPacketMetadata(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Happy path", func(t *testing.T) {
+		fileData, err := th.App.createSupportPacketMetadata(th.Context)
+		require.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "metadata.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		metadate, err := model.ParsePacketMetadata(fileData.Body)
+		assert.NoError(t, err)
+		require.NotNil(t, metadate)
+		assert.Equal(t, model.SupportPacketType, metadate.Type)
+		assert.Equal(t, model.CurrentVersion, metadate.ServerVersion)
+		assert.NotEmpty(t, metadate.ServerID)
+		assert.NotEmpty(t, metadate.GeneratedAt)
+	})
 }
