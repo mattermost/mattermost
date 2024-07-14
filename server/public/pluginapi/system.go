@@ -162,7 +162,7 @@ func (s *SystemService) GeneratePacketMetadata(path string, pluginMeta map[strin
 	pluginMeta["plugin_id"] = manifest.Id
 	pluginMeta["plugin_version"] = manifest.Version
 
-	md, err := model.GeneratePacketMetadata(serverID, license, pluginMeta)
+	md, err := model.GeneratePacketMetadata(model.PluginPacketType, serverID, license, pluginMeta)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get packet metadata")
 	}
