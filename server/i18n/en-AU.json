@@ -10045,5 +10045,53 @@
   {
     "id": "api.job.unable_to_manage_job.incorrect_job_type",
     "translation": "You do not have permission to manage this job type"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "An internal error occurred while saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Could not retrieve the instance site URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "An internal error occurred while saving the password."
   }
 ]
