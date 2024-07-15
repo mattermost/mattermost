@@ -76,7 +76,7 @@ func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request
 
 func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !(c.IsSystemAdmin()) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
