@@ -125,6 +125,29 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         }));
     }, [user.id]);
 
+    const handleManageUserSettingsClick = useCallback(() => {
+        function onConfirmManageUserSettingsClick() {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.USER_SETTINGS,
+                dialogType: UserSettingsModal,
+                dialogProps: {
+                    adminMode: true,
+                    isContentProductSettings: true,
+                    userID: user.id,
+                },
+            }));
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CONFIRM_MANAGE_USER_SETTINGS_MODAL,
+            dialogType: ConfirmManageUserSettingsModal,
+            dialogProps: {
+                user,
+                onConfirm: onConfirmManageUserSettingsClick,
+            },
+        }));
+    }, [user.id]);
+
     const handleManageTokensClick = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MANAGE_TOKENS_MODAL,
@@ -275,18 +298,6 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         );
     }, [user.id, updateUser, onError]);
 
-    const openUserSettingsModal = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.USER_SETTINGS,
-            dialogType: UserSettingsModal,
-            dialogProps: {
-                adminMode: true,
-                isContentProductSettings: true,
-                userID: user.id,
-            },
-        }));
-    }, [dispatch, user.id]);
-
     return (
         <Menu.Container
             menuButton={{
@@ -355,20 +366,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     id={`${menuItemIdPrefix}-manageTeams`}
                     labels={
                         <FormattedMessage
-                            id='admin.user_item.manageSettings'
-                            defaultMessage='Manage User Settings'
+                            id='admin.system_users.list.actions.menu.manageSettings'
+                            defaultMessage='Manage user settings'
                         />
                     }
-                    onClick={() => {
-                        dispatch(openModal({
-                            modalId: ModalIdentifiers.CONFIRM_MANAGE_USER_SETTINGS_MODAL,
-                            dialogType: ConfirmManageUserSettingsModal,
-                            dialogProps: {
-                                user,
-                                onConfirm: openUserSettingsModal,
-                            },
-                        }));
-                    }}
+                    onClick={handleManageUserSettingsClick}
                 />
             }
             {config.ServiceSettings?.EnableUserAccessTokens &&
