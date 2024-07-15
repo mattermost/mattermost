@@ -2143,7 +2143,6 @@
   "create_category_modal.createCategory": "建立新分類",
   "create_comment.addComment": "新增註解...",
   "create_comment.commentTitle": "註解",
-  "create_post.comment": "註解",
   "create_post.deactivated": "正以被停用的使用者觀看被封存的頻道。",
   "create_post.error_message": "訊息過長。字數：{length}/{limit}",
   "create_post.fileProcessing": "處理中...",

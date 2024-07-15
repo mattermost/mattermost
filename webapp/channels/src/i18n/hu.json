@@ -2802,7 +2802,6 @@
   "create_category_modal.createCategory": "Új kategória létrehozása",
   "create_comment.addComment": "Válaszolás erre az üzenetszálra...",
   "create_comment.commentTitle": "Hozzászólás",
-  "create_post.comment": "Hozzászólás",
   "create_post.deactivated": "Egy **archivált csatornát néz** egy **deaktivált felhasználóval**. Új üzeneteket nem lehet közzétenni.",
   "create_post.error_message": "Az üzenete túl hosszú. Karakterek száma: {length}/{limit}",
   "create_post.fileProcessing": "Feldolgozás...",

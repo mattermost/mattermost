@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "Да",
   "create_group_memberships_modal.desc": "Вы собираетесь добавить или изменить {username} в команды и каналы на основе их членства в группах LDAP. Вы можете отменить это изменение в любое время.",
   "create_group_memberships_modal.title": "Повторное добавление {username} к командам и каналам",
-  "create_post.comment": "Комментарий",
   "create_post.deactivated": "Вы просматриваете архивированный канал с **деактивированным пользователем**. Новые сообщения не могут быть отправлены.",
   "create_post.error_message": "Ваше сообщение слишком длинное. Количество символов: {length}/{limit}",
   "create_post.fileProcessing": "Обработка...",

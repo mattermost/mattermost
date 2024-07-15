@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "Ja",
   "create_group_memberships_modal.desc": "Du bist dabei, {username} zu Teams und Channels auf der Grundlage ihrer LDAP-Gruppenmitgliedschaft hinzuzufügen oder erneut hinzuzufügen. Du kannst diese Änderung jederzeit rückgängig machen.",
   "create_group_memberships_modal.title": "Erneutes Hinzufügen von {username} zu Teams und Kanälen",
-  "create_post.comment": "Kommentar",
   "create_post.deactivated": "Du betrachtest einen archivierten Kanal mit einem **deaktivierten Benutzer**. Neue Nachrichten können nicht gesendet werden.",
   "create_post.error_message": "Deine Nachricht ist zu lang. Zeichenanzahl: {length}/{limit}",
   "create_post.fileProcessing": "Verarbeitung...",

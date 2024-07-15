@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "是",
   "create_group_memberships_modal.desc": "您将根据他们的 LDAP 组成员身份将 {username} 添加或重新添加到团队和频道中。您随时可以撤销此更改。",
   "create_group_memberships_modal.title": "将{username}重新添加到团队和频道",
-  "create_post.comment": "评论",
   "create_post.deactivated": "您正在查看已注销用户的归档频道。",
   "create_post.error_message": "您的消息太长。字数：{length}/{limit}",
   "create_post.fileProcessing": "处理中…",

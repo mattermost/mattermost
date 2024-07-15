@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "Tak",
   "create_group_memberships_modal.desc": "Zamierzasz dodać lub ponownie dodać {username} do zespołów i kanałów na podstawie ich członkostwa w grupie LDAP. Możesz cofnąć tę zmianę w dowolnym momencie.",
   "create_group_memberships_modal.title": "Ponownie dodaj {username} do zespołów i kanałów",
-  "create_post.comment": "Komentarz",
   "create_post.deactivated": "Przeglądasz zarchiwizowany kanał z deaktywowanym użytkownikiem.",
   "create_post.error_message": "Wiadomość jest zbyt długa. Ilość znaków: {length}/{limit}",
   "create_post.fileProcessing": "Przetwarzanie...",

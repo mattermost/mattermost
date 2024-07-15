@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "Ja",
   "create_group_memberships_modal.desc": "Je staat op het punt {username} toe te voegen of opnieuw toe te voegen aan teams en kanalen op basis van het lidmaatschap van LDAP-groepen. Je kan deze wijziging op elk moment ongedaan maken.",
   "create_group_memberships_modal.title": "{username} opnieuw toevoegen aan teams en kanalen",
-  "create_post.comment": "Commentaar",
   "create_post.deactivated": "Je bekijkt een gearchiveerd kanaal met een gedeactiveerde gebruiker. Je kan geen nieuwe berichten plaatsen.",
   "create_post.error_message": "Je bericht is te lang. Aantal tekens: {length}/{limit}",
   "create_post.fileProcessing": "Bezig met verwerken...",

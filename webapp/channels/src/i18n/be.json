@@ -2744,7 +2744,6 @@
   "create_category_modal.createCategory": "Стварыць катэгорыю",
   "create_comment.addComment": "Адказаць у гэтай тэме...",
   "create_comment.commentTitle": "Каментаваць",
-  "create_post.comment": "Каментаваць",
   "create_post.deactivated": "Вы праглядаеце архіваваны канал як **дэактываваны карыстач**. Новыя паведамленні не могуць быць апублікаваны.",
   "create_post.error_message": "Ваша паведамленне занадта доўгае. Колькасць сімвалаў: {length}/{limit}",
   "create_post.fileProcessing": "Апрацоўка...",
