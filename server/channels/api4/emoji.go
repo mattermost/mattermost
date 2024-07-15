@@ -21,15 +21,15 @@ const (
 )
 
 func (api *API) InitEmoji() {
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods("GET")
-	api.BaseRoutes.Emojis.Handle("/names", api.APISessionRequired(getEmojisByNames)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods("DELETE")
-	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods("GET")
-	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods(http.MethodGet)
+	api.BaseRoutes.Emojis.Handle("/names", api.APISessionRequired(getEmojisByNames)).Methods(http.MethodPost)
+	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods(http.MethodPost)
+	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods(http.MethodGet)
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods(http.MethodDelete)
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods(http.MethodGet)
+	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods(http.MethodGet)
+	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods(http.MethodGet)
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {

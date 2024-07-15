@@ -319,6 +319,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -671,6 +672,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1023,6 +1025,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1375,6 +1378,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1654,6 +1658,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1915,6 +1920,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2267,6 +2273,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2637,6 +2644,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2916,6 +2924,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3195,6 +3204,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3474,6 +3484,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3766,6 +3777,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -4045,6 +4057,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -4300,6 +4313,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={

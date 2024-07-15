@@ -13,7 +13,7 @@ import (
 )
 
 func (api *API) InitLimits() {
-	api.BaseRoutes.Limits.Handle("/server", api.APISessionRequired(getServerLimits)).Methods("GET")
+	api.BaseRoutes.Limits.Handle("/server", api.APISessionRequired(getServerLimits)).Methods(http.MethodGet)
 }
 
 func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {

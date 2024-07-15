@@ -695,19 +695,22 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.Email = strings.TrimSpace(u.Email)
 }
 
-func (u *User) ClearNonProfileFields() {
+func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
-	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.FailedAttempts = 0
+
+	if !asAdmin {
+		u.NotifyProps = StringMap{}
+	}
 }
 
-func (u *User) SanitizeProfile(options map[string]bool) {
-	u.ClearNonProfileFields()
+func (u *User) SanitizeProfile(options map[string]bool, asAdmin bool) {
+	u.ClearNonProfileFields(asAdmin)
 
 	u.Sanitize(options)
 }
