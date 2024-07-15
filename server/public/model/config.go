@@ -2356,9 +2356,6 @@ type LdapSettings struct {
 	LoginButtonColor       *string `access:"experimental_features"`
 	LoginButtonBorderColor *string `access:"experimental_features"`
 	LoginButtonTextColor   *string `access:"experimental_features"`
-
-	// Deprecated: Use LogSettings.AdvancedLoggingJSON with the LDAPTrace level instead.
-	Trace *bool `access:"authentication_ldap"` // telemetry: none
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2499,10 +2496,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
-	}
-
-	if s.Trace == nil {
-		s.Trace = NewBool(false)
 	}
 }
 
@@ -3079,12 +3072,6 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
-type ProductSettings struct {
-}
-
-func (s *ProductSettings) SetDefaults() {
-}
-
 type PluginState struct {
 	Enable bool
 }
@@ -3517,7 +3504,6 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
-	ProductSettings           ProductSettings // Deprecated: Remove in next major version:: https://mattermost.atlassian.net/browse/MM-56655
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3618,7 +3604,6 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
