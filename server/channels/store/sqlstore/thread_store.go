@@ -890,7 +890,7 @@ func (s *SqlThreadStore) maintainMembershipTx(trx *sqlxTxWrapper, userID, postID
 			// Only the active followers are getting exported, so we can safely assume
 			// that the user is following the thread.
 			if membership.LastUpdated > imported.LastViewed {
-				// User may stopped following the thread,
+				// User may have stopped following the thread,
 				// we need to be smart if we should activate the membership
 				return membership, nil
 			}
