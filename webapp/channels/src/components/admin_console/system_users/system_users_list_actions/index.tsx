@@ -26,9 +26,6 @@ import ManageTeamsModal from 'components/admin_console/manage_teams_modal';
 import ManageTokensModal from 'components/admin_console/manage_tokens_modal';
 import ResetEmailModal from 'components/admin_console/reset_email_modal';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
-import {
-    ConfirmManageUserSettingsModal,
-} from 'components/admin_console/system_users/system_users_list_actions/confirmManageUserSettingsModal';
 import * as Menu from 'components/menu';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -37,6 +34,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import ConfirmManageUserSettingsModal from './confirm_manage_user_settings_modal';
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';
 import DemoteToGuestModal from './demote_to_guest_modal';
