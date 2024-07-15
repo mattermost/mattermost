@@ -1922,6 +1922,7 @@
   "admin.plugin.backToPlugins": "Go back to the Plugins",
   "admin.plugin.choose": "Choose File",
   "admin.plugin.cluster_instance": "Cluster Instance",
+  "admin.plugin.customSection.pluginDisabledWarning": "In order to view this section, enable the plugin and click Save.",
   "admin.plugin.customSetting.pluginDisabledWarning": "In order to view this setting, enable the plugin and click Save.",
   "admin.plugin.disable": "Disable",
   "admin.plugin.disabling": "Disabling...",
