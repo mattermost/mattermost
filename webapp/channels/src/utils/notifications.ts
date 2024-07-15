@@ -14,7 +14,7 @@ export type NotificationResult = {
     data?: string;
 }
 
-let requestedNotificationPermission = false;
+let requestedNotificationPermission = Boolean('Notification' in window && Notification.permission !== 'default');
 
 // showNotification displays a platform notification with the configured parameters.
 //
@@ -60,24 +60,26 @@ export function showNotification(
             throw new Error('Notification.requestPermission not supported');
         }
 
-        if (Notification.permission !== 'granted' && requestedNotificationPermission) {
-            // User didn't allow notifications
-            return {status: 'not_sent', reason: 'notifications_permission_previously_denied', data: Notification.permission, callback: () => {}};
-        }
+        if (Notification.permission !== 'granted') {
+            if (requestedNotificationPermission) {
+                // User didn't allow notifications
+                return {status: 'not_sent', reason: 'notifications_permission_previously_denied', data: Notification.permission, callback: () => {}};
+            }
 
-        requestedNotificationPermission = true;
+            requestedNotificationPermission = true;
 
-        let permission = await Notification.requestPermission();
-        if (typeof permission === 'undefined') {
-            // Handle browsers that don't support the promise-based syntax.
-            permission = await new Promise((resolve) => {
-                Notification.requestPermission(resolve);
-            });
-        }
+            let permission = await Notification.requestPermission();
+            if (typeof permission === 'undefined') {
+                // Handle browsers that don't support the promise-based syntax.
+                permission = await new Promise((resolve) => {
+                    Notification.requestPermission(resolve);
+                });
+            }
 
-        if (permission !== 'granted') {
-            // User has denied notification for the site
-            return {status: 'not_sent', reason: 'notifications_permission_denied', data: permission, callback: () => {}};
+            if (permission !== 'granted') {
+                // User has denied notification for the site
+                return {status: 'not_sent', reason: 'notifications_permission_denied', data: permission, callback: () => {}};
+            }
         }
 
         const notification = new Notification(title, {
