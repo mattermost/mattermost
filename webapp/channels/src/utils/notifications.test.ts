@@ -27,19 +27,19 @@ describe('Notifications.showNotification', () => {
     });
 
     it('should throw an exception if Notification is not defined on window', async () => {
-        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not defined', async () => {
         window.Notification = {};
-        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification.requestPermission not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not a function', async () => {
         window.Notification = {
             requestPermission: true,
         };
-        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification.requestPermission not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should request permissions, promise style, if not previously requested, do nothing', async () => {

@@ -52,12 +52,8 @@ export function showNotification(
             icon = iconWS;
         }
 
-        if (!('Notification' in window)) {
-            throw new Error('Notification not supported');
-        }
-
-        if (typeof Notification.requestPermission !== 'function') {
-            throw new Error('Notification.requestPermission not supported');
+        if (!isNotificationAPISupported()) {
+            throw new Error('Notification API is not supported');
         }
 
         if (Notification.permission !== 'granted' && requestedNotificationPermission) {

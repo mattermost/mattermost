@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -17,19 +17,19 @@ export default function NotificationPermissionBar() {
 
     const [show, setShow] = useState(isNotificationAPISupported() ? Notification.permission === 'default' : false);
 
-    if (!show || !isLoggedIn || !isNotificationAPISupported()) {
-        return null;
-    }
-
-    async function handleClick() {
+    const handleClick = useCallback(async () => {
         await requestNotificationPermission();
         setShow(false);
-    }
+    }, []);
 
-    function handleClose() {
+    const handleClose = useCallback(() => {
         // If the user closes the bar, don't show the notification bar any more for the rest of the session, but
         // show it again on app refresh.
         setShow(false);
+    }, []);
+
+    if (!show || !isLoggedIn || !isNotificationAPISupported()) {
+        return null;
     }
 
     return (
