@@ -3135,14 +3135,6 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Fehler beim Starten der Elasticsearch-Massenverarbeitung."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ist bereits angehalten."
   },
@@ -8968,10 +8960,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Die CA-Datei für Elasticsearch konnte nicht geöffnet werden"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Dekodierung der CA für Elasticsearch fehlgeschlagen"
   },
   {
     "id": "api.server.cws.health_check.app_error",

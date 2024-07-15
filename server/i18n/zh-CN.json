@@ -3130,14 +3130,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "创建 Elasticsearch 批量处理器失败。"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "开始 Elasticsearch 批量处理器失败。"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "ElasticSearch 已停止。"
   },
@@ -8860,10 +8852,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "无法打开 Elasticsearch CA 文件"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "解码 Elasticsearch CA 失败"
   },
   {
     "id": "app.user.get_badge_count.app_error",

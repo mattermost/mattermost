@@ -3012,20 +3012,12 @@
     "translation": "Elasticsearch är redan stoppad."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Misslyckades att starta Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Det gick inte att tolka Elasticsearch-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Det gick inte att hämta Elasticsearch-serverns versionsnummer."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Misslyckades att skapa Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -8968,10 +8960,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Kunde inte öppna CA-filen för Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Avkodningen av CA för Elasticsearch misslyckades"
   },
   {
     "id": "api.server.cws.health_check.app_error",

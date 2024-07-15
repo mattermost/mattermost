@@ -2516,14 +2516,6 @@
     "translation": "L'Elasticsearch ja s'ha aturat"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "No s'ha pogut iniciar el processador massiu de l'Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "No s'ha pogut crear el processador massiu de l'Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "No s'ha pogut descodificar els resultats de la cerca"
   },

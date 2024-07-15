@@ -3130,14 +3130,6 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした。"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch Bulk Processorを開始することが出来ませんでした。"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています。"
   },
@@ -8960,10 +8952,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "ElasticsearchのCAファイルを開くことができませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Elasticsearch用CAのデコードに失敗しました"
   },
   {
     "id": "api.server.cws.health_check.app_error",
