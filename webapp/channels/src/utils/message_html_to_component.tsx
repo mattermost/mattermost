@@ -181,10 +181,10 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
         processingInstructions.push({
             replaceChildren: true,
             shouldProcessNode: (node: any) => node.attribs && node.attribs[emojiAttrib],
-            processNode: (node: any) => {
+            processNode: (node: any, children: any) => {
                 const emojiName = node.attribs[emojiAttrib];
 
-                return <PostEmoji name={emojiName}/>;
+                return <PostEmoji name={emojiName}>{children}</PostEmoji>;
             },
         });
     }
