@@ -62,14 +62,31 @@ describe('User Management', () => {
     });
 
     roleNames.forEach((role) => {
-        it(`Verify manage user's settings option is visible for role: ${role}`, () => {
+        it(`Verify manage user's settings option is visible for role: ${role} with Can Edit access`, () => {
+            const writeAccess = true;
+
             // TODO: remove below if loop after fixing Bug: https://mattermost.atlassian.net/browse/MM-59376
             if (role !== 'system_manager' && role !== 'system_read_only_admin') {
                 // # Make the user a System User Manager
-                makeUserASystemRole(testUsersForRoles[role].email, role);
+                makeUserASystemRole(testUsersForRoles[role].email, role, writeAccess);
 
                 // * Login as the new user and verify the role permissions (ensure they really are a system user manager)
-                verifyAccessToUserSettings(testUsersForRoles[role], role);
+                verifyAccessToUserSettings(testUsersForRoles[role], writeAccess);
+            }
+        });
+    });
+
+    roleNames.forEach((role) => {
+        it.only(`Verify manage user's settings option is Not visible for role: ${role} with Read only access`, () => {
+            const writeAccess = false;
+
+            // TODO: remove below if loop after fixing Bug: https://mattermost.atlassian.net/browse/MM-59376
+            if (role !== 'system_manager' && role !== 'system_read_only_admin') {
+                // # Make the user a System User Manager
+                makeUserASystemRole(testUsersForRoles[role].email, role, writeAccess);
+
+                // * Login as the new user and verify the role permissions (ensure they really are a system user manager)
+                verifyAccessToUserSettings(testUsersForRoles[role], writeAccess);
             }
         });
     });
@@ -83,17 +100,21 @@ describe('User Management', () => {
         cy.url().should('include', `user_management/user/${user.id}`);
     }
 
-    function verifyManageUserSettingModal(user) {
-        cy.get('.manageUserSettingsBtn').should('be.visible').should('have.text', 'Manage User Settings').click();
-        cy.get('#confirmModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
+    function verifyManageUserSettingModal(user, writeAccess) {
+        if (writeAccess) {
+            cy.get('.manageUserSettingsBtn').should('be.visible').should('have.text', 'Manage User Settings').click();
+            cy.get('#confirmModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
 
-        cy.get('#cancelModalButton').should('be.visible').should('have.text', 'Cancel');
-        cy.get('#confirmModalButton').should('be.visible').should('have.text', 'Manage User Settings').click();
-        cy.get('h1#accountSettingsModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
-        cy.get('.adminModeBadge').should('be.visible').should('have.text', 'Admin Mode');
+            cy.get('#cancelModalButton').should('be.visible').should('have.text', 'Cancel');
+            cy.get('#confirmModalButton').should('be.visible').should('have.text', 'Manage User Settings').click();
+            cy.get('h1#accountSettingsModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
+            cy.get('.adminModeBadge').should('be.visible').should('have.text', 'Admin Mode');
+        } else {
+            cy.get('.manageUserSettingsBtn').should('not.exist');
+        }
     }
 
-    function makeUserASystemRole(userEmail, role) {
+    function makeUserASystemRole(userEmail, role, writeAccess) {
         // # Login as each new role.
         cy.apiAdminLogin();
 
@@ -108,7 +129,7 @@ describe('User Management', () => {
         cy.findByTestId(`${role}_edit`).click();
 
         cy.get('button#systemRolePermissionDropdownuser_management_users').click();
-        cy.get('div.PermissionSectionDropdownOptions_label').first().should('have.text', 'Can edit').click();
+        cy.get('div.PermissionSectionDropdownOptions_label').filter(`:contains("${writeAccess ? 'Can edit' : 'Read only'}")`).should('have.text', writeAccess ? 'Can edit' : 'Read only').click();
 
         // # Click Add People button
         cy.findByRole('button', {name: 'Add People'}).click().wait(TIMEOUTS.HALF_SEC);
@@ -127,7 +148,7 @@ describe('User Management', () => {
         cy.apiLogout();
     }
 
-    function verifyAccessToUserSettings(user) {
+    function verifyAccessToUserSettings(user, writeAccess) {
         // # Login as each new role.
         cy.apiLogin(user);
 
@@ -135,7 +156,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
 
         gotoUserConfigurationPage(user);
-        verifyManageUserSettingModal(user);
+        verifyManageUserSettingModal(user, writeAccess);
         cy.apiLogout();
     }
 });
