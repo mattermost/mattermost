@@ -16,6 +16,8 @@ import {shallowWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
 
 describe('SystemUserDetail', () => {
     const defaultProps: Props = {
+        showManageUserSettings: false,
+        showLockedManageUserSettings: false,
         mfaEnabled: false,
         patchUser: jest.fn(),
         updateUserMfa: jest.fn(),
@@ -24,6 +26,7 @@ describe('SystemUserDetail', () => {
         setNavigationBlocked: jest.fn(),
         addUserToTeam: jest.fn(),
         openModal: jest.fn(),
+        getUserPreferences: jest.fn(),
         intl: {
             formatMessage: jest.fn(),
         } as MockIntl,
@@ -46,6 +49,33 @@ describe('SystemUserDetail', () => {
         const props = {
             ...defaultProps,
             mfaEnabled: true,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should show manage user settings button as activated', () => {
+        const props = {
+            ...defaultProps,
+            showManageUserSettings: true,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should show manage user settings button as disabled when no license', () => {
+        const props = {
+            ...defaultProps,
+            showLockedManageUserSettings: false,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should not show manage user settings button when user doesnt have permission', () => {
+        const props = {
+            ...defaultProps,
+            showManageUserSettings: false,
         };
         const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();

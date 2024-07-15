@@ -10,7 +10,7 @@ import {getTimezoneLabel, getUserCurrentTimezone} from 'mattermost-redux/utils/t
 
 import {getCurrentUser} from './common';
 
-function getTimezoneForUserProfile(profile: UserProfile) {
+export function getTimezoneForUserProfile(profile: UserProfile) {
     if (profile && profile.timezone) {
         return {
             ...profile.timezone,
@@ -41,14 +41,16 @@ export const getCurrentTimezone = createSelector(
     },
 );
 
+export function generateCurrentTimezoneLabel(timezone: string) {
+    if (!timezone) {
+        return '';
+    }
+
+    return getTimezoneLabel(timezones, timezone);
+}
+
 export const getCurrentTimezoneLabel = createSelector(
     'getCurrentTimezoneLabel',
     getCurrentTimezone,
-    (timezone) => {
-        if (!timezone) {
-            return '';
-        }
-
-        return getTimezoneLabel(timezones, timezone);
-    },
+    generateCurrentTimezoneLabel,
 );
