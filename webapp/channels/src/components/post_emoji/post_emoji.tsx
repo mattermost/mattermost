@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-interface Props {
+export interface Props {
+    children: React.ReactNode;
     name: string;
     imageUrl: string;
 }
@@ -13,12 +14,12 @@ declare module 'react' {
     }
 }
 
-const PostEmoji = ({name, imageUrl}: Props) => {
+const PostEmoji = ({children, name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
     const backgroundImageUrl = `url(${imageUrl})`;
 
     if (!imageUrl) {
-        return <>{emojiText}</>;
+        return <>{children}</>;
     }
 
     return (
@@ -28,7 +29,7 @@ const PostEmoji = ({name, imageUrl}: Props) => {
             title={emojiText}
             style={{backgroundImage: backgroundImageUrl}}
         >
-            {emojiText}
+            {children}
         </span>
     );
 };
