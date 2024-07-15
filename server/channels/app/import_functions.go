@@ -1618,39 +1618,10 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			post.IsPinned = *line.Post.IsPinned
 		}
 		if line.Post.ThreadFollowers != nil {
-			threadMemberships := []*model.ThreadMembership{}
-			participants := make([]*model.User, len(*line.Post.ThreadFollowers))
-
-			for i, member := range *line.Post.ThreadFollowers {
-				user, ok := users[strings.ToLower(*member.User)]
-				if !ok {
-					// maybe it's a user on target instance but not in the import data.
-					// This is a rare case, but we need to or can to handle it.
-					// alternatively, we can continue and discard this follower as maybe they
-					// were deleted.
-					var uErr error
-					user, uErr = a.Srv().Store().User().GetByUsername(*member.User)
-					if uErr != nil {
-						return line.LineNumber, model.NewAppError("importMultiplePostLines", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(uErr)
-					}
-				}
-				membership := &model.ThreadMembership{
-					PostId:    post.Id, // empty if it's a new post, will set later while inserting to the DB.
-					UserId:    user.Id,
-					Following: true,
-				}
-
-				if member.LastViewed != nil {
-					membership.LastViewed = *member.LastViewed
-				}
-				if member.UnreadMentions != nil {
-					membership.UnreadMentions = *member.UnreadMentions
-				}
-				// We only need the user ID to update the thread.
-				participants[i] = &model.User{Id: user.Id}
-				threadMemberships = append(threadMemberships, membership)
+			threadMemberships, lineNumber, err := a.extractThreadMembers(&line, users, post)
+			if err != nil {
+				return lineNumber, err
 			}
-			post.Participants = participants
 
 			if post.Id == "" {
 				threadMembersToCreateMap[getPostStrID(post)] = threadMemberships
@@ -1943,11 +1914,13 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	}
 
 	var (
-		postsWithData         = []postAndData{}
-		postsForCreateList    = []*model.Post{}
-		postsForCreateMap     = map[string]int{}
-		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]int{}
+		postsWithData                = []postAndData{}
+		postsForCreateList           = []*model.Post{}
+		postsForCreateMap            = map[string]int{}
+		postsForOverwriteList        = []*model.Post{}
+		postsForOverwriteMap         = map[string]int{}
+		threadMembersToCreateMap     = map[string][]*model.ThreadMembership{}
+		threadMembersToOverwriteList = []*model.ThreadMembership{}
 	)
 
 	for _, line := range lines {
@@ -2012,6 +1985,18 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		if line.DirectPost.IsPinned != nil {
 			post.IsPinned = *line.DirectPost.IsPinned
 		}
+		if line.DirectPost.ThreadFollowers != nil {
+			threadMemberships, lineNumber, err := a.extractThreadMembers(&line, users, post)
+			if err != nil {
+				return lineNumber, err
+			}
+
+			if post.Id == "" {
+				threadMembersToCreateMap[getPostStrID(post)] = threadMemberships
+			} else {
+				threadMembersToOverwriteList = append(threadMembersToOverwriteList, threadMemberships...)
+			}
+		}
 
 		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam", extractContent)
 		for _, fileID := range post.FileIds {
@@ -2056,7 +2041,33 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			}
 			return 0, retErr
 		}
+
+		var membersToCreate []*model.ThreadMembership
+		for _, post := range postsForCreateList {
+			members, ok := threadMembersToCreateMap[getPostStrID(post)]
+			if !ok {
+				continue
+			}
+
+			for _, member := range members {
+				if post.Id == "" {
+					appErr := model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(errors.New("post id cannot be empty"))
+					if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
+						return lineNumber, appErr
+					}
+					return 0, appErr
+				}
+				member.PostId = post.Id
+			}
+
+			membersToCreate = append(membersToCreate, members...)
+		}
+
+		if _, err := a.Srv().Store().Thread().SaveMultipleMemberships(membersToCreate); err != nil {
+			return 0, model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
+
 	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
@@ -2065,6 +2076,10 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			}
 		}
 		return 0, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if _, sErr := a.Srv().Store().Thread().MaintainMultipleFromImport(threadMembersToOverwriteList); sErr != nil {
+		return 0, model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
 	}
 
 	for _, postWithData := range postsWithData {
@@ -2174,4 +2189,49 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 	}
 
 	return nil
+}
+
+func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map[string]*model.User, post *model.Post) ([]*model.ThreadMembership, int, *model.AppError) {
+	threadMemberships := []*model.ThreadMembership{}
+
+	var importedFollowers []imports.ThreadFollowerImportData
+	if line.Post != nil {
+		importedFollowers = *line.Post.ThreadFollowers
+	} else if line.DirectPost != nil {
+		importedFollowers = *line.DirectPost.ThreadFollowers
+	}
+	participants := make([]*model.User, len(importedFollowers))
+
+	for i, member := range importedFollowers {
+		user, ok := users[strings.ToLower(*member.User)]
+		if !ok {
+			// maybe it's a user on target instance but not in the import data.
+			// This is a rare case, but we need to or can to handle it.
+			// alternatively, we can continue and discard this follower as maybe they
+			// were deleted.
+			var uErr error
+			user, uErr = a.Srv().Store().User().GetByUsername(*member.User)
+			if uErr != nil {
+				return nil, line.LineNumber, model.NewAppError("importMultiplePostLines", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(uErr)
+			}
+		}
+		membership := &model.ThreadMembership{
+			PostId:    post.Id, // empty if it's a new post, will set later while inserting to the DB.
+			UserId:    user.Id,
+			Following: true,
+		}
+
+		if member.LastViewed != nil {
+			membership.LastViewed = *member.LastViewed
+		}
+		if member.UnreadMentions != nil {
+			membership.UnreadMentions = *member.UnreadMentions
+		}
+		// We only need the user ID to update the thread.
+		participants[i] = &model.User{Id: user.Id}
+		threadMemberships = append(threadMemberships, membership)
+	}
+	post.Participants = participants
+
+	return threadMemberships, 0, nil
 }
