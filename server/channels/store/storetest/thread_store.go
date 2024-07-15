@@ -1219,7 +1219,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			u, err := ss.User().Get(context.Background(), userIDs[0])
 			require.NoError(t, err)
 
-			assert.Equal(t, u.Username, members[0].UserName)
+			assert.Equal(t, u.Username, members[0].Username)
 
 			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post2.Id)
 			require.NoError(t, err)
@@ -1235,7 +1235,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 				u, err := ss.User().Get(context.Background(), userIDs[i])
 				require.NoError(t, err)
 
-				assert.Equal(t, u.Username, members[i].UserName)
+				assert.Equal(t, u.Username, members[i].Username)
 			}
 		})
 
@@ -1259,7 +1259,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
 			require.NoError(t, err)
 
-			// team1channel1post1 should have 1 followin member
+			// team1channel1post1 should have 1 following member
 			assert.Len(t, members, 1)
 
 			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
@@ -1269,7 +1269,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			u, err := ss.User().Get(context.Background(), userIDs[0])
 			require.NoError(t, err)
 
-			assert.Equal(t, u.Username, members[0].UserName)
+			assert.Equal(t, u.Username, members[0].Username)
 		})
 	})
 }

@@ -142,7 +142,7 @@ func (o *ThreadMembership) IsValid() *AppError {
 }
 
 type ThreadMembershipForExport struct {
-	UserName       string `json:"user_name"`
-	LastViewed     int64  `json:"last_view"`
+	Username       string `json:"user_name"`
+	LastViewed     int64  `json:"last_viewed"`
 	UnreadMentions int64  `json:"unread_mentions"`
 }

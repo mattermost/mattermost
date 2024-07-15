@@ -6692,7 +6692,7 @@
   },
   {
     "id": "app.thread.get_threadmembers_for_export.app_error",
-    "translation": "Unable to export thread members for export."
+    "translation": "Unable to get thread members for export."
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
