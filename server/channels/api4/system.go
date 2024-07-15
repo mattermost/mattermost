@@ -673,7 +673,16 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ack.NotificationType == model.PushTypeMessage {
-		c.App.CountNotificationAck(model.NotificationTypePush, ack.ClientPlatform)
+		session := c.AppContext.Session()
+		ignoreNotificationACK := session.Props[model.SessionPropIgnoreNotificationACK] == "true"
+		if ignoreNotificationACK && ack.ClientPlatform == "ios" {
+			// iOS doesn't send ack when the notificications are disabled
+			// so we restore the value the moment we receive an ack
+			c.App.SetIgnoreNotificationACK(session, false)
+		}
+		if !ignoreNotificationACK {
+			c.App.CountNotificationAck(model.NotificationTypePush, ack.ClientPlatform)
+		}
 	}
 
 	err := c.App.SendAckToPushProxy(&ack)

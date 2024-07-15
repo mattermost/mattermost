@@ -291,6 +291,20 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	return nil
 }
 
+func (a *App) SetIgnoreNotificationACK(session *model.Session, value bool) *model.AppError {
+	stringValue := "false"
+	if value {
+		stringValue = "true"
+	}
+	session.AddProp(model.SessionPropIgnoreNotificationACK, stringValue)
+	err := a.Srv().Store().Session().UpdateProps(session)
+	if err != nil {
+		return model.NewAppError("SetIgnoreNotificationACK", "app.session.ignore_ack.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
