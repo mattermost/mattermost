@@ -187,11 +187,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (scrollHeight <= 0) {
             return;
         }
-        const {createCommentHeight} = this.state;
 
         const updatedState: Partial<State> = {};
 
-        const userScrolledToBottom = scrollHeight - scrollOffset - createCommentHeight <= clientHeight;
+        const userScrolledToBottom = scrollHeight - scrollOffset - 5 <= clientHeight;
 
         if (!scrollUpdateWasRequested) {
             this.scrollShortCircuit = 0;
@@ -425,7 +424,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 <div
                     role='application'
                     aria-label={Utils.localizeMessage('accessibility.sections.rhsContent', 'message details complimentary region')}
-                    className='post-right__content a11y__region'
+                    className='post-right__content virtual-list__content a11y__region'
                     style={{height: '100%'}}
                     data-a11y-sort-order='3'
                     data-a11y-focus-child={true}

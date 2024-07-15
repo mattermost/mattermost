@@ -1,5 +1,12 @@
-.virtual-list__ctr{
-    display: flex;
-    height: 100%;
-    flex-direction: column;
+.virtual-list{
+    &__ctr{
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+    }
+
+    &__content{
+        margin-bottom: 8px;
+    }
+
 }
