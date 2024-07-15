@@ -5870,6 +5870,286 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 	return BuildResponse(rp), nil
 }
 
+// GetLightLogo retrieves the previously uploaded light logo image.
+func (c *Client4) GetLightLogo(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.brandRoute()+"/light-logo", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	if r.StatusCode >= 300 {
+		return nil, BuildResponse(r), AppErrorFromJSON(r.Body)
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetLightLogo", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
+}
+
+// DeleteLightLogo deletes the light logo image for the system.
+func (c *Client4) DeleteLightLogo(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.brandRoute()+"/light-logo")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	return BuildResponse(r), nil
+}
+
+// UploadLightLogo sets the light logo image for the system.
+func (c *Client4) UploadLightLogo(ctx context.Context, data []byte) (*Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("image", "light-logo.png")
+	if err != nil {
+		return nil, NewAppError("UploadLightLogo", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, NewAppError("UploadLightLogo", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, NewAppError("UploadLightLogo", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/light-logo", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if c.AuthToken != "" {
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HTTPClient.Do(rq)
+	if err != nil {
+		return BuildResponse(rp), err
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
+	}
+
+	return BuildResponse(rp), nil
+}
+
+// GetDarkLogo retrieves the previously uploaded dark logo image.
+func (c *Client4) GetDarkLogo(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.brandRoute()+"/dark-logo", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	if r.StatusCode >= 300 {
+		return nil, BuildResponse(r), AppErrorFromJSON(r.Body)
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetDarkLogo", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
+}
+
+// DeleteDarkLogo deletes the dark logo image for the system.
+func (c *Client4) DeleteDarkLogo(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.brandRoute()+"/dark-logo")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	return BuildResponse(r), nil
+}
+
+// UploadDarkLogo sets the dark logo image for the system.
+func (c *Client4) UploadDarkLogo(ctx context.Context, data []byte) (*Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("image", "dark-logo.png")
+	if err != nil {
+		return nil, NewAppError("UploadDarkLogo", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, NewAppError("UploadDarkLogo", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, NewAppError("UploadDarkLogo", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/dark-logo", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if c.AuthToken != "" {
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HTTPClient.Do(rq)
+	if err != nil {
+		return BuildResponse(rp), err
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
+	}
+
+	return BuildResponse(rp), nil
+}
+
+// GetBackground retrieves the previously uploaded background image.
+func (c *Client4) GetBackground(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.brandRoute()+"/background", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	if r.StatusCode >= 300 {
+		return nil, BuildResponse(r), AppErrorFromJSON(r.Body)
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetBackground", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
+}
+
+// DeleteBackground deletes the background image for the system.
+func (c *Client4) DeleteBackground(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.brandRoute()+"/background")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	return BuildResponse(r), nil
+}
+
+// UploadBackground sets the background image for the system.
+func (c *Client4) UploadBackground(ctx context.Context, data []byte) (*Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("image", "background.png")
+	if err != nil {
+		return nil, NewAppError("UploadBackground", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, NewAppError("UploadBackground", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, NewAppError("UploadBackground", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/background", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if c.AuthToken != "" {
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HTTPClient.Do(rq)
+	if err != nil {
+		return BuildResponse(rp), err
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
+	}
+
+	return BuildResponse(rp), nil
+}
+
+// GetFavicon retrieves the previously uploaded favicon image.
+func (c *Client4) GetFavicon(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.brandRoute()+"/favicon", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	if r.StatusCode >= 300 {
+		return nil, BuildResponse(r), AppErrorFromJSON(r.Body)
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetFavicon", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
+}
+
+// DeleteFavicon deletes the favicon image for the system.
+func (c *Client4) DeleteFavicon(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.brandRoute()+"/favicon")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	return BuildResponse(r), nil
+}
+
+// UploadFavicon sets the favicon image for the system.
+func (c *Client4) UploadFavicon(ctx context.Context, data []byte) (*Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("image", "favicon.png")
+	if err != nil {
+		return nil, NewAppError("UploadFavicon", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, NewAppError("UploadFavicon", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, NewAppError("UploadFavicon", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/favicon", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if c.AuthToken != "" {
+		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HTTPClient.Do(rq)
+	if err != nil {
+		return BuildResponse(rp), err
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
+	}
+
+	return BuildResponse(rp), nil
+}
+
 // Logs Section
 
 // GetLogs page of logs as a string array.

@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
+	webutils "github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
@@ -38,12 +39,59 @@ func (w *Web) InitStatic() {
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 
+		faviconHandler := http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
+			if !*w.srv.Config().TeamSettings.EnableCustomBrand {
+				staticHandler.ServeHTTP(writer, r)
+				return
+			}
+
+			if w.srv.License() == nil {
+				staticHandler.ServeHTTP(writer, r)
+				return
+			}
+
+			if exists, _ := w.srv.FileBackend().FileExists("brand/favicon.png"); !exists {
+				staticHandler.ServeHTTP(writer, r)
+				return
+			}
+
+			size, err := w.srv.FileBackend().FileSize("brand/favicon.png")
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			modtime, err := w.srv.FileBackend().FileModTime("brand/favicon.png")
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			fileReader, err := w.srv.FileBackend().Reader("brand/favicon.png")
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			webutils.WriteFileResponse("favicon.png", "image/png", size, modtime, *w.srv.Config().ServiceSettings.WebserverMode, fileReader, false, writer, r)
+		})
+
+		customCssHandler := http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
+			writer.Header().Set("Content-Type", "text/css")
+			if w.srv.License() == nil {
+				return
+			}
+			if !*w.srv.Config().TeamSettings.EnableCustomBrand || *w.srv.Config().TeamSettings.CustomBrandCSS == "" {
+				return
+			}
+			writer.Write([]byte(*w.srv.Config().TeamSettings.CustomBrandCSS))
+		})
+
 		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
 		}
 
+		w.MainRouter.PathPrefix("/customcss").Handler(customCssHandler)
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
+		w.MainRouter.PathPrefix("/static/images/favicon/").Handler(faviconHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))

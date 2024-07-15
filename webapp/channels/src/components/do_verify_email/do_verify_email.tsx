@@ -15,6 +15,8 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import LoadingScreen from 'components/loading_screen';
 
@@ -114,7 +116,7 @@ const DoVerifyEmail = () => {
 
     return (
         verifyStatus === VerifyStatus.FAILURE ? (
-            <div className='do-verify-body'>
+            <BrandedBody className='do-verify-body'>
                 <div className='do-verify-body-content'>
                     <ColumnLayout
                         title={formatMessage({id: 'signup_user_completed.invalid_invite.title', defaultMessage: 'This invite link is invalid'})}
@@ -122,17 +124,19 @@ const DoVerifyEmail = () => {
                         SVGElement={<LaptopAlertSVG/>}
                         extraContent={(
                             <div className='do-verify-body-content-button-container'>
-                                <button
-                                    className='do-verify-body-content-button-return'
-                                    onClick={handleReturnButtonOnClick}
-                                >
-                                    {formatMessage({id: 'signup_user_completed.return', defaultMessage: 'Return to log in'})}
-                                </button>
+                                <BrandedButton>
+                                    <button
+                                        className='do-verify-body-content-button-return'
+                                        onClick={handleReturnButtonOnClick}
+                                    >
+                                        {formatMessage({id: 'signup_user_completed.return', defaultMessage: 'Return to log in'})}
+                                    </button>
+                                </BrandedButton>
                             </div>
                         )}
                     />
                 </div>
-            </div>
+            </BrandedBody>
         ) : (
             <LoadingScreen/>
         )

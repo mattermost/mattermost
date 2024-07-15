@@ -24,6 +24,17 @@ export type ClientConfig = {
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
     CustomDescriptionText: string;
+    CustomBrandHeading: string;
+    CustomBrandColorBackground: string;
+    CustomBrandColorText: string;
+    CustomBrandColorLoginContainer: string;
+    CustomBrandColorLoginContainerText: string;
+    CustomBrandColorButtonBackground: string;
+    CustomBrandColorButtonText: string;
+    CustomBrandShowFooter: string;
+    CustomBrandHasBackground: string;
+    CustomBrandHasLogo: string;
+    CustomBrandHasBrand: string;
     CustomTermsOfServiceId: string;
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;

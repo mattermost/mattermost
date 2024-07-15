@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -331,7 +332,8 @@ func TestGetClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license)
+			fileBackend, _ := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: "/tmp"})
+			configMap := GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license, fileBackend)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -423,7 +425,8 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license)
+			fileBackend, _ := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: "/tmp"})
+			configMap := GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license, fileBackend)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
