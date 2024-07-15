@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitPermissions() {
-	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods("POST")
+	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods(http.MethodPost)
 }
 
 func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.Request) {

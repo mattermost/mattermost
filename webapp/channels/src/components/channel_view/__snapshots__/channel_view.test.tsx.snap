@@ -158,9 +158,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     data-testid="post-create"
     id="post-create"
   >
-    <Connect(AdvancedCreatePost)
-      getChannelView={[Function]}
-    />
+    <Memo(AdvancedCreatePost) />
   </div>
 </div>
 `;
