@@ -1625,7 +1625,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 				user, ok := users[strings.ToLower(*member.User)]
 				if !ok {
 					// maybe it's a user on target instance but not in the import data.
-					// This is a rare case, but we need or can to handle it.
+					// This is a rare case, but we need to or can to handle it.
 					// alternatively, we can continue and discard this follower as maybe they
 					// were deleted.
 					var uErr error
@@ -1726,12 +1726,12 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			membersToCreate = append(membersToCreate, members...)
 		}
 
-		// we have an assumption here is that all these memberships should be brand new because the corresponfing posts
+		// we have an assumption here is that all these memberships should be brand new because the corresponding posts
 		// do not exist in the target until the import.
 		if _, err := a.Srv().Store().Thread().SaveMultipleMemberships(membersToCreate); err != nil {
 			// we don't know the line number of the post that caused the error
 			// so we return 0. But at this stage, it's unlikely to receive an error
-			// due to the thread member itself, mostl likely it's due to the DB connection etc.
+			// due to the thread member itself, most likely it's due to the DB connection etc.
 			return 0, model.NewAppError("importMultiplePostLines", "app.post.save.thread_membership.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
