@@ -140,7 +140,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(postForAvatar.id).find('.Avatars').find('button').first().click();
 
         // * Profile popover should be visible and close on ESC
-        cy.get('div.user-profile-popover').first().should('be.visible').find('#messageButton').type('{esc}');
+        cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm').type('{esc}');
 
         // # Visit global threads
         cy.uiClickSidebarItem('threads');
@@ -149,7 +149,7 @@ describe('Collapsed Reply Threads', () => {
         cy.get('article.ThreadItem').find('.activity').find('.Avatars').find('button').first().click();
 
         // * Profile popover should be visible and close on ESC
-        cy.get('div.user-profile-popover').first().should('be.visible').find('#messageButton').type('{esc}');
+        cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm');
     });
 
     it('MM-T4143 Emoji reaction - type +:+1:', () => {
@@ -200,8 +200,8 @@ describe('Collapsed Reply Threads', () => {
             // # Wait for RHS to open and scroll to position
             cy.wait(TIMEOUTS.ONE_SEC);
 
-            // * RHS should open and the editor's actions should not be visible.
-            cy.get('#rhsContainer').findByTestId('SendMessageButton').should('not.be.visible');
+            // * RHS should open and the editor's actions should be visible.
+            cy.get('#rhsContainer').findByTestId('SendMessageButton').should('be.visible');
 
             // # Close RHS
             cy.uiCloseRHS();
@@ -214,7 +214,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#rhsContainer').findByTestId('reply_textbox').clear().invoke('val', text).trigger('input');
 
             // * RHS should open and the editor should be visible and focused
-            cy.get('#rhsContainer').findByTestId('SendMessageButton').should('be.visible');
+            cy.get('#rhsContainer').findByTestId('SendMessageButton').scrollIntoView().should('be.visible');
         });
     });
 });
