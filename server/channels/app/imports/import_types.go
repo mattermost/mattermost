@@ -243,6 +243,6 @@ type ComparablePreference struct {
 
 type ThreadFollowerImportData struct {
 	User           *string `json:"user"`
-	LastViewAt     *int64  `json:"last_view_at"`
-	UnreadMentions *int64  `json:"unread_mentions"`
+	LastViewed     *int64  `json:"last_viewed,omitempty"`
+	UnreadMentions *int64  `json:"unread_mentions,omitempty"`
 }
