@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -14,6 +14,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import General from 'mattermost-redux/constants/general';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions';
@@ -28,6 +29,8 @@ import * as Menu from 'components/menu';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';
@@ -49,6 +52,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
     const isLicensed = useSelector(getLicense)?.IsLicensed === 'true';
+    const haveSysConsoleWriteUserManagementUsersPermissions = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS}));
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
         if (user.delete_at > 0) {
@@ -86,28 +90,199 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const menuId = `actionMenu-${tableId}-${rowIndex}`;
     const menuItemIdPrefix = `actionMenuItem-${tableId}-${rowIndex}`;
 
-    // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
-    const isDisabled = !isSystemAdmin(currentUser.roles) && isSystemAdmin(user.roles);
+    const isCurrentUserSystemAdmin = useMemo(() => isSystemAdmin(currentUser.roles), [currentUser.roles]);
 
-    const onDeactivateMember = () => updateUser({delete_at: new Date().getMilliseconds()});
-    const onUpdateRoles = (roles: string) => updateUser({roles});
-    const onSwitchToEmailPassword = () => updateUser({auth_service: undefined});
-    const onUpdateEmail = (email: string) => updateUser({email});
-    const onPromoteToMember = () => updateUser({roles: user.roles.replace(General.SYSTEM_GUEST_ROLE, '')});
-    const onDemoteToGuest = () => updateUser({roles: `${user.roles} ${General.SYSTEM_GUEST_ROLE}`});
+    // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
+    const isNonSystemAdminEditingSystemAdmin = !isCurrentUserSystemAdmin && isSystemAdmin(user.roles);
+    const disableEditingOtherUsers = isNonSystemAdminEditingSystemAdmin || !haveSysConsoleWriteUserManagementUsersPermissions;
+
+    const handleManageRolesClick = useCallback(() => {
+        function onRoleUpdateSuccess(roles: string) {
+            updateUser({roles});
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.MANAGE_ROLES_MODAL,
+            dialogType: ManageRolesModal,
+            dialogProps: {
+                user,
+                onSuccess: onRoleUpdateSuccess,
+            },
+        }));
+    }, [user.id, updateUser]);
+
+    const handleManageTeamsClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.MANAGE_TEAMS_MODAL,
+            dialogType: ManageTeamsModal,
+            dialogProps: {
+                user,
+            },
+        }));
+    }, [user.id]);
+
+    const handleManageTokensClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.MANAGE_TOKENS_MODAL,
+            dialogType: ManageTokensModal,
+            dialogProps: {
+                user,
+            },
+        }));
+    }, [user.id]);
+
+    const handleResetPasswordClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
+            dialogType: ResetPasswordModal,
+            dialogProps: {
+                user,
+            },
+        }));
+    }, [user.id]);
+
+    const handleRemoveMfaClick = useCallback(async () => {
+        await adminResetMfa(user.id, null, onError).then(() => {
+            updateUser({mfa_active: false});
+        });
+
+        try {
+            await adminResetMfa(user.id, null, onError);
+            updateUser({mfa_active: false});
+        } catch (error) {
+            onError(error);
+        }
+    }, [user.id, updateUser, onError]);
+
+    const handleSwitchToEmailPasswordClick = useCallback(() => {
+        function onSwitchToEmailPasswordSuccess() {
+            updateUser({auth_service: undefined});
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
+            dialogType: ResetPasswordModal,
+            dialogProps: {
+                user,
+                onSuccess: onSwitchToEmailPasswordSuccess,
+            },
+        }));
+    }, [user.id, updateUser]);
+
+    const handleUpdateEmailClick = useCallback(() => {
+        function onUpdateEmailSuccess(email: string) {
+            updateUser({email});
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.RESET_EMAIL_MODAL,
+            dialogType: ResetEmailModal,
+            dialogProps: {
+                user,
+                onSuccess: onUpdateEmailSuccess,
+            },
+        }));
+    }, [user.id, updateUser]);
+
+    const handlePromoteToMemberClick = useCallback(() => {
+        function onPromoteToMemberSuccess() {
+            updateUser({roles: user.roles.replace(General.SYSTEM_GUEST_ROLE, '')});
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL,
+            dialogType: PromoteToMemberModal,
+            dialogProps: {
+                user,
+                onError,
+                onSuccess: onPromoteToMemberSuccess,
+            },
+        }));
+    }, [user.id, updateUser, onError]);
+
+    const handleDemoteToGuestClick = useCallback(() => {
+        function onDemoteToGuestSuccess() {
+            updateUser({roles: `${user.roles} ${General.SYSTEM_GUEST_ROLE}`});
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.DEMOTE_TO_GUEST_MODAL,
+            dialogType: DemoteToGuestModal,
+            dialogProps: {
+                user,
+                onError,
+                onSuccess: onDemoteToGuestSuccess,
+            },
+        }));
+    }, [user.id, updateUser, onError]);
+
+    const handleRemoveSessionsClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.REVOKE_SESSIONS_MODAL,
+            dialogType: RevokeSessionsModal,
+            dialogProps: {
+                user,
+                currentUser,
+                onError,
+            },
+        }));
+    }, [user.id, currentUser.id, onError]);
+
+    const handleReSyncUserViaLdapGroupsClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CREATE_GROUP_SYNCABLES_MEMBERSHIP_MODAL,
+            dialogType: CreateGroupSyncablesMembershipsModal,
+            dialogProps: {
+                user,
+                onError,
+            },
+        }));
+    }, [user.id, onError]);
+
+    const handleActivateUserClick = useCallback(async () => {
+        if (user.auth_service === Constants.LDAP_SERVICE) {
+            return;
+        }
+
+        const {error} = await dispatch(updateUserActive(user.id, true));
+
+        if (error) {
+            onError(error);
+        } else {
+            updateUser({delete_at: 0});
+        }
+    }, [user.id, user.auth_service, updateUser, onError]);
+
+    const handleDeactivateMemberClick = useCallback(() => {
+        function onDeactivateMemberSuccess() {
+            updateUser({delete_at: new Date().getMilliseconds()});
+        }
+
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.DEACTIVATE_MEMBER_MODAL,
+                dialogType: DeactivateMemberModal,
+                dialogProps: {
+                    user,
+                    onError,
+                    onSuccess: onDeactivateMemberSuccess,
+                },
+            }),
+        );
+    }, [user.id, updateUser, onError]);
 
     return (
         <Menu.Container
             menuButton={{
                 id: menuButtonId,
                 class: classNames('btn btn-quaternary btn-sm', {
-                    disabled: isDisabled,
+                    disabled: disableEditingOtherUsers,
                 }),
-                disabled: isDisabled,
+                disabled: disableEditingOtherUsers,
                 children: (
                     <>
                         {getTranslatedUserRole(user.roles)}
-                        {!isDisabled && (
+                        {!disableEditingOtherUsers && (
                             <i
                                 aria-hidden='true'
                                 className='icon icon-chevron-down'
@@ -124,74 +299,31 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }),
             }}
         >
-            {user.delete_at > 0 &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-active`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.activate'
-                        defaultMessage='Activate'
-                    />
-                }
-                disabled={user.auth_service === Constants.LDAP_SERVICE}
-                onClick={async () => {
-                    if (user.auth_service === Constants.LDAP_SERVICE) {
-                        return;
+            {user.delete_at > 0 && (
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-active`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.activate'
+                            defaultMessage='Activate'
+                        />
                     }
-
-                    const {error} = await dispatch(updateUserActive(user.id, true));
-                    if (error) {
-                        onError(error);
-                    } else {
-                        updateUser({delete_at: 0});
+                    disabled={user.auth_service === Constants.LDAP_SERVICE}
+                    onClick={handleActivateUserClick}
+                />
+            )}
+            {isCurrentUserSystemAdmin &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-manageRoles`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.manageRoles'
+                            defaultMessage='Manage roles'
+                        />
                     }
-                }}
-            />}
-
-            {user.delete_at === 0 &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-deactivate`}
-                isDestructive={true}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.deactivate'
-                        defaultMessage='Deactivate'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.DEACTIVATE_MEMBER_MODAL,
-                        dialogType: DeactivateMemberModal,
-                        dialogProps: {
-                            user,
-                            onError,
-                            onSuccess: onDeactivateMember,
-                        },
-                    }));
-                }}
-            />}
-
-            {isSystemAdmin(currentUser.roles) &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-manageRoles`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.manageRoles'
-                        defaultMessage='Manage roles'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.MANAGE_ROLES_MODAL,
-                        dialogType: ManageRolesModal,
-                        dialogProps: {
-                            user,
-                            onSuccess: onUpdateRoles,
-                        },
-                    }));
-                }}
-            />}
-
+                    onClick={handleManageRolesClick}
+                />
+            }
             <Menu.Item
                 id={`${menuItemIdPrefix}-manageTeams`}
                 labels={
@@ -200,189 +332,133 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         defaultMessage='Manage teams'
                     />
                 }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.MANAGE_TEAMS_MODAL,
-                        dialogType: ManageTeamsModal,
-                        dialogProps: {user},
-                    }));
-                }}
+                onClick={handleManageTeamsClick}
             />
-
             {config.ServiceSettings?.EnableUserAccessTokens &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-manageTokens`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.manageTokens'
-                        defaultMessage='Manage tokens'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.MANAGE_TOKENS_MODAL,
-                        dialogType: ManageTokensModal,
-                        dialogProps: {user},
-                    }));
-                }}
-            />}
-
-            {!user.auth_service &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-resetPassword`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.resetPassword'
-                        defaultMessage='Reset password'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
-                        dialogType: ResetPasswordModal,
-                        dialogProps: {user},
-                    }));
-                }}
-            />}
-
-            {user.mfa_active && config.ServiceSettings?.EnableMultifactorAuthentication &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-removeMFA`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.removeMFA'
-                        defaultMessage='Remove MFA'
-                    />
-                }
-                onClick={() => {
-                    adminResetMfa(user.id, null, onError).then(() => {
-                        updateUser({mfa_active: false});
-                    });
-                }}
-            />}
-
-            {Boolean(user.auth_service) && config.ServiceSettings?.ExperimentalEnableAuthenticationTransfer &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-switchToEmailPassword`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.switchToEmailPassword'
-                        defaultMessage='Switch to Email/Password'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
-                        dialogType: ResetPasswordModal,
-                        dialogProps: {
-                            user,
-                            onSuccess: onSwitchToEmailPassword,
-                        },
-                    }));
-                }}
-            />}
-
-            {!user.auth_service &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-updateEmail`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.updateEmail'
-                        defaultMessage='Update email'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.RESET_EMAIL_MODAL,
-                        dialogType: ResetEmailModal,
-                        dialogProps: {
-                            user,
-                            onSuccess: onUpdateEmail,
-                        },
-                    }));
-                }}
-            />}
-
-            {isGuest(user.roles) &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-promoteToMember`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.promoteToMember'
-                        defaultMessage='Promote to member'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL,
-                        dialogType: PromoteToMemberModal,
-                        dialogProps: {
-                            user,
-                            onError,
-                            onSuccess: onPromoteToMember,
-                        },
-                    }));
-                }}
-            />}
-            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
-            <Menu.Item
-                id={`${menuItemIdPrefix}-demoteToGuest`}
-                labels={
-                    <FormattedMessage
-                        id='admin.system_users.list.actions.menu.demoteToGuest'
-                        defaultMessage='Demote to guest'
-                    />
-                }
-                onClick={() => {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.DEMOTE_TO_GUEST_MODAL,
-                        dialogType: DemoteToGuestModal,
-                        dialogProps: {
-                            user,
-                            onError,
-                            onSuccess: onDemoteToGuest,
-                        },
-                    }));
-                }}
-            />}
-            <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
-                {!user.delete_at &&
                 <Menu.Item
-                    id={`${menuItemIdPrefix}-removeSessions`}
+                    id={`${menuItemIdPrefix}-manageTokens`}
                     labels={
                         <FormattedMessage
-                            id='admin.system_users.list.actions.menu.removeSessions'
-                            defaultMessage='Remove sessions'
+                            id='admin.system_users.list.actions.menu.manageTokens'
+                            defaultMessage='Manage tokens'
                         />
                     }
-                    onClick={() => {
-                        dispatch(openModal({
-                            modalId: ModalIdentifiers.REVOKE_SESSIONS_MODAL,
-                            dialogType: RevokeSessionsModal,
-                            dialogProps: {user, currentUser, onError},
-                        }));
-                    }}
-                />}
+                    onClick={handleManageTokensClick}
+                />
+            }
+            {!user.auth_service &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-resetPassword`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.resetPassword'
+                            defaultMessage='Reset password'
+                        />
+                    }
+                    onClick={handleResetPasswordClick}
+                />
+            }
+            {user.mfa_active && config.ServiceSettings?.EnableMultifactorAuthentication &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-removeMFA`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.removeMFA'
+                            defaultMessage='Remove MFA'
+                        />
+                    }
+                    onClick={handleRemoveMfaClick}
+                />
+            }
+            {Boolean(user.auth_service) && config.ServiceSettings?.ExperimentalEnableAuthenticationTransfer &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-switchToEmailPassword`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.switchToEmailPassword'
+                            defaultMessage='Switch to Email/Password'
+                        />
+                    }
+                    onClick={handleSwitchToEmailPasswordClick}
+                />
+            }
+            {!user.auth_service &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-updateEmail`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.updateEmail'
+                            defaultMessage='Update email'
+                        />
+                    }
+                    onClick={handleUpdateEmailClick}
+                />
+            }
+            {isGuest(user.roles) &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-promoteToMember`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.promoteToMember'
+                            defaultMessage='Promote to member'
+                        />
+                    }
+                    onClick={handlePromoteToMemberClick}
+                />
+            }
+            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-demoteToGuest`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.demoteToGuest'
+                            defaultMessage='Demote to guest'
+                        />
+                    }
+                    onClick={handleDemoteToGuestClick}
+                />
+            }
+            <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
+                {!user.delete_at &&
+                    <Menu.Item
+                        id={`${menuItemIdPrefix}-removeSessions`}
+                        labels={
+                            <FormattedMessage
+                                id='admin.system_users.list.actions.menu.removeSessions'
+                                defaultMessage='Remove sessions'
+                            />
+                        }
+                        onClick={handleRemoveSessionsClick}
+                    />
+                }
             </SystemPermissionGate>
             <SystemPermissionGate permissions={[Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS]}>
                 {(user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.EnableSyncWithLdap)) &&
+                    <Menu.Item
+                        id={`${menuItemIdPrefix}-resyncUserViaLdapGroups`}
+                        labels={
+                            <FormattedMessage
+                                id='admin.system_users.list.actions.menu.resyncUserViaLdapGroups'
+                                defaultMessage='Re-sync user via LDAP groups'
+                            />
+                        }
+                        onClick={handleReSyncUserViaLdapGroupsClick}
+                    />
+                }
+            </SystemPermissionGate>
+            {user.delete_at === 0 && (
                 <Menu.Item
-                    id={`${menuItemIdPrefix}-resyncUserViaLdapGroups`}
+                    id={`${menuItemIdPrefix}-deactivate`}
+                    isDestructive={true}
                     labels={
                         <FormattedMessage
-                            id='admin.system_users.list.actions.menu.resyncUserViaLdapGroups'
-                            defaultMessage='Re-sync user via LDAP groups'
+                            id='admin.system_users.list.actions.menu.deactivate'
+                            defaultMessage='Deactivate'
                         />
                     }
-                    onClick={() => {
-                        dispatch(openModal({
-                            modalId: ModalIdentifiers.CREATE_GROUP_SYNCABLES_MEMBERSHIP_MODAL,
-                            dialogType: CreateGroupSyncablesMembershipsModal,
-                            dialogProps: {user, onError},
-                        }));
-                    }}
-                />}
-            </SystemPermissionGate>
+                    onClick={handleDeactivateMemberClick}
+                />
+            )}
         </Menu.Container>
     );
 }
