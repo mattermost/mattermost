@@ -242,6 +242,8 @@ type ComparablePreference struct {
 }
 
 type ThreadFollowerImportData struct {
+	// User is the username of the follower. It's the general convention
+	// for import data types to name it as user for the username.
 	User           *string `json:"user"`
 	LastViewed     *int64  `json:"last_viewed,omitempty"`
 	UnreadMentions *int64  `json:"unread_mentions,omitempty"`
