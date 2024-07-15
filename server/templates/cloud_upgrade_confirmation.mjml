@@ -6,7 +6,7 @@
     <mj-wrapper mj-class="email" border-radius="0">
       <mj-section padding="24px" border-top="1px solid #E5E5E5" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column>
-          <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
+          <mj-image mj-class="logo" src="{{.Props.SiteURL}}{{if .Props.UseCustomLogo}}/api/v4/brand/light-logo?t=0{{else}}/static/images/logo_email_dark.png{{end}}" />
         </mj-column>
       </mj-section>
       <mj-section padding="0 60px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">

@@ -190,6 +190,66 @@ export function deleteBrandImage() {
     });
 }
 
+export function uploadLightLogoImage(imageData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadLightLogoImage,
+        params: [
+            imageData,
+        ],
+    });
+}
+
+export function deleteLightLogoImage() {
+    return bindClientFunc({
+        clientFunc: Client4.deleteLightLogoImage,
+    });
+}
+
+export function uploadDarkLogoImage(imageData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadDarkLogoImage,
+        params: [
+            imageData,
+        ],
+    });
+}
+
+export function deleteDarkLogoImage() {
+    return bindClientFunc({
+        clientFunc: Client4.deleteDarkLogoImage,
+    });
+}
+
+export function uploadBackgroundImage(imageData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadBackgroundImage,
+        params: [
+            imageData,
+        ],
+    });
+}
+
+export function deleteBackgroundImage() {
+    return bindClientFunc({
+        clientFunc: Client4.deleteBackgroundImage,
+    });
+}
+
+export function uploadFaviconImage(imageData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadFaviconImage,
+        params: [
+            imageData,
+        ],
+    });
+}
+
+export function deleteFaviconImage() {
+    return bindClientFunc({
+        clientFunc: Client4.deleteFaviconImage,
+    });
+}
+
 export function getClusterStatus() {
     return bindClientFunc({
         clientFunc: Client4.getClusterStatus,

@@ -6,7 +6,9 @@
 .signup-body {
     display: flex;
     flex-direction: column;
+    padding-bottom: 32px;
     margin: auto;
+    margin-bottom: 80px;
 
     .signup-body-action {
         display: flex;
@@ -66,16 +68,16 @@
             display: flex;
             width: 540px;
             flex-flow: column;
-            align-self: flex-start;
 
             .signup-body-message-title {
-                padding-right: 60px;
+                padding-right: 0px;
+                margin-top: 0;
                 color: var(--title-color-indigo-500);
                 font-family: Metropolis;
-                font-size: 80px;
+                font-size: 76px;
                 font-weight: 600;
                 letter-spacing: -0.01em;
-                line-height: 88px;
+                line-height: 82px;
             }
 
             .signup-body-message-svg {
@@ -96,11 +98,6 @@
 
                 &.with-brand-image {
                     align-self: center;
-
-                    .signup-body-message-subtitle,
-                    .signup-body-custom-branding-markdown {
-                        text-align: center;
-                    }
                 }
 
                 .signup-body-message-subtitle {
@@ -108,15 +105,11 @@
                 }
 
                 .signup-body-custom-branding-image {
-                    max-height: 540px;
-                    align-self: center;
+                    max-height: 240px;
+                    align-self: self-start;
                     border-radius: 8px;
-                    margin-bottom: 28px;
+                    margin-bottom: 24px;
                 }
-            }
-
-            &.with-alternate-link {
-                margin-top: 40px;
             }
         }
 
@@ -187,7 +180,7 @@
                         @include button-large;
 
                         width: 100%;
-                        margin-top: 30px;
+                        margin-top: 8px;
                     }
                 }
 
@@ -290,7 +283,6 @@
 
         .signup-body-message .signup-body-message-title {
             padding-right: 130px;
-            margin-top: 48px;
         }
     }
 }
@@ -340,8 +332,12 @@
                 background-color: unset;
                 box-shadow: none;
 
+                fieldset {
+                    background-color: var(--center-channel-bg);
+                }
+
                 .signup-body-card-content {
-                    padding: 16px 24px;
+                    padding: 24px 24px;
 
                     .signup-body-card-title {
                         display: none;
@@ -354,12 +350,6 @@
                     .signup-body-card-form {
                         .signup-body-card-form-email-input {
                             margin-top: 0;
-                        }
-
-                        .signup-body-card-form-email-input,
-                        .signup-body-card-form-name-input,
-                        .signup-body-card-form-password-input {
-                            background-color: var(--center-channel-bg);
                         }
                     }
                 }
@@ -399,7 +389,6 @@
 
             .signup-body-message {
                 width: auto;
-                align-self: flex-start;
                 padding: 24px;
 
                 .signup-body-message-title {

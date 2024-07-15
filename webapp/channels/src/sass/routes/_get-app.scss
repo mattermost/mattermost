@@ -1,13 +1,16 @@
 .get-app {
+    display: flex;
     min-height: 100vh;
+    flex-direction: column;
     background-color: #fff;
 }
 
 .get-app__header {
+    z-index: 2;
     display: flex;
     width: 100%;
     height: 102px;
-    box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.2);
+    margin-bottom: -102px;
 
     .get-app__logo {
         width: 255px;
@@ -17,7 +20,7 @@
 
     .get-app__custom-logo {
         max-width: 240px;
-        max-height: 40px;
+        max-height: 32px;
         align-self: center;
         margin-left: 40px;
     }
@@ -43,33 +46,35 @@
 
 .get-app__dialog {
     display: flex;
-    width: 1280px;
+    flex: 1;
+    align-items: center;
     justify-content: center;
-    margin: 80px auto;
+    padding: 0 24px;
+    gap: 40px;
 }
 
 .get-app__graphic {
+    display: flex;
     flex: 0 0 600px;
-    background-color: var(--sidebar-bg);
+    flex-direction: column;
+    align-items: center;
 
     &.mobile {
+        max-height: 500px;
         flex: 0 1 300px;
-    }
-
-    > img {
-        max-width: 100%;
     }
 }
 
 .get-app__dialog-body {
     flex: 0 1 600px;
-    margin-top: 60px;
-    margin-left: 60px;
+
+    .get-app__launching {
+        max-width: 512px;
+    }
 }
 
 .get-app__launching > span {
     color: #000;
-    font-family: "Open Sans";
     font-size: 32px;
     font-weight: 600;
     line-height: 43px;
@@ -82,6 +87,7 @@
     span {
         font-family: "Open Sans";
         font-size: 20px;
+        font-weight: 500;
         line-height: 27px;
         opacity: 0.8;
     }
@@ -96,8 +102,6 @@
     }
 
     &.redirect-page {
-        margin-top: 24px;
-        margin-bottom: 32px;
 
         > br.mobile-only {
             display: none;
@@ -168,13 +172,10 @@
     .get-app__dialog {
         width: 100%;
         align-items: center;
-        padding: 0 80px 0 0;
-        margin: 80px 0;
-    }
 
-    .get-app__dialog-body {
-        align-self: baseline;
-        margin-top: 40px;
+        .get-app__launching {
+            max-width: none;
+        }
     }
 
     .get-app__graphic {
@@ -183,52 +184,9 @@
 }
 
 @media only screen and (max-width: 1082px) {
-    .get-app__dialog {
-        flex-direction: column-reverse;
-        padding: 0;
-        margin: 40px 0 0 0;
-        text-align: center;
-    }
-
-    .get-app__dialog-body {
-        display: flex;
-        flex: 0 1 270px;
-        flex-direction: column;
-        align-self: center;
-        margin-top: 0;
-        margin-left: 0;
-    }
-
-    .get-app__preference {
-        align-self: center;
-    }
-
-    .get-app__graphic {
-        flex: 0 1 500px;
-        margin-top: 40px;
-
-        &.mobile {
-            flex: 0 1 347px;
-        }
-
-        > img {
-            max-height: 100%;
-        }
-    }
-}
-
-@media only screen and (max-width: 768px) {
     .get-app__header {
-        height: 52px;
         justify-content: center;
-        box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.2);
-
-        .get-app__logo {
-            display: block;
-            width: 170px;
-            height: auto;
-            margin: 0 auto;
-        }
+        margin-bottom:0;
 
         .get-app__custom-logo {
             margin-left: 0;
@@ -250,9 +208,55 @@
     }
 
     .get-app__dialog {
+        flex-direction: column-reverse;
+        padding: 0;
+        gap: 24px;
+        text-align: center;
+    }
+
+    .get-app__dialog-body {
+        display: flex;
+        flex: 0 1 270px;
+        flex-direction: column;
+        align-self: center;
+    }
+
+    .get-app__preference {
+        align-self: center;
+    }
+
+    .get-app__graphic {
+        flex: 0 1 500px;
+
+        &.mobile {
+            max-height: none;
+            flex: 0 1 347px;
+            margin-top: 20px;
+            margin-bottom: -200px;
+        }
+
+        svg {
+            width: 100%;
+        }
+
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .get-app__header {
+        height: 72px;
+
+        .get-app__logo {
+            display: block;
+            width: 170px;
+            height: auto;
+            margin: 0 auto;
+        }
+    }
+
+    .get-app__dialog {
         height: auto;
         flex-direction: column-reverse;
-        margin: 32px auto;
     }
 
     .get-app__graphic {
@@ -308,6 +312,7 @@
 
     .get-app__download-link {
         padding: 0 24px;
+        margin-top: 24px;
 
         > br {
             display: block;

@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
+import BrandedButton from 'components/custom_branding/branded_button';
+import BrandedInput from 'components/custom_branding/branded_input';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
@@ -53,26 +55,30 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
             SVGElement={<ShieldWithCheckmarkSVG/>}
             extraContent={(
                 <div className='login-mfa-form'>
-                    <Input
-                        name='token'
-                        containerClassName='login-mfa-form-input'
-                        type='text'
-                        inputSize={SIZE.LARGE}
-                        value={token}
-                        onChange={handleInputOnChange}
-                        placeholder={formatMessage({id: 'login_mfa.token', defaultMessage: 'Enter MFA Token'})}
-                        autoFocus={true}
-                        disabled={saving}
-                    />
-                    <div className='login-mfa-form-button-container'>
-                        <SaveButton
-                            extraClasses='login-mfa-form-button-submit large'
-                            saving={saving}
-                            disabled={!token}
-                            onClick={handleSaveButtonOnClick}
-                            defaultMessage={formatMessage({id: 'login_mfa.submit', defaultMessage: 'Submit'})}
-                            savingMessage={formatMessage({id: 'login_mfa.saving', defaultMessage: 'Logging in…'})}
+                    <BrandedInput>
+                        <Input
+                            name='token'
+                            containerClassName='login-mfa-form-input'
+                            type='text'
+                            inputSize={SIZE.LARGE}
+                            value={token}
+                            onChange={handleInputOnChange}
+                            placeholder={formatMessage({id: 'login_mfa.token', defaultMessage: 'Enter MFA Token'})}
+                            autoFocus={true}
+                            disabled={saving}
                         />
+                    </BrandedInput>
+                    <div className='login-mfa-form-button-container'>
+                        <BrandedButton>
+                            <SaveButton
+                                extraClasses='login-mfa-form-button-submit large'
+                                saving={saving}
+                                disabled={!token}
+                                onClick={handleSaveButtonOnClick}
+                                defaultMessage={formatMessage({id: 'login_mfa.submit', defaultMessage: 'Submit'})}
+                                savingMessage={formatMessage({id: 'login_mfa.saving', defaultMessage: 'Logging in…'})}
+                            />
+                        </BrandedButton>
                     </div>
                 </div>
             )}

@@ -29,7 +29,7 @@ import CloudEffects from 'components/cloud_effects';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
-import {HFRoute} from 'components/header_footer_route/header_footer_route';
+import {HFRoute, LoggedInHFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
 import MobileViewWatcher from 'components/mobile_view_watcher';
 import ModalController from 'components/modal_controller';
@@ -350,7 +350,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
-            Utils.applyTheme(this.props.theme);
+            if (!document.body.classList.contains('console__body')) {
+                Utils.applyTheme(this.props.theme);
+            }
         }
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
@@ -462,11 +464,11 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/access_problem'}
                         component={AccessProblem}
                     />
-                    <HFTRoute
+                    <HFRoute
                         path={'/reset_password'}
                         component={PasswordResetSendLink}
                     />
-                    <HFTRoute
+                    <HFRoute
                         path={'/reset_password_complete'}
                         component={PasswordResetForm}
                     />
@@ -518,7 +520,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/create_team'}
                         component={CreateTeam}
                     />
-                    <LoggedInRoute
+                    <LoggedInHFRoute
                         path={'/mfa'}
                         component={Mfa}
                     />

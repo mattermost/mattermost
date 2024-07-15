@@ -261,14 +261,13 @@
 
                     .section-title {
                         padding: 0;
-                        margin: 0;
+                        margin: 0 0 20px 0;
                         font-size: 14px;
                         font-weight: 400;
                         line-height: 20px;
                     }
 
                     .sectionContent {
-                        padding: 20px 0 0 0;
 
                         .checkbox.single-checkbox {
                             min-height: unset;
@@ -386,7 +385,7 @@
                     }
 
                     .theme-elements {
-                        padding-left: 16px;
+                        margin: 0;
 
                         .element {
                             margin-right: 10px;
@@ -394,52 +393,6 @@
                             &:nth-child(2n) {
                                 margin-right: 0;
                             }
-                        }
-                    }
-
-                    .theme-elements__header {
-                        padding: 1px 0 10px;
-                        border-bottom: 1px solid;
-                        margin: 10px 20px 0 0;
-                        cursor: pointer;
-                        font-size: em(13.5px);
-                        font-weight: 600;
-
-                        .fa-minus {
-                            display: none;
-                        }
-
-                        &.open {
-                            .fa-minus {
-                                display: inline-block;
-                            }
-
-                            .fa-plus {
-                                display: none;
-                            }
-                        }
-
-                        .header__icon {
-                            float: right;
-                            opacity: 0.5;
-                        }
-                    }
-
-                    .theme-elements__body {
-                        max-height: 0;
-                        padding: 0 0 0 24px;
-                        border-radius: 0 0 3px 3px;
-                        margin: 0 20px 0 0;
-                        background-color: rgba(255, 255, 255, 0.05);
-                        overflow-y: hidden;
-                        transition: all 0.4s ease-out;
-
-                        @include pie-clearfix;
-
-                        &.open {
-                            max-height: 1200px;
-                            padding: 24px 0 0 24px;
-                            margin: 0 20px 0 0;
                         }
                     }
 
@@ -534,7 +487,7 @@
                 }
 
                 .setting-list-item {
-                    margin-top: 7px;
+                    margin-bottom: 7px;
                 }
 
                 .has-error {
@@ -713,7 +666,7 @@
 
 .section-min {
     position: relative;
-    padding: 1em;
+    padding: 12px;
     border-radius: 4px;
     cursor: pointer;
 

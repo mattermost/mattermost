@@ -38,8 +38,73 @@ body {
     max-width: 400px;
     flex: 1;
     flex-direction: column;
-    padding: 40px 0 0;
     margin: 0 auto;
+
+    &.reset-password {
+        width: 100%;
+        max-width: 540px;
+        align-items: center;
+        p, h1 {
+            text-align: center;
+        }
+        .input-line {
+            display: flex;
+            width: 100%;
+            padding: 0 24px;
+            .form-group {
+                flex-grow: 1;
+            }
+            .Input_fieldset {
+                height: 48px;
+            }
+            button {
+                height: 48px;
+                margin-left: 8px;
+            }
+        }
+    }
+
+    &.mfa {
+        width: 100%;
+        max-width: 800px;
+        align-items: center;
+        &.mfa-confirm {
+            max-width: 540px;
+        }
+        p, h1 {
+            text-align: center;
+        }
+        h3 {
+            margin-bottom: 56px;
+        }
+
+        .form-group {
+            width: 100%;
+        }
+
+        .input-line {
+            display: flex;
+            width: 100%;
+            padding: 0 24px;
+            > div {
+                flex-grow: 1;
+                button {
+                    flex-grow: 0;
+                }
+            }
+            .form-group {
+                flex-grow: 1;
+            }
+            .Input_fieldset {
+                height: 48px;
+            }
+            button {
+                height: 48px;
+                flex-grow: 0;
+                margin-left: 8px;
+            }
+        }
+    }
 
     .medium-center {
         width: 70%;

@@ -560,7 +560,7 @@ type AppIface interface {
 	DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
-	DeleteBrandImage(rctx request.CTX) *model.AppError
+	DeleteBrandImage(rctx request.CTX, imageType string) *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteChannelBookmark(bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	DeleteCommand(commandID string) *model.AppError
@@ -641,7 +641,7 @@ type AppIface interface {
 	GetAuthorizationCode(c request.CTX, w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError)
 	GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetBookmark(bookmarkId string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
-	GetBrandImage(rctx request.CTX) ([]byte, *model.AppError)
+	GetBrandImage(rctx request.CTX, imageType string) ([]byte, *model.AppError)
 	GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError)
 	GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError)
 	GetChannelBookmarks(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError)
@@ -1056,7 +1056,7 @@ type AppIface interface {
 	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
-	SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError
+	SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader, imageType string) *model.AppError
 	SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError

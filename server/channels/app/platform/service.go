@@ -350,7 +350,7 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
-		ps.regenerateClientConfig()
+		ps.RegenerateClientConfig()
 
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
@@ -366,7 +366,7 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 	})
 
 	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		ps.regenerateClientConfig()
+		ps.RegenerateClientConfig()
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
@@ -404,7 +404,7 @@ func (ps *PlatformService) SetTelemetryId(id string) {
 
 // PostTelemetryIdHook triggers necessary events to propagate telemtery ID
 func (ps *PlatformService) PostTelemetryIdHook() {
-	ps.regenerateClientConfig()
+	ps.RegenerateClientConfig()
 }
 
 func (ps *PlatformService) SetLogger(logger *mlog.Logger) {
