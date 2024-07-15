@@ -14,9 +14,9 @@ import (
 )
 
 func (api *API) InitIPFiltering() {
-	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(getIPFilters)).Methods("GET")
-	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(applyIPFilters)).Methods("POST")
-	api.BaseRoutes.IPFiltering.Handle("/my_ip", api.APISessionRequired(myIP)).Methods("GET")
+	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(getIPFilters)).Methods(http.MethodGet)
+	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(applyIPFilters)).Methods(http.MethodPost)
+	api.BaseRoutes.IPFiltering.Handle("/my_ip", api.APISessionRequired(myIP)).Methods(http.MethodGet)
 }
 
 func ensureIPFilteringInterface(c *Context, where string) (einterfaces.IPFilteringInterface, bool) {
