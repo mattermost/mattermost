@@ -38,7 +38,7 @@ describe('User Management', () => {
         });
     });
 
-    it('Verify Admin can change user\'s settings from the user management in admin console', () => {
+    it('MM-T5596 Verify Admin can change user\'s settings from the user management in admin console', () => {
         cy.apiAdminLogin();
 
         cy.visit('/admin_console/user_management/users');
@@ -62,7 +62,7 @@ describe('User Management', () => {
     });
 
     roleNames.forEach((role) => {
-        it(`Verify manage user's settings option is visible for role: ${role} with Can Edit access`, () => {
+        it(`MM-T5597 Verify manage user's settings option is visible for role: ${role} with Can Edit access`, () => {
             const writeAccess = true;
 
             // TODO: remove below if loop after fixing Bug: https://mattermost.atlassian.net/browse/MM-59376
@@ -77,7 +77,7 @@ describe('User Management', () => {
     });
 
     roleNames.forEach((role) => {
-        it.only(`Verify manage user's settings option is Not visible for role: ${role} with Read only access`, () => {
+        it(`MM-T5597 Verify manage user's settings option is Not visible for role: ${role} with Read only access`, () => {
             const writeAccess = false;
 
             // TODO: remove below if loop after fixing Bug: https://mattermost.atlassian.net/browse/MM-59376
