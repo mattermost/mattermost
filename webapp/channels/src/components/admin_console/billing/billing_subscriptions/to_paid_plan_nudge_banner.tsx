@@ -10,7 +10,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {deprecateCloudFree, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
@@ -48,7 +48,6 @@ export const ToPaidPlanBannerDismissable = () => {
     const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const currentProductStarter = product?.sku === CloudProducts.STARTER;
 
     const now = moment(Date.now());
@@ -122,10 +121,6 @@ export const ToPaidPlanBannerDismissable = () => {
             value: JSON.stringify(snoozeInfo),
         }]));
     };
-
-    if (!cloudFreeDeprecated) {
-        return null;
-    }
 
     if (!show) {
         return null;
