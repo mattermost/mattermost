@@ -1640,8 +1640,8 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 					Following: true,
 				}
 
-				if member.LastViewAt != nil {
-					membership.LastViewed = *member.LastViewAt
+				if member.LastViewed != nil {
+					membership.LastViewed = *member.LastViewed
 				}
 				if member.UnreadMentions != nil {
 					membership.UnreadMentions = *member.UnreadMentions

@@ -514,7 +514,7 @@ func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.
 	}
 
 	query := s.getQueryBuilder().
-		Select("Users.UserName, ThreadMemberships.LastViewed, ThreadMemberships.UnreadMentions").
+		Select("Users.Username, ThreadMemberships.LastViewed, ThreadMemberships.UnreadMentions").
 		From("ThreadMemberships").
 		InnerJoin("Users ON ThreadMemberships.UserId = Users.Id").
 		Where(fetchConditions)

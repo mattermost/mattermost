@@ -2574,10 +2574,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewAt: ptrInt64(model.GetMillis()),
+						LastViewed: ptrInt64(model.GetMillis()),
 					}, {
 						User:       &user2.Username,
-						LastViewAt: ptrInt64(model.GetMillis()),
+						LastViewed: ptrInt64(model.GetMillis()),
 					}},
 				},
 			},
@@ -2616,7 +2616,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewAt: ptrInt64(model.GetMillis()),
+						LastViewed: ptrInt64(model.GetMillis()),
 					}, {
 						User: ptrStr("invalid.user"),
 					}},
@@ -2647,7 +2647,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewAt: ptrInt64(model.GetMillis()),
+						LastViewed: ptrInt64(model.GetMillis()),
 					}, {
 						User: ptrStr("invalid.user"),
 					}},
@@ -2699,7 +2699,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewAt: ptrInt64(model.GetMillis()),
+						LastViewed: ptrInt64(model.GetMillis()),
 					}},
 				},
 			},
