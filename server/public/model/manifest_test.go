@@ -67,6 +67,7 @@ func TestIsValid(t *testing.T) {
 				},
 				Sections: []*PluginSettingsSection{
 					{
+						Key:      "section1",
 						Title:    "section title",
 						Subtitle: "section subtitle",
 						Settings: []*PluginSetting{
@@ -85,6 +86,7 @@ func TestIsValid(t *testing.T) {
 						Footer: "section footer",
 					},
 					{
+						Key: "section2",
 						Settings: []*PluginSetting{
 							{
 								Key:         "section2setting1",
