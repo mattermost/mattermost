@@ -10,11 +10,11 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
-import {getChannel, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
@@ -36,17 +36,20 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst} from 'utils/constants';
+import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import {applyMarkdown as applyMarkdownUtil, type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import DoNotDisturbWarning from './do_not_disturb_warning';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
+import RemoteUserHour from './remote_user_hour';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -72,7 +75,6 @@ type Props = {
      * location of the advanced text editor in the UI (center channel / RHS)
      */
     location: string;
-    currentChannelTeammateUsername?: string;
     channelId: string;
     postId: string;
     isThreadView?: boolean;
@@ -83,15 +85,16 @@ const AdvanceTextEditor = ({
     location,
     channelId,
     postId,
-    currentChannelTeammateUsername,
     isThreadView = false,
     placeholder,
 }: Props) => {
     const {formatMessage} = useIntl();
+
     const dispatch = useDispatch();
 
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
+    const getDisplayName = useMemo(makeGetDisplayName, []);
 
     const isRHS = Boolean(postId && !isThreadView);
 
@@ -103,6 +106,11 @@ const AdvanceTextEditor = ({
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
     const isFormattingBarHidden = useSelector((state: GlobalState) => getBool(state, Preferences.ADVANCED_TEXT_EDITOR, isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST));
+    const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
+    const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
+    const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
+    const showRemoteUserHour = useSelector((state: GlobalState) => !showDndWarning && Boolean(getDirectChannel(state, channelId)?.teammate_id));
+
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
@@ -520,6 +528,13 @@ const AdvanceTextEditor = ({
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
             )}
+            {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
+            {showRemoteUserHour && (
+                <RemoteUserHour
+                    teammateId={teammateId}
+                    displayName={teammateDisplayName}
+                />
+            )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
@@ -615,7 +630,6 @@ const AdvanceTextEditor = ({
                             prefillMessage={prefillMessage}
                             channelId={channelId}
                             currentUserId={currentUserId}
-                            currentChannelTeammateUsername={currentChannelTeammateUsername}
                         />
                     )}
                 </div>

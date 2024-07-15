@@ -14,7 +14,6 @@ type Props = {
     prefillMessage: (msg: string, shouldFocus: boolean) => void;
     channelId: string;
     currentUserId: string;
-    currentChannelTeammateUsername?: string;
 }
 
 const translate = {x: -6, y: -6};
@@ -23,14 +22,12 @@ export const SendMessageTour = ({
     prefillMessage,
     channelId,
     currentUserId,
-    currentChannelTeammateUsername,
 }: Props) => {
     const chips = (
         <PrewrittenChips
             prefillMessage={prefillMessage}
             channelId={channelId}
             currentUserId={currentUserId}
-            currentChannelTeammateUsername={currentChannelTeammateUsername}
         />
     );
 

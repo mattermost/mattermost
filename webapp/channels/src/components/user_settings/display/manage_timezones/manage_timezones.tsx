@@ -18,6 +18,7 @@ import {getBrowserTimezone} from 'utils/timezone';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
+    patchUser: (user: UserProfile) => Promise<ActionResult>;
 }
 
 type Props = {
@@ -29,6 +30,7 @@ type Props = {
     timezones: Timezone[];
     timezoneLabel: string;
     actions: Actions;
+    adminMode?: boolean;
 }
 type SelectedOption = {
     value: string;
@@ -97,7 +99,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
     };
 
     submitUser = () => {
-        const {user, actions} = this.props;
+        const {user} = this.props;
         const {useAutomaticTimezone, automaticTimezone, manualTimezone} = this.state;
 
         const timezone = {
@@ -111,7 +113,8 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
             timezone,
         };
 
-        actions.updateMe(updatedUser).
+        const action = this.props.adminMode ? this.props.actions.patchUser : this.props.actions.updateMe;
+        action(updatedUser).
             then((res) => {
                 if ('data' in res) {
                     this.props.updateSection('');

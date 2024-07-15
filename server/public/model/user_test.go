@@ -551,12 +551,12 @@ func TestSanitizeProfile(t *testing.T) {
 			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
 		}
 
-		user.SanitizeProfile(nil)
+		user.SanitizeProfile(nil, false)
 
 		require.Equal(t, "john@doe.com", user.Email)
 		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
 
-		user.SanitizeProfile(map[string]bool{"email": false})
+		user.SanitizeProfile(map[string]bool{"email": false}, false)
 
 		require.Empty(t, user.Email)
 		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])

@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {getChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -20,7 +21,6 @@ type Props = {
     prefillMessage: (msg: string, shouldFocus: boolean) => void;
     channelId: string;
     currentUserId: string;
-    currentChannelTeammateUsername?: string;
 }
 
 const UsernameMention = styled.span`
@@ -33,10 +33,11 @@ const ChipContainer = styled.div`
     flex-wrap: wrap;
 `;
 
-const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUsername, prefillMessage}: Props) => {
+const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
     const {formatMessage} = useIntl();
     const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || Constants.OPEN_CHANNEL);
-    const channelTeammate = useSelector((state: GlobalState) => getDirectTeammate(state, channelId)?.id || '');
+    const channelTeammateId = useSelector((state: GlobalState) => getDirectTeammate(state, channelId)?.id || '');
+    const channelTeammateUsername = useSelector((state: GlobalState) => getUser(state, channelTeammateId)?.username || '');
 
     const chips = useMemo(() => {
         const customChip = {
@@ -98,7 +99,7 @@ const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUserna
             ];
         }
 
-        if (channelTeammate === currentUserId) {
+        if (channelTeammateId === currentUserId) {
             return [
                 {
                     event: 'prefilled_message_selected_self_note',
@@ -155,12 +156,12 @@ const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUserna
             },
             customChip,
         ];
-    }, [channelType, channelTeammate, currentUserId]);
+    }, [channelType, channelTeammateId, currentUserId]);
 
     return (
         <ChipContainer>
             {chips.map(({event, message, display, leadingIcon}) => {
-                const values = {username: currentChannelTeammateUsername};
+                const values = {username: channelTeammateUsername};
                 const messageToPrefill = message.id ? formatMessage(
                     message,
                     values,
@@ -168,7 +169,7 @@ const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUserna
 
                 const additionalMarkup = message.id === 'create_post.prewritten.tip.dm_hey' ? (
                     <UsernameMention>
-                        {'@'}{currentChannelTeammateUsername}
+                        {'@'}{channelTeammateUsername}
                     </UsernameMention>
                 ) : null;
 
