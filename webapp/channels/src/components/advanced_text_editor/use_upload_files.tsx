@@ -28,7 +28,7 @@ const useUploadFiles = (
     postId: string,
     channelId: string,
     isThreadView: boolean,
-    storedDrafts: React.MutableRefObject<Record<string, PostDraft>>,
+    storedDrafts: React.MutableRefObject<Record<string, PostDraft | undefined>>,
     readOnlyChannel: boolean,
     textboxRef: React.RefObject<TextboxClass>,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
@@ -93,12 +93,15 @@ const useUploadFiles = (
     const handleUploadError = useCallback((uploadError: string | ServerError | null, clientId?: string, channelId = '', rootId = '') => {
         if (clientId) {
             const id = rootId || channelId;
-            const modifiedDraft = {...storedDrafts.current[id]};
-            const index = modifiedDraft.uploadsInProgress.indexOf(clientId);
-            if (index !== -1) {
-                modifiedDraft.uploadsInProgress = [...modifiedDraft.uploadsInProgress];
-                modifiedDraft.uploadsInProgress.splice(index, 1);
-                handleDraftChange(modifiedDraft, {instant: true});
+            const storedDraft = storedDrafts.current[id];
+            if (storedDraft) {
+                const modifiedDraft = {...storedDraft};
+                const index = modifiedDraft.uploadsInProgress.indexOf(clientId) ?? -1;
+                if (index !== -1) {
+                    modifiedDraft.uploadsInProgress = [...modifiedDraft.uploadsInProgress];
+                    modifiedDraft.uploadsInProgress.splice(index, 1);
+                    handleDraftChange(modifiedDraft, {instant: true});
+                }
             }
         }
 

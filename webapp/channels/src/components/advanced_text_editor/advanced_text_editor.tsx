@@ -142,7 +142,7 @@ const AdvanceTextEditor = ({
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
     const previousDraft = useRef(draftFromStore);
-    const storedDrafts = useRef<Record<string, PostDraft>>({});
+    const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
 
     const [draft, setDraft] = useState(draftFromStore);
