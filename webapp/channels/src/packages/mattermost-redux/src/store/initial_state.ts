@@ -97,6 +97,7 @@ const state: GlobalState = {
         },
         preferences: {
             myPreferences: {},
+            userPreferences: {},
         },
         bots: {
             accounts: {},

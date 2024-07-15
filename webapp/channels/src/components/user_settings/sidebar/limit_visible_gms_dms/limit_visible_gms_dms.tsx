@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -23,10 +23,15 @@ type Limit = {
     label: string;
 };
 
-type Props = {
+export type OwnProps = {
+    adminMode?: boolean;
+    currentUserId?: string;
+    userPreferences?: PreferencesType;
+}
+
+type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
     savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     dmGmLimit: number;
     updateSection: (section: string) => void;
@@ -99,6 +104,10 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
     };
 
     handleSubmit = async () => {
+        if (!this.props.currentUserId) {
+            return;
+        }
+
         this.setState({isSaving: true});
 
         await this.props.savePreferences(this.props.currentUserId, [{
