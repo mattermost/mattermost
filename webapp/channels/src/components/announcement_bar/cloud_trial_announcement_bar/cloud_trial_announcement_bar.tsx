@@ -36,7 +36,6 @@ type Props = {
     daysLeftOnTrial: number;
     isCloud: boolean;
     subscription?: Subscription;
-    reverseTrial: boolean;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         getCloudSubscription: () => void;
@@ -131,7 +130,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             return null;
         }
 
-        let trialMoreThan7DaysMsg = (
+        const trialMoreThan7DaysMsg = (
             <FormattedMessage
                 id='admin.billing.subscription.cloudTrial.daysLeft'
                 defaultMessage='Your trial has started! There are {daysLeftOnTrial} days left'
@@ -139,62 +138,25 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             />
         );
 
-        let modalButtonText;
-        if (this.props.reverseTrial) {
-            modalButtonText = messages.trialButton;
-        } else {
-            modalButtonText = messages.reverseTrialButton;
-        }
+        const modalButtonText = messages.trialButton;
 
-        if (this.props.reverseTrial) {
-            const trialEnd = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do');
-            trialMoreThan7DaysMsg = (
-                <FormattedMessage
-                    id='admin.billing.subscription.cloudTrial.moreThan3Days'
-                    defaultMessage='Your 30 day Enterprise trial has started! Purchase before {trialEnd} to keep your workspace.'
-                    values={{trialEnd}}
-                />
-            );
-        }
-
-        let trialLessThan7DaysMsg = (
+        const trialLessThan7DaysMsg = (
             <FormattedMessage
-                id='admin.billing.subscription.cloudTrial.daysLeftOnTrial'
-                defaultMessage='There are {daysLeftOnTrial} days left on your free trial'
+                id='admin.billing.subscription.cloudReverseTrial.daysLeftOnTrial'
+                defaultMessage='{daysLeftOnTrial} days left on your trial. Purchase a plan or contact sales to keep your workspace.'
                 values={{daysLeftOnTrial}}
             />
         );
 
-        if (this.props.reverseTrial) {
-            trialLessThan7DaysMsg = (
-                <FormattedMessage
-                    id='admin.billing.subscription.cloudReverseTrial.daysLeftOnTrial'
-                    defaultMessage='{daysLeftOnTrial} days left on your trial. Purchase a plan or contact sales to keep your workspace.'
-                    values={{daysLeftOnTrial}}
-                />
-            );
-        }
-
-        const userEndTrialDate = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do YYYY');
         const userEndTrialHour = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'HH:mm', this.props.currentUser.timezone?.automaticTimezone as string);
 
-        let trialLastDaysMsg = (
+        const trialLastDaysMsg = (
             <FormattedMessage
-                id='admin.billing.subscription.cloudTrial.lastDay'
-                defaultMessage='This is the last day of your free trial. Your access will expire on {userEndTrialDate} at {userEndTrialHour}.'
-                values={{userEndTrialHour, userEndTrialDate}}
+                id='admin.billing.subscription.cloudReverseTrial.lastDay'
+                defaultMessage='This is the last day of your trial. Purchase a plan before {userEndTrialHour} or contact sales'
+                values={{userEndTrialHour}}
             />
         );
-
-        if (this.props.reverseTrial) {
-            trialLastDaysMsg = (
-                <FormattedMessage
-                    id='admin.billing.subscription.cloudReverseTrial.lastDay'
-                    defaultMessage='This is the last day of your trial. Purchase a plan before {userEndTrialHour} or contact sales'
-                    values={{userEndTrialHour}}
-                />
-            );
-        }
 
         let bannerMessage;
         let icon;

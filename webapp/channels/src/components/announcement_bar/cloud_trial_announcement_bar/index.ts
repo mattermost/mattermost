@@ -7,7 +7,6 @@ import type {Dispatch} from 'redux';
 
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -28,7 +27,6 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = getLicense(state).Cloud === 'true';
     let isFreeTrial = false;
     let daysLeftOnTrial = 0;
-    const config = getConfig(state);
 
     if (isCloud && subscription?.is_free_trial === 'true') {
         isFreeTrial = true;
@@ -46,7 +44,6 @@ function mapStateToProps(state: GlobalState) {
         isCloud,
         subscription,
         preferences: getCategory(state, Preferences.CLOUD_TRIAL_BANNER),
-        reverseTrial: Boolean(config.FeatureFlags?.CloudReverseTrial),
     };
 }
 
