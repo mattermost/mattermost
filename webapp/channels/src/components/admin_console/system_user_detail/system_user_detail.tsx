@@ -19,7 +19,7 @@ import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_c
 import BlockableLink from 'components/admin_console/blockable_link';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import TeamList from 'components/admin_console/system_user_detail/team_list';
-import {ConfirmManageUserSettingsModal} from 'components/admin_console/system_users/system_users_list_actions/confirmManageUserSettingsModal';
+import ConfirmManageUserSettingsModal from 'components/admin_console/system_users/system_users_list_actions/confirm_manage_user_settings_modal';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';

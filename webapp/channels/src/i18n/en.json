@@ -2494,6 +2494,7 @@
   "admin.system_users.list.actions.menu.demoteToGuest": "Demote to guest",
   "admin.system_users.list.actions.menu.dropdownAriaLabel": "User actions menu",
   "admin.system_users.list.actions.menu.manageRoles": "Manage roles",
+  "admin.system_users.list.actions.menu.manageSettings": "Manage user settings",
   "admin.system_users.list.actions.menu.manageTeams": "Manage teams",
   "admin.system_users.list.actions.menu.manageTokens": "Manage tokens",
   "admin.system_users.list.actions.menu.promoteToMember": "Promote to member",
