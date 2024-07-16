@@ -1406,6 +1406,36 @@ func (_m *ChannelStore) GetForPost(postID string) (*model.Channel, error) {
 	return r0, r1
 }
 
+// GetGMsWithMemberIdsForUser provides a mock function with given fields: userID, offset, limit
+func (_m *ChannelStore) GetGMsWithMemberIdsForUser(userID string, offset int, limit int) ([]*model.ChannelWithMemberIds, error) {
+	ret := _m.Called(userID, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGMsWithMemberIdsForUser")
+	}
+
+	var r0 []*model.ChannelWithMemberIds
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.ChannelWithMemberIds, error)); ok {
+		return rf(userID, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.ChannelWithMemberIds); ok {
+		r0 = rf(userID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelWithMemberIds)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(userID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetGuestCount provides a mock function with given fields: channelID, allowFromCache
 func (_m *ChannelStore) GetGuestCount(channelID string, allowFromCache bool) (int64, error) {
 	ret := _m.Called(channelID, allowFromCache)

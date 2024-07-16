@@ -466,7 +466,8 @@ type AppIface interface {
 	AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 	AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
-	BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId string) error
+	BatchMergeDmChannels(rctx request.CTX, toUserID, fromUserID string) error
+	BatchMergeGmChannels(rctx request.CTX, toUser, fromUser *model.User) error
 	BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError)
 	BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
@@ -960,7 +961,7 @@ type AppIface interface {
 	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
 	MergeChannelMemberRecords(rctx request.CTX, toChannelID, fromChannelID string) error
-	MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserId string, fromUserId string, toChannelID string, fromChannelID string) *model.AppError
+	MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserID, fromUserID, toChannelID, fromChannelID string) *model.AppError
 	MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error
 	MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError
 	MessageExport() einterfaces.MessageExportInterface

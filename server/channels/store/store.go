@@ -310,7 +310,8 @@ type ChannelStore interface {
 	GetTeamForChannel(channelID string) (*model.Team, error)
 	BatchMergeCreatorId(toUserID, fromUserID string) error
 
-	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error)
+	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset, limit int) ([]*model.Channel, error)
+	GetGMsWithMemberIdsForUser(userID string, offset, limit int) ([]*model.ChannelWithMemberIds, error)
 	MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID, fromUserID string) error
 	GetChannelMembersWithDualMemberships(firstChannelID, secondChannelID string, offset, limit int) ([]*model.ChannelMember, error)
 }

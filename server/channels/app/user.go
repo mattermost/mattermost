@@ -3027,15 +3027,50 @@ func (a *App) BatchMergeGmChannels(rctx request.CTX, toUser, fromUser *model.Use
 	fromUserID := fromUser.Id
 
 	for {
-		fromUserGmChannels, err := a.Srv().Store().Channel().GetChannelsByTypeForUser(fromUserID, model.ChannelTypeGroup, offset, 100)
+		// <toUserGMChannel.Name, fromUserGmChannel>
+		channelNameMap := make(map[string]*model.Channel)
+		// []toUserGMChannel.Name
+		keys := make([]string, 0, 100)
+
+		fromUserGmChannels, err := a.Srv().Store().Channel().GetGMsWithMemberIdsForUser(fromUserID, offset, 100)
 		if err != nil {
-			return errors.Wrapf(err, "failed to get gm channels for user %s", fromUserID)
+			return errors.Wrapf(err, "failed to get GM channels for user %s", fromUserID)
+		}
+
+		for _, fromUserGmChannel := range fromUserGmChannels {
+			memberIdsStr := strings.ReplaceAll(fromUserGmChannel.MemberIds, fromUserID, toUserID)
+			memberIds := strings.Split(memberIdsStr, ",")
+			// Construct the channel name of the GM channel for the toUser
+			channelName := model.GetGroupNameFromUserIds(memberIds)
+			keys = append(keys, channelName)
+			// Map the toUser GM channel name to the fromUser GM channel so we can match them up for merging later on
+			channelNameMap[channelName] = fromUserGmChannel.Channel
+		}
+
+		// Fetch all the toUser GM channels where fromUser also has a GM with the same users
+		toUserGmChannels, err := a.Srv().Store().Channel().GetByNames("", keys, true)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get GM channels for user %s", toUserID)
+		}
+
+		for _, toUserGmChannel := range toUserGmChannels {
+			fromUserGmChannel := channelNameMap[toUserGmChannel.Name]
+			delete(channelNameMap, toUserGmChannel.Name)
+			rctx.Logger().Info("MergeUsers: Batch merging GM channels.", mlog.String("to_user_gm_channel_id", toUserGmChannel.Id), mlog.String("from_user_gm_channel_id", fromUserGmChannel.Id))
+			// kick off channel merges for toUserGmChannel and fromUserGmChannel
+			a.MergeChannels(rctx, toUserGmChannel, fromUserGmChannel)
+			// Handle special case of user merge where we need to merge the stats of 2 different users/channel members
+			a.MergeChannelMemberStatsForDifferentUsers(rctx, toUserID, fromUserID, toUserGmChannel.Id, fromUserGmChannel.Id)
 		}
 
 		// channelNameMap now only contains channels that are unique to fromUser
-		for _, channel := range fromUserGmChannels {
-			rctx.Logger().Info("MergeUsers: migrating GM channel.", mlog.String("from_user_id", fromUserID), mlog.String("channel_id", channel.Id))
-			// TODO: race condition with totalMsgCount etc
+		for newChannelName, channel := range channelNameMap {
+			// update channel information to use toUserID
+			channel.Name = newChannelName
+			if channel.CreatorId == fromUserID {
+				channel.CreatorId = toUserID
+			}
+			rctx.Logger().Info("MergeUsers: Batch merging GM channel unique to fromUser.", mlog.String("from_user_id", fromUserID), mlog.String("channel_id", channel.Id))
 			err = a.Srv().Store().Channel().MigrateChannelRecordsToNewUser(channel, toUserID, fromUserID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to migrate channel records for channel %s", channel.Id)
@@ -3126,24 +3161,6 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_notify_admin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// don't think this is needed, primary key is postid,userid
-	// err = a.Srv().Store().PostAcknowledgement().BatchMergeUserId(toUser.Id, fromUser.Id)
-	// if err != nil {
-	// 	return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_post_acknowledgements.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	// }
-
-	// // don't think this is needed
-	// err = a.Srv().Store().Post().BatchMergePostRemindersUserId(toUser.Id, fromUser.Id)
-	// if err != nil {
-	// 	return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_post_reminders.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	// }
-
-	// // don't think this is needed
-	// err = a.Srv().Store().ProductNotices().BatchMergeUserId(toUser.Id, fromUser.Id)
-	// if err != nil {
-	// 	return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_product_notices.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	// }
-
 	rctx.Logger().Info("MergeUsers: Batch merging reactions")
 	err = a.Srv().Store().Reaction().BatchMergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
@@ -3159,12 +3176,6 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_thread_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	// // don't think this is needed
-	// err = a.Srv().Store().UserTermsOfService().BatchMergeUserId(toUser.Id, fromUser.Id)
-	// if err != nil {
-	// 	return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_user_terms_of_service.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	// }
 
 	return nil
 }

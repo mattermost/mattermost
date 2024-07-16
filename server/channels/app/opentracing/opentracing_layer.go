@@ -942,7 +942,7 @@ func (a *OpenTracingAppLayer) AutocompleteUsersInTeam(rctx request.CTX, teamID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId string) error {
+func (a *OpenTracingAppLayer) BatchMergeDmChannels(rctx request.CTX, toUserID string, fromUserID string) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BatchMergeDmChannels")
 
@@ -954,7 +954,29 @@ func (a *OpenTracingAppLayer) BatchMergeDmChannels(rctx request.CTX, toUserId st
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BatchMergeDmChannels(rctx, toUserId, fromUserId)
+	resultVar0 := a.app.BatchMergeDmChannels(rctx, toUserID, fromUserID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) BatchMergeGmChannels(rctx request.CTX, toUser *model.User, fromUser *model.User) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BatchMergeGmChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.BatchMergeGmChannels(rctx, toUser, fromUser)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13004,7 +13026,7 @@ func (a *OpenTracingAppLayer) MergeChannelMemberRecords(rctx request.CTX, toChan
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserId string, fromUserId string, toChannelID string, fromChannelID string) *model.AppError {
+func (a *OpenTracingAppLayer) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserID string, fromUserID string, toChannelID string, fromChannelID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MergeChannelMemberStatsForDifferentUsers")
 
@@ -13016,7 +13038,7 @@ func (a *OpenTracingAppLayer) MergeChannelMemberStatsForDifferentUsers(rctx requ
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MergeChannelMemberStatsForDifferentUsers(rctx, toUserId, fromUserId, toChannelID, fromChannelID)
+	resultVar0 := a.app.MergeChannelMemberStatsForDifferentUsers(rctx, toUserID, fromUserID, toChannelID, fromChannelID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

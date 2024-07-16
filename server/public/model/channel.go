@@ -194,6 +194,11 @@ type ChannelMemberCountByGroup struct {
 	ChannelMemberTimezonesCount int64  `json:"channel_member_timezones_count"`
 }
 
+type ChannelWithMemberIds struct {
+	*Channel
+	MemberIds string
+}
+
 type ChannelOption func(channel *Channel)
 
 var gmNameRegex = regexp.MustCompile("^[a-f0-9]{40}$")

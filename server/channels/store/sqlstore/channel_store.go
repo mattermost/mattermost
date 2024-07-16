@@ -4261,7 +4261,7 @@ func (s SqlChannelStore) BatchMergeCreatorId(toUserID, fromUserID string) error 
 	return nil
 }
 
-func (s SqlChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error) {
+func (s SqlChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset, limit int) ([]*model.Channel, error) {
 	query := s.getQueryBuilder().
 		Select("Channels.*").
 		From("Channels").
@@ -4280,6 +4280,45 @@ func (s SqlChannelStore) GetChannelsByTypeForUser(userID string, channelType mod
 	}
 
 	channels := []*model.Channel{}
+	err = s.GetReplicaX().Select(&channels, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Channels")
+	}
+
+	return channels, nil
+}
+
+// This method is intententionally limited to GMs due to the inclusion of an uncapped ChannelMemberIds
+func (s SqlChannelStore) GetGMsWithMemberIdsForUser(userID string, offset, limit int) ([]*model.ChannelWithMemberIds, error) {
+	selectStr := "Channels.*, group_concat(ChannelMembers.UserId ORDER BY ChannelMembers.UserId ASC) as MemberIds"
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		selectStr = "Channels.*, string_agg(ChannelMembers.UserId, ',' ORDER BY ChannelMembers.UserId ASC) as MemberIds"
+	}
+
+	subquery := s.getQueryBuilder().
+		Select("cm.ChannelId").
+		From("ChannelMembers cm").
+		Where(sq.Eq{"cm.UserId": userID})
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("Channels").
+		Join("ChannelMembers ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Expr("ChannelMembers.ChannelId IN (?)", subquery),
+			sq.Eq{"Channels.Type": model.ChannelTypeGroup},
+			sq.Eq{"Channels.DeleteAt": 0},
+		}).
+		GroupBy("ChannelMembers.ChannelId").
+		Offset(uint64(offset)).
+		Limit(uint64(limit))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	channels := []*model.ChannelWithMemberIds{}
 	err = s.GetReplicaX().Select(&channels, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")

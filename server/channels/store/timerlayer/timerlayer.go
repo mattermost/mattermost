@@ -1413,6 +1413,22 @@ func (s *TimerLayerChannelStore) GetForPost(postID string) (*model.Channel, erro
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetGMsWithMemberIdsForUser(userID string, offset int, limit int) ([]*model.ChannelWithMemberIds, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetGMsWithMemberIdsForUser(userID, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetGMsWithMemberIdsForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetGuestCount(channelID string, allowFromCache bool) (int64, error) {
 	start := time.Now()
 
