@@ -12,14 +12,14 @@ import (
 )
 
 func (api *API) InitSystemLocal() {
-	api.BaseRoutes.System.Handle("/ping", api.APILocal(getSystemPing)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APILocal(getLogs)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(setServerBusy)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(clearServerBusy)).Methods("DELETE")
-	api.BaseRoutes.System.Handle("/support_packet", api.APILocal(generateSupportPacket)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/integrity", api.APILocal(localCheckIntegrity)).Methods("POST")
-	api.BaseRoutes.System.Handle("/schema/version", api.APILocal(getAppliedSchemaMigrations)).Methods("GET")
+	api.BaseRoutes.System.Handle("/ping", api.APILocal(getSystemPing)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APILocal(getLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(setServerBusy)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(getServerBusyExpires)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(clearServerBusy)).Methods(http.MethodDelete)
+	api.BaseRoutes.System.Handle("/support_packet", api.APILocal(generateSupportPacket)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/integrity", api.APILocal(localCheckIntegrity)).Methods(http.MethodPost)
+	api.BaseRoutes.System.Handle("/schema/version", api.APILocal(getAppliedSchemaMigrations)).Methods(http.MethodGet)
 }
 
 func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {

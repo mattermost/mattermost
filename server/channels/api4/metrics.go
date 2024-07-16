@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitClientPerformanceMetrics() {
-	api.BaseRoutes.APIRoot.Handle("/client_perf", api.APISessionRequiredTrustRequester(submitPerformanceReport)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/client_perf", api.APISessionRequiredTrustRequester(submitPerformanceReport)).Methods(http.MethodPost)
 }
 
 func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request) {

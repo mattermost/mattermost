@@ -3,8 +3,10 @@
 
 package api4
 
-func (api *API) InitPostLocal() {
-	api.BaseRoutes.Post.Handle("", api.APILocal(getPost)).Methods("GET")
+import "net/http"
 
-	api.BaseRoutes.PostsForChannel.Handle("", api.APILocal(getPostsForChannel)).Methods("GET")
+func (api *API) InitPostLocal() {
+	api.BaseRoutes.Post.Handle("", api.APILocal(getPost)).Methods(http.MethodGet)
+
+	api.BaseRoutes.PostsForChannel.Handle("", api.APILocal(getPostsForChannel)).Methods(http.MethodGet)
 }
