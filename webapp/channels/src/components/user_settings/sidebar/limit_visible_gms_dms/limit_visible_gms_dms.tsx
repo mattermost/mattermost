@@ -25,7 +25,7 @@ type Limit = {
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    userId: string;
     userPreferences?: PreferencesType;
 }
 
@@ -104,14 +104,14 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
     };
 
     handleSubmit = async () => {
-        if (!this.props.currentUserId) {
+        if (!this.props.userId) {
             return;
         }
 
         this.setState({isSaving: true});
 
-        await this.props.savePreferences(this.props.currentUserId, [{
-            user_id: this.props.currentUserId,
+        await this.props.savePreferences(this.props.userId, [{
+            user_id: this.props.userId,
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.LIMIT_VISIBLE_DMS_GMS,
             value: this.state.limit.value.toString(),
