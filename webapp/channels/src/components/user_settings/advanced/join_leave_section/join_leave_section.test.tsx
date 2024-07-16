@@ -20,7 +20,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
     const defaultProps = {
         active: false,
         areAllSectionsInactive: false,
-        currentUserId: 'current_user_id',
+        userId: 'current_user_id',
         joinLeave: 'true',
         onUpdateSection: jest.fn(),
         renderOnOffLabel: jest.fn(),
@@ -149,7 +149,7 @@ describe('mapStateToProps', () => {
     } as unknown as GlobalState;
 
     test('configuration default to true', () => {
-        const props = mapStateToProps(initialState);
+        const props = mapStateToProps(initialState, {adminMode: false, userId: ''});
         expect(props.joinLeave).toEqual('true');
     });
 
@@ -163,7 +163,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState);
+        const props = mapStateToProps(testState, {userId: '', adminMode: false});
         expect(props.joinLeave).toEqual('false');
     });
 
@@ -186,7 +186,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState);
+        const props = mapStateToProps(testState, {adminMode: false, userId: ''});
         expect(props.joinLeave).toEqual('true');
     });
 
@@ -204,7 +204,42 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState);
+        const props = mapStateToProps(testState, {adminMode: false, userId: ''});
         expect(props.joinLeave).toEqual('false');
+    });
+
+    test('should read from preferences in props in admin mode', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'false',
+                    },
+                },
+            },
+        });
+
+        const userPreferences = {
+            [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
+                category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+                user_id: 'user_1',
+                value: 'true',
+            },
+        };
+
+        const propsWithAdminMode = mapStateToProps(testState, {
+            userId: 'user_1',
+            adminMode: true,
+            userPreferences,
+        });
+        expect(propsWithAdminMode.joinLeave).toEqual('true');
+
+        const propsWithoutAdminMode = mapStateToProps(testState, {
+            userId: 'user_1',
+            adminMode: false,
+            userPreferences,
+        });
+        expect(propsWithoutAdminMode.joinLeave).toEqual('false');
     });
 });

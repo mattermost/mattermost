@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
@@ -18,16 +19,19 @@ import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_c
 import BlockableLink from 'components/admin_console/blockable_link';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import TeamList from 'components/admin_console/system_user_detail/team_list';
+import ConfirmManageUserSettingsModal from 'components/admin_console/system_users/system_users_list_actions/confirm_manage_user_settings_modal';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
+import UserSettingsModal from 'components/user_settings/modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AtIcon from 'components/widgets/icons/at_icon';
 import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {toTitleCase} from 'utils/utils';
@@ -284,6 +288,37 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showTeamSelectorModal: false});
     };
 
+    openConfirmEditUserSettingsModal = () => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.props.openModal({
+            modalId: ModalIdentifiers.CONFIRM_MANAGE_USER_SETTINGS_MODAL,
+            dialogType: ConfirmManageUserSettingsModal,
+            dialogProps: {
+                user: this.state.user,
+                onConfirm: this.openUserSettingsModal,
+            },
+        });
+    };
+
+    openUserSettingsModal = async () => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.props.openModal({
+            modalId: ModalIdentifiers.USER_SETTINGS,
+            dialogType: UserSettingsModal,
+            dialogProps: {
+                adminMode: true,
+                isContentProductSettings: true,
+                userID: this.state.user.id,
+            },
+        });
+    };
+
     render() {
         return (
             <div className='SystemUserDetail wrapper--fixed'>
@@ -385,14 +420,61 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             />
                                         </button>
                                     )}
+
+                                    {
+                                        this.props.showManageUserSettings &&
+                                        <button
+                                            className='manageUserSettingsBtn btn btn-tertiary'
+                                            onClick={this.openConfirmEditUserSettingsModal}
+                                        >
+                                            <FormattedMessage
+                                                id='admin.user_item.manageSettings'
+                                                defaultMessage='Manage User Settings'
+                                            />
+                                        </button>
+                                    }
+
+                                    {
+                                        this.props.showLockedManageUserSettings &&
+                                        <WithTooltip
+                                            id='adminUserSettingUpdateDisabled'
+                                            title={defineMessage({
+                                                id: 'generic.enterprise_feature',
+                                                defaultMessage: 'Enterprise feature',
+                                            })}
+                                            hint={defineMessage({
+                                                id: 'admin.user_item.manageSettings.disabled_tooltip',
+                                                defaultMessage: 'Please upgrade to Enterprise to manage user settings',
+                                            })}
+                                            placement='top'
+                                        >
+                                            <button
+                                                className='manageUserSettingsBtn btn disabled'
+                                            >
+                                                <div className='RestrictedIndicator__content'>
+                                                    <i className={classNames('RestrictedIndicator__icon-tooltip', 'icon', 'icon-key-variant')}/>
+                                                </div>
+                                                <FormattedMessage
+                                                    id='admin.user_item.manageSettings'
+                                                    defaultMessage='Manage User Settings'
+                                                />
+                                            </button>
+                                        </WithTooltip>
+                                    }
                                 </>
                             }
                         />
 
                         {/* User's team details */}
                         <AdminPanel
-                            title={defineMessage({id: 'admin.userManagement.userDetail.teamsTitle', defaultMessage: 'Team Membership'})}
-                            subtitle={defineMessage({id: 'admin.userManagement.userDetail.teamsSubtitle', defaultMessage: 'Teams to which this user belongs'})}
+                            title={defineMessage({
+                                id: 'admin.userManagement.userDetail.teamsTitle',
+                                defaultMessage: 'Team Membership',
+                            })}
+                            subtitle={defineMessage({
+                                id: 'admin.userManagement.userDetail.teamsSubtitle',
+                                defaultMessage: 'Teams to which this user belongs',
+                            })}
                             button={
                                 <div className='add-team-button'>
                                     <button
@@ -479,6 +561,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     onConfirm={this.handleDeactivateMember}
                     onCancel={this.toggleCloseModalDeactivateMember}
                 />
+
                 {this.state.showTeamSelectorModal && (
                     <TeamSelectorModal
                         onModalDismissed={this.toggleCloseTeamSelectorModal}

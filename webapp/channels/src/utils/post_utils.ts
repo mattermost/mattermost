@@ -303,7 +303,7 @@ export function postMessageOnKeyPress(
     now = 0,
     lastChannelSwitchAt = 0,
     caretPosition = 0,
-): {allowSending: boolean; ignoreKeyPress?: boolean} {
+): {allowSending: boolean; ignoreKeyPress?: boolean; withClosedCodeBlock?: boolean; message?: string} {
     if (!event) {
         return {allowSending: false};
     }
@@ -339,6 +339,10 @@ export function postMessageOnKeyPress(
     }
 
     return {allowSending: false};
+}
+
+export function isServerError(err: unknown): err is ServerError {
+    return Boolean(err && typeof err === 'object' && 'server_error_id' in err);
 }
 
 export function isErrorInvalidSlashCommand(error: ServerError | null): boolean {

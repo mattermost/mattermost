@@ -22,6 +22,7 @@ import {removeDraft, setGlobalDraftSource} from 'actions/views/drafts';
 
 import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 /* eslint-disable global-require */
 
@@ -121,13 +122,21 @@ describe('rhs view actions', () => {
                     messages: ['test message'],
                 },
             },
+            channels: {
+                channels: {
+                    [channelId]: TestHelper.getChannelMock({id: channelId}),
+                },
+                roles: {
+                    [channelId]: new Set(['channel_roles']),
+                },
+            },
             preferences: {
                 myPreferences: {},
             },
             users: {
                 currentUserId,
                 profiles: {
-                    [currentUserId]: {id: currentUserId},
+                    [currentUserId]: TestHelper.getUserMock({id: currentUserId}),
                 },
             },
             teams: {
@@ -135,6 +144,13 @@ describe('rhs view actions', () => {
             },
             emojis: {
                 customEmoji: {},
+            },
+            roles: {
+                roles: {
+                    channel_roles: {
+                        permissions: '',
+                    },
+                },
             },
             general: {
                 config: {
