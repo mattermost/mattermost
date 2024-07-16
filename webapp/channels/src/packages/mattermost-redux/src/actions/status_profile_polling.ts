@@ -38,7 +38,6 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
                 // We use temp buffer here to store up until max buffer size
                 // and clear out processed user ids
                 const bufferedUserIds: string[] = [];
-                let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForStatuses) {
                     if (pendingUserId.length === 0) {
                         continue;
@@ -47,9 +46,7 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
                     bufferedUserIds.push(pendingUserId);
                     pendingUserIdsForStatuses.delete(pendingUserId);
 
-                    bufferCounter++;
-
-                    if (bufferCounter >= MAX_USER_IDS_PER_STATUS_REQUEST) {
+                    if (bufferedUserIds.length >= MAX_USER_IDS_PER_STATUS_REQUEST) {
                         break;
                     }
                 }
@@ -71,7 +68,6 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
         function getPendingProfilesById() {
             if (pendingUserIdsForProfiles.size >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
                 const bufferedUserIds: Array<UserProfile['id']> = [];
-                let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForProfiles) {
                     if (pendingUserId.length === 0) {
                         continue;
@@ -80,11 +76,9 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
                     bufferedUserIds.push(pendingUserId);
                     pendingUserIdsForProfiles.delete(pendingUserId);
 
-                    bufferCounter++;
-
                     // We can only fetch a defined number of user profiles at a time
                     // So we break out of the loop if we reach the max batch size
-                    if (bufferCounter >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
+                    if (bufferedUserIds.length >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
                         break;
                     }
                 }
