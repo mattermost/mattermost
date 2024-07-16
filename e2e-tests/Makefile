@@ -25,7 +25,7 @@ restart-server: stop-server start-server
 start-dashboard:
 	bash ./.ci/dashboard.start.sh
 generate-test-cycle: requirecmd-node generate-server
-	echo "Newer test cycle generated"
+	echo "Even newer test cycle generated"
 	exit 1
 	bash ./.ci/dashboard.generate_test_cycle.sh
 stop-dashboard:
