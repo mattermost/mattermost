@@ -233,6 +233,23 @@ describe('User Management', () => {
         cy.url().should('include', '/admin_console/about/license');
     });
 
+    it('Admin cannot access Manage User Settings option on a unlicensed instance', () => {
+        // # Login as sysadmin.
+        cy.apiLogin(sysadmin);
+        cy.visit('/admin_console/user_management/users');
+        cy.intercept('**api/v4/reports/users?**').as('getUserList');
+        cy.get('#input_searchTerm').clear().type(testUser.id);
+        cy.wait('@getUserList');
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('have.text', testUser.email).as('userRow');
+        cy.get('#actionMenuButton-systemUsersTable-0 > span').click();
+        cy.get('ul#actionMenu-systemUsersTable-0').should('be.visible').find('li').should('not.contain.text', 'Manage User Settings');
+        cy.get('@userRow').click({force: true});
+        cy.get('.manageUserSettingsBtn').
+            should('be.visible').
+            should('contain.text', 'Manage User Settings').
+            should('have.class', 'disabled');
+    });
+
     function resetUserEmail(oldEmail, newEmail, errorMsg) {
         cy.visit('/admin_console/user_management/users');
 
