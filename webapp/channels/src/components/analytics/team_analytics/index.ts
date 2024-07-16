@@ -21,7 +21,7 @@ const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 
 function mapStateToProps(state: GlobalState) {
     const teams = getTeamsList(state);
-    const teamId = makeGetGlobalItem(LAST_ANALYTICS_TEAM, null)(state);
+    const teamId = makeGetGlobalItem(LAST_ANALYTICS_TEAM, '')(state);
     const initialTeam = state.entities.teams.teams[teamId] || (teams.length > 0 ? teams[0] : null);
 
     return {

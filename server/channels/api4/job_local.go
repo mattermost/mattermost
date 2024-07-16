@@ -3,11 +3,13 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitJobLocal() {
-	api.BaseRoutes.Jobs.Handle("", api.APILocal(getJobs)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("", api.APILocal(createJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APILocal(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APILocal(cancelJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APILocal(getJobsByType)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APILocal(updateJobStatus)).Methods("PATCH")
+	api.BaseRoutes.Jobs.Handle("", api.APILocal(getJobs)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("", api.APILocal(createJob)).Methods(http.MethodPost)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APILocal(getJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APILocal(cancelJob)).Methods(http.MethodPost)
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APILocal(getJobsByType)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APILocal(updateJobStatus)).Methods(http.MethodPatch)
 }

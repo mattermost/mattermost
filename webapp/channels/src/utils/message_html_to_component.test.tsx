@@ -6,6 +6,7 @@ import {shallow} from 'enzyme';
 import AtMention from 'components/at_mention';
 import MarkdownImage from 'components/markdown_image';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
@@ -145,5 +146,44 @@ const myFunction = () => {
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
         expect(messageHtmlToComponent(html)).toMatchSnapshot();
+    });
+
+    describe('emojis', () => {
+        test('should render valid named emojis as spans with background images', () => {
+            const input = 'These are emojis: :taco: :astronaut:';
+
+            const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
+
+            expect(screen.getByTestId('postEmoji.:taco:')).toBeInTheDocument();
+            expect(screen.getByTestId('postEmoji.:taco:').getAttribute('style')).toContain('background-image');
+            expect(screen.getByTestId('postEmoji.:astronaut:')).toBeInTheDocument();
+            expect(screen.getByTestId('postEmoji.:astronaut:').getAttribute('style')).toContain('background-image');
+
+            expect(container).toHaveTextContent('These are emojis: :taco: :astronaut:');
+        });
+
+        test('should render invalid named emojis as spans with background images', () => {
+            const input = 'These are emojis: :fake: :notAnEmoji:';
+
+            const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
+
+            expect(screen.queryByTestId('postEmoji.:taco:')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('postEmoji.:astronaut:')).not.toBeInTheDocument();
+
+            expect(container).toHaveTextContent('These are emojis: :fake: :notAnEmoji:');
+        });
+
+        test('should render supported unicode emojis as spans with background images', () => {
+            const input = 'These are emojis: 🌮 🧑‍🚀';
+
+            const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
+
+            expect(screen.getByTestId('postEmoji.:taco:')).toBeInTheDocument();
+            expect(screen.getByTestId('postEmoji.:taco:').getAttribute('style')).toContain('background-image');
+            expect(screen.getByTestId('postEmoji.:astronaut:')).toBeInTheDocument();
+            expect(screen.getByTestId('postEmoji.:astronaut:').getAttribute('style')).toContain('background-image');
+
+            expect(container).toHaveTextContent('These are emojis: 🌮 🧑‍🚀');
+        });
     });
 });

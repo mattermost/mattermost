@@ -16,12 +16,12 @@ import (
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods(http.MethodGet)
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
