@@ -3280,7 +3280,6 @@
   "create_group_memberships_modal.create": "Evet",
   "create_group_memberships_modal.desc": "{username} adresini LDAP grup üyeliklerine göre takım ve kanallara yeniden eklemek üzeresiniz. Bu değişikliği istediğiniz zaman geri alabilirsiniz.",
   "create_group_memberships_modal.title": "{username} takımlara ve kanallara yeniden eklensin",
-  "create_post.comment": "Yorum",
   "create_post.deactivated": "**Devre dışı bırakılmış bir kullanıcı** ile arşivlenmiş bir kanala bakıyorsunuz. Yeni ileti gönderilemez.",
   "create_post.error_message": "İletiniz çok uzun. Karakter sayısı: {length}/{limit}",
   "create_post.fileProcessing": "İşleniyor...",

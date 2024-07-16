@@ -3135,14 +3135,6 @@
     "translation": "Arama sonuçlarının kodu çözülemedi"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch toplu işlemi oluşturulamadı."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch toplu işlemi başlatılamadı."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch zaten durdurulmuş."
   },
@@ -8968,10 +8960,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Elasticsearch için CA dosyası açılamadı"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Elasticsearch için CA kodu çözülemedi"
   },
   {
     "id": "api.server.cws.health_check.app_error",

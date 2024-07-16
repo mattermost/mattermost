@@ -728,10 +728,6 @@
     "translation": "Úloha pro export zpráv ExportFormat musí být jedna z následujících 'actiance', 'csv' nebo'globalrelay'."
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nepodařilo se vytvořit Elasticsearch dávkový procesor."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Nepodařilo se dekódovat výsledky hledání"
   },
@@ -2670,10 +2666,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch je už zastaven."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nepodařilo se spustit Elasticsearch dávkový procesor."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",

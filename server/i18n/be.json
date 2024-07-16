@@ -4352,20 +4352,12 @@
     "translation": "Elasticsearch ужо спынены."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Не ўдалося запусціць масавы апрацоўшчык Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Не ўдалося прааналізаваць версію сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Не ўдалося атрымаць версію сервера Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Не ўдалося стварыць масавы апрацоўшчык Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
