@@ -87,7 +87,7 @@ func (a *App) elasticsearchChannelIndexCheckWithRetry() {
 }
 
 func (a *App) elasticsearchChannelIndexCheck() {
-	a.Log().Debug("elasticsearchChannelIndexCheck: chekcing if there is a need to notify the admins...")
+	a.Log().Debug("elasticsearchChannelIndexCheck: checking if there is a need to notify the admins...")
 	if needNotify := a.elasticChannelsIndexNeedNotifyAdmins(); !needNotify {
 		a.Log().Debug("elasticsearchChannelIndexCheck: index is verified, no need to notify admins.")
 		return
