@@ -3,6 +3,7 @@
 
 
 import type { KatexOptions } from 'katex';
+import { flatMap } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
@@ -17,7 +18,7 @@ const LatexInline = ({
     content,
     enableInlineLatex,
 }: Props) => {
-    const [katex, setKatex] = useState<Katex | undefined>(undefined);
+    const [katex, setKatex] = useState<Katex | undefined>();
 
     useEffect(() => {
         import('katex').then((katex) => {
@@ -29,6 +30,7 @@ const LatexInline = ({
         return (
             <span
                 className='post-body--code inline-tex'
+                data-testid='latex-disabled'
             >
                 {'$' + content + '$'}
             </span>
@@ -50,12 +52,14 @@ const LatexInline = ({
             <span
                 className='post-body--code inline-tex'
                 dangerouslySetInnerHTML={{ __html: html }}
+                data-testid='latex-enabled'
             />
         );
     } catch (e) {
         return (
             <span
                 className='post-body--code inline-tex'
+                data-testid='latex-error'
             >
                 <FormattedMessage
                     id='katex.error'
