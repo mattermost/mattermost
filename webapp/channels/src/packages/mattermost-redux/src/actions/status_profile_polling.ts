@@ -25,35 +25,34 @@ let intervalIdForStatusFetchingPoll: NodeJS.Timeout | null = null;
 export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProfile['id']>): ActionFunc<boolean> {
     return (dispatch, getState) => {
         function getPendingStatusesById() {
+            let userIdsToLoad;
+
             // Since we can only fetch a defined number of user statuses at a time, we need to batch the requests
             if (pendingUserIdsForStatuses.size >= MAX_USER_IDS_PER_STATUS_REQUEST) {
+                userIdsToLoad = [];
+
                 // We use temp buffer here to store up until max buffer size
                 // and clear out processed user ids
-                const bufferedUserIds: string[] = [];
                 for (const pendingUserId of pendingUserIdsForStatuses) {
                     if (pendingUserId.length === 0) {
                         continue;
                     }
 
-                    bufferedUserIds.push(pendingUserId);
+                    userIdsToLoad.push(pendingUserId);
                     pendingUserIdsForStatuses.delete(pendingUserId);
 
-                    if (bufferedUserIds.length >= MAX_USER_IDS_PER_STATUS_REQUEST) {
+                    if (userIdsToLoad.length >= MAX_USER_IDS_PER_STATUS_REQUEST) {
                         break;
                     }
                 }
-
-                if (bufferedUserIds.length > 0) {
-                    dispatch(getStatusesByIds(bufferedUserIds));
-                }
             } else {
                 // If we have less than max buffer size, we can directly fetch the statuses
-                const lessThanBufferUserIds = Array.from(pendingUserIdsForStatuses);
-                if (lessThanBufferUserIds.length > 0) {
-                    dispatch(getStatusesByIds(lessThanBufferUserIds));
+                userIdsToLoad = Array.from(pendingUserIdsForStatuses);
+                pendingUserIdsForStatuses.clear();
+            }
 
-                    pendingUserIdsForStatuses.clear();
-                }
+            if (userIdsToLoad.length > 0) {
+                dispatch(getStatusesByIds(userIdsToLoad));
             }
         }
 
@@ -98,33 +97,31 @@ let intervalIdForProfileFetchingPoll: NodeJS.Timeout | null = null;
 export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserProfile['id']>): ActionFunc<boolean> {
     return (dispatch, getState) => {
         function getPendingProfilesById() {
+            let userIdsToLoad;
+
             if (pendingUserIdsForProfiles.size >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
-                const bufferedUserIds: Array<UserProfile['id']> = [];
+                userIdsToLoad = [];
                 for (const pendingUserId of pendingUserIdsForProfiles) {
                     if (pendingUserId.length === 0) {
                         continue;
                     }
 
-                    bufferedUserIds.push(pendingUserId);
+                    userIdsToLoad.push(pendingUserId);
                     pendingUserIdsForProfiles.delete(pendingUserId);
 
                     // We can only fetch a defined number of user profiles at a time
                     // So we break out of the loop if we reach the max batch size
-                    if (bufferedUserIds.length >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
+                    if (userIdsToLoad.length >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
                         break;
                     }
                 }
-
-                if (bufferedUserIds.length > 0) {
-                    dispatch(getProfilesByIds(bufferedUserIds));
-                }
             } else {
-                const lessThanBufferUserIds = Array.from(pendingUserIdsForProfiles);
-                if (lessThanBufferUserIds.length > 0) {
-                    dispatch(getProfilesByIds(lessThanBufferUserIds));
+                userIdsToLoad = Array.from(pendingUserIdsForProfiles);
+                pendingUserIdsForProfiles.clear();
+            }
 
-                    pendingUserIdsForProfiles.clear();
-                }
+            if (userIdsToLoad.length > 0) {
+                dispatch(getProfilesByIds(userIdsToLoad));
             }
         }
 
