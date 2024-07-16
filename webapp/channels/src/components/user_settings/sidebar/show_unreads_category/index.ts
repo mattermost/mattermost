@@ -4,9 +4,7 @@
 import {connect} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
-    calculateUserShouldShowUnreadsCategory,
     shouldShowUnreadsCategory,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -17,10 +15,10 @@ import type {OwnProps} from './show_unreads_category';
 import ShowUnreadsCategory from './show_unreads_category';
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
-    const serverDefault = getConfig(state).ExperimentalGroupUnreadChannels;
+    const userPreferences = props.adminMode && props.userPreferences ? props.userPreferences : undefined;
     return {
-        currentUserId: props.adminMode ? props.currentUserId : getCurrentUserId(state),
-        showUnreadsCategory: props.adminMode && props.userPreferences ? calculateUserShouldShowUnreadsCategory(props.userPreferences, serverDefault) : shouldShowUnreadsCategory(state),
+        userId: props.adminMode ? props.userId : getCurrentUserId(state),
+        showUnreadsCategory: shouldShowUnreadsCategory(state, userPreferences),
     };
 }
 

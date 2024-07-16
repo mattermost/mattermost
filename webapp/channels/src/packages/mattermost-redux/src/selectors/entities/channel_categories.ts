@@ -102,7 +102,7 @@ export function makeFilterAutoclosedDMs(): (state: GlobalState, channels: Channe
         getCurrentUserId,
         getMyChannelMemberships,
         getChannelMessageCounts,
-        getVisibleDmGmLimit,
+        (state) => getVisibleDmGmLimit(state),
         getMyPreferences,
         isCollapsedThreadsEnabled,
         (channels, categoryType, currentChannelId, profiles, currentUserId, myMembers, messageCounts, limitPref, myPreferences, collapsedThreads) => {
