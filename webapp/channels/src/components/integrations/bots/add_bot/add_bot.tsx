@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
-import { FormattedMessage } from 'react-intl';
-import { Link } from 'react-router-dom';
+import type {ChangeEvent, FormEvent} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
-import type { Bot, BotPatch } from '@mattermost/types/bots';
-import type { Team } from '@mattermost/types/teams';
-import type { UserAccessToken, UserProfile } from '@mattermost/types/users';
+import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
-import { General } from 'mattermost-redux/constants';
-import type { ActionResult } from 'mattermost-redux/types/actions';
+import {General} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
@@ -21,8 +21,8 @@ import SpinnerButton from 'components/spinner_button';
 import WithTooltip from 'components/with_tooltip';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
-import { getHistory } from 'utils/browser_history';
-import { AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors } from 'utils/constants';
+import {getHistory} from 'utils/browser_history';
+import {AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils';
 
@@ -127,7 +127,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
             role: UserUtils.isSystemAdmin(this.props.roles || '') ? roleOptionSystemAdmin : roleOptionMember,
             postAll: this.props.bot ? UserUtils.hasPostAllRole(this.props.roles || '') : false,
             postChannels: this.props.bot ? UserUtils.hasPostAllPublicRole(this.props.roles || '') : false,
-            orientationStyles: { transform: '', transformOrigin: '' },
+            orientationStyles: {transform: '', transformOrigin: ''},
             pictureFile: null,
         };
     }
@@ -185,14 +185,14 @@ export default class AddBot extends React.PureComponent<Props, State> {
             };
             reader.readAsArrayBuffer(pictureFile);
             e.target.value = '';
-            this.setState({ pictureFile });
+            this.setState({pictureFile});
         } else {
-            this.setState({ pictureFile: null, image: '' });
+            this.setState({pictureFile: null, image: ''});
         }
     };
 
     setDefault = () => {
-        this.setState({ pictureFile: 'default', image: BotDefaultIcon });
+        this.setState({pictureFile: 'default', image: BotDefaultIcon});
     };
 
     isFile(file: File | string): file is File {
