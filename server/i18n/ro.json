@@ -6276,10 +6276,6 @@
     "translation": "În imposibilitatea de a obține webhook."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "În imposibilitatea de a obține webhook."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "În imposibilitatea de a obține webhooks."
   },

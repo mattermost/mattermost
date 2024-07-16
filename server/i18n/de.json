@@ -6155,10 +6155,6 @@
     "translation": "Konnte den Webhook nicht abrufen."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Konnte den Webhook nicht abrufen."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Konnte die Webhooks nicht abrufen."
   },

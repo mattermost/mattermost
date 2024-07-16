@@ -3,8 +3,7 @@
 @import 'utils/variables';
 
 #searchInput {
-    flex-grow: 0;
-    flex-shrink: 0;
+    flex: none;
 }
 
 .backstage-footer {
@@ -12,9 +11,8 @@
     height: auto;
     flex-direction: row;
     padding: 8px;
-    border-left: 1px solid $light-gray;
-    border-bottom: 1px solid $light-gray;
-    border-right: 1px solid $light-gray;
+    border: 1px solid $light-gray;
+    border-top: none;
     background: $white;
     color: rgba(0, 0, 0, 0.5);
     font-size: 1.1em;

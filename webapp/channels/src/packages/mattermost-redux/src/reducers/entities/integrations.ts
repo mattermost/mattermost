@@ -53,7 +53,7 @@ function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: Any
 }
 
 function incomingHooksTotalCount(state: number = 0, action: AnyAction) {
-    switch(action.type) {
+    switch (action.type) {
     case IntegrationTypes.RECEIVED_INCOMING_HOOKS_TOTAL_COUNT: {
         return action.data;
     }

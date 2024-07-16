@@ -6252,10 +6252,6 @@
     "translation": "내용을 가져올수 없습니다."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "내용을 가져올수 없습니다."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "내용을 가져올수 없습니다."
   },

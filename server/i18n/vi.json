@@ -7218,10 +7218,6 @@
     "translation": "Không thể tải webhook."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Không thể tải webhook."
-  },
-  {
     "id": "app.webhooks.get_outgoing_by_channel.app_error",
     "translation": "Không thể tải webhooks."
   },

@@ -2876,10 +2876,6 @@
     "translation": "Не ўдалося атрымаць вэбхук."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Не ўдалося атрымаць вэбхук."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Не ўдалося атрымаць вэбхукі."
   },

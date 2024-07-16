@@ -7360,7 +7360,7 @@
   },
   {
     "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Unable to get the webhook."
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",

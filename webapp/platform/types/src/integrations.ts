@@ -126,6 +126,7 @@ export type OutgoingOAuthConnection = {
 
 export type IntegrationsState = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
+    incomingHooksTotalCount: number;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
     outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;

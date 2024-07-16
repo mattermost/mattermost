@@ -514,7 +514,7 @@ func (a *App) GetIncomingWebhooksCount(teamID string, userID string) (int64, *mo
 
 	totalCount, err := a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID, userID)
 	if err != nil {
-		return 0, model.NewAppError("GetIncomingWebhooksCount", "app.webhooks.get_incoming_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, model.NewAppError("GetIncomingWebhooksCount", "app.webhooks.get_incoming_count.app_error", map[string]any{"TeamID": teamID, "UserID": userID, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return totalCount, nil

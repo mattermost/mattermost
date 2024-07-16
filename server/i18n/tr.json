@@ -6291,10 +6291,6 @@
     "translation": "İnternet kancası alınamadı."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "İnternet kancası alınamadı."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "İnternet kancaları alınamadı."
   },

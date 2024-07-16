@@ -6152,10 +6152,6 @@
     "translation": "Impossible de récupérer le webhook"
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Impossible de récupérer le webhook"
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Impossible de récupérer les webhooks"
   },

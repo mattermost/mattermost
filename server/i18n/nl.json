@@ -6275,10 +6275,6 @@
     "translation": "Fout bij het ophalen van de webhook."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Fout bij het ophalen van de webhook."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Fout bij het ophalen van de webhooks."
   },

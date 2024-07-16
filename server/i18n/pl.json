@@ -6164,10 +6164,6 @@
     "translation": "Nie można uzyskać wychodzących webhooków."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Nie można uzyskać wychodzących webhooków."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Nie można uzyskać webhooków."
   },

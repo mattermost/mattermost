@@ -6276,10 +6276,6 @@
     "translation": "No se puede obtener el webhook."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "No se puede obtener el webhook."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "No se puede obtener los webhooks."
   },

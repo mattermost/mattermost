@@ -217,7 +217,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
             <div
               className="backstage-list"
             >
-              <LoadingScreen>
+              <LoadingScreen
+                key="loading"
+              >
                 <div
                   className="loading-screen"
                   style={
@@ -267,6 +269,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   </span>
                 </FormattedMessage>
                 <button
+                  aria-label="Previous"
                   className="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
                   onClick={[Function]}
                   type="button"
@@ -279,6 +282,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   </Memo(PreviousIcon)>
                 </button>
                 <button
+                  aria-label="Next"
                   className="btn btn-quaternary btn-icon btn-sm next disabled"
                   onClick={[Function]}
                   type="button"

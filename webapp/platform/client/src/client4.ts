@@ -2568,7 +2568,7 @@ export default class Client4 {
         const queryParams: any = {
             page,
             per_page: perPage,
-            include_total_count: includeTotalCount
+            include_total_count: includeTotalCount,
         };
 
         if (teamId) {

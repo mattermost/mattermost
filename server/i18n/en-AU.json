@@ -3772,10 +3772,6 @@
     "translation": "Unable to get the webhook."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Unable to get the webhooks."
   },

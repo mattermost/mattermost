@@ -3352,10 +3352,6 @@
     "translation": "Webhook не може да се получи."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Webhook не може да се получи."
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Webhook не може да се получи."
   },

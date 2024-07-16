@@ -2880,10 +2880,6 @@
     "translation": "वेबहुक प्राप्त करने में असमर्थ।"
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "वेबहुक प्राप्त करने में असमर्थ।"
-  },
-  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "वेबहुक प्राप्त करने में असमर्थ।"
   },

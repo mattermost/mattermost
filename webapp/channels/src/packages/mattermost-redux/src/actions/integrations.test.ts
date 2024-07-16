@@ -106,7 +106,7 @@ describe('Actions.Integrations', () => {
             get('/hooks/incoming').
             query(true).
             reply(200, {incoming_webhooks: [created], total_count: 1});
-        
+
         const responseWithCount = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id, 0, 10, true));
         expect(responseWithCount.data.incoming_webhooks).toBeTruthy();
         expect(responseWithCount.data.incoming_webhooks[0].id === created.id).toBeTruthy();

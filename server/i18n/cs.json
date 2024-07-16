@@ -5492,10 +5492,6 @@
     "translation": "Nepodařilo se získat webhook."
   },
   {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Nepodařilo se získat webhook."
-  },
-  {
     "id": "app.webhooks.get_incoming.app_error",
     "translation": "Nepodařilo se získat webhook."
   },

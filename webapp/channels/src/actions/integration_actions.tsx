@@ -15,8 +15,9 @@ export function loadIncomingHooksAndProfilesForTeam(teamId: string, page = 0, pe
     return async (dispatch) => {
         const {data} = await dispatch(IntegrationActions.getIncomingHooks(teamId, page, perPage, includeTotalCount));
         if (data) {
-            let hooks = includeTotalCount ? (data as IncomingWebhooksWithCount).incoming_webhooks : data
-            dispatch(loadProfilesForIncomingHooks(hooks));
+            const isWebhooksWithCount = IntegrationActions.isIncomingWebhooksWithCount(data);
+            const hooks = isWebhooksWithCount ? (data as IncomingWebhooksWithCount).incoming_webhooks : data;
+            dispatch(loadProfilesForIncomingHooks(hooks as IncomingWebhook[]));
         }
         return {data};
     };

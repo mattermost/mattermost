@@ -34,7 +34,7 @@ type Props = {
     actions: {
         removeIncomingHook: (hookId: string) => Promise<ActionResult>;
         loadIncomingHooksAndProfilesForTeam: (teamId: string, startPageNumber: number,
-            pageSize: number, includeTotalCount: boolean) => Promise<ActionResult<IncomingWebhooksWithCount>>;
+            pageSize: number, includeTotalCount: boolean) => Promise<ActionResult<IncomingWebhook[] | IncomingWebhooksWithCount>>;
     };
 }
 
@@ -69,21 +69,21 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         this.props.team.id,
                         pageToLoad,
                         PAGE_SIZE,
-                        true
-                    )
-                    this.setState({ page: pageToLoad, loading: false});
-                }
+                        true,
+                    );
+                    this.setState({page: pageToLoad, loading: false});
+                },
             );
         }
-    }
+    };
 
     nextPage = () => {
         this.loadPage(this.state.page + 1);
-    }
+    };
 
     previousPage = () => {
         this.loadPage(this.state.page - 1);
-    }
+    };
 
     incomingWebhookCompare = (a: IncomingWebhook, b: IncomingWebhook) => {
         let displayNameA = a.display_name;
