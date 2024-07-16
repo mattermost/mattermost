@@ -16,7 +16,6 @@ import {
     get,
     isCollapsedThreadsAllowed,
     getCollapsedThreadsPreference,
-    getFromPreferences,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {
     generateCurrentTimezoneLabel,
@@ -50,6 +49,7 @@ export function makeMapStateToProps() {
         const configTeammateNameDisplay = config.TeammateNameDisplay as string;
         const emojiPickerEnabled = config.EnableEmojiPicker === 'true';
         const lastActiveTimeEnabled = config.EnableLastActiveTime === 'true';
+        const userPreference = props.adminMode && props.userPreferences ? props.userPreferences : undefined;
 
         let lastActiveDisplay = true;
         const user = props.adminMode ? props.user : getUser(state, currentUserId);
@@ -60,12 +60,6 @@ export function makeMapStateToProps() {
         let userLocale = props.user.locale;
         if (!isLanguageAvailable(state, userLocale)) {
             userLocale = config.DefaultClientLocale as string;
-        }
-
-        let getPreference = (prefCategory: string, prefName: string, defaultValue: string) => get(state, prefCategory, prefName, defaultValue);
-        if (props.adminMode && props.userPreferences) {
-            const preferences = props.userPreferences;
-            getPreference = (prefCategory: string, prefName: string, defaultValue: string) => getFromPreferences(preferences, prefCategory, prefName, defaultValue);
         }
 
         return {
@@ -80,19 +74,18 @@ export function makeMapStateToProps() {
             timezoneLabel,
             userTimezone,
             shouldAutoUpdateTimezone,
-            currentUserTimezone: getUserCurrentTimezone(userTimezone) as string,
-            availabilityStatusOnPosts: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT),
-            militaryTime: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT),
-            teammateNameDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay),
-            channelDisplayMode: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT),
-            messageDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT),
-            colorizeUsernames: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT),
-            collapseDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT),
+            availabilityStatusOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT, userPreference),
+            militaryTime: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT, userPreference),
+            teammateNameDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay, userPreference),
+            channelDisplayMode: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT, userPreference),
+            messageDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT, userPreference),
+            colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT, userPreference),
+            collapseDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT, userPreference),
             collapsedReplyThreadsAllowUserPreference: isCollapsedThreadsAllowed(state) && getConfig(state).CollapsedThreads !== CollapsedThreads.ALWAYS_ON,
             collapsedReplyThreads: getCollapsedThreadsPreference(state),
-            clickToReply: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT),
-            linkPreviewDisplay: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT),
-            oneClickReactionsOnPosts: getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT),
+            clickToReply: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT, userPreference),
+            linkPreviewDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT, userPreference),
+            oneClickReactionsOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT, userPreference),
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,

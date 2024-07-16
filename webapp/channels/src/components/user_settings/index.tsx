@@ -97,7 +97,7 @@ export default function UserSettings(props: Props) {
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
                     adminMode={props.adminMode}
-                    currentUserId={props.user.id}
+                    userId={props.user.id}
                     userPreferences={props.userPreferences}
                 />
             </div>
@@ -111,7 +111,7 @@ export default function UserSettings(props: Props) {
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
                     adminMode={props.adminMode}
-                    currentUser={props.user}
+                    user={props.user}
                     userPreferences={props.userPreferences}
                 />
             </div>
