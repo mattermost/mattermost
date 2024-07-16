@@ -2645,7 +2645,6 @@
   "create_comment.commentTitle": "اظهار نظر",
   "create_group_memberships_modal.cancel": "خیر",
   "create_group_memberships_modal.create": "بله",
-  "create_post.comment": "اظهار نظر",
   "create_post.deactivated": "شما در حال مشاهده یک کانال آرشیو شده با **کاربر غیرفعال** هستید. پیام های جدید قابل ارسال نیست.",
   "create_post.error_message": "پیام شما خیلی طولانی است تعداد کاراکتر: {length}/{limit}",
   "create_post.fileProcessing": "در حال پردازش...",

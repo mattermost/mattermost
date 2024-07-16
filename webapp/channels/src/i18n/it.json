@@ -2188,7 +2188,6 @@
   "create_category_modal.createCategory": "Crea una categoria",
   "create_comment.addComment": "Aggiungi un commento...",
   "create_comment.commentTitle": "Commento",
-  "create_post.comment": "Commento",
   "create_post.deactivated": "Stai visualizzando un canale archiviato con un utente disattivato.",
   "create_post.error_message": "Il tuo messaggio è troppo lungo. Conteggio caratteri: {length}/{limit}",
   "create_post.fileProcessing": "Elaborazione...",

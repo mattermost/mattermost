@@ -2891,7 +2891,6 @@
   "create_group_memberships_modal.create": "Có",
   "create_group_memberships_modal.desc": "Thao tác này sẽ thêm (hoặc thêm lại) {username} vào tất cả các nhóm và kênh có sẵn dựa trên tư cách thành viên nhóm của họ. Bạn có thể hoàn nguyên thay đổi này bất cứ lúc nào.",
   "create_group_memberships_modal.title": "Thêm lại {username} vào nhóm và kênh",
-  "create_post.comment": "Nhận xét",
   "create_post.deactivated": "Bạn đang xem một kênh đã lưu trữ có **người dùng đã bị hủy kích hoạt**. Tin nhắn mới không thể được đăng.",
   "create_post.error_message": "Tin nhắn của bạn quá dài. Số lượng ký tự: {length} / {limit}",
   "create_post.fileProcessing": "Đang xử lý ...",

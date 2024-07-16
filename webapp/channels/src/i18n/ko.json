@@ -2177,7 +2177,6 @@
   "create_category_modal.create": "Create",
   "create_comment.addComment": "이 글타래에 답글 달기...",
   "create_comment.commentTitle": "답글",
-  "create_post.comment": "답글",
   "create_post.deactivated": "**비활성화된 사용자**와 함께 보관된 채널을 보고 있습니다. 새로운 게시글을 올릴 수 없습니다.",
   "create_post.error_message": "메시지가 너무 깁니다. 문자 수 : {length}/{limit}",
   "create_post.fileProcessing": "진행 중...",

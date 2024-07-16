@@ -6701,20 +6701,12 @@
     "translation": "इलास्टिक्स खोज पहले ही रोक दी गई है।"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch बल्क प्रोसेसर प्रारंभ करने में विफल।"
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Elasticsearch सर्वर संस्करण को पार्स करने में विफल।"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Elasticsearch सर्वर संस्करण प्राप्त करने में विफल।"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch बल्क प्रोसेसर बनाने में विफल।"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
