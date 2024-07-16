@@ -37,20 +37,20 @@ describe('Notifications.showNotification', () => {
 
     it('should throw an exception if Notification is not defined on window', async () => {
         delete window.Notification;
-      
+
         await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not defined', async () => {
         window.Notification = jest.fn();
-      
+
         await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not a function', async () => {
         window.Notification = jest.fn();
         window.Notification.requestPermission = true;
-      
+
         await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
         expect(window.Notification).not.toHaveBeenCalled();
     });
