@@ -19,7 +19,7 @@ const SAMLFeatureDiscovery: React.FC = () => {
                 id: 'admin.saml_feature_discovery.title',
                 defaultMessage: 'Integrate SAML 2.0 with Mattermost Professional',
             })}
-            copyID={defineMessage({
+            copy={defineMessage({
                 id: 'admin.saml_feature_discovery.copy',
                 defaultMessage: 'When you connect Mattermost with your organization\'s single sign-on provider, users can access Mattermost without having to re-enter their credentials.',
             })}
