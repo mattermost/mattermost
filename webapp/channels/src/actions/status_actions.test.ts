@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {addUserIdsForStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -20,7 +20,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
-    addUserIdsForStatusAndProfileFetchingPoll: jest.fn(() => {
+    addUserIdsForStatusFetchingPoll: jest.fn(() => {
         return {type: ''};
     }),
 }));
@@ -88,8 +88,8 @@ describe('actions/status_actions', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
             testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
-            expect(addUserIdsForStatusAndProfileFetchingPoll).toHaveBeenCalled();
-            expect(addUserIdsForStatusAndProfileFetchingPoll).toHaveBeenCalledWith({userIdsForStatus: ['user_id2', 'user_id3']});
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalled();
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id2', 'user_id3']);
         });
 
         test('load statuses with empty channel and user in sidebar', () => {
@@ -97,7 +97,7 @@ describe('actions/status_actions', () => {
             state.entities.channels.currentChannelId = 'channel_id2';
             const testStore = mockStore(state);
             testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
-            expect(addUserIdsForStatusAndProfileFetchingPoll).toHaveBeenCalledWith({userIdsForStatus: ['user_id3']});
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id3']);
         });
 
         test('load statuses with empty channel and no users in sidebar', () => {
@@ -106,7 +106,7 @@ describe('actions/status_actions', () => {
             state.entities.preferences.myPreferences = {};
             const testStore = mockStore(state);
             testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
-            expect(addUserIdsForStatusAndProfileFetchingPoll).not.toHaveBeenCalled();
+            expect(addUserIdsForStatusFetchingPoll).not.toHaveBeenCalled();
         });
     });
 
