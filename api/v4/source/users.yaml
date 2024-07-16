@@ -142,6 +142,10 @@
                   type: string
                 nickname:
                   type: string
+                position:
+                  type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 auth_data:
                   description: Service-specific authentication data, such as email address.
                   type: string
@@ -911,6 +915,8 @@
                   type: string
                 position:
                   type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 props:
                   type: object
                 notify_props:
