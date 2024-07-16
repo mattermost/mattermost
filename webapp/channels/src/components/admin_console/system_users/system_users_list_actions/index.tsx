@@ -113,7 +113,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onRoleUpdateSuccess,
             },
         }));
-    }, [user.id, updateUser]);
+    }, [user, updateUser]);
 
     const handleManageTeamsClick = useCallback(() => {
         dispatch(openModal({
@@ -123,7 +123,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 user,
             },
         }));
-    }, [user.id]);
+    }, [user]);
 
     const handleManageUserSettingsClick = useCallback(() => {
         function onConfirmManageUserSettingsClick() {
@@ -146,7 +146,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onConfirm: onConfirmManageUserSettingsClick,
             },
         }));
-    }, [user.id]);
+    }, [user]);
 
     const handleManageTokensClick = useCallback(() => {
         dispatch(openModal({
@@ -166,7 +166,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 user,
             },
         }));
-    }, [user.id]);
+    }, [user]);
 
     const handleRemoveMfaClick = useCallback(async () => {
         await adminResetMfa(user.id, null, onError).then(() => {
@@ -194,7 +194,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onSwitchToEmailPasswordSuccess,
             },
         }));
-    }, [user.id, updateUser]);
+    }, [user, updateUser]);
 
     const handleUpdateEmailClick = useCallback(() => {
         function onUpdateEmailSuccess(email: string) {
@@ -209,7 +209,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onUpdateEmailSuccess,
             },
         }));
-    }, [user.id, updateUser]);
+    }, [user, updateUser]);
 
     const handlePromoteToMemberClick = useCallback(() => {
         function onPromoteToMemberSuccess() {
@@ -225,7 +225,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onPromoteToMemberSuccess,
             },
         }));
-    }, [user.id, updateUser, onError]);
+    }, [user, updateUser, onError]);
 
     const handleDemoteToGuestClick = useCallback(() => {
         function onDemoteToGuestSuccess() {
@@ -241,7 +241,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onDemoteToGuestSuccess,
             },
         }));
-    }, [user.id, updateUser, onError]);
+    }, [user, updateUser, onError]);
 
     const handleRemoveSessionsClick = useCallback(() => {
         dispatch(openModal({
@@ -253,7 +253,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onError,
             },
         }));
-    }, [user.id, currentUser.id, onError]);
+    }, [user, currentUser.id, onError]);
 
     const handleReSyncUserViaLdapGroupsClick = useCallback(() => {
         dispatch(openModal({
@@ -264,7 +264,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onError,
             },
         }));
-    }, [user.id, onError]);
+    }, [user, onError]);
 
     const handleActivateUserClick = useCallback(async () => {
         if (user.auth_service === Constants.LDAP_SERVICE) {
@@ -296,7 +296,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 },
             }),
         );
-    }, [user.id, updateUser, onError]);
+    }, [user, updateUser, onError]);
 
     return (
         <Menu.Container
