@@ -13,8 +13,8 @@ import (
 
 func (api *API) InitPermissions() {
 	// to be deprecated - kept for backward compatibility
-	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissions)).Methods("GET")
-	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods("POST")
+	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissions)).Methods(http.MethodGet)
+	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods(http.MethodPost)
 }
 
 func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Request) {

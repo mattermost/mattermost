@@ -14,10 +14,9 @@ type Props = {
     user: UserProfile;
     onConfirm: () => void;
     onExited: () => void;
-    onHide: () => void;
 }
 
-export function ConfirmManageUserSettingsModal(props: Props) {
+export default function ConfirmManageUserSettingsModal(props: Props) {
     const title = (
         <FormattedMessage
             id='userSettings.adminMode.modal_header'

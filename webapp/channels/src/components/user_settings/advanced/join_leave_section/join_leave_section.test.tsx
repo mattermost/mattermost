@@ -20,7 +20,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
     const defaultProps = {
         active: false,
         areAllSectionsInactive: false,
-        currentUserId: 'current_user_id',
+        userId: 'current_user_id',
         joinLeave: 'true',
         onUpdateSection: jest.fn(),
         renderOnOffLabel: jest.fn(),
@@ -149,7 +149,7 @@ describe('mapStateToProps', () => {
     } as unknown as GlobalState;
 
     test('configuration default to true', () => {
-        const props = mapStateToProps(initialState, {adminMode: false, currentUserId: ''});
+        const props = mapStateToProps(initialState, {adminMode: false, userId: ''});
         expect(props.joinLeave).toEqual('true');
     });
 
@@ -163,7 +163,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState, {currentUserId: '', adminMode: false});
+        const props = mapStateToProps(testState, {userId: '', adminMode: false});
         expect(props.joinLeave).toEqual('false');
     });
 
@@ -186,7 +186,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState, {adminMode: false, currentUserId: ''});
+        const props = mapStateToProps(testState, {adminMode: false, userId: ''});
         expect(props.joinLeave).toEqual('true');
     });
 
@@ -204,7 +204,7 @@ describe('mapStateToProps', () => {
                 },
             },
         });
-        const props = mapStateToProps(testState, {adminMode: false, currentUserId: ''});
+        const props = mapStateToProps(testState, {adminMode: false, userId: ''});
         expect(props.joinLeave).toEqual('false');
     });
 
@@ -229,14 +229,14 @@ describe('mapStateToProps', () => {
         };
 
         const propsWithAdminMode = mapStateToProps(testState, {
-            currentUserId: 'user_1',
+            userId: 'user_1',
             adminMode: true,
             userPreferences,
         });
         expect(propsWithAdminMode.joinLeave).toEqual('true');
 
         const propsWithoutAdminMode = mapStateToProps(testState, {
-            currentUserId: 'user_1',
+            userId: 'user_1',
             adminMode: false,
             userPreferences,
         });
