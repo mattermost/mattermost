@@ -21,10 +21,9 @@ const pendingUserIdsForProfiles = new Set<string>();
 
 let intervalIdForFetchingPoll: NodeJS.Timeout | null = null;
 
-type UserIdsSingleOrArray = Array<UserProfile['id']> | UserProfile['id'];
 type AddUserIdsForStatusAndProfileFetchingPoll = {
-    userIdsForStatus?: UserIdsSingleOrArray;
-    userIdsForProfile?: UserIdsSingleOrArray;
+    userIdsForStatus?: Array<UserProfile['id']>;
+    userIdsForProfile?: Array<UserProfile['id']>;
 }
 
 /**
@@ -106,27 +105,24 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 
         if (userIdsForStatus) {
-            if (Array.isArray(userIdsForStatus)) {
-                userIdsForStatus.forEach((userId) => {
-                    if (userId.length > 0) {
-                        pendingUserIdsForStatuses.add(userId);
-                    }
-                });
-            } else {
-                pendingUserIdsForStatuses.add(userIdsForStatus);
+            userIdsForStatus.forEach((userId) => {
+                if (userId.length > 0) {
+                    pendingUserIdsForStatuses.add(userId);
+                }
+            });
+            }
             }
         }
 
+        }
+        }
+
         if (userIdsForProfile) {
-            if (Array.isArray(userIdsForProfile)) {
-                userIdsForProfile.forEach((userId) => {
-                    if (userId.length > 0) {
-                        pendingUserIdsForProfiles.add(userId);
-                    }
-                });
-            } else {
-                pendingUserIdsForProfiles.add(userIdsForProfile);
-            }
+            userIdsForProfile.forEach((userId) => {
+                if (userId.length > 0) {
+                    pendingUserIdsForProfiles.add(userId);
+                }
+            });
         }
 
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
@@ -204,10 +200,10 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
                             const permalinkPostPreviewMetaData = embed.data as PostPreviewMetadata;
 
                             if (permalinkPostPreviewMetaData.post?.user_id && !users[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId) {
-                                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForProfile: permalinkPostPreviewMetaData.post.user_id}));
+                                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForProfile: [permalinkPostPreviewMetaData.post.user_id]}));
                             }
                             if (permalinkPostPreviewMetaData.post?.user_id && !userStatuses[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus: permalinkPostPreviewMetaData.post.user_id}));
+                                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus: [permalinkPostPreviewMetaData.post.user_id]}));
                             }
                         }
                     });
@@ -217,7 +213,7 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
                 if (post.metadata.acknowledgements) {
                     post.metadata.acknowledgements.forEach((ack: PostAcknowledgement) => {
                         if (ack.acknowledged_at > 0 && ack.user_id && !users[ack.user_id] && ack.user_id !== currentUserId) {
-                            dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForProfile: ack.user_id}));
+                            dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForProfile: [ack.user_id]}));
                         }
                     });
                 }
@@ -226,13 +222,13 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
             // This is sufficient to check if the profile is already fetched
             // as we receive the websocket events for the profiles changes
             if (!users[post.user_id] && post.user_id !== currentUserId) {
-                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForProfile: post.user_id}));
+                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForProfile: [post.user_id]}));
             }
 
             // This is sufficient to check if the status is already fetched
             // as we do the polling for statuses for current channel's channel members every 1 minute in channel_controller
             if (!userStatuses[post.user_id] && post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus: post.user_id}));
+                dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus: [post.user_id]}));
             }
 
             // We need to check for all @mentions in the post, they can be either users or groups
