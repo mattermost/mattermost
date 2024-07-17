@@ -94,6 +94,16 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
         }
     }, [categoryOrEmojisRows]);
 
+    const setRef = useCallback((el: FixedSizeList<CategoryOrEmojiRow[]> | null) => {
+        listRef.current = el;
+        if (typeof ref === 'function') {
+            ref(el);
+        } else if (ref) {
+            ref.current = el;
+        }
+    }, [ref]);
+
+
     return (
         <div
             className='emoji-picker__items'
@@ -110,10 +120,7 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
                         >
                             {({onItemsRendered, ref}) => (
                                 <FixedSizeList
-                                    ref={(el)=>{
-                                        listRef.current = el;
-                                        ref(el)
-                                    }}
+                                    ref={setRef}
                                     onItemsRendered={onItemsRendered}
                                     height={height}
                                     width={width}
