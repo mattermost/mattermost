@@ -2678,7 +2678,7 @@
   "admin.team.teammateNameDisplay": "Teammate Name Display:",
   "admin.team.teammateNameDisplayDesc": "Set how to display users' names in posts and the Direct Messages list.",
   "admin.team.uploadDesc": "Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.",
-  "admin.team.userCreationDescription": "When false, the ability to create accounts is disabled. The create account button displays error when pressed. Does not apply to SAML or LDAP accounts.",
+  "admin.team.userCreationDescription": "When false, the ability to create accounts is disabled. The create account button displays error when pressed. Applies to Email/OpenID/OAuth accounts.",
   "admin.team.userCreationTitle": "Enable Account Creation: ",
   "admin.trial_banner.trial-request.error": "Trial license could not be retrieved. Visit <link>{trialInfoLink}</link> to request a license.",
   "admin.true": "True",
