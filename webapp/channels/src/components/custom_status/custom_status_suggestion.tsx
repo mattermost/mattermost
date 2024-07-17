@@ -44,7 +44,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
         <div className='suggestion-clear'>
             <WithTooltip
                 placement='top'
-                title={'Clear'}
+                title='Clear'
                 id='clear-recent-custom-status'
             >
                 <button
@@ -79,14 +79,12 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
                 })}
             />
             {duration &&
-                duration !== CustomStatusDuration.CUSTOM_DATE_TIME &&
-                duration !== CustomStatusDuration.DATE_AND_TIME && (
+            duration !== CustomStatusDuration.CUSTOM_DATE_TIME &&
+            duration !== CustomStatusDuration.DATE_AND_TIME && (
                 <span className='statusSuggestion__duration'>
                     <FormattedMessage
                         id={durationValues[duration].id}
-                        defaultMessage={
-                            durationValues[duration].defaultMessage
-                        }
+                        defaultMessage={durationValues[duration].defaultMessage}
                     />
                 </span>
             )}
