@@ -9,7 +9,7 @@ abstract class DataLoader<Identifier> {
     private fetchBatch: (identifiers: Identifier[]) => void;
     private maxBatchSize: number;
 
-    private pendingIdentifiers = new Set<Identifier>();
+    protected readonly pendingIdentifiers = new Set<Identifier>();
 
     constructor(args: {
         fetchBatch: (identifiers: Identifier[]) => void;
@@ -68,12 +68,20 @@ abstract class DataLoader<Identifier> {
 export class IntervalDataLoader<Identifier> extends DataLoader<Identifier> {
     private intervalId: number = -1;
 
+    private doFetchBatchIfNecessary() {
+        if (this.pendingIdentifiers.size === 0) {
+            return;
+        }
+
+        this.doFetchBatch();
+    }
+
     startIntervalIfNeeded(ms: number) {
         if (this.intervalId !== -1) {
             return;
         }
 
-        this.intervalId = window.setInterval(() => this.doFetchBatch(), ms);
+        this.intervalId = window.setInterval(() => this.doFetchBatchIfNecessary(), ms);
     }
 
     stopInterval() {
