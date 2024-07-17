@@ -9,19 +9,15 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import WithTooltip from 'components/with_tooltip';
 
-type ProfileWithGroups = Partial<
-UserProfile & {
+type ProfileWithGroups = Partial<UserProfile & {
     groups: Array<Partial<Group>>;
-}
->;
+}>;
 
 interface UsersToRemoveGroupsProps {
     user: ProfileWithGroups;
 }
 
-export default function UsersToRemoveGroups(
-    props: UsersToRemoveGroupsProps,
-): JSX.Element {
+export default function UsersToRemoveGroups(props: UsersToRemoveGroupsProps): JSX.Element {
     const {user} = props;
     const groups = user.groups || [];
     let column: JSX.Element | string;
@@ -29,14 +25,12 @@ export default function UsersToRemoveGroups(
     const message = (
         <FormattedMessage
             id={'team_channel_settings.group.group_user_row.numberOfGroups'}
-            defaultMessage={
-                '{amount, number} {amount, plural, one {Group} other {Groups}}'
-            }
+            defaultMessage={'{amount, number} {amount, plural, one {Group} other {Groups}}'}
             values={{amount: groups.length}}
         />
     );
 
-    if (groups.length === 1) {
+    if ((groups).length === 1) {
         column = String(groups[0].display_name);
     } else if (groups.length === 0) {
         column = message;
@@ -54,5 +48,9 @@ export default function UsersToRemoveGroups(
         );
     }
 
-    return <div className='UsersToRemoveGroups'>{column}</div>;
+    return (
+        <div className='UsersToRemoveGroups'>
+            {column}
+        </div>
+    );
 }
