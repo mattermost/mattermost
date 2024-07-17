@@ -235,6 +235,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ADMIN_CONSOLE_REDUCER: null,
     REMOVED_ADMIN_CONSOLE_REDUCER: null,
     RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: null,
+    RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: null,
     RECEIVED_PLUGIN_STATS_HANDLER: null,
     RECEIVED_PLUGIN_USER_SETTINGS: null,
 
@@ -461,6 +462,7 @@ export const ModalIdentifiers = {
     EXPORT_ERROR_MODAL: 'export_error_modal',
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
+    CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
 };
 
 export const UserStatuses = {
@@ -1449,6 +1451,8 @@ export const Constants = {
     Locations,
     PostListRowListIds,
     MAX_POST_VISIBILITY: 1000000,
+    REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY: 22,
+    REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY: 6,
 
     IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_TEAM, PostTypes.LEAVE_TEAM, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_REMOVE],
 
@@ -2043,7 +2047,6 @@ export const Constants = {
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
     MENTION_SPECIAL: 'mention.special',
     MENTION_GROUPS: 'search.group',
-    DEFAULT_NOTIFICATION_DURATION: 5000,
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],

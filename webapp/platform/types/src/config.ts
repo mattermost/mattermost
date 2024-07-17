@@ -795,6 +795,7 @@ export type AnalyticsSettings = {
 
 export type ElasticsearchSettings = {
     ConnectionURL: string;
+    Backend: string;
     Username: string;
     Password: string;
     EnableIndexing: boolean;
