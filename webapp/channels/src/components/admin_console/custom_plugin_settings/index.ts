@@ -82,7 +82,7 @@ function makeGetPluginSchema() {
                         banner_type: bannerType,
                         component,
                         showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
-                    };
+                    } as Partial<AdminDefinitionSetting>;
                 });
             };
 
@@ -108,7 +108,7 @@ function makeGetPluginSchema() {
                     }
 
                     if (settings.length === 0) {
-                        settings = parsePluginSettings(section.settings) as Array<Partial<AdminDefinitionSetting>>;
+                        settings = parsePluginSettings(section.settings);
                     }
 
                     return {
@@ -119,16 +119,16 @@ function makeGetPluginSchema() {
                         header: section.header,
                         footer: section.footer,
                         component,
-                    };
+                    } as AdminDefinitionConfigSchemaSection;
                 });
             };
 
             let sections: AdminDefinitionConfigSchemaSection[] = [];
             let settings: Array<Partial<AdminDefinitionSetting>> = [];
             if (plugin.settings_schema && plugin.settings_schema.sections) {
-                sections = parsePluginSettingSections(plugin.settings_schema.sections) as AdminDefinitionConfigSchemaSection[];
+                sections = parsePluginSettingSections(plugin.settings_schema.sections);
             } else if (plugin.settings_schema && plugin.settings_schema.settings) {
-                settings = parsePluginSettings(plugin.settings_schema.settings) as Array<Partial<AdminDefinitionSetting>>;
+                settings = parsePluginSettings(plugin.settings_schema.settings);
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {

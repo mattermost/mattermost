@@ -378,12 +378,12 @@ function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, A
         const key = action.data.key.toLowerCase();
 
         const nextState = {...state};
-        let nextArray: Record<string, AdminConsolePluginCustomSection> = {};
+        let nextObject: Record<string, AdminConsolePluginCustomSection> = {};
         if (nextState[pluginId]) {
-            nextArray = {...nextState[pluginId]};
+            nextObject = {...nextState[pluginId]};
         }
-        nextArray[key] = action.data;
-        nextState[pluginId] = nextArray;
+        nextObject[key] = action.data;
+        nextState[pluginId] = nextObject;
 
         return nextState;
     }
