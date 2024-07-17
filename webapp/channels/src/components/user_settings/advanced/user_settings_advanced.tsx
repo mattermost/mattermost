@@ -42,7 +42,7 @@ type Settings = {
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUser: UserProfile;
+    user: UserProfile;
     userPreferences?: PreferencesType;
 }
 
@@ -166,13 +166,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleSubmit = async (settings: string[]): Promise<void> => {
-        if (!this.props.currentUser) {
+        if (!this.props.user) {
             return;
         }
 
         const preferences: PreferenceType[] = [];
-        const {actions, currentUser} = this.props;
-        const userId = currentUser.id;
+        const {actions, user} = this.props;
+        const userId = user.id;
 
         // this should be refactored so we can actually be certain about what type everything is
         (Array.isArray(settings) ? settings : [settings]).forEach((setting) => {
@@ -191,7 +191,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleDeactivateAccountSubmit = async (): Promise<void> => {
-        const userId = this.props.currentUser.id;
+        const userId = this.props.user.id;
 
         this.setState({isSaving: true});
 
@@ -803,9 +803,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         let deactivateAccountSection: ReactNode = '';
         let makeConfirmationModal: ReactNode = '';
-        const currentUser = this.props.currentUser;
 
-        if (currentUser.auth_service === '' && this.props.enableUserDeactivation && !this.props.adminMode) {
+        if (this.props.user.auth_service === '' && this.props.enableUserDeactivation && !this.props.adminMode) {
             const active = this.props.activeSection === 'deactivateAccount';
             let max = null;
             if (active) {
@@ -939,7 +938,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         renderOnOffLabel={this.renderOnOffLabel}
                         adminMode={this.props.adminMode}
                         userPreferences={this.props.userPreferences}
-                        currentUserId={this.props.currentUser.id}
+                        userId={this.props.user.id}
                     />
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
@@ -948,7 +947,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         adminMode={this.props.adminMode}
-                        currentUserId={this.props.currentUser.id}
+                        userId={this.props.user.id}
                     />
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}

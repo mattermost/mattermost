@@ -2824,7 +2824,6 @@
   "create_category_modal.createCategory": "Maak een nieuwe categorie",
   "create_comment.addComment": "Reageer op dit draadje...",
   "create_comment.commentTitle": "Commentaar",
-  "create_post.comment": "Commentaar",
   "create_post.deactivated": "Je bekijkt een gearchiveerd kanaal met een gedeactiveerde gebruiker. Je kan geen nieuwe berichten plaatsen.",
   "create_post.error_message": "Je bericht is te lang. Aantal tekens: {length}/{limit}",
   "create_post.fileProcessing": "Bezig met verwerken...",
