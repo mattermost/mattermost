@@ -213,12 +213,12 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
       <span
         className="video-title"
       >
-        <ExternalLink
+        <ForwardRef
           href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
           location="youtube_video"
         >
           Youtube title
-        </ExternalLink>
+        </ForwardRef>
       </span>
     </h4>
     <div
