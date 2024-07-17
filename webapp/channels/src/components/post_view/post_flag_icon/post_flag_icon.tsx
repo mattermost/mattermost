@@ -5,12 +5,11 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {Locations, A11yCustomEventTypes} from 'utils/constants';
+import {Locations, A11yCustomEventTypes} from 'utils/constants';
 
 export type Actions = {
     flagPost: (postId: string) => void;
@@ -39,13 +38,13 @@ const PostFlagIcon = ({
     const [a11yActive, setA11yActive] = useState(false);
 
     const handlePress = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
+            e.preventDefault();
 
-        if (isFlagged) {
-            unflagPost(postId);
-        } else {
-            flagPost(postId);
-        }
+            if (isFlagged) {
+                unflagPost(postId);
+            } else {
+                flagPost(postId);
+            }
     }, [flagPost, unflagPost, postId, isFlagged]);
 
     useEffect(() => {
@@ -82,17 +81,12 @@ const PostFlagIcon = ({
     }
 
     return (
-        <OverlayTrigger
-            className='hidden-xs'
-            key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='top'
-            overlay={
-                <Tooltip
-                    id='flagTooltip'
-                    className='hidden-xs'
-                >
-                    {isFlagged ? (
+            <WithTooltip
+                id='flagTooltip'
+                key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
+                placement='top'
+                title={
+                    isFlagged ? (
                         <FormattedMessage
                             id='flag_post.unflag'
                             defaultMessage='Remove from Saved'
@@ -102,20 +96,19 @@ const PostFlagIcon = ({
                             id='flag_post.flag'
                             defaultMessage='Save Message'
                         />
-                    )}
-                </Tooltip>
-            }
-        >
-            <button
-                ref={buttonRef}
-                id={`${location}_flagIcon_${postId}`}
-                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save'}).toLowerCase()}
-                className='post-menu__item'
-                onClick={handlePress}
+                    )
+                }
             >
-                {flagIcon}
-            </button>
-        </OverlayTrigger>
+                <button
+                    ref={buttonRef}
+                    id={`${location}_flagIcon_${postId}`}
+                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save'}).toLowerCase()}
+                    className='post-menu__item'
+                    onClick={handlePress}
+                >
+                    {flagIcon}
+                </button>
+            </WithTooltip>
     );
 };
 
