@@ -38,13 +38,13 @@ const PostFlagIcon = ({
     const [a11yActive, setA11yActive] = useState(false);
 
     const handlePress = useCallback((e: React.MouseEvent) => {
-            e.preventDefault();
+        e.preventDefault();
 
-            if (isFlagged) {
-                unflagPost(postId);
-            } else {
-                flagPost(postId);
-            }
+        if (isFlagged) {
+            unflagPost(postId);
+        } else {
+            flagPost(postId);
+        }
     }, [flagPost, unflagPost, postId, isFlagged]);
 
     useEffect(() => {
@@ -81,34 +81,34 @@ const PostFlagIcon = ({
     }
 
     return (
-            <WithTooltip
-                id='flagTooltip'
-                key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
-                placement='top'
-                title={
-                    isFlagged ? (
-                        <FormattedMessage
-                            id='flag_post.unflag'
-                            defaultMessage='Remove from Saved'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='flag_post.flag'
-                            defaultMessage='Save Message'
-                        />
-                    )
-                }
-            >
-                <button
-                    ref={buttonRef}
-                    id={`${location}_flagIcon_${postId}`}
+        <WithTooltip
+            id='flagTooltip'
+            key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
+            placement='top'
+            title={
+                isFlagged ? (
+                    <FormattedMessage
+                        id='flag_post.unflag'
+                        defaultMessage='Remove from Saved'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='flag_post.flag'
+                        defaultMessage='Save Message'
+                    />
+                )
+            }
+        >
+            <button
+                ref={buttonRef}
+                id={`${location}_flagIcon_${postId}`}
                 aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save'}).toLowerCase()}
-                    className='post-menu__item'
-                    onClick={handlePress}
-                >
-                    {flagIcon}
-                </button>
-            </WithTooltip>
+                className='post-menu__item'
+                onClick={handlePress}
+            >
+                {flagIcon}
+            </button>
+        </WithTooltip>
     );
 };
 
