@@ -57,43 +57,20 @@ const BigButtonSelector = ({
     const button = (
         <button
             id={`public-private-selector-button-${id}`}
-            className={classNames('public-private-selector-button', {
-                selected,
-                disabled,
-                locked,
-            })}
+            className={classNames('public-private-selector-button', {selected, disabled, locked})}
             onClick={handleOnClick}
         >
-            <IconSVG
-                className={classNames(
-                    'public-private-selector-button-icon',
-                    iconClassName,
-                )}
-            />
+            <IconSVG className={classNames('public-private-selector-button-icon', iconClassName)}/>
             <div className='public-private-selector-button-text'>
-                <div
-                    className={classNames(
-                        'public-private-selector-button-title',
-                        titleClassName,
-                    )}
-                >
+                <div className={classNames('public-private-selector-button-title', titleClassName)}>
                     {title}
-                    {locked && (
-                        <UpgradeBadge className='public-private-selector-button-icon-upgrade'/>
-                    )}
+                    {locked && <UpgradeBadge className='public-private-selector-button-icon-upgrade'/>}
                 </div>
-                <div
-                    className={classNames(
-                        'public-private-selector-button-description',
-                        descriptionClassName,
-                    )}
-                >
+                <div className={classNames('public-private-selector-button-description', descriptionClassName)}>
                     {description}
                 </div>
             </div>
-            {selected && (
-                <CheckCircleIcon className='public-private-selector-button-icon-check'/>
-            )}
+            {selected && <CheckCircleIcon className='public-private-selector-button-icon-check'/>}
         </button>
     );
 
