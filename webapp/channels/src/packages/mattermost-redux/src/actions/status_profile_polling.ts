@@ -12,11 +12,13 @@ import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUse
 import {getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {IntervalDataLoader} from 'mattermost-redux/utils/data_loader';
 
 const MAX_USER_IDS_PER_STATUS_REQUEST = 200; // users ids per 'users/status/ids'request
+const MAX_USER_IDS_PER_PROFILES_REQUEST = 100; // users ids per 'users/ids' request
 
-const pendingUserIdsForStatuses = new Set<string>();
-let intervalIdForStatusFetchingPoll: NodeJS.Timeout | null = null;
+let statusLoader: IntervalDataLoader<UserProfile['id']> | undefined;
+let profileLoader: IntervalDataLoader<UserProfile['id']> | undefined;
 
 /**
  * Adds list(s) of user id(s) to the status fetching poll. Which gets fetched based on user interval polling duration
@@ -24,60 +26,23 @@ let intervalIdForStatusFetchingPoll: NodeJS.Timeout | null = null;
  */
 export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProfile['id']>): ActionFunc<boolean> {
     return (dispatch, getState) => {
-        function getPendingStatusesById() {
-            let userIdsToLoad;
-
-            // Since we can only fetch a defined number of user statuses at a time, we need to batch the requests
-            if (pendingUserIdsForStatuses.size >= MAX_USER_IDS_PER_STATUS_REQUEST) {
-                userIdsToLoad = [];
-
-                // We use temp buffer here to store up until max buffer size
-                // and clear out processed user ids
-                for (const pendingUserId of pendingUserIdsForStatuses) {
-                    if (pendingUserId.length === 0) {
-                        continue;
-                    }
-
-                    userIdsToLoad.push(pendingUserId);
-                    pendingUserIdsForStatuses.delete(pendingUserId);
-
-                    if (userIdsToLoad.length >= MAX_USER_IDS_PER_STATUS_REQUEST) {
-                        break;
-                    }
-                }
-            } else {
-                // If we have less than max buffer size, we can directly fetch the statuses
-                userIdsToLoad = Array.from(pendingUserIdsForStatuses);
-                pendingUserIdsForStatuses.clear();
-            }
-
-            if (userIdsToLoad.length > 0) {
-                dispatch(getStatusesByIds(userIdsToLoad));
-            }
-        }
-
-        const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
-
-        if (userIdsForStatus) {
-            userIdsForStatus.forEach((userId) => {
-                if (userId.length > 0) {
-                    pendingUserIdsForStatuses.add(userId);
-                }
+        if (!statusLoader) {
+            statusLoader = new IntervalDataLoader({
+                fetchBatch: (userIds) => dispatch(getStatusesByIds(userIds)),
+                maxBatchSize: MAX_USER_IDS_PER_STATUS_REQUEST,
             });
         }
 
+        statusLoader.addIdsToLoad(userIdsForStatus);
+
+        const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
+
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
         if (!pollingInterval || pollingInterval <= 0) {
-            if (pendingUserIdsForStatuses.size > 0) {
-                getPendingStatusesById();
-            }
-        } else if (intervalIdForStatusFetchingPoll === null) {
+            statusLoader.doFetchBatch();
+        } else {
             // Start the interval if it is not already running
-            intervalIdForStatusFetchingPoll = setInterval(() => {
-                if (pendingUserIdsForStatuses.size > 0) {
-                    getPendingStatusesById();
-                }
-            }, pollingInterval);
+            statusLoader.startIntervalIfNeeded(pollingInterval);
         }
 
         // Now here the interval is already running and we have added the user ids to the poll so we don't need to do anything
@@ -85,68 +50,29 @@ export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProf
     };
 }
 
-const MAX_USER_IDS_PER_PROFILES_REQUEST = 100; // users ids per 'users/ids' request
-
-const pendingUserIdsForProfiles = new Set<string>();
-let intervalIdForProfileFetchingPoll: NodeJS.Timeout | null = null;
-
 /**
  * Adds list(s) of user id(s) to the profile fetching poll. Which gets fetched based on user interval polling duration
  * Do not use if profile is required immediately.
  */
 export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserProfile['id']>): ActionFunc<boolean> {
     return (dispatch, getState) => {
-        function getPendingProfilesById() {
-            let userIdsToLoad;
-
-            if (pendingUserIdsForProfiles.size >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
-                userIdsToLoad = [];
-                for (const pendingUserId of pendingUserIdsForProfiles) {
-                    if (pendingUserId.length === 0) {
-                        continue;
-                    }
-
-                    userIdsToLoad.push(pendingUserId);
-                    pendingUserIdsForProfiles.delete(pendingUserId);
-
-                    // We can only fetch a defined number of user profiles at a time
-                    // So we break out of the loop if we reach the max batch size
-                    if (userIdsToLoad.length >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
-                        break;
-                    }
-                }
-            } else {
-                userIdsToLoad = Array.from(pendingUserIdsForProfiles);
-                pendingUserIdsForProfiles.clear();
-            }
-
-            if (userIdsToLoad.length > 0) {
-                dispatch(getProfilesByIds(userIdsToLoad));
-            }
-        }
-
-        const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
-
-        if (userIdsForProfile) {
-            userIdsForProfile.forEach((userId) => {
-                if (userId.length > 0) {
-                    pendingUserIdsForProfiles.add(userId);
-                }
+        if (!profileLoader) {
+            profileLoader = new IntervalDataLoader({
+                fetchBatch: (userIds) => dispatch(getProfilesByIds(userIds)),
+                maxBatchSize: MAX_USER_IDS_PER_PROFILES_REQUEST,
             });
         }
 
+        profileLoader.addIdsToLoad(userIdsForProfile);
+
+        const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
+
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
         if (!pollingInterval || pollingInterval <= 0) {
-            if (pendingUserIdsForProfiles.size > 0) {
-                getPendingProfilesById();
-            }
-        } else if (intervalIdForProfileFetchingPoll === null) {
+            profileLoader.doFetchBatch();
+        } else {
             // Start the interval if it is not already running
-            intervalIdForProfileFetchingPoll = setInterval(() => {
-                if (pendingUserIdsForProfiles.size > 0) {
-                    getPendingProfilesById();
-                }
-            }, pollingInterval);
+            profileLoader.startIntervalIfNeeded(pollingInterval);
         }
 
         // Now here the interval is already running and we have added the user ids to the poll so we don't need to do anything
@@ -155,14 +81,12 @@ export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserPr
 }
 
 export function cleanUpStatusAndProfileFetchingPoll() {
-    if (intervalIdForStatusFetchingPoll !== null) {
-        clearInterval(intervalIdForStatusFetchingPoll);
-        intervalIdForStatusFetchingPoll = null;
+    if (statusLoader) {
+        statusLoader.stopInterval();
     }
 
-    if (intervalIdForProfileFetchingPoll !== null) {
-        clearInterval(intervalIdForProfileFetchingPoll);
-        intervalIdForProfileFetchingPoll = null;
+    if (profileLoader) {
+        profileLoader.stopInterval();
     }
 }
 
