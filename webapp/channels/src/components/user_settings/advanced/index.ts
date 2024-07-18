@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
@@ -20,8 +21,8 @@ import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import type {OwnProps} from './user_settings_advanced';
 import AdvancedSettingsDisplay from './user_settings_advanced';
+import type {OwnProps} from './user_settings_advanced';
 
 function makeMapStateToProps(state: GlobalState, props: OwnProps) {
     const getAdvancedSettingsCategory = props.adminMode ? makeGetUserCategory(props.user.id) : makeGetCategory();
@@ -29,7 +30,6 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
     return (state: GlobalState, props: OwnProps) => {
         const config = getConfig(state);
 
-        const enablePreviewFeatures = config.EnablePreviewFeatures === 'true';
         const enableUserDeactivation = config.EnableUserDeactivation === 'true';
         const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
@@ -44,7 +44,6 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
             syncDrafts: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true', userPreferences),
             user: props.adminMode && props.user ? props.user : getCurrentUser(state),
             unreadScrollPosition: getUnreadScrollPositionPreference(state, userPreferences),
-            enablePreviewFeatures,
             enableUserDeactivation,
             syncedDraftsAreAllowed: syncedDraftsAreAllowed(state),
         };
@@ -61,4 +60,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(AdvancedSettingsDisplay);
+const connector = connect(makeMapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(AdvancedSettingsDisplay);
