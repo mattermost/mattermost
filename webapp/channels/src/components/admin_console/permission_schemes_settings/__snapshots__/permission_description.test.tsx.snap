@@ -44,23 +44,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
         >
           <span>
             Inherited from 
-            <ForwardRef
-              href=""
+            <a
               key=".$.1"
-              location="permission_scheme_settings"
-              rel="noopener noreferrer"
-              target="_blank"
             >
-              <a
-                href=""
-                location="permission_scheme_settings"
-                onClick={[Function]}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                All Members
-              </a>
-            </ForwardRef>
+              All Members
+            </a>
             .
           </span>
         </FormattedMessage>

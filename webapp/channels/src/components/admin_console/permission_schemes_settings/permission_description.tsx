@@ -63,14 +63,7 @@ const PermissionDescription = ({
                     values={{
                         name: formattedName,
                         link: (text: string) => (
-                            <ExternalLink
-                                href=''
-                                rel='noopener noreferrer'
-                                target='_blank'
-                                location='permission_scheme_settings'
-                            >
-                                {text}
-                            </ExternalLink>
+                            <a>{text}</a>
                         ),
                     }}
                 />

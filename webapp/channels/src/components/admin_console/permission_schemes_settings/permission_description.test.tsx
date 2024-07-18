@@ -84,7 +84,7 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         );
         expect(wrapper).toMatchSnapshot();
 
-        wrapper.find('ForwardRef').children().first().simulate('click');
+        wrapper.find('a').simulate('click');
         expect(selectRow).toBeCalled();
     });
 });
