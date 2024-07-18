@@ -2465,7 +2465,6 @@
   "create_category_modal.createCategory": "Creați o categorie nouă",
   "create_comment.addComment": "Adauga un comentariu...",
   "create_comment.commentTitle": "Comentariu",
-  "create_post.comment": "Comentariu",
   "create_post.deactivated": "Vizionați un canal arhivat cu un **utilizator dezactivat**. Mesajele noi nu pot fi postate.",
   "create_post.error_message": "Mesajul dvs. este prea lung. Număr de caractere: {length} / {limit}",
   "create_post.fileProcessing": "Prelucrare...",

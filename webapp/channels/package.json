@@ -97,7 +97,7 @@
     "tinycolor2": "1.4.2",
     "turndown": "7.1.1",
     "typescript": "5.3.3",
-    "web-vitals": "3.5.2",
+    "web-vitals": "4.2.0",
     "zen-observable": "0.9.0"
   },
   "devDependencies": {

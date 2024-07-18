@@ -7,7 +7,8 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
@@ -36,13 +37,16 @@ type Settings = {
     sync_drafts: Props['syncDrafts'];
 };
 
-type OwnProps = {
+export type OwnProps = {
+    adminMode?: boolean;
+    user: UserProfile;
+    userPreferences?: PreferencesType;
     updateSection: (section?: string) => void;
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
     syncedDraftsAreAllowed: boolean;
-};
+}
 
 export type Props = OwnProps & PropsFromRedux;
 
@@ -71,6 +75,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         };
 
         const isSaving = false;
+
         const showDeactivateAccountModal = false;
 
         return {
@@ -90,9 +95,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleSubmit = async (settings: string[]): Promise<void> => {
+        if (!this.props.user) {
+            return;
+        }
+
         const preferences: PreferenceType[] = [];
-        const {actions, currentUser} = this.props;
-        const userId = currentUser.id;
+        const {actions, user} = this.props;
+        const userId = user.id;
 
         // this should be refactored so we can actually be certain about what type everything is
         (Array.isArray(settings) ? settings : [settings]).forEach((setting) => {
@@ -111,7 +120,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleDeactivateAccountSubmit = async (): Promise<void> => {
-        const userId = this.props.currentUser.id;
+        const userId = this.props.user.id;
 
         this.setState({isSaving: true});
 
@@ -627,9 +636,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         let deactivateAccountSection: ReactNode = '';
         let makeConfirmationModal: ReactNode = '';
-        const currentUser = this.props.currentUser;
 
-        if (currentUser.auth_service === '' && this.props.enableUserDeactivation) {
+        if (this.props.user.auth_service === '' && this.props.enableUserDeactivation && !this.props.adminMode) {
             const active = this.props.activeSection === 'deactivateAccount';
             let max = null;
             if (active) {
@@ -761,11 +769,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         areAllSectionsInactive={this.props.activeSection === ''}
                         onUpdateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}
+                        adminMode={this.props.adminMode}
+                        userPreferences={this.props.userPreferences}
+                        userId={this.props.user.id}
                     />
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
+                        adminMode={this.props.adminMode}
+                        userId={this.props.user.id}
                     />
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}

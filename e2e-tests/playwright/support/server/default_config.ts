@@ -588,6 +588,7 @@ const defaultServerConfig: AdminConfig = {
         ConnectionURL: 'http://localhost:9200',
         Username: 'elastic',
         Password: 'changeme',
+        Backend: 'elasticsearch',
         EnableIndexing: false,
         EnableSearching: false,
         EnableAutocomplete: false,
