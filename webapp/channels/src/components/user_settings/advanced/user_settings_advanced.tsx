@@ -45,7 +45,6 @@ export type OwnProps = {
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-    syncedDraftsAreAllowed: boolean;
 }
 
 export type Props = OwnProps & PropsFromRedux;
