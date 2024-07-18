@@ -3,11 +3,10 @@
 
 /* eslint-disable global-require */
 
-// to enable being a typescript file
-export const a = '';
 import configureStore from 'tests/test_store';
 
 import type {showNotification} from './notifications';
+import {isNotificationAPISupported, requestNotificationPermission} from './notifications';
 
 declare global {
     interface Window {
@@ -39,20 +38,20 @@ describe('Notifications.showNotification', () => {
     it('should throw an exception if Notification is not defined on window', async () => {
         delete window.Notification;
 
-        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not defined', async () => {
         window.Notification = jest.fn();
 
-        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification.requestPermission not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not a function', async () => {
         window.Notification = jest.fn();
         window.Notification.requestPermission = true;
 
-        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification.requestPermission not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification API is not supported');
         expect(window.Notification).not.toHaveBeenCalled();
     });
 
@@ -239,5 +238,66 @@ describe('Notifications.showNotification', () => {
         });
         expect(window.Notification).toHaveBeenCalledTimes(0);
         expect(window.Notification.requestPermission).toHaveBeenCalledTimes(0);
+    });
+});
+
+describe('Notifications.isNotificationAPISupported', () => {
+    beforeEach(() => {
+        window.Notification = {
+            requestPermission: jest.fn(),
+        };
+    });
+
+    afterEach(() => {
+        delete (window as any).Notification;
+    });
+
+    it('should return true if Notification is supported', () => {
+        expect(isNotificationAPISupported()).toBe(true);
+    });
+
+    it('should return false if Notification is not supported', () => {
+        delete (window as any).Notification;
+
+        expect(isNotificationAPISupported()).toBe(false);
+    });
+
+    it('should return false if requestPermission is not a function', () => {
+        (window as any).Notification = {};
+
+        expect(isNotificationAPISupported()).toBe(false);
+    });
+});
+
+describe('Notifications.requestNotificationPermission', () => {
+    beforeEach(() => {
+        (window as any).Notification = {
+            requestPermission: jest.fn(),
+        };
+    });
+
+    afterEach(() => {
+        delete (window as any).Notification;
+    });
+
+    it('should return the permission if Notification.requestPermission resolves', async () => {
+        (window as any).Notification.requestPermission = jest.fn().mockResolvedValue('granted');
+
+        const permission = await requestNotificationPermission();
+        expect(permission).toBe('granted');
+    });
+
+    it('should return null if Notification is not supported', async () => {
+        delete (window as any).Notification;
+
+        const permission = await requestNotificationPermission();
+        expect(permission).toBeNull();
+    });
+
+    it('should return null if requestPermission throws an error', async () => {
+        (window as any).Notification.requestPermission = jest.fn().mockRejectedValue('some error');
+
+        const permission = await requestNotificationPermission();
+        expect(permission).toBeNull();
     });
 });
