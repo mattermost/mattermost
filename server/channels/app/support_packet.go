@@ -46,6 +46,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 
 	if options.IncludeLogs {
 		functions["mattermost log"] = a.GetMattermostLog
+		//functions["cluster logs"] = a.getNotificationsLog
 		functions["notification log"] = a.getNotificationsLog
 	}
 
@@ -61,37 +62,11 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		}
 	}
 
-	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
-		logFiles, err := a.Cluster().UploadLogs()
-		if err != nil {
-			c.Logger().Error("TODO1 ", mlog.Err(err))
-			warnings = append(warnings, err.Error())
-		}
-
-		for _, logFile := range logFiles {
-			b, err := a.FileBackend().ReadFile(logFile)
-			if err != nil {
-				c.Logger().Error("SUPPORT PACKET: failed to read log file from file store",
-					mlog.Err(err),
-					mlog.String("logFile", logFile),
-				)
-				warnings = append(warnings, err.Error())
-				continue
-			}
-
-			fileDatas = append(fileDatas, model.FileData{
-				Filename: logFile,
-				Body:     b,
-			})
-
-			err = a.FileBackend().RemoveFile(logFile)
-			if err != nil {
-				c.Logger().Error("TODO 3", mlog.Err(err))
-				warnings = append(warnings, err.Error())
-				continue
-			}
-		}
+	fd, errs := a.getMattermostClusterLog(c)
+	for _, err := range errs {
+		warnings = append(warnings, err.Error())
 	}
+	fileDatas = append(fileDatas, fd...)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		pluginContext := pluginContext(c)
@@ -381,6 +356,56 @@ func (a *App) GetMattermostLog(ctx request.CTX) (*model.FileData, error) {
 		Body:     mattermostLogFileData,
 	}
 	return fileData, nil
+}
+
+func (a *App) getMattermostClusterLog(ctx request.CTX) ([]model.FileData, []error) {
+
+	var fileDatas []model.FileData
+	var rErr []error
+	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
+		logFiles, err := a.Cluster().UploadLogs()
+		if err != nil {
+			ctx.Logger().Error("TODO1 ", mlog.Err(err))
+			return nil, []error{err}
+			//warnings = append(warnings, err.Error())
+		}
+
+		ctx.Logger().Error("SUPPORT PACKET: log files from cluster",
+			mlog.Array("logFiles", logFiles),
+		)
+
+		for _, logFile := range logFiles {
+			b, err := a.FileBackend().ReadFile(logFile)
+			if err != nil {
+				ctx.Logger().Error("SUPPORT PACKET: failed to read log file from file store",
+					mlog.Err(err),
+					mlog.String("logFile", logFile),
+				)
+				rErr = append(rErr, errors.Wrapf(err, "failed to read log file %s", logFile))
+				continue
+			}
+
+			fileDatas = append(fileDatas, model.FileData{
+				Filename: logFile,
+				Body:     b,
+			})
+
+			ctx.Logger().Error("SUPPORT PACKET: deleting log file from file store",
+				mlog.String("logFile", logFile),
+			)
+
+			time.Sleep(100 * time.Millisecond)
+
+			err = a.FileBackend().RemoveFile(logFile)
+			if err != nil {
+				ctx.Logger().Error("TODO 3", mlog.Err(err))
+				rErr = append(rErr, errors.Wrapf(err, "failed to remove log file %s", logFile))
+				continue
+			}
+		}
+	}
+
+	return fileDatas, rErr
 }
 
 func (a *App) createSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
