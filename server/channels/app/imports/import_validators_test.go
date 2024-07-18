@@ -1023,9 +1023,16 @@ func TestImportValidatePostImportData(t *testing.T) {
 func TestImportValidateDirectChannelImportData(t *testing.T) {
 	// Test with valid number of members for direct message.
 	data := DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 	}
 	err := ValidateDirectChannelImportData(&data)
@@ -1033,10 +1040,16 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid number of members for group message.
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 	}
 	err = ValidateDirectChannelImportData(&data)
@@ -1044,9 +1057,13 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with all the combinations of optional parameters.
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 		Header: ptrStr("Channel Header Here"),
 	}
@@ -1060,30 +1077,50 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with different combinations of invalid member counts.
 	data = DirectChannelImportData{
-		Members: &[]string{},
+		Participants: []*DirectChannelMemberImportData{},
 	}
 	err = ValidateDirectChannelImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
 
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 	}
 	err = ValidateDirectChannelImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
 
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 	}
 	err = ValidateDirectChannelImportData(&data)
@@ -1093,9 +1130,13 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 	member1 := model.NewId()
 	member2 := model.NewId()
 	data = DirectChannelImportData{
-		Members: &[]string{
-			member1,
-			member2,
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 		FavoritedBy: &[]string{
 			member1,
@@ -1107,9 +1148,13 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid FavoritedBy
 	data = DirectChannelImportData{
-		Members: &[]string{
-			member1,
-			member2,
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: ptrStr(model.NewId()),
+			},
+			{
+				Username: ptrStr(model.NewId()),
+			},
 		},
 		FavoritedBy: &[]string{
 			member1,

@@ -122,7 +122,7 @@ type ChannelForExport struct {
 
 type DirectChannelForExport struct {
 	Channel
-	Members *[]string
+	Members []*ChannelMemberForExport
 }
 
 type ChannelModeration struct {
