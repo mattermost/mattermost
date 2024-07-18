@@ -374,7 +374,6 @@ type ServiceSettings struct {
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
 	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
-	EnablePreviewFeatures                             *bool   `access:"experimental_features"`
 	EnableTutorial                                    *bool   `access:"experimental_features"`
 	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
@@ -773,10 +772,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.PostEditTimeLimit == nil {
 		s.PostEditTimeLimit = NewInt(-1)
-	}
-
-	if s.EnablePreviewFeatures == nil {
-		s.EnablePreviewFeatures = NewBool(true)
 	}
 
 	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
@@ -2356,9 +2351,6 @@ type LdapSettings struct {
 	LoginButtonColor       *string `access:"experimental_features"`
 	LoginButtonBorderColor *string `access:"experimental_features"`
 	LoginButtonTextColor   *string `access:"experimental_features"`
-
-	// Deprecated: Use LogSettings.AdvancedLoggingJSON with the LDAPTrace level instead.
-	Trace *bool `access:"authentication_ldap"` // telemetry: none
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2499,10 +2491,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
-	}
-
-	if s.Trace == nil {
-		s.Trace = NewBool(false)
 	}
 }
 
@@ -3079,12 +3067,6 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
-type ProductSettings struct {
-}
-
-func (s *ProductSettings) SetDefaults() {
-}
-
 type PluginState struct {
 	Enable bool
 }
@@ -3517,7 +3499,6 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
-	ProductSettings           ProductSettings // Deprecated: Remove in next major version:: https://mattermost.atlassian.net/browse/MM-56655
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3618,7 +3599,6 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()

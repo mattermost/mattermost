@@ -2491,6 +2491,13 @@ export default class Client4 {
         );
     };
 
+    getUserPreferences = (userId: string) => {
+        return this.doFetch<PreferenceType[]>(
+            `${this.getPreferencesRoute(userId)}`,
+            {method: 'get'},
+        );
+    };
+
     deletePreferences = (userId: string, preferences: PreferenceType[]) => {
         return this.doFetch<StatusOK>(
             `${this.getPreferencesRoute(userId)}/delete`,
