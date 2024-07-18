@@ -8,7 +8,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
-import ExternalLink from 'components/external_link';
 import Tooltip from 'components/tooltip';
 
 import type {AdditionalValues} from './permissions_tree/types';
