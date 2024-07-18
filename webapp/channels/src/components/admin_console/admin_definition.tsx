@@ -3220,6 +3220,7 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
                     sections: [
                         {
+                            key: 'admin.authentication.ldap.connection',
                             title: 'Connection',
                             subtitle: 'Connection and security level to your AD/LDAP server.',
                             settings: [
@@ -3385,6 +3386,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.dn_and_filters',
                             title: 'Base DN & Filters',
                             settings: [
                                 {
@@ -3476,6 +3478,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.account_synchronization',
                             title: 'Account Synchronization',
                             settings: [
                                 {
@@ -3631,6 +3634,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.group_synchronization',
                             title: 'Group Synchronization',
                             settings: [
                                 {
@@ -3661,6 +3665,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_performance',
                             title: 'Synchronization Performance',
                             settings: [
                                 {
@@ -3734,6 +3739,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_history',
                             title: 'Synchronization History',
                             subtitle: 'See the table below for the status of each synchronization',
                             settings: [
@@ -6046,14 +6052,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnablePreviewFeatures',
-                            label: defineMessage({id: 'admin.experimental.enablePreviewFeatures.title', defaultMessage: 'Enable Preview Features:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enablePreviewFeatures.desc', defaultMessage: 'When true, preview features can be enabled from **Settings > Advanced > Preview pre-release features**. When false, disables and hides preview features from **Settings > Advanced > Preview pre-release features**.'}),
-                            help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
