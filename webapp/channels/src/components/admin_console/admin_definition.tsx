@@ -3046,7 +3046,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.EnableUserCreation',
                             label: defineMessage({id: 'admin.team.userCreationTitle', defaultMessage: 'Enable Account Creation: '}),
-                            help_text: defineMessage({id: 'admin.team.userCreationDescription', defaultMessage: 'When false, the ability to create accounts is disabled. The create account button displays error when pressed. Applies to email/OpenID/OAuth accounts.'}),
+                            help_text: defineMessage({id: 'admin.team.userCreationDescription', defaultMessage: 'When false, the ability to create accounts is disabled, and selecting Create Account displays an error. Applies to Email, OpenID Connect, and OAuth 2.0 user account authentication.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
