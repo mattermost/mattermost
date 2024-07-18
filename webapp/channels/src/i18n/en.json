@@ -2814,7 +2814,7 @@
   "announcement_bar.error.trial_license_expiring_last_day.short": "This is the last day of your free trial.",
   "announcement_bar.notification.email_verified": "Email verified",
   "announcement_bar.notification.enable_notifications": "Enable notifications",
-  "announcement_bar.notification.needs_permisson": "We need your permission to show desktop notifications.",
+  "announcement_bar.notification.needs_permission": "We need your permission to show desktop notifications.",
   "announcement_bar.warn.contact_support_text": "To renew your license, contact support at support@mattermost.com.",
   "announcement_bar.warn.email_support": "[Contact support](!{email}).",
   "announcement_bar.warn.no_internet_connection": "Looks like you do not have access to the internet.",
