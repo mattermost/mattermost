@@ -2660,7 +2660,7 @@
   "admin.team.maxUsersExample": "E.g.: \"25\"",
   "admin.team.maxUsersTitle": "Max Users Per Team:",
   "admin.team.noBrandImage": "No brand image uploaded",
-  "admin.team.openServerDescription": "When true, anyone can signup for a user account on this server without the need to be invited. Applies to email signups only.",
+  "admin.team.openServerDescription": "When true, anyone can sign up for a user account on this server without the need to be invited. Applies to Email-based signups only.",
   "admin.team.openServerTitle": "Enable Open Server: ",
   "admin.team.refreshPostStatsRunTimeDescription": "Set the server time for updating the user post statistics, including each user's total post count and the timestamp of their most recent post. Must be a 24-hour time stamp in the form HH:MM based on the local time of the server.",
   "admin.team.refreshPostStatsRunTimeExample": "E.g.: \"00:00\"",
