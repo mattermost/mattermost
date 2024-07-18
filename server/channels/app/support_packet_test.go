@@ -40,7 +40,7 @@ func TestCreatePluginsFile(t *testing.T) {
 	// Plugins off in settings so no fileData and we get a warning instead
 	fileData, err = th.App.createPluginsFile(th.Context)
 	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed to get plugin list for support package")
+	assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
 }
 
 func TestGenerateSupportPacketYaml(t *testing.T) {
@@ -68,7 +68,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	}
 
 	t.Run("Happy path", func(t *testing.T) {
-		// Happy path where we have a support packet yaml file without any warnings
+		// Happy path where we have a Support Packet yaml file without any warnings
 		packet := generateSupportPacket(t)
 
 		/* Build information */
@@ -207,7 +207,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	}
 	genMockLogFiles()
 
-	t.Run("generate support packet with logs", func(t *testing.T) {
+	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: true,
 		})
@@ -232,7 +232,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.ElementsMatch(t, testFiles, rFileNames)
 	})
 
-	t.Run("generate support packet without logs", func(t *testing.T) {
+	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: false,
 		})
@@ -337,7 +337,7 @@ func TestGetNotificationsLog(t *testing.T) {
 
 	fileData, err := th.App.getNotificationsLog(th.Context)
 	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
+	assert.ErrorContains(t, err, "Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -382,7 +382,7 @@ func TestGetMattermostLog(t *testing.T) {
 
 	fileData, err := th.App.GetMattermostLog(th.Context)
 	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
+	assert.ErrorContains(t, err, "Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)

@@ -6,11 +6,12 @@ package platform
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -204,6 +205,40 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.L
 	}
 
 	return lines, nil
+}
+
+func (ps *PlatformService) GetLogFile() (*model.FileData, error) {
+	if !*ps.Config().LogSettings.EnableFile {
+		return nil, errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
+	}
+
+	mattermostLog := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
+	mattermostLogFileData, err := os.ReadFile(mattermostLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
+	}
+
+	return &model.FileData{
+		Filename: config.LogFilename,
+		Body:     mattermostLogFileData,
+	}, nil
+}
+
+func (ps *PlatformService) GetNotificationLogFile() (*model.FileData, error) {
+	if !*ps.Config().NotificationLogSettings.EnableFile {
+		return nil, errors.New("Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
+	}
+
+	notificationsLog := config.GetNotificationsLogFileLocation(*ps.Config().LogSettings.FileLocation)
+	notificationsLogFileData, err := os.ReadFile(notificationsLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", notificationsLog)
+	}
+
+	return &model.FileData{
+		Filename: config.LogNotificationFilename,
+		Body:     notificationsLogFileData,
+	}, nil
 }
 
 func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {

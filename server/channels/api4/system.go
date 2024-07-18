@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
@@ -434,7 +435,7 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	reader := bytes.NewReader(fileData.Body)
-	web.WriteFileResponse("mattermost.log",
+	web.WriteFileResponse(config.LogFilename,
 		"text/plain",
 		int64(len(fileData.Body)),
 		time.Now(),
