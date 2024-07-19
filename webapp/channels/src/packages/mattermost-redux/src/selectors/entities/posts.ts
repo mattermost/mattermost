@@ -170,34 +170,6 @@ export function makeGetPostsChunkAroundPost(): (state: GlobalState, postId: Post
     );
 }
 
-export function makeGetPostIdsAroundPost(): (state: GlobalState, postId: Post['id'], channelId: Channel['id'], a?: {
-    postsBeforeCount?: number;
-    postsAfterCount?: number;
-}) => Array<Post['id']> | undefined | null {
-    const getPostsChunkAroundPost = makeGetPostsChunkAroundPost();
-    return createIdsSelector(
-        'makeGetPostIdsAroundPost',
-        (state: GlobalState, postId: string, channelId: string) => getPostsChunkAroundPost(state, postId, channelId),
-        (state: GlobalState, postId) => postId,
-        (state: GlobalState, postId, channelId, options) => options && options.postsBeforeCount,
-        (state: GlobalState, postId, channelId, options) => options && options.postsAfterCount,
-        (postsChunk, postId, postsBeforeCount = Posts.POST_CHUNK_SIZE / 2, postsAfterCount = Posts.POST_CHUNK_SIZE / 2) => {
-            if (!postsChunk || !postsChunk.order) {
-                return null;
-            }
-
-            const postIds = postsChunk.order;
-            const index = postIds.indexOf(postId);
-
-            // Remember that posts that come after the post have a smaller index
-            const minPostIndex = postsAfterCount === -1 ? 0 : Math.max(index - postsAfterCount, 0);
-            const maxPostIndex = postsBeforeCount === -1 ? postIds.length : Math.min(index + postsBeforeCount + 1, postIds.length); // Needs the extra 1 to include the focused post
-
-            return postIds.slice(minPostIndex, maxPostIndex);
-        },
-    );
-}
-
 function formatPostInChannel(post: Post, previousPost: Post | undefined | null, index: number, allPosts: IDMappedObjects<Post>, postsInThread: RelationOneToMany<Post, Post>, postIds: Array<Post['id']>, currentUser: UserProfile, focusedPostId: Post['id']): PostWithFormatData {
     let isFirstReply = false;
     let isLastReply = false;
@@ -366,46 +338,6 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
 
                 const previousPost = allPosts[postIds[i + 1]] || null;
                 posts.push(formatPostInChannel(post, previousPost, i, allPosts, postsInThread, postIds, currentUser, ''));
-            }
-
-            return posts;
-        },
-    );
-}
-
-export function makeGetPostsAroundPost(): (state: GlobalState, postId: Post['id'], channelId: Channel['id']) => PostWithFormatData[] | undefined | null {
-    const getPostIdsAroundPost = makeGetPostIdsAroundPost();
-    const options = {
-        postsBeforeCount: -1, // Where this is used in the web app, view state is used to determine how far back to display
-        postsAfterCount: Posts.POST_CHUNK_SIZE / 2,
-    };
-
-    return createSelector(
-        'makeGetPostsAroundPost',
-        (state: GlobalState, focusedPostId: string, channelId: string) => getPostIdsAroundPost(state, focusedPostId, channelId, options),
-        getAllPosts,
-        getPostsInThread,
-        (state: GlobalState, focusedPostId) => focusedPostId,
-        getCurrentUser,
-        shouldShowJoinLeaveMessages,
-        (postIds, allPosts, postsInThread, focusedPostId, currentUser, showJoinLeave) => {
-            if (!postIds || !currentUser) {
-                return null;
-            }
-
-            const posts: PostWithFormatData[] = [];
-
-            for (let i = 0; i < postIds.length; i++) {
-                const post = allPosts[postIds[i]];
-
-                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser.username)) {
-                    continue;
-                }
-
-                const previousPost = allPosts[postIds[i + 1]] || null;
-                const formattedPost = formatPostInChannel(post, previousPost, i, allPosts, postsInThread, postIds, currentUser, focusedPostId);
-
-                posts.push(formattedPost);
             }
 
             return posts;
