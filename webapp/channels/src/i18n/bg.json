@@ -2582,7 +2582,6 @@
   "create_category_modal.createCategory": "Създайте нова категория",
   "create_comment.addComment": "Отговор в този разговор...",
   "create_comment.commentTitle": "Коментар",
-  "create_post.comment": "Коментар",
   "create_post.deactivated": "Преглеждате архивиран канал с **деактивиран потребител**. Не могат да се публикуват нови съобщения.",
   "create_post.error_message": "Вашето съобщение е твърде дълго. Брой на знаците: {length}/{limit}",
   "create_post.fileProcessing": "Обработка ...",

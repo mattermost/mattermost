@@ -100,6 +100,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         draft.message || editingPost?.post?.message_source || editingPost?.post?.message || '',
     );
     const [selectionRange, setSelectionRange] = useState<State['selectionRange']>({start: editText.length, end: editText.length});
+    const caretPosition = useRef<number>(editText.length);
     const [postError, setPostError] = useState<React.ReactNode | null>(null);
     const [errorClass, setErrorClass] = useState<string>('');
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
@@ -160,7 +161,12 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     }, [selectionRange]);
 
     // just a helper so it's not always needed to update with setting both properties to the same value
-    const setCaretPosition = (position: number) => setSelectionRange({start: position, end: position});
+    const setSelectionRangeByCaretPosition = (position: number) => setSelectionRange({start: position, end: position});
+
+    const handleBlur = (e: React.FocusEvent<TextboxElement, Element>) => {
+        const target = e.target as HTMLTextAreaElement;
+        caretPosition.current = target.selectionEnd;
+    };
 
     const handlePaste = useCallback((e: ClipboardEvent) => {
         const {clipboardData, target} = e;
@@ -194,7 +200,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         setEditText(message);
-        setCaretPosition(newCaretPosition);
+        setSelectionRangeByCaretPosition(newCaretPosition);
     }, [canEditPost, selectionRange, editText]);
 
     const isSaveDisabled = () => {
@@ -411,7 +417,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         if (editText.length > 0) {
             const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(
-                selectionRange.start,
+                caretPosition.current,
                 editText,
             );
 
@@ -427,7 +433,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         setEditText(newMessage);
-        setCaretPosition(newCaretPosition);
+        setSelectionRangeByCaretPosition(newCaretPosition);
         setShowEmojiPicker(false);
         textboxRef.current?.focus();
     };
@@ -510,6 +516,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
                 onHeightChange={handleHeightChange}
                 handlePostError={handlePostError}
                 onPaste={handlePaste}

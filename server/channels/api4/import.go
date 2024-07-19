@@ -12,7 +12,7 @@ import (
 )
 
 func (api *API) InitImport() {
-	api.BaseRoutes.Imports.Handle("", api.APISessionRequired(listImports)).Methods("GET")
+	api.BaseRoutes.Imports.Handle("", api.APISessionRequired(listImports)).Methods(http.MethodGet)
 }
 
 func listImports(c *Context, w http.ResponseWriter, r *http.Request) {

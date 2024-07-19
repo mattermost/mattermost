@@ -864,7 +864,7 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	}
 
 	options := a.Config().GetSanitizeOptions()
-	updatedUser.SanitizeProfile(options)
+	updatedUser.SanitizeProfile(options, false)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", updatedUser)
@@ -1117,7 +1117,7 @@ func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
 	options := a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, asAdmin)
 }
 
 func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
@@ -2558,7 +2558,7 @@ func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	}
 
 	options := a.Config().GetSanitizeOptions()
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, false)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", user)
