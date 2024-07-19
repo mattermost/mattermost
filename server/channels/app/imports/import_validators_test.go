@@ -1150,10 +1150,10 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 	data = DirectChannelImportData{
 		Participants: []*DirectChannelMemberImportData{
 			{
-				Username: ptrStr(model.NewId()),
+				Username: ptrStr(member1),
 			},
 			{
-				Username: ptrStr(model.NewId()),
+				Username: ptrStr(member2),
 			},
 		},
 		FavoritedBy: &[]string{
