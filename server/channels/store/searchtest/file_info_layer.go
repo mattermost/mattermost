@@ -1654,7 +1654,7 @@ func testFileInfoSearchEmailsWithoutQuotes(t *testing.T, th *SearchTestHelper) {
 func testFileInfoSearchNoResultForPostlessFileInfos(t *testing.T, th *SearchTestHelper) {
 	_, err := th.createFileInfo(th.User.Id, "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
-	
+
 	defer th.deleteUserFileInfos(th.User.Id)
 
 	params := &model.SearchParams{
