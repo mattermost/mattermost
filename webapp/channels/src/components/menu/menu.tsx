@@ -205,6 +205,7 @@ export function Menu(props: Props) {
                     id={props.menuButtonTooltip.id}
                     title={props.menuButtonTooltip.text}
                     placement={props?.menuButtonTooltip?.placement ?? 'top'}
+                    disabled={isMenuOpen}
                 >
                     {triggerElement}
                 </WithTooltip>
