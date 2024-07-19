@@ -108,16 +108,19 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 			continue
 		}
 
-		// Fetch all hooks with a very large limit so we get them all.
 		incomingResult := make(chan StoreResult, 1)
 		go func() {
-			incomingHooks, _, err := c.GetIncomingWebhooksForTeam(context.TODO(), team.Id, 0, 100000000, "")
+			incomingHooks, err := getPages(func(page, numPerPage int, etag string) ([]*model.IncomingWebhook, *model.Response, error) {
+				return c.GetIncomingWebhooksForTeam(context.TODO(), team.Id, page, numPerPage, etag)
+			}, DefaultPageSize)
 			incomingResult <- StoreResult{Data: incomingHooks, Err: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan StoreResult, 1)
 		go func() {
-			outgoingHooks, _, err := c.GetOutgoingWebhooksForTeam(context.TODO(), team.Id, 0, 100000000, "")
+			outgoingHooks, err := getPages(func(page, numPerPage int, etag string) ([]*model.OutgoingWebhook, *model.Response, error) {
+				return c.GetOutgoingWebhooksForTeam(context.TODO(), team.Id, page, numPerPage, etag)
+			}, DefaultPageSize)
 			outgoingResult <- StoreResult{Data: outgoingHooks, Err: err}
 			close(outgoingResult)
 		}()
@@ -128,7 +131,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 				printer.PrintT("Incoming:\t{{.DisplayName}} ({{.Id}}", hook)
 			}
 		} else {
-			printer.PrintError("Unable to list incoming webhooks for '" + team.Id + "'")
+			printer.PrintError("Unable to list incoming webhooks for '" + team.Id + "': " + result.Err.Error())
 		}
 
 		if result := <-outgoingResult; result.Err == nil {
@@ -137,7 +140,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 				printer.PrintT("Outgoing:\t {{.DisplayName}} ({{.Id}})", hook)
 			}
 		} else {
-			printer.PrintError("Unable to list outgoing webhooks for '" + team.Id + "'")
+			printer.PrintError("Unable to list outgoing webhooks for '" + team.Id + "': " + result.Err.Error())
 		}
 	}
 

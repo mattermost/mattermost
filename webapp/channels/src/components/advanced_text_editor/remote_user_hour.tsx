@@ -4,11 +4,13 @@
 import {DateTime} from 'luxon';
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import Moon from 'components/common/svg_images_components/moon_svg';
 import Timestamp from 'components/timestamp';
@@ -43,15 +45,26 @@ const Icon = styled(Moon)`
 `;
 
 type Props = {
-    teammate: UserProfile;
+    teammateId: string;
     displayName: string;
 }
 
-const RemoteUserHour = ({teammate, displayName}: Props) => {
+const DEFAULT_TIMEZONE = {
+    useAutomaticTimezone: true,
+    automaticTimezone: '',
+    manualTimezone: '',
+};
+
+const RemoteUserHour = ({teammateId, displayName}: Props) => {
     const [timestamp, setTimestamp] = useState(0);
     const [showIt, setShowIt] = useState(false);
 
-    const teammateTimezone = getTimezoneForUserProfile(teammate);
+    const teammateTimezone = useSelector((state: GlobalState) => {
+        const teammate = teammateId ? getUser(state, teammateId) : undefined;
+        return teammate ? getTimezoneForUserProfile(teammate) : DEFAULT_TIMEZONE;
+    }, (a, b) => a.automaticTimezone === b.automaticTimezone &&
+        a.manualTimezone === b.manualTimezone &&
+        a.useAutomaticTimezone === b.useAutomaticTimezone);
 
     useEffect(() => {
         const teammateUserDate = DateTime.local().setZone(teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone);

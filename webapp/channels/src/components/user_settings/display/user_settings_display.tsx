@@ -103,7 +103,6 @@ type Props = OwnProps & {
     userLocale: string;
     enableThemeSelection: boolean;
     configTeammateNameDisplay: string;
-    currentUserTimezone: string;
     shouldAutoUpdateTimezone: boolean | string;
     lockTeammateNameDisplay: boolean;
     militaryTime: string;
