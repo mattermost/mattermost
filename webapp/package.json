@@ -51,6 +51,51 @@
     "webpack-cli": "5.0.2",
     "webpack-dev-server": "4.13.3"
   },
+  "overrides": {
+    "@floating-ui/react": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "@giphy/react-components": {
+      "styled-components": "5.3.6"
+    },
+    "@mui/base": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "enzyme-adapter-utils": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-bootstrap": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-color": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-contextmenu": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-custom-scrollbars": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-overlays": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-select": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-transition-group": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    }
+  },
   "workspaces": [
     "channels",
     "platform/client",

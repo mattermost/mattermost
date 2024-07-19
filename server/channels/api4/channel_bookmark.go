@@ -14,11 +14,11 @@ import (
 
 func (api *API) InitChannelBookmarks() {
 	if api.srv.Config().FeatureFlags.ChannelBookmarks {
-		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods("POST")
-		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods("PATCH")
-		api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
-		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods("DELETE")
-		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods("GET")
+		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods(http.MethodPost)
+		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods(http.MethodPatch)
+		api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods(http.MethodPost)
+		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods(http.MethodDelete)
+		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods(http.MethodGet)
 	}
 }
 

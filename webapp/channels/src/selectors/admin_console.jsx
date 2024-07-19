@@ -29,6 +29,9 @@ export const getAdminDefinition = createSelector(
 export const getAdminConsoleCustomComponents = (state, pluginId) =>
     state.plugins.adminConsoleCustomComponents[pluginId] || {};
 
+export const getAdminConsoleCustomSections = (state, pluginId) =>
+    state.plugins.adminConsoleCustomSections[pluginId] || {};
+
 export const getConsoleAccess = createSelector(
     'getConsoleAccess',
     getAdminDefinition,
