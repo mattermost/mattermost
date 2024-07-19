@@ -10,7 +10,7 @@ npm-debug.log
 webapp/yarn-error.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
-config/config.json
+config/config*.json
 config/*.crt
 config/*.key
 
