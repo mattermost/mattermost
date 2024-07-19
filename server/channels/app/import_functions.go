@@ -1807,89 +1807,87 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	}
 
 	newChannelMembers := make([]*model.ChannelMember, 0)
-	if data.Participants != nil {
-		for _, member := range data.Participants {
-			m := &model.ChannelMember{
-				NotifyProps: model.GetDefaultChannelNotifyProps(),
-			}
-			if member.LastViewedAt != nil {
-				m.LastViewedAt = *member.LastViewedAt
-			}
-			if member.MsgCount != nil {
-				m.MsgCount = *member.MsgCount
-			}
-			if member.MentionCount != nil {
-				m.MentionCount = *member.MentionCount
-			}
-			if member.MentionCountRoot != nil {
-				m.MentionCountRoot = *member.MentionCountRoot
-			}
-			if member.UrgentMentionCount != nil {
-				m.UrgentMentionCount = *member.UrgentMentionCount
-			}
-			if member.MsgCountRoot != nil {
-				m.MsgCountRoot = *member.MsgCountRoot
-			}
-			if member.SchemeUser != nil {
-				m.SchemeUser = *member.SchemeUser
-			}
-			if member.SchemeAdmin != nil {
-				m.SchemeAdmin = *member.SchemeAdmin
-			}
-			if member.SchemeGuest != nil {
-				m.SchemeGuest = *member.SchemeGuest
-			}
-
-			if member.NotifyProps != nil {
-				if member.NotifyProps.Desktop != nil {
-					if value, ok := m.NotifyProps[model.DesktopNotifyProp]; !ok || value != *member.NotifyProps.Desktop {
-						m.NotifyProps[model.DesktopNotifyProp] = *member.NotifyProps.Desktop
-					}
-				}
-
-				if member.NotifyProps.MarkUnread != nil {
-					if value, ok := m.NotifyProps[model.DesktopSoundNotifyProp]; !ok || value != *member.NotifyProps.MarkUnread {
-						m.NotifyProps[model.MarkUnreadNotifyProp] = *member.NotifyProps.MarkUnread
-					}
-				}
-
-				if member.NotifyProps.Mobile != nil {
-					if value, ok := m.NotifyProps[model.PushNotifyProp]; !ok || value != *member.NotifyProps.Mobile {
-						m.NotifyProps[model.PushNotifyProp] = *member.NotifyProps.Mobile
-					}
-				}
-
-				if member.NotifyProps.Email != nil {
-					if value, ok := m.NotifyProps[model.EmailNotifyProp]; !ok || value != *member.NotifyProps.Email {
-						m.NotifyProps[model.EmailNotifyProp] = *member.NotifyProps.Email
-					}
-				}
-
-				if member.NotifyProps.IgnoreChannelMentions != nil {
-					if value, ok := m.NotifyProps[model.IgnoreChannelMentionsNotifyProp]; !ok || value != *member.NotifyProps.IgnoreChannelMentions {
-						m.NotifyProps[model.IgnoreChannelMentionsNotifyProp] = *member.NotifyProps.IgnoreChannelMentions
-					}
-				}
-
-				if member.NotifyProps.ChannelAutoFollowThreads != nil {
-					if value, ok := m.NotifyProps[model.ChannelAutoFollowThreads]; !ok || value != *member.NotifyProps.ChannelAutoFollowThreads {
-						m.NotifyProps[model.ChannelAutoFollowThreads] = *member.NotifyProps.ChannelAutoFollowThreads
-					}
-				}
-			}
-
-			u := userMap[strings.ToLower(*member.Username)]
-			if existing, ok := existingMembers[u.Id]; ok {
-				// Decide which membership is newer. We have LastViewedAt in the import data, which should
-				// give us a good idea of which membership is newer.
-				if existing.LastViewedAt > m.LastViewedAt {
-					continue
-				}
-			}
-			m.UserId = u.Id
-			m.ChannelId = channel.Id
-			newChannelMembers = append(newChannelMembers, m)
+	for _, member := range data.Participants {
+		m := &model.ChannelMember{
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
+		if member.LastViewedAt != nil {
+			m.LastViewedAt = *member.LastViewedAt
+		}
+		if member.MsgCount != nil {
+			m.MsgCount = *member.MsgCount
+		}
+		if member.MentionCount != nil {
+			m.MentionCount = *member.MentionCount
+		}
+		if member.MentionCountRoot != nil {
+			m.MentionCountRoot = *member.MentionCountRoot
+		}
+		if member.UrgentMentionCount != nil {
+			m.UrgentMentionCount = *member.UrgentMentionCount
+		}
+		if member.MsgCountRoot != nil {
+			m.MsgCountRoot = *member.MsgCountRoot
+		}
+		if member.SchemeUser != nil {
+			m.SchemeUser = *member.SchemeUser
+		}
+		if member.SchemeAdmin != nil {
+			m.SchemeAdmin = *member.SchemeAdmin
+		}
+		if member.SchemeGuest != nil {
+			m.SchemeGuest = *member.SchemeGuest
+		}
+
+		if member.NotifyProps != nil {
+			if member.NotifyProps.Desktop != nil {
+				if value, ok := m.NotifyProps[model.DesktopNotifyProp]; !ok || value != *member.NotifyProps.Desktop {
+					m.NotifyProps[model.DesktopNotifyProp] = *member.NotifyProps.Desktop
+				}
+			}
+
+			if member.NotifyProps.MarkUnread != nil {
+				if value, ok := m.NotifyProps[model.DesktopSoundNotifyProp]; !ok || value != *member.NotifyProps.MarkUnread {
+					m.NotifyProps[model.MarkUnreadNotifyProp] = *member.NotifyProps.MarkUnread
+				}
+			}
+
+			if member.NotifyProps.Mobile != nil {
+				if value, ok := m.NotifyProps[model.PushNotifyProp]; !ok || value != *member.NotifyProps.Mobile {
+					m.NotifyProps[model.PushNotifyProp] = *member.NotifyProps.Mobile
+				}
+			}
+
+			if member.NotifyProps.Email != nil {
+				if value, ok := m.NotifyProps[model.EmailNotifyProp]; !ok || value != *member.NotifyProps.Email {
+					m.NotifyProps[model.EmailNotifyProp] = *member.NotifyProps.Email
+				}
+			}
+
+			if member.NotifyProps.IgnoreChannelMentions != nil {
+				if value, ok := m.NotifyProps[model.IgnoreChannelMentionsNotifyProp]; !ok || value != *member.NotifyProps.IgnoreChannelMentions {
+					m.NotifyProps[model.IgnoreChannelMentionsNotifyProp] = *member.NotifyProps.IgnoreChannelMentions
+				}
+			}
+
+			if member.NotifyProps.ChannelAutoFollowThreads != nil {
+				if value, ok := m.NotifyProps[model.ChannelAutoFollowThreads]; !ok || value != *member.NotifyProps.ChannelAutoFollowThreads {
+					m.NotifyProps[model.ChannelAutoFollowThreads] = *member.NotifyProps.ChannelAutoFollowThreads
+				}
+			}
+		}
+
+		u := userMap[strings.ToLower(*member.Username)]
+		if existing, ok := existingMembers[u.Id]; ok {
+			// Decide which membership is newer. We have LastViewedAt in the import data, which should
+			// give us a good idea of which membership is newer.
+			if existing.LastViewedAt > m.LastViewedAt {
+				continue
+			}
+		}
+		m.UserId = u.Id
+		m.ChannelId = channel.Id
+		newChannelMembers = append(newChannelMembers, m)
 	}
 
 	// the channel memberships are already created in the channel creation

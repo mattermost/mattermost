@@ -874,14 +874,14 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 		for _, member := range channel.Members {
 			prefs, err := a.Srv().Store().Preference().GetCategory(member.UserId, model.PreferenceCategoryGroupChannelShow)
 			if err != nil {
-				return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, model.NewAppError("buildShownByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			for i := range prefs {
 				if prefs[i].Name == channel.Id && prefs[i].Value == "true" {
 					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
 					if err != nil {
-						return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 
 					shownBy = append(shownBy, user.Username)
@@ -896,14 +896,14 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 			}
 			prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryDirectChannelShow, otherMember.UserId)
 			if err != nil {
-				return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, model.NewAppError("buildShownByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			for _, pref := range prefs {
 				if pref.Value == "true" && pref.UserId == member.UserId {
 					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
 					if err != nil {
-						return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 
 					shownBy = append(shownBy, user.Username)
