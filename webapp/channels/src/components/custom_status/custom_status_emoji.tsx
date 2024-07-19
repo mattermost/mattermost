@@ -109,13 +109,13 @@ function CustomStatusEmoji({
                         )}
                     </div>
                     {customStatus.expires_at &&
-                        customStatus.duration !== 
+                        customStatus.duration !==
                         CustomStatusDuration.DONT_CLEAR && (
                         <div>
                             <ExpiryTime
-                            time={customStatus.expires_at}
-                            timezone={timezone}
-                            className='custom-status-expiry'
+                                time={customStatus.expires_at}
+                                timezone={timezone}
+                                className='custom-status-expiry'
                             />
                         </div>
                     )}
