@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {PreferencesType} from '@mattermost/types/preferences';
+
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 import ShowUnreadsCategory from './show_unreads_category';
 
@@ -15,6 +17,9 @@ export interface Props {
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
+    adminMode?: boolean;
+    userId: string;
+    userPreferences?: PreferencesType;
 }
 
 export default function UserSettingsSidebar(props: Props): JSX.Element {
@@ -48,12 +53,18 @@ export default function UserSettingsSidebar(props: Props): JSX.Element {
                     active={props.activeSection === 'showUnreadsCategory'}
                     updateSection={props.updateSection}
                     areAllSectionsInactive={props.activeSection === ''}
+                    adminMode={props.adminMode}
+                    userId={props.userId}
+                    userPreferences={props.userPreferences}
                 />
                 <div className='divider-dark'/>
                 <LimitVisibleGMsDMs
                     active={props.activeSection === 'limitVisibleGMsDMs'}
                     updateSection={props.updateSection}
                     areAllSectionsInactive={props.activeSection === ''}
+                    adminMode={props.adminMode}
+                    userId={props.userId}
+                    userPreferences={props.userPreferences}
                 />
                 <div className='divider-dark'/>
             </div>
