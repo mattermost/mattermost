@@ -172,7 +172,8 @@ func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClus
 
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("rc")...).
-		From("RemoteClusters rc")
+		From("RemoteClusters rc").
+		OrderBy("rc.DisplayName, rc.Name")
 
 	if filter.InChannel != "" {
 		query = query.Where("rc.RemoteId IN (SELECT scr.RemoteId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", filter.InChannel)

@@ -3032,7 +3032,6 @@
   "create_group_memberships_modal.create": "Ano",
   "create_group_memberships_modal.desc": "Tímto přidáte (nebo znovu přidáte) {username} do všech dostupných týmů a kanálů na základě jejich členství ve skupinách. Tuto změnu můžete kdykoli vrátit.",
   "create_group_memberships_modal.title": "Znovu přidejte uživatele {username} do týmů a kanálů",
-  "create_post.comment": "Komentář",
   "create_post.deactivated": "Prohlížíte si archivovaný kanál s **deaktivovaným uživatelem**. Nové zprávy nelze posílat.",
   "create_post.error_message": "Vaše zpráva je příliš dlouhá. Počet znaků: {length}/{limit}",
   "create_post.fileProcessing": "Zpracovává se...",
