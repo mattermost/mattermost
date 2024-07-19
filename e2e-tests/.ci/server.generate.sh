@@ -128,7 +128,7 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
     if [ "$MME2E_ARCHTYPE" = "arm64" ]; then
       echo '
   elasticsearch:
-    image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
+    image: mattermostdevelopment/mattermost-elasticsearch:8.9.0
     platform: linux/arm64/v8
     restart: "no"
     network_mode: host
@@ -315,6 +315,8 @@ generate_env_files() {
     case "$SERVER" in
     cloud)
       echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
+      echo "CYPRESS_cwsURL=${CWS_URL}" >> .env.cypress
+      echo "CYPRESS_cwsAPIURL=${CWS_URL}" >> .env.cypress
       ;;
     *)
       echo "CYPRESS_serverEdition=E20" >>.env.cypress

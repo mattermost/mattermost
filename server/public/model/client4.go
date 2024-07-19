@@ -8852,8 +8852,8 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.permissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, err := c.DoAPIGet(ctx, url, "")
+	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
+	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}

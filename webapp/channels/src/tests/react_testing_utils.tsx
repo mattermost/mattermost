@@ -14,6 +14,7 @@ import type {Reducer} from 'redux';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import configureStore from 'store';
+import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
@@ -72,6 +73,8 @@ export const renderWithContext = (
         );
     }
 
+    replaceGlobalStore(() => renderState.store);
+
     const results = render(component, {wrapper: WrapComponent});
 
     return {
@@ -119,4 +122,14 @@ function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: b
         testStore = mockStore(testStore.getState());
     }
     return testStore;
+}
+
+function replaceGlobalStore(getStore: () => any) {
+    jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
+    jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
+    jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
+    jest.spyOn(globalStore, '@@observable').mockImplementation((...args) => getStore()['@@observable'](...args));
+
+    // This may stop working if getStore starts to return new results
+    jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
 }

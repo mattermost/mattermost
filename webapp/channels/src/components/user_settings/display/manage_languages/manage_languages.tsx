@@ -20,6 +20,7 @@ import {isKeyPressed} from 'utils/keyboard';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
+    patchUser: (user: UserProfile) => Promise<ActionResult>;
 };
 
 type Props = {
@@ -29,6 +30,7 @@ type Props = {
     locales: Record<string, Language>;
     updateSection: (section: string) => void;
     actions: Actions;
+    adminMode?: boolean;
 };
 
 type SelectedOption = {
@@ -122,9 +124,10 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
     submitUser = (user: UserProfile) => {
         this.setState({isSaving: true});
 
-        this.props.actions.updateMe(user).then((res) => {
+        const action = this.props.adminMode ? this.props.actions.patchUser : this.props.actions.updateMe;
+        action(user).then((res) => {
             if ('data' in res) {
-                // Do nothing since changing the locale essentially refreshes the page
+                this.setState({isSaving: false});
             } else if ('error' in res) {
                 let serverError;
                 const {error} = res;
