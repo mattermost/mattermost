@@ -143,7 +143,7 @@ const Input = React.forwardRef((
             onTouchEnd={handleOnClear}
         >
             <WithTooltip
-                id='InputClearTooltip'
+                id='inputClearTooltip'
                 title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
                 placement='bottom'
             >
