@@ -26,11 +26,7 @@ export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element =
     if (description) {
         label = (
             <WithTooltip
-                id={
-                    'plugin-marketplace_label_' +
-                    name.toLowerCase() +
-                    '-tooltip'
-                }
+                id={'plugin-marketplace_label_' + name.toLowerCase() + '-tooltip'}
                 title={description}
                 placement='top'
             >
