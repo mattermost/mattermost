@@ -7660,7 +7660,7 @@ func (a *OpenTracingAppLayer) GetMarketplacePlugins(rctx request.CTX, filter *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetMattermostLog(ctx request.CTX) (*model.FileData, error) {
+func (a *OpenTracingAppLayer) GetMattermostLog(rctx request.CTX) (*model.FileData, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMattermostLog")
 
@@ -7672,7 +7672,7 @@ func (a *OpenTracingAppLayer) GetMattermostLog(ctx request.CTX) (*model.FileData
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetMattermostLog(ctx)
+	resultVar0, resultVar1 := a.app.GetMattermostLog(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
