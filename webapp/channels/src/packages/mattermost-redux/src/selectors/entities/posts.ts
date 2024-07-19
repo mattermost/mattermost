@@ -112,13 +112,6 @@ export function getPostIdsInCurrentChannel(state: GlobalState): Array<Post['id']
     return getPostIdsInChannel(state, state.entities.channels.currentChannelId);
 }
 
-// getPostsInCurrentChannel returns the posts loaded at the bottom of the channel. It does not include older posts
-// such as those loaded by viewing a thread or a permalink.
-export const getPostsInCurrentChannel: (state: GlobalState) => Post[] | undefined | null = (() => {
-    const getPostsInChannel = makeGetPostsInChannel();
-    return (state: GlobalState) => getPostsInChannel(state, state.entities.channels.currentChannelId, -1);
-})();
-
 export function makeGetPostIdsForThread(): (state: GlobalState, postId: Post['id']) => Array<Post['id']> {
     const getPostsForThread = makeGetPostsForThread();
 
@@ -214,37 +207,32 @@ export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = (sta
 
 // makeGetPostsInChannel creates a selector that returns up to the given number of posts loaded at the bottom of the
 // given channel. It does not include older posts such as those loaded by viewing a thread or a permalink.
-export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel['id'], numPosts: number) => Post[] | undefined | null {
-    return createSelector(
-        'makeGetPostsInChannel',
-        getAllPosts,
-        (state: GlobalState, channelId: Channel['id']) => getPostIdsInChannel(state, channelId),
-        getCurrentUser,
-        shouldShowJoinLeaveMessages,
-        (state: GlobalState, channelId: Channel['id'], numPosts: number) => numPosts || Posts.POST_CHUNK_SIZE,
-        (allPosts, allPostIds, currentUser, showJoinLeave, numPosts) => {
-            if (!allPostIds) {
-                return null;
+export const getPostsInCurrentChannel: (state: GlobalState) => Post[] | undefined | null = createSelector(
+    'getPostsInCurrentChannel',
+    getAllPosts,
+    getPostIdsInCurrentChannel,
+    getCurrentUser,
+    shouldShowJoinLeaveMessages,
+    (allPosts, postIds, currentUser, showJoinLeave) => {
+        if (!postIds) {
+            return null;
+        }
+
+        const posts: Post[] = [];
+
+        for (let i = 0; i < postIds.length; i++) {
+            const post = allPosts[postIds[i]];
+
+            if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
+                continue;
             }
 
-            const posts: Post[] = [];
+            posts.push(post);
+        }
 
-            const postIds = numPosts === -1 ? allPostIds : allPostIds.slice(0, numPosts);
-
-            for (let i = 0; i < postIds.length; i++) {
-                const post = allPosts[postIds[i]];
-
-                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
-                    continue;
-                }
-
-                posts.push(post);
-            }
-
-            return posts;
-        },
-    );
-}
+        return posts;
+    },
+);
 
 // Returns a function that creates a creates a selector that will get the posts for a given thread.
 // That selector will take a props object (containing a rootId field) as its
