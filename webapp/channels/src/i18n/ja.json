@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "はい",
   "create_group_memberships_modal.desc": "LDAPグループメンバーシップに基いて {username} がチームとチャンネルに追加または再追加されます。この変更はいつでも元に戻すことができます。",
   "create_group_memberships_modal.title": "{username} をチームとチャンネルに再追加する",
-  "create_post.comment": "コメント",
   "create_post.deactivated": "**無効化されたユーザー** のいるアーカイブされたチャンネルを見ています。新しいメッセージは投稿できません。",
   "create_post.error_message": "メッセージが長すぎます。文字数: {length}/{limit}",
   "create_post.fileProcessing": "処理しています...",

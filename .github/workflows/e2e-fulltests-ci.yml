@@ -7,11 +7,11 @@ on:
     inputs:
       ref:
         type: string
-        description: Branch or SHA of the commit to test. Ignored if PR_NUMBER is specified
+        description: Git ref to test. Must be a full commit SHA for PR testing, and a tag for release testing. Ignored for daily tests.
         required: false
       PR_NUMBER:
         type: string
-        description: If testing a PR, specify this instead of ref
+        description: If testing a PR, this must be specified as well.
         required: false
       MM_ENV:
         type: string
@@ -22,6 +22,7 @@ on:
         options:
           - PR
           - RELEASE
+          - RELEASE_CLOUD
           - MASTER
           - MASTER_UNSTABLE
           - CLOUD
@@ -34,41 +35,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  resolve-ref:
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-    outputs:
-      commit_sha: "${{ steps.resolve-ref.outputs.commit_sha }}"
-      BRANCH: "${{ steps.resolve-ref.outputs.BRANCH }}"
-    env:
-      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          ref: "${{ inputs.ref || github.sha }}"
-          fetch-depth: 0
-      - name: ci/resolve-ref
-        id: resolve-ref
-        run: |
-          set -e
-          if [ -n "$PR_NUMBER" ]; then
-            curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
-            echo "commit_sha=$(jq -r .head.sha <pr.json)" >> $GITHUB_OUTPUT
-            echo "BRANCH=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
-            # For reference, the real branch name may be retrievable as follows:
-            #echo "BRANCH=$(jq -r .head.ref <pr.json)" >> $GITHUB_OUTPUT
-          else
-            echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
-            echo "BRANCH=${{ inputs.ref || github.sha }}" >> $GITHUB_OUTPUT
-          fi
-
   generate-test-variables:
     runs-on: ubuntu-22.04
-    needs:
-      - resolve-ref
     permissions:
       issues: write
       pull-requests: write
@@ -76,6 +44,9 @@ jobs:
       run:
         shell: bash
     outputs:
+      commit_sha: "${{ steps.generate.outputs.commit_sha }}"
+      BRANCH: "${{ steps.generate.outputs.BRANCH }}"
+      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
       status_check_context: "${{ steps.generate.outputs.status_check_context }}"
       workers_number: "${{ steps.generate.outputs.workers_number }}"
       server_uppercase: "${{ steps.generate.outputs.server_uppercase }}" # Required for license selection
@@ -84,8 +55,10 @@ jobs:
       TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
+      REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
     env:
       GH_TOKEN: "${{ github.token }}"
+      REF: "${{ inputs.ref || github.sha }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
@@ -94,62 +67,109 @@ jobs:
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
-      TEST_FILTER_DAILY_ONPREM: >-
+      TEST_FILTER_PROD_ONPREM: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
-      TEST_FILTER_DAILY_CLOUD: >-
+      TEST_FILTER_PROD_CLOUD: >-
         --stage="@prod"
         --excludeGroup="@not_cloud,@cloud_trial,@e20_only,@te_only,@high_availability,@license_removal"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
     steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: "${{ inputs.ref || github.sha }}"
+          fetch-depth: 0
       - name: ci/generate-test-variables
         id: generate
         run: |
-          COMMIT_SHA="${{needs.resolve-ref.outputs.commit_sha}}"
-          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
-          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${COMMIT_SHA::7}"
           MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
-          SERVER=onprem
+          if grep -q CLOUD <<<"$REPORT_TYPE"; then
+            SERVER=cloud
+          else
+            SERVER=onprem
+          fi
           case "$REPORT_TYPE" in
             NONE | PR)
-              echo "status_check_context=E2E Tests/test${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
-              echo "workers_number=20" >> $GITHUB_OUTPUT
-              echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
-              echo "BUILD_ID=${BUILD_ID_PREFIX}-${REPORT_TYPE@L}-${SERVER}-ent" >> $GITHUB_OUTPUT
+              ### Populate support variables
+              _COMMIT_SHA_COMPUTED=$(git rev-parse --verify "$REF") # NB: not actually used for resolving the commit; it's only to double check the value of 'inputs.ref'
+              ### For image tag generation: utilize 'inputs.ref', assume that it is a full commit SHA
+              COMMIT_SHA="${REF}"
+              BRANCH="server-pr-${PR_NUMBER}"   # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
+              SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+              SERVER_IMAGE_ORG=mattermostdevelopment
+              BUILD_ID_SUFFIX="${REPORT_TYPE@L}-${SERVER}-ent"
+              STATUS_CHECK_CONTEXT="E2E Tests/test${MM_ENV:+/$MM_ENV_HASH}"
+              WORKERS_NUMBER=20
+              TEST_FILTER="$TEST_FILTER_PR"
+              COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
+              ### Run sanity assertions after variable generations
+              [ "$REF" = "${_COMMIT_SHA_COMPUTED}" ]             # 'inputs.ref' must be a full commit hash, and the commit must exist
+              [ "$REPORT_TYPE" != "PR" -o "$PR_NUMBER" -gt "0" ] # If report type is PR, then PR_NUMBER must be set to a number
               ;;
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
-              IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # Variable is UNSTABLE if report type is for unstable tests
-              if grep -q CLOUD <<<$REPORT_TYPE; then
-                SERVER=cloud
-              fi
-              TEST_FILTER_VARIABLE="TEST_FILTER_DAILY_${SERVER@U}"
-              BUILD_ID_SUFFIX="${IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
-              echo "status_check_context=E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
-              echo "workers_number=10" >> $GITHUB_OUTPUT # Daily tests are not time critical, and it's more efficient to run on fewer workers
-              echo "TEST_FILTER=${!TEST_FILTER_VARIABLE} ${IS_TEST_UNSTABLE:+--invert}" >> $GITHUB_OUTPUT
-              echo "BUILD_ID=${BUILD_ID_PREFIX}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
-              echo "TM4J_ENABLE=true" >> $GITHUB_OUTPUT
+              ### Populate support variables
+              _IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # The variable's value is 'UNSTABLE' if report type is for unstable tests, otherwise it's empty
+              _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
+              ### For ref and image tag generation: ignore 'inputs.ref', and use master branch directly. Note that 'COMMIT_SHA' will be used for reporting the test result, and for checking out the testing scripts and test cases
+              COMMIT_SHA="$(git rev-parse --verify origin/master)"
+              BRANCH=master
+              SERVER_IMAGE_TAG=master
+              SERVER_IMAGE_ORG=mattermostdevelopment
+              BUILD_ID_SUFFIX="${_IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
+              STATUS_CHECK_CONTEXT="E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}"
+              WORKERS_NUMBER=10   # Daily tests are not time critical, and it's more efficient to run on fewer workers
+              TEST_FILTER="${!_TEST_FILTER_VARIABLE} ${_IS_TEST_UNSTABLE:+--invert}"
+              TM4J_ENABLE=true
+              COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
+              ;;
+            RELEASE | RELEASE_CLOUD)
+              ### Populate support variables
+              _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
+              ### For ref and image tag generation: assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
+              COMMIT_SHA="$(git rev-parse --verify HEAD)"
+              BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
+              SERVER_IMAGE_TAG="$(cut -c2- <<<$REF)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
+              SERVER_IMAGE_ORG=mattermost
+              BUILD_ID_SUFFIX="release-${SERVER}-ent"
+              STATUS_CHECK_CONTEXT="E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}"
+              WORKERS_NUMBER=20
+              TEST_FILTER="${!_TEST_FILTER_VARIABLE}"
+              TM4J_ENABLE=true
+              COMPUTED_REPORT_TYPE=RELEASE
+              ### Run sanity assertions after variable generations
+              git show-ref --verify "refs/tags/${REF}"              # 'inputs.ref' must be a tag, for release report types
+              git show-ref --verify "refs/remotes/origin/${BRANCH}" # The release branch computed from the given tag must exist
               ;;
             *)
-              # TODO implement release testing, in the future
               echo "Fatal: unimplemented test type. Aborting."
               exit 1
           esac
+          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
+          echo "status_check_context=${STATUS_CHECK_CONTEXT}" >> $GITHUB_OUTPUT
+          echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
+          echo "TEST_FILTER=${TEST_FILTER}" >> $GITHUB_OUTPUT
+          echo "TM4J_ENABLE=${TM4J_ENABLE:-}" >> $GITHUB_OUTPUT
+          echo "REPORT_TYPE=${COMPUTED_REPORT_TYPE}" >> $GITHUB_OUTPUT
+          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
+          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
+          echo "BUILD_ID=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
       - name: ci/notify-user
         run: |
           if [ -n "$PR_NUMBER" ]; then
             WORKFLOW_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             CYCLE_URL="https://automation-dashboard.vercel.app/cycle/${{ github.run_id }}"
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          E2E test run is starting for commit \`${{ needs.resolve-ref.outputs.commit_sha }}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          E2E test run is starting for commit \`${{ steps.generate.outputs.commit_sha }}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           You can check its progress by either:
           - Looking at the corresponding commit status, which will be available in a few moments: \`${{ steps.generate.outputs.status_check_context }}\`.
           - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
@@ -159,7 +179,6 @@ jobs:
 
   e2e-fulltest:
     needs:
-      - resolve-ref
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
     strategy:
@@ -167,19 +186,20 @@ jobs:
         type:
         - name: PR
     with:
-      commit_sha: "${{ needs.resolve-ref.outputs.commit_sha }}"
+      commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
       testcase_failure_fatal: false
       run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
+      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
-      BRANCH: "${{ needs.resolve-ref.outputs.BRANCH }}"
+      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
-      REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
+      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"

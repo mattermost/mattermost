@@ -48,6 +48,14 @@ export function getMyPreferences() {
     });
 }
 
+// used for fetching some other user's preferences other than current user
+export function getUserPreferences(userID: string) {
+    return bindClientFunc({
+        clientFunc: () => Client4.getUserPreferences(userID),
+        onSuccess: PreferenceTypes.RECEIVED_USER_ALL_PREFERENCES,
+    });
+}
+
 export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -77,11 +85,15 @@ export function setCustomStatusInitialisationState(initializationState: Record<s
 }
 
 export function savePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         (async function savePreferencesWrapper() {
+            const state = getState();
+            const currentUserId = getCurrentUserId(state);
+            const actionType = userId === currentUserId ? PreferenceTypes.RECEIVED_PREFERENCES : PreferenceTypes.RECEIVED_USER_PREFERENCES;
+
             try {
                 dispatch({
-                    type: PreferenceTypes.RECEIVED_PREFERENCES,
+                    type: actionType,
                     data: preferences,
                 });
 
