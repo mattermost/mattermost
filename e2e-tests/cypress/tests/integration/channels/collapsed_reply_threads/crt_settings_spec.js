@@ -44,7 +44,7 @@ describe('Collapsed Reply Threads', () => {
         // # Visit global threads
         cy.visit(`/${testTeam.name}/threads`);
 
-        // * should see followed threads in H2 title
-        cy.get('h2').should('have.text', 'Followed threads');
+        // * should see No followed threads yet in H3 title
+        cy.get('h3.no-results__title').should('have.text', 'No followed threads yet');
     });
 });

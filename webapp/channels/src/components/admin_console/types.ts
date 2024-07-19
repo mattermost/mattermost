@@ -167,12 +167,14 @@ type AdminDefinitionConfigSchemaSettings = {
     header?: string | MessageDescriptor;
 }
 
-type AdminDefinitionConfigSchemaSection = {
-    title: string;
+export type AdminDefinitionConfigSchemaSection = {
+    key: string;
+    title?: string;
     subtitle?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
+    component?: Component;
 }
 
 type RestrictedIndicatorType = {
