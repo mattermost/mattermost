@@ -205,8 +205,8 @@ export function getLatestPostToEdit(state: GlobalState, channelId: string, rootI
 
 export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = (state) => getLatestInteractablePostId(state, getCurrentChannelId(state));
 
-// makeGetPostsInChannel creates a selector that returns up to the given number of posts loaded at the bottom of the
-// given channel. It does not include older posts such as those loaded by viewing a thread or a permalink.
+// getPostsInCurrentChannel returns an array of all recent posts loaded at the bottom of the given channel.
+// It does not include older posts such as those loaded by viewing a thread or a permalink.
 export const getPostsInCurrentChannel: (state: GlobalState) => Post[] | undefined | null = createSelector(
     'getPostsInCurrentChannel',
     getAllPosts,
