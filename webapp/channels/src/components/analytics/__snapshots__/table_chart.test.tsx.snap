@@ -26,9 +26,9 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
                 placement="top"
                 title="test-tip1"
               >
-                <time>
+                <span>
                   test1
-                </time>
+                </span>
               </WithTooltip>
             </td>
             <td>
@@ -46,9 +46,9 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
                 placement="top"
                 title="test-tip2"
               >
-                <time>
+                <span>
                   test2
-                </time>
+                </span>
               </WithTooltip>
             </td>
             <td>

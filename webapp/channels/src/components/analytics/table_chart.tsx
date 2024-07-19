@@ -36,7 +36,7 @@ const TableChart = ({
                                             placement='top'
                                             title={item.tip}
                                         >
-                                            <time>{item.name}</time>
+                                            <span>{item.name}</span>
                                         </WithTooltip>
                                     </td>
                                     <td>{item.value}</td>
