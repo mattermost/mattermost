@@ -80,6 +80,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 	keys, err := s.rootStore.profilesInChannelCache.Keys()
 	if err == nil {
 		for _, key := range keys {
+			// TODO: use MGET here on batches of keys
 			var userMap map[string]*model.User
 			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
 				if _, userInCache := userMap[userId]; userInCache {
@@ -177,33 +178,13 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 			}
 			s.userProfileByIdsMut.Unlock()
 			remainingUserIds = append(remainingUserIds, userIds[i])
+		} else {
+			gotUser := *(toPass[i].(**model.User))
+			if (gotUser != nil) && (options.Since == 0 || gotUser.UpdateAt > options.Since) {
+				users = append(users, gotUser)
+			}
 		}
 	}
-
-	for i := range userIds {
-		gotUser := *(toPass[i].(**model.User))
-		if (gotUser != nil) && (options.Since == 0 || gotUser.UpdateAt > options.Since) {
-			users = append(users, gotUser)
-		}
-	}
-	// for _, userId := range userIds {
-	// 	var cacheItem *model.User
-	// 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
-	// 		if options.Since == 0 || cacheItem.UpdateAt > options.Since {
-	// 			users = append(users, cacheItem)
-	// 		}
-	// 	} else {
-	// 		// If it was invalidated, then we need to query master.
-	// 		s.userProfileByIdsMut.Lock()
-	// 		if s.userProfileByIdsInvalidations[userId] {
-	// 			fromMaster = true
-	// 			// And then remove the key from the map.
-	// 			delete(s.userProfileByIdsInvalidations, userId)
-	// 		}
-	// 		s.userProfileByIdsMut.Unlock()
-	// 		remainingUserIds = append(remainingUserIds, userId)
-	// 	}
-	// }
 
 	if len(remainingUserIds) > 0 {
 		if fromMaster {
@@ -282,33 +263,13 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 			}
 			s.userProfileByIdsMut.Unlock()
 			notCachedUserIds = append(notCachedUserIds, uniqIDs[i])
+		} else {
+			gotUser := *(toPass[i].(**model.User))
+			if gotUser != nil {
+				cachedUsers = append(cachedUsers, gotUser)
+			}
 		}
 	}
-
-	for i := range uniqIDs {
-		gotUser := *(toPass[i].(**model.User))
-		if gotUser != nil {
-			cachedUsers = append(cachedUsers, gotUser)
-		}
-	}
-
-	// for _, id := range uniqIDs {
-	// 	var cachedUser *model.User
-	// 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
-	// 		cachedUsers = append(cachedUsers, cachedUser)
-	// 	} else {
-	// 		// If it was invalidated, then we need to query master.
-	// 		s.userProfileByIdsMut.Lock()
-	// 		if s.userProfileByIdsInvalidations[id] {
-	// 			fromMaster = true
-	// 			// And then remove the key from the map.
-	// 			delete(s.userProfileByIdsInvalidations, id)
-	// 		}
-	// 		s.userProfileByIdsMut.Unlock()
-
-	// 		notCachedUserIds = append(notCachedUserIds, id)
-	// 	}
-	// }
 
 	if len(notCachedUserIds) > 0 {
 		if fromMaster {

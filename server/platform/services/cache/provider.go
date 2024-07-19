@@ -93,6 +93,7 @@ func NewRedisProvider(opts *RedisOptions) Provider {
 		Password:          opts.RedisPassword,
 		SelectDB:          opts.RedisDB,
 		ForceSingleClient: true,
+		CacheSizeEachConn: 16 * (1 << 20), // 16MiB local cache size
 		//TODO: look into MaxFlushDelay
 	})
 	// client := redis.NewClient(&redis.Options{

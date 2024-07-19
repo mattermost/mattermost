@@ -258,24 +258,13 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 					mlog.Error("error in cache: ", mlog.Err(err))
 				}
 				channelsToQuery = append(channelsToQuery, ids[i])
+			} else {
+				gotChannel := *(toPass[i].(**model.Channel))
+				if gotChannel != nil {
+					foundChannels = append(foundChannels, gotChannel)
+				}
 			}
 		}
-
-		for i := range ids {
-			gotChannel := *(toPass[i].(**model.Channel))
-			if gotChannel != nil {
-				foundChannels = append(foundChannels, gotChannel)
-			}
-		}
-
-		// for _, id := range ids {
-		// 	var ch *model.Channel
-		// 	if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &ch); err == nil {
-		// 		foundChannels = append(foundChannels, ch)
-		// 	} else {
-		// 		channelsToQuery = append(channelsToQuery, id)
-		// 	}
-		// }
 	}
 
 	if channelsToQuery == nil {
@@ -374,23 +363,13 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 					mlog.Error("error in cache: ", mlog.Err(err))
 				}
 				misses = append(misses, strings.TrimPrefix(newKeys[i], teamId))
+			} else {
+				gotChannel := *(toPass[i].(**model.Channel))
+				if (gotChannel != nil) && (includeArchivedChannels || gotChannel.DeleteAt == 0) {
+					channels = append(channels, gotChannel)
+				}
 			}
 		}
-
-		for i := range newKeys {
-			gotChannel := *(toPass[i].(**model.Channel))
-			if (gotChannel != nil) && (includeArchivedChannels || gotChannel.DeleteAt == 0) {
-				channels = append(channels, gotChannel)
-			}
-		}
-		// var cacheItem *model.Channel
-		// if err := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name, &cacheItem); err == nil {
-		// 	if includeArchivedChannels || cacheItem.DeleteAt == 0 {
-		// 		channels = append(channels, cacheItem)
-		// 	}
-		// } else {
-		// 	misses = append(misses, name)
-		// }
 		names = misses
 	}
 
@@ -491,24 +470,13 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 				mlog.Error("error in cache: ", mlog.Err(err))
 			}
 			remainingChannels = append(remainingChannels, channelIDs[i])
+		} else {
+			gotCount := *(toPass[i].(*int64))
+			if gotCount != 0 {
+				counts[channelIDs[i]] = gotCount
+			}
 		}
 	}
-	for i := range channelIDs {
-		gotCount := *(toPass[i].(*int64))
-		// TODO: This will improve once we combine with the above loop.
-		if gotCount != 0 {
-			counts[channelIDs[i]] = gotCount
-		}
-	}
-	// for _, channelID := range channelIDs {
-	// 	var cacheItem int64
-	// 	err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelID, &cacheItem)
-	// 	if err == nil {
-	// 		counts[channelID] = cacheItem
-	// 	} else {
-	// 		remainingChannels = append(remainingChannels, channelID)
-	// 	}
-	// }
 
 	if len(remainingChannels) > 0 {
 		remainingChannels, err := s.ChannelStore.GetChannelsMemberCount(remainingChannels)

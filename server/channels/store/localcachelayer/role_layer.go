@@ -62,15 +62,6 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	var foundRoles []*model.Role
 	var rolesToQuery []string
 
-	// for _, roleName := range names {
-	// 	var role *model.Role
-	// 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, roleName, &role); err == nil {
-	// 		foundRoles = append(foundRoles, role)
-	// 	} else {
-	// 		rolesToQuery = append(rolesToQuery, roleName)
-	// 	}
-	// }
-
 	var toPass []any
 	for i := 0; i < len(names); i++ {
 		var role *model.Role
@@ -83,12 +74,11 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 				mlog.Error("error in cache: ", mlog.Err(err))
 			}
 			rolesToQuery = append(rolesToQuery, names[i])
-		}
-	}
-	for i := range names {
-		gotRole := *(toPass[i].(**model.Role))
-		if gotRole != nil {
-			foundRoles = append(foundRoles, gotRole)
+		} else {
+			gotRole := *(toPass[i].(**model.Role))
+			if gotRole != nil {
+				foundRoles = append(foundRoles, gotRole)
+			}
 		}
 	}
 

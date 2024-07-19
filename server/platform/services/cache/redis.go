@@ -28,6 +28,11 @@ func NewRedis(opts *CacheOptions, client rueidis.Client) (*Redis, error) {
 	if opts.Name == "" {
 		return nil, errors.New("no name specified for cache")
 	}
+	expiry := opts.DefaultExpiry
+	// Setting the minimum expiry to be 30 mins.
+	if expiry < 30*time.Minute {
+		expiry = 30 * time.Minute
+	}
 	return &Redis{
 		name:          opts.Name,
 		defaultExpiry: opts.DefaultExpiry,
@@ -82,8 +87,6 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 		return err
 	}
 
-	// return r.client.Pipeline().Set(context.Background(), r.name+":"+key, buf, ttl).Err()
-
 	return r.client.Do(context.Background(),
 		r.client.B().Set().
 			Key(r.name+":"+key).
@@ -91,7 +94,6 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 			Ex(ttl).
 			Build(),
 	).Error()
-	// return r.client.Set(context.Background(), r.name+":"+key, buf, ttl).Err()
 }
 
 // Get the content stored in the cache for the given key, and decode it into the value interface.
@@ -104,10 +106,11 @@ func (r *Redis) Get(key string, value any) error {
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Get", elapsed)
 		}
 	}()
-	val, err := r.client.Do(context.Background(),
+	val, err := r.client.DoCache(context.Background(),
 		r.client.B().Get().
 			Key(r.name+":"+key).
-			Build(),
+			Cache(),
+		5*time.Minute,
 	).AsBytes()
 	// val, err := r.client.Get(context.Background(), r.name+":"+key).Result()
 	if err != nil {
@@ -163,10 +166,11 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 	for i := range keys {
 		newKeys[i] = r.name + ":" + keys[i]
 	}
-	vals, err := r.client.Do(context.Background(),
+	vals, err := r.client.DoCache(context.Background(),
 		r.client.B().Mget().
 			Key(newKeys...).
-			Build(),
+			Cache(),
+		5*time.Minute,
 	).ToArray()
 	if err != nil {
 		for i := range errs {
