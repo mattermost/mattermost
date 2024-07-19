@@ -159,7 +159,6 @@ const defaultServerConfig: AdminConfig = {
         EnableUserStatuses: true,
         ExperimentalEnableAuthenticationTransfer: true,
         ClusterLogTimeoutMilliseconds: 2000,
-        EnablePreviewFeatures: true,
         EnableTutorial: true,
         EnableOnboardingFlow: true,
         ExperimentalEnableDefaultChannelLeaveJoinMessages: true,
