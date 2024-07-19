@@ -18,7 +18,7 @@ export interface Props {
     closeModal: () => void;
     collapseModal: () => void;
     adminMode?: boolean;
-    currentUserId?: string;
+    userId: string;
     userPreferences?: PreferencesType;
 }
 
@@ -54,7 +54,7 @@ export default function UserSettingsSidebar(props: Props): JSX.Element {
                     updateSection={props.updateSection}
                     areAllSectionsInactive={props.activeSection === ''}
                     adminMode={props.adminMode}
-                    currentUserId={props.currentUserId}
+                    userId={props.userId}
                     userPreferences={props.userPreferences}
                 />
                 <div className='divider-dark'/>
@@ -63,7 +63,7 @@ export default function UserSettingsSidebar(props: Props): JSX.Element {
                     updateSection={props.updateSection}
                     areAllSectionsInactive={props.activeSection === ''}
                     adminMode={props.adminMode}
-                    currentUserId={props.currentUserId}
+                    userId={props.userId}
                     userPreferences={props.userPreferences}
                 />
                 <div className='divider-dark'/>

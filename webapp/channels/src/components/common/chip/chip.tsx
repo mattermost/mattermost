@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
@@ -11,8 +12,7 @@ import RenderEmoji from 'components/emoji/render_emoji';
 
 type Props = {
     onClick?: () => void;
-    id?: string;
-    defaultMessage?: string;
+    display?: MessageDescriptor;
     values?: Record<string, any>;
     className?: string;
 
@@ -59,8 +59,7 @@ const Chip = ({
     otherOption,
     className,
     leadingIcon,
-    id,
-    defaultMessage,
+    display,
     values,
     additionalMarkup,
 }: Props) => {
@@ -81,10 +80,9 @@ const Chip = ({
                     emojiStyle={emojiStyles}
                 />
             )}
-            {(id && defaultMessage && values) && (
+            {(display && values) && (
                 <FormattedMessage
-                    id={id}
-                    defaultMessage={defaultMessage}
+                    {...display}
                     values={values}
                 />
             )}

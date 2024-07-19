@@ -3339,7 +3339,6 @@
   "create_group_memberships_modal.create": "Ja",
   "create_group_memberships_modal.desc": "Du är på väg att lägga till {username} till team och kanaler baserat på LDAP-gruppmedlemskap. Du kan återkalla den här ändringen när som helst.",
   "create_group_memberships_modal.title": "Lägg till {username} i team och kanaler på nytt",
-  "create_post.comment": "Kommentar",
   "create_post.deactivated": "Du visar en arkiverad kanal med ett **avstängt användarkonto**. Nya meddelanden kan inte postas.",
   "create_post.error_message": "Ditt meddelande är för långt. Antal tecken: {length}/{limit}",
   "create_post.fileProcessing": "Bearbetar...",
