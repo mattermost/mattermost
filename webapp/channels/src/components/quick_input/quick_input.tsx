@@ -198,7 +198,7 @@ export class QuickInput extends React.PureComponent<Props> {
                 role='button'
             >
                 <WithTooltip
-                    id='InputClearTooltip'
+                    id='inputClearTooltip'
                     title={clearableTooltipText}
                     placement={tooltipPosition}
                 >
