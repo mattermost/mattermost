@@ -4530,10 +4530,6 @@
     "translation": "Đã xảy ra lỗi khi tham gia kênh."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Không thể khởi động bộ xử lý hàng loạt Elaticsearch"
-  },
-  {
     "id": "api.command_collapse.success",
     "translation": "Liên kết hình ảnh hiện tại bị thu gọn theo mặc định"
   },
@@ -4924,10 +4920,6 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Tin nhắn xuất từ ExportFormat được đặt từ 'globalrelay', nhưng GlobalRelaySettings đang thiếu"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Không thể tạo bộ xử lý hàng loạt Elaticsearch"
   },
   {
     "id": "api.command_me.hint",
@@ -8632,10 +8624,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Đã hết thời gian chờ phản hồi của cụm"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Giải mã CA cho Elaticsearch không thành công"
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",
