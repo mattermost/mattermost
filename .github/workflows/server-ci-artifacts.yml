@@ -73,6 +73,8 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - upload-artifacts
+    outputs:
+      TAG: ${{ steps.set_tag.outputs.TAG }}
     steps:
       - name: cd/docker-login
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
@@ -96,26 +98,56 @@ jobs:
       - name: cd/setup-docker-buildx
         uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
 
+      - name: cd/set-docker-tag
+        id: set_tag
+        run: |
+          echo "TAG=$(echo '${{ github.event.workflow_run.head_sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
+
       - name: cd/docker-build-and-push
         id: docker
         env:
           MM_PACKAGE: https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/mattermost-team-linux-amd64.tar.gz
+          TAG: ${{ steps.set_tag.outputs.TAG }}
         run: |
           cd server/build
-          export TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
-          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
           docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
           echo "DOCKERHUB_IMAGE_DIGEST=$(cosign triangulate mattermostdevelopment/mattermost-team-edition:${TAG} | cut -d: -f2 | sed 's/\.sig$//' | tr '-' ':')" >> "${GITHUB_OUTPUT}"
 
       - name: cd/generate-summary
+        env:
+          TAG: ${{ steps.set_tag.outputs.TAG }}
         run: |
           echo "### Docker Image for Mattermost team package" >> "${GITHUB_STEP_SUMMARY}"
           echo " " >> "${GITHUB_STEP_SUMMARY}"
           echo "Mattermost Repo SHA: \`${{ github.event.workflow_run.head_sha }}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo " " >> "${GITHUB_STEP_SUMMARY}"
-          echo "Docker Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Docker Image: \`mattermostdevelopment/mattermost-team-edition:${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo "Image Digest: \`${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${TAG}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
+
+  scan-docker-image:
+    runs-on: ubuntu-22.04
+    needs:
+      - build-docker
+    env:
+      POLICY: "DevOps Vulnerabilities Policy"
+    steps:
+      - name: cd/setup-wizcli
+        run: |
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          chmod +x wizcli
+          ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
+
+      - name: cd/download-container-image
+        run: |
+          docker pull mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }}
+
+      - name: cd/scan-image
+        run: |
+          ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }} --policy "$POLICY"
 
   update-failure-final-status:
     if: failure() || cancelled()
