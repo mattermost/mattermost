@@ -14,7 +14,6 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {
-    IDMappedObjects,
     RelationOneToOne,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
@@ -113,20 +112,9 @@ export function getPostIdsInCurrentChannel(state: GlobalState): Array<Post['id']
     return getPostIdsInChannel(state, state.entities.channels.currentChannelId);
 }
 
-export type PostWithFormatData = Post & {
-    isFirstReply: boolean;
-    isLastReply: boolean;
-    previousPostIsComment: boolean;
-    commentedOnPost?: Post;
-    consecutivePostByUser: boolean;
-    replyCount: number;
-    isCommentMention: boolean;
-    highlight: boolean;
-};
-
 // getPostsInCurrentChannel returns the posts loaded at the bottom of the channel. It does not include older posts
 // such as those loaded by viewing a thread or a permalink.
-export const getPostsInCurrentChannel: (state: GlobalState) => PostWithFormatData[] | undefined | null = (() => {
+export const getPostsInCurrentChannel: (state: GlobalState) => Post[] | undefined | null = (() => {
     const getPostsInChannel = makeGetPostsInChannel();
     return (state: GlobalState) => getPostsInChannel(state, state.entities.channels.currentChannelId, -1);
 })();
@@ -168,91 +156,6 @@ export function makeGetPostsChunkAroundPost(): (state: GlobalState, postId: Post
             return postChunk;
         },
     );
-}
-
-function formatPostInChannel(post: Post, previousPost: Post | undefined | null, index: number, allPosts: IDMappedObjects<Post>, postsInThread: RelationOneToMany<Post, Post>, postIds: Array<Post['id']>, currentUser: UserProfile, focusedPostId: Post['id']): PostWithFormatData {
-    let isFirstReply = false;
-    let isLastReply = false;
-    let highlight = false;
-    let commentedOnPost: Post| undefined;
-
-    if (post.id === focusedPostId) {
-        highlight = true;
-    }
-
-    if (post.root_id) {
-        if (previousPost && previousPost.root_id !== post.root_id) {
-            // Post is the first reply in a list of consecutive replies
-            isFirstReply = true;
-
-            if (previousPost && previousPost.id !== post.root_id) {
-                commentedOnPost = allPosts[post.root_id];
-            }
-        }
-
-        if (index - 1 < 0 || allPosts[postIds[index - 1]].root_id !== post.root_id) {
-            // Post is the last reply in a list of consecutive replies
-            isLastReply = true;
-        }
-    }
-
-    let previousPostIsComment = false;
-
-    if (previousPost && previousPost.root_id) {
-        previousPostIsComment = true;
-    }
-
-    const postFromWebhook = Boolean(post.props && post.props.from_webhook);
-    const prevPostFromWebhook = Boolean(previousPost && previousPost.props && previousPost.props.from_webhook);
-    let consecutivePostByUser = false;
-    if (previousPost &&
-            previousPost.user_id === post.user_id &&
-            post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT &&
-            !postFromWebhook && !prevPostFromWebhook &&
-            !isSystemMessage(post) && !isSystemMessage(previousPost)) {
-        // The last post and this post were made by the same user within some time
-        consecutivePostByUser = true;
-    }
-
-    let threadRepliedToByCurrentUser = false;
-    let replyCount = 0;
-    let isCommentMention = false;
-
-    if (currentUser) {
-        const rootId = post.root_id || post.id;
-        const threadIds = postsInThread[rootId] || [];
-
-        for (const pid of threadIds) {
-            const p = allPosts[pid];
-            if (!p) {
-                continue;
-            }
-
-            if (p.user_id === currentUser.id) {
-                threadRepliedToByCurrentUser = true;
-            }
-
-            if (!isPostEphemeral(p)) {
-                replyCount += 1;
-            }
-        }
-
-        const rootPost = allPosts[rootId];
-
-        isCommentMention = isPostCommentMention({post, currentUser, threadRepliedToByCurrentUser, rootPost});
-    }
-
-    return {
-        ...post,
-        isFirstReply,
-        isLastReply,
-        previousPostIsComment,
-        commentedOnPost,
-        consecutivePostByUser,
-        replyCount,
-        isCommentMention,
-        highlight,
-    };
 }
 
 function isPostInteractable(post: Post | undefined) {
@@ -311,21 +214,20 @@ export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = (sta
 
 // makeGetPostsInChannel creates a selector that returns up to the given number of posts loaded at the bottom of the
 // given channel. It does not include older posts such as those loaded by viewing a thread or a permalink.
-export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel['id'], numPosts: number) => PostWithFormatData[] | undefined | null {
+export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel['id'], numPosts: number) => Post[] | undefined | null {
     return createSelector(
         'makeGetPostsInChannel',
         getAllPosts,
-        getPostsInThread,
         (state: GlobalState, channelId: Channel['id']) => getPostIdsInChannel(state, channelId),
         getCurrentUser,
         shouldShowJoinLeaveMessages,
         (state: GlobalState, channelId: Channel['id'], numPosts: number) => numPosts || Posts.POST_CHUNK_SIZE,
-        (allPosts, postsInThread, allPostIds, currentUser, showJoinLeave, numPosts) => {
+        (allPosts, allPostIds, currentUser, showJoinLeave, numPosts) => {
             if (!allPostIds) {
                 return null;
             }
 
-            const posts: PostWithFormatData[] = [];
+            const posts: Post[] = [];
 
             const postIds = numPosts === -1 ? allPostIds : allPostIds.slice(0, numPosts);
 
@@ -336,8 +238,7 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
                     continue;
                 }
 
-                const previousPost = allPosts[postIds[i + 1]] || null;
-                posts.push(formatPostInChannel(post, previousPost, i, allPosts, postsInThread, postIds, currentUser, ''));
+                posts.push(post);
             }
 
             return posts;
