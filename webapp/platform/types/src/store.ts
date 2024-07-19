@@ -49,6 +49,11 @@ export type GlobalState = {
             myPreferences: {
                 [x: string]: PreferenceType;
             };
+            userPreferences: {
+                [userID: string]: {
+                    [x: string]: PreferenceType;
+                };
+            };
         };
         admin: AdminState;
         jobs: JobsState;

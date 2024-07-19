@@ -6,12 +6,20 @@ import type {Post} from '@mattermost/types/posts';
 import {
     addMessageIntoHistory,
 } from 'mattermost-redux/actions/posts';
+import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {
+    getLatestInteractablePostId,
+    getLatestPostToEdit,
     getPost,
     makeGetPostIdsForThread,
 } from 'mattermost-redux/selectors/entities/posts';
+import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -25,6 +33,7 @@ import {updateDraft, removeDraft} from 'actions/views/drafts';
 
 import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
+import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -63,9 +72,29 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft):
             pending_post_id: `${userId}:${time}`,
             user_id: userId,
             create_at: time,
-            metadata: {},
+            metadata: {...draft.metadata},
             props: {...draft.props},
         } as unknown as Post;
+
+        const channel = getChannel(state, channelId);
+        if (!channel) {
+            return {error: new Error('cannot find channel')};
+        }
+        const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
+        if (!useChannelMentions && containsAtChannel(post.message, {checkAllMentions: true})) {
+            post.props.mentionHighlightDisabled = true;
+        }
+
+        const license = getLicense(state);
+        const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
+        const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
+
+        const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
+
+        const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
+        if (!useLDAPGroupMentions && !useCustomGroupMentions && groupsMentionedInText(post.message, groupsWithAllowReference)) {
+            post.props.disable_group_highlight = true;
+        }
 
         const hookResult = await dispatch(runMessageWillBePostedHooks(post));
         if (hookResult.error) {
@@ -146,6 +175,32 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
     };
 }
 
+export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean}): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const {message, channelId, rootId} = draft;
+        const state = getState();
+
+        dispatch(addMessageIntoHistory(message));
+
+        const isReaction = Utils.REACTION_PATTERN.exec(message);
+
+        const emojis = getCustomEmojisByName(state);
+        const emojiMap = new EmojiMap(emojis);
+
+        if (isReaction && emojiMap.has(isReaction[2])) {
+            const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
+            if (latestPostId) {
+                dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+            }
+        } else if (message.indexOf('/') === 0 && !options.ignoreSlash) {
+            await dispatch(submitCommand(channelId, rootId, draft));
+        } else {
+            await dispatch(submitPost(channelId, rootId, draft));
+        }
+        return {data: true};
+    };
+}
+
 function makeGetCurrentUsersLatestReply() {
     const getPostIdsInThread = makeGetPostIdsForThread();
     return createSelector(
@@ -208,6 +263,25 @@ export function makeOnEditLatestPost(rootId: string): () => ActionFunc<boolean> 
             'reply_textbox',
             Utils.localizeMessage('create_comment.commentTitle', 'Comment'),
             true,
+        ));
+    };
+}
+
+export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        const lastPostId = getLatestPostToEdit(state, channelId, rootId);
+
+        if (!lastPostId) {
+            return {data: false};
+        }
+
+        return dispatch(PostActions.setEditingPost(
+            lastPostId,
+            rootId ? 'reply_textbox' : 'post_textbox',
+            '', // title is no longer used
+            Boolean(rootId),
         ));
     };
 }

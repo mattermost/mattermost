@@ -18,6 +18,7 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 	// the logic of when to perform the check has been derived from platform/searchengine.StartSearchEngine()
 	// Wherever we're starting the engine, we're checking the index mapping here.
 
+	a.Log().Debug("initElasticsearchChannelIndexCheck: calling elasticsearchChannelIndexCheckWithRetry before setting up config and license change listeners...")
 	a.elasticsearchChannelIndexCheckWithRetry()
 
 	a.AddConfigListener(func(oldConfig, newConfig *model.Config) {
@@ -30,9 +31,11 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 
 		// if indexing is turned on, check.
 		if !*oldESConfig.EnableIndexing && *newESConfig.EnableIndexing {
+			a.Log().Debug("initElasticsearchChannelIndexCheck: calling elasticsearchChannelIndexCheckWithRetry from config change listener as ES indexing was turned from 'off' to 'on'")
 			a.elasticsearchChannelIndexCheckWithRetry()
 		} else if *newESConfig.EnableIndexing && (*oldESConfig.Password != *newESConfig.Password || *oldESConfig.Username != *newESConfig.Username || *oldESConfig.ConnectionURL != *newESConfig.ConnectionURL || *oldESConfig.Sniff != *newESConfig.Sniff) {
 			// ES client reconnects if credentials or address changes
+			a.Log().Debug("initElasticsearchChannelIndexCheck: calling elasticsearchChannelIndexCheckWithRetry from config change listener one of the Elasticsearch config param changed")
 			a.elasticsearchChannelIndexCheckWithRetry()
 		}
 	})
@@ -45,6 +48,7 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 		// if a license was added, and it has ES enabled-
 		if oldLicense == nil && newLicense != nil {
 			if a.SearchEngine().ElasticsearchEngine != nil {
+				a.Log().Debug("initElasticsearchChannelIndexCheck: calling elasticsearchChannelIndexCheckWithRetry from license change listener")
 				a.elasticsearchChannelIndexCheckWithRetry()
 			}
 		}
@@ -57,6 +61,8 @@ func (a *App) elasticsearchChannelIndexCheckWithRetry() {
 	go func() {
 		// using progressive retry because ES client may take some time to connect and be ready.
 		_ = utils.LongProgressiveRetry(func() error {
+			a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: attempting to check channel index state...")
+
 			if !*a.Config().ElasticsearchSettings.EnableIndexing {
 				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elasticsearch indexing is disabled")
 				return nil
@@ -73,6 +79,7 @@ func (a *App) elasticsearchChannelIndexCheckWithRetry() {
 				return errors.New("retry")
 			}
 
+			a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: checking channel index state...")
 			a.elasticsearchChannelIndexCheck()
 			return nil
 		})
@@ -80,9 +87,13 @@ func (a *App) elasticsearchChannelIndexCheckWithRetry() {
 }
 
 func (a *App) elasticsearchChannelIndexCheck() {
+	a.Log().Debug("elasticsearchChannelIndexCheck: checking if there is a need to notify the admins...")
 	if needNotify := a.elasticChannelsIndexNeedNotifyAdmins(); !needNotify {
+		a.Log().Debug("elasticsearchChannelIndexCheck: index is verified, no need to notify admins.")
 		return
 	}
+
+	a.Log().Debug("elasticsearchChannelIndexCheck: index is not verified, need to notify admins.")
 
 	// notify all system admins
 	systemBot, appErr := a.GetSystemBot(request.EmptyContext(a.Log()))

@@ -87,7 +87,7 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
-    image: "mattermostdevelopment/mattermost-elasticsearch:7.17.10"
+    image: "mattermostdevelopment/mattermost-elasticsearch:8.9.0"
     networks:
       - mm-test
     environment:
@@ -98,6 +98,25 @@ services:
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
+      xpack.security.enabled: "false"
+      action.destructive_requires_name: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  opensearch:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.opensearch
+    networks:
+      - mm-test
+    environment:
+      http.host: "0.0.0.0"
+      http.port: 9201
+      http.cors.enabled: "true"
+      http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+      http.cors.allow-credentials: "true"
+      transport.host: "127.0.0.1"
+      discovery.type: single-node
+      plugins.security.disabled: "true"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
