@@ -138,7 +138,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
             description = (
                 <WithTooltip
                     id='marketplace-item-description__tooltip'
-                    title={descriptionText ?? ''}
+                    title={descriptionText || ''}
                     placement='top'
                 >
                     {description}
