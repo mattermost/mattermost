@@ -6707,10 +6707,6 @@
     "translation": "Meghívás biztonságos kapcsolatból"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nem sikerült visszafejteni a meghívót. Helytelen jelszó vagy sérült meghívó: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[művelet]"
   },

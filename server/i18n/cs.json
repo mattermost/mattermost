@@ -7072,10 +7072,6 @@
     "translation": "Pozvánka ze zabezpečeného připojení"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Pozvánku se nepodařilo dešifrovat. Nesprávné heslo nebo poškozená pozvánka: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[akce]"
   },

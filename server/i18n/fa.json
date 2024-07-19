@@ -8424,10 +8424,6 @@
     "translation": "دعوت از اتصال امن"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "دعوت رمزگشایی نشد. رمز عبور نادرست یا دعوت نامه خراب است: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },

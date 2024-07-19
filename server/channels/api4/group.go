@@ -646,7 +646,8 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) &&
+			!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
 		}
 	case model.GroupSyncableTypeChannel:
@@ -662,7 +663,8 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(appErr, &nfErr):
-				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) {
+				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) &&
+					!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 					return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
 				}
 			default:

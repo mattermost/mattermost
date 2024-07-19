@@ -315,6 +315,8 @@ generate_env_files() {
     case "$SERVER" in
     cloud)
       echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
+      echo "CYPRESS_cwsURL=${CWS_URL}" >> .env.cypress
+      echo "CYPRESS_cwsAPIURL=${CWS_URL}" >> .env.cypress
       ;;
     *)
       echo "CYPRESS_serverEdition=E20" >>.env.cypress

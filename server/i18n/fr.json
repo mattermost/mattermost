@@ -7092,10 +7092,6 @@
     "translation": "Invitation à partir d'une connexion sécurisée"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Impossible de chiffre l'invitation. Mot de passe incorrect ou invitation endomagée : {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Impossible de récupérer les connexions sécurisées : {{.Erreur}}"
   },

@@ -7096,10 +7096,6 @@
     "translation": "Zaproszenie z bezpiecznego połączenia"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nie można odszyfrować zaproszenia. Nieprawidłowe hasło lub uszkodzone zaproszenie: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[akcja]"
   },

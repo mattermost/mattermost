@@ -2060,10 +2060,6 @@
     "translation": "सुरक्षित कनेक्शन से आमंत्रण"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "आमंत्रण को डिक्रिप्ट नहीं किया जा सका. गलत पासवर्ड या करप्ट आमंत्रण: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "सुरक्षित कनेक्शन नहीं ला सके: {{.Error}}"
   },

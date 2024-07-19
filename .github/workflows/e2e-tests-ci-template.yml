@@ -34,6 +34,9 @@ on:
         type: string # Valid values are: onprem, cloud
         required: false
         default: onprem
+      SERVER_IMAGE:
+        type: string
+        required: false
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -163,7 +166,6 @@ jobs:
         shell: bash
     outputs:
       workers: "${{ steps.generate.outputs.workers }}"
-      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -174,15 +176,9 @@ jobs:
         id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
-          REPORT_TYPE: ${{ inputs.REPORT_TYPE }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
-          if grep -qE '^((MASTER|CLOUD)(_UNSTABLE)?)$' <<<"$REPORT_TYPE"; then
-            # For MASTER, MASTER_UNSTABLE, CLOUD and CLOUD_UNSTABLE runs, always use the latest master image
-            # The commit_sha is still used for reporting the test result, and for the testing scripts and test cases
-            echo "SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master" >> $GITHUB_OUTPUT
-          fi
 
   generate-test-cycle:
     runs-on: ubuntu-22.04
@@ -256,7 +252,7 @@ jobs:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
       SERVER: "${{ inputs.SERVER }}"
-      SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.SERVER_IMAGE }}"
+      SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
@@ -346,7 +342,7 @@ jobs:
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
           SERVER: "${{ inputs.SERVER }}"
-          SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.SERVER_IMAGE }}"
+          SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"

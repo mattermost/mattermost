@@ -8040,10 +8040,6 @@
     "translation": "Invitación desde una conexión segura"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "No se ha podido descifrar la invitación. Contraseña incorrecta o invitación corrupta: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[acción]"
   },

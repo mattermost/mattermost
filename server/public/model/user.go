@@ -132,7 +132,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"locale":                     u.Locale,
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
-		"remote_id":                  u.RemoteId,
+		"remote_id":                  u.GetRemoteID(),
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -144,7 +144,26 @@ func (u *User) Auditable() map[string]interface{} {
 }
 
 func (u *User) LogClone() any {
-	return u.Auditable()
+	return map[string]interface{}{
+		"id":              u.Id,
+		"create_at":       u.CreateAt,
+		"update_at":       u.UpdateAt,
+		"delete_at":       u.DeleteAt,
+		"username":        u.Username,
+		"auth_data":       u.GetAuthData(),
+		"auth_service":    u.AuthService,
+		"email":           u.Email,
+		"email_verified":  u.EmailVerified,
+		"position":        u.Position,
+		"roles":           u.Roles,
+		"allow_marketing": u.AllowMarketing,
+		"props":           u.Props,
+		"notify_props":    u.NotifyProps,
+		"locale":          u.Locale,
+		"timezone":        u.Timezone,
+		"mfa_active":      u.MfaActive,
+		"remote_id":       u.GetRemoteID(),
+	}
 }
 
 //msgp UserMap
@@ -882,15 +901,16 @@ func (u *User) GetTimezoneLocation() *time.Location {
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
-	return u.RemoteId != nil && *u.RemoteId != ""
+	return SafeDereference(u.RemoteId) != ""
 }
 
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
-	if u.RemoteId != nil {
-		return *u.RemoteId
-	}
-	return ""
+	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetAuthData() string {
+	return SafeDereference(u.AuthData)
 }
 
 // GetProp fetches a prop value by name.

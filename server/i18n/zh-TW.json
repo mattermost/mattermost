@@ -7164,10 +7164,6 @@
     "translation": "安全連線 {{.RemoteId}} {{.Result}}。"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "無法解密邀請。密碼錯誤或邀請損毀: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[動作]"
   },

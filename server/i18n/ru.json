@@ -7984,10 +7984,6 @@
     "translation": "Приглашение от защищенного соединения"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не удалось расшифровать приглашение. Неправильный пароль или испорченное приглашение: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[действие]"
   },
@@ -10054,5 +10050,21 @@
   {
     "id": "api.job.status.invalid",
     "translation": "Установлен неверный статус"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Не удалось записать журналы в буфер"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ваш пароль должен содержать не более 72 символов."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
   }
 ]

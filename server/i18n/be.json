@@ -8500,10 +8500,6 @@
     "translation": "Запрашэнне ад абароненага злучэння"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не атрымалася расшыфраваць запрашэнне. Няправільны пароль або сапсаванае запрашэнне: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Не атрымалася атрымаць бяспечныя злучэнні: {{.Error}}"
   },
