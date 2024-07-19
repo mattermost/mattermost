@@ -7443,10 +7443,6 @@
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decoding of the CA for Elasticsearch failed"
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Could not open the CA file for Elasticsearch"
   },
@@ -7651,20 +7647,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Failed to get Elasticsearch server version."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse Elasticsearch server version."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -8617,6 +8605,10 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -10012,11 +10004,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

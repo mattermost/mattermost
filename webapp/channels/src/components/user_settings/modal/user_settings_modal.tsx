@@ -4,9 +4,10 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
-import {injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -14,22 +15,33 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import ConfirmModal from 'components/confirm_modal';
 import SettingsSidebar from 'components/settings_sidebar';
 import UserSettings from 'components/user_settings';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import SmartLoader from 'components/widgets/smart_loader';
 
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {getDisplayName} from 'utils/utils';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
-export type Props = {
-    currentUser: UserProfile;
+export type OwnProps = {
+    userID?: string;
+    adminMode?: boolean;
+    isContentProductSettings: boolean;
+    userPreferences?: PreferencesType;
+}
+
+export type Props = OwnProps & {
     onExited: () => void;
     intl: IntlShape;
-    isContentProductSettings: boolean;
     actions: {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
+        getUserPreferences: (userID: string) => Promise<unknown>;
+        getUser: (userID: string) => Promise<unknown>;
     };
     pluginSettings: {[pluginId: string]: PluginConfiguration};
+    user?: UserProfile;
 }
 
 type State = {
@@ -39,6 +51,7 @@ type State = {
     enforceFocus?: boolean;
     show: boolean;
     resendStatus: string;
+    loading: boolean;
 }
 
 class UserSettingsModal extends React.PureComponent<Props, State> {
@@ -57,6 +70,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             enforceFocus: true,
             show: true,
             resendStatus: '',
+            loading: false,
         };
 
         this.requireConfirm = false;
@@ -84,6 +98,22 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeyDown);
+
+        if (this.props.adminMode && this.props.userID) {
+            this.setState({loading: true});
+
+            if (!this.props.userPreferences) {
+                this.props.actions.getUserPreferences(this.props.userID);
+            }
+
+            if (!this.props.user) {
+                this.props.actions.getUser(this.props.userID);
+            }
+        }
+
+        if (!this.props.adminMode) {
+            this.setState({loading: false});
+        }
     }
 
     componentWillUnmount() {
@@ -96,6 +126,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             el.scrollTop = 0;
         }
     }
+
+    setLoadingFinished = () => {
+        this.setState({loading: false});
+    };
 
     handleKeyDown = (e: KeyboardEvent) => {
         if (cmdOrCtrlPressed(e) && e.shiftKey && isKeyPressed(e, Constants.KeyCodes.A)) {
@@ -275,17 +309,25 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     render() {
         const {formatMessage} = this.props.intl;
-        if (this.props.currentUser == null) {
-            return (<div/>);
-        }
 
-        const modalTitle = this.props.isContentProductSettings ? formatMessage({
-            id: 'global_header.productSettings',
-            defaultMessage: 'Settings',
-        }) : formatMessage({
-            id: 'user.settings.modal.title',
-            defaultMessage: 'Profile',
-        });
+        let modalTitle: string;
+
+        if (this.props.adminMode && this.props.user) {
+            modalTitle = formatMessage({
+                id: 'userSettings.adminMode.modal_header',
+                defaultMessage: "{userDisplayName}'s Settings",
+            }, {
+                userDisplayName: getDisplayName(this.props.user),
+            });
+        } else {
+            modalTitle = this.props.isContentProductSettings ? formatMessage({
+                id: 'global_header.productSettings',
+                defaultMessage: 'Settings',
+            }) : formatMessage({
+                id: 'user.settings.modal.title',
+                defaultMessage: 'Profile',
+            });
+        }
 
         return (
             <Modal
@@ -308,37 +350,63 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     >
                         {modalTitle}
                     </Modal.Title>
+
+                    {
+                        this.props.adminMode &&
+                        <div className='adminModeBadge'>
+                            <FormattedMessage
+                                id='userSettings.adminMode.admin_mode_badge'
+                                defaultMessage='Admin Mode'
+                            />
+                        </div>
+                    }
                 </Modal.Header>
                 <Modal.Body ref={this.modalBodyRef}>
-                    <div className='settings-table'>
-                        <div className='settings-links'>
-                            <SettingsSidebar
-                                tabs={this.props.isContentProductSettings ? this.getUserSettingsTabs() : this.getProfileSettingsTab()}
-                                pluginTabs={this.props.isContentProductSettings ? this.getPluginsSettingsTab() : []}
-                                activeTab={this.state.active_tab}
-                                updateTab={this.updateTab}
-                            />
-                        </div>
-                        <div className='settings-content minimize-settings'>
-                            <UserSettings
-                                activeTab={this.state.active_tab}
-                                activeSection={this.state.active_section}
-                                updateSection={this.updateSection}
-                                updateTab={this.updateTab}
-                                closeModal={this.closeModal}
-                                collapseModal={this.collapseModal}
-                                setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
-                                setRequireConfirm={
-                                    (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
-                                        this.requireConfirm = requireConfirm!;
-                                        this.customConfirmAction = customConfirmAction!;
+                    {
+                        this.props.adminMode &&
+                        <SmartLoader
+                            loading={this.props.adminMode && (!this.props.userPreferences || !this.props.user)}
+                            className='loadingIndicator'
+                            onLoaded={this.setLoadingFinished}
+                        >
+                            <LoadingSpinner/>
+                        </SmartLoader>
+                    }
+
+                    {
+                        !this.state.loading && this.props.user &&
+                        <div className='settings-table'>
+                            <div className='settings-links'>
+                                <SettingsSidebar
+                                    tabs={this.props.isContentProductSettings ? this.getUserSettingsTabs() : this.getProfileSettingsTab()}
+                                    pluginTabs={this.props.isContentProductSettings ? this.getPluginsSettingsTab() : []}
+                                    activeTab={this.state.active_tab}
+                                    updateTab={this.updateTab}
+                                />
+                            </div>
+                            <div className='settings-content minimize-settings'>
+                                <UserSettings
+                                    activeTab={this.state.active_tab}
+                                    activeSection={this.state.active_section}
+                                    updateSection={this.updateSection}
+                                    updateTab={this.updateTab}
+                                    closeModal={this.closeModal}
+                                    collapseModal={this.collapseModal}
+                                    setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
+                                    setRequireConfirm={
+                                        (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
+                                            this.requireConfirm = requireConfirm!;
+                                            this.customConfirmAction = customConfirmAction!;
+                                        }
                                     }
-                                }
-                                pluginSettings={this.props.pluginSettings}
-                                user={this.props.currentUser}
-                            />
+                                    pluginSettings={this.props.pluginSettings}
+                                    user={this.props.user}
+                                    adminMode={this.props.adminMode}
+                                    userPreferences={this.props.userPreferences}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    }
                 </Modal.Body>
                 <ConfirmModal
                     title={formatMessage({id: 'user.settings.modal.confirmTitle', defaultMessage: 'Discard Changes?'})}
@@ -346,7 +414,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                         id: 'user.settings.modal.confirmMsg',
                         defaultMessage: 'You have unsaved changes, are you sure you want to discard them?',
                     })}
-                    confirmButtonText={formatMessage({id: 'user.settings.modal.confirmBtns', defaultMessage: 'Yes, Discard'})}
+                    confirmButtonText={formatMessage({
+                        id: 'user.settings.modal.confirmBtns',
+                        defaultMessage: 'Yes, Discard',
+                    })}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}

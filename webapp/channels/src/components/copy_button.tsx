@@ -3,13 +3,11 @@
 
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-
-import Constants from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
+
+import WithTooltip from './with_tooltip';
 
 type Props = {
     content: string;
@@ -48,20 +46,17 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         tooltipMessage = messages.copyCode;
     }
 
-    const tooltip = (
-        <Tooltip id='copyButton'>
-            <FormattedMessage {...tooltipMessage}/>
-        </Tooltip>
+    const tooltipText = (
+        <FormattedMessage {...tooltipMessage}/>
     );
 
     const spanClassName = classNames('post-code__clipboard', props.className);
 
     return (
-        <OverlayTrigger
-            shouldUpdatePosition={true}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='copyButton.text'
             placement={props.placement ?? 'top'}
-            overlay={tooltip}
+            title={tooltipText}
         >
             <span
                 className={spanClassName}
@@ -80,7 +75,7 @@ const CopyButton: React.FC<Props> = (props: Props) => {
                     />
                 }
             </span>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
