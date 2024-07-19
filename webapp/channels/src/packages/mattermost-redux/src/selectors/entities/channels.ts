@@ -187,6 +187,16 @@ export function getChannel(state: GlobalState, id: string): Channel | undefined 
     return getAllChannels(state)[id];
 }
 
+// getDirectChannel returns a direct channel channel as it exists in the store filling in any additional details such as the
+// display_name or teammate_id.
+export function getDirectChannel(state: GlobalState, id: string): Channel | undefined {
+    const channel = getAllChannels(state)[id];
+    if (channel && channel.type === 'D') {
+        return completeDirectChannelInfo(state.entities.users, getTeammateNameDisplaySetting(state), channel);
+    }
+    return undefined;
+}
+
 export function getMyChannelMembership(state: GlobalState, channelId: string): ChannelMembership | undefined {
     return getMyChannelMemberships(state)[channelId];
 }
@@ -1259,7 +1269,10 @@ export function getChannelModerations(state: GlobalState, channelId: string): Ch
 }
 
 const EMPTY_OBJECT = {};
-export function getChannelMemberCountsByGroup(state: GlobalState, channelId: string): ChannelMemberCountsByGroup {
+export function getChannelMemberCountsByGroup(state: GlobalState, channelId?: string): ChannelMemberCountsByGroup {
+    if (!channelId) {
+        return EMPTY_OBJECT;
+    }
     return state.entities.channels.channelMemberCountsByGroup[channelId] || EMPTY_OBJECT;
 }
 

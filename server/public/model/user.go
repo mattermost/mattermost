@@ -132,7 +132,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"locale":                     u.Locale,
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
-		"remote_id":                  u.RemoteId,
+		"remote_id":                  u.GetRemoteID(),
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -144,7 +144,26 @@ func (u *User) Auditable() map[string]interface{} {
 }
 
 func (u *User) LogClone() any {
-	return u.Auditable()
+	return map[string]interface{}{
+		"id":              u.Id,
+		"create_at":       u.CreateAt,
+		"update_at":       u.UpdateAt,
+		"delete_at":       u.DeleteAt,
+		"username":        u.Username,
+		"auth_data":       u.GetAuthData(),
+		"auth_service":    u.AuthService,
+		"email":           u.Email,
+		"email_verified":  u.EmailVerified,
+		"position":        u.Position,
+		"roles":           u.Roles,
+		"allow_marketing": u.AllowMarketing,
+		"props":           u.Props,
+		"notify_props":    u.NotifyProps,
+		"locale":          u.Locale,
+		"timezone":        u.Timezone,
+		"mfa_active":      u.MfaActive,
+		"remote_id":       u.GetRemoteID(),
+	}
 }
 
 //msgp UserMap
@@ -667,6 +686,8 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.EmailVerified = false
 	}
 	u.RemoteId = NewString("")
+	u.CreateAt = 0
+	u.UpdateAt = 0
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -674,21 +695,25 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.Email = strings.TrimSpace(u.Email)
+	u.LastActivityAt = 0
 }
 
-func (u *User) ClearNonProfileFields() {
+func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
-	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.FailedAttempts = 0
+
+	if !asAdmin {
+		u.NotifyProps = StringMap{}
+	}
 }
 
-func (u *User) SanitizeProfile(options map[string]bool) {
-	u.ClearNonProfileFields()
+func (u *User) SanitizeProfile(options map[string]bool, asAdmin bool) {
+	u.ClearNonProfileFields(asAdmin)
 
 	u.Sanitize(options)
 }
@@ -882,15 +907,16 @@ func (u *User) GetTimezoneLocation() *time.Location {
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
-	return u.RemoteId != nil && *u.RemoteId != ""
+	return SafeDereference(u.RemoteId) != ""
 }
 
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
-	if u.RemoteId != nil {
-		return *u.RemoteId
-	}
-	return ""
+	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetAuthData() string {
+	return SafeDereference(u.AuthData)
 }
 
 // GetProp fetches a prop value by name.
