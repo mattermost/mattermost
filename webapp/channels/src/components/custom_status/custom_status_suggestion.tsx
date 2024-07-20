@@ -44,7 +44,12 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
         <div className='suggestion-clear'>
             <WithTooltip
                 placement='top'
-                title='Clear'
+                title={
+                    <FormattedMessage
+                        id='custom_status.suggestions.clear'
+                        defaultMessage='Clear'
+                    />
+                }
                 id='clear-recent-custom-status'
             >
                 <button
