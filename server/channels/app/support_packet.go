@@ -87,7 +87,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 	// Adding a warning.txt file to the fileDatas if any warning
 	if warnings != nil {
 		fileDatas = append(fileDatas, model.FileData{
-			Filename: "warning.txt",
+			Filename: model.SupportPacketErrorFile,
 			Body:     []byte(warnings.Error()),
 		})
 	}
