@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"runtime"
+	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -17,12 +18,6 @@ import (
 )
 
 func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
-	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
-	var warnings *multierror.Error
-
-	// Creating an array of files that we are going to be adding to our zip file
-	fileDatas := []model.FileData{}
-
 	// A array of the functions that we can iterate through since they all have the same return value
 	functions := map[string]func(c request.CTX) (*model.FileData, error){
 		"support packet": a.generateSupportPacketYaml,
@@ -39,29 +34,53 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		functions["notification log"] = a.getNotificationsLog
 	}
 
-	for name, fn := range functions {
-		fileData, err := fn(c)
-		if err != nil {
-			c.Logger().Error("Failed to generate file for Support Packet", mlog.String("file", name), mlog.Err(err))
-			warnings = multierror.Append(warnings, err)
-		}
+	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
+	var warnings *multierror.Error
+	// Creating an array of files that we are going to be adding to our zip file
+	var fileDatas []model.FileData
+	var wg sync.WaitGroup
+	var mut sync.Mutex // Protects warnings and fileDatas
 
-		if fileData != nil {
-			fileDatas = append(fileDatas, *fileData)
-		}
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 
+		for name, fn := range functions {
+			fileData, err := fn(c)
+			mut.Lock()
+			if err != nil {
+				c.Logger().Error("Failed to generate file for Support Packet", mlog.String("file", name), mlog.Err(err))
+				warnings = multierror.Append(warnings, err)
+			}
+
+			if fileData != nil {
+				fileDatas = append(fileDatas, *fileData)
+			}
+			mut.Unlock()
+		}
+	}()
+
+	// Run the cluster generation in a separate goroutine as CPU profile generation and file upload can take a long time
 	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
-		files, err := cluster.GenerateSupportPacket(c, options)
-		if err != nil {
-			c.Logger().Error("Failed to generate Support Packet from cluster nodes", mlog.Err(err))
-			warnings = multierror.Append(warnings, err)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		for _, node := range files {
-			fileDatas = append(fileDatas, node...)
-		}
+			files, err := cluster.GenerateSupportPacket(c, options)
+			mut.Lock()
+			if err != nil {
+				c.Logger().Error("Failed to generate Support Packet from cluster nodes", mlog.Err(err))
+				warnings = multierror.Append(warnings, err)
+			}
+
+			for _, node := range files {
+				fileDatas = append(fileDatas, node...)
+			}
+			mut.Unlock()
+		}()
 	}
+
+	wg.Wait()
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		pluginContext := pluginContext(c)
