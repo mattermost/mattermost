@@ -6,15 +6,17 @@ import React from 'react';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
+import AdvancedDisplaySettings from 'components/user_settings_modal/advanced_display_settings';
+
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
-import AdvancedTab from './advanced';
 import DisplayTab from './display';
 import GeneralTab from './general';
 import NotificationsTab from './notifications';
 import PluginTab from './plugin';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
+import './index.scss';
 
 export type Props = {
     user: UserProfile;
@@ -104,16 +106,8 @@ export default function UserSettings(props: Props) {
         );
     } else if (props.activeTab === 'advanced') {
         return (
-            <div>
-                <AdvancedTab
-                    activeSection={props.activeSection}
-                    updateSection={props.updateSection}
-                    closeModal={props.closeModal}
-                    collapseModal={props.collapseModal}
-                    adminMode={props.adminMode}
-                    user={props.user}
-                    userPreferences={props.userPreferences}
-                />
+            <div className='user-settings__content'>
+                <AdvancedDisplaySettings userId={props.user.id}/>
             </div>
         );
     } else if (props.activeTab && props.pluginSettings[props.activeTab]) {

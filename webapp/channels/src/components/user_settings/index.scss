@@ -1,0 +1,17 @@
+.modal .user-settings{
+    &__content{
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 24px;
+    }
+}
+
+.modal .user-settings-modal{
+    &__divider{
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+    }
+    &__filler{
+        height: 80px;
+    }
+}
