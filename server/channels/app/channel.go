@@ -288,7 +288,7 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 			return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		a.InvalidateCacheForUser(channel.CreatorId)
+		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
 	}
 
 	a.Srv().Go(func() {
@@ -372,8 +372,8 @@ func (a *App) getOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *m
 }
 
 func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, channel *model.Channel) {
-	a.InvalidateCacheForUser(userID)
-	a.InvalidateCacheForUser(otherUserID)
+	a.Srv().Platform().InvalidateChannelCacheForUser(userID)
+	a.Srv().Platform().InvalidateChannelCacheForUser(otherUserID)
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
@@ -498,7 +498,7 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 	}
 
 	for _, userID := range userIDs {
-		a.InvalidateCacheForUser(userID)
+		a.Srv().Platform().InvalidateChannelCacheForUser(userID)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil, "")
@@ -1293,7 +1293,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		}
 	}
 
-	a.InvalidateCacheForUser(member.UserId)
+	a.Srv().Platform().InvalidateChannelCacheForUser(member.UserId)
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 	// Notify the clients that the member notify props changed
@@ -1330,7 +1330,7 @@ func (a *App) PatchChannelMembersNotifyProps(c request.CTX, members []*model.Cha
 	}
 
 	for userId := range userIds {
-		a.InvalidateCacheForUser(userId)
+		a.Srv().Platform().InvalidateChannelCacheForUser(userId)
 	}
 	for channelId := range channelIds {
 		a.invalidateCacheForChannelMembersNotifyProps(channelId)
@@ -1374,7 +1374,7 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 		}
 	}
 
-	a.InvalidateCacheForUser(member.UserId)
+	a.Srv().Platform().InvalidateChannelCacheForUser(member.UserId)
 
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
@@ -1567,7 +1567,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	return newMember, nil
@@ -2554,7 +2554,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 		}
 	}
 
-	a.InvalidateCacheForUser(userIDToRemove)
+	a.Srv().Platform().InvalidateChannelCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	var actorUser *model.User
