@@ -3086,6 +3086,8 @@ func (a *App) BatchMergeGmChannels(rctx request.CTX, toUser, fromUser *model.Use
 }
 
 func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError {
+	// Make this limit a config
+	batchLimit := *a.Config().ServiceSettings.UserMergeBatchSize
 	toUser, appErr := a.GetUser(opts.ToUserId)
 	if appErr != nil {
 		return appErr
@@ -3102,7 +3104,7 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	defer a.UpdateActive(rctx, toUser, true)
 
 	rctx.Logger().Info("MergeUsers: Batch merging posts and files")
-	err := a.Srv().Store().Post().BatchMergePostAndFileUserId(toUser.Id, fromUser.Id)
+	err := a.Srv().Store().Post().BatchMergePostAndFileUserId(toUser.Id, fromUser.Id, batchLimit)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_posts_and_files.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

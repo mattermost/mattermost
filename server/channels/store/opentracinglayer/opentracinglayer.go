@@ -6454,7 +6454,7 @@ func (s *OpenTracingLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID str
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
+func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string, limit int) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.BatchMergePostAndFileUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -6463,7 +6463,25 @@ func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserID string,
 	}()
 
 	defer span.Finish()
-	err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID)
+	err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostStore) BatchMovePostsAndRelatedDataToChannel(toChannelID string, fromChannelID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.BatchMovePostsAndRelatedDataToChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.BatchMovePostsAndRelatedDataToChannel(toChannelID, fromChannelID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

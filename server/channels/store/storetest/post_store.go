@@ -65,6 +65,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
+	t.Run("BatchMergePostAndFileUserId", func(t *testing.T) { testBatchMergePostAndFileUserId(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5205,5 +5206,184 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		// get edit history
 		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
 		require.NoError(t, err)
+	})
+}
+
+func testBatchMergePostAndFileUserId(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should update post userId to given userId", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+
+		post1 := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    fromUserID,
+			Message:   "test",
+		}
+
+		post2 := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    fromUserID,
+			Message:   "test",
+		}
+
+		post3 := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    toUserID,
+			Message:   "test",
+		}
+
+		p1, err := ss.Post().Save(rctx, post1)
+		require.NoError(t, err)
+
+		p2, err := ss.Post().Save(rctx, post2)
+		require.NoError(t, err)
+
+		p3, err := ss.Post().Save(rctx, post3)
+		require.NoError(t, err)
+
+		err = ss.Post().BatchMergePostAndFileUserId(toUserID, fromUserID, 100)
+		require.NoError(t, err)
+
+		r1, err := ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r1.Posts[p1.Id].UserId, toUserID, "incorrect userId for post")
+
+		r2, err := ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r2.Posts[p2.Id].UserId, toUserID, "incorrect userId for post")
+
+		r3, err := ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r3.Posts[p3.Id].UserId, toUserID, "incorrect userId for post")
+	})
+
+	t.Run("should update post userId anb file userId to given userId", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+
+		p1, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    fromUserID,
+			Message:   "test",
+		})
+		require.NoError(t, err)
+
+		p2, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    fromUserID,
+			Message:   "test",
+		})
+		require.NoError(t, err)
+
+		p3, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    toUserID,
+			Message:   "test",
+		})
+		require.NoError(t, err)
+
+		file1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    p1.Id,
+			CreatorId: fromUserID,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		file2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    p1.Id,
+			CreatorId: toUserID,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		err = ss.Post().BatchMergePostAndFileUserId(toUserID, fromUserID, 100)
+		require.NoError(t, err)
+
+		r1, err := ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r1.Posts[p1.Id].UserId, toUserID, "incorrect userId for post")
+
+		r2, err := ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r2.Posts[p2.Id].UserId, toUserID, "incorrect userId for post")
+
+		r3, err := ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r3.Posts[p3.Id].UserId, toUserID, "incorrect userId for post")
+
+		f1, err := ss.FileInfo().Get(file1.Id)
+		require.NoError(t, err)
+		require.Equal(t, f1.CreatorId, toUserID, "incorrect userId for file")
+
+		f2, err := ss.FileInfo().Get(file2.Id)
+		require.NoError(t, err)
+		require.Equal(t, f2.CreatorId, toUserID, "incorrect userId for file")
+	})
+
+	t.Run("should update all post userIds anb file userIds when there are more posts than the limit", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+
+		p1, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    fromUserID,
+			Message:   "test",
+		})
+		require.NoError(t, err)
+
+		p2, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    fromUserID,
+			Message:   "test",
+		})
+		require.NoError(t, err)
+
+		p3, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    toUserID,
+			Message:   "test",
+		})
+		require.NoError(t, err)
+
+		file1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    p1.Id,
+			CreatorId: fromUserID,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		file2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    p1.Id,
+			CreatorId: fromUserID,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		err = ss.Post().BatchMergePostAndFileUserId(toUserID, fromUserID, 1)
+		require.NoError(t, err)
+
+		r1, err := ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r1.Posts[p1.Id].UserId, toUserID, "incorrect userId for post")
+
+		r2, err := ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r2.Posts[p2.Id].UserId, toUserID, "incorrect userId for post")
+
+		r3, err := ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		require.NoError(t, err)
+		require.Equal(t, r3.Posts[p3.Id].UserId, toUserID, "incorrect userId for post")
+
+		f1, err := ss.FileInfo().Get(file1.Id)
+		require.NoError(t, err)
+		require.Equal(t, f1.CreatorId, toUserID, "incorrect userId for file")
+
+		f2, err := ss.FileInfo().Get(file2.Id)
+		require.NoError(t, err)
+		require.Equal(t, f2.CreatorId, toUserID, "incorrect userId for file")
 	})
 }

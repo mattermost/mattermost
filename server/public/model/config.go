@@ -411,6 +411,7 @@ type ServiceSettings struct {
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	UserMergeBatchSize                                *int    `access:"experimental_features"`
 }
 
 var MattermostGiphySdkKey string
@@ -925,6 +926,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.MaximumPayloadSizeBytes == nil {
 		s.MaximumPayloadSizeBytes = NewInt64(300000)
+	}
+
+	if s.UserMergeBatchSize == nil {
+		s.UserMergeBatchSize = NewInt(1000)
 	}
 }
 
@@ -4041,6 +4046,10 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.MaximumPayloadSizeBytes <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.UserMergeBatchSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.user_merge_batch_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ReadTimeout <= 0 {

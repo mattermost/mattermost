@@ -108,17 +108,35 @@ func (_m *PostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (model.Ana
 	return r0, r1
 }
 
-// BatchMergePostAndFileUserId provides a mock function with given fields: toUserID, fromUserID
-func (_m *PostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
-	ret := _m.Called(toUserID, fromUserID)
+// BatchMergePostAndFileUserId provides a mock function with given fields: toUserID, fromUserID, limit
+func (_m *PostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string, limit int) error {
+	ret := _m.Called(toUserID, fromUserID, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BatchMergePostAndFileUserId")
 	}
 
 	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int) error); ok {
+		r0 = rf(toUserID, fromUserID, limit)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// BatchMovePostsAndRelatedDataToChannel provides a mock function with given fields: toChannelID, fromChannelID
+func (_m *PostStore) BatchMovePostsAndRelatedDataToChannel(toChannelID string, fromChannelID string) error {
+	ret := _m.Called(toChannelID, fromChannelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMovePostsAndRelatedDataToChannel")
+	}
+
+	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(toUserID, fromUserID)
+		r0 = rf(toChannelID, fromChannelID)
 	} else {
 		r0 = ret.Error(0)
 	}

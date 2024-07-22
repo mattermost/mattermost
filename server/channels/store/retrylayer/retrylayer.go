@@ -7352,11 +7352,32 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 
 }
 
-func (s *RetryLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
+func (s *RetryLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string, limit int) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID)
+		err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID, limit)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) BatchMovePostsAndRelatedDataToChannel(toChannelID string, fromChannelID string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.BatchMovePostsAndRelatedDataToChannel(toChannelID, fromChannelID)
 		if err == nil {
 			return nil
 		}

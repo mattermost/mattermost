@@ -3741,37 +3741,13 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 	return channel, nil
 }
 
+// This is shared with user merge so it needs to work with every channel type
 func (a *App) MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error {
-	err := a.Srv().Store().Post().BatchMovePostsToChannel(toChannel.Id, fromChannel.Id)
-	if err != nil {
-		return err
-	}
+	// archive store function
+	// defer
 
-	err = a.Srv().Store().FileInfo().BatchMoveFilesToChannel(toChannel.Id, fromChannel.Id)
-	if err != nil {
-		return err
-	}
-
-	err = a.Srv().Store().Thread().BatchMoveThreadsToChannel(toChannel.Id, fromChannel.Id)
-	if err != nil {
-		return err
-	}
-
-	err = a.Srv().Store().Reaction().BatchMoveReactionsToChannel(toChannel.Id, fromChannel.Id)
-	if err != nil {
-		return err
-	}
-
-	// TODO: race condition
-	toChannel.TotalMsgCount += fromChannel.TotalMsgCount
-	toChannel.TotalMsgCountRoot += fromChannel.TotalMsgCountRoot
-	if fromChannel.LastPostAt > toChannel.LastPostAt {
-		toChannel.LastPostAt = fromChannel.LastPostAt
-	}
-	if fromChannel.LastRootPostAt > toChannel.LastRootPostAt {
-		toChannel.LastRootPostAt = fromChannel.LastRootPostAt
-	}
-	_, err = a.Srv().Store().Channel().Update(rctx, toChannel)
+	// Merge channel posts and other related data in a batch of transactions
+	err := a.Srv().Store().Post().BatchMovePostsAndRelatedDataToChannel(toChannel.Id, fromChannel.Id)
 	if err != nil {
 		return err
 	}
@@ -3786,6 +3762,8 @@ func (a *App) MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChan
 	if nErr := a.Srv().Store().Channel().PermanentDelete(rctx, fromChannel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	// PermanentDeleteMembersByChannel
 
 	return nil
 }

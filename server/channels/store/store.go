@@ -407,8 +407,9 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
-	BatchMergePostAndFileUserId(toUserID, fromUserID string) error
+	BatchMergePostAndFileUserId(toUserID, fromUserID string, limit int) error
 	BatchMovePostsToChannel(toChannelID, fromChannelID string) error
+	BatchMovePostsAndRelatedDataToChannel(toChannelID, fromChannelID string) error
 }
 
 type UserStore interface {

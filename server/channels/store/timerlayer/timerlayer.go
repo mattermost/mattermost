@@ -5835,10 +5835,10 @@ func (s *TimerLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 	return result, err
 }
 
-func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
+func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string, limit int) error {
 	start := time.Now()
 
-	err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID)
+	err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5847,6 +5847,22 @@ func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromU
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.BatchMergePostAndFileUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostStore) BatchMovePostsAndRelatedDataToChannel(toChannelID string, fromChannelID string) error {
+	start := time.Now()
+
+	err := s.PostStore.BatchMovePostsAndRelatedDataToChannel(toChannelID, fromChannelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.BatchMovePostsAndRelatedDataToChannel", success, elapsed)
 	}
 	return err
 }

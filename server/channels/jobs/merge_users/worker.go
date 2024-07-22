@@ -42,7 +42,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		appErr := app.MergeUsers(request.EmptyContext(logger), job, opts)
-
 		if appErr != nil {
 			return appErr
 		}

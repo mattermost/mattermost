@@ -3254,13 +3254,13 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	return meta, nil
 }
 
-func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserID, fromUserID string) error {
+func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserID, fromUserID string, limit int) error {
 	// Attempt to move all posts and files
 	for {
 		var postIds []string
-		err := s.GetReplicaX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? AND Type = '' LIMIT 1000", fromUserID)
+		err := s.GetMasterX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? AND Type = '' ORDER BY CreateAt DESC LIMIT ?", fromUserID, limit)
 		if err != nil {
-			return errors.Wrapf(err, "failed to find Posts with userId=%s", fromUserID)
+			return errors.Wrapf(err, "failed to get Posts with userId=%s", fromUserID)
 		}
 
 		if len(postIds) == 0 {
@@ -3327,6 +3327,160 @@ func (s *SqlPostStore) BatchMovePostsToChannel(toChannelID, fromChannelID string
 		if rowsAffected < 1000 {
 			break
 		}
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) BatchMovePostsAndRelatedDataToChannel(toChannelID, fromChannelID string) error {
+	// TODO: Refactor for SOLID once unread bug is fixed
+	for {
+		// Batch get Root post IDs
+		rootPostIDs := []string{}
+		err := s.GetMasterX().Select(&rootPostIDs, "SELECT Id FROM Posts WHERE RootId = '' AND ChannelId = ? LIMIT 1000", fromChannelID)
+		if err != nil {
+			return errors.Wrap(err, "failed to get root posts")
+		}
+
+		if len(rootPostIDs) == 0 {
+			break
+		}
+
+		// Create a transaction
+		transaction, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransactionX(transaction, &err)
+
+		// Batch update Posts
+		postsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"Id": rootPostIDs},
+			)
+		if _, err = transaction.ExecBuilder(postsQuery); err != nil {
+			return errors.Wrap(err, "failed to update Posts")
+		}
+
+		// Batch update FileInfo
+		fileInfoQuery := s.getQueryBuilder().
+			Update("FileInfo").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"PostId": rootPostIDs},
+			)
+		if _, err = transaction.ExecBuilder(fileInfoQuery); err != nil {
+			return errors.Wrap(err, "failed to update FileInfo")
+		}
+
+		// Batch update Threads
+		threadsQuery := s.getQueryBuilder().
+			Update("Threads").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"PostId": rootPostIDs},
+			)
+		if _, err = transaction.ExecBuilder(threadsQuery); err != nil {
+			return errors.Wrap(err, "failed to update Threads")
+		}
+
+		// Batch update Reactions
+		reactionsQuery := s.getQueryBuilder().
+			Update("Reactions").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"PostId": rootPostIDs},
+			)
+		if _, err = transaction.ExecBuilder(reactionsQuery); err != nil {
+			return errors.Wrap(err, "failed to update Reactions")
+		}
+
+		// Update Channel stats for TotalMsgCount and TotalMsgCountRoot
+		if _, err = transaction.Exec("UPDATE Channels SET TotalMsgCount = TotalMsgCount + ?, TotalMsgCountRoot = TotalMsgCountRoot + ? WHERE Id = ?", len(rootPostIDs), len(rootPostIDs), toChannelID); err != nil {
+			return errors.Wrap(err, "failed to update Channel stats")
+		}
+
+		// Commit transaction
+		if err = transaction.Commit(); err != nil {
+			return errors.Wrap(err, "commit_transaction")
+		}
+	}
+
+	for {
+		// Batch get Comment post IDs
+		postIDs := []string{}
+		err := s.GetMasterX().Select(&postIDs, "SELECT Id FROM Posts WHERE RootId != '' AND ChannelId = ? LIMIT 1000", fromChannelID)
+		if err != nil {
+			return errors.Wrap(err, "failed to get root posts")
+		}
+
+		if len(postIDs) == 0 {
+			break
+		}
+
+		// Create a transaction
+		transaction, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransactionX(transaction, &err)
+
+		// Batch update Posts
+		postsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"Id": postIDs},
+			)
+		if _, err = transaction.ExecBuilder(postsQuery); err != nil {
+			return errors.Wrap(err, "failed to update Posts")
+		}
+
+		// Batch update FileInfo
+		fileInfoQuery := s.getQueryBuilder().
+			Update("FileInfo").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"PostId": postIDs},
+			)
+		if _, err = transaction.ExecBuilder(fileInfoQuery); err != nil {
+			return errors.Wrap(err, "failed to update FileInfo")
+		}
+
+		// Batch update Reactions
+		reactionsQuery := s.getQueryBuilder().
+			Update("Reactions").
+			Set("ChannelId", toChannelID).
+			Where(
+				sq.Eq{"PostId": postIDs},
+			)
+		if _, err = transaction.ExecBuilder(reactionsQuery); err != nil {
+			return errors.Wrap(err, "failed to update Reactions")
+		}
+
+		// Update Channel stats for TotalMsgCount and TotalMsgCountRoot
+		if _, err = transaction.Exec("UPDATE Channels SET TotalMsgCount = TotalMsgCount + ? WHERE Id = ?", len(postIDs), toChannelID); err != nil {
+			return errors.Wrap(err, "failed to update Channel stats")
+		}
+
+		// Commit transaction
+		if err = transaction.Commit(); err != nil {
+			return errors.Wrap(err, "commit_transaction")
+		}
+	}
+
+	// Update Channel stats for LastPostAt and LastRootPostAt
+	channelsQuery := s.getQueryBuilder().
+		Update("Channels").
+		Set("LastPostAt", sq.Expr("(SELECT MAX(CreateAt) FROM Posts WHERE ChannelId = ?)", toChannelID)).
+		Set("LastRootPostAt", sq.Expr("(SELECT MAX(CreateAt) FROM Posts WHERE ChannelId = ? AND RootId = '')", toChannelID)).
+		Where(
+			sq.Eq{"Id": toChannelID},
+		)
+	if _, err := s.GetMasterX().ExecBuilder(channelsQuery); err != nil {
+		return errors.Wrap(err, "failed to update Channel stats")
 	}
 
 	return nil

@@ -380,6 +380,8 @@ type AppIface interface {
 	// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 	// Ensure the zip file name ends with a .zip
 	CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
+	// This is shared with user merge so it needs to work with every channel type
+	MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error
 	// This to be used for places we check the users password when they are already logged in
 	DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
@@ -962,7 +964,6 @@ type AppIface interface {
 	MaxPostSize() int
 	MergeChannelMemberRecords(rctx request.CTX, toChannelID, fromChannelID string) error
 	MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserID, fromUserID, toChannelID, fromChannelID string) *model.AppError
-	MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error
 	MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface
