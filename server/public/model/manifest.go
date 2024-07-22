@@ -238,6 +238,8 @@ type ManifestWebapp struct {
 
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
+
+	FeatureUsage map[string]bool `json:"feature_usage,omitempty"`
 }
 
 func (m *Manifest) HasClient() bool {
@@ -254,6 +256,7 @@ func (m *Manifest) ClientManifest() *Manifest {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
 		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
+		cm.Webapp.FeatureUsage = nil
 	}
 	return cm
 }

@@ -571,6 +571,8 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	}
 	manifest.Webapp.BundleHash = hash.Sum([]byte{})
 
+	manifest.Webapp.FeatureUsage = detectWebAppFeatureUsage(sourceBundleFileContents)
+
 	if err = os.Rename(
 		sourceBundleFilepath,
 		filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, manifest.Webapp.BundleHash)),
