@@ -16,10 +16,12 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
     callsNotificationSounds,
-    notificationSounds,
+    notificationSoundKeys,
     stopTryNotificationRing,
     tryNotificationSound,
     tryNotificationRing,
+    getValueOfNotificationSoundsSelect,
+    optionsOfMessageNotificationSoundsSelect,
 } from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
@@ -143,7 +145,7 @@ function DesktopNotificationSoundsSettings({
                             defaultMessage: 'Select a sound',
                         })}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfMessageNotificationSoundsSelect(desktopNotificationSound)}
+                        value={getValueOfNotificationSoundsSelect(desktopNotificationSound)}
                         onChange={handleChangeForMessageNotificationSoundSelect}
                     />
                 </div>
@@ -257,86 +259,6 @@ function DesktopNotificationSoundsSettings({
 
 function NoIndicatorSeparatorComponent() {
     return null;
-}
-
-const notificationSoundKeys = Array.from(notificationSounds.keys());
-
-const optionsOfMessageNotificationSoundsSelect: SelectOption[] = notificationSoundKeys.map((soundName) => {
-    if (soundName === 'Bing') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundBing'
-                    defaultMessage='Bing'
-                />
-            ),
-        };
-    } else if (soundName === 'Crackle') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCrackle'
-                    defaultMessage='Crackle'
-                />
-            ),
-        };
-    } else if (soundName === 'Down') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundDown'
-                    defaultMessage='Down'
-                />
-            ),
-        };
-    } else if (soundName === 'Hello') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundHello'
-                    defaultMessage='Hello'
-                />
-            ),
-        };
-    } else if (soundName === 'Ripple') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundRipple'
-                    defaultMessage='Ripple'
-                />
-            ),
-        };
-    } else if (soundName === 'Upstairs') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundUpstairs'
-                    defaultMessage='Upstairs'
-                />
-            ),
-        };
-    }
-    return {
-        value: '',
-        label: '',
-    };
-});
-
-function getValueOfMessageNotificationSoundsSelect(soundName?: string) {
-    const soundOption = optionsOfMessageNotificationSoundsSelect.find((option) => option.value === soundName);
-
-    if (!soundOption) {
-        return undefined;
-    }
-
-    return soundOption;
 }
 
 const callNotificationSoundKeys = Array.from(callsNotificationSounds.keys());

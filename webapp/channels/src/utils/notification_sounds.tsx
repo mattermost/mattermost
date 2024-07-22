@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
 import bing from 'sounds/bing.mp3';
 import calls_calm from 'sounds/calls_calm.mp3';
 import calls_cheerful from 'sounds/calls_cheerful.mp3';
@@ -21,6 +25,86 @@ export const notificationSounds = new Map([
     ['Ripple', ripple],
     ['Upstairs', upstairs],
 ]);
+
+export const notificationSoundKeys = Array.from(notificationSounds.keys());
+
+export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; label: ReactNode}> = notificationSoundKeys.map((soundName) => {
+    if (soundName === 'Bing') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundBing'
+                    defaultMessage='Bing'
+                />
+            ),
+        };
+    } else if (soundName === 'Crackle') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundCrackle'
+                    defaultMessage='Crackle'
+                />
+            ),
+        };
+    } else if (soundName === 'Down') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundDown'
+                    defaultMessage='Down'
+                />
+            ),
+        };
+    } else if (soundName === 'Hello') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundHello'
+                    defaultMessage='Hello'
+                />
+            ),
+        };
+    } else if (soundName === 'Ripple') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundRipple'
+                    defaultMessage='Ripple'
+                />
+            ),
+        };
+    } else if (soundName === 'Upstairs') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundUpstairs'
+                    defaultMessage='Upstairs'
+                />
+            ),
+        };
+    }
+    return {
+        value: '',
+        label: '',
+    };
+});
+
+export function getValueOfNotificationSoundsSelect(soundName?: string) {
+    const soundOption = optionsOfMessageNotificationSoundsSelect.find((option) => option.value === soundName);
+
+    if (!soundOption) {
+        return undefined;
+    }
+
+    return soundOption;
+}
 
 export const callsNotificationSounds = new Map([
     ['Dynamic', calls_dynamic],
