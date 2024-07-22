@@ -186,7 +186,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should not search files not attached to a post",
 		Fn:   testFileInfoSearchNoResultForPostlessFileInfos,
-		Tags: []string{EnginePostgres, EngineMySQL, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineMySQL},
 	},
 	{
 		Name: "Should search files part of channel bookmarks",

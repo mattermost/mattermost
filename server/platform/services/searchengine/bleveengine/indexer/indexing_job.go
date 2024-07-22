@@ -472,9 +472,7 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 	batch := worker.engine.FileIndex.NewBatch()
 
 	for _, file := range files {
-		shouldIndexFile := file.DeleteAt == 0 && (file.PostId != "" || file.CreatorId == model.BookmarkFileOwner)
-
-		if shouldIndexFile {
+		if file.ShouldIndex() {
 			searchFile := bleveengine.BLVFileFromFileForIndexing(file)
 			batch.Index(searchFile.Id, searchFile)
 		} else {
