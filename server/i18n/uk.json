@@ -3136,14 +3136,6 @@
     "translation": "Не вдається розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Не вдалося створити масовий процесор Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Не вдалося запустити масовий процесор Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Еластичний пошук не запускається"
   },
@@ -6782,10 +6774,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Запрошення від безпечного з'єднання"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не вдалося розшифрувати запрошення. Неправильний пароль або зіпсоване запрошення: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

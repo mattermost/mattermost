@@ -103,18 +103,18 @@ func ParsePacketMetadata(b []byte) (*PacketMetadata, error) {
 }
 
 // GeneratePacketMetadata is a utility function to generate metadata for customer provided Packets.
-// It will construct it from serverID and optionally a license.
-func GeneratePacketMetadata(serverID string, license *License, extra map[string]any) (*PacketMetadata, error) {
+// It will construct it from a Packet Type, the telemetryID and optionally a license.
+func GeneratePacketMetadata(t PacketType, telemetryID string, license *License, extra map[string]any) (*PacketMetadata, error) {
 	if extra == nil {
 		extra = make(map[string]any)
 	}
 
-	md := PacketMetadata{
+	md := &PacketMetadata{
 		Version:       CurrentMetadataVersion,
-		Type:          PluginPacketType,
+		Type:          t,
 		GeneratedAt:   GetMillis(),
 		ServerVersion: CurrentVersion,
-		ServerID:      serverID,
+		ServerID:      telemetryID,
 		Extras:        extra,
 	}
 
@@ -127,5 +127,5 @@ func GeneratePacketMetadata(serverID string, license *License, extra map[string]
 		return nil, fmt.Errorf("invalid metadata: %w", err)
 	}
 
-	return &md, nil
+	return md, nil
 }

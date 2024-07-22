@@ -2707,7 +2707,6 @@
   "create_group_memberships_modal.create": "Sim",
   "create_group_memberships_modal.desc": "Isso adicionará (ou adicionará novamente) {username} a todas as equipes e canais disponíveis com base em suas associações de grupo. Você pode reverter essa alteração a qualquer momento.",
   "create_group_memberships_modal.title": "Adicione {username} novamente às equipes e canais",
-  "create_post.comment": "Comentário",
   "create_post.deactivated": "Você está vendo um canal arquivado com um **usuário inativo**. Novas mensagens não serão publicadas.",
   "create_post.error_message": "Sua mensagem é muito longa. Número de caracteres: {length}/{limit}",
   "create_post.fileProcessing": "Processando...",
