@@ -87,12 +87,12 @@ const (
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
 	WebsocketEventHostedCustomerSignupProgressUpdated WebsocketEventType = "hosted_customer_signup_progress_updated"
-	WebsocketEventChannelBookmarkCreated                                 = "channel_bookmark_created"
-	WebsocketEventChannelBookmarkUpdated                                 = "channel_bookmark_updated"
-	WebsocketEventChannelBookmarkDeleted                                 = "channel_bookmark_deleted"
-	WebsocketEventChannelBookmarkSorted                                  = "channel_bookmark_sorted"
+	WebsocketEventChannelBookmarkCreated              WebsocketEventType = "channel_bookmark_created"
+	WebsocketEventChannelBookmarkUpdated              WebsocketEventType = "channel_bookmark_updated"
+	WebsocketEventChannelBookmarkDeleted              WebsocketEventType = "channel_bookmark_deleted"
+	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
-	WebsocketPostedNotifyAck                                             = "posted_notify_ack"
+	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
 )
 
 type WebSocketMessage interface {

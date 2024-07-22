@@ -9,8 +9,8 @@
         overflow: hidden;
         max-height: calc(100vh - 240px);
         flex-direction: column;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 12px;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
     }
 
@@ -21,7 +21,7 @@
 
     .modal-header {
         border: none;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: var(--border-light);
         background: none;
     }
 
@@ -44,7 +44,7 @@
         align-items: center;
         justify-content: flex-end;
         padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-top: var(--border-light);
         gap: 8px;
     }
 
@@ -73,7 +73,7 @@
     }
 
     &__divider {
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: var(--border-light);
     }
 
     @media screen and (max-width: 768px) {

@@ -3,24 +3,22 @@
 
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-
-import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {copyToClipboard} from 'utils/utils';
+
+import WithTooltip from './with_tooltip';
 
 type Props = {
     content: string;
-    beforeCopyText?: string;
-    afterCopyText?: string;
+    isForText?: boolean;
     placement?: string;
     className?: string;
 };
 
 const CopyButton: React.FC<Props> = (props: Props) => {
+    const intl = useIntl();
+
     const [isCopied, setIsCopied] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,62 +37,61 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         copyToClipboard(props.content);
     };
 
-    const getId = () => {
-        if (isCopied) {
-            return t('copied.message');
-        }
-        return props.beforeCopyText ? t('copy.text.message') : t('copy.code.message');
-    };
+    let tooltipMessage;
+    if (isCopied) {
+        tooltipMessage = messages.copied;
+    } else if (props.isForText) {
+        tooltipMessage = messages.copyText;
+    } else {
+        tooltipMessage = messages.copyCode;
+    }
 
-    const getDefaultMessage = () => {
-        if (isCopied) {
-            return props.afterCopyText;
-        }
-        return props.beforeCopyText ?? 'Copy code';
-    };
-
-    const tooltip = (
-        <Tooltip id='copyButton'>
-            <FormattedMessage
-                id={getId()}
-                defaultMessage={getDefaultMessage()}
-            />
-        </Tooltip>
+    const tooltipText = (
+        <FormattedMessage {...tooltipMessage}/>
     );
 
     const spanClassName = classNames('post-code__clipboard', props.className);
 
     return (
-        <OverlayTrigger
-            shouldUpdatePosition={true}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement={props.placement}
-            overlay={tooltip}
+        <WithTooltip
+            id='copyButton.text'
+            placement={props.placement ?? 'top'}
+            title={tooltipText}
         >
             <span
                 className={spanClassName}
                 onClick={copyText}
+                aria-label={intl.formatMessage(tooltipMessage)}
+                role='button'
             >
                 {!isCopied &&
                     <i
-                        role='button'
                         className='icon icon-content-copy'
                     />
                 }
                 {isCopied &&
                     <i
-                        role='button'
                         className='icon icon-check'
                     />
                 }
             </span>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
-CopyButton.defaultProps = {
-    afterCopyText: 'Copied',
-    placement: 'top',
-};
+const messages = defineMessages({
+    copied: {
+        id: 'copied.message',
+        defaultMessage: 'Copied',
+    },
+    copyCode: {
+        id: 'copy.code.message',
+        defaultMessage: 'Copy code',
+    },
+    copyText: {
+        id: 'copy.text.message',
+        defaultMessage: 'Copy text',
+    },
+});
 
 export default CopyButton;

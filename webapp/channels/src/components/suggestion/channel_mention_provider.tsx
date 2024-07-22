@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -260,3 +261,10 @@ export default class ChannelMentionProvider extends Provider {
         this.lastPrefixWithNoResults = '';
     }
 }
+
+defineMessages({
+    myChannelsDivider: {
+        id: 'suggestion.mention.channels',
+        defaultMessage: 'My Channels',
+    },
+});

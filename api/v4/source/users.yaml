@@ -142,6 +142,10 @@
                   type: string
                 nickname:
                   type: string
+                position:
+                  type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 auth_data:
                   description: Service-specific authentication data, such as email address.
                   type: string
@@ -195,8 +199,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of users per page. There is a maximum limit of 200 users
-            per page.
+          description: The number of users per page.
           schema:
             type: integer
             default: 60
@@ -912,6 +915,8 @@
                   type: string
                 position:
                   type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 props:
                   type: object
                 notify_props:
@@ -3140,7 +3145,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of policies per page. There is a maximum limit of 200 per page.
+          description: The number of policies per page.
           schema:
             type: integer
             default: 60
@@ -3190,7 +3195,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of policies per page. There is a maximum limit of 200 per page.
+          description: The number of policies per page.
           schema:
             type: integer
             default: 60
@@ -3233,8 +3238,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of users per page. There is a maximum limit of 200 users
-            per page.
+          description: The number of users per page.
           schema:
             type: integer
             default: 60

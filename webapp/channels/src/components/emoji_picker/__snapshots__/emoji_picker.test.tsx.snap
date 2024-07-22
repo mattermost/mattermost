@@ -39,7 +39,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       id="emojiPickerCategories"
     >
       <a
-        aria-label="emoji_picker.smileys-emotion"
+        aria-label="Smileys & Emotion"
         class="emoji-picker__category emoji-picker__category--selected"
         href="#"
       >
@@ -48,7 +48,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.people-body"
+        aria-label="People & Body"
         class="emoji-picker__category"
         href="#"
       >
@@ -57,7 +57,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.animals-nature"
+        aria-label="Animals & Nature"
         class="emoji-picker__category"
         href="#"
       >
@@ -66,7 +66,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.food-drink"
+        aria-label="Food & Drink"
         class="emoji-picker__category"
         href="#"
       >
@@ -75,7 +75,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.travel-places"
+        aria-label="Travel & Places"
         class="emoji-picker__category"
         href="#"
       >
@@ -84,7 +84,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.activities"
+        aria-label="Activities"
         class="emoji-picker__category"
         href="#"
       >
@@ -93,7 +93,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.objects"
+        aria-label="Objects"
         class="emoji-picker__category"
         href="#"
       >
@@ -102,7 +102,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.symbols"
+        aria-label="Symbols"
         class="emoji-picker__category"
         href="#"
       >
@@ -111,7 +111,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.flags"
+        aria-label="Flags"
         class="emoji-picker__category"
         href="#"
       >
@@ -120,7 +120,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         />
       </a>
       <a
-        aria-label="emoji_picker.custom"
+        aria-label="Custom"
         class="emoji-picker__category"
         href="#"
       >

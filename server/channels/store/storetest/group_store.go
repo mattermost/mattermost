@@ -5350,8 +5350,8 @@ func groupTestDistinctGroupMemberCountForSource(t *testing.T, rctx request.CTX, 
 		ss.Group().Delete(customGroup.Id)
 		ss.Group().Delete(ldapGroup.Id)
 
-		ss.User().PermanentDelete(user1.Id)
-		ss.User().PermanentDelete(user2.Id)
+		ss.User().PermanentDelete(rctx, user1.Id)
+		ss.User().PermanentDelete(rctx, user2.Id)
 	}()
 
 	customGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)

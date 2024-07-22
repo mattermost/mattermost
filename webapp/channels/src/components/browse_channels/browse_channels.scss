@@ -66,11 +66,28 @@
             justify-content: center;
 
             .get-app__checkbox {
+                position: relative;
                 display: flex;
                 width: 16px;
                 height: 16px;
                 align-items: center;
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+                border-radius: var(--radius-xs);
+                margin-right: 6px;
+                background-color: var(--center-channel-bg);
+
+                &.checked {
+                    border: none;
+                }
+
+                svg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 16px;
+                    height: 16px;
+                    fill: var(--button-bg);
+                }
             }
 
             #hideJoinedPreferenceCheckbox {

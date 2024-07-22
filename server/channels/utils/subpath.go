@@ -51,16 +51,17 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 		subpath = "/"
 	}
 
+	// Resolve the static directory
 	staticDir, found := fileutils.FindDir(directory)
 	if !found {
 		return errors.New("failed to find client dir")
 	}
-
 	staticDir, err := filepath.EvalSymlinks(staticDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to resolve symlinks to %s", staticDir)
 	}
 
+	// Read the old root.html file
 	rootHTMLPath := filepath.Join(staticDir, "root.html")
 	oldRootHTML, err := os.ReadFile(rootHTMLPath)
 	if err != nil {
@@ -77,12 +78,25 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 		alreadyRewritten = true
 	}
 
+	// Determine the old and new paths
 	pathToReplace := path.Join(oldSubpath, "static") + "/"
 	newPath := path.Join(subpath, "static") + "/"
 
-	mlog.Debug("Rewriting static assets", mlog.String("from_subpath", oldSubpath), mlog.String("to_subpath", subpath))
+	// Update the root.html file
+	if err := updateRootFile(string(oldRootHTML), rootHTMLPath, alreadyRewritten, pathToReplace, newPath, subpath); err != nil {
+		return fmt.Errorf("failed to update root.html: %w", err)
+	}
 
-	newRootHTML := string(oldRootHTML)
+	// Update the manifest.json and *.css files
+	if err := updateManifestAndCSSFiles(staticDir, pathToReplace, newPath, subpath); err != nil {
+		return fmt.Errorf("failed to update manifest.json and *.css files: %w", err)
+	}
+
+	return nil
+}
+
+func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bool, pathToReplace, newPath, subpath string) error {
+	newRootHTML := oldRootHTML
 
 	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
@@ -110,13 +124,29 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 		newRootHTML = strings.Replace(newRootHTML, "</style>", fmt.Sprintf("</style><script>%s</script>", script), 1)
 	}
 
+	if newRootHTML == oldRootHTML {
+		mlog.Debug("No need to rewrite unmodified root.html", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
+		return nil
+	}
+
+	mlog.Debug("Rewriting root.html", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
 	// Write out the updated root.html.
-	if err = os.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
+	if err := os.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
 		return errors.Wrapf(err, "failed to update root.html with subpath %s", subpath)
 	}
 
+	return nil
+}
+
+func updateManifestAndCSSFiles(staticDir, pathToReplace, newPath, subpath string) error {
+	if pathToReplace == newPath {
+		mlog.Debug("No need to rewrite unmodified manifest.json and *.css files", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
+		return nil
+	}
+
+	mlog.Debug("Rewriting manifest.json and *.css files", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
 	// Rewrite the manifest.json and *.css references to `/static/*` (or a previously rewritten subpath).
-	err = filepath.Walk(staticDir, func(walkPath string, info os.FileInfo, err error) error {
+	err := filepath.Walk(staticDir, func(walkPath string, info os.FileInfo, err error) error {
 		if filepath.Base(walkPath) == "manifest.json" || filepath.Ext(walkPath) == ".css" {
 			old, err := os.ReadFile(walkPath)
 			if err != nil {

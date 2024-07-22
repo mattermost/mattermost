@@ -107,7 +107,6 @@
   "announcement_bar.warn.contact_support_text": "Untuk memperbarui lisensi Anda, hubungi pusat bantuan di support@mattermost.com.",
   "announcement_bar.warn.email_support": "[Hubungi pusat bantuan](!{email}).",
   "announcement_bar.warn.no_internet_connection": "Sepertinya Anda tidak memiliki akses internet.",
-  "announcement_bar.warn.renew_license_now": "Perbarui lisensi sekarang",
   "api.channel.add_guest.added": "{addedUsername} ditambahkan ke kanal sebagai tamu oleh {username}.",
   "api.channel.add_member.added": "{addedUsername} ditambahkan ke kanal oleh {username}.",
   "api.channel.delete_channel.archived": "{username} mengarsipkan kanal.",

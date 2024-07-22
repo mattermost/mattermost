@@ -12,10 +12,10 @@ import (
 )
 
 func (api *API) InitAction() {
-	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
 
-	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.OpenInteractiveDialog(dialog); appErr != nil {
+	if appErr := c.App.OpenInteractiveDialog(c.AppContext, dialog); appErr != nil {
 		c.Err = appErr
 		return
 	}

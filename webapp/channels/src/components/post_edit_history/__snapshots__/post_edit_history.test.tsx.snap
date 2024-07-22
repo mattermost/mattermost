@@ -226,7 +226,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                     class="Avatar Avatar-sm avatar-post-preview"
                     loading="lazy"
                     src="/api/v4/users/user_id/image?_=0"
-                    tabindex="0"
                   />
                 </span>
                 <div

@@ -404,7 +404,7 @@ func TestHandlePluginRequest(t *testing.T) {
 		*cfg.ServiceSettings.EnableUserAccessTokens = true
 	})
 
-	token, err := th.App.CreateUserAccessToken(&model.UserAccessToken{
+	token, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
 		UserId: th.BasicUser.Id,
 	})
 	require.Nil(t, err)

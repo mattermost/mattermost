@@ -63,7 +63,6 @@ type Store struct {
 	PostPriorityStore               mocks.PostPriorityStore
 	PostAcknowledgementStore        mocks.PostAcknowledgementStore
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
-	TrueUpReviewStore               mocks.TrueUpReviewStore
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
 }
@@ -112,7 +111,6 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
 func (s *Store) ChannelBookmark() store.ChannelBookmarkStore { return &s.ChannelBookmarkStore }
-func (s *Store) TrueUpReview() store.TrueUpReviewStore       { return &s.TrueUpReviewStore }
 func (s *Store) DesktopTokens() store.DesktopTokensStore     { return &s.DesktopTokensStore }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore         { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                     { return &s.GroupStore }

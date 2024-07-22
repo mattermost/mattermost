@@ -82,11 +82,8 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 }
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	// Add if we have mentions or followers
-	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
-	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
-		msg.Add("should_ack", true)
-		incrementWebsocketCounter(webConn)
+	// Don't ACK unless we say to explicitly
+	if !(webConn.PostedAck && webConn.Active.Load()) {
 		return nil
 	}
 
@@ -97,6 +94,14 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	// Don't ACK your own posts
 	if postedUserId == webConn.UserId {
+		return nil
+	}
+
+	// Add if we have mentions or followers
+	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
+	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
+		msg.Add("should_ack", true)
+		incrementWebsocketCounter(webConn)
 		return nil
 	}
 
@@ -130,11 +135,11 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 		return
 	}
 
-	if !wc.Platform.Config().FeatureFlags.NotificationMonitoring {
+	if !(wc.Platform.Config().FeatureFlags.NotificationMonitoring && *wc.Platform.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 
-	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding

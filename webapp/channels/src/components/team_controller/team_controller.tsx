@@ -63,6 +63,10 @@ function TeamController(props: Props) {
     }, []);
 
     useEffect(() => {
+        if (props.disableWakeUpReconnectHandler) {
+            return () => {};
+        }
+
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
@@ -75,7 +79,7 @@ function TeamController(props: Props) {
         return () => {
             clearInterval(wakeUpIntervalId);
         };
-    }, []);
+    }, [props.disableWakeUpReconnectHandler]);
 
     // Effect runs on mount, add event listeners on windows object
     useEffect(() => {
@@ -100,6 +104,7 @@ function TeamController(props: Props) {
         function handleBlur() {
             window.isActive = false;
             blurTime.current = Date.now();
+            props.unsetActiveChannelOnServer();
         }
 
         function handleKeydown(event: KeyboardEvent) {

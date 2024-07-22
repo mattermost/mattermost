@@ -432,7 +432,8 @@ export function autoResetStatus(): ActionFuncAsync<UserStatus> {
         }
 
         const {currentUserId} = state.entities.users;
-        const {data: userStatus} = await doDispatch(UserActions.getStatus(currentUserId));
+        const {data} = await doDispatch(UserActions.getStatusesByIds([currentUserId]));
+        const userStatus = data?.[0];
 
         if (userStatus?.status === UserStatuses.OUT_OF_OFFICE || !userStatus?.manual) {
             return {data: userStatus};

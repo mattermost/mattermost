@@ -43,16 +43,21 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
     return async (dispatch, getState) => {
         const state = getState();
         const rootPost = PostSelectors.getPost(state, post.root_id);
-        if (post.root_id && !rootPost) {
+        const isPostFromCurrentChannel = post.channel_id === getCurrentChannelId(state);
+
+        if (post.root_id && !rootPost && isPostFromCurrentChannel) {
             const result = await dispatch(PostActions.getPostThread(post.root_id));
 
             if ('error' in result) {
+                if (websocketMessageProps.should_ack) {
+                    WebSocketClient.acknowledgePostedNotification(post.id, 'error', 'missing_root_post', result.error);
+                }
                 return {error: result.error};
             }
         }
         const actions: AnyAction[] = [];
 
-        if (post.channel_id === getCurrentChannelId(getState())) {
+        if (isPostFromCurrentChannel) {
             actions.push({
                 type: ActionTypes.INCREASE_POST_VISIBILITY,
                 data: post.channel_id,

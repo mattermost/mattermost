@@ -35,31 +35,28 @@ describe('System Console > User Management > Deactivation', () => {
         cy.findByPlaceholderText('Search users').should('be.visible').clear().type(testUser.email).wait(TIMEOUTS.HALF_SEC);
 
         // * Verify that user is listed
-        cy.findByText(`@${testUser.username}`).should('be.visible');
+        cy.findByText(`${testUser.username}`).should('be.visible');
 
-        // # Scan on the first item's row in the list
-        cy.findByTestId('userListRow').should('be.visible').within(() => {
-            // * Verify before deactivation email is visible
-            cy.findByText(testUser.email).should('be.visible');
+        // * Verify before deactivation email is visible
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('be.visible').should('have.text', testUser.email);
 
-            // # Open the actions menu.
-            cy.findByText('Member').click().wait(TIMEOUTS.HALF_SEC);
+        // # Open the actions menu.
+        cy.get('#actionMenuButton-systemUsersTable-0').should('have.text', 'Member').click().wait(TIMEOUTS.HALF_SEC);
 
-            // # Click on deactivate menu button
-            cy.findByLabelText('User Actions Menu').findByText('Deactivate').click();
-        });
+        // # Click on deactivate menu button
+        cy.get('#actionMenuItem-systemUsersTable-0-deactivate').should('have.text', 'Deactivate').click();
 
         // # Click confirm deactivate in the modal
         cy.get('.a11y__modal').should('exist').and('be.visible').within(() => {
             cy.findByText('Deactivate').should('be.visible').click();
         });
 
-        cy.findByTestId('userListRow').should('be.visible').within(() => {
-            // * Verify that the user is now inactive
-            cy.findByText('Inactive').should('be.visible');
+        cy.get('#actionMenuButton-systemUsersTable-0').should('have.text', 'Deactivated').should('be.visible');
 
-            // * Verify once again if email is visible
-            cy.findByText(testUser.email).should('be.visible');
-        });
+        // * Verify once again if email is visible
+        cy.findByText(testUser.email).should('be.visible');
+
+        // * Verify once again if email is visible
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('be.visible').should('have.text', testUser.email);
     });
 });

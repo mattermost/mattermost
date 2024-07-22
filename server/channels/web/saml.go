@@ -20,8 +20,8 @@ import (
 const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods(http.MethodPost)
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return

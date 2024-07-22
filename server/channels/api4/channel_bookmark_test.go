@@ -1310,8 +1310,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 		var b *model.ChannelBookmarkWithFileInfo
 		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
+			if event, ok := <-webSocketClient.EventChannel; ok && event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
 				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
 				require.NoError(t, err)
 				return true

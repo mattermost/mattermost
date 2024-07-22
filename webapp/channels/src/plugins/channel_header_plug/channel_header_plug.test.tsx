@@ -3,127 +3,115 @@
 
 import React from 'react';
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
-import ChannelHeaderPlug from 'plugins/channel_header_plug/channel_header_plug';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import type {PluginComponent} from 'types/store/plugins';
 
+import ChannelHeaderPlug, {maxComponentsBeforeDropdown} from './channel_header_plug';
+
 describe('plugins/ChannelHeaderPlug', () => {
-    const testPlug: PluginComponent = {
-        id: 'someid',
-        pluginId: 'pluginid',
-        icon: <i className='fa fa-anchor'/>,
-        action: jest.fn,
-        dropdownText: 'some dropdown text',
-        tooltipText: 'some tooltip text',
-    } as PluginComponent;
+    const baseProps = {
+        components: [],
+        channel: TestHelper.getChannelMock({id: 'channel1'}),
+        channelMember: TestHelper.getChannelMembershipMock({channel_id: 'channel1', user_id: 'user1'}),
+        sidebarOpen: false,
+        actions: {
+            handleBindingClick: jest.fn(),
+            postEphemeralCallResponseForChannel: jest.fn(),
+            openAppsModal: jest.fn(),
+        },
+        appBindings: [],
+        appsEnabled: false,
+        shouldShowAppBar: false,
+    };
 
-    test('should match snapshot with no extended component', () => {
-        const wrapper = mountWithIntl(
+    function makeTestPlug(n = 1): PluginComponent {
+        return {
+            id: 'someid' + n,
+            pluginId: 'pluginid' + n,
+            icon: <i className='fa fa-anchor'/>,
+            action: jest.fn,
+            dropdownText: 'some dropdown text ' + n,
+            tooltipText: 'some tooltip text ' + n,
+        };
+    }
+
+    test('should not render anything with no extended component', () => {
+        const {container} = renderWithContext(
             <ChannelHeaderPlug
-                components={[]}
-                channel={{} as Channel}
-                channelMember={{} as ChannelMembership}
-                theme={{} as Theme}
-                sidebarOpen={false}
-                actions={{
-                    handleBindingClick: jest.fn(),
-                    postEphemeralCallResponseForChannel: jest.fn(),
-                    openAppsModal: jest.fn(),
-                }}
-                appBindings={[]}
-                appsEnabled={false}
-                shouldShowAppBar={false}
+                {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toBeEmptyDOMElement();
     });
 
-    test('should match snapshot with one extended component', () => {
-        const wrapper = mountWithIntl(
+    test('should render a single plug', () => {
+        renderWithContext(
             <ChannelHeaderPlug
-                components={[testPlug]}
-                channel={{} as Channel}
-                channelMember={{} as ChannelMembership}
-                theme={{} as Theme}
-                sidebarOpen={false}
-                actions={{
-                    handleBindingClick: jest.fn(),
-                    postEphemeralCallResponseForChannel: jest.fn(),
-                    openAppsModal: jest.fn(),
-                }}
-                appBindings={[]}
-                appsEnabled={false}
-                shouldShowAppBar={false}
+                {...baseProps}
+                components={[makeTestPlug()]}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByLabelText('some tooltip text 1')).toBeInTheDocument();
     });
 
-    test('should match snapshot with six extended components', () => {
-        const wrapper = mountWithIntl(
+    test(`should render ${maxComponentsBeforeDropdown} plugs in the header`, () => {
+        const components = [];
+        for (let i = 0; i < maxComponentsBeforeDropdown; i++) {
+            components.push(makeTestPlug(i));
+        }
+
+        renderWithContext(
             <ChannelHeaderPlug
+                {...baseProps}
+                components={components}
+            />,
+        );
+
+        for (let i = 0; i < components.length; i++) {
+            expect(screen.getByLabelText('some tooltip text ' + i)).toBeInTheDocument();
+        }
+    });
+
+    test(`should render more than ${maxComponentsBeforeDropdown} plugs in a dropdown`, () => {
+        const components = [];
+        for (let i = 0; i < maxComponentsBeforeDropdown + 1; i++) {
+            components.push(makeTestPlug(i));
+        }
+
+        renderWithContext(
+            <ChannelHeaderPlug
+                {...baseProps}
+                components={components}
+            />,
+        );
+
+        for (let i = 0; i < components.length; i++) {
+            expect(screen.queryByLabelText('some tooltip text ' + i)).not.toBeInTheDocument();
+        }
+
+        // Ideally, this would identify the dropdown button better, but this uses a custom dropdown which is
+        // not at all accessible
+        expect(screen.getByRole('button', {name: components.length.toString()})).toBeVisible();
+    });
+
+    test('should not render anything when the App Bar is visible', () => {
+        const {container} = renderWithContext(
+            <ChannelHeaderPlug
+                {...baseProps}
                 components={[
-                    testPlug,
-                    {...testPlug, id: 'someid2'},
-                    {...testPlug, id: 'someid3'},
-                    {...testPlug, id: 'someid4'},
-                    {...testPlug, id: 'someid5'},
-                    {...testPlug, id: 'someid6'},
-                    {...testPlug, id: 'someid7'},
-                    {...testPlug, id: 'someid8'},
-                    {...testPlug, id: 'someid9'},
-                    {...testPlug, id: 'someid10'},
-                    {...testPlug, id: 'someid11'},
-                    {...testPlug, id: 'someid12'},
-                    {...testPlug, id: 'someid13'},
-                    {...testPlug, id: 'someid14'},
-                    {...testPlug, id: 'someid15'},
+                    makeTestPlug(1),
+                    makeTestPlug(2),
+                    makeTestPlug(3),
+                    makeTestPlug(4),
                 ]}
-                channel={{} as Channel}
-                channelMember={{} as ChannelMembership}
-                theme={{} as Theme}
-                sidebarOpen={false}
-                actions={{
-                    handleBindingClick: jest.fn(),
-                    postEphemeralCallResponseForChannel: jest.fn(),
-                    openAppsModal: jest.fn(),
-                }}
-                appBindings={[]}
-                appsEnabled={false}
-                shouldShowAppBar={false}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot when the App Bar is visible', () => {
-        const wrapper = mountWithIntl(
-            <ChannelHeaderPlug
-                components={[
-                    testPlug,
-                    {...testPlug, id: 'someid2'},
-                    {...testPlug, id: 'someid3'},
-                    {...testPlug, id: 'someid4'},
-                ]}
-                channel={{} as Channel}
-                channelMember={{} as ChannelMembership}
-                theme={{} as Theme}
-                sidebarOpen={false}
-                actions={{
-                    handleBindingClick: jest.fn(),
-                    postEphemeralCallResponseForChannel: jest.fn(),
-                    openAppsModal: jest.fn(),
-                }}
-                appBindings={[]}
-                appsEnabled={false}
                 shouldShowAppBar={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toBeEmptyDOMElement();
     });
 });

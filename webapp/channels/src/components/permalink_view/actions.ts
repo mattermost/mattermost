@@ -63,7 +63,7 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
         const team = getTeam(state, channel.team_id || teamId);
         const currentChannel = getCurrentChannel(state);
 
-        const sameTeam = currentChannel && currentChannel.team_id === team.id;
+        const sameTeam = currentChannel && currentChannel.team_id === team?.id;
 
         const {skipRedirectReplyPermalink} = option;
 
@@ -100,6 +100,9 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
 
         const state = getState();
         const currentTeam = getCurrentTeam(state);
+        if (!currentTeam) {
+            return;
+        }
 
         if (!postInfo.has_joined_channel) {
             // Prompt system admin before joining the private channel

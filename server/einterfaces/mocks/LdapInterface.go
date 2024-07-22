@@ -329,7 +329,7 @@ func (_m *LdapInterface) GetUserAttributes(rctx request.CTX, id string, attribut
 }
 
 // GetVendorNameAndVendorVersion provides a mock function with given fields: rctx
-func (_m *LdapInterface) GetVendorNameAndVendorVersion(rctx request.CTX) (string, string) {
+func (_m *LdapInterface) GetVendorNameAndVendorVersion(rctx request.CTX) (string, string, error) {
 	ret := _m.Called(rctx)
 
 	if len(ret) == 0 {
@@ -338,7 +338,8 @@ func (_m *LdapInterface) GetVendorNameAndVendorVersion(rctx request.CTX) (string
 
 	var r0 string
 	var r1 string
-	if rf, ok := ret.Get(0).(func(request.CTX) (string, string)); ok {
+	var r2 error
+	if rf, ok := ret.Get(0).(func(request.CTX) (string, string, error)); ok {
 		return rf(rctx)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX) string); ok {
@@ -353,7 +354,13 @@ func (_m *LdapInterface) GetVendorNameAndVendorVersion(rctx request.CTX) (string
 		r1 = ret.Get(1).(string)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(request.CTX) error); ok {
+		r2 = rf(rctx)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // MigrateIDAttribute provides a mock function with given fields: c, toAttribute

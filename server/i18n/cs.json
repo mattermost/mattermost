@@ -196,10 +196,6 @@
     "translation": "Vaše heslo musí obsahovat nejméně {{.Min}} znaky složené z alespoň jednoho čísla."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Vaše heslo musí obsahovat nejmíň {{.Min}} znaků."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Neplatná pozice: nesmí být delší než 128 znaků."
   },
@@ -730,10 +726,6 @@
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
     "translation": "Úloha pro export zpráv ExportFormat musí být jedna z následujících 'actiance', 'csv' nebo'globalrelay'."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nepodařilo se vytvořit Elasticsearch dávkový procesor."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -2612,10 +2604,6 @@
     "translation": "Nelze získat všechny uživatele pomocí AD/LDAP."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "chyba výmazu příslušnosti k týmu nebo kanálu"
-  },
-  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Uživatel není registrován na AD/LDAP serveru."
   },
@@ -2678,10 +2666,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch je už zastaven."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nepodařilo se spustit Elasticsearch dávkový procesor."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
@@ -5296,10 +5280,6 @@
     "translation": "Platnost Vaší licence Enterprise vypršela a některé funkce mohou být vypnuty. Obnovte licenci."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Obnovit licenci"
-  },
-  {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
     "translation": "Uživatele nelze přidat, protože doména přiřazená tomuto účtu není povolena. Další podrobnosti žádejte od svého systémového administrátora."
   },
@@ -6356,52 +6336,8 @@
     "translation": "skupinové syncable již bylo smazáno"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Faktura za Mattermost Cloud je v prodlení"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Platba předplatného Mattermost Cloud je ve zpoždění"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Pro kontrolu faktury a zadání platební metody zvolte Zaplatit nyní."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Faktura za Mattermost Cloud byla zpracována. Nicméně nám chybí Vaše platební údaje."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Zaplatit nyní"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Platba neprošla"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Vyžadována akce: selhala platba za Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Chcete-li nadále nepřerušeně využívat Mattermost Cloud, prosím kontaktujte buď svoji bankovní instituci nebo aktualizujte své platební údaje. Poté, co budou údaje o platbě opraveny, Mattermost se pokusí opětovně provést stržení zbývajících částek."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Poskytli následující důvod:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Vaše bankovní instituce zamítla platbu přes {{.CardBrand}} ****{{.LastFour}} připojené k Vašemu Mattermost Cloud workspace."
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Napište nám kdykoliv na "
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
@@ -6772,22 +6708,6 @@
     "translation": "Nemohu zapsat exportní soubor."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Chybí licence"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Tento typ licence nepodporuje tvorbu tokenu pro obnovení"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Selhalo vytvoření tokenu pro obnovení."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Chyba při získávání odkazu na obnovení licence"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Soubor nelze zapsat."
   },
@@ -7060,10 +6980,6 @@
     "translation": "Tým nelze vytvořit, protože bylo dosaženo limitu týmů"
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Chybějící povinná pole pro odeslání e-mailu o prodlení."
-  },
-  {
     "id": "web.error.unsupported_browser.no_longer_support",
     "translation": "Tento prohlížeč již Mattermost nepodporuje"
   },
@@ -7146,10 +7062,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Pozvánka ze zabezpečeného připojení"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Pozvánku se nepodařilo dešifrovat. Nesprávné heslo nebo poškozená pozvánka: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

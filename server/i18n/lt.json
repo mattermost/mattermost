@@ -508,10 +508,6 @@
     "translation": "Vidinė klaida per debesies api užklausą."
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Trūksta reikiamų laukų, kad būtų galima išsiųsti delinkventinį el. laišką."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Jau pranešta administratoriui"
   },

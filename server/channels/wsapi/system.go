@@ -10,7 +10,7 @@ import (
 
 func (api *API) InitSystem() {
 	api.Router.Handle("ping", api.APIWebSocketHandler(ping))
-	api.Router.Handle(model.WebsocketPostedNotifyAck, api.APIWebSocketHandler(api.websocketNotificationAck))
+	api.Router.Handle(string(model.WebsocketPostedNotifyAck), api.APIWebSocketHandler(api.websocketNotificationAck))
 }
 
 func ping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
@@ -36,7 +36,7 @@ func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[strin
 	)
 
 	// Count metrics for websocket acks
-	api.App.CountNotificationAck(model.NotificationTypeWebsocket)
+	api.App.CountNotificationAck(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
 
 	status := req.Data["status"]
 	reason := req.Data["reason"]
@@ -57,6 +57,7 @@ func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[strin
 		notificationStatus,
 		model.NotificationTypeWebsocket,
 		notificationReason,
+		model.NotificationNoPlatform,
 	)
 
 	return nil, nil

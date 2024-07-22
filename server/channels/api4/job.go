@@ -17,12 +17,13 @@ import (
 )
 
 func (api *API) InitJob() {
-	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods(http.MethodPost)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods(http.MethodPost)
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updateJobStatus)).Methods(http.MethodPatch)
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -147,23 +148,58 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	jobType := r.URL.Query().Get("job_type")
 	var validJobTypes []string
-	for _, jobType := range model.AllJobTypes {
+
+	if jobType != "" {
+		isValidJobType := model.IsValidJobType(jobType)
+		if !isValidJobType {
+			c.SetInvalidURLParam("job_type")
+			return
+		}
 		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
-			c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jobType))
-			continue
+			c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
+			return
 		}
-		if hasPermission {
-			validJobTypes = append(validJobTypes, jobType)
+		if !hasPermission {
+			c.SetPermissionError(permissionRequired)
+			return
+		}
+		validJobTypes = append(validJobTypes, jobType)
+	} else {
+		for _, jType := range model.AllJobTypes {
+			hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType)
+			if permissionRequired == nil {
+				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jType))
+				continue
+			}
+			if hasPermission {
+				validJobTypes = append(validJobTypes, jType)
+			}
 		}
 	}
+
 	if len(validJobTypes) == 0 {
 		c.SetPermissionError()
 		return
 	}
 
-	jobs, appErr := c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
+	status := r.URL.Query().Get("status")
+	isValidStatus := model.IsValidJobStatus(status)
+	if status != "" && !isValidStatus {
+		c.Err = model.NewAppError("getJobs", "api.job.status.invalid", nil, "", http.StatusBadRequest)
+	}
+
+	var jobs []*model.Job
+	var appErr *model.AppError
+
+	if status == "" {
+		jobs, appErr = c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
+	} else {
+		jobs, appErr = c.App.GetJobsByTypeAndStatus(c.AppContext, validJobTypes, status, c.Params.Page, c.Params.PerPage)
+	}
+
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -240,6 +276,63 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.CancelJob(c.AppContext, c.Params.JobId); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireJobId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateJobStatus", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+
+	props := model.StringInterfaceFromJSON(r.Body)
+	status, ok := props["status"].(string)
+	if !ok {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	force, ok := props["force"].(bool)
+	if !ok {
+		force = false
+	}
+
+	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddEventPriorState(job)
+	auditRec.AddEventObjectType("job")
+
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToManageJob(*c.AppContext.Session(), job)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("updateJobStatus", "api.job.unable_to_manage_job.incorrect_job_type", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
+		return
+	}
+
+	if !force && !job.IsValidStatusChange(status) {
+		c.Err = model.NewAppError("updateJobStatus", "api.job.status.invalid", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.UpdateJobStatus(c.AppContext, job, status); err != nil {
 		c.Err = err
 		return
 	}

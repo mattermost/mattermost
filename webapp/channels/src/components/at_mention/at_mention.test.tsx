@@ -28,6 +28,7 @@ describe('components/AtMention', () => {
             marketing: TestHelper.getGroupMock({id: 'qwerty2', name: 'marketing', allow_reference: false}),
             accounting: TestHelper.getGroupMock({id: 'qwerty3', name: 'accounting', allow_reference: true}),
         },
+        dispatch: jest.fn(),
     };
 
     test('should match snapshot when mentioning user', () => {

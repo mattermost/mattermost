@@ -29,8 +29,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	PostPriority bool
-
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
@@ -57,6 +55,8 @@ type FeatureFlags struct {
 	WebSocketEventScope bool
 
 	NotificationMonitoring bool
+
+	ExperimentalAuditSettingsSystemConsoleUI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -80,6 +80,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = false
 	f.WebSocketEventScope = false
 	f.NotificationMonitoring = true
+	f.ExperimentalAuditSettingsSystemConsoleUI = false
 }
 
 // ToMap returns the feature flags as a map[string]string

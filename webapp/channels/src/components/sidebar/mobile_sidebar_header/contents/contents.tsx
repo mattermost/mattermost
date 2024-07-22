@@ -30,10 +30,10 @@ const VerticalStack = styled.div`
 `;
 
 type Props = {
-    teamDescription: string;
-    teamId: string;
+    teamDescription?: string;
+    teamId?: string;
     currentUser: UserProfile;
-    teamDisplayName: string;
+    teamDisplayName?: string;
     actions: Actions;
 };
 
@@ -52,7 +52,7 @@ export default class Contents extends React.PureComponent<Props> {
     };
 
     render() {
-        if (!this.props.currentUser) {
+        if (!this.props.currentUser || !this.props.teamId) {
             return null;
         }
 

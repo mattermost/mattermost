@@ -200,9 +200,11 @@ export class QuickInput extends React.PureComponent<Props> {
             {inputElement}
             {showClearButton &&
             <div
+                data-testid='input-clear'
                 className={classNames(clearClassName, 'input-clear visible')}
                 onMouseDown={this.onClear}
                 onTouchEnd={this.onClear}
+                role='button'
             >
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}

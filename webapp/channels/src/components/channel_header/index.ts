@@ -49,16 +49,13 @@ import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
 
-const EMPTY_CHANNEL = {};
-const EMPTY_CHANNEL_STATS = {member_count: 0, guest_count: 0, pinnedpost_count: 0, files_count: 0};
-
 function makeMapStateToProps() {
     const doGetProfilesInChannel = makeGetProfilesInChannel();
     const getCustomStatus = makeGetCustomStatus();
     let timestampUnits: string[] = [];
 
     return function mapStateToProps(state: GlobalState) {
-        const channel = getCurrentChannel(state) || EMPTY_CHANNEL;
+        const channel = getCurrentChannel(state);
         const user = getCurrentUser(state);
         const teams = getMyTeams(state);
         const hasMoreThanOneTeam = teams.length > 1;
@@ -77,7 +74,7 @@ function makeMapStateToProps() {
         } else if (channel && channel.type === General.GM_CHANNEL) {
             gmMembers = doGetProfilesInChannel(state, channel.id);
         }
-        const stats = getCurrentChannelStats(state) || EMPTY_CHANNEL_STATS;
+        const stats = getCurrentChannelStats(state);
 
         let isLastActiveEnabled = false;
         if (dmUser) {
@@ -89,7 +86,7 @@ function makeMapStateToProps() {
             teamId: getCurrentTeamId(state),
             channel,
             channelMember: getMyCurrentChannelMembership(state),
-            memberCount: stats.member_count,
+            memberCount: stats?.member_count || 0,
             currentUser: user,
             dmUser,
             gmMembers,
@@ -98,8 +95,8 @@ function makeMapStateToProps() {
             isReadOnly: false,
             isMuted: isCurrentChannelMuted(state),
             isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
-            hasGuests: stats.guest_count > 0,
-            pinnedPostsCount: stats.pinnedpost_count,
+            hasGuests: stats ? stats.guest_count > 0 : false,
+            pinnedPostsCount: stats?.pinnedpost_count || 0,
             hasMoreThanOneTeam,
             currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
             announcementBarCount: getAnnouncementBarCount(state),

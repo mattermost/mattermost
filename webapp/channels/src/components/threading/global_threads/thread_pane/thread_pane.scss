@@ -1,7 +1,6 @@
 
 .ThreadPane {
     display: grid;
-    overflow: hidden;
     grid-template-areas:
         'header'
         'pane';
@@ -13,7 +12,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 12px 16px;
-        border-bottom: var(--border);
+        border-bottom: var(--border-default);
         grid-area: header;
 
         --button-separator-height: 24px;

@@ -81,7 +81,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v9.7 server
+// Based on v9.8 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -133,6 +133,7 @@ const defaultServerConfig: AdminConfig = {
         CorsDebug: false,
         AllowCookiesForSubdomains: false,
         ExtendSessionLengthWithActivity: true,
+        TerminateSessionsOnPasswordChange: false,
         SessionLengthWebInDays: 30,
         SessionLengthWebInHours: 720,
         SessionLengthMobileInDays: 30,
@@ -158,7 +159,6 @@ const defaultServerConfig: AdminConfig = {
         EnableUserStatuses: true,
         ExperimentalEnableAuthenticationTransfer: true,
         ClusterLogTimeoutMilliseconds: 2000,
-        EnablePreviewFeatures: true,
         EnableTutorial: true,
         EnableOnboardingFlow: true,
         ExperimentalEnableDefaultChannelLeaveJoinMessages: true,
@@ -195,7 +195,7 @@ const defaultServerConfig: AdminConfig = {
         AllowSyncedDrafts: true,
         UniqueEmojiReactionLimitPerPost: 50,
         RefreshPostStatsRunTime: '00:00',
-        MaximumPayloadSizeBytes: 100000,
+        MaximumPayloadSizeBytes: 300000,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -319,6 +319,7 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3SSE: false,
         AmazonS3Trace: false,
         AmazonS3RequestTimeoutMilliseconds: 30000,
+        AmazonS3UploadPartSizeBytes: 5242880,
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -334,6 +335,7 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3Trace: false,
         ExportAmazonS3RequestTimeoutMilliseconds: 30000,
         ExportAmazonS3PresignExpiresSeconds: 21600,
+        ExportAmazonS3UploadPartSizeBytes: 104857600,
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -586,6 +588,7 @@ const defaultServerConfig: AdminConfig = {
         ConnectionURL: 'http://localhost:9200',
         Username: 'elastic',
         Password: 'changeme',
+        Backend: 'elasticsearch',
         EnableIndexing: false,
         EnableSearching: false,
         EnableAutocomplete: false,
@@ -712,7 +715,6 @@ const defaultServerConfig: AdminConfig = {
         PermalinkPreviews: false,
         CallsEnabled: true,
         NormalizeLdapDNs: false,
-        PostPriority: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
@@ -724,7 +726,9 @@ const defaultServerConfig: AdminConfig = {
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
+        ChannelBookmarks: false,
         WebSocketEventScope: false,
+        NotificationMonitoring: true,
     },
     ImportSettings: {
         Directory: './import',

@@ -183,7 +183,7 @@ function printServerDetails() {
     cy.apiGetConfig().then(({config}) => {
         cy.log(`Notable Server Config:
   - ServiceSettings.EnableSecurityFixAlert  = ${config.ServiceSettings.EnableSecurityFixAlert}
-  - LogSettings.EnableDiagnostics           = ${config.LogSettings.EnableDiagnostics}`);
+  - LogSettings.EnableDiagnostics           = ${config.LogSettings?.EnableDiagnostics}`);
     });
 }
 

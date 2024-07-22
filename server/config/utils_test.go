@@ -80,7 +80,9 @@ func TestDesanitize(t *testing.T) {
 }
 
 func TestFixInvalidLocales(t *testing.T) {
-	utils.TranslationsPreInit()
+	// utils.TranslationsPreInit errors when TestFixInvalidLocales is run as part of testing the package,
+	// but doesn't error when the test is run individually.
+	_ = utils.TranslationsPreInit()
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
@@ -89,39 +91,39 @@ func TestFixInvalidLocales(t *testing.T) {
 	*cfg.LocalizationSettings.DefaultClientLocale = "en"
 	*cfg.LocalizationSettings.AvailableLocales = ""
 
-	changed := FixInvalidLocales(cfg)
+	changed := fixInvalidLocales(cfg)
 	assert.False(t, changed)
 
 	*cfg.LocalizationSettings.DefaultServerLocale = "junk"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Equal(t, "en", *cfg.LocalizationSettings.DefaultServerLocale)
 
 	*cfg.LocalizationSettings.DefaultServerLocale = ""
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Equal(t, "en", *cfg.LocalizationSettings.DefaultServerLocale)
 
 	*cfg.LocalizationSettings.AvailableLocales = "en"
 	*cfg.LocalizationSettings.DefaultServerLocale = "de"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.False(t, changed)
 	assert.NotContains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale, "DefaultServerLocale should not be added to AvailableLocales")
 
 	*cfg.LocalizationSettings.AvailableLocales = ""
 	*cfg.LocalizationSettings.DefaultClientLocale = "junk"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Equal(t, "en", *cfg.LocalizationSettings.DefaultClientLocale)
 
 	*cfg.LocalizationSettings.DefaultClientLocale = ""
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Equal(t, "en", *cfg.LocalizationSettings.DefaultClientLocale)
 
 	*cfg.LocalizationSettings.AvailableLocales = "en"
 	*cfg.LocalizationSettings.DefaultClientLocale = "de"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale, "DefaultClientLocale should have been added to AvailableLocales")
 
@@ -129,19 +131,19 @@ func TestFixInvalidLocales(t *testing.T) {
 	*cfg.LocalizationSettings.DefaultServerLocale = "en"
 	*cfg.LocalizationSettings.DefaultClientLocale = "en"
 	*cfg.LocalizationSettings.AvailableLocales = "junk"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Equal(t, "", *cfg.LocalizationSettings.AvailableLocales)
 
 	*cfg.LocalizationSettings.AvailableLocales = "en,de,junk"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.Equal(t, "", *cfg.LocalizationSettings.AvailableLocales)
 
 	*cfg.LocalizationSettings.DefaultServerLocale = "fr"
 	*cfg.LocalizationSettings.DefaultClientLocale = "de"
 	*cfg.LocalizationSettings.AvailableLocales = "en"
-	changed = FixInvalidLocales(cfg)
+	changed = fixInvalidLocales(cfg)
 	assert.True(t, changed)
 	assert.NotContains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale, "DefaultServerLocale should not be added to AvailableLocales")
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")

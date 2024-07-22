@@ -42,6 +42,8 @@ const (
 	MetricsSubsystemSystem             = "system"
 	MetricsSubsystemJobs               = "jobs"
 	MetricsSubsystemNotifications      = "notifications"
+	MetricsSubsystemClientsMobileApp   = "mobileapp"
+	MetricsSubsystemClientsWeb         = "webapp"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -203,11 +205,28 @@ type MetricsInterfaceImpl struct {
 
 	JobsActive *prometheus.GaugeVec
 
-	NotificationTotalCounters   *prometheus.CounterVec
-	NotificationAckCounters     *prometheus.CounterVec
-	NotificationSuccessCounters *prometheus.CounterVec
-	NotificationErrorCounters   *prometheus.CounterVec
-	NotificationNotSentCounters *prometheus.CounterVec
+	NotificationTotalCounters       *prometheus.CounterVec
+	NotificationAckCounters         *prometheus.CounterVec
+	NotificationSuccessCounters     *prometheus.CounterVec
+	NotificationErrorCounters       *prometheus.CounterVec
+	NotificationNotSentCounters     *prometheus.CounterVec
+	NotificationUnsupportedCounters *prometheus.CounterVec
+
+	ClientTimeToFirstByte           *prometheus.HistogramVec
+	ClientFirstContentfulPaint      *prometheus.HistogramVec
+	ClientLargestContentfulPaint    *prometheus.HistogramVec
+	ClientInteractionToNextPaint    *prometheus.HistogramVec
+	ClientCumulativeLayoutShift     *prometheus.HistogramVec
+	ClientLongTasks                 *prometheus.CounterVec
+	ClientPageLoadDuration          *prometheus.HistogramVec
+	ClientChannelSwitchDuration     *prometheus.HistogramVec
+	ClientTeamSwitchDuration        *prometheus.HistogramVec
+	ClientRHSLoadDuration           *prometheus.HistogramVec
+	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
+
+	MobileClientLoadDuration          *prometheus.HistogramVec
+	MobileClientChannelSwitchDuration *prometheus.HistogramVec
+	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
 }
 
 func init() {
@@ -1057,7 +1076,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notification events",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationTotalCounters)
 
@@ -1069,7 +1088,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notification events acknowledged",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationAckCounters)
 
@@ -1081,7 +1100,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of successfully sent notifications",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationSuccessCounters)
 
@@ -1093,7 +1112,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of errors that stop the notification flow",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationErrorCounters)
 
@@ -1105,9 +1124,185 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notifications the system deliberately did not send",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationNotSentCounters)
+
+	m.NotificationUnsupportedCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "unsupported",
+			Help:        "Total number of untrackable notifications due to an unsupported app version",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type", "reason", "platform"},
+	)
+	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
+
+	m.ClientTimeToFirstByte = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "time_to_first_byte",
+			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientTimeToFirstByte)
+
+	m.ClientFirstContentfulPaint = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "first_contentful_paint",
+			Help:      "Duration of how long it takes for any content to be displayed on screen to a user (seconds)",
+
+			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
+			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientFirstContentfulPaint)
+
+	m.ClientLargestContentfulPaint = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "largest_contentful_paint",
+			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (seconds)",
+
+			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
+			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
+		},
+		[]string{"platform", "agent", "region"},
+	)
+	m.Registry.MustRegister(m.ClientLargestContentfulPaint)
+
+	m.ClientInteractionToNextPaint = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "interaction_to_next_paint",
+			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (seconds)",
+		},
+		[]string{"platform", "agent", "interaction"},
+	)
+	m.Registry.MustRegister(m.ClientInteractionToNextPaint)
+
+	m.ClientCumulativeLayoutShift = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "cumulative_layout_shift",
+			Help:      "Measure of how much a page's content shifts unexpectedly",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientCumulativeLayoutShift)
+
+	m.ClientLongTasks = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "long_tasks",
+			Help:      "Counter of the number of times that the browser's main UI thread is blocked for more than 50ms by a single task",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientLongTasks)
+
+	m.ClientPageLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "page_load",
+			Help:      "The amount of time from when the browser starts loading the web app until when the web app's load event has finished (seconds)",
+			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientPageLoadDuration)
+
+	m.ClientChannelSwitchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "channel_switch",
+			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientChannelSwitchDuration)
+
+	m.ClientTeamSwitchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "team_switch",
+			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientTeamSwitchDuration)
+
+	m.ClientRHSLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "rhs_load",
+			Help:      "Duration of the time taken from when a user clicks to open a thread in the RHS until when posts in that thread become visible (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientRHSLoadDuration)
+
+	m.ClientGlobalThreadsLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "global_threads_load",
+			Help:      "Duration of the time taken from when a user clicks to open Threads in the LHS until when the global threads view becomes visible (milliseconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
+
+	m.MobileClientLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_load",
+			Help:      "Duration of the time taken from when a user opens the app and the app finally loads all relevant information (seconds)",
+			Buckets:   []float64{1, 1.5, 2, 3, 4, 4.5, 5, 5.5, 6, 7.5, 10, 20, 25, 30},
+		},
+		[]string{"platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientLoadDuration)
+
+	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_channel_switch",
+			Help:      "Duration of the time taken from when a user clicks on a channel name, and the full channel sreen is loaded (seconds)",
+			Buckets:   []float64{0.150, 0.200, 0.300, 0.400, 0.450, 0.500, 0.550, 0.600, 0.750, 1, 2, 3},
+		},
+		[]string{"platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientChannelSwitchDuration)
+
+	m.MobileClientTeamSwitchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_team_switch",
+			Help:      "Duration of the time taken from when a user clicks on a team, and the full categories screen is loaded (seconds)",
+			Buckets:   []float64{0.150, 0.200, 0.250, 0.300, 0.350, 0.400, 0.500, 0.750, 1, 2, 3},
+		},
+		[]string{"platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
 	return m
 }
@@ -1535,24 +1730,41 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 	mi.DbReplicaLagGaugeTime.With(prometheus.Labels{"node": node}).Set(value)
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType) {
-	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func normalizeNotificationPlatform(platform string) string {
+	switch platform {
+	case "apple_rn-v2", "apple_rnbeta-v2", "ios":
+		return "ios"
+	case "android_rn-v2", "android":
+		return "android"
+	case model.NotificationNoPlatform:
+		return model.NotificationNoPlatform
+	default:
+		return "unknown"
+	}
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType) {
-	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
-	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
-	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string) {
+	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	mi.NotificationUnsupportedCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
@@ -1561,6 +1773,62 @@ func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
 
 func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent string, elapsed float64) {
+	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {
+	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64) {
+	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64) {
+	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "interaction": interaction}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64) {
+	mi.ClientCumulativeLayoutShift.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string, inc float64) {
+	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64) {
+	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64) {
+	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientRHSLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
+	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

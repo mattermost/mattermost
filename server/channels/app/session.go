@@ -4,6 +4,7 @@
 package app
 
 import (
+	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
@@ -24,6 +25,17 @@ const maxSessionsLimit = 500
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
 	if appErr := a.limitNumberOfSessions(c, session.UserId); appErr != nil {
 		return nil, appErr
+	}
+
+	// remote/synthetic users cannot create sessions. This lookup will already be cached.
+	// Some unit tests rely on sessions being created for users that don't exist, therefore
+	// missing users are allowed.
+	user, appErr := a.GetUser(session.UserId)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return nil, appErr
+	}
+	if user != nil && user.IsRemote() {
+		return nil, model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
 	}
 
 	session, err := a.ch.srv.platform.CreateSession(c, session)
@@ -57,7 +69,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
 	rc, appErr := a.GetRemoteCluster(remoteId)
-	if appErr == nil && rc.Token == token {
+	if appErr == nil && subtle.ConstantTimeCompare([]byte(rc.Token), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,
@@ -357,7 +369,7 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
-func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -389,7 +401,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	// Don't send emails to bot users.
 	if !user.IsBot {
 		if err := a.Srv().EmailService.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
-			a.Log().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
+			rctx.Logger().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
 		}
 	}
 
