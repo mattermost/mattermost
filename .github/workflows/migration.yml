@@ -4,7 +4,7 @@ on:
 jobs:
   test:
     name: MySQL -> Postgres Migration
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8

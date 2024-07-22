@@ -18,7 +18,8 @@ RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   ca-certificates \
   curl \
-  mime-support \
+  media-types \
+  mailcap \
   unrtf \
   wv \
   poppler-utils \
