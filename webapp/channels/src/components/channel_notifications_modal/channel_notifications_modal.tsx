@@ -11,14 +11,17 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import AlertBanner from 'components/alert_banner';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
+import CheckboxWithSelectSettingItem from 'components/widgets/modals/components/checkbox_with_select_item';
 import ModalHeader from 'components/widgets/modals/components/modal_header';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 import RadioSettingItem from 'components/widgets/modals/components/radio_setting_item';
+import type {Option} from 'components/widgets/modals/components/react_select_item';
 
-import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
+import {IgnoreChannelMentions, NotificationLevels, DesktopSound} from 'utils/constants';
+import {getValueOfNotificationSoundsSelect} from 'utils/notification_sounds';
 
 import type {ChannelMemberNotifyProps} from './utils';
-import utils from './utils';
+import utils, {convertDesktopSoundNotifyPropFromUserToDesktop} from './utils';
 
 import type {PropsFromRedux} from './index';
 
@@ -63,9 +66,14 @@ function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channe
     const desktop = channelMemberNotifyProps?.desktop === NotificationLevels.DEFAULT ? currentUserNotifyProps.desktop : (channelMemberNotifyProps?.desktop || currentUserNotifyProps.desktop);
     const push = channelMemberNotifyProps?.push === NotificationLevels.DEFAULT ? currentUserNotifyProps.desktop : (channelMemberNotifyProps?.push || currentUserNotifyProps.push);
 
+    const desktopSound = channelMemberNotifyProps?.desktop_sound ?? convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps?.desktop_sound);
+    const desktopNotificationSound = channelMemberNotifyProps?.desktop_notification_sound ?? currentUserNotifyProps.desktop_notification_sound;
+
     return {
         desktop,
         desktop_threads: channelMemberNotifyProps?.desktop_threads || NotificationLevels.ALL,
+        desktop_sound: desktopSound,
+        desktop_notification_sound: desktopNotificationSound,
         mark_unread: channelMemberNotifyProps?.mark_unread || NotificationLevels.ALL,
         push,
         push_threads: channelMemberNotifyProps?.push_threads || NotificationLevels.ALL,
@@ -77,6 +85,8 @@ function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channe
 type SettingsType = {
     desktop: ChannelNotifyProps['desktop'];
     desktop_threads: ChannelNotifyProps['desktop_threads'];
+    desktop_sound: ChannelNotifyProps['desktop_sound'];
+    desktop_notification_sound: ChannelNotifyProps['desktop_notification_sound'];
     mark_unread: ChannelNotifyProps['mark_unread'];
     push: ChannelNotifyProps['push'];
     push_threads: ChannelNotifyProps['push_threads'];
@@ -104,7 +114,7 @@ export default function ChannelNotificationsModal(props: Props) {
         setSettings((prevSettings) => ({...prevSettings, push: prevSettings.desktop, push_threads: prevSettings.desktop_threads}));
     }, []);
 
-    const MuteOrIgnoreSectionContent = (
+    const muteOrIgnoreSectionContent = (
         <>
             <CheckboxSettingItem
                 inputFieldTitle={
@@ -139,7 +149,7 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
-    const DesktopNotificationsSectionContent = (
+    const desktopNotificationsSectionContent = (
         <>
             <RadioSettingItem
                 title={formatMessage({
@@ -165,11 +175,37 @@ export default function ChannelNotificationsModal(props: Props) {
                         />
                     }
                     handleChange={(e) => handleChange({desktop_threads: e ? 'all' : 'mention'})}
-                />}
+                />
+            }
+            {settings.desktop !== 'none' && (
+                <CheckboxWithSelectSettingItem
+                    title={formatMessage({
+                        id: 'channel_notifications.desktopNotifications.title',
+                        defaultMessage: 'Sounds',
+                    })}
+                    checkboxFieldTitle={
+                        <FormattedMessage
+                            id='channel_notifications.desktopNotifications.soundEnable'
+                            defaultMessage='Message notification sounds'
+                        />
+                    }
+                    checkboxFieldValue={settings.desktop_sound === DesktopSound.ON}
+                    checkboxFieldData={utils.desktopNotificationSoundsCheckboxFieldData}
+                    handleCheckboxChange={(isChecked) => handleChange({desktop_sound: isChecked ? DesktopSound.ON : DesktopSound.OFF})}
+                    selectFieldData={utils.desktopNotificationSoundsSelectFieldData}
+                    selectFieldValue={getValueOfNotificationSoundsSelect(settings.desktop_notification_sound)}
+                    isSelectDisabled={settings.desktop_sound !== 'on'}
+                    selectPlaceholder={formatMessage({
+                        id: 'channel_notifications.desktopNotifications.soundSelectPlaceholder',
+                        defaultMessage: 'Select a sound',
+                    })}
+                    handleSelectChange={(selectOption) => handleChange({desktop_notification_sound: ((selectOption as Option).value)})}
+                />
+            )}
         </>
     );
 
-    const MobileNotificationsSectionContent = (
+    const mobileNotificationsSectionContent = (
         <>
             <CheckboxSettingItem
                 inputFieldTitle={
@@ -214,7 +250,7 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
-    const AutoFollowThreadsSectionContent = (
+    const autoFollowThreadsSectionContent = (
         <CheckboxSettingItem
             inputFieldTitle={
                 <FormattedMessage
@@ -250,14 +286,25 @@ export default function ChannelNotificationsModal(props: Props) {
 
         const resetToDefault = (settingName: string) => {
             if (settingName === 'desktop') {
-                setSettings({...settings, desktop: defaultSettings.desktop, desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads});
+                setSettings({
+                    ...settings,
+                    desktop: defaultSettings.desktop,
+                    desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads,
+                    desktop_sound: convertDesktopSoundNotifyPropFromUserToDesktop(defaultSettings.desktop_sound),
+                    desktop_notification_sound: defaultSettings.desktop_notification_sound,
+                });
             }
             if (settingName === 'push') {
                 setSettings({...settings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads});
             }
         };
 
-        const isDesktopSameAsDefault = (defaultSettings.desktop === settings.desktop && defaultSettings.desktop_threads === settings.desktop_threads);
+        const isDesktopSameAsDefault =
+            defaultSettings.desktop === settings.desktop &&
+            defaultSettings.desktop_threads === settings.desktop_threads &&
+            defaultSettings.desktop_notification_sound === settings.desktop_notification_sound &&
+            convertDesktopSoundNotifyPropFromUserToDesktop(defaultSettings.desktop_sound) === settings.desktop_sound;
+
         const isPushSameAsDefault = (defaultSettings.push === settings.push && defaultSettings.push_threads === settings.push_threads);
         if ((settingName === 'desktop' && isDesktopSameAsDefault) || (settingName === 'push' && isPushSameAsDefault)) {
             return <></>;
@@ -266,6 +313,7 @@ export default function ChannelNotificationsModal(props: Props) {
             <button
                 className='channel-notifications-settings-modal__reset-btn'
                 onClick={() => resetToDefault(settingName)}
+                data-testid={`resetToDefaultButton-${settingName}`}
             >
                 <RefreshIcon
                     size={14}
@@ -292,7 +340,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     id: 'channel_notifications.desktopNotificationsDesc',
                     defaultMessage: 'Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.',
                 })}
-                content={DesktopNotificationsSectionContent}
+                content={desktopNotificationsSectionContent}
             />
             <div className='channel-notifications-settings-modal__divider'/>
             <ModalSection
@@ -305,7 +353,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     id: 'channel_notifications.mobileNotificationsDesc',
                     defaultMessage: 'Notification alerts are pushed to your mobile device when there is activity in Mattermost.',
                 })}
-                content={MobileNotificationsSectionContent}
+                content={mobileNotificationsSectionContent}
             />
         </>
     ) : (
@@ -359,7 +407,7 @@ export default function ChannelNotificationsModal(props: Props) {
                         id: 'channel_notifications.muteAndIgnore',
                         defaultMessage: 'Mute or ignore',
                     })}
-                    content={MuteOrIgnoreSectionContent}
+                    content={muteOrIgnoreSectionContent}
                 />
                 {desktopAndMobileNotificationSectionContent}
                 {props.collapsedReplyThreads &&
@@ -374,7 +422,7 @@ export default function ChannelNotificationsModal(props: Props) {
                                 id: 'channel_notifications.autoFollowThreadsDesc',
                                 defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
                             })}
-                            content={AutoFollowThreadsSectionContent}
+                            content={autoFollowThreadsSectionContent}
                         />
                     </>
                 }
@@ -407,3 +455,4 @@ export default function ChannelNotificationsModal(props: Props) {
         </Modal>
     );
 }
+
