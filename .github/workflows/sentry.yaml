@@ -11,7 +11,7 @@ on:
 jobs:
   sentry:
     name: Send build info to sentry
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}

@@ -15,7 +15,7 @@ jobs:
   ## This will run only when a pull request is created with server changes
   update-initial-status:
     if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
         env:
@@ -28,7 +28,7 @@ jobs:
           status: pending
 
   upload-artifacts:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - update-initial-status
     steps:
@@ -70,7 +70,7 @@ jobs:
           done
 
   build-docker:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - upload-artifacts
     outputs:
@@ -126,7 +126,7 @@ jobs:
           echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${TAG}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
 
   scan-docker-image:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - build-docker
     env:
@@ -151,7 +151,7 @@ jobs:
 
   update-failure-final-status:
     if: failure() || cancelled()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - build-docker
     steps:
@@ -167,7 +167,7 @@ jobs:
 
   update-success-final-status:
     if: success()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - build-docker
     steps:
