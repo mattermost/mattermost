@@ -536,6 +536,12 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
+	if data.CustomStatus != nil {
+		if err := user.SetCustomStatus(data.CustomStatus); err != nil {
+			return model.NewAppError("importUser", "app.import.custom_status.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
