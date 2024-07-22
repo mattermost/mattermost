@@ -50,7 +50,7 @@
         list-style: none;
     }
 
-    >ul {
+    > ul {
         @include clearfix;
         border-radius: 2px;
 
@@ -60,7 +60,7 @@
 }
 
 .backstage-sidebar__category {
-    +.backstage-sidebar__category {
+    + .backstage-sidebar__category {
         .category-title {
             border-top: none;
         }
@@ -226,7 +226,7 @@
         text-overflow: ellipsis;
     }
 
-    .item-details__row+.item-details__row {
+    .item-details__row+ .item-details__row {
         @include clearfix;
 
         text-overflow: ellipsis;
@@ -306,7 +306,7 @@
         color: $dark-gray;
         font-size: 0.95em;
 
-        &+.form__help {
+        & + .form__help {
             margin-top: 0.4em;
         }
     }
@@ -598,7 +598,7 @@
 .outgoing-oauth-audience-match-message-container {
     height: 27px;
 
-    >span {
+    > span {
         position: absolute;
         top: 45px;
     }
