@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -25,11 +26,11 @@ export function matchesFilter(incomingWebhook: IncomingWebhook, channel: Channel
         return true;
     }
 
-    if (incomingWebhook.channel_id) {
-        if (channel &&
-            (channel.name.toLowerCase().indexOf(filter) !== -1 ||
-                channel.display_name.toLowerCase().indexOf(filter) !== -1)
-        ) {
+    if (incomingWebhook.channel_id && channel) {
+        const filterLower = filter.toLowerCase();
+        const channelMatches = channel.name.toLowerCase().includes(filterLower) || channel.display_name.toLowerCase().includes(filterLower);
+
+        if (channelMatches) {
             return true;
         }
     }
@@ -75,9 +76,10 @@ type Props = {
      *  Data used for filtering of webhook based on filter prop
      */
     channel: Channel;
+    intl: IntlShape;
 }
 
-export default class InstalledIncomingWebhook extends React.PureComponent<Props> {
+class InstalledIncomingWebhook extends React.PureComponent<Props> {
     handleDelete = () => {
         this.props.onDelete(this.props.incomingWebhook);
     };
@@ -86,6 +88,7 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
         const incomingWebhook = this.props.incomingWebhook;
         const channel = this.props.channel;
         const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
+        const intl = this.props.intl;
 
         if (!matchesFilter(incomingWebhook, channel, filter)) {
             return null;
@@ -102,8 +105,6 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                 />
             );
         }
-
-        const channelDisplayName = channel.display_name ?? 'N/A';
 
         let description = null;
         if (incomingWebhook.description) {
@@ -140,7 +141,43 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
             );
         }
 
-        const incomingWebhookId = getSiteURL() + '/hooks/' + incomingWebhook.id;
+        const incomingWebhookIdValue = getSiteURL() + '/hooks/' + incomingWebhook.id;
+        const incomingWebhookId = intl.formatMessage(
+            {
+                id: 'installed_integrations.url',
+                defaultMessage: 'URL: {url}',
+            },
+            {url: incomingWebhookIdValue},
+        );
+
+        let channelDisplayName;
+        if (channel.display_name) {
+            channelDisplayName = intl.formatMessage(
+                {
+                    id: 'installed_integrations.channel_name',
+                    defaultMessage: 'Channel: {name}',
+                },
+                {name: channel.display_name},
+            );
+        } else {
+            channelDisplayName = intl.formatMessage(
+                {
+                    id: 'installed_integrations.channel_name_empty',
+                    defaultMessage: 'N/A',
+                },
+            );
+        }
+
+        const itemCreation = intl.formatMessage(
+            {
+                id: 'installed_integrations.creation',
+                defaultMessage: 'Created by {creator} on {createAt, date, full}',
+            },
+            {
+                creator: this.props.creator.username,
+                createAt: incomingWebhook.create_at,
+            },
+        );
 
         return (
             <div className='backstage-list__item'>
@@ -154,46 +191,23 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                     {description}
                     <div className='item-details__row'>
                         <span className='item-details__url word-break--all'>
-                            <FormattedMessage
-                                id='installed_integrations.url'
-                                defaultMessage='URL: {url}'
-                                values={{
-                                    url: incomingWebhookId,
-                                }}
+                            {incomingWebhookId}
+                            <CopyText
+                                value={incomingWebhookIdValue}
                             />
-                            <span>
-                                <CopyText
-                                    value={incomingWebhookId}
-                                />
-                            </span>
                         </span>
                     </div>
                     <div className='item-details__row'>
                         <span className='item-details__channel_name word-break--all'>
-                            <FormattedMessage
-                                id='installed_integrations.channel_name'
-                                defaultMessage='Channel: {name}'
-                                values={{
-                                    name: channelDisplayName,
-                                }}
+                            {channelDisplayName}
+                            <CopyText
+                                value={channel.display_name ?? 'N/A'}
                             />
-                            <span>
-                                <CopyText
-                                    value={channelDisplayName}
-                                />
-                            </span>
                         </span>
                     </div>
                     <div className='item-details__row'>
                         <span className='item-details__creation'>
-                            <FormattedMessage
-                                id='installed_integrations.creation'
-                                defaultMessage='Created by {creator} on {createAt, date, full}'
-                                values={{
-                                    creator: this.props.creator.username,
-                                    createAt: incomingWebhook.create_at,
-                                }}
-                            />
+                            {itemCreation}
                         </span>
                     </div>
                 </div>
@@ -201,3 +215,5 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
         );
     }
 }
+
+export default injectIntl(InstalledIncomingWebhook);

@@ -3959,6 +3959,7 @@
   "installed_integrations.audience_urls": "Audience URLs: {urls}",
   "installed_integrations.callback_urls": "Callback URLs: {urls}",
   "installed_integrations.channel_name": "Channel: {name}",
+  "installed_integrations.channel_name_empty": "N/A",
   "installed_integrations.client_id": "Client ID: **{clientId}**",
   "installed_integrations.client_secret": "Client Secret: **{clientSecret}**",
   "installed_integrations.content_type": "Content-Type: {contentType}",
