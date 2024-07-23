@@ -10086,5 +10086,9 @@
   {
     "id": "api.remote_cluster.invite_decrypt_error",
     "translation": "Не удалось расшифровать приглашение удаленного кластера с помощью предоставленного пароля"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Неверный поисковый бэкэнд. Должен быть либо elasticsearch, либо opensearch."
   }
 ]
