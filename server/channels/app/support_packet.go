@@ -201,19 +201,20 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	analytics, appErr := a.GetAnalyticsForSupportPacket(c)
 	if appErr != nil {
 		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
-	}
-	if len(analytics) < 11 {
-		rErr = multierror.Append(errors.New("not enough analytics information found"))
 	} else {
-		totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
-		totalPosts = int(analytics[2].Value)
-		totalTeams = int(analytics[4].Value)
-		websocketConnections = int(analytics[5].Value)
-		masterDbConnections = int(analytics[6].Value)
-		replicaDbConnections = int(analytics[7].Value)
-		dailyActiveUsers = int(analytics[8].Value)
-		monthlyActiveUsers = int(analytics[9].Value)
-		inactiveUserCount = int(analytics[10].Value)
+		if len(analytics) < 11 {
+			rErr = multierror.Append(errors.New("not enough analytics information found"))
+		} else {
+			totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
+			totalPosts = int(analytics[2].Value)
+			totalTeams = int(analytics[4].Value)
+			websocketConnections = int(analytics[5].Value)
+			masterDbConnections = int(analytics[6].Value)
+			replicaDbConnections = int(analytics[7].Value)
+			dailyActiveUsers = int(analytics[8].Value)
+			monthlyActiveUsers = int(analytics[9].Value)
+			inactiveUserCount = int(analytics[10].Value)
+		}
 	}
 
 	/* Jobs  */
