@@ -9,8 +9,7 @@ import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip'; // Import the WithTooltip component
 
 import Constants, {durationValues} from 'utils/constants';
 
@@ -42,17 +41,11 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     };
 
     const clearButton = handleClear ? (
-        <div
-            className='suggestion-clear'
-        >
-            <OverlayTrigger
+        <div className='suggestion-clear'>
+            <WithTooltip
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
-                overlay={
-                    <Tooltip id='clear-recent-custom-status'>
-                        {'Clear'}
-                    </Tooltip>
-                }
+                tooltipText={'Clear'}
             >
                 <button
                     className='style--none input-clear-x'
@@ -60,7 +53,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
                 >
                     <i className='icon icon-close-circle'/>
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
         </div>
     ) : null;
 
