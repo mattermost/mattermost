@@ -12,7 +12,7 @@ type Props = {
     id: string;
     name: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    tooltipText: React.ReactElement;
+    tooltipText: React.ReactElement | string;
 };
 
 function Action({name, icon, onClick, id, tooltipText}: Props) {
