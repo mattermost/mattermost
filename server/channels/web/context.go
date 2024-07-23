@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"path"
 	"regexp"
@@ -232,7 +233,18 @@ func (c *Context) SetInvalidParamWithDetails(parameter string, details string) {
 }
 
 func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
+	var maxBytesErr *http.MaxBytesError
+	if ok := errors.As(err, &maxBytesErr); ok {
+		c.HandlePayloadTooLargeError(err)
+		return
+	}
+
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
+}
+
+func (c *Context) HandlePayloadTooLargeError(err error) {
+	//err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
+	c.Err = model.NewAppError("Context", "api.context.request_body_too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 }
 
 func (c *Context) SetInvalidURLParam(parameter string) {
