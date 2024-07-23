@@ -11,7 +11,7 @@ import BaseSettingItem from './base_setting_item';
 
 export type Option = {
     value: string;
-    label: string | ReactNode;
+    label: ReactNode;
 };
 
 export type FieldsetReactSelect = {
