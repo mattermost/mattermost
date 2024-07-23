@@ -6,7 +6,7 @@ import React, {useCallback, useState} from 'react';
 import ConfirmModal from 'components/confirm_modal';
 
 type Props = Omit<React.ComponentProps<typeof ConfirmModal>, 'show'> & {
-    onExited?: () => void;
+    onExited: () => void;
 };
 
 export default function ConfirmModalRedux(props: Props) {

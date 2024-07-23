@@ -2784,14 +2784,6 @@
     "translation": "Elasticsearch on jo lopetettu"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Virhe käynnistettäessä Elasticsearch bulkkiprosessori"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Virhe luotaessa Elasticsearch bulkkiprosessoria"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Hakutulosten dekoodaus epäonnistui"
   },
