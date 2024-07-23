@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FC, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import React, {useEffect, useRef} from 'react';
 
 import type SettingItemMinComponent from 'components/setting_item_min';
@@ -41,7 +41,7 @@ type Props = {
     collapsedEditButtonWhenDisabled?: ReactNode;
 }
 
-const SettingItem: FC<Props> = ({
+const SettingItem = ({
     active,
     areAllSectionsInactive,
     section,
@@ -51,7 +51,7 @@ const SettingItem: FC<Props> = ({
     isDisabled,
     describe,
     collapsedEditButtonWhenDisabled,
-}) => {
+}: Props) => {
     const minRef = useRef<SettingItemMinComponent>(null);
 
     useEffect(() => {
