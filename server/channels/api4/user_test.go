@@ -7825,16 +7825,9 @@ func TestLoginWithDesktopToken(t *testing.T) {
 		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		assert.Nil(t, appErr)
 
-		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
-		require.NoError(t, err)
-		assert.Equal(t, user.Id, user.Id)
-
-		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), user.Id, "")
-		require.NoError(t, err)
-
-		assert.Len(t, sessions, 1)
-		assert.Equal(t, "false", sessions[0].Props["isSaml"])
-		assert.Equal(t, "false", sessions[0].Props["isOAuthUser"])
+		_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
 	})
 
 	t.Run("invalid desktop token on login", func(t *testing.T) {
