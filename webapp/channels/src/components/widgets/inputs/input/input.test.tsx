@@ -4,9 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import Input from './input';
-
 import WithTooltip from 'components/with_tooltip';
+
+import Input from './input';
 
 describe('components/widgets/inputs/Input', () => {
     test('should match snapshot', () => {
