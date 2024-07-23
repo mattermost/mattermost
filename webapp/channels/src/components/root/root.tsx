@@ -39,6 +39,7 @@ import SidebarRight from 'components/sidebar_right';
 import SidebarRightMenu from 'components/sidebar_right_menu';
 import SystemNotice from 'components/system_notice';
 import TeamSidebar from 'components/team_sidebar';
+import WelcomeLoader from 'components/welcome_loader';
 import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
 import webSocketClient from 'client/web_websocket_client';
@@ -441,7 +442,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
     render() {
         if (!this.state.configLoaded) {
-            return <div/>;
+            return <WelcomeLoader/>;
         }
 
         return (
