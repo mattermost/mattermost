@@ -27,7 +27,7 @@ describe('components/LatexInline', () => {
             enableInlineLatex: false,
         };
 
-        render(<LatexInline {...defaultProps}/>);
+        render(<LatexInline {...props}/>);
         const wrapper = await screen.findAllByTestId('latex-disabled');
         expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
