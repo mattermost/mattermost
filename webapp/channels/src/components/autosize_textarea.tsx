@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CSSProperties, ChangeEvent, FormEvent, HTMLProps} from 'react';
+import type {ChangeEvent, FormEvent, HTMLProps} from 'react';
 import React, {useRef, useEffect, useCallback} from 'react';
 
 import type {Intersection} from '@mattermost/types/utilities';
