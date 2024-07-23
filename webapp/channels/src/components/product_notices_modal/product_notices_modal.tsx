@@ -255,6 +255,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
 
         return (
             <GenericModal
+                compassDesign={true}
                 onExited={this.onModalDismiss}
                 handleConfirm={this.handleNextButton}
                 handleEnterKeyPress={this.handleNextButton}

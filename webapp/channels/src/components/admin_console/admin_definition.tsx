@@ -36,6 +36,7 @@ import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_i
 
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
+import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
@@ -457,7 +458,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_user_detail: {
-                url: 'user_management/user/:user_id',
+                url: `user_management/user/:user_id(${ID_PATH_PATTERN})`,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
@@ -465,7 +466,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             group_detail: {
-                url: 'user_management/groups/:group_id',
+                url: `user_management/groups/:group_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 schema: {
@@ -510,7 +511,7 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
             team_detail: {
-                url: 'user_management/teams/:team_id',
+                url: `user_management/teams/:team_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 schema: {
@@ -530,7 +531,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             channel_detail: {
-                url: 'user_management/channels/:channel_id',
+                url: `user_management/channels/:channel_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 schema: {
@@ -557,7 +558,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             teamSchemeDetail: {
-                url: 'user_management/permissions/team_override_scheme/:scheme_id',
+                url: `user_management/permissions/team_override_scheme/:scheme_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -586,7 +587,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_role: {
-                url: 'user_management/system_roles/:role_id',
+                url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
@@ -1815,7 +1816,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
                                 it.configIsFalse('MetricsSettings', 'Enable'),
                             ),
-                            isHidden: it.configIsFalse('FeatureFlags', 'ClientMetrics'),
                         },
                         {
                             type: 'text',
@@ -3220,6 +3220,7 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
                     sections: [
                         {
+                            key: 'admin.authentication.ldap.connection',
                             title: 'Connection',
                             subtitle: 'Connection and security level to your AD/LDAP server.',
                             settings: [
@@ -3385,6 +3386,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.dn_and_filters',
                             title: 'Base DN & Filters',
                             settings: [
                                 {
@@ -3476,6 +3478,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.account_synchronization',
                             title: 'Account Synchronization',
                             settings: [
                                 {
@@ -3631,6 +3634,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.group_synchronization',
                             title: 'Group Synchronization',
                             settings: [
                                 {
@@ -3661,6 +3665,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_performance',
                             title: 'Synchronization Performance',
                             settings: [
                                 {
@@ -3734,6 +3739,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_history',
                             title: 'Synchronization History',
                             subtitle: 'See the table below for the status of each synchronization',
                             settings: [
@@ -5623,7 +5629,7 @@ const AdminDefinition: AdminDefinitionType = {
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE)),
         subsections: {
             custom_policy_form_edit: {
-                url: 'compliance/data_retention_settings/custom_policy/:policy_id',
+                url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
                     it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
@@ -6046,14 +6052,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnablePreviewFeatures',
-                            label: defineMessage({id: 'admin.experimental.enablePreviewFeatures.title', defaultMessage: 'Enable Preview Features:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enablePreviewFeatures.desc', defaultMessage: 'When true, preview features can be enabled from **Settings > Advanced > Preview pre-release features**. When false, disables and hides preview features from **Settings > Advanced > Preview pre-release features**.'}),
-                            help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

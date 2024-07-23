@@ -10,6 +10,8 @@ import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
 import * as TextFormatting from 'utils/text_formatting';
 
+import {unescapeHtmlEntities} from './markdown/renderer';
+
 type WindowObject = {
     location: {
         origin: string;
@@ -274,6 +276,11 @@ export function isPermalinkURL(url: string): boolean {
     return isInternalURL(url, siteURL) && (regexp.test(url));
 }
 
+export function isValidUrl(url = '') {
+    const regex = /^https?:\/\//i;
+    return regex.test(url);
+}
+
 export function isStringContainingUrl(text: string): boolean {
     const regex = new RegExp('(https?://|www.)');
     return regex.test(text);
@@ -325,4 +332,21 @@ export function channelNameToUrl(channelName: string): UrlValidationCheck {
     }
 
     return {url, error: false};
+}
+
+export function parseLink(href: string) {
+    let outHref = href;
+
+    if (!href.startsWith('/')) {
+        const scheme = getScheme(href);
+        if (!scheme) {
+            outHref = `http://${outHref}`;
+        }
+    }
+
+    if (!isUrlSafe(unescapeHtmlEntities(href))) {
+        return undefined;
+    }
+
+    return outHref;
 }

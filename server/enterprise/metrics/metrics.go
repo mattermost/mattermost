@@ -1076,7 +1076,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notification events",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationTotalCounters)
 
@@ -1088,7 +1088,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notification events acknowledged",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationAckCounters)
 
@@ -1100,7 +1100,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of successfully sent notifications",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationSuccessCounters)
 
@@ -1112,7 +1112,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of errors that stop the notification flow",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationErrorCounters)
 
@@ -1124,7 +1124,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notifications the system deliberately did not send",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationNotSentCounters)
 
@@ -1136,7 +1136,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of untrackable notifications due to an unsupported app version",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
 
@@ -1175,7 +1175,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
 			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "region"},
 	)
 	m.Registry.MustRegister(m.ClientLargestContentfulPaint)
 
@@ -1186,7 +1186,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "interaction_to_next_paint",
 			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "interaction"},
 	)
 	m.Registry.MustRegister(m.ClientInteractionToNextPaint)
 
@@ -1218,6 +1218,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "page_load",
 			Help:      "The amount of time from when the browser starts loading the web app until when the web app's load event has finished (seconds)",
+			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1729,28 +1730,41 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 	mi.DbReplicaLagGaugeTime.With(prometheus.Labels{"node": node}).Set(value)
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType) {
-	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func normalizeNotificationPlatform(platform string) string {
+	switch platform {
+	case "apple_rn-v2", "apple_rnbeta-v2", "ios":
+		return "ios"
+	case "android_rn-v2", "android":
+		return "android"
+	case model.NotificationNoPlatform:
+		return model.NotificationNoPlatform
+	default:
+		return "unknown"
+	}
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType) {
-	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
-	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
-	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string) {
+	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	mi.NotificationUnsupportedCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	mi.NotificationUnsupportedCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
@@ -1769,12 +1783,12 @@ func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agen
 	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent string, elapsed float64) {
-	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64) {
+	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64) {
-	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64) {
+	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "interaction": interaction}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64) {
