@@ -7,11 +7,11 @@ on:
     inputs:
       ref:
         type: string
-        description: Branch, tag or SHA of the commit to test. Ignored if PR_NUMBER is specified. Set to a tag when release testing.
+        description: Git ref to test. Must be a full commit SHA for PR testing, and a tag for release testing. Ignored for daily tests.
         required: false
       PR_NUMBER:
         type: string
-        description: If testing a PR, specify this instead of ref
+        description: If testing a PR, this must be specified as well.
         required: false
       MM_ENV:
         type: string
@@ -95,15 +95,11 @@ jobs:
           fi
           case "$REPORT_TYPE" in
             NONE | PR)
-              ### For ref generation: either use 'inputs.PR_NUMBER' or 'inputs.ref'
-              if [ -n "$PR_NUMBER" ]; then
-                curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
-                COMMIT_SHA="$(jq -r .head.sha <pr.json)"
-                BRANCH="server-pr-${PR_NUMBER}"   # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
-              else
-                COMMIT_SHA="$(git rev-parse --verify HEAD)"
-                BRANCH="${REF}"   # Note that REF is not necessarily a branch name, but this is ok since it's only used as an identifier against the Automation Dashboard
-              fi
+              ### Populate support variables
+              _COMMIT_SHA_COMPUTED=$(git rev-parse --verify "$REF") # NB: not actually used for resolving the commit; it's only to double check the value of 'inputs.ref'
+              ### For image tag generation: utilize 'inputs.ref', assume that it is a full commit SHA
+              COMMIT_SHA="${REF}"
+              BRANCH="server-pr-${PR_NUMBER}"   # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
               SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
               SERVER_IMAGE_ORG=mattermostdevelopment
               BUILD_ID_SUFFIX="${REPORT_TYPE@L}-${SERVER}-ent"
@@ -112,13 +108,14 @@ jobs:
               TEST_FILTER="$TEST_FILTER_PR"
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
               ### Run sanity assertions after variable generations
-              [ "$REPORT_TYPE" != "PR" -o -n "$PR_NUMBER" ] # If using 'REPORT_TYPE=PR', 'PR_NUMBER' must be set
+              [ "$REF" = "${_COMMIT_SHA_COMPUTED}" ]             # 'inputs.ref' must be a full commit hash, and the commit must exist
+              [ "$REPORT_TYPE" != "PR" -o "$PR_NUMBER" -gt "0" ] # If report type is PR, then PR_NUMBER must be set to a number
               ;;
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
               ### Populate support variables
               _IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # The variable's value is 'UNSTABLE' if report type is for unstable tests, otherwise it's empty
               _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
-              ### For ref generation: ignore both 'inputs.PR_NUMBER' and 'inputs.ref', and use master branch directly. Note that the commit_sha is still used for reporting the test result, and for the testing scripts and test cases
+              ### For ref and image tag generation: ignore 'inputs.ref', and use master branch directly. Note that 'COMMIT_SHA' will be used for reporting the test result, and for checking out the testing scripts and test cases
               COMMIT_SHA="$(git rev-parse --verify origin/master)"
               BRANCH=master
               SERVER_IMAGE_TAG=master
@@ -133,7 +130,7 @@ jobs:
             RELEASE | RELEASE_CLOUD)
               ### Populate support variables
               _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
-              ### For ref generation: assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
+              ### For ref and image tag generation: assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
               COMMIT_SHA="$(git rev-parse --verify HEAD)"
               BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
               SERVER_IMAGE_TAG="$(cut -c2- <<<$REF)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
@@ -145,7 +142,7 @@ jobs:
               TM4J_ENABLE=true
               COMPUTED_REPORT_TYPE=RELEASE
               ### Run sanity assertions after variable generations
-              git show-ref --verify "refs/tags/${REF}"     # 'inputs.ref' must be a tag, for release report types
+              git show-ref --verify "refs/tags/${REF}"              # 'inputs.ref' must be a tag, for release report types
               git show-ref --verify "refs/remotes/origin/${BRANCH}" # The release branch computed from the given tag must exist
               ;;
             *)
