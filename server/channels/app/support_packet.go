@@ -203,7 +203,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
 	}
 	if len(analytics) < 11 {
-		rErr = multierror.Append(errors.New("not enought analytics information found"))
+		rErr = multierror.Append(errors.New("not enough analytics information found"))
 	} else {
 		totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
 		totalPosts = int(analytics[2].Value)
