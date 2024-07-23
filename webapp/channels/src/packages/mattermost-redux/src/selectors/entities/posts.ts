@@ -283,7 +283,7 @@ function formatPostInChannel(post: Post, previousPost: Post | undefined | null, 
 
 function isPostInteractable(post: Post | undefined) {
     return post &&
-        post.delete_at === 0 &&
+        !post.delete_at &&
         !isPostEphemeral(post) &&
         !isSystemMessage(post) &&
         !isPostPendingOrFailed(post) &&
