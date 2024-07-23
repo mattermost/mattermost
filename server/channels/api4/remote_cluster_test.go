@@ -14,8 +14,6 @@ import (
 )
 
 func TestGetRemoteClusters(t *testing.T) {
-	t.Skip("MM-59324")
-
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()

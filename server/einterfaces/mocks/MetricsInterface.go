@@ -168,34 +168,34 @@ func (_m *MetricsInterface) IncrementMemCacheMissCounterSession() {
 	_m.Called()
 }
 
-// IncrementNotificationAckCounter provides a mock function with given fields: notificationType
-func (_m *MetricsInterface) IncrementNotificationAckCounter(notificationType model.NotificationType) {
-	_m.Called(notificationType)
+// IncrementNotificationAckCounter provides a mock function with given fields: notificationType, platform
+func (_m *MetricsInterface) IncrementNotificationAckCounter(notificationType model.NotificationType, platform string) {
+	_m.Called(notificationType, platform)
 }
 
-// IncrementNotificationCounter provides a mock function with given fields: notificationType
-func (_m *MetricsInterface) IncrementNotificationCounter(notificationType model.NotificationType) {
-	_m.Called(notificationType)
+// IncrementNotificationCounter provides a mock function with given fields: notificationType, platform
+func (_m *MetricsInterface) IncrementNotificationCounter(notificationType model.NotificationType, platform string) {
+	_m.Called(notificationType, platform)
 }
 
-// IncrementNotificationErrorCounter provides a mock function with given fields: notificationType, errorReason
-func (_m *MetricsInterface) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
-	_m.Called(notificationType, errorReason)
+// IncrementNotificationErrorCounter provides a mock function with given fields: notificationType, errorReason, platform
+func (_m *MetricsInterface) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string) {
+	_m.Called(notificationType, errorReason, platform)
 }
 
-// IncrementNotificationNotSentCounter provides a mock function with given fields: notificationType, notSentReason
-func (_m *MetricsInterface) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	_m.Called(notificationType, notSentReason)
+// IncrementNotificationNotSentCounter provides a mock function with given fields: notificationType, notSentReason, platform
+func (_m *MetricsInterface) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	_m.Called(notificationType, notSentReason, platform)
 }
 
-// IncrementNotificationSuccessCounter provides a mock function with given fields: notificationType
-func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
-	_m.Called(notificationType)
+// IncrementNotificationSuccessCounter provides a mock function with given fields: notificationType, platform
+func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string) {
+	_m.Called(notificationType, platform)
 }
 
-// IncrementNotificationUnsupportedCounter provides a mock function with given fields: notificationType, notSentReason
-func (_m *MetricsInterface) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	_m.Called(notificationType, notSentReason)
+// IncrementNotificationUnsupportedCounter provides a mock function with given fields: notificationType, notSentReason, platform
+func (_m *MetricsInterface) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	_m.Called(notificationType, notSentReason, platform)
 }
 
 // IncrementPostBroadcast provides a mock function with given fields:
@@ -313,14 +313,14 @@ func (_m *MetricsInterface) ObserveClientFirstContentfulPaint(platform string, a
 	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, interaction, elapsed
+func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, interaction string, elapsed float64) {
+	_m.Called(platform, agent, interaction, elapsed)
 }
 
-// ObserveClientLargestContentfulPaint provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientLargestContentfulPaint(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientLargestContentfulPaint provides a mock function with given fields: platform, agent, region, elapsed
+func (_m *MetricsInterface) ObserveClientLargestContentfulPaint(platform string, agent string, region string, elapsed float64) {
+	_m.Called(platform, agent, region, elapsed)
 }
 
 // ObserveClientPageLoadDuration provides a mock function with given fields: platform, agent, elapsed

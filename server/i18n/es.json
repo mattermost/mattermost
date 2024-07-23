@@ -3136,14 +3136,6 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "No se pudo crear el procesador a granel de Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "No se pudo iniciar procesador a granel de Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ya fue detenido."
   },
@@ -8038,10 +8030,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitación desde una conexión segura"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "No se ha podido descifrar la invitación. Contraseña incorrecta o invitación corrupta: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

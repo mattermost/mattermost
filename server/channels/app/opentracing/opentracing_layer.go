@@ -1967,7 +1967,7 @@ func (a *OpenTracingAppLayer) CopyWranglerPostlist(c request.CTX, wpl *model.Wra
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CountNotification(notificationType model.NotificationType) {
+func (a *OpenTracingAppLayer) CountNotification(notificationType model.NotificationType, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotification")
 
@@ -1979,10 +1979,10 @@ func (a *OpenTracingAppLayer) CountNotification(notificationType model.Notificat
 	}()
 
 	defer span.Finish()
-	a.app.CountNotification(notificationType)
+	a.app.CountNotification(notificationType, platform)
 }
 
-func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.NotificationType) {
+func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.NotificationType, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotificationAck")
 
@@ -1994,10 +1994,10 @@ func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.Notifi
 	}()
 
 	defer span.Finish()
-	a.app.CountNotificationAck(notificationType)
+	a.app.CountNotificationAck(notificationType, platform)
 }
 
-func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason) {
+func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotificationReason")
 
@@ -2009,7 +2009,7 @@ func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.N
 	}()
 
 	defer span.Finish()
-	a.app.CountNotificationReason(notificationStatus, notificationType, notificationReason)
+	a.app.CountNotificationReason(notificationStatus, notificationType, notificationReason, platform)
 }
 
 func (a *OpenTracingAppLayer) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
