@@ -448,7 +448,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypeWrangler,
-		PostTypeGMConvertedToChannel:
+		PostTypeGMConvertedToChannel,
+		"warn_metric_status": // This needs to be there as a backward compatibility support to allow users to import from older Mattermost versions.
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
