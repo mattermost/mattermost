@@ -19,7 +19,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
         this.maxBatchSize = args.maxBatchSize;
     }
 
-    public addIdsToLoad(identifiersToLoad: Identifier[]) {
+    public addIdsToLoad(identifiersToLoad: Identifier[]): void {
         for (const identifier of identifiersToLoad) {
             if (!identifier) {
                 continue;
@@ -29,7 +29,12 @@ abstract class DataLoader<Identifier, Result = unknown> {
         }
     }
 
-    public doFetchBatch(): Result {
+    /**
+     * startBatch removes an array of identifiers for data to be loaded from pendingIdentifiers and returns it. If
+     * pendingIdentifiers contains more than maxBatchSize identifiers, then only that many are returned, but if it
+     * contains fewer than that, all of the identifiers are returned and pendingIdentifiers is cleared.
+     */
+    protected startBatch(): {identifiers: Identifier[]; moreToLoad: boolean} {
         let identifiersToLoad;
 
         // Since we can only fetch a defined number of user statuses at a time, we need to batch the requests
@@ -52,7 +57,17 @@ abstract class DataLoader<Identifier, Result = unknown> {
             this.pendingIdentifiers.clear();
         }
 
-        return this.fetchBatch(identifiersToLoad);
+        return {
+            identifiers: identifiersToLoad,
+            moreToLoad: this.pendingIdentifiers.size > 0,
+        };
+    }
+
+    /**
+     * isBusy is a method for testing which returns true if the DataLoader is waiting to request or receive any data.
+     */
+    public isBusy(): boolean {
+        return this.pendingIdentifiers.size > 0;
     }
 }
 
@@ -66,25 +81,31 @@ abstract class DataLoader<Identifier, Result = unknown> {
 export class IntervalDataLoader<Identifier, Result = unknown> extends DataLoader<Identifier, Result> {
     private intervalId: number = -1;
 
-    private doFetchBatchIfNecessary() {
-        if (this.pendingIdentifiers.size === 0) {
-            return;
-        }
-
-        this.doFetchBatch();
-    }
-
-    startIntervalIfNeeded(ms: number) {
+    public startIntervalIfNeeded(ms: number): void {
         if (this.intervalId !== -1) {
             return;
         }
 
-        this.intervalId = window.setInterval(() => this.doFetchBatchIfNecessary(), ms);
+        this.intervalId = window.setInterval(() => this.fetchBatchNow(), ms);
     }
 
-    stopInterval() {
+    public stopInterval(): void {
         clearInterval(this.intervalId);
         this.intervalId = -1;
+    }
+
+    public fetchBatchNow(): void {
+        const {identifiers} = this.startBatch();
+
+        if (identifiers.length === 0) {
+            return;
+        }
+
+        this.fetchBatch(identifiers);
+    }
+
+    public isBusy(): boolean {
+        return super.isBusy() || this.intervalId !== -1;
     }
 }
 
@@ -102,14 +123,17 @@ export class IntervalDataLoader<Identifier, Result = unknown> extends DataLoader
  * in different places in the UI from each other which could otherwise send repeated requests for the same or similar
  * data as one another.
  */
-export class DelayedDataLoader<Identifier, Result> extends DataLoader<Identifier, Promise<Result>> {
+export class DelayedDataLoader<Identifier> extends DataLoader<Identifier, Promise<unknown>> {
     private readonly wait: number = -1;
 
     private timeoutId: number = -1;
-    private timeoutCallbacks = new Set<(result: Result) => void>();
+    private timeoutCallbacks = new Set<{
+        identifiers: Set<Identifier>;
+        resolve(): void;
+    }>();
 
     constructor(args: {
-        fetchBatch: (identifiers: Identifier[]) => Promise<Result>;
+        fetchBatch: (identifiers: Identifier[]) => Promise<unknown>;
         maxBatchSize: number;
         wait: number;
     }) {
@@ -118,19 +142,28 @@ export class DelayedDataLoader<Identifier, Result> extends DataLoader<Identifier
         this.wait = args.wait;
     }
 
-    public addIdsToLoad(identifiersToLoad: Identifier[]): Promise<Result> {
+    public addIdsToLoad(identifiersToLoad: Identifier[]): void {
+        super.addIdsToLoad(identifiersToLoad);
+
+        this.startTimeoutIfNeeded();
+    }
+
+    public addIdsAndWait(identifiersToLoad: Identifier[]): Promise<void> {
         return new Promise((resolve) => {
             super.addIdsToLoad(identifiersToLoad);
 
             // Save the callback that will resolve this promise so that the caller of this method can wait for its
             // data to be loaded
-            this.timeoutCallbacks.add(resolve);
+            this.timeoutCallbacks.add({
+                identifiers: new Set(identifiersToLoad),
+                resolve,
+            });
 
             this.startTimeoutIfNeeded();
         });
     }
 
-    private startTimeoutIfNeeded() {
+    private startTimeoutIfNeeded(): void {
         if (this.timeoutId !== -1) {
             return;
         }
@@ -140,16 +173,31 @@ export class DelayedDataLoader<Identifier, Result> extends DataLoader<Identifier
             // addIdsToLoad which come while we're fetching this batch are added to the next batch instead
             this.timeoutId = -1;
 
-            const callbacks = Array.from(this.timeoutCallbacks);
-            this.timeoutCallbacks.clear();
+            const {identifiers, moreToLoad} = this.startBatch();
 
-            // TODO this doesn't handle when someone requests more than a page of data
-            this.doFetchBatch().then((result) => {
-                // Unblock everyone waiting on this batch of data
-                for (const callback of callbacks) {
-                    callback(result);
-                }
-            });
+            // Start another timeout if there's still more data to load
+            if (moreToLoad) {
+                this.startTimeoutIfNeeded();
+            }
+
+            this.fetchBatch(identifiers).then(() => this.resolveCompletedCallbacks(identifiers));
         }, this.wait);
+    }
+
+    private resolveCompletedCallbacks(identifiers: Identifier[]): void {
+        for (const callback of this.timeoutCallbacks) {
+            for (const identifier of identifiers) {
+                callback.identifiers.delete(identifier);
+            }
+
+            if (callback.identifiers.size === 0) {
+                this.timeoutCallbacks.delete(callback);
+                callback.resolve();
+            }
+        }
+    }
+
+    public isBusy(): boolean {
+        return super.isBusy() || this.timeoutCallbacks.size > 0 || this.timeoutId !== -1;
     }
 }

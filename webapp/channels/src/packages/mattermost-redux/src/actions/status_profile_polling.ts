@@ -39,7 +39,7 @@ export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProf
 
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
         if (!pollingInterval || pollingInterval <= 0) {
-            statusLoader.doFetchBatch();
+            statusLoader.fetchBatchNow();
         } else {
             // Start the interval if it is not already running
             statusLoader.startIntervalIfNeeded(pollingInterval);
@@ -69,7 +69,7 @@ export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserPr
 
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
         if (!pollingInterval || pollingInterval <= 0) {
-            profileLoader.doFetchBatch();
+            profileLoader.fetchBatchNow();
         } else {
             // Start the interval if it is not already running
             profileLoader.startIntervalIfNeeded(pollingInterval);
