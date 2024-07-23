@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
-import type { KatexOptions } from 'katex';
-import { flatMap } from 'lodash';
-import React, { useEffect, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import type {KatexOptions} from 'katex';
+import {flatMap} from 'lodash';
+import React, {useEffect, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 type Katex = typeof import('katex');
 
@@ -51,7 +50,7 @@ const LatexInline = ({
         return (
             <span
                 className='post-body--code inline-tex'
-                dangerouslySetInnerHTML={{ __html: html }}
+                dangerouslySetInnerHTML={{__html: html}}
                 data-testid='latex-enabled'
             />
         );
@@ -68,7 +67,6 @@ const LatexInline = ({
             </span>
         );
     }
-
-}
+};
 
 export default React.memo(LatexInline);
