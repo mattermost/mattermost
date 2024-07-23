@@ -30,6 +30,7 @@ export type OwnProps = {
     adminMode?: boolean;
     isContentProductSettings: boolean;
     userPreferences?: PreferencesType;
+    activeTab?: string;
 }
 
 export type Props = OwnProps & {
@@ -64,7 +65,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         super(props);
 
         this.state = {
-            active_tab: props.isContentProductSettings ? 'notifications' : 'profile',
+            active_tab: props.activeTab ?? (props.isContentProductSettings ? 'notifications' : 'profile'),
             active_section: '',
             showConfirmModal: false,
             enforceFocus: true,

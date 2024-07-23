@@ -99,6 +99,58 @@ describe('tabs are properly rendered', () => {
         expect(screen.queryByText(uiName1)).toBeInTheDocument();
         expect(screen.queryByText(uiName2)).toBeInTheDocument();
     });
+
+    it('plugin settings tabs can be selected', async () => {
+        const uiName1 = 'plugin A';
+        const uiName2 = 'plugin B';
+        const state: DeepPartial<GlobalState> = {
+            plugins: {
+                userSettings: {
+                    plugin_a: {
+                        id: 'plugin_a',
+                        sections: [
+                            {
+                                title: 'plugin A section',
+                                settings: [
+                                    {
+                                        name: 'plugin A setting',
+                                    },
+                                ],
+                            },
+                        ],
+                        uiName: uiName1,
+                    },
+                    plugin_b: {
+                        id: 'plugin_b',
+                        sections: [
+                            {
+                                title: 'plugin B section',
+                                settings: [
+                                    {
+                                        name: 'plugin B setting',
+                                    },
+                                ],
+                            },
+                        ],
+                        uiName: uiName2,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <UserSettingsModal
+                {...baseProps}
+                activeTab='plugin_b'
+            />,
+            mergeObjects(baseState, state),
+        );
+
+        expect(screen.queryByText(uiName1)).toBeInTheDocument();
+        expect(screen.queryByText(uiName2)).toBeInTheDocument();
+        expect(screen.queryAllByText('plugin B Settings')).toHaveLength(2);
+        expect(screen.queryByText('plugin A Settings')).not.toBeInTheDocument();
+    });
 });
 
 describe('plugin tabs use the correct icon', () => {
