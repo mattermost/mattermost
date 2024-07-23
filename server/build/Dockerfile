@@ -29,8 +29,8 @@ RUN apt-get update \
 
 # Set mattermost group/user and download Mattermost
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
-  && addgroup -gid ${PGID} mattermost \
-  && adduser -q --disabled-password --uid ${PUID} --gid ${PGID} --gecos "" --home /mattermost mattermost \
+  && groupadd --gid ${PGID} mattermost \
+  && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost \
   && curl -L $MM_PACKAGE | tar -xvz \
   && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
