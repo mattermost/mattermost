@@ -44,7 +44,6 @@ type State = {
 }
 
 const limits: Limit[] = [
-    {value: 10000, label: localizeMessage('user.settings.sidebar.limitVisibleGMsDMs.allDirectMessages', 'All Direct Messages')},
     {value: 10, label: '10'},
     {value: 15, label: '15'},
     {value: 20, label: '20'},

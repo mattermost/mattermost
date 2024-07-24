@@ -5662,7 +5662,6 @@
   "user.settings.security.viewHistory": "View Access History",
   "user.settings.security.viewHistory.icon": "Access History Icon",
   "user.settings.sidebar.icon": "Sidebar Settings Icon",
-  "user.settings.sidebar.limitVisibleGMsDMs.allDirectMessages": "All Direct Messages",
   "user.settings.sidebar.limitVisibleGMsDMsDesc": "You can also change these settings in the direct messages sidebar menu.",
   "user.settings.sidebar.limitVisibleGMsDMsTitle": "Number of direct messages to show",
   "user.settings.sidebar.off": "Off",
