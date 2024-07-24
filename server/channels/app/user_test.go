@@ -1242,7 +1242,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.False(t, session.IsExpired())
 
 		session2, err = th.App.GetSession(session2.Token)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, session2)
 
 		// Cleanup
@@ -1311,11 +1311,11 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, session)
 
 		session2, err = th.App.GetSession(session2.Token)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, session2)
 
 		// Cleanup
@@ -2136,7 +2136,7 @@ func TestGetUsersForReporting(t *testing.T) {
 				EndAt:      500,
 			},
 		})
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, userReports)
 	})
 
@@ -2150,7 +2150,7 @@ func TestGetUsersForReporting(t *testing.T) {
 				PageSize:   50,
 			},
 		})
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, userReports)
 	})
 
