@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-
+import {FormattedMessage, useIntl} from 'react-intl';
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -27,6 +26,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     const {handleSuggestionClick, handleClear, status} = props;
     const {emoji, text, duration} = status;
     const [show, setShow] = useState(false);
+    const intl = useIntl();
 
     const showClearButton = () => setShow(true);
 
@@ -45,7 +45,8 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             <WithTooltip
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
-                tooltipText={intl.formateMessage({id: 'input.clear', defaultMessage: 'Clear'})}
+                tooltipText={intl.formatMessage({id: 'input.clear', defaultMessage: 'Clear'})}
+
             >
                 <button
                     className='style--none input-clear-x'
