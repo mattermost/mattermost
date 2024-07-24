@@ -4,7 +4,6 @@
 package web
 
 import (
-	"errors"
 	"net/http"
 	"path"
 	"regexp"
@@ -233,12 +232,6 @@ func (c *Context) SetInvalidParamWithDetails(parameter string, details string) {
 }
 
 func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
-	var maxBytesErr *http.MaxBytesError
-	if ok := errors.As(err, &maxBytesErr); ok {
-		c.HandlePayloadTooLargeError(err)
-		return
-	}
-
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
 }
 
