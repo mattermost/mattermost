@@ -85,7 +85,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Support packet generation is limited to system admins (MM-42271).
+	// Support Packet generation is limited to system admins (MM-42271).
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
