@@ -355,6 +355,7 @@
   "suggestion.mention.channels": "Mine kanaler",
   "suggestion.mention.here": "Varsler alle som er på nett i denne kanalen",
   "suggestion.mention.morechannels": "Andre kanaler",
+  "suggestion.mention.nonmembers": "Ikke i kanalen",
   "system_notice.title.gm_as_dm": "Oppdateringer til gruppemeldinger",
   "terms_of_service.api_error": "Kan ikke fullføre forespørselen. Kontakt systemadministratoren hvis dette problemet vedvarer.",
   "user.settings.general.close": "Хааx",
