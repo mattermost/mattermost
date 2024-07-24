@@ -19,7 +19,7 @@ function Action({name, icon, onClick, id, tooltipText}: Props) {
     return (
         <div className='DraftAction'>
             <WithTooltip
-                id={`tooltip_${id}`}
+                id={`drafts_action_tooltip_${id}`}
                 placement='top'
                 title={tooltipText}
             >
