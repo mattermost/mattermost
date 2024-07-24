@@ -173,12 +173,12 @@ describe('plugin tabs use the correct icon', () => {
         const element = screen.queryByTitle(uiName);
         expect(element).toBeInTheDocument();
         expect(element!.nodeName).toBe('I');
-        expect(element?.className).toBe('icon-power-plug-outline');
+        expect(element?.className).toBe('icon icon-power-plug-outline');
     });
 
-    it('use image when icon provided', () => {
+    it('use image when icon URL provided', () => {
         const uiName = 'plugin_a';
-        const icon = 'icon_url';
+        const icon = 'http://localhost:8065/plugins/com.mattermost.plugin_a/public/icon.svg';
         const state: DeepPartial<GlobalState> = {
             plugins: {
                 userSettings: {
@@ -197,5 +197,52 @@ describe('plugin tabs use the correct icon', () => {
         expect(element).toBeInTheDocument();
         expect(element!.nodeName).toBe('IMG');
         expect(element!.getAttribute('src')).toBe(icon);
+    });
+
+    it('use image when icon path provided', () => {
+        const uiName = 'plugin_a';
+        const icon = '/plugins/com.mattermost.plugin_a/public/icon.svg';
+        const state: DeepPartial<GlobalState> = {
+            plugins: {
+                userSettings: {
+                    plugin_a: {
+                        id: 'plugin_a',
+                        sections: [],
+                        uiName,
+                        icon,
+                    },
+                },
+            },
+        };
+        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+
+        const element = screen.queryByAltText(uiName);
+        expect(element).toBeInTheDocument();
+        expect(element!.nodeName).toBe('IMG');
+        expect(element!.getAttribute('src')).toBe(icon);
+    });
+
+    it('use class name when icon name provided', () => {
+        const uiName = 'plugin_a';
+        const icon = 'icon-phone-in-talk';
+        const state: DeepPartial<GlobalState> = {
+            plugins: {
+                userSettings: {
+                    plugin_a: {
+                        id: 'plugin_a',
+                        sections: [],
+                        uiName,
+                        icon,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+
+        const element = screen.queryByTitle(uiName);
+        expect(element).toBeInTheDocument();
+        expect(element!.nodeName).toBe('I');
+        expect(element?.className).toBe('icon icon-phone-in-talk');
     });
 });
