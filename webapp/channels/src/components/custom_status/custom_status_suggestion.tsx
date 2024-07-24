@@ -45,7 +45,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             <WithTooltip
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
-                tooltipText={'Clear'}
+                tooltipText={intl.formateMessage({id: 'input.clear', defaultMessage: 'Clear'})}
             >
                 <button
                     className='style--none input-clear-x'
