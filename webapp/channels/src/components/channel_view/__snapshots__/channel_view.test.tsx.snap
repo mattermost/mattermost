@@ -16,6 +16,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -73,6 +74,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -129,6 +131,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
