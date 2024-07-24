@@ -410,7 +410,7 @@
   "admin.billing.subscription.updatePaymentInfo": "Aktualizuj informacje o płatności",
   "admin.billing.subscription.userCount.tooltipText": "Musisz kupić co najmniej aktualną liczbę aktywnych użytkowników.",
   "admin.billing.subscription.userCount.tooltipTitle": "Aktualna liczba użytkowników",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": "Miesięczna opłata ryczałtowa",
+  "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": "Zryczałtowana opłata miesięczna",
   "admin.billing.subscriptions.billing_summary.lastInvoice.paid": "Płatne",
   "admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges": "Opłaty częściowe",
   "admin.billing.subscriptions.billing_summary.lastInvoice.seatCount": " x {seats} miejsc",
