@@ -51,7 +51,6 @@ export const messages = defineMessages({
     enableIndexingDescription: {id: 'admin.elasticsearch.enableIndexingDescription', defaultMessage: 'When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>'},
     connectionUrlTitle: {id: 'admin.elasticsearch.connectionUrlTitle', defaultMessage: 'Server Connection Address:'},
     connectionUrlDescription: {id: 'admin.elasticsearch.connectionUrlDescription', defaultMessage: 'The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>'},
-    backendTitle: {id: 'admin.elasticsearch.backendTitle', defaultMessage: 'Backend type:'},
     skipTLSVerificationTitle: {id: 'admin.elasticsearch.skipTLSVerificationTitle', defaultMessage: 'Skip TLS Verification:'},
     skipTLSVerificationDescription: {id: 'admin.elasticsearch.skipTLSVerificationDescription', defaultMessage: 'When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.'},
     usernameTitle: {id: 'admin.elasticsearch.usernameTitle', defaultMessage: 'Server Username:'},
@@ -268,7 +267,10 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='backend'
                     label={
-                        <FormattedMessage {...messages.backendTitle}/>
+                        <FormattedMessage
+                            id='admin.elasticsearch.backendTitle'
+                            defaultMessage='Backend type:'
+                        />
                     }
                     placeholder={defineMessage({id: 'admin.elasticsearch.backendExample', defaultMessage: 'E.g.: "elasticsearch"'})}
                     helpText={
