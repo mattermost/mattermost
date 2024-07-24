@@ -653,7 +653,7 @@ config-ldap: ## Configures LDAP.
 	# Check if jq is installed
 	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
 
-	TMPDIR=$(mktemp -d)
+	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/ldap.mmsettings.json > ${TMPDIR}/config.json
 	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
 	rm ${TMPDIR}/config.json
@@ -666,7 +666,7 @@ config-saml: ## Configures SAML.
 
 	@cp build/docker/keycloak/keycloak.crt ./config/saml-idp.crt
 
-	TMPDIR=$(mktemp -d)
+	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/saml.mmsettings.json > ${TMPDIR}/config.json
 	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
 	rm ${TMPDIR}/config.json
@@ -677,7 +677,7 @@ config-openid: ## Configures OpenID.
 	# Check if jq is installed
 	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
 
-	TMPDIR=$(mktemp -d)
+	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/openid.mmsettings.json > ${TMPDIR}/config.json
 	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
 	rm ${TMPDIR}/config.json
