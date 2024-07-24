@@ -489,6 +489,36 @@ func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts sto
 	return r0, r1
 }
 
+// MaintainMultipleFromImport provides a mock function with given fields: memberships
+func (_m *ThreadStore) MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+	ret := _m.Called(memberships)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MaintainMultipleFromImport")
+	}
+
+	var r0 []*model.ThreadMembership
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) ([]*model.ThreadMembership, error)); ok {
+		return rf(memberships)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) []*model.ThreadMembership); ok {
+		r0 = rf(memberships)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ThreadMembership)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ThreadMembership) error); ok {
+		r1 = rf(memberships)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MarkAllAsRead provides a mock function with given fields: userID, threadIds
 func (_m *ThreadStore) MarkAllAsRead(userID string, threadIds []string) error {
 	ret := _m.Called(userID, threadIds)
@@ -629,6 +659,36 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	}
 
 	return r0, r1, r2
+}
+
+// SaveMultipleMemberships provides a mock function with given fields: memberships
+func (_m *ThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+	ret := _m.Called(memberships)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveMultipleMemberships")
+	}
+
+	var r0 []*model.ThreadMembership
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) ([]*model.ThreadMembership, error)); ok {
+		return rf(memberships)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) []*model.ThreadMembership); ok {
+		r0 = rf(memberships)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ThreadMembership)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ThreadMembership) error); ok {
+		r1 = rf(memberships)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateMembership provides a mock function with given fields: membership
