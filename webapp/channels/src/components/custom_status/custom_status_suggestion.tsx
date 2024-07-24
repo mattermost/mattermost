@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
 import classNames from 'classnames';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'components/with_tooltip'; 
+import WithTooltip from 'components/with_tooltip'; // Ensure this import is correct
 
 import Constants, {durationValues} from 'utils/constants';
 
@@ -26,7 +26,8 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     const {handleSuggestionClick, handleClear, status} = props;
     const {emoji, text, duration} = status;
     const [show, setShow] = useState(false);
-    const intl = useIntl();
+
+    const intl = useIntl(); // Correctly using useIntl
 
     const showClearButton = () => setShow(true);
 
@@ -46,7 +47,6 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
                 tooltipText={intl.formatMessage({id: 'input.clear', defaultMessage: 'Clear'})}
-
             >
                 <button
                     className='style--none input-clear-x'
@@ -95,3 +95,4 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
 };
 
 export default CustomStatusSuggestion;
+
