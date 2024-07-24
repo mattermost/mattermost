@@ -16,8 +16,6 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {localizeMessage} from 'utils/utils';
-
 type Limit = {
     value: number;
     label: string;
