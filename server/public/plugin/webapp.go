@@ -68,6 +68,10 @@ var webAppFeaturePatterns = map[string]*regexp.Regexp{
 
 	// window.DesktopApp
 	"DesktopApp": regexp.MustCompile(`\bDesktopApp\b`),
+
+	// TODO detect plugin registry method usage
+
+	// TODO use plugin registry method usage to detect when plugins register routes to defer plugin load later
 }
 
 func detectWebAppFeatureUsage(pluginSource []byte) map[string]bool {
