@@ -10086,5 +10086,9 @@
   {
     "id": "api.remote_cluster.encrypt_invite_error",
     "translation": "Nie udało się zaszyfrować zaproszenia do zdalnego klastra przy użyciu podanego hasła"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Nieprawidłowy backend wyszukiwania. Musi to być elasticsearch lub opensearch."
   }
 ]
