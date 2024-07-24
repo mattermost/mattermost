@@ -11,6 +11,7 @@ import type {
     PluginConfigurationRadioSettingOption,
     PluginConfigurationSection,
     PluginConfigurationCustomSetting,
+    PluginCustomSettingComponent,
 } from 'types/plugins/user_settings';
 
 export function extractPluginConfiguration(pluginConfiguration: unknown, pluginId: string) {
@@ -267,7 +268,7 @@ function extractPluginConfigurationCustomSetting(setting: unknown, base: BasePlu
     const res: PluginConfigurationCustomSetting = {
         ...base,
         type: 'custom',
-        component: setting.component as React.ComponentType,
+        component: setting.component as PluginCustomSettingComponent,
     };
 
     return res;
