@@ -950,7 +950,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		assert.Equal(t, http.StatusOK, response.Code)
 	})
 
-	t.Run("Should cause 414 error if url is smaller than configured limit", func(t *testing.T) {
+	t.Run("Should cause 414 error if url is longer than configured limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
