@@ -7,14 +7,14 @@ import nock from 'nock';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {UserTypes} from 'mattermost-redux/action_types';
+import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {General, RequestStatus} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -276,6 +276,9 @@ describe('Actions.Users', () => {
             const profileMock = nock(Client4.getBaseRoute()).
                 post('/users/ids', [testUserId1]).
                 reply(200, [TestHelper.getUserMock({id: testUserId1})]);
+            const statusMock = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', [testUserId1]).
+                reply(200, [{user_id: testUserId1, status: General.ONLINE}]);
 
             const promise = store.dispatch(Actions.getMissingProfilesByIds([testUserId1]));
 
@@ -284,22 +287,9 @@ describe('Actions.Users', () => {
             await promise;
 
             expect(profileMock.isDone()).toBe(true);
+            expect(statusMock.isDone()).toBe(true);
             expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
-        });
-
-        test('should be able to get a single user', async () => {
-            const profileMock = nock(Client4.getBaseRoute()).
-                post('/users/ids', [testUserId1]).
-                reply(200, [TestHelper.getUserMock({id: testUserId1})]);
-
-            const promise = store.dispatch(Actions.getMissingProfilesByIds([testUserId1]));
-
-            jest.advanceTimersToNextTimer();
-
-            await promise;
-
-            expect(profileMock.isDone()).toBe(true);
-            expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
+            expect(store.getState().entities.users.statuses[testUserId1]).toEqual(General.ONLINE);
         });
 
         test('should be able to get multiple users', async () => {
@@ -310,6 +300,13 @@ describe('Actions.Users', () => {
                     TestHelper.getUserMock({id: testUserId2}),
                     TestHelper.getUserMock({id: testUserId3}),
                 ]);
+            const statusMock = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', [testUserId1, testUserId2, testUserId3]).
+                reply(200, [
+                    {user_id: testUserId1, status: General.ONLINE},
+                    {user_id: testUserId2, status: General.ONLINE},
+                    {user_id: testUserId3, status: General.ONLINE},
+                ]);
 
             const promise = store.dispatch(Actions.getMissingProfilesByIds([testUserId1, testUserId2, testUserId3]));
 
@@ -318,9 +315,13 @@ describe('Actions.Users', () => {
             await promise;
 
             expect(profileMock.isDone()).toBe(true);
+            expect(statusMock.isDone()).toBe(true);
             expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
+            expect(store.getState().entities.users.statuses[testUserId1]).toEqual(General.ONLINE);
             expect(store.getState().entities.users.profiles[testUserId2]).toMatchObject({id: testUserId2});
+            expect(store.getState().entities.users.statuses[testUserId2]).toEqual(General.ONLINE);
             expect(store.getState().entities.users.profiles[testUserId3]).toMatchObject({id: testUserId3});
+            expect(store.getState().entities.users.statuses[testUserId3]).toEqual(General.ONLINE);
         });
 
         test('should batch requests to get users across multiple calls and dedupe IDs', async () => {
@@ -330,6 +331,13 @@ describe('Actions.Users', () => {
                     TestHelper.getUserMock({id: testUserId1}),
                     TestHelper.getUserMock({id: testUserId2}),
                     TestHelper.getUserMock({id: testUserId3}),
+                ]);
+            const statusMock = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', [testUserId1, testUserId2, testUserId3]).
+                reply(200, [
+                    {user_id: testUserId1, status: General.ONLINE},
+                    {user_id: testUserId2, status: General.ONLINE},
+                    {user_id: testUserId3, status: General.ONLINE},
                 ]);
 
             const promise = Promise.all([
@@ -343,9 +351,13 @@ describe('Actions.Users', () => {
             await promise;
 
             expect(profileMock.isDone()).toBe(true);
+            expect(statusMock.isDone()).toBe(true);
             expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
+            expect(store.getState().entities.users.statuses[testUserId1]).toEqual(General.ONLINE);
             expect(store.getState().entities.users.profiles[testUserId2]).toMatchObject({id: testUserId2});
+            expect(store.getState().entities.users.statuses[testUserId2]).toEqual(General.ONLINE);
             expect(store.getState().entities.users.profiles[testUserId3]).toMatchObject({id: testUserId3});
+            expect(store.getState().entities.users.statuses[testUserId3]).toEqual(General.ONLINE);
         });
 
         test('should split requests for user IDs into multiple requests when necessary', async () => {
@@ -362,12 +374,26 @@ describe('Actions.Users', () => {
             const profileMock1 = nock(Client4.getBaseRoute()).
                 post('/users/ids', testUserIds1).
                 reply(200, testUserIds1.map((id) => TestHelper.getUserMock({id})));
+            const statusMock1 = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', testUserIds1).
+                reply(200, testUserIds1.map((id) => ({user_id: id, status: General.ONLINE})));
             const profileMock2 = nock(Client4.getBaseRoute()).
                 post('/users/ids', testUserIds2).
                 reply(200, testUserIds2.map((id) => TestHelper.getUserMock({id})));
+            const statusMock2 = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', testUserIds2).
+                reply(200, testUserIds2.map((id) => ({user_id: id, status: General.ONLINE})));
             const profileMock3 = nock(Client4.getBaseRoute()).
                 post('/users/ids', testUserIds3).
                 reply(200, testUserIds3.map((id) => TestHelper.getUserMock({id})));
+            const statusMock3 = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', testUserIds3).
+                reply(200, testUserIds3.map((id) => ({user_id: id, status: General.ONLINE})));
+
+            for (const id of testUserIds) {
+                expect(store.getState().entities.users.profiles[id]).not.toBeDefined();
+                expect(store.getState().entities.users.statuses[id]).not.toEqual(General.ONLINE);
+            }
 
             const promise = store.dispatch(Actions.getMissingProfilesByIds(testUserIds));
 
@@ -379,13 +405,44 @@ describe('Actions.Users', () => {
 
             // Ensure that each of those requests were made
             expect(profileMock1.isDone()).toBe(true);
+            expect(statusMock1.isDone()).toBe(true);
             expect(profileMock2.isDone()).toBe(true);
+            expect(statusMock2.isDone()).toBe(true);
             expect(profileMock3.isDone()).toBe(true);
+            expect(statusMock3.isDone()).toBe(true);
 
             // And that all of the users were loaded
             for (const id of testUserIds) {
                 expect(store.getState().entities.users.profiles[id]).toBeDefined();
+                expect(store.getState().entities.users.statuses[id]).toEqual(General.ONLINE);
             }
+        });
+
+        test('should not request statuses when those are disabled', async () => {
+            const profileMock = nock(Client4.getBaseRoute()).
+                post('/users/ids', [testUserId1]).
+                reply(200, [TestHelper.getUserMock({id: testUserId1})]);
+            const statusMock = nock(Client4.getBaseRoute()).
+                post('/users/status/ids', [testUserId1]).
+                reply(200, [{user_id: testUserId1, status: General.ONLINE}]);
+
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    EnableUserStatuses: 'false',
+                },
+            });
+
+            const promise = store.dispatch(Actions.getMissingProfilesByIds([testUserId1]));
+
+            jest.advanceTimersToNextTimer();
+
+            await promise;
+
+            expect(profileMock.isDone()).toBe(true);
+            expect(statusMock.isDone()).toBe(false);
+            expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
+            expect(store.getState().entities.users.statuses[testUserId1]).toBeUndefined();
         });
     });
 
