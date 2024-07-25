@@ -90,25 +90,6 @@ type MetricsInterfaceImpl struct {
 	ClusterEventTypeInvUser                      prometheus.Counter
 	ClusterEventTypeInvSessions                  prometheus.Counter
 	ClusterEventTypeInvRoles                     prometheus.Counter
-	ClusterEventTypeInvChannelGuestCount         prometheus.Counter
-	ClusterEventTypeInvUserTeams                 prometheus.Counter
-	ClusterEventTypeInvRolePermissions           prometheus.Counter
-	ClusterEventTypeInvProfileByIds              prometheus.Counter
-	ClusterEventTypeInvCacheForAllProfiles       prometheus.Counter
-	ClusterEventTypeInvProfileInChannel          prometheus.Counter
-	ClusterEventTypeInvCacheForSchemes           prometheus.Counter
-	ClusterEventTypeInvFileInfos                 prometheus.Counter
-	ClusterEventTypeInvWebhooks                  prometheus.Counter
-	ClusterEventTypeInvEmojisById                prometheus.Counter
-	ClusterEventTypeInvEmojisIdByName            prometheus.Counter
-	ClusterEventTypeInvChannelFileCount          prometheus.Counter
-	ClusterEventTypeInvChannelPinnedpostsCounts  prometheus.Counter
-	ClusterEventTypeInvChannelMemberCounts       prometheus.Counter
-	ClusterEventTypeInvChannelsMemberCount       prometheus.Counter
-	ClusterEventTypeInvLastPosts                 prometheus.Counter
-	ClusterEventTypeInvLastPostTime              prometheus.Counter
-	ClusterEventTypeInvPostsUsage                prometheus.Counter
-	ClusterEventTypeInvTeams                     prometheus.Counter
 	ClusterEventTypeOther                        prometheus.Counter
 
 	LoginCounter     prometheus.Counter
@@ -497,25 +478,6 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.ClusterEventTypeInvUser = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForUser)})
 	m.ClusterEventTypeInvSessions = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventClearSessionCacheForUser)})
 	m.ClusterEventTypeInvRoles = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForRoles)})
-	m.ClusterEventTypeInvChannelGuestCount = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForChannelGuestCount)})
-	m.ClusterEventTypeInvUserTeams = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForUserTeams)})
-	m.ClusterEventTypeInvRolePermissions = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForRolePermissions)})
-	m.ClusterEventTypeInvProfileByIds = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForProfileByIds)})
-	m.ClusterEventTypeInvCacheForAllProfiles = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForAllProfiles)})
-	m.ClusterEventTypeInvProfileInChannel = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForProfileInChannel)})
-	m.ClusterEventTypeInvCacheForSchemes = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForSchemes)})
-	m.ClusterEventTypeInvFileInfos = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForFileInfos)})
-	m.ClusterEventTypeInvWebhooks = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForWebhooks)})
-	m.ClusterEventTypeInvEmojisById = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForEmojisById)})
-	m.ClusterEventTypeInvEmojisIdByName = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForEmojisIdByName)})
-	m.ClusterEventTypeInvChannelFileCount = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForChannelFileCount)})
-	m.ClusterEventTypeInvChannelPinnedpostsCounts = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForChannelPinnedpostsCounts)})
-	m.ClusterEventTypeInvChannelMemberCounts = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForChannelMemberCounts)})
-	m.ClusterEventTypeInvChannelsMemberCount = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForChannelsMemberCount)})
-	m.ClusterEventTypeInvLastPosts = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForLastPosts)})
-	m.ClusterEventTypeInvLastPostTime = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForLastPostTime)})
-	m.ClusterEventTypeInvPostsUsage = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForPostsUsage)})
-	m.ClusterEventTypeInvTeams = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(model.ClusterEventInvalidateCacheForTeams)})
 	m.ClusterEventTypeOther = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": "other"})
 
 	// Login Subsystem
@@ -1561,44 +1523,6 @@ func (mi *MetricsInterfaceImpl) IncrementClusterEventType(eventType model.Cluste
 		mi.ClusterEventTypeInvSessions.Inc()
 	case model.ClusterEventInvalidateCacheForRoles:
 		mi.ClusterEventTypeInvRoles.Inc()
-	case model.ClusterEventInvalidateCacheForChannelGuestCount:
-		mi.ClusterEventTypeInvChannelGuestCount.Inc()
-	case model.ClusterEventInvalidateCacheForUserTeams:
-		mi.ClusterEventTypeInvUserTeams.Inc()
-	case model.ClusterEventInvalidateCacheForRolePermissions:
-		mi.ClusterEventTypeInvRolePermissions.Inc()
-	case model.ClusterEventInvalidateCacheForProfileByIds:
-		mi.ClusterEventTypeInvProfileByIds.Inc()
-	case model.ClusterEventInvalidateCacheForAllProfiles:
-		mi.ClusterEventTypeInvCacheForAllProfiles.Inc()
-	case model.ClusterEventInvalidateCacheForProfileInChannel:
-		mi.ClusterEventTypeInvProfileInChannel.Inc()
-	case model.ClusterEventInvalidateCacheForSchemes:
-		mi.ClusterEventTypeInvCacheForSchemes.Inc()
-	case model.ClusterEventInvalidateCacheForFileInfos:
-		mi.ClusterEventTypeInvFileInfos.Inc()
-	case model.ClusterEventInvalidateCacheForWebhooks:
-		mi.ClusterEventTypeInvWebhooks.Inc()
-	case model.ClusterEventInvalidateCacheForEmojisById:
-		mi.ClusterEventTypeInvEmojisById.Inc()
-	case model.ClusterEventInvalidateCacheForEmojisIdByName:
-		mi.ClusterEventTypeInvEmojisIdByName.Inc()
-	case model.ClusterEventInvalidateCacheForChannelFileCount:
-		mi.ClusterEventTypeInvChannelFileCount.Inc()
-	case model.ClusterEventInvalidateCacheForChannelPinnedpostsCounts:
-		mi.ClusterEventTypeInvChannelPinnedpostsCounts.Inc()
-	case model.ClusterEventInvalidateCacheForChannelMemberCounts:
-		mi.ClusterEventTypeInvChannelMemberCounts.Inc()
-	case model.ClusterEventInvalidateCacheForChannelsMemberCount:
-		mi.ClusterEventTypeInvChannelsMemberCount.Inc()
-	case model.ClusterEventInvalidateCacheForLastPosts:
-		mi.ClusterEventTypeInvLastPosts.Inc()
-	case model.ClusterEventInvalidateCacheForLastPostTime:
-		mi.ClusterEventTypeInvLastPostTime.Inc()
-	case model.ClusterEventInvalidateCacheForPostsUsage:
-		mi.ClusterEventTypeInvPostsUsage.Inc()
-	case model.ClusterEventInvalidateCacheForTeams:
-		mi.ClusterEventTypeInvTeams.Inc()
 	default:
 		mi.ClusterEventTypeOther.Inc()
 	}
