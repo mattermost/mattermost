@@ -7,42 +7,42 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {searchGroups} from 'mattermost-redux/actions/groups';
 import {getNeededAtMentionedUsernamesAndGroups} from 'mattermost-redux/actions/posts';
-import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
+import {
+    getProfilesByIds,
+    getProfilesByUsernames,
+    getStatusesByIds,
+    maxUserIdsPerProfilesRequest,
+    maxUserIdsPerStatusesRequest,
+} from 'mattermost-redux/actions/users';
 import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUsers} from 'mattermost-redux/selectors/entities/common';
 import {getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {IntervalDataLoader} from 'mattermost-redux/utils/data_loader';
-
-const MAX_USER_IDS_PER_STATUS_REQUEST = 200; // users ids per 'users/status/ids'request
-const MAX_USER_IDS_PER_PROFILES_REQUEST = 100; // users ids per 'users/ids' request
-
-let statusLoader: IntervalDataLoader<UserProfile['id']> | undefined;
-let profileLoader: IntervalDataLoader<UserProfile['id']> | undefined;
 
 /**
  * Adds list(s) of user id(s) to the status fetching poll. Which gets fetched based on user interval polling duration
  * Do not use if status is required immediately.
  */
 export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProfile['id']>): ActionFunc<boolean> {
-    return (dispatch, getState) => {
-        if (!statusLoader) {
-            statusLoader = new IntervalDataLoader({
+    return (dispatch, getState, {loaders}: any) => {
+        if (!loaders.pollingStatusLoader) {
+            loaders.pollingStatusLoader = new IntervalDataLoader<UserProfile['id']>({
                 fetchBatch: (userIds) => dispatch(getStatusesByIds(userIds)),
-                maxBatchSize: MAX_USER_IDS_PER_STATUS_REQUEST,
+                maxBatchSize: maxUserIdsPerStatusesRequest,
             });
         }
 
-        statusLoader.addIdsToLoad(userIdsForStatus);
+        loaders.pollingStatusLoader.addIdsToLoad(userIdsForStatus);
 
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
         if (!pollingInterval || pollingInterval <= 0) {
-            statusLoader.fetchBatchNow();
+            loaders.pollingStatusLoader.fetchBatchNow();
         } else {
             // Start the interval if it is not already running
-            statusLoader.startIntervalIfNeeded(pollingInterval);
+            loaders.pollingStatusLoader.startIntervalIfNeeded(pollingInterval);
         }
 
         // Now here the interval is already running and we have added the user ids to the poll so we don't need to do anything
@@ -55,24 +55,24 @@ export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProf
  * Do not use if profile is required immediately.
  */
 export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserProfile['id']>): ActionFunc<boolean> {
-    return (dispatch, getState) => {
-        if (!profileLoader) {
-            profileLoader = new IntervalDataLoader({
+    return (dispatch, getState, {loaders}: any) => {
+        if (!loaders.pollingProfileLoader) {
+            loaders.pollingProfileLoader = new IntervalDataLoader<UserProfile['id']>({
                 fetchBatch: (userIds) => dispatch(getProfilesByIds(userIds)),
-                maxBatchSize: MAX_USER_IDS_PER_PROFILES_REQUEST,
+                maxBatchSize: maxUserIdsPerProfilesRequest,
             });
         }
 
-        profileLoader.addIdsToLoad(userIdsForProfile);
+        loaders.pollingProfileLoader.addIdsToLoad(userIdsForProfile);
 
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 
         // Escape hatch to fetch immediately or when we haven't received the polling interval from config yet
         if (!pollingInterval || pollingInterval <= 0) {
-            profileLoader.fetchBatchNow();
+            loaders.pollingProfileLoader.fetchBatchNow();
         } else {
             // Start the interval if it is not already running
-            profileLoader.startIntervalIfNeeded(pollingInterval);
+            loaders.pollingProfileLoader.startIntervalIfNeeded(pollingInterval);
         }
 
         // Now here the interval is already running and we have added the user ids to the poll so we don't need to do anything
@@ -80,14 +80,12 @@ export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserPr
     };
 }
 
-export function cleanUpStatusAndProfileFetchingPoll() {
-    if (statusLoader) {
-        statusLoader.stopInterval();
-    }
+export function cleanUpStatusAndProfileFetchingPoll(): ThunkActionFunc<void> {
+    return (dispatch, getState, {loaders}: any) => {
+        loaders.pollingStatusLoader?.stopInterval();
 
-    if (profileLoader) {
-        profileLoader.stopInterval();
-    }
+        loaders.pollingProfileLoader?.stopInterval();
+    };
 }
 
 /**
