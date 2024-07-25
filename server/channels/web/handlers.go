@@ -6,6 +6,7 @@ package web
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -31,8 +32,7 @@ import (
 )
 
 const (
-	frameAncestors   = "'self' teams.microsoft.com"
-	maxURLCharacters = 2048
+	frameAncestors = "'self' teams.microsoft.com"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -144,20 +144,15 @@ func generateDevCSP(c Context) string {
 	return " " + strings.Join(devCSP, " ")
 }
 
-func (h Handler) basicSecurityChecks(w http.ResponseWriter, r *http.Request) *model.AppError {
+func (h Handler) basicSecurityChecks(c *Context, w http.ResponseWriter, r *http.Request) {
+	maxURLCharacters := *c.App.Config().ServiceSettings.MaximumURLLength
 	if len(r.RequestURI) > maxURLCharacters {
-		return model.NewAppError("basicSecurityChecks", "basic_security_check.url.too_long_error", nil, "", http.StatusRequestURITooLong)
+		c.Err = model.NewAppError("basicSecurityChecks", "basic_security_check.url.too_long_error", nil, "", http.StatusRequestURITooLong)
+		return
 	}
-
-	return nil
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if appErr := h.basicSecurityChecks(w, r); appErr != nil {
-		http.Error(w, appErr.Error(), appErr.StatusCode)
-		return
-	}
-
 	w = newWrappedWriter(w)
 	now := time.Now()
 
@@ -201,6 +196,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
+
+	h.basicSecurityChecks(c, w, r)
+	if c.Err != nil {
+		h.handleContextError(c, w, r)
+		return
+	}
 
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
@@ -378,38 +379,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.RequestId = c.AppContext.RequestId()
-		c.LogErrorByCode(c.Err)
-		// The locale translation needs to happen after we have logged it.
-		// We don't want the server logs to be translated as per user locale.
-		c.Err.Translate(c.AppContext.T)
-
-		c.Err.Where = r.URL.Path
-
-		// Block out detailed error when not in developer mode
-		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.WipeDetailed()
-		}
-
-		// Sanitize all 5xx error messages in hardened mode
-		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
-			c.Err.Id = ""
-			c.Err.Message = "Internal Server Error"
-			c.Err.WipeDetailed()
-			c.Err.StatusCode = 500
-			c.Err.Where = ""
-		}
-
-		if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
-			w.WriteHeader(c.Err.StatusCode)
-			w.Write([]byte(c.Err.ToJSON()))
-		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
-		}
-
-		if c.App.Metrics() != nil {
-			c.App.Metrics().IncrementHTTPError()
-		}
+		h.handleContextError(c, w, r)
+		return
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
@@ -426,6 +397,55 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, string(GetOriginClient(r)), pageLoadContext, elapsed)
 		}
+	}
+}
+
+func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Err == nil {
+		return
+	}
+
+	// We're handling payload limit error here because it needs to be handled globally.
+	var maxBytesErr *http.MaxBytesError
+	// check if error is a MaxBytesError error, which occurs when you read more bytes from buffer than configured
+	if ok := errors.As(c.Err, &maxBytesErr); ok {
+		// replace the context error with this error if so,
+		newErr := model.NewAppError(c.Err.Where, "api.context.request_body_too_large.app_error", nil, "Use the setting `MaximumPayloadSizeBytes` in Mattermost config to configure allowed payload limit. Learn more about this setting in Mattermost docs at https://docs.mattermost.com/configure/environment-configuration-settings.html#maximum-payload-size", http.StatusRequestEntityTooLarge)
+		c.Err = newErr
+	}
+
+	c.Err.RequestId = c.AppContext.RequestId()
+	c.LogErrorByCode(c.Err)
+	// The locale translation needs to happen after we have logged it.
+	// We don't want the server logs to be translated as per user locale.
+	c.Err.Translate(c.AppContext.T)
+
+	c.Err.Where = r.URL.Path
+
+	// Block out detailed error when not in developer mode
+	if !*c.App.Config().ServiceSettings.EnableDeveloper {
+		c.Err.WipeDetailed()
+	}
+
+	// Sanitize all 5xx error messages in hardened mode
+	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
+		c.Err.Id = ""
+		c.Err.Message = "Internal Server Error"
+		c.Err.WipeDetailed()
+		c.Err.StatusCode = 500
+		c.Err.Where = ""
+	}
+
+	if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(c.Err.StatusCode)
+		w.Write([]byte(c.Err.ToJSON()))
+	} else {
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+	}
+
+	if c.App.Metrics() != nil {
+		c.App.Metrics().IncrementHTTPError()
 	}
 }
 
