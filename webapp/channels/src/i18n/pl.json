@@ -427,7 +427,7 @@
   "admin.billing.subscriptions.billing_summary.noBillingHistory.title": "Nie ma jeszcze historii rozliczeń",
   "admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items": "Oraz {count} więcej pozycji",
   "admin.bleve.bulkIndexingTitle": "Indeksowanie zbiorcze:",
-  "admin.bleve.createJob.help": "Wszyscy użytkownicy, wiadomości w bazie danych zostaną za indeksowane od starego do nowego. Elasticsearch jest dostępny podczas indeksowania, ale rezultaty wyszukiwania mogą być niekompletne, dopóki zakończy się zadanie indeksowania.",
+  "admin.bleve.createJob.help": "Wszyscy użytkownicy, kanały i posty w bazie danych zostaną zindeksowane od najstarszych do najnowszych. Bleve jest dostępny podczas indeksowania, ale wyniki wyszukiwania mogą być niekompletne do czasu zakończenia indeksowania.",
   "admin.bleve.createJob.title": "Indeksuj teraz",
   "admin.bleve.enableAutocompleteDescription": "Gdy wartość true, Bleve będzie używany do wszystkich zapytań autouzupełniania dotyczących użytkowników i kanałów przy użyciu najnowszego indeksu. Wyniki autouzupełniania mogą być niekompletne do czasu zakończenia zbiorczego indeksowania istniejącej bazy danych użytkowników i kanałów. Gdy wartość jest fałszywa, używane jest autouzupełnianie bazy danych.",
   "admin.bleve.enableAutocompleteTitle": "Włącz Elasticsearch dla automatycznego uzupełniania zapytań:",
