@@ -236,7 +236,6 @@ func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
 }
 
 func (c *Context) HandlePayloadTooLargeError(err error) {
-	//err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	c.Err = model.NewAppError("Context", "api.context.request_body_too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 }
 
