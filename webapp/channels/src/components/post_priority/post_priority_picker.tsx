@@ -12,8 +12,6 @@ import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 
-import BetaTag from 'components/widgets/tag/beta_tag';
-
 import Menu, {MenuGroup, MenuItem, ToggleItem} from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
@@ -146,7 +144,6 @@ function PostPriorityPicker({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',
                 })}
-                <BetaTag/>
                 <Feedback
                     href={feedbackLink}
                     target='_blank'
