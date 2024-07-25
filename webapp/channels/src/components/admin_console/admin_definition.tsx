@@ -36,6 +36,7 @@ import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_i
 
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
+import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
@@ -457,7 +458,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_user_detail: {
-                url: 'user_management/user/:user_id',
+                url: `user_management/user/:user_id(${ID_PATH_PATTERN})`,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
@@ -465,7 +466,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             group_detail: {
-                url: 'user_management/groups/:group_id',
+                url: `user_management/groups/:group_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 schema: {
@@ -510,7 +511,7 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
             team_detail: {
-                url: 'user_management/teams/:team_id',
+                url: `user_management/teams/:team_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 schema: {
@@ -530,7 +531,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             channel_detail: {
-                url: 'user_management/channels/:channel_id',
+                url: `user_management/channels/:channel_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 schema: {
@@ -557,7 +558,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             teamSchemeDetail: {
-                url: 'user_management/permissions/team_override_scheme/:scheme_id',
+                url: `user_management/permissions/team_override_scheme/:scheme_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -586,7 +587,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_role: {
-                url: 'user_management/system_roles/:role_id',
+                url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
@@ -768,6 +769,13 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.WriteTimeout',
                             label: defineMessage({id: 'admin.service.writeTimeout', defaultMessage: 'Write Timeout:'}),
                             help_text: defineMessage({id: 'admin.service.writeTimeoutDescription', defaultMessage: 'If using HTTP (insecure), this is the maximum time allowed from the end of reading the request headers until the response is written. If using HTTPS, it is the total time from when the connection is accepted until the response is written.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.MaximumPayloadSizeBytes',
+                            label: defineMessage({id: 'admin.service.maximumPayloadSize', defaultMessage: 'Maximum Payload Size (Bytes):'}),
+                            help_text: defineMessage({id: 'admin.service.maximumPayloadSizeDescription', defaultMessage: 'The maximum number of bytes allowed in the payload of incoming HTTP calls'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -1873,7 +1881,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
                                 it.configIsFalse('MetricsSettings', 'Enable'),
                             ),
-                            isHidden: it.configIsFalse('FeatureFlags', 'ClientMetrics'),
                         },
                         {
                             type: 'text',
@@ -3278,6 +3285,7 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
                     sections: [
                         {
+                            key: 'admin.authentication.ldap.connection',
                             title: 'Connection',
                             subtitle: 'Connection and security level to your AD/LDAP server.',
                             settings: [
@@ -3443,6 +3451,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.dn_and_filters',
                             title: 'Base DN & Filters',
                             settings: [
                                 {
@@ -3534,6 +3543,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.account_synchronization',
                             title: 'Account Synchronization',
                             settings: [
                                 {
@@ -3689,6 +3699,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.group_synchronization',
                             title: 'Group Synchronization',
                             settings: [
                                 {
@@ -3719,6 +3730,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_performance',
                             title: 'Synchronization Performance',
                             settings: [
                                 {
@@ -3792,6 +3804,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_history',
                             title: 'Synchronization History',
                             subtitle: 'See the table below for the status of each synchronization',
                             settings: [
@@ -5681,7 +5694,7 @@ const AdminDefinition: AdminDefinitionType = {
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE)),
         subsections: {
             custom_policy_form_edit: {
-                url: 'compliance/data_retention_settings/custom_policy/:policy_id',
+                url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
                     it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
@@ -6108,14 +6121,6 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'ServiceSettings.EnablePreviewFeatures',
-                            label: defineMessage({id: 'admin.experimental.enablePreviewFeatures.title', defaultMessage: 'Enable Preview Features:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enablePreviewFeatures.desc', defaultMessage: 'When true, preview features can be enabled from **Settings > Advanced > Preview pre-release features**. When false, disables and hides preview features from **Settings > Advanced > Preview pre-release features**.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
                             key: 'ThemeSettings.EnableThemeSelection',
                             label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection:'}),
                             help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
@@ -6210,6 +6215,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 it.stateIsFalse('ServiceSettings.EnableUserTypingMessages'),
                             ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds',
+                            label: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title', defaultMessage: 'User\'s Status and Profile Fetching Poll Interval:'}),
+                            help_text: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between fetching user statuses and profiles periodically.'}),
+                            help_text_markdown: false,
+                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
                             type: 'text',

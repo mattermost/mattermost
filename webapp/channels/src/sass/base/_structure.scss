@@ -87,6 +87,11 @@ body {
 }
 
 /* stylelint-disable -- grid-template indentation */
+
+body.app__body {
+    background-color: var(--sidebar-header-bg);
+}
+
 body.admin-onboarding #root {
     &.channel-view {
         display: flex;
@@ -94,30 +99,31 @@ body.admin-onboarding #root {
     }
 }
 
+.app__body {
+    #root.channel-view {
+        &:has(.backstage-body){
+            background-color: $bg--gray;
+        }
+    }
+}
+
 #root,
 body.app__body #root {
     display: grid;
     overflow: hidden;
+    min-height: 100%;
 
+    --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
-        'header' min-content
-        'main'
-        'footer' min-content
-    ;
+        "announcement announcement announcement" min-content
+        "admin-announcement admin-announcement admin-announcement" min-content
+        "header header header" min-content
+        "team-sidebar main app-sidebar"
+        "footer footer footer" min-content / var(--columns);
 
-    &.channel-view {
-        background-color: var(--sidebar-header-bg);
-        --columns: min-content minmax(385px, 1fr) min-content;
-        grid-template:
-            'announcement announcement announcement' min-content
-            'header header header' min-content
-            'team-sidebar main app-sidebar'
-            'footer footer footer' min-content
-            / var(--columns);
-        ;
-        &:has(.backstage-body){
-            background-color: $bg--gray;
-        }
+    > :only-child {
+        grid-area: main;
+        width: 100%;
     }
 
     &.console__root {
@@ -126,11 +132,12 @@ body.app__body #root {
         padding-right: 0;
         grid-template:
             'announcement announcement' min-content
+            'admin-announcement admin-announcement' min-content
             'header header' min-content
             'lhs center'
             'footer footer' min-content
         ;
-        grid-template-columns: min-content auto;
+        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
@@ -138,13 +145,12 @@ body.app__body #root {
         display: block;
     }
 
-    > :only-child {
-        width: 100%;
-    }
-
-
     .announcement-bar {
         grid-area: announcement;
+    }
+
+    .announcement-bar.admin-announcement {
+        grid-area: admin-announcement;
     }
 
     #global-header {
@@ -205,7 +211,7 @@ body.app__body #root {
     #channel_view,
     .product-wrapper {
         grid-area: center;
-        overflow: hidden;
+        overflow: visible;
     }
 
     .sidebar--right--width-holder {

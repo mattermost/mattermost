@@ -3,8 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -30,6 +29,17 @@ import './invitation_modal.scss';
 // true means backdrop clicks do close
 // false means no backdrop
 type Backdrop = 'static' | boolean
+
+const messages = defineMessages({
+    notValidChannel: {
+        id: 'invitation-modal.confirm.not-valid-channel',
+        defaultMessage: 'Does not match a valid channel name.',
+    },
+    notValidUserOrEmail: {
+        id: 'invitation-modal.confirm.not-valid-user-or-email',
+        defaultMessage: 'Does not match a valid user or email.',
+    },
+});
 
 export type Props = {
     actions: {
@@ -66,7 +76,6 @@ export type Props = {
     isCloud: boolean;
     canAddUsers: boolean;
     canInviteGuests: boolean;
-    intl: IntlShape;
     onExited: () => void;
     channelToInvite?: Channel;
     initialValue?: string;
@@ -89,7 +98,7 @@ type State = {
     show: boolean;
 };
 
-export class InvitationModal extends React.PureComponent<Props, State> {
+export default class InvitationModal extends React.PureComponent<Props, State> {
     defaultState: State = deepFreeze({
         view: View.INVITE,
         termWithoutResults: null,
@@ -206,20 +215,14 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         if (this.state.invite.usersEmailsSearch !== '') {
             invites.notSent.push({
                 text: this.state.invite.usersEmailsSearch,
-                reason: this.props.intl.formatMessage({
-                    id: 'invitation-modal.confirm.not-valid-user-or-email',
-                    defaultMessage: 'Does not match a valid user or email.',
-                }),
+                reason: messages.notValidUserOrEmail,
             });
         }
 
         if (inviteAs === InviteType.GUEST && this.state.invite.inviteChannels.search !== '') {
             invites.notSent.push({
                 text: this.state.invite.inviteChannels.search,
-                reason: this.props.intl.formatMessage({
-                    id: 'invitation-modal.confirm.not-valid-channel',
-                    defaultMessage: 'Does not match a valid channel name.',
-                }),
+                reason: messages.notValidChannel,
             });
         }
 
@@ -431,5 +434,3 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         );
     }
 }
-
-export default injectIntl(InvitationModal);

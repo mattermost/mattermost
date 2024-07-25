@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useIntl} from 'react-intl';
+import {defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -16,10 +16,9 @@ export const useExpandOverageUsersCheck = ({
     isWarningState,
     banner,
 }: UseExpandOverageUsersCheckArgs) => {
-    const {formatMessage} = useIntl();
     const expandableLink = useSelector(getExpandSeatsLink);
 
-    const cta = formatMessage({
+    const cta = defineMessage({
         id: 'licensingPage.overageUsersBanner.cta',
         defaultMessage: 'Contact Sales',
     });

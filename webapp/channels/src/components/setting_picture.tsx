@@ -335,7 +335,7 @@ export default class SettingPicture extends Component<Props, State> {
                 <h4 className='col-xs-12 section-title'>
                     {this.props.title}
                 </h4>
-                <div className='col-xs-offset-3 col-xs-8'>
+                <div className='col-sm-10 col-sm-offset-2'>
                     <div
                         className='setting-list'
                         ref={this.settingList}

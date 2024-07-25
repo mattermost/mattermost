@@ -23,8 +23,8 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 			report: &PerformanceReport{
 				Version: "0.1.0",
 				Labels:  map[string]string{"platform": "linux"},
-				Start:   time.Now().UnixMilli() - 10000,
-				End:     time.Now().UnixMilli(),
+				Start:   float64(time.Now().UnixMilli() - 10000),
+				End:     float64(time.Now().UnixMilli()),
 			},
 			expected: nil,
 		},
@@ -38,8 +38,8 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 			report: &PerformanceReport{
 				Version: "2.0.0",
 				Labels:  map[string]string{"platform": "linux"},
-				Start:   time.Now().UnixMilli() - 10000,
-				End:     time.Now().UnixMilli(),
+				Start:   float64(time.Now().UnixMilli() - 10000),
+				End:     float64(time.Now().UnixMilli()),
 			},
 			expected: fmt.Errorf("report version is not supported: server version: 0.1.0, report version: 2.0.0"),
 		},
@@ -48,8 +48,8 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 			report: &PerformanceReport{
 				Version: "0.1.0",
 				Labels:  map[string]string{"platform": "linux"},
-				Start:   time.Now().UnixMilli(),
-				End:     time.Now().Add(-1 * time.Hour).UnixMilli(),
+				Start:   float64(time.Now().UnixMilli()),
+				End:     float64(time.Now().Add(-1 * time.Hour).UnixMilli()),
 			},
 			expected: fmt.Errorf("report timestamps are erroneous"),
 		},
@@ -58,10 +58,10 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 			report: &PerformanceReport{
 				Version: "0.1.0",
 				Labels:  map[string]string{"platform": "linux"},
-				Start:   time.Now().Add(-7 * time.Minute).UnixMilli(),
-				End:     outdatedTimestamp,
+				Start:   float64(time.Now().Add(-7 * time.Minute).UnixMilli()),
+				End:     float64(outdatedTimestamp),
 			},
-			expected: fmt.Errorf("report is outdated: %d", outdatedTimestamp),
+			expected: fmt.Errorf("report is outdated: %f", float64(outdatedTimestamp)),
 		},
 	}
 

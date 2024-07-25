@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {Store} from 'redux';
-import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals';
-import type {Metric} from 'web-vitals';
+import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
+import type {INPMetricWithAttribution, LCPMetricWithAttribution, Metric} from 'web-vitals/attribution';
 
 import type {Client4} from '@mattermost/client';
 
@@ -12,18 +12,42 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
+import {identifyElementRegion} from './element_identification';
 import type {PerformanceLongTaskTiming} from './long_task';
 import type {PlatformLabel, UserAgentLabel} from './platform_detection';
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
+import {Measure} from '.';
+
 type PerformanceReportMeasure = {
+
+    /**
+     * metric is the name of a counter or histogram metric which must match a MetricType constant as defined in
+     * model/metrics.go on the server.
+     */
     metric: string;
+
+    /**
+     * value is the floating point value of the metric. It's often a millisecond duration, but it's meaning depends
+     * on which metric this is.
+     */
     value: number;
+
+    /**
+     * timestamp is an integer value representing when the metric was measured as a millisecond value. Some browsers
+     * use floating point numbers for performance timestamps, so we need to make sure to round this.
+     */
     timestamp: number;
+
+    /**
+     * labels is an optional map of extra labels to attach to the measure. They must be supported constants as defined
+     * in model/metrics.go on the server.
+     */
+    labels?: Record<string, string>;
 }
 
 type PerformanceReport = {
-    version: '1.0';
+    version: '0.1.0';
 
     labels: {
         platform: PlatformLabel;
@@ -50,6 +74,7 @@ export default class PerformanceReporter {
     private observer: PerformanceObserver;
     private reportTimeout: number | undefined;
 
+    // These values are protected instead of private so that they can be modified by unit tests
     protected reportPeriodBase = 60 * 1000;
     protected reportPeriodJitter = 15 * 1000;
 
@@ -78,6 +103,10 @@ export default class PerformanceReporter {
             entryTypes: observedEntryTypes,
         });
 
+        // Record the page load separately because it arrived before we were observing and because you can't use
+        // the buffered option for PerformanceObserver with multiple entry types.
+        this.measurePageLoad();
+
         // Register handlers for standard metrics and Web Vitals
         onCLS((metric) => this.handleWebVital(metric));
         onFCP((metric) => this.handleWebVital(metric));
@@ -92,6 +121,20 @@ export default class PerformanceReporter {
         // Send any remaining metrics when the page becomes hidden rather than when it's unloaded because that's
         // what's recommended by various sites due to unload handlers being unreliable, particularly on mobile.
         addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    private measurePageLoad() {
+        const entries = performance.getEntriesByType('navigation');
+
+        if (entries.length === 0) {
+            return;
+        }
+
+        this.histogramMeasures.push({
+            metric: Measure.PageLoad,
+            value: entries[0].duration,
+            timestamp: Date.now(),
+        });
     }
 
     /**
@@ -126,7 +169,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
-            timestamp: performance.timeOrigin + entry.startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -148,10 +191,28 @@ export default class PerformanceReporter {
     }
 
     private handleWebVital(metric: Metric) {
+        let labels: Record<string, string> | undefined;
+
+        if (isLCPMetric(metric)) {
+            const selector = metric.attribution?.element;
+            const element = selector ? document.querySelector(selector) : null;
+
+            if (element) {
+                labels = {
+                    region: identifyElementRegion(element),
+                };
+            }
+        } else if (isINPMetric(metric)) {
+            labels = {
+                interaction: metric.attribution?.interactionType,
+            };
+        }
+
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
-            timestamp: performance.timeOrigin + performance.now(),
+            timestamp: Date.now(),
+            labels,
         });
     }
 
@@ -207,12 +268,12 @@ export default class PerformanceReporter {
     }
 
     private generateReport(histogramMeasures: PerformanceReportMeasure[], counters: Map<string, number>): PerformanceReport {
-        const now = performance.timeOrigin + performance.now();
+        const now = Date.now();
 
         const counterMeasures = this.countersToMeasures(now, counters);
 
         return {
-            version: '1.0',
+            version: '0.1.0',
 
             labels: {
                 platform: this.platformLabel,
@@ -228,7 +289,7 @@ export default class PerformanceReporter {
 
     private getReportStartEnd(now: number, histogramMeasures: PerformanceReportMeasure[], counterMeasures: PerformanceReportMeasure[]): {start: number; end: number} {
         let start = now;
-        let end = performance.timeOrigin;
+        let end = 0;
 
         for (const measure of histogramMeasures) {
             start = Math.min(start, measure.timestamp);
@@ -263,12 +324,21 @@ export default class PerformanceReporter {
         const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
-        const beaconSent = navigator.sendBeacon(url, data);
+        const beaconSent = this.sendBeacon(url, data);
 
         if (!beaconSent) {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
             fetch(url, {method: 'POST', body: data});
         }
+    }
+
+    protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        // Confirm that sendBeacon exists because it doesn't on Firefox with certain settings enabled
+        if (!navigator.sendBeacon) {
+            return false;
+        }
+
+        return navigator.sendBeacon(url, data);
     }
 }
 
@@ -282,4 +352,12 @@ function isPerformanceMark(entry: PerformanceEntry): entry is PerformanceMark {
 
 function isPerformanceMeasure(entry: PerformanceEntry): entry is PerformanceMeasure {
     return entry.entryType === 'measure';
+}
+
+function isLCPMetric(entry: Metric): entry is LCPMetricWithAttribution {
+    return entry.name === 'LCP';
+}
+
+function isINPMetric(entry: Metric): entry is INPMetricWithAttribution {
+    return entry.name === 'INP';
 }

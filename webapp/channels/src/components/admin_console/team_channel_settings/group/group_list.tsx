@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
@@ -47,6 +47,7 @@ const GroupList = ({
     setNewGroupRole,
     type,
     isDisabled,
+    isModeSync,
     ...restProps
 }: Props) => {
     const renderRow = useCallback((item: Partial<Group>) => {
@@ -66,9 +67,21 @@ const GroupList = ({
         <AbstractList
             header={<Header/>}
             renderRow={renderRow}
+            emptyListText={isModeSync ? messages.emptyListModeSync : messages.emptyList}
             {...restProps}
         />
     );
 };
+
+const messages = defineMessages({
+    emptyListModeSync: {
+        id: 'admin.team_channel_settings.group_list.no-synced-groups',
+        defaultMessage: 'At least one group must be specified',
+    },
+    emptyList: {
+        id: 'admin.team_channel_settings.group_list.no-groups',
+        defaultMessage: 'No groups specified yet',
+    },
+});
 
 export default memo(GroupList);

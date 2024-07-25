@@ -38,8 +38,6 @@ const state: GlobalState = {
             serverLimits: {
                 activeUserCount: 0,
                 maxUsersLimit: 0,
-                postCount: 0,
-                maxPostLimit: 0,
             },
         },
         teams: {
@@ -66,6 +64,9 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+        },
+        channelBookmarks: {
+            byChannelId: {},
         },
         posts: {
             posts: {},
@@ -96,6 +97,7 @@ const state: GlobalState = {
         },
         preferences: {
             myPreferences: {},
+            userPreferences: {},
         },
         bots: {
             accounts: {},

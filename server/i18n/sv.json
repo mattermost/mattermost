@@ -65,11 +65,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 118+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 118+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3012,20 +3012,12 @@
     "translation": "Elasticsearch är redan stoppad."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Misslyckades att starta Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Det gick inte att tolka Elasticsearch-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Det gick inte att hämta Elasticsearch-serverns versionsnummer."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Misslyckades att skapa Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4889,7 +4881,7 @@
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "{{.SiteName}} Gruppen"
+    "translation": "Teamet hos {{.SiteName}}"
   },
   {
     "id": "api.templates.email_info2",
@@ -4901,7 +4893,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "För att ändra dina notifieringsinställningar, logga in på din grupps sida och gå till Inställningar > Notifieringar."
+    "translation": "För att ändra dina notifieringsinställningar, logga in på Mattermostservern och gå till Inställningar > Notifieringar."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -7935,10 +7927,6 @@
     "translation": "Inbjudan från säker anslutning"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kunde inte dekryptera inbjudan. Felaktigt lösenord eller skadad inbjudan: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[åtgärd]"
   },
@@ -8974,10 +8962,6 @@
     "translation": "Kunde inte öppna CA-filen för Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Avkodningen av CA för Elasticsearch misslyckades"
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server är inte tillgänglig."
   },
@@ -10002,10 +9986,6 @@
     "translation": "Misslyckades att hämta antal användare"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Misslyckades med att hämta antal inlägg"
-  },
-  {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "Omnämnandet av @{{.Username}} gav ingen notifiering eftersom hen inte är medlem i detta team."
   },
@@ -10028,5 +10008,49 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Kunde inte identifiera början på export-filen."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Ett team med denna URL finns redan."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Det går inte att ta bort den sista systemadministratören."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Fel då antalet systemadministratörskonton identifierades."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Kan inte avgöra om användarnamnet redan finns"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Det går inte att uppdatera status på jobb. Ogiltig status inställd"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Du har inte behörighet att hantera denna typ av jobb"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Ogiltig status inställd"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Misslyckades med att skriva loggar till buffert"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Det uppstod ett internt fel när lösenordet sparades."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ditt lösenord kan inte innehålla fler än 72 tecken."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Det uppstod ett internt fel när lösenordet sparades."
   }
 ]

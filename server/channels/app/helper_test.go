@@ -166,6 +166,18 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 	return setupTestHelper(dbStore, false, true, nil, options, tb)
 }
 
+func SetupEnterprise(tb testing.TB, options ...Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, true, true, nil, options, tb)
+}
+
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()

@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/mattermost/mattermost/server/v8/tests"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -20,7 +20,7 @@ import (
 func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 	s.SetupTestHelper().InitBasic()
 	docName := "sample-doc.pdf"
-	docFilePath := filepath.Join(tests.GetPackagePath(), docName)
+	docFilePath := filepath.Join(server.GetPackagePath(), "tests", docName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()

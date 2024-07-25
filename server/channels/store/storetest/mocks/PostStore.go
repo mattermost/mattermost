@@ -916,9 +916,9 @@ func (_m *PostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExpo
 	return r0, r1
 }
 
-// GetSingle provides a mock function with given fields: id, inclDeleted
-func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
-	ret := _m.Called(id, inclDeleted)
+// GetSingle provides a mock function with given fields: rctx, id, inclDeleted
+func (_m *PostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
+	ret := _m.Called(rctx, id, inclDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSingle")
@@ -926,19 +926,19 @@ func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error)
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool) (*model.Post, error)); ok {
-		return rf(id, inclDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.Post, error)); ok {
+		return rf(rctx, id, inclDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool) *model.Post); ok {
-		r0 = rf(id, inclDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.Post); ok {
+		r0 = rf(rctx, id, inclDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(id, inclDeleted)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
+		r1 = rf(rctx, id, inclDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

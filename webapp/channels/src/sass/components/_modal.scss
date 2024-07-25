@@ -165,6 +165,10 @@
             font-weight: bold;
             text-align: left;
         }
+
+        & .btn + .btn {
+            margin-left: 8px;
+        }
     }
 
     &.modal-image {
@@ -314,10 +318,12 @@
         }
 
         .modal-title {
+            width: 100%;
             background: transparent;
             color: v(center-channel-color);
             font-size: 22px;
             line-height: 28px;
+            word-break: break-word;
         }
     }
 

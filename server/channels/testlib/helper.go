@@ -15,11 +15,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost/server/v8/channels/testlib/testdata"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -198,13 +198,13 @@ func (h *MainHelper) PreloadMigrations() {
 
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		finalPath := filepath.Join(testdata.GetPackagePath(), "postgres_migration_warmup.sql")
+		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "postgres_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(testdata.GetPackagePath(), "mysql_migration_warmup.sql")
+		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "mysql_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))

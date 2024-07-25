@@ -488,6 +488,12 @@ func (o *Post) SanitizeProps() {
 	}
 }
 
+// Remove any input data from the post object that is not user controlled
+func (o *Post) SanitizeInput() {
+	o.DeleteAt = 0
+	o.RemoteId = NewString("")
+}
+
 func (o *Post) ContainsIntegrationsReservedProps() []string {
 	return containsIntegrationsReservedProps(o.GetProps())
 }

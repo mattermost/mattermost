@@ -3140,14 +3140,6 @@
     "translation": "Не удалось декодировать результаты поиска"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Не удалось создать массовый обработчик Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Не удалось запустить массовый обработчик Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch уже остановлен."
   },
@@ -5533,7 +5525,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -5801,11 +5793,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 118+"
+    "translation": "Версия 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 118+"
+    "translation": "Версия 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5813,7 +5805,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 16.2+"
+    "translation": "Версия 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -7984,10 +7976,6 @@
     "translation": "Приглашение от защищенного соединения"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не удалось расшифровать приглашение. Неправильный пароль или испорченное приглашение: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[действие]"
   },
@@ -8974,10 +8962,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Не удалось открыть файл CA для Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Расшифровка CA для Elasticsearch не удалась"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10020,15 +10004,91 @@
     "translation": "Не удалось получить количество пользователей"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Не удалось получить количество сообщений"
-  },
-  {
     "id": "ent.compliance.csv.metadata.close.appError",
     "translation": "Невозможно закрыть zip-файл"
   },
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Невозможно перейти к началу файла экспорта."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Команда с таким URL уже существует."
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "У вас нет прав на управление этим типом задания"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Невозможно обновить статус задания. Установлен неверный статус"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Ошибка при определении количества учётных записей системного администратора."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Невозможно понизить роль последнего системного администратора."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Невозможно определить, существует ли уже это имя пользователя"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Установлен неверный статус"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Не удалось записать журналы в буфер"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ваш пароль должен содержать не более 72 символов."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Не удалось принять приглашение удаленного кластера"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Не удалось декодировать строку base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Удаленный (remote) кластер не был удален"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Не удалось зашифровать приглашение на удаленный кластер с помощью предоставленного пароля"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Удаленный (remote) кластер не найден"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Невозможно установить пользовательский статус."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Не удалось получить URL сайта экземпляра"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Не удалось расшифровать приглашение удаленного кластера с помощью предоставленного пароля"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Неверный поисковый бэкэнд. Должен быть либо elasticsearch, либо opensearch."
   }
 ]

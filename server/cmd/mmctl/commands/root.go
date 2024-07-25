@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -56,15 +58,31 @@ func Run(args []string) error {
 
 	defer func() {
 		if x := recover(); x != nil {
-			printer.PrintError("Uh oh! Something unexpected happened :( Would you mind reporting it?\n")
-			printer.PrintError(`https://github.com/mattermost/mmctl/issues/new?title=%5Bbug%5D%20panic%20on%20mmctl%20v` + Version + "&body=%3C!---%20Please%20provide%20the%20stack%20trace%20--%3E\n")
-			printer.PrintError(string(debug.Stack()))
+			printPanic(x)
 
+			_ = printer.Flush()
 			os.Exit(1)
 		}
 	}()
 
 	return RootCmd.Execute()
+}
+
+func printPanic(x any) {
+	u, err := url.Parse("https://github.com/mattermost/mattermost/issues/new")
+	if err != nil {
+		panic(err)
+	}
+
+	q := u.Query()
+	q.Add("title", "[mmctl] [bug] panic on v"+Version)
+	q.Add("body", "<!--- Please provide the stack trace -->\n")
+	u.RawQuery = q.Encode()
+
+	printer.PrintError("Uh oh! Something unexpected happened :( Would you mind reporting it?")
+	printer.PrintError(u.String() + "\n")
+	printer.PrintError(fmt.Sprintf("%s", x))
+	printer.PrintError(string(debug.Stack()))
 }
 
 var RootCmd = &cobra.Command{

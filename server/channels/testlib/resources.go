@@ -14,7 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/testlib/testdata"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -41,7 +41,7 @@ type testResourceDetails struct {
 func findFile(path string) string {
 	// Use the testdata path to search from the root of the monorepo.
 	searchPaths := fileutils.CommonBaseSearchPaths()
-	searchPaths = append(searchPaths, filepath.Join(testdata.GetPackagePath(), "../../../"))
+	searchPaths = append(searchPaths, filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "../../../"))
 
 	return fileutils.FindPath(path, searchPaths, func(fileInfo os.FileInfo) bool {
 		return !fileInfo.IsDir()
@@ -60,7 +60,7 @@ func findDir(dir string) (string, bool) {
 
 	// Use the testdata path to search from the root of the monorepo.
 	searchPaths := fileutils.CommonBaseSearchPaths()
-	searchPaths = append(searchPaths, filepath.Join(testdata.GetPackagePath(), "../../../"))
+	searchPaths = append(searchPaths, filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "../../../"))
 
 	found := fileutils.FindPath(dir, searchPaths, func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()

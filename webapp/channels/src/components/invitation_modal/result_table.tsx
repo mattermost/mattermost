@@ -32,7 +32,7 @@ type InviteUser = {
 
 type I18nLike = {
     id: string;
-    message: string;
+    defaultMessage: string;
     values?: Record<string, React.ReactNode>;
 }
 
@@ -69,12 +69,9 @@ export default function ResultTable(props: Props) {
         );
     }
 
-    function messageWithLink(reason: any, link: any) {
+    function messageWithLink(reason: I18nLike, link: string) {
         return intl.formatMessage(
-            {
-                id: reason.id,
-                defaultMessage: reason.message,
-            },
+            reason,
             {
                 a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                     <a
@@ -150,21 +147,19 @@ export default function ResultTable(props: Props) {
                             username = text;
                         }
 
-                        let reason: React.ReactNode = invitation.reason;
-                        if (typeof invitation?.reason !== 'string' &&
-                                invitation.reason?.id &&
-                                    invitation.reason?.message &&
-                                        invitation.reason?.values
-                        ) {
+                        let reason;
+                        if (typeof invitation.reason === 'string') {
+                            reason = invitation.reason;
+                        } else if (invitation.path) {
+                            reason = messageWithLink(invitation.reason, invitation.path);
+                        } else {
                             reason = (
                                 <FormattedMessage
                                     id={invitation.reason.id}
-                                    defaultMessage={invitation.reason.message}
+                                    defaultMessage={invitation.reason.defaultMessage}
                                     values={invitation.reason.values}
                                 />
                             );
-                        } else if (invitation.path && invitation.reason) {
-                            reason = messageWithLink(invitation.reason, invitation.path);
                         }
 
                         return (

@@ -130,7 +130,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(postID, false)
+	actualPost, err := a.GetSinglePost(rctx, postID, false)
 	if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -357,7 +357,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
@@ -488,7 +488,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Missing team",
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -783,7 +783,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	}
 
 	if !model.IsValidId(previewedPostID) {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -795,10 +795,10 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, nil
 	}
 
-	previewedPost, err := a.GetSinglePost(previewedPostID, false)
+	previewedPost, err := a.GetSinglePost(c, previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -815,7 +815,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 
 	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
 	if nErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Cannot get channel members",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -830,7 +830,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -880,7 +880,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 }
 
 func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -971,8 +971,8 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
+func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1362,7 +1362,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 }
 
 func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(postID, false)
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(c), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -1730,7 +1730,7 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
+		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -2077,7 +2077,7 @@ func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.Threa
 }
 
 func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, includeDeleted)
+	post, err := a.GetSinglePost(c, postID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -2269,7 +2269,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 
 func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError) {
 	userID := c.Session().UserId
-	post, appErr := a.GetSinglePost(postID, false)
+	post, appErr := a.GetSinglePost(c, postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
