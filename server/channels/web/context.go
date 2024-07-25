@@ -235,10 +235,6 @@ func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
 }
 
-func (c *Context) HandlePayloadTooLargeError(err error) {
-	c.Err = model.NewAppError("Context", "api.context.request_body_too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
-}
-
 func (c *Context) SetInvalidURLParam(parameter string) {
 	c.Err = NewInvalidURLParamError(parameter)
 }
