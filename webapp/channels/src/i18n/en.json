@@ -4529,7 +4529,6 @@
   "post_priority.persistent_notifications.tooltip": "Persistent notifications will be sent",
   "post_priority.picker.apply": "Apply",
   "post_priority.picker.cancel": "Cancel",
-  "post_priority.picker.feedback": "Give feedback",
   "post_priority.picker.header": "Message priority",
   "post_priority.priority.important": "Important",
   "post_priority.priority.standard": "Standard",
