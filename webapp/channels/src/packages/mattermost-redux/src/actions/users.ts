@@ -26,6 +26,9 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
+// Delay requests for missing profiles for up to 100ms to allow for simulataneous requests to be batched
+const missingProfilesWait = 100;
+
 export const maxUserIdsPerProfilesRequest = 100; // users ids per 'users/ids' request
 export const maxUserIdsPerStatusesRequest = 200; // users ids per 'users/status/ids'request
 
@@ -156,46 +159,41 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
     };
 }
 
-export const getMissingProfilesByIds = (() => {
-    // Delay requests for missing profiles for up to 100ms to allow for simulataneous requests to be batched
-    const missingProfilesWait = 100;
+export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Array<UserProfile['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.missingStatusLoader) {
+            loaders.missingStatusLoader = new DelayedDataLoader<UserProfile['id']>({
+                fetchBatch: (userIds) => dispatch(getStatusesByIds(userIds)),
+                maxBatchSize: maxUserIdsPerProfilesRequest,
+                wait: missingProfilesWait,
+            });
+        }
 
-    return function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Array<UserProfile['id']>> {
-        return async (dispatch, getState, {loaders}: any) => {
-            if (!loaders.missingStatusLoader) {
-                loaders.missingStatusLoader = new DelayedDataLoader<UserProfile['id']>({
-                    fetchBatch: (userIds) => dispatch(getStatusesByIds(userIds)),
-                    maxBatchSize: maxUserIdsPerProfilesRequest,
-                    wait: missingProfilesWait,
-                });
+        if (!loaders.missingProfileLoader) {
+            loaders.missingProfileLoader = new DelayedDataLoader<UserProfile['id']>({
+                fetchBatch: (userIds) => dispatch(getProfilesByIds(userIds)),
+                maxBatchSize: maxUserIdsPerProfilesRequest,
+                wait: missingProfilesWait,
+            });
+        }
+
+        const state = getState();
+
+        const missingIds = userIds.filter((id) => !selectUser(state, id));
+
+        if (missingIds.length !== 0) {
+            if (getIsUserStatusesConfigEnabled(state)) {
+                loaders.missingStatusLoader.addIdsToLoad(missingIds);
             }
 
-            if (!loaders.missingProfileLoader) {
-                loaders.missingProfileLoader = new DelayedDataLoader<UserProfile['id']>({
-                    fetchBatch: (userIds) => dispatch(getProfilesByIds(userIds)),
-                    maxBatchSize: maxUserIdsPerProfilesRequest,
-                    wait: missingProfilesWait,
-                });
-            }
+            await loaders.missingProfileLoader.addIdsAndWait(missingIds);
+        }
 
-            const state = getState();
-
-            const missingIds = userIds.filter((id) => !selectUser(state, id));
-
-            if (missingIds.length !== 0) {
-                if (getIsUserStatusesConfigEnabled(state)) {
-                    loaders.missingStatusLoader.addIdsToLoad(missingIds);
-                }
-
-                await loaders.missingProfileLoader.addIdsAndWait(missingIds);
-            }
-
-            return {
-                data: missingIds,
-            };
+        return {
+            data: missingIds,
         };
     };
-})();
+}
 
 export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
