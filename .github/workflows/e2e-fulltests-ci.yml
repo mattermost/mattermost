@@ -36,7 +36,7 @@ concurrency:
 
 jobs:
   generate-test-variables:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
