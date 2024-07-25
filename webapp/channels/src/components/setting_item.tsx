@@ -27,7 +27,7 @@ type Props = {
     /**
      * The setting UI when it is maximized (open)
      */
-    max: ReactNode;
+    max?: ReactNode;
 
     // Props to pass through for SettingItemMin
     updateSection: (section: string) => void;
