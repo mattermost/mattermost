@@ -1786,6 +1786,10 @@
     "translation": "Secure connection ID missing."
   },
   {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Unable to process request. Request body too large."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
@@ -8761,6 +8765,10 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
