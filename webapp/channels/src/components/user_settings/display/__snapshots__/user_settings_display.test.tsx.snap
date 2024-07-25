@@ -30,7 +30,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -48,7 +48,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -66,7 +66,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -90,7 +90,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -108,7 +108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -132,7 +132,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -150,7 +150,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -168,7 +168,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -186,7 +186,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -204,7 +204,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -295,7 +295,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -313,7 +313,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -383,7 +383,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -401,7 +401,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -419,7 +419,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -443,7 +443,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -461,7 +461,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -485,7 +485,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -503,7 +503,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -521,7 +521,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -539,7 +539,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -630,7 +630,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -648,7 +648,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -666,7 +666,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -736,7 +736,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -754,7 +754,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -845,7 +845,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -869,7 +869,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -887,7 +887,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -911,7 +911,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -929,7 +929,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -947,7 +947,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -965,7 +965,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -983,7 +983,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1001,7 +1001,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1019,7 +1019,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -1089,7 +1089,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1107,7 +1107,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1125,7 +1125,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1149,7 +1149,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1167,7 +1167,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1191,7 +1191,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1209,7 +1209,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -1300,7 +1300,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1318,7 +1318,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1336,7 +1336,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1354,7 +1354,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1372,7 +1372,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -1442,7 +1442,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1460,7 +1460,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1478,7 +1478,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1502,7 +1502,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1520,7 +1520,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1544,7 +1544,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1562,7 +1562,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1580,7 +1580,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1598,7 +1598,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1616,7 +1616,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1634,7 +1634,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1652,7 +1652,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -1722,7 +1722,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1740,7 +1740,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1758,7 +1758,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1782,7 +1782,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1800,7 +1800,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1824,7 +1824,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1842,7 +1842,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1860,7 +1860,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1878,7 +1878,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1896,7 +1896,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1914,7 +1914,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -1984,7 +1984,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2002,7 +2002,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2020,7 +2020,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2044,7 +2044,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2062,7 +2062,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2086,7 +2086,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -2177,7 +2177,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2195,7 +2195,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2213,7 +2213,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2231,7 +2231,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2249,7 +2249,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2267,7 +2267,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -2337,7 +2337,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2355,7 +2355,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2373,7 +2373,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2397,7 +2397,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2415,7 +2415,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2439,7 +2439,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2457,7 +2457,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2475,7 +2475,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -2584,7 +2584,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2602,7 +2602,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2620,7 +2620,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2638,7 +2638,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -2708,7 +2708,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2726,7 +2726,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2744,7 +2744,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -2768,7 +2768,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2786,7 +2786,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -2810,7 +2810,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2828,7 +2828,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2846,7 +2846,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2864,7 +2864,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2882,7 +2882,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2900,7 +2900,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2918,7 +2918,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
@@ -2988,7 +2988,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3006,7 +3006,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3024,7 +3024,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3048,7 +3048,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3066,7 +3066,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3090,7 +3090,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3108,7 +3108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3126,7 +3126,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3144,7 +3144,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3162,7 +3162,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3180,7 +3180,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3198,7 +3198,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -3268,7 +3268,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3286,7 +3286,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3304,7 +3304,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3328,7 +3328,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3346,7 +3346,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3370,7 +3370,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3388,7 +3388,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3406,7 +3406,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3424,7 +3424,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3442,7 +3442,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3460,7 +3460,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3478,7 +3478,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -3561,7 +3561,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3579,7 +3579,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3597,7 +3597,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3621,7 +3621,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3639,7 +3639,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3663,7 +3663,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3681,7 +3681,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3699,7 +3699,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3717,7 +3717,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3735,7 +3735,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3753,7 +3753,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3771,7 +3771,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -3841,7 +3841,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3859,7 +3859,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3877,7 +3877,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3901,7 +3901,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3919,7 +3919,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3943,7 +3943,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3961,7 +3961,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3979,7 +3979,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3997,7 +3997,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4015,7 +4015,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4033,7 +4033,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4051,7 +4051,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -4121,7 +4121,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4139,7 +4139,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4157,7 +4157,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -4181,7 +4181,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4199,7 +4199,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4217,7 +4217,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4235,7 +4235,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4253,7 +4253,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4271,7 +4271,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4289,7 +4289,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4307,7 +4307,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
