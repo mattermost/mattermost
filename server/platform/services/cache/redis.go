@@ -28,11 +28,6 @@ func NewRedis(opts *CacheOptions, client rueidis.Client) (*Redis, error) {
 	if opts.Name == "" {
 		return nil, errors.New("no name specified for cache")
 	}
-	expiry := opts.DefaultExpiry
-	// Setting the minimum expiry to be 30 mins.
-	if expiry < 30*time.Minute {
-		expiry = 30 * time.Minute
-	}
 	return &Redis{
 		name:          opts.Name,
 		defaultExpiry: opts.DefaultExpiry,
