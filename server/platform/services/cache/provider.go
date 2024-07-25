@@ -86,9 +86,8 @@ type RedisOptions struct {
 }
 
 // NewProvider creates a new CacheProvider
-func NewRedisProvider(opts *RedisOptions) Provider {
-	// TODO: bring back this error
-	client, _ := rueidis.NewClient(rueidis.ClientOption{
+func NewRedisProvider(opts *RedisOptions) (Provider, error) {
+	client, err := rueidis.NewClient(rueidis.ClientOption{
 		InitAddress:       []string{opts.RedisAddr},
 		Password:          opts.RedisPassword,
 		SelectDB:          opts.RedisDB,
@@ -96,17 +95,10 @@ func NewRedisProvider(opts *RedisOptions) Provider {
 		CacheSizeEachConn: 16 * (1 << 20), // 16MiB local cache size
 		//TODO: look into MaxFlushDelay
 	})
-	// client := redis.NewClient(&redis.Options{
-	// 	Addr:           opts.RedisAddr,
-	// 	Password:       opts.RedisPassword,
-	// 	DB:             opts.RedisDB,
-	// 	MaxActiveConns: opts.MaxActiveConns,
-	// 	MaxIdleConns:   opts.MaxIdleConns,
-	// 	// ReadTimeout:     10 * time.Second,
-	// 	// WriteTimeout:    10 * time.Second,
-	// 	ConnMaxIdleTime: 1 * time.Minute,
-	// })
-	return &redisProvider{client: client}
+	if err != nil {
+		return nil, err
+	}
+	return &redisProvider{client: client}, nil
 }
 
 // NewCache creates a new cache with given opts
@@ -119,7 +111,6 @@ func (r *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
 // Connect opens a new connection to the cache using specific provider parameters.
 func (r *redisProvider) Connect() (string, error) {
 	res, err := r.client.Do(context.Background(), r.client.B().Ping().Build()).ToString()
-	// res, err := r.client.Ping(context.Background()).Result()
 	if err != nil {
 		return "", fmt.Errorf("unable to establish connection with redis: %v", err)
 	}

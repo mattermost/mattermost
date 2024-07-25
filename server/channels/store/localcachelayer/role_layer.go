@@ -71,7 +71,7 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {
-				mlog.Error("error in cache: ", mlog.Err(err))
+				s.rootStore.logger.Warn("Error in Rolestore.GetByNames: ", mlog.Err(err))
 			}
 			rolesToQuery = append(rolesToQuery, names[i])
 		} else {
@@ -80,6 +80,10 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 				foundRoles = append(foundRoles, gotRole)
 			}
 		}
+	}
+
+	if len(rolesToQuery) == 0 {
+		return foundRoles, nil
 	}
 
 	roles, err := s.RoleStore.GetByNames(rolesToQuery)

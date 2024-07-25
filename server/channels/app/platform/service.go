@@ -153,10 +153,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Step 1: Cache provider.
 	cacheConfig := ps.configStore.Get().CacheSettings
+	var err error
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
-		ps.cacheProvider = cache.NewRedisProvider(
+		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
 				RedisAddr:      *cacheConfig.RedisAddress,
 				RedisPassword:  *cacheConfig.RedisPassword,
@@ -166,23 +167,27 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			},
 		)
 	}
+	if err != nil {
+		return nil, fmt.Errorf("unable to create cache provider: %w", err)
+	}
+
 	// The value of res is used later, after the logger is initialized.
 	// There's a certain order of steps we need to follow in the server startup phase.
-	res, err2 := ps.cacheProvider.Connect()
-	if err2 != nil {
-		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
+	res, err := ps.cacheProvider.Connect()
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
 	}
 
 	// Apply options, some of the options overrides the default config actually.
 	for _, option := range options {
-		if err := option(ps); err != nil {
-			return nil, fmt.Errorf("failed to apply option: %w", err)
+		if err2 := option(ps); err2 != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err2)
 		}
 	}
 
 	// Step 2: Start logging.
-	if err := ps.initLogging(); err != nil {
-		return nil, fmt.Errorf("failed to initialize logging: %w", err)
+	if err2 := ps.initLogging(); err2 != nil {
+		return nil, fmt.Errorf("failed to initialize logging: %w", err2)
 	}
 	mlog.Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
 
@@ -223,7 +228,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			var err error
 			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
 			if err != nil {
 				return nil, err
@@ -244,6 +248,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				ps.metricsIFace,
 				ps.clusterIFace,
 				ps.cacheProvider,
+				ps.Log(),
 			)
 			if err2 != nil {
 				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
@@ -284,7 +289,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	var err error
 	ps.Store, err = ps.newStore()
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)

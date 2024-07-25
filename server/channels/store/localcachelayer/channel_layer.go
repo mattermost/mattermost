@@ -255,7 +255,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 		for i, err := range errs {
 			if err != nil {
 				if err != cache.ErrKeyNotFound {
-					mlog.Error("error in cache: ", mlog.Err(err))
+					s.rootStore.logger.Warn("Error in Channelstore.GetMany: ", mlog.Err(err))
 				}
 				channelsToQuery = append(channelsToQuery, ids[i])
 			} else {
@@ -267,7 +267,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 		}
 	}
 
-	if channelsToQuery == nil {
+	if len(channelsToQuery) == 0 {
 		return foundChannels, nil
 	}
 
@@ -360,7 +360,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 		for i, err := range errs {
 			if err != nil {
 				if err != cache.ErrKeyNotFound {
-					mlog.Error("error in cache: ", mlog.Err(err))
+					s.rootStore.logger.Warn("Error in Channelstore.GetByNames: ", mlog.Err(err))
 				}
 				misses = append(misses, strings.TrimPrefix(newKeys[i], teamId))
 			} else {
@@ -467,7 +467,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {
-				mlog.Error("error in cache: ", mlog.Err(err))
+				s.rootStore.logger.Warn("Error in Channelstore.GetChannelsMemberCount: ", mlog.Err(err))
 			}
 			remainingChannels = append(remainingChannels, channelIDs[i])
 		} else {

@@ -52,6 +52,26 @@ func (_m *Cache) GetInvalidateClusterEvent() model.ClusterEvent {
 	return r0
 }
 
+// GetMulti provides a mock function with given fields: keys, values
+func (_m *Cache) GetMulti(keys []string, values []interface{}) []error {
+	ret := _m.Called(keys, values)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMulti")
+	}
+
+	var r0 []error
+	if rf, ok := ret.Get(0).(func([]string, []interface{}) []error); ok {
+		r0 = rf(keys, values)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]error)
+		}
+	}
+
+	return r0
+}
+
 // Keys provides a mock function with given fields:
 func (_m *Cache) Keys() ([]string, error) {
 	ret := _m.Called()

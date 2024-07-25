@@ -46,7 +46,6 @@ func (r *Redis) Purge() error {
 			Key(keys...).
 			Build(),
 	).Error()
-	// return r.client.Del(context.Background(), keys...).Err()
 }
 
 func (r *Redis) Set(key string, value any) error {
@@ -107,10 +106,8 @@ func (r *Redis) Get(key string, value any) error {
 			Cache(),
 		5*time.Minute,
 	).AsBytes()
-	// val, err := r.client.Get(context.Background(), r.name+":"+key).Result()
 	if err != nil {
 		if rueidis.IsRedisNil(err) {
-			// if errors.Is(err, redis.Nil) {
 			return ErrKeyNotFound
 		}
 		return err
@@ -237,7 +234,6 @@ func (r *Redis) Remove(key string) error {
 			Key(r.name+":"+key).
 			Build(),
 	).Error()
-	// return r.client.Del(context.Background(), r.name+":"+key).Err()
 }
 
 // Keys returns a slice of the keys in the cache.
@@ -250,14 +246,12 @@ func (r *Redis) Keys() ([]string, error) {
 		}
 	}()
 
+	// TODO: migrate to a function that works on a batch of keys.
 	return r.client.Do(context.Background(),
 		r.client.B().Keys().
 			Pattern(r.name+":*").
 			Build(),
 	).AsStrSlice()
-
-	// TODO: migrate to a function that works on a batch of keys.
-	// return r.client.Keys(context.Background(), r.name+":*").Result()
 }
 
 // Len returns the number of items in the cache.
@@ -275,7 +269,6 @@ func (r *Redis) Len() (int, error) {
 			Pattern(r.name+":*").
 			Build(),
 	).AsStrSlice()
-	// keys, err := r.client.Keys(context.Background(), r.name+":*").Result()
 	if err != nil {
 		return 0, err
 	}

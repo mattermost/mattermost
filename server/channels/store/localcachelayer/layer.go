@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -77,6 +78,7 @@ type LocalCacheStore struct {
 	cacheType string
 	metrics   einterfaces.MetricsInterface
 	cluster   einterfaces.ClusterInterface
+	logger    mlog.LoggerIFace
 
 	reaction      LocalCacheReactionStore
 	reactionCache cache.Cache
@@ -124,12 +126,13 @@ type LocalCacheStore struct {
 	termsOfServiceCache cache.Cache
 }
 
-func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider) (localCacheStore LocalCacheStore, err error) {
+func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
 	localCacheStore = LocalCacheStore{
 		Store:     baseStore,
 		cluster:   cluster,
 		metrics:   metrics,
 		cacheType: cacheProvider.Type(),
+		logger:    logger,
 	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{

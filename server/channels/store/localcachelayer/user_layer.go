@@ -167,7 +167,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {
-				mlog.Error("error in cache: ", mlog.Err(err))
+				s.rootStore.logger.Warn("Error in UserStore.GetProfileByIds: ", mlog.Err(err))
 			}
 			// If it was invalidated, then we need to query master.
 			s.userProfileByIdsMut.Lock()
@@ -252,7 +252,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {
-				mlog.Error("error in cache: ", mlog.Err(err))
+				s.rootStore.logger.Warn("Error in UserStore.GetMany: ", mlog.Err(err))
 			}
 			// If it was invalidated, then we need to query master.
 			s.userProfileByIdsMut.Lock()

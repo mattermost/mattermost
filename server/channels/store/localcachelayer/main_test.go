@@ -42,11 +42,13 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockStore.On("Reaction").Return(&mockReactionsStore)
 
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
+	fakeRole2 := model.Role{Id: "456", Name: "role-name2"}
 	mockRolesStore := mocks.RoleStore{}
 	mockRolesStore.On("Save", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("Delete", "123").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByName", context.Background(), "role-name").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name"}).Return([]*model.Role{&fakeRole}, nil)
+	mockRolesStore.On("GetByNames", []string{"role-name2"}).Return([]*model.Role{&fakeRole2}, nil)
 	mockRolesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Role").Return(&mockRolesStore)
 
@@ -91,15 +93,20 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockCount := int64(10)
 	mockGuestCount := int64(12)
 	channelId := "channel1"
-	fakeChannelId := model.Channel{Id: channelId}
+	fakeChannel1 := model.Channel{Id: channelId, Name: "channel1-name"}
+	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
-	mockChannelStore.On("Get", channelId, true).Return(&fakeChannelId, nil)
-	mockChannelStore.On("Get", channelId, false).Return(&fakeChannelId, nil)
+	mockChannelStore.On("Get", channelId, true).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Get", channelId, false).Return(&fakeChannel1, nil)
+	mockChannelStore.On("GetMany", []string{channelId}, true).Return(model.ChannelList{&fakeChannel1}, nil)
+	mockChannelStore.On("GetMany", []string{fakeChannel2.Id}, true).Return(model.ChannelList{&fakeChannel2}, nil)
+	mockChannelStore.On("GetByNames", "team1", []string{fakeChannel1.Name}, true).Return([]*model.Channel{&fakeChannel1}, nil)
+	mockChannelStore.On("GetByNames", "team1", []string{fakeChannel2.Name}, true).Return([]*model.Channel{&fakeChannel2}, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	mockChannelsMemberCount := map[string]int64{
