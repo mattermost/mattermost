@@ -7,7 +7,7 @@ on:
 jobs:
   check-files:
     name: Check only English translation files changed
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     if: github.event.pull_request.user.login != 'weblate' # Allow weblate to modify non-English
     steps:
       - name: Checkout code
