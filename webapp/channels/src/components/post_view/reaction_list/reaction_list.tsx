@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import EmojiConstant from 'mattermost-redux/constants/emoji';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -150,7 +151,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         }
 
         let emojiPicker = null;
-        if (this.props.canAddReactions && this.state.emojiNames?.length < 40) {
+        if (this.props.canAddReactions && this.state.emojiNames?.length < EmojiConstant.MAX_EMOJI_NAME_LENGTH) {
             emojiPicker = (
                 <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
