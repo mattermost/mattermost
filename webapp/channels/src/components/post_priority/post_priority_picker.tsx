@@ -55,11 +55,6 @@ const Header = styled.h4`
     text-align: left;
 `;
 
-const Feedback = styled.a`
-    margin-left: auto;
-    font-size: 11px;
-`;
-
 const Footer = styled.div`
     align-items: center;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
@@ -135,8 +130,6 @@ function PostPriorityPicker({
         onClose();
     };
 
-    const feedbackLink = postAcknowledgementsEnabled ? 'https://forms.gle/noA8Azg7RdaBZtMB6' : 'https://forms.gle/mMcRFQzyKAo9Sv49A';
-
     return (
         <Picker className='PostPriorityPicker'>
             <Header className='modal-title'>
@@ -144,16 +137,6 @@ function PostPriorityPicker({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',
                 })}
-                <Feedback
-                    href={feedbackLink}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                >
-                    <FormattedMessage
-                        id={'post_priority.picker.feedback'}
-                        defaultMessage={'Give feedback'}
-                    />
-                </Feedback>
             </Header>
             <div role='application'>
                 <Menu className='Menu'>
