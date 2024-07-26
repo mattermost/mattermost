@@ -61,10 +61,9 @@ const GlobalThreadsLink = () => {
     const crtTutorialTrigger = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_TRIGGERED, currentUserId, Constants.CrtTutorialTriggerSteps.START));
     const threads = useSelector(getThreadsInCurrentTeam);
     const showTutorialTip = crtTutorialTrigger === CrtTutorialTriggerSteps.STARTED && tipStep === CrtTutorialSteps.WELCOME_POPOVER && threads.length >= 1;
-    const threadsCount = useSelector(getThreadCountsInCurrentTeam);
     const rhsOpen = useSelector(getIsRhsOpen);
     const rhsState = useSelector(getRhsState);
-    const showTutorialTrigger = isFeatureEnabled && crtTutorialTrigger === Constants.CrtTutorialTriggerSteps.START && !appHaveOpenModal && Boolean(threadsCount) && threadsCount.total >= 1;
+    const showTutorialTrigger = isFeatureEnabled && crtTutorialTrigger === Constants.CrtTutorialTriggerSteps.START && !appHaveOpenModal && Boolean(counts) && counts.total >= 1;
     const openThreads = useCallback((e) => {
         e.stopPropagation();
 
@@ -79,7 +78,7 @@ const GlobalThreadsLink = () => {
         if (rhsOpen && rhsState === RHSStates.EDIT_HISTORY) {
             dispatch(closeRightHandSide());
         }
-    }, [showTutorialTrigger, threadsCount, threads, rhsOpen, rhsState]);
+    }, [showTutorialTrigger, counts, threads, rhsOpen, rhsState]);
 
     useEffect(() => {
         // load counts if necessary
