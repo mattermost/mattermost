@@ -1,67 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <meta name='robots' content='noindex, nofollow'>
-    <meta name='referrer' content='no-referrer'>
-
-    <title>Mattermost</title>
-
-    <meta name='mobile-web-app-capable' content='yes'>
-    <meta name='application-name' content='Mattermost'>
-    <meta name='format-detection' content='telephone=no'>
-
-    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-16x16.png" sizes="16x16">
-    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-24x24.png" sizes="24x24">
-    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-64x64.png" sizes="64x64">
-    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-96x96.png" sizes="96x96">
-
-    <!-- CSS Should always go first -->
-    <link rel='stylesheet' class='code_theme'>
-    <link rel='stylesheet' href='/static/css/initial_loading_screen.css'>
-    <style>
-        .error-screen {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            padding-top: 50px;
-            max-width: 750px;
-            font-size: 14px;
-            color: #333333;
-            margin: auto;
-            display: none;
-            line-height: 1.5;
-        }
-
-        .error-screen h2 {
-            font-size: 30px;
-            font-weight: normal;
-            line-height: 1.2;
-        }
-
-        .error-screen ul {
-            padding-left: 15px;
-            line-height: 1.7;
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-
-        .error-screen hr {
-            color: #ddd;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            border: 0;
-            border-top: 1px solid #eee;
-        }
-
-        .error-screen-visible {
-            display: block;
-        }
-    </style>
-</head>
-<body class='font--open_sans enable-animations'>
-    <div id="initialPageLoadingScreen" class="LoadingScreen LoadingScreen--darkMode">
+const loadingScreenTemplate = `
+    <div
+        id="initialPageLoadingScreen"
+        class="LoadingScreen LoadingScreen--darkMode"
+    >
         <div class="LoadingScreen__background">
             <svg
                 viewBox="0 0 1366 728"
@@ -69,21 +13,16 @@
                 preserveAspectRatio="xMidYMid slice"
             >
                 <g style="transform: translate(676px, -200px)">
-                    <g
-                        style="
-                            transform-origin: 450px 267.5px;
-                            transform: rotate(45deg);
-                        "
-                    >
+                    <g style="transform-origin: 450px 267.5px; transform: rotate(45deg)">
                         <use href="#pill" />
                     </g>
                 </g>
                 <g style="transform: translate(125px, 0px)">
                     <g
                         style="
-                            transform-origin: 450px 267.5px;
-                            transform: rotate(-135deg);
-                        "
+                transform-origin: 450px 267.5px;
+                transform: rotate(-135deg);
+              "
                     >
                         <use href="#pill" />
                     </g>
@@ -91,20 +30,15 @@
                 <g style="transform: translate(700px, 330px)">
                     <g
                         style="
-                            transform-origin: 450px 267.5px;
-                            transform: rotate(-135deg);
-                        "
+                transform-origin: 450px 267.5px;
+                transform: rotate(-135deg);
+              "
                     >
                         <use href="#pill" />
                     </g>
                 </g>
                 <g style="transform: translate(-280px, 190px)">
-                    <g
-                        style="
-                            transform-origin: 450px 267.5px;
-                            transform: rotate(45deg);
-                        "
-                    >
+                    <g style="transform-origin: 450px 267.5px; transform: rotate(45deg)">
                         <use href="#pill" />
                     </g>
                 </g>
@@ -180,11 +114,7 @@
                             height="104"
                             fill="white"
                         />
-                        <g
-                            class="
-                                LoadingAnimation__compass-base-mask-container
-                            "
-                        >
+                        <g class="LoadingAnimation__compass-base-mask-container">
                             <circle
                                 class="LoadingAnimation__compass-base-mask"
                                 r="27"
@@ -205,11 +135,7 @@
                             fill="white"
                         />
                         <circle r="37" cx="54" cy="46" fill="black" />
-                        <g
-                            class="
-                                LoadingAnimation__compass-needle-behind-mask
-                            "
-                        >
+                        <g class="LoadingAnimation__compass-needle-behind-mask">
                             <g transform="translate(54,46)">
                                 <g transform="translate(-29, -61.3)">
                                     <path
@@ -219,11 +145,7 @@
                                 </g>
                             </g>
                         </g>
-                        <g
-                            class="
-                                LoadingAnimation__compass-needle-front-mask
-                            "
-                        >
+                        <g class="LoadingAnimation__compass-needle-front-mask">
                             <g transform="translate(54,46)">
                                 <g transform="translate(-29,-61.3)">
                                     <path
@@ -315,17 +237,6 @@
             </svg>
         </div>
     </div>
-    <div id='root'>
-        <div class='error-screen'>
-            <h2>Cannot connect to Mattermost</h2>
-            <hr/>
-            <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p>
-            <br/>
-        </div>
-    </div>
-    <div id='root-portal'></div>
-    <noscript>
-        To use Mattermost, please enable JavaScript.
-    </noscript>
-</body>
-</html>
+`;
+
+export default loadingScreenTemplate;
