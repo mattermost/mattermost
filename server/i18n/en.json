@@ -1786,6 +1786,10 @@
     "translation": "Secure connection ID missing."
   },
   {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Unable to process request. Request body too large."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
@@ -8763,6 +8767,10 @@
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
   },
   {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
@@ -9477,6 +9485,10 @@
   {
     "id": "model.preference.is_valid.id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Invalid value for limit_visible_dms_gms."
   },
   {
     "id": "model.preference.is_valid.name.app_error",
