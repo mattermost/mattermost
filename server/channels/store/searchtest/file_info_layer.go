@@ -183,6 +183,16 @@ var searchFileInfoStoreTests = []searchTest{
 		Fn:   testFileInfoSearchEmailsWithoutQuotes,
 		Tags: []string{EngineElasticSearch},
 	},
+	{
+		Name: "Should not search files not attached to a post",
+		Fn:   testFileInfoSearchNoResultForPostlessFileInfos,
+		Tags: []string{EnginePostgres, EngineMySQL},
+	},
+	{
+		Name: "Should search files part of channel bookmarks",
+		Fn:   testFileInfoSearchShowChannelBookmarkFiles,
+		Tags: []string{EnginePostgres, EngineMySQL},
+	},
 }
 
 func TestSearchFileInfoStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -1644,4 +1654,35 @@ func testFileInfoSearchEmailsWithoutQuotes(t *testing.T, th *SearchTestHelper) {
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+}
+
+func testFileInfoSearchNoResultForPostlessFileInfos(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createFileInfo(th.User.Id, "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+
+	defer th.deleteUserFileInfos(th.User.Id)
+
+	params := &model.SearchParams{
+		InChannels: []string{th.ChannelBasic.Id},
+	}
+	results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.FileInfos, 0)
+}
+
+func testFileInfoSearchShowChannelBookmarkFiles(t *testing.T, th *SearchTestHelper) {
+	file, err := th.createFileInfo("bookmark", "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+
+	defer th.deleteUserFileInfos("bookmark")
+
+	params := &model.SearchParams{
+		InChannels: []string{th.ChannelBasic.Id},
+	}
+	results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.FileInfos, 1)
+	require.Equal(t, "message test@test.com", results.FileInfos[file.Id].Name)
 }
