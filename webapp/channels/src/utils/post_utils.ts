@@ -5,6 +5,12 @@ import {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
+import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {formatWithRenderer} from 'utils/markdown';
+import MentionableRenderer from 'utils/markdown/mentionable_renderer';
+import {allAtMentions} from 'utils/text_formatting';
+import {isMobile} from 'utils/user_agent';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
@@ -35,13 +41,6 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getEmojiMap} from 'selectors/emojis';
 import {getIsMobileView} from 'selectors/views/browser';
-
-import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {formatWithRenderer} from 'utils/markdown';
-import MentionableRenderer from 'utils/markdown/mentionable_renderer';
-import {allAtMentions} from 'utils/text_formatting';
-import {isMobile} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -348,6 +347,14 @@ export function isServerError(err: unknown): err is ServerError {
 export function isErrorInvalidSlashCommand(error: ServerError | null): boolean {
     if (error && error.server_error_id) {
         return error.server_error_id === 'api.command.execute_command.not_found.app_error';
+    }
+
+    return false;
+}
+
+export function isErrorInvalidRootID(error: ServerError | null): boolean {
+    if (error && error.server_error_id) {
+        return error.server_error_id === 'api.post.create_post.root_id.app_error';
     }
 
     return false;

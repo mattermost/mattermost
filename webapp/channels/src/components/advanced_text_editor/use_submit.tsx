@@ -4,6 +4,8 @@
 import type React from 'react';
 import {useCallback, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {isErrorInvalidRootID, isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -24,9 +26,6 @@ import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import PostDeletedModal from 'components/post_deleted_modal';
 import ResetStatusModal from 'components/reset_status_modal';
-
-import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -82,18 +81,6 @@ const useSubmit = (
         return getChannel(state, channelId);
     });
 
-    const isRootDeleted = useSelector((state: GlobalState) => {
-        if (!postId) {
-            return false;
-        }
-        const post = getPost(state, postId);
-        if (!post || post.delete_at) {
-            return true;
-        }
-
-        return false;
-    });
-
     const enableConfirmNotificationsToChannel = useSelector((state: GlobalState) => getConfig(state).EnableConfirmNotificationsToChannel === 'true');
     const channelMembersCount = useSelector((state: GlobalState) => getAllChannelStats(state)[channelId]?.member_count ?? 1);
     const userIsOutOfOffice = useSelector((state: GlobalState) => {
@@ -136,12 +123,6 @@ const useSubmit = (
             return;
         }
 
-        if (isRootDeleted) {
-            showPostDeletedModal();
-            isDraftSubmitting.current = false;
-            return;
-        }
-
         if (serverError && !isErrorInvalidSlashCommand(serverError)) {
             return;
         }
@@ -174,6 +155,11 @@ const useSubmit = (
                 if (isErrorInvalidSlashCommand(err)) {
                     handleDraftChange(submittingDraft, {instant: true});
                 }
+                if (isErrorInvalidRootID(err)) {
+                    showPostDeletedModal();
+                    isDraftSubmitting.current = false;
+                    return;
+                }
                 setServerError({
                     ...err,
                     submittedMessage: submittingDraft.message,
@@ -188,7 +174,7 @@ const useSubmit = (
         }
 
         isDraftSubmitting.current = false;
-    }, [handleDraftChange, dispatch, draft, focusTextbox, isRootDeleted, postError, serverError, showPostDeletedModal, channelId, postId, lastBlurAt, setPostError, setServerError]);
+    }, [handleDraftChange, dispatch, draft, focusTextbox, postError, serverError, showPostDeletedModal, channelId, postId, lastBlurAt, setPostError, setServerError]);
 
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
         dispatch(openModal({
