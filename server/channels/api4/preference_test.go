@@ -933,3 +933,89 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 	})
 }
+
+func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
+	t.Run("Update limit_visible_dms_gms to a valid value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		_, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "40",
+			},
+		})
+		require.NoError(t, err)
+
+		pref, _, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms)
+		require.NoError(t, err)
+
+		require.Equal(t, "40", pref.Value, "Value was not updated")
+	})
+
+	t.Run("Update limit_visible_dms_gms to a value greater PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "10000",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Update limit_visible_dms_gms to an invalid value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "one thousand",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Update limit_visible_dms_gms to a negative number", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "-20",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
