@@ -184,7 +184,7 @@ const AdvanceTextEditor = ({
             }
 
             if (options.show) {
-                dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId));
+                dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
 
