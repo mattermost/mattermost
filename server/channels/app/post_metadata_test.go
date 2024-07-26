@@ -853,6 +853,33 @@ func TestPreparePostForClient(t *testing.T) {
 		preview2 := firstEmbed2.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview2.PostID)
 	})
+
+	t.Run("Should remove all permalink embeds when post doesn't contain any permalink in message", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a message with no post permalinks",
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: "permalink",
+					},
+					{
+						Type: "permalink",
+					},
+					{
+						Type: "permalink",
+					},
+				},
+			},
+		}
+
+		updatedPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, false, false, false)
+		assert.Equal(t, 0, len(updatedPost.Metadata.Embeds))
+	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
