@@ -190,7 +190,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Roles"
+                  defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
               }
@@ -3539,7 +3539,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="user_management/system_roles"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Roles"
+                  defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
               }
@@ -4421,7 +4421,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Roles"
+                  defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
               }
