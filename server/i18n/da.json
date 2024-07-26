@@ -618,5 +618,93 @@
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
     "translation": "Ugyldig opdatering af teammedlem: Du kan ikke tilføje eller fjerne gæsterollen manuelt."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Kan ikke slette direkte- eller gruppebesked kanalen"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Din licens understøtter ikke kanalmoderation"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Brugeren har ikke lov til at konvertere gruppebeskeder til private kanaler"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} oprettede denne kanal fra en gruppebesked med {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v sluttede sig til kanalen som gæst."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Du er det eneste medlem tilbage, prøv at fjerne den private kanal i stedet for at forlade den."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Din licens understøtter ikke kanalmoderation"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Kan ikke flytte kanaler med direkte eller gruppebeskeder"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fejl ved annullering af cache"
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Kanalen kunne ikke opdateres."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du må ikke opdatere navnet, display_name eller formålet med direkte beskeder eller gruppebeskeder."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Kunne ikke sende besked om opdatering af kanalens privatliv."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Du har ikke de nødvendige tilladelser."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v sluttede sig til kanalen."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Kan ikke forlade standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Kan ikke efterlade en kanal for direkte beskeder."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v har forladt kanalen."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Kunne ikke hente bruger under opdatering af kanalens DisplayName-felt"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s opdaterede kanalens visningsnavn fra: %s til: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Kunne ikke sende besked om opdatering af displaynavn"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Mangler display_name i request-meddelelsen"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Mangler team_id i request-meddelelsen"
   }
 ]
