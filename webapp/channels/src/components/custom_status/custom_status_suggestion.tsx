@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
 import classNames from 'classnames';
 import React, {useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip'; // Ensure this import is correct
 
 import Constants, {durationValues} from 'utils/constants';
 
@@ -29,6 +27,8 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     const {emoji, text, duration} = status;
     const [show, setShow] = useState(false);
 
+    const intl = useIntl(); // Correctly using useIntl
+
     const showClearButton = () => setShow(true);
 
     const hideClearButton = () => setShow(false);
@@ -42,17 +42,11 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     };
 
     const clearButton = handleClear ? (
-        <div
-            className='suggestion-clear'
-        >
-            <OverlayTrigger
+        <div className='suggestion-clear'>
+            <WithTooltip
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
-                overlay={
-                    <Tooltip id='clear-recent-custom-status'>
-                        {'Clear'}
-                    </Tooltip>
-                }
+                tooltipText={intl.formatMessage({id: 'input.clear', defaultMessage: 'Clear'})}
             >
                 <button
                     className='style--none input-clear-x'
@@ -60,7 +54,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
                 >
                     <i className='icon icon-close-circle'/>
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
         </div>
     ) : null;
 
@@ -101,3 +95,4 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
 };
 
 export default CustomStatusSuggestion;
+
