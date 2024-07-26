@@ -190,8 +190,8 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
             return {error: new Error('reached reaction limit')};
         }
 
-        const result = await dispatch(PostActions.addReaction(postId, emojiName));
         dispatch(addRecentEmoji(emojiName));
+        const result = await dispatch(PostActions.addReaction(postId, emojiName));
         return result;
     };
 }

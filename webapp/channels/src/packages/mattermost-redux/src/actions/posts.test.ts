@@ -98,7 +98,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, {...post, id: postId});
 
-        await store.dispatch(Actions.createPostImmediately(post));
+        await store.dispatch(Actions.createPost(post));
 
         const post2 = TestHelper.fakePostWithId(channelId);
         post2.root_id = postId;
@@ -107,7 +107,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, post2);
 
-        await store.dispatch(Actions.createPostImmediately(post2));
+        await store.dispatch(Actions.createPost(post2));
 
         expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
 

@@ -150,7 +150,6 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         case '/expand':
             dispatch(PostActions.resetEmbedVisibility());
             dispatch(PostActions.resetInlineImageVisibility());
-            return {data: {frontendHandled: true}};
         }
 
         if (appsEnabled(state)) {
