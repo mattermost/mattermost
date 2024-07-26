@@ -38,7 +38,7 @@ services:
       timeout: 15s
       retries: 12
   elasticsearch:
-    image: mattermost/mattermost-elasticsearch-docker:7.17.3
+    image: mattermostdevelopment/mattermost-elasticsearch:8.9.0
     environment:
       http.host: "0.0.0.0"
       http.port: 9200
@@ -47,6 +47,8 @@ services:
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
+      xpack.security.enabled: "false"
+      action.destructive_requires_name: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx2G"
     healthcheck:
       test: [ "CMD", "bash", "-o", "pipefail", "-c", "curl --silent localhost:9200/_cat/health | awk '{ print $$4 }' | grep -qE '^green$$'" ]

@@ -100,6 +100,9 @@ const sendDirectMessageToUser = (user, message) => {
     // # Open a new direct message with firstDMUser
     cy.uiAddDirectMessage().click();
 
+    // # Wait a little for channel to load
+    cy.wait(TIMEOUTS.ONE_SEC);
+
     // # Type username
     cy.get('#selectItems input').should('be.enabled').typeWithForce(`@${user.username}`).wait(TIMEOUTS.ONE_SEC);
 
