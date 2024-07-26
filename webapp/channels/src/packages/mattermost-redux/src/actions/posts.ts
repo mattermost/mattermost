@@ -8,6 +8,7 @@ import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import type {Group} from '@mattermost/types/groups';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -168,7 +169,12 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
     };
 }
 
-export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
+export type CreatePostReturnType = {
+    created?: Post;
+    pending?: string;
+}
+
+export function createPost(post: Post, files: any[] = []): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -178,7 +184,7 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
         let actions: AnyAction[] = [];
 
         if (PostSelectors.isPostIdSending(state, pendingPostId)) {
-            return {data: true};
+            return {data: {pending: pendingPostId}};
         }
 
         let newPost = {
@@ -230,165 +236,66 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
 
         dispatch(batchActions(actions, 'BATCH_CREATE_POST_INIT'));
 
-        (async function createPostWrapper() {
-            try {
-                const created = await Client4.createPost({...newPost, create_at: 0});
-
-                actions = [
-                    receivedPost(created, crtEnabled),
-                    {
-                        type: PostTypes.CREATE_POST_SUCCESS,
-                    },
-                    {
-                        type: ChannelTypes.INCREMENT_TOTAL_MSG_COUNT,
-                        data: {
-                            channelId: newPost.channel_id,
-                            amount: 1,
-                            amountRoot: created.root_id === '' ? 1 : 0,
-                        },
-                    },
-                    {
-                        type: ChannelTypes.DECREMENT_UNREAD_MSG_COUNT,
-                        data: {
-                            channelId: newPost.channel_id,
-                            amount: 1,
-                            amountRoot: created.root_id === '' ? 1 : 0,
-                        },
-                    },
-                ];
-
-                if (files) {
-                    actions.push({
-                        type: FileTypes.RECEIVED_FILES_FOR_POST,
-                        postId: created.id,
-                        data: files,
-                    });
-                }
-
-                dispatch(batchActions(actions, 'BATCH_CREATE_POST'));
-            } catch (error) {
-                const data = {
-                    ...newPost,
-                    id: pendingPostId,
-                    failed: true,
-                    update_at: Date.now(),
-                };
-                actions = [{type: PostTypes.CREATE_POST_FAILURE, error}];
-
-                // If the failure was because: the root post was deleted or
-                // TownSquareIsReadOnly=true then remove the post
-                if (error.server_error_id === 'api.post.create_post.root_id.app_error' ||
-                    error.server_error_id === 'api.post.create_post.town_square_read_only' ||
-                    error.server_error_id === 'plugin.message_will_be_posted.dismiss_post'
-                ) {
-                    // RemovePost is a Thunk, and not handled by batchActions
-                    dispatch(removePost(data));
-                } else {
-                    actions.push(receivedPost(data, crtEnabled));
-                }
-
-                dispatch(batchActions(actions, 'BATCH_CREATE_POST_FAILED'));
-            }
-        }());
-
-        return {data: true};
-    };
-}
-
-export function createPostImmediately(post: Post, files: any[] = []): ActionFuncAsync<Post> {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const currentUserId = state.entities.users.currentUserId;
-        const timestamp = Date.now();
-        const pendingPostId = `${currentUserId}:${timestamp}`;
-
-        let newPost: Post = {
-            ...post,
-            pending_post_id: pendingPostId,
-            create_at: timestamp,
-            update_at: timestamp,
-            reply_count: 0,
-        };
-
-        if (post.root_id) {
-            newPost.reply_count = PostSelectors.getPostRepliesCount(state, post.root_id) + 1;
-        }
-
-        if (files.length) {
-            const fileIds = files.map((file) => file.id);
-
-            newPost = {
-                ...newPost,
-                file_ids: fileIds,
-            };
-
-            dispatch({
-                type: FileTypes.RECEIVED_FILES_FOR_POST,
-                postId: pendingPostId,
-                data: files,
-            });
-            dispatch({
-                type: ChannelTypes.INCREMENT_FILE_COUNT,
-                amount: files.length,
-                id: newPost.channel_id,
-            });
-        }
-
-        const crtEnabled = isCollapsedThreadsEnabled(state);
-        dispatch(receivedNewPost({
-            ...newPost,
-            id: pendingPostId,
-        }, crtEnabled));
-
         try {
             const created = await Client4.createPost({...newPost, create_at: 0});
-            newPost.id = created.id;
-            newPost.reply_count = created.reply_count;
+
+            actions = [
+                receivedPost(created, crtEnabled),
+                {
+                    type: PostTypes.CREATE_POST_SUCCESS,
+                },
+                {
+                    type: ChannelTypes.INCREMENT_TOTAL_MSG_COUNT,
+                    data: {
+                        channelId: newPost.channel_id,
+                        amount: 1,
+                        amountRoot: created.root_id === '' ? 1 : 0,
+                    },
+                },
+                {
+                    type: ChannelTypes.DECREMENT_UNREAD_MSG_COUNT,
+                    data: {
+                        channelId: newPost.channel_id,
+                        amount: 1,
+                        amountRoot: created.root_id === '' ? 1 : 0,
+                    },
+                },
+            ];
+
+            if (files) {
+                actions.push({
+                    type: FileTypes.RECEIVED_FILES_FOR_POST,
+                    postId: created.id,
+                    data: files,
+                });
+            }
+
+            dispatch(batchActions(actions, 'BATCH_CREATE_POST'));
+            return {data: {created}};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: PostTypes.CREATE_POST_FAILURE, data: newPost, error});
-            dispatch(removePost({
+            const data = {
                 ...newPost,
                 id: pendingPostId,
-            }));
-            dispatch(logError(error));
+                failed: true,
+                update_at: Date.now(),
+            };
+            actions = [{type: PostTypes.CREATE_POST_FAILURE, error}];
+
+            // If the failure was because: the root post was deleted or
+            // TownSquareIsReadOnly=true then remove the post
+            if (error.server_error_id === 'api.post.create_post.root_id.app_error' ||
+                error.server_error_id === 'api.post.create_post.town_square_read_only' ||
+                error.server_error_id === 'plugin.message_will_be_posted.dismiss_post'
+            ) {
+                // RemovePost is a Thunk, and not handled by batchActions
+                dispatch(removePost(data));
+            } else {
+                actions.push(receivedPost(data, crtEnabled));
+            }
+
+            dispatch(batchActions(actions, 'BATCH_CREATE_POST_FAILED'));
             return {error};
         }
-
-        const actions: AnyAction[] = [
-            receivedPost(newPost, crtEnabled),
-            {
-                type: PostTypes.CREATE_POST_SUCCESS,
-            },
-            {
-                type: ChannelTypes.INCREMENT_TOTAL_MSG_COUNT,
-                data: {
-                    channelId: newPost.channel_id,
-                    amount: 1,
-                    amountRoot: newPost.root_id === '' ? 1 : 0,
-                },
-            },
-            {
-                type: ChannelTypes.DECREMENT_UNREAD_MSG_COUNT,
-                data: {
-                    channelId: newPost.channel_id,
-                    amount: 1,
-                    amountRoot: newPost.root_id === '' ? 1 : 0,
-                },
-            },
-        ];
-
-        if (files) {
-            actions.push({
-                type: FileTypes.RECEIVED_FILES_FOR_POST,
-                postId: newPost.id,
-                data: files,
-            });
-        }
-
-        dispatch(batchActions(actions));
-
-        return {data: newPost};
     };
 }
 
@@ -589,7 +496,12 @@ export function unpinPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFuncAsync {
+export type SubmitReactionReturnType = {
+    reaction?: Reaction;
+    removedReaction?: boolean;
+}
+
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -607,11 +519,11 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync 
             data: reaction,
         });
 
-        return {data: true};
+        return {data: {reaction}};
     };
 }
 
-export function removeReaction(postId: string, emojiName: string): ActionFuncAsync {
+export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -628,7 +540,7 @@ export function removeReaction(postId: string, emojiName: string): ActionFuncAsy
             data: {user_id: currentUserId, post_id: postId, emoji_name: emojiName},
         });
 
-        return {data: true};
+        return {data: {removedReaction: true}};
     };
 }
 
