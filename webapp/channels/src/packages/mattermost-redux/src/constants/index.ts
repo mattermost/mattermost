@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import Emoji from './emoji';
+import Events from './events';
 import Files from './files';
 import General from './general';
 import Permissions from './permissions';
@@ -16,4 +17,20 @@ import Threads from './threads';
 import Users from './users';
 import WebsocketEvents from './websocket';
 
-export {General, Preferences, Posts, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};
+export {
+    Emoji,
+    Events,
+    Files,
+    General,
+    Permissions,
+    Plugins,
+    Posts,
+    Preferences,
+    RequestStatus,
+    Roles,
+    Stats,
+    Teams,
+    Threads,
+    Users,
+    WebsocketEvents,
+};

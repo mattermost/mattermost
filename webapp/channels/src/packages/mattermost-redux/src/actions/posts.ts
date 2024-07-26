@@ -24,7 +24,7 @@ import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/action
 import {decrementThreadCounts} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
-import {General, Preferences, Posts} from 'mattermost-redux/constants';
+import {General, Preferences, Posts, Events} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
@@ -266,6 +266,9 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
                 }
 
                 dispatch(batchActions(actions, 'BATCH_CREATE_POST'));
+
+                // Dispatch event for plugins to see when a post is posted
+                document.dispatchEvent(new Event(Events.POST_POSTED));
             } catch (error) {
                 const data = {
                     ...newPost,
