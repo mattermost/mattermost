@@ -268,7 +268,7 @@ export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
                 dispatch(batchActions(actions, 'BATCH_CREATE_POST'));
 
                 // Dispatch event for plugins to see when a post is posted
-                document.dispatchEvent(new Event(Events.POST_POSTED));
+                document.dispatchEvent(new CustomEvent(Events.POST_POSTED, {detail: {post: created}}));
             } catch (error) {
                 const data = {
                     ...newPost,
