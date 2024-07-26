@@ -31,4 +31,7 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-weight: 400;
     }
+    &__content_container {
+        cursor: default;
+    }
 }

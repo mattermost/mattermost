@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import type {MouseEvent} from 'react';
 import React, {memo, useCallback, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
@@ -52,7 +53,7 @@ export type Props = PropsFromRedux & {
     post: Post;
     isCurrent?: boolean;
     theme: Theme;
-}
+};
 
 const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, actions}: Props) => {
     const {formatMessage} = useIntl();
@@ -70,11 +71,13 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 },
             },
         };
-
         actions.openModal(restorePostModalData);
     }, [actions, post]);
 
-    const togglePost = () => setOpen((prevState) => !prevState);
+    const togglePost = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setOpen((prevState) => !prevState);
+    };
 
     if (!post) {
         return null;
@@ -92,7 +95,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 },
             },
         };
-
         actions.openModal(infoToastModalData);
     };
 
@@ -131,7 +133,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
     ) : null;
 
     const profileSrc = imageURLForUser(post.user_id);
-
     const overwriteName = post.props ? post.props.override_username : '';
     const postHeader = (
         <div className='edit-post-history__header'>
@@ -180,6 +181,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         </Tooltip>
     );
 
+    const handleRestoreClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        openRestorePostModal();
+    };
+
     const restoreButton = isCurrent ? null : (
         <OverlayTrigger
             trigger={['hover', 'focus']}
@@ -191,7 +197,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 className='edit-post-history__icon__button restore-icon'
                 size={'sm'}
                 icon={'restore'}
-                onClick={openRestorePostModal}
+                onClick={handleRestoreClick}
                 compact={true}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
             />
@@ -203,10 +209,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
 
     return (
         <CompassThemeProvider theme={theme}>
-            <div
-                className={postContainerClass}
-                onClick={togglePost}
-            >
+            <div className={postContainerClass}>
                 <PostAriaLabelDiv
                     className={'a11y__section post'}
                     id={'searchResult_' + post.id}
@@ -215,6 +218,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                     <div
                         className='edit-post-history__title__container'
                         aria-hidden='true'
+                        onClick={togglePost}
                     >
                         <div className='edit-post-history__date__badge__container'>
                             <IconButton
@@ -223,6 +227,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                                 compact={true}
                                 aria-label='Toggle to see an old message.'
                                 className='edit-post-history__icon__button'
+                                onClick={togglePost}
                             />
                             <span className='edit-post-history__date'>
                                 <Timestamp
@@ -234,7 +239,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                         </div>
                         {restoreButton}
                     </div>
-                    {open && messageContainer}
+                    {open && (
+                        <div className='edit-post-history__content_container'>
+                            {messageContainer}
+                        </div>
+                    )}
                 </PostAriaLabelDiv>
             </div>
         </CompassThemeProvider>
