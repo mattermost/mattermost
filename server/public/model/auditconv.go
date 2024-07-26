@@ -750,7 +750,6 @@ func newRemoteCluster(r *RemoteCluster) auditRemoteCluster {
 	var rc auditRemoteCluster
 	if r != nil {
 		rc.RemoteId = r.RemoteId
-		rc.RemoteTeamId = r.RemoteTeamId
 		rc.Name = r.Name
 		rc.DisplayName = r.DisplayName
 		rc.SiteURL = r.SiteURL

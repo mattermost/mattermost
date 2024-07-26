@@ -13,7 +13,13 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes} from 'utils/constants';
 import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
 
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
+import type {
+    PluginsState,
+    PluginComponent,
+    AdminConsolePluginComponent,
+    AdminConsolePluginCustomSection,
+    Menu,
+} from 'types/store/plugins';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     if (!menu.subMenu) {
@@ -361,6 +367,44 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
     }
 }
 
+function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, AdminConsolePluginCustomSection>} = {}, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: {
+        if (!action.data) {
+            return state;
+        }
+
+        const pluginId = action.data.pluginId;
+        const key = action.data.key.toLowerCase();
+
+        const nextState = {...state};
+        let nextObject: Record<string, AdminConsolePluginCustomSection> = {};
+        if (nextState[pluginId]) {
+            nextObject = {...nextState[pluginId]};
+        }
+        nextObject[key] = action.data;
+        nextState[pluginId] = nextObject;
+
+        return nextState;
+    }
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
+        if (!action.data || !state[action.data.id]) {
+            return state;
+        }
+
+        const pluginId = action.data.id;
+        const nextState = {...state};
+        delete nextState[pluginId];
+        return nextState;
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
@@ -440,6 +484,10 @@ export default combineReducers({
     // objects where every key is a plugin id and the value is an object mapping keys to a custom
     // React component to render on the plugin's system console.
     adminConsoleCustomComponents,
+
+    // objects where every key is a plugin id and the value is an object mapping keys to a custom
+    // React component to render on the plugin's system console as custom section.
+    adminConsoleCustomSections,
 
     // objects where every key is a plugin id and the value is a promise to fetch stats from
     // a plugin to render on system console

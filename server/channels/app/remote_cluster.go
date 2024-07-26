@@ -5,6 +5,7 @@ package app
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -100,6 +101,22 @@ func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *
 	return rc, nil
 }
 
+func (a *App) PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError) {
+	rc, err := a.GetRemoteCluster(rcId)
+	if err != nil {
+		return nil, err
+	}
+
+	rc.Patch(patch)
+
+	updatedRC, err := a.UpdateRemoteCluster(rc)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedRC, nil
+}
+
 func (a *App) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().RemoteCluster().Update(rc)
 	if err != nil {
@@ -123,13 +140,18 @@ func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError
 func (a *App) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().RemoteCluster().Get(remoteClusterId)
 	if err != nil {
-		return nil, model.NewAppError("GetRemoteCluster", "api.remote_cluster.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, model.NewAppError("GetRemoteCluster", "api.remote_cluster.get.not_found", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetRemoteCluster", "api.remote_cluster.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 	return rc, nil
 }
 
-func (a *App) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
-	list, err := a.Srv().Store().RemoteCluster().GetAll(filter)
+func (a *App) GetAllRemoteClusters(page, perPage int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
+	list, err := a.Srv().Store().RemoteCluster().GetAll(page*perPage, perPage, filter)
 	if err != nil {
 		return nil, model.NewAppError("GetAllRemoteClusters", "api.remote_cluster.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -158,4 +180,33 @@ func (a *App) GetRemoteClusterService() (remotecluster.RemoteClusterServiceIFace
 		return nil, model.NewAppError("GetRemoteClusterService", "api.remote_cluster.service_not_enabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 	return service, nil
+}
+
+func (a *App) CreateRemoteClusterInvite(remoteId, siteURL, token, password string) (string, *model.AppError) {
+	invite := &model.RemoteClusterInvite{
+		RemoteId: remoteId,
+		SiteURL:  siteURL,
+		Token:    token,
+	}
+
+	encrypted, err := invite.Encrypt(password)
+	if err != nil {
+		return "", model.NewAppError("CreateRemoteClusterInvite", "api.remote_cluster.encrypt_invite_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return base64.URLEncoding.EncodeToString(encrypted), nil
+}
+
+func (a *App) DecryptRemoteClusterInvite(inviteCode, password string) (*model.RemoteClusterInvite, *model.AppError) {
+	decoded, err := base64.URLEncoding.DecodeString(inviteCode)
+	if err != nil {
+		return nil, model.NewAppError("DecryptRemoteClusterInvite", "api.remote_cluster.base64_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	invite := &model.RemoteClusterInvite{}
+	if dErr := invite.Decrypt(decoded, password); dErr != nil {
+		return nil, model.NewAppError("DecryptRemoteClusterInvite", "api.remote_cluster.invite_decrypt_error", nil, "", http.StatusBadRequest).Wrap(dErr)
+	}
+
+	return invite, nil
 }

@@ -67,7 +67,7 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
                 handleClose={this.handleDismiss}
                 message={
                     <>
-                        <i className='icon-information-outline'/>
+                        <i className='icon icon-information-outline'/>
                         {typeof text === 'string' ? (
                             <Markdown
                                 message={text}

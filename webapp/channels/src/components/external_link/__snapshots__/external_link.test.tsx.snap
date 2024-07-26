@@ -13,7 +13,7 @@ exports[`components/external_link should match snapshot 1`] = `
     }
   }
 >
-  <ExternalLink
+  <ForwardRef
     href="https://mattermost.com"
     location="test"
   >
@@ -26,6 +26,6 @@ exports[`components/external_link should match snapshot 1`] = `
     >
       Click Me
     </a>
-  </ExternalLink>
+  </ForwardRef>
 </Provider>
 `;

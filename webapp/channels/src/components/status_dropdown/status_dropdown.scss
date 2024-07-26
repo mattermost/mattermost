@@ -160,11 +160,6 @@ button.custom_status__row {
     padding: 4px 8px;
     border-radius: 4px;
 
-    .icon > i:not(.status-icon) {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        font-family: "compass-icons";
-    }
-
     &:hover {
         background: var(--sidebar-text-08);
         cursor: pointer;

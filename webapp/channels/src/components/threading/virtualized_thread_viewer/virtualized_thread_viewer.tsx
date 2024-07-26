@@ -355,7 +355,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 <CreateComment
                     placeholder={this.props.inputPlaceholder}
                     isThreadView={this.props.isThreadView}
-                    latestPostId={this.props.lastPost.id}
                     ref={this.postCreateContainerRef}
                     teammate={this.props.directTeammate}
                     threadId={this.props.selected.id}
