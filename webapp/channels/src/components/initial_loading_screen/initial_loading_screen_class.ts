@@ -17,9 +17,13 @@ export class InitialLoadingScreenClass {
     private loadingScreenElement?: HTMLElement | null;
     private loadingAnimationElement?: HTMLElement | null;
 
+    private initialLoadingScreenCSS?: HTMLLinkElement | null;
+
     constructor() {
         this.loadingScreenElement = document.getElementById('initialPageLoadingScreen');
         this.loadingAnimationElement = document.getElementById('initialPageLoadingAnimation');
+
+        this.initialLoadingScreenCSS = document.getElementById('initialLoadingScreenCSS') as HTMLLinkElement | null;
 
         this.handleAnimationEndEvent = this.handleAnimationEndEvent.bind(this);
     }
@@ -41,7 +45,7 @@ export class InitialLoadingScreenClass {
                 this.loadingAnimationElement.className = STATIC_CLASS_FOR_ANIMATION;
 
                 setTimeout(() => {
-                    this.clean();
+                    this.cleanUp();
                 }, 1000);
             }
         }
@@ -59,8 +63,16 @@ export class InitialLoadingScreenClass {
         }
     }
 
-    private clean() {
+    private cleanUp() {
         this.removeAnimationEndListener();
+
+        if (this.loadingScreenElement) {
+            this.loadingScreenElement.remove();
+        }
+
+        if (this.initialLoadingScreenCSS) {
+            this.initialLoadingScreenCSS.remove();
+        }
     }
 
     public start() {

@@ -59,7 +59,6 @@ body {
 .LoadingScreen--loaded {
   opacity: 0;
   visibility: hidden;
-
   transition: opacity 150ms 0ms ease-in, visibility 150ms 0ms step-end;
 }
 
@@ -76,8 +75,7 @@ body {
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-in-out: var(--ease-in-out-cubic);
   --ease-in-out-compass-shrink: cubic-bezier(0.1, 0.25, 0.3, 1);
-
-  opacity: 0;
+  opacity: 1;
   transform: scale3d(1, 1, 1);
 }
 
@@ -144,27 +142,18 @@ body {
 }
 
 .LoadingAnimation--loading {
-  --fade-in-duration: 150ms;
+  --fade-in-duration: 50ms;
   --fade-in-delay: 0ms;
-
-  animation: LoadingAnimation__fade-in var(--fade-in-duration)
-    var(--fade-in-delay) var(--ease-in) forwards;
-
+  /* animation: LoadingAnimation__fade-in var(--fade-in-duration) var(--fade-in-delay) var(--ease-in) forwards; */
   transform: scale3d(1, 1, 1);
 }
 
 .LoadingAnimation.LoadingAnimation--loading
   .LoadingAnimation__spinner-container {
   --shrink-duration: calc(var(--animation-end-duration) * 0.5);
-  --shrink-delay: calc(
-    (var(--animation-start-duration) + var(--animation-end-duration)) * 0.91 +
-      var(--animation-initial-delay)
-  );
+  --shrink-delay: calc((var(--animation-start-duration) + var(--animation-end-duration)) * 0.91 + var(--animation-initial-delay));
   --fade-in-duration: calc(var(--animation-end-duration) * 0.25);
-  --fade-in-delay: calc(
-    var(--animation-start-duration) + var(--animation-end-duration) * 0.24 +
-      var(--animation-initial-delay)
-  );
+  --fade-in-delay: calc(var(--animation-start-duration) + var(--animation-end-duration) * 0.24 + var(--animation-initial-delay));
 
   animation: LoadingAnimation__spinner-shrink var(--shrink-duration)
       var(--shrink-delay) var(--ease-in-out-compass-shrink) forwards,
