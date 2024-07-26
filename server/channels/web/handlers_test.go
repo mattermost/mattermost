@@ -4,8 +4,11 @@
 package web
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -926,4 +929,157 @@ func TestGetOriginClient(t *testing.T) {
 
 		require.Equal(t, tc.expectedClient, actualClient)
 	}
+}
+
+func noOpHandler(_ *Context, _ http.ResponseWriter, _ *http.Request) {
+	// no op
+}
+
+func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
+	t.Run("Should not cause 414 error if url is smaller than configured limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		web := New(th.Server)
+		handler := web.NewHandler(noOpHandler)
+
+		// using the default URL length
+		request := httptest.NewRequest("GET", "/api/v4/test?with=not&many=query_params", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, http.StatusOK, response.Code)
+	})
+
+	t.Run("Should cause 414 error if url is longer than configured limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ServiceSettings.MaximumURLLength = model.NewInt(10)
+		})
+
+		web := New(th.Server)
+		handler := web.NewHandler(noOpHandler)
+
+		request := httptest.NewRequest("GET", "/api/v4/test?a_url_longer_than_10_characters_including_query_params", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, http.StatusRequestURITooLong, response.Code)
+	})
+
+	t.Run("414 error should include query params in computing URL length", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ServiceSettings.MaximumURLLength = model.NewInt(20)
+		})
+
+		web := New(th.Server)
+		handler := web.NewHandler(noOpHandler)
+
+		// this URL is within the 20 characters limit excluding query params.
+		// but this should still fail as URL length includes query params
+		request := httptest.NewRequest("GET", "/api/v4/test?a_url_longer_than_10_characters_including_query_params", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, http.StatusRequestURITooLong, response.Code)
+	})
+}
+
+func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
+	jsonReaderHandler := func(context *Context, writer http.ResponseWriter, request *http.Request) {
+		// read request body into a string
+		var body *string
+		err := json.NewDecoder(request.Body).Decode(&body)
+		if err != nil {
+			fmt.Printf("Error occurred reading request body, error: %s", err.Error())
+			context.Err = model.NewAppError("TestHandlerServeHTTPRequestPayloadLimit", "", nil, "", http.StatusBadRequest).Wrap(err)
+		} else {
+			fmt.Printf("Received body- '%s'", *body)
+			writer.WriteHeader(http.StatusOK)
+		}
+	}
+
+	t.Run("should allow payload smaller than set limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		web := New(th.Server)
+		handler := web.NewHandler(jsonReaderHandler)
+
+		body := strings.NewReader("\"a very small request body\"")
+		request := httptest.NewRequest("POST", "/api/v4/test", body)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+	})
+
+	t.Run("Should error out when request body is larger than set limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ServiceSettings.MaximumPayloadSizeBytes = model.NewInt64(1)
+		})
+
+		web := New(th.Server)
+		handler := web.NewHandler(jsonReaderHandler)
+
+		// this is a 600 character long string.
+		// Even though we have set the max payload size to be 1, we still need at least 513 bytes (1 byte configured + bytes.MinRead = 1 + 512 = 513) bytes.
+		// This is because the buffer will always be at least bytes.MinRead bytes large, so the effective payload limit is bytes.MinRead + the configured value.
+		body := strings.NewReader("\"weunfrwghyajuaqqkrecexurpmrmgpimjieymiwfhfrrrgiqpqrznkjtubwcuybyixyxwtwddpytukritccyugyeuvdtzjkkyiwhquzqkrqkhgyyfqnquzchjqkrkzfrxthduzizqtdxzqirxhzihbivmkdwpbeddepdanzuuzqxbdqfvgkwumervhghywexitbjdnvxcniuamwmqdecbbqbgnjjqwkdcucvnpwynuruztpdtmmvbpkevurpjdwdhpayaindzmnkmyybudfkjdkqwuiviriudtqytybuwfkkwpepwhpekfewnxgpkfctdqjmemngvntnizvfznaiqpbumgtcxidvawtgcdyqijbxzrgezvjmcwikiabbpqabrwfgncrmvqththepffatnhchhnmrhkuqvgrzfugzhuwicaemhcacrazmgzmrgrkuhwucfydhwxfhzfukzjhvdxkuhzjrxwippxadvwzigndxwdxvganxggjjxwdqtgqgnpqqygndviadvttwfntcreitijaqrpfygdehbcftyfcjvrfwvjmbtdptutjgtbyhbyddfecyyujgrxyujzmryymj\"")
+		request := httptest.NewRequest("POST", "/api/v4/test", body)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusRequestEntityTooLarge, response.Code)
+	})
 }
