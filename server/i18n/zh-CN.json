@@ -3130,14 +3130,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "创建 Elasticsearch 批量处理器失败。"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "开始 Elasticsearch 批量处理器失败。"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "ElasticSearch 已停止。"
   },
@@ -8862,10 +8854,6 @@
     "translation": "无法打开 Elasticsearch CA 文件"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "解码 Elasticsearch CA 失败"
-  },
-  {
     "id": "app.user.get_badge_count.app_error",
     "translation": "无法获取用户的奖章数目。"
   },
@@ -10040,5 +10028,57 @@
   {
     "id": "app.user.save.groupname.app_error",
     "translation": "无法判断该用户名是否已存在"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "向缓冲区写入日志时发生错误"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "在保存密码时发生了内部错误。"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "无法取得实例 URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "无法接受远程集群的邀请"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "无法解码 base64 字符串"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "远程阵列并未删除"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "无法通过给定的密码加密远程阵列的邀请"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "远程阵列未找到"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "无法通过给定的密码解密远程阵列的邀请"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "无法设定自定义状态。"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "在保存密码时发生了内部错误。"
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "密码长度不能超过 72 个字符。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "搜索后端无效。必须是 elasticsearch 或 opensearch。"
   }
 ]
