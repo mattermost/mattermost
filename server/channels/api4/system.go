@@ -428,7 +428,7 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := c.App.GetMattermostLog(c.AppContext)
+	fileData, err := c.App.Srv().Platform().GetLogFile(c.AppContext)
 	if err != nil {
 		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return

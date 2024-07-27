@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -207,7 +208,7 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.L
 	return lines, nil
 }
 
-func (ps *PlatformService) GetLogFile() (*model.FileData, error) {
+func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
 	if !*ps.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
 	}
@@ -224,7 +225,7 @@ func (ps *PlatformService) GetLogFile() (*model.FileData, error) {
 	}, nil
 }
 
-func (ps *PlatformService) GetNotificationLogFile() (*model.FileData, error) {
+func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileData, error) {
 	if !*ps.Config().NotificationLogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
 	}

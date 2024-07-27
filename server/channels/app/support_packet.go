@@ -23,15 +23,15 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		"support packet": a.generateSupportPacketYaml,
 		"plugins":        a.createPluginsFile,
 		"config":         a.createSanitizedConfigFile,
-		"cpu profile":    a.createCPUProfile,
-		"heap profile":   a.createHeapProfile,
-		"goroutines":     a.createGoroutineProfile,
+		"cpu profile":    a.Srv().Platform().CreateCPUProfile,
+		"heap profile":   a.Srv().Platform().CreateHeapProfile,
+		"goroutines":     a.Srv().Platform().CreateGoroutineProfile,
 		"metadata":       a.createSupportPacketMetadata,
 	}
 
 	if options.IncludeLogs {
-		functions["mattermost log"] = a.GetMattermostLog
-		functions["notification log"] = a.getNotificationsLog
+		functions["mattermost log"] = a.Srv().Platform().GetLogFile
+		functions["notification log"] = a.Srv().Platform().GetNotificationLogFile
 	}
 
 	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
@@ -347,26 +347,6 @@ func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {
 		Body:     pluginsPrettyJSON,
 	}
 	return fileData, nil
-}
-
-func (a *App) GetMattermostLog(rctx request.CTX) (*model.FileData, error) {
-	return a.Srv().Platform().GetLogFile()
-}
-
-func (a *App) getNotificationsLog(_ request.CTX) (*model.FileData, error) {
-	return a.Srv().Platform().GetNotificationLogFile()
-}
-
-func (a *App) createCPUProfile(_ request.CTX) (*model.FileData, error) {
-	return a.Srv().Platform().CreateCPUProfile()
-}
-
-func (a *App) createHeapProfile(request.CTX) (*model.FileData, error) {
-	return a.Srv().Platform().CreateHeapProfile()
-}
-
-func (a *App) createGoroutineProfile(_ request.CTX) (*model.FileData, error) {
-	return a.Srv().Platform().CreateGoroutineProfile()
 }
 
 func (a *App) createSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
