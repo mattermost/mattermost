@@ -138,7 +138,8 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 <WithTooltip
                     id='userGuideHelpTooltip'
                     placement='bottom'
-                    title={this.state.buttonActive ? '' : tooltipText}
+                    disabled={this.state.buttonActive}
+                    title={tooltipText}
                 >
                     <IconButton
                         size={'sm'}
