@@ -59,4 +59,3 @@ const WithTooltip = ({
 };
 
 export default WithTooltip;
-
