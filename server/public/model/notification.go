@@ -18,6 +18,8 @@ const (
 	NotificationTypeWebsocket NotificationType = "websocket"
 	NotificationTypePush      NotificationType = "push"
 
+	NotificationNoPlatform = "no_platform"
+
 	NotificationReasonFetchError                         NotificationReason = "fetch_error"
 	NotificationReasonParseError                         NotificationReason = "json_parse_error"
 	NotificationReasonPushProxyError                     NotificationReason = "push_proxy_error"

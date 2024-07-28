@@ -598,7 +598,7 @@ func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", err)
+		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", appErr)
 	}
 
 	return nil
@@ -619,7 +619,7 @@ func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for deleting empty drafts: %w", err)
+		return fmt.Errorf("failed to start job for deleting empty drafts: %w", appErr)
 	}
 
 	return nil
@@ -640,7 +640,28 @@ func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", err)
+		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", appErr)
+	}
+
+	return nil
+}
+
+func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteDmsPreferences); err == nil {
+		return nil
+	}
+
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
+	if err != nil {
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
+	}
+	if len(jobs) > 0 {
+		return nil
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
+		return fmt.Errorf("failed to start job for deleting dm preferences: %w", appErr)
 	}
 
 	return nil
@@ -688,6 +709,7 @@ func (s *Server) doAppMigrations() {
 		{"Encode S3 Image Paths Migration", s.doCloudS3PathMigrations},
 		{"Delete Empty Drafts Migration", s.doDeleteEmptyDraftsMigration},
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
+		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 	}
 
 	c := request.EmptyContext(s.Log())

@@ -28,13 +28,18 @@ export interface UploadFile {
     onError: (err: string | ServerError, clientId: string, channelId: string, rootId: string) => void;
 }
 
-export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile): ThunkActionFunc<XMLHttpRequest> {
+export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile, isBookmark?: boolean): ThunkActionFunc<XMLHttpRequest> {
     return (dispatch, getState) => {
         dispatch({type: FileTypes.UPLOAD_FILES_REQUEST});
 
+        let url = Client4.getFilesRoute();
+        if (isBookmark) {
+            url += '?bookmark=true';
+        }
+
         const xhr = new XMLHttpRequest();
 
-        xhr.open('POST', Client4.getFilesRoute(), true);
+        xhr.open('POST', url, true);
 
         const client4Headers = Client4.getOptions({method: 'POST'}).headers;
         Object.keys(client4Headers).forEach((client4Header) => {

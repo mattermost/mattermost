@@ -65,6 +65,11 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
                 width: '150px',
             },
         },
+        {
+            style: {
+                width: '150px',
+            },
+        },
     ];
 
     const defaultProps = {

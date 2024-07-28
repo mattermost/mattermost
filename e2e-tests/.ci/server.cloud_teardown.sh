@@ -19,6 +19,6 @@ MME2E_ENVCHECK_MSG="variable required for tearing down cloud tests, but is empty
 : "${MM_CUSTOMER_ID:?$MME2E_ENVCHECK_MSG}"
 
 mme2e_log "Deleting customer $MM_CUSTOMER_ID."
-curl -X DELETE "${CWS_URL}/api/v1/internal/tests/customers/$MM_CUSTOMER_ID/payment-customer"
+curl -fsSL -X DELETE -H @- "${CWS_URL}/api/v1/tests/customers/$MM_CUSTOMER_ID/payment-customer" <<<"${CWS_EXTRA_HTTP_HEADERS:-}"
 
 mme2e_log "Test cloud customer deleted, MM_CUSTOMER_ID: $MM_CUSTOMER_ID."
