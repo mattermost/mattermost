@@ -592,9 +592,10 @@ function stats(state: RelationOneToOne<Channel, ChannelStats> = {}, action: AnyA
     case ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS: {
         const nextState = {...state};
         const id = action.id;
+        const receivedCount = action.count ? action.count : 1;
         const nextStat = nextState[id];
         if (nextStat) {
-            const count = nextStat.member_count + 1;
+            const count = nextStat.member_count + receivedCount;
             return {
                 ...nextState,
                 [id]: {

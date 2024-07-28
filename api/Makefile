@@ -40,6 +40,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/roles.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/schemes.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/service_terms.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/remoteclusters.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/sharedchannels.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/reactions.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/actions.yaml >> $(V4_YAML)
@@ -53,6 +54,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/bookmarks.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/reports.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/limits.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/logs.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/outgoing_oauth_connections.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
 	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi

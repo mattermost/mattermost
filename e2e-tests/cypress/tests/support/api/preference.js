@@ -77,24 +77,6 @@ Cypress.Commands.add('apiSaveMessageDisplayPreference', (value = 'clean') => {
 });
 
 /**
- * Saves show markdown preview option preference of a user directly via API
- * This API assume that the user is logged in and has cookie to access
- * @param {String} value - Either "true" to show the options (default) or "false"
- */
-Cypress.Commands.add('apiSaveShowMarkdownPreviewPreference', (value = 'true') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'advanced_settings',
-            name: 'feature_enabled_markdown_preview',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-/**
  * Saves teammate name display preference of a user directly via API
  * This API assume that the user is logged in and has cookie to access
  * @param {String} value - Either "username" (default), "nickname_full_name" or "full_name"

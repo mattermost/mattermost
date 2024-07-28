@@ -56,6 +56,7 @@ type S3FileBackendNoBucketError struct{}
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
 	bucketNotFound = "NoSuchBucket"
+	invalidBucket  = "InvalidBucketName"
 )
 
 var (
@@ -211,7 +212,7 @@ func (b *S3FileBackend) TestConnection() error {
 		obj := <-b.client.ListObjects(ctx, b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
-			if typedErr.Code != bucketNotFound {
+			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
 				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
 			}
 			exists = false
@@ -219,7 +220,10 @@ func (b *S3FileBackend) TestConnection() error {
 	} else {
 		exists, err = b.client.BucketExists(ctx, b.bucket)
 		if err != nil {
-			return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+			typedErr := s3.ToErrorResponse(err)
+			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
+				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+			}
 		}
 	}
 

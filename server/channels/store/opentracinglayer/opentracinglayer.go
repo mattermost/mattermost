@@ -7378,6 +7378,24 @@ func (s *OpenTracingLayerPreferenceStore) DeleteCategoryAndName(category string,
 	return err
 }
 
+func (s *OpenTracingLayerPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.DeleteInvalidVisibleDmsGms")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PreferenceStore.DeleteInvalidVisibleDmsGms()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.DeleteOrphanedRows")
@@ -7828,7 +7846,7 @@ func (s *OpenTracingLayerRemoteClusterStore) Get(remoteClusterId string) (*model
 	return result, err
 }
 
-func (s *OpenTracingLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+func (s *OpenTracingLayerRemoteClusterStore) GetAll(offset int, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -7837,7 +7855,7 @@ func (s *OpenTracingLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQu
 	}()
 
 	defer span.Finish()
-	result, err := s.RemoteClusterStore.GetAll(filter)
+	result, err := s.RemoteClusterStore.GetAll(offset, limit, filter)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

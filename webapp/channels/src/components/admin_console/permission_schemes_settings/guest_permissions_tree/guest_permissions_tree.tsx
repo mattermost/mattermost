@@ -31,7 +31,14 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
             Permissions.CREATE_PRIVATE_CHANNEL,
             Permissions.EDIT_POST,
             Permissions.DELETE_POST,
-            Permissions.CREATE_POST,
+            {
+                id: 'guest_' + Permissions.CREATE_POST,
+                combined: true,
+                permissions: [
+                    Permissions.CREATE_POST,
+                    Permissions.UPLOAD_FILE,
+                ],
+            },
             {
                 id: 'guest_reactions',
                 combined: true,
