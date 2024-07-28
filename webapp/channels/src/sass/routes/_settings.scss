@@ -72,6 +72,36 @@
             flex-direction: column;
             padding: 0;
             margin: 0 auto;
+
+            .loadingIndicator {
+                display: block;
+                width: 32px;
+                height: 32px;
+                margin: 36px auto 48px;
+                font-size: 32px;
+            }
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            .adminModeBadge {
+                display: flex;
+                width: 86px;
+                min-width: 86px;
+                height: 22px;
+                align-items: center;
+                padding: 2px var(--spacing-xxxs, 6px);
+                border-radius: 4px;
+                margin-top: 10px;
+                margin-bottom: auto;
+                margin-left: 24px;
+                background: var(--error-text);
+                color: white;
+                font-size: 12px;
+                font-weight: 600;
+                gap: 6px;
+            }
         }
 
         li {
@@ -189,6 +219,7 @@
             display: flex;
             width: 100%;
             max-width: 1000px;
+            min-height: 475px;
             min-height: 0;
             flex: 1;
             margin: 0 auto;
@@ -203,11 +234,11 @@
 
             .settings-links {
                 overflow: auto;
-                width: 180px;
-                background: var(--sidebar-bg);
+                width: 232px;
+                padding: 16px;
+                background: rgba(var(--center-channel-color-rgb), 0.04);
 
                 .nav {
-                    position: fixed;
                     margin: 0;
                 }
             }
@@ -439,11 +470,11 @@
                 }
 
                 .divider-dark {
-                    border-bottom: 1px solid #aaa;
+                    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                 }
 
                 .divider-light {
-                    border-bottom: 1px solid lightgrey;
+                    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
                     & + .divider-light {
                         display: none;
@@ -530,23 +561,29 @@
         }
 
         .nav-pills > li button {
-            color: rgba(var(--sidebar-text-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 
     .nav-pills {
         > li {
-            margin: 0;
+            margin-bottom: 8px;
 
             button {
                 overflow: hidden;
                 width: 100%;
-                padding: 8px 15px;
-                border-radius: 0;
+                padding: 6px 15px;
+                border-radius: 4px;
                 color: $gray;
+                font-weight: 600;
                 text-align: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                    color: rgba(var(--center-channel-color-rgb), 0.8);
+                }
             }
 
             img {
@@ -563,14 +600,6 @@
                 margin-right: 8px;
                 font-size: 18px;
                 text-align: center;
-            }
-
-            &:hover {
-                button,
-                button:hover,
-                button:focus {
-                    background: var(--sidebar-text-hover-bg);
-                }
             }
 
             &.active {
@@ -596,7 +625,8 @@
                 }
 
                 button {
-                    @include alpha-property(background-color, $black, 0.1);
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: v(button-bg);
                 }
             }
         }

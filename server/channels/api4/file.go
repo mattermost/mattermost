@@ -32,16 +32,16 @@ const (
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
-	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods("GET")
-	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods("GET")
-	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods("GET")
-	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods("GET")
-	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods("GET")
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods(http.MethodPost)
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET", "HEAD")
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
