@@ -3135,14 +3135,6 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Fehler beim Starten der Elasticsearch-Massenverarbeitung."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ist bereits angehalten."
   },
@@ -8970,10 +8962,6 @@
     "translation": "Die CA-Datei für Elasticsearch konnte nicht geöffnet werden"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Dekodierung der CA für Elasticsearch fehlgeschlagen"
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server ist nicht verfügbar."
   },
@@ -10064,5 +10052,41 @@
   {
     "id": "model.user.pre_save.password_too_long.app_error",
     "translation": "Dein Passwort darf nicht mehr als 72 Zeichen enthalten."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Die URL der Instanzseite konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Die Remote-Cluster-Einladung konnte nicht akzeptiert werden"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Konnte den Base64-String nicht dekodieren"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote-Cluster wurde nicht gelöscht"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Die Remote Cluster Einladung konnte nicht mit dem angegebenen Passwort verschlüsselt werden"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster nicht gefunden"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Der benutzerdefinierte Status kann nicht gesetzt werden."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Der Remote Cluster Einladung konnte mit dem angegebenen Passwort nicht entschlüsselt werden"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ungültiges Such-Backend. Es muss entweder elasticsearch oder opensearch sein."
   }
 ]

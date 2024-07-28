@@ -17,19 +17,19 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods(http.MethodPost)
 
-	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(getRemoteClusters)).Methods("GET")
-	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(createRemoteCluster)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/accept_invite", api.APISessionRequired(remoteClusterAcceptInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}/generate_invite", api.APISessionRequired(generateRemoteClusterInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteCluster)).Methods("GET")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(patchRemoteCluster)).Methods("PATCH")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRemoteCluster)).Methods("DELETE")
+	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(getRemoteClusters)).Methods(http.MethodGet)
+	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(createRemoteCluster)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/accept_invite", api.APISessionRequired(remoteClusterAcceptInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}/generate_invite", api.APISessionRequired(generateRemoteClusterInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteCluster)).Methods(http.MethodGet)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(patchRemoteCluster)).Methods(http.MethodPatch)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRemoteCluster)).Methods(http.MethodDelete)
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {

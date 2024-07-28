@@ -1884,20 +1884,12 @@
     "translation": "Elasticsearch вече е спрян."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Неуспешно стартиране на групов процесор Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Неуспешен анализ на версията на сървъра Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Неуспешно получаване версията на сървъра Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Неуспешно създаване на групов процесор Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
