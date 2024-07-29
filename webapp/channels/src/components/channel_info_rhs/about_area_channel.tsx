@@ -28,8 +28,7 @@ const ChannelPurpose = styled.div`
 `;
 
 const ChannelDescriptionHeading = styled.div`
-    color: var(--center-channel-color-75, rgba(63, 67, 80, 0.75));
-    font-family: "Open Sans";
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     font-style: normal;
     font-weight: 600;
