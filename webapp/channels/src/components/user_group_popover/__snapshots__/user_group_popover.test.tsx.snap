@@ -1018,22 +1018,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           <button
                                             className="UserButton-bZNeGd lLsMM"
                                           >
-                                            <Memo(Avatar)
-                                              className="avatar-post-preview"
-                                              size="sm"
-                                              tabIndex={-1}
-                                              url="/api/v4/users/id0/image?_=0"
-                                              username="username0"
+                                            <span
+                                              className="status-wrapper"
                                             >
-                                              <img
-                                                alt="username0 profile image"
-                                                className="Avatar Avatar-sm avatar-post-preview"
-                                                loading="lazy"
-                                                onError={[Function]}
-                                                src="/api/v4/users/id0/image?_=0"
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
                                                 tabIndex={-1}
-                                              />
-                                            </Memo(Avatar)>
+                                                url="/api/v4/users/id0/image?_=0"
+                                                username="username0"
+                                              >
+                                                <img
+                                                  alt="username0 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id0/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Memo(StatusIcon)
+                                                button={true}
+                                                className="status user-popover-status"
+                                                status="offline"
+                                              >
+                                                <StatusOfflineIcon
+                                                  className="status user-popover-status"
+                                                >
+                                                  <span
+                                                    className="status user-popover-status"
+                                                  >
+                                                    <svg
+                                                      aria-label="Offline Icon"
+                                                      className="offline--icon"
+                                                      height="100%"
+                                                      role="img"
+                                                      style={
+                                                        Object {
+                                                          "clipRule": "evenodd",
+                                                          "fillRule": "evenodd",
+                                                          "strokeLinejoin": "round",
+                                                          "strokeMiterlimit": 1.41421,
+                                                        }
+                                                      }
+                                                      viewBox="0 0 20 20"
+                                                      width="100%"
+                                                    >
+                                                      <path
+                                                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                                      />
+                                                    </svg>
+                                                  </span>
+                                                </StatusOfflineIcon>
+                                              </Memo(StatusIcon)>
+                                            </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
                                             >
@@ -1237,22 +1275,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           <button
                                             className="UserButton-bZNeGd lLsMM"
                                           >
-                                            <Memo(Avatar)
-                                              className="avatar-post-preview"
-                                              size="sm"
-                                              tabIndex={-1}
-                                              url="/api/v4/users/id1/image?_=0"
-                                              username="username1"
+                                            <span
+                                              className="status-wrapper"
                                             >
-                                              <img
-                                                alt="username1 profile image"
-                                                className="Avatar Avatar-sm avatar-post-preview"
-                                                loading="lazy"
-                                                onError={[Function]}
-                                                src="/api/v4/users/id1/image?_=0"
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
                                                 tabIndex={-1}
-                                              />
-                                            </Memo(Avatar)>
+                                                url="/api/v4/users/id1/image?_=0"
+                                                username="username1"
+                                              >
+                                                <img
+                                                  alt="username1 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id1/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Memo(StatusIcon)
+                                                button={true}
+                                                className="status user-popover-status"
+                                                status="offline"
+                                              >
+                                                <StatusOfflineIcon
+                                                  className="status user-popover-status"
+                                                >
+                                                  <span
+                                                    className="status user-popover-status"
+                                                  >
+                                                    <svg
+                                                      aria-label="Offline Icon"
+                                                      className="offline--icon"
+                                                      height="100%"
+                                                      role="img"
+                                                      style={
+                                                        Object {
+                                                          "clipRule": "evenodd",
+                                                          "fillRule": "evenodd",
+                                                          "strokeLinejoin": "round",
+                                                          "strokeMiterlimit": 1.41421,
+                                                        }
+                                                      }
+                                                      viewBox="0 0 20 20"
+                                                      width="100%"
+                                                    >
+                                                      <path
+                                                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                                      />
+                                                    </svg>
+                                                  </span>
+                                                </StatusOfflineIcon>
+                                              </Memo(StatusIcon)>
+                                            </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
                                             >
@@ -1456,22 +1532,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           <button
                                             className="UserButton-bZNeGd lLsMM"
                                           >
-                                            <Memo(Avatar)
-                                              className="avatar-post-preview"
-                                              size="sm"
-                                              tabIndex={-1}
-                                              url="/api/v4/users/id10/image?_=0"
-                                              username="username10"
+                                            <span
+                                              className="status-wrapper"
                                             >
-                                              <img
-                                                alt="username10 profile image"
-                                                className="Avatar Avatar-sm avatar-post-preview"
-                                                loading="lazy"
-                                                onError={[Function]}
-                                                src="/api/v4/users/id10/image?_=0"
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
                                                 tabIndex={-1}
-                                              />
-                                            </Memo(Avatar)>
+                                                url="/api/v4/users/id10/image?_=0"
+                                                username="username10"
+                                              >
+                                                <img
+                                                  alt="username10 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id10/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Memo(StatusIcon)
+                                                button={true}
+                                                className="status user-popover-status"
+                                                status="offline"
+                                              >
+                                                <StatusOfflineIcon
+                                                  className="status user-popover-status"
+                                                >
+                                                  <span
+                                                    className="status user-popover-status"
+                                                  >
+                                                    <svg
+                                                      aria-label="Offline Icon"
+                                                      className="offline--icon"
+                                                      height="100%"
+                                                      role="img"
+                                                      style={
+                                                        Object {
+                                                          "clipRule": "evenodd",
+                                                          "fillRule": "evenodd",
+                                                          "strokeLinejoin": "round",
+                                                          "strokeMiterlimit": 1.41421,
+                                                        }
+                                                      }
+                                                      viewBox="0 0 20 20"
+                                                      width="100%"
+                                                    >
+                                                      <path
+                                                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                                      />
+                                                    </svg>
+                                                  </span>
+                                                </StatusOfflineIcon>
+                                              </Memo(StatusIcon)>
+                                            </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
                                             >
@@ -1675,22 +1789,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           <button
                                             className="UserButton-bZNeGd lLsMM"
                                           >
-                                            <Memo(Avatar)
-                                              className="avatar-post-preview"
-                                              size="sm"
-                                              tabIndex={-1}
-                                              url="/api/v4/users/id11/image?_=0"
-                                              username="username11"
+                                            <span
+                                              className="status-wrapper"
                                             >
-                                              <img
-                                                alt="username11 profile image"
-                                                className="Avatar Avatar-sm avatar-post-preview"
-                                                loading="lazy"
-                                                onError={[Function]}
-                                                src="/api/v4/users/id11/image?_=0"
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
                                                 tabIndex={-1}
-                                              />
-                                            </Memo(Avatar)>
+                                                url="/api/v4/users/id11/image?_=0"
+                                                username="username11"
+                                              >
+                                                <img
+                                                  alt="username11 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id11/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Memo(StatusIcon)
+                                                button={true}
+                                                className="status user-popover-status"
+                                                status="offline"
+                                              >
+                                                <StatusOfflineIcon
+                                                  className="status user-popover-status"
+                                                >
+                                                  <span
+                                                    className="status user-popover-status"
+                                                  >
+                                                    <svg
+                                                      aria-label="Offline Icon"
+                                                      className="offline--icon"
+                                                      height="100%"
+                                                      role="img"
+                                                      style={
+                                                        Object {
+                                                          "clipRule": "evenodd",
+                                                          "fillRule": "evenodd",
+                                                          "strokeLinejoin": "round",
+                                                          "strokeMiterlimit": 1.41421,
+                                                        }
+                                                      }
+                                                      viewBox="0 0 20 20"
+                                                      width="100%"
+                                                    >
+                                                      <path
+                                                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                                      />
+                                                    </svg>
+                                                  </span>
+                                                </StatusOfflineIcon>
+                                              </Memo(StatusIcon)>
+                                            </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
                                             >
@@ -1894,22 +2046,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           <button
                                             className="UserButton-bZNeGd lLsMM"
                                           >
-                                            <Memo(Avatar)
-                                              className="avatar-post-preview"
-                                              size="sm"
-                                              tabIndex={-1}
-                                              url="/api/v4/users/id12/image?_=0"
-                                              username="username12"
+                                            <span
+                                              className="status-wrapper"
                                             >
-                                              <img
-                                                alt="username12 profile image"
-                                                className="Avatar Avatar-sm avatar-post-preview"
-                                                loading="lazy"
-                                                onError={[Function]}
-                                                src="/api/v4/users/id12/image?_=0"
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
                                                 tabIndex={-1}
-                                              />
-                                            </Memo(Avatar)>
+                                                url="/api/v4/users/id12/image?_=0"
+                                                username="username12"
+                                              >
+                                                <img
+                                                  alt="username12 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id12/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Memo(StatusIcon)
+                                                button={true}
+                                                className="status user-popover-status"
+                                                status="offline"
+                                              >
+                                                <StatusOfflineIcon
+                                                  className="status user-popover-status"
+                                                >
+                                                  <span
+                                                    className="status user-popover-status"
+                                                  >
+                                                    <svg
+                                                      aria-label="Offline Icon"
+                                                      className="offline--icon"
+                                                      height="100%"
+                                                      role="img"
+                                                      style={
+                                                        Object {
+                                                          "clipRule": "evenodd",
+                                                          "fillRule": "evenodd",
+                                                          "strokeLinejoin": "round",
+                                                          "strokeMiterlimit": 1.41421,
+                                                        }
+                                                      }
+                                                      viewBox="0 0 20 20"
+                                                      width="100%"
+                                                    >
+                                                      <path
+                                                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                                      />
+                                                    </svg>
+                                                  </span>
+                                                </StatusOfflineIcon>
+                                              </Memo(StatusIcon)>
+                                            </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
                                             >
