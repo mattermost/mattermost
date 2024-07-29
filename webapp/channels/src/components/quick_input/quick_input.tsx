@@ -8,10 +8,7 @@ import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AutosizeTextarea from 'components/autosize_textarea';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 export type Props = {
 
@@ -147,7 +144,7 @@ export class QuickInput extends React.PureComponent<Props> {
     };
 
     render() {
-        let clearableTooltipText = this.props.clearableTooltipText;
+        let clearableTooltipText = this.props.clearableTooltipText || '';
         if (!clearableTooltipText) {
             clearableTooltipText = (
                 <FormattedMessage
@@ -156,12 +153,6 @@ export class QuickInput extends React.PureComponent<Props> {
                 />
             );
         }
-
-        const clearableTooltip = (
-            <Tooltip id={'InputClearTooltip'}>
-                {clearableTooltipText}
-            </Tooltip>
-        );
 
         const {
             value,
@@ -206,10 +197,10 @@ export class QuickInput extends React.PureComponent<Props> {
                 onTouchEnd={this.onClear}
                 role='button'
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id='inputClearTooltip'
+                    title={clearableTooltipText}
                     placement={tooltipPosition}
-                    overlay={clearableTooltip}
                 >
                     <span
                         className='input-clear-x'
@@ -217,7 +208,7 @@ export class QuickInput extends React.PureComponent<Props> {
                     >
                         <i className='icon icon-close-circle'/>
                     </span>
-                </OverlayTrigger>
+                </WithTooltip>
             </div>
             }
         </div>);

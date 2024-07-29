@@ -17,14 +17,11 @@ import {isAddChannelDropdownOpen} from 'selectors/views/add_channel_dropdown';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import MainMenu from 'components/main_menu';
-import OverlayTrigger from 'components/overlay_trigger';
 import AddChannelDropdown from 'components/sidebar/add_channel_dropdown';
-import Tooltip from 'components/tooltip';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -124,17 +121,14 @@ const SidebarHeader = (props: Props) => {
             <SidebarHeaderContainer
                 id={'sidebar-header-container'}
             >
-                <OverlayTrigger
-
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='bottom'
-                    overlay={currentTeam.description?.length ? (
-                        <Tooltip id='team-name__tooltip'>{currentTeam.description}</Tooltip>
-                    ) : <></>}
+                <MenuWrapper
+                    onToggle={handleMenuToggle}
+                    className='SidebarHeaderMenuWrapper test-team-header'
                 >
-                    <MenuWrapper
-                        onToggle={handleMenuToggle}
-                        className='SidebarHeaderMenuWrapper test-team-header'
+                    <WithTooltip
+                        id='team-name__tooltip'
+                        title={currentTeam.description ? currentTeam.description : currentTeam.display_name}
+                        placement='bottom'
                     >
                         <SidebarHeading>
                             <button className='style--none sidebar-header'>
@@ -142,12 +136,12 @@ const SidebarHeader = (props: Props) => {
                                 <i className='icon icon-chevron-down'/>
                             </button>
                         </SidebarHeading>
-                        <MainMenu
-                            id='sidebarDropdownMenu'
-                            usageDeltaTeams={usageDeltas.teams.active}
-                        />
-                    </MenuWrapper>
-                </OverlayTrigger>
+                    </WithTooltip>
+                    <MainMenu
+                        id='sidebarDropdownMenu'
+                        usageDeltaTeams={usageDeltas.teams.active}
+                    />
+                </MenuWrapper>
                 <AddChannelDropdown
                     showNewChannelModal={props.showNewChannelModal}
                     showMoreChannelsModal={props.showMoreChannelsModal}
