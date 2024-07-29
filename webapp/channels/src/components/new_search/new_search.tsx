@@ -83,6 +83,12 @@ const NewSearch = (): JSX.Element => {
                 setFocused(false);
             }
 
+            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
+                e.preventDefault();
+                setCurrentChannel('');
+                setFocused(false);
+            }
+
             if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F)) {
                 if (!isDesktop && !e.shiftKey) {
                     return;
@@ -134,6 +140,10 @@ const NewSearch = (): JSX.Element => {
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
             return;
         }
+        if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
+            setFocused(false)
+            return;
+        }
         openSearchBox();
     }, [openSearchBox]);
 
@@ -160,6 +170,8 @@ const NewSearch = (): JSX.Element => {
             onKeyDown={openSearchBoxOnKeyPress}
             onClick={openSearchBox}
             id='searchFormContainer'
+            role='search'
+            className='a11y__region'
         >
             <i className='icon icon-magnify'/>
             {searchTerms && <span tabIndex={0}>{searchTerms}</span>}

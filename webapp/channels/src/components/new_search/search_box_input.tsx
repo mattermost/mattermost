@@ -104,7 +104,7 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
             <i className='icon icon-magnify'/>
             <QuickInput
                 ref={inputRef}
-                className={'search-bar form-control a11y__region'}
+                className={'search-bar form-control'}
                 aria-describedby={'searchbar-help-popup'}
                 aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
