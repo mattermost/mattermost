@@ -108,6 +108,12 @@ var RootCmd = &cobra.Command{
 		}
 		quiet := viper.GetBool("quiet")
 		printer.SetQuiet(quiet)
+
+		perPage, err := cmd.Flags().GetInt("per-page")
+		if err == nil && perPage > MaxPageSize {
+			perPage = MaxPageSize
+			printer.PrintError(fmt.Sprintf("Per page value is greater than the maximum allowed. Reduced to %d", MaxPageSize))
+		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		_ = printer.Flush()

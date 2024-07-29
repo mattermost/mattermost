@@ -143,11 +143,6 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string, status
 		return err
 	}
 
-	if perPage > MaxPageSize {
-		perPage = MaxPageSize
-		printer.PrintError(fmt.Sprintf("Per page value is greater than the maximum allowed. Reduced to %d", MaxPageSize))
-	}
-
 	if showAll {
 		page = 0
 	}
