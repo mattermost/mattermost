@@ -1530,7 +1530,7 @@
   "admin.office365.userTitle": "User API Endpoint:",
   "admin.openid_custom_feature_discovery.copy": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Apple, Okta, OneLogin, and more.",
   "admin.openid_custom_feature_discovery.title": "Integrate OpenID Connect with Mattermost Professional",
-  "admin.openid_feature_discovery.copy": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Google, Office 365, Apple, Okta, OneLogin, and more.",
+  "admin.openid_feature_discovery.copy": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Google, Entra ID, Apple, Okta, OneLogin, and more.",
   "admin.openid_feature_discovery.title": "Integrate OpenID Connect with Mattermost Professional",
   "admin.openid.buttonColorDesc": "Specify the color of the OpenID login button for white labeling purposes. Use a hex code with a #-sign before the code.",
   "admin.openid.buttonColorTitle": "Button Color:",
