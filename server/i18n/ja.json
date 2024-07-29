@@ -3130,14 +3130,6 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした。"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch Bulk Processorを開始することが出来ませんでした。"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています。"
   },
@@ -8962,10 +8954,6 @@
     "translation": "ElasticsearchのCAファイルを開くことができませんでした"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Elasticsearch用CAのデコードに失敗しました"
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWSサーバーは使用できません。"
   },
@@ -10056,5 +10044,41 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "ジョブの状態を更新できませんでした。無効なステータスが設定されました"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "インスタンスサイトのURLを取得できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "リモートクラスタの招待を承認できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "base64文字列をデコードできませんでした"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "リモートクラスタが削除されていません"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "提供されたパスワードを使用してリモートクラスタの招待を暗号化できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "リモートクラスターが見つかりません"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "提供されたパスワードを使用してリモートクラスタの招待を復号化できませんでした"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "カスタムステータスを設定できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "検索バックエンドが不正です。elasticsearch または opensearch のいずれかでなければなりません。"
   }
 ]

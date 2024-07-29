@@ -97,6 +97,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="top"
                   trigger={
@@ -234,6 +235,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="top"
                   trigger={
@@ -371,6 +373,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="top"
                   trigger={
@@ -482,6 +485,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           <OverlayTrigger
             defaultOverlayShown={false}
             delay={400}
+            disabled={false}
             overlay={<Unknown />}
             placement="top"
             trigger={
@@ -968,6 +972,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="top"
                   trigger={
@@ -1105,6 +1110,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="top"
                   trigger={
@@ -1242,6 +1248,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="top"
                   trigger={
@@ -1353,6 +1360,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           <OverlayTrigger
             defaultOverlayShown={false}
             delay={400}
+            disabled={false}
             overlay={<Unknown />}
             placement="top"
             trigger={

@@ -456,7 +456,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
-		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
@@ -494,6 +493,7 @@ func (ts *TelemetryService) trackConfig() {
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
+		"maximum_url_length":                                      *cfg.ServiceSettings.MaximumURLLength,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
