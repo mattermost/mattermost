@@ -10,25 +10,25 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
 import {AnnouncementBarTypes} from 'utils/constants';
+import {requestNotificationPermission, isNotificationAPISupported} from 'utils/notifications';
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));
 
-    const [show, setShow] = useState(Notification.permission === 'default');
+    const [show, setShow] = useState(isNotificationAPISupported() ? Notification.permission === 'default' : false);
 
-    const handleClose = useCallback(() => {
-        // If the user closes the bar, don't show the notification bar any more for the rest of the session, but
-        // show it again after refresh.
+    const handleClick = useCallback(async () => {
+        await requestNotificationPermission();
         setShow(false);
     }, []);
 
-    const handleClick = useCallback(() => {
-        Notification.requestPermission().then(() => {
-            setShow(false);
-        });
+    const handleClose = useCallback(() => {
+        // If the user closes the bar, don't show the notification bar any more for the rest of the session, but
+        // show it again on app refresh.
+        setShow(false);
     }, []);
 
-    if (!show || !isLoggedIn) {
+    if (!show || !isLoggedIn || !isNotificationAPISupported()) {
         return null;
     }
 
@@ -39,7 +39,7 @@ export default function NotificationPermissionBar() {
             type={AnnouncementBarTypes.ANNOUNCEMENT}
             message={
                 <FormattedMessage
-                    id='announcement_bar.notification.needs_permisson'
+                    id='announcement_bar.notification.needs_permission'
                     defaultMessage='We need your permission to show desktop notifications.'
                 />
             }
