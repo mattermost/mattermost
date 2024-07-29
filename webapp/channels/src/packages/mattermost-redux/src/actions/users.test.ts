@@ -446,6 +446,65 @@ describe('Actions.Users', () => {
         });
     });
 
+    describe('getMissingProfilesByUsernames', () => {
+        const testUserId1 = 'testUser1';
+        const testUsername1 = 'test_user_1';
+        const testUserId2 = 'testUser2';
+        const testUsername2 = 'test_user_2';
+        const testUserId3 = 'testUser3';
+        const testUsername3 = 'test_user_3';
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            expect(jest.getTimerCount()).toBe(0);
+
+            jest.useRealTimers();
+        });
+
+        test('should be able to get a single user', async () => {
+            const profileMock = nock(Client4.getBaseRoute()).
+                post('/users/usernames', [testUsername1]).
+                reply(200, [TestHelper.getUserMock({id: testUserId1, username: testUsername1})]);
+
+            const promise = store.dispatch(Actions.getMissingProfilesByUsernames([testUsername1]));
+
+            jest.advanceTimersToNextTimer();
+
+            await promise;
+
+            expect(profileMock.isDone()).toBe(true);
+            expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
+        });
+
+        test('should be able to get multiple users', async () => {
+            const profileMock = nock(Client4.getBaseRoute()).
+                post('/users/usernames', [testUsername1, testUsername2, testUsername3]).
+                reply(200, [
+                    TestHelper.getUserMock({id: testUserId1, username: testUsername1}),
+                    TestHelper.getUserMock({id: testUserId2, username: testUsername2}),
+                    TestHelper.getUserMock({id: testUserId3, username: testUsername3}),
+                ]);
+
+            const promise = store.dispatch(Actions.getMissingProfilesByUsernames([
+                testUsername1,
+                testUsername2,
+                testUsername3,
+            ]));
+
+            jest.advanceTimersToNextTimer();
+
+            await promise;
+
+            expect(profileMock.isDone()).toBe(true);
+            expect(store.getState().entities.users.profiles[testUserId1]).toMatchObject({id: testUserId1});
+            expect(store.getState().entities.users.profiles[testUserId2]).toMatchObject({id: testUserId2});
+            expect(store.getState().entities.users.profiles[testUserId3]).toMatchObject({id: testUserId3});
+        });
+    });
+
     it('getProfilesByUsernames', async () => {
         nock(Client4.getBaseRoute()).
             post('/users').

@@ -21,7 +21,7 @@ import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId, getUser as selectUser, getUsers} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
@@ -181,7 +181,7 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Arra
 
         const missingIds = userIds.filter((id) => !selectUser(state, id));
 
-        if (missingIds.length !== 0) {
+        if (missingIds.length > 0) {
             if (getIsUserStatusesConfigEnabled(state)) {
                 loaders.missingStatusLoader.addIdsToLoad(missingIds);
             }
@@ -195,26 +195,25 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Arra
     };
 }
 
-export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<UserProfile[]> {
-    return async (dispatch, getState) => {
-        const {profiles} = getState().entities.users;
-
-        const usernameProfiles = Object.values(profiles).reduce((acc, profile: any) => {
-            acc[profile.username] = profile;
-            return acc;
-        }, {} as Record<string, UserProfile>);
-        const missingUsernames: string[] = [];
-        usernames.forEach((username) => {
-            if (!usernameProfiles[username]) {
-                missingUsernames.push(username);
-            }
-        });
-
-        if (missingUsernames.length > 0) {
-            return dispatch(getProfilesByUsernames(missingUsernames));
+export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<Array<UserProfile['username']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.missingUsernameLoader) {
+            loaders.missingUsernameLoader = new DelayedDataLoader<UserProfile['username']>({
+                fetchBatch: (usernames) => dispatch(getProfilesByUsernames(usernames)),
+                maxBatchSize: maxUserIdsPerProfilesRequest,
+                wait: missingProfilesWait,
+            });
         }
 
-        return {data: []};
+        const usersByUsername = getUsersByUsername(getState());
+
+        const missingUsernames = usernames.filter((username) => !usersByUsername[username]);
+
+        if (missingUsernames.length > 0) {
+            await loaders.missingUsernameLoader.addIdsAndWait(missingUsernames);
+        }
+
+        return {data: missingUsernames};
     };
 }
 
