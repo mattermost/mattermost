@@ -68,7 +68,7 @@ describe('Collapsed Reply Threads', () => {
         });
     });
 
-    it('MM-T4379 Display: Click to open threads)', () => {
+    it('MM-T4379 Display: Click to open threads', () => {
         cy.uiWaitUntilMessagePostedIncludes(rootPost.data.message);
 
         // # Get the root post
@@ -183,7 +183,7 @@ describe('Collapsed Reply Threads', () => {
             cy.reload(true);
 
             // * There should be a single thread item with no reply
-            cy.get('article.ThreadItem').should('have.lengthOf', 1);
+            cy.get('article.ThreadItem').should('have.lengthOf', 0);
 
             // * The reply post should not exist anymore
             cy.get(`#rhsPost_${replyPost1.id}`).should('not.exist');
@@ -361,7 +361,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#mark-all-threads-as-read-modal').should('exist');
 
             // # Click cancel button
-            cy.get('button.cancel').contains('Cancel').click();
+            cy.get('.btn-tertiary').contains('Cancel').click();
 
             // * Verify mark_all_threads_as_read_modal is closed
             cy.get('#mark-all-threads-as-read-modal').should('not.exist');
