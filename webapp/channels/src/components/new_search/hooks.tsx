@@ -22,7 +22,7 @@ import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/se
 import SearchFileExtensionSuggestion from './extension_suggestions';
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-const useSearchSuggestions = (searchType: string, searchTerms: string, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
+const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
     const dispatch = useDispatch();
 
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
@@ -41,7 +41,19 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
             return;
         }
 
-        suggestionProviders.current[0].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
+        let partialSearchTerms = searchTerms.slice(0, caretPosition);
+        if (searchTerms.length > caretPosition && searchTerms[caretPosition] !== ' ') {
+            return;
+        }
+
+        if (caretPosition > 0 && searchTerms[caretPosition - 1] === ' ') {
+            return;
+        }
+
+        suggestionProviders.current[0].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
+            if (caretPosition !== getCaretPosition()) {
+                return;
+            }
             res.component = SearchDateSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
@@ -49,7 +61,11 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
             setSelectedOption(0);
             setSuggestionsHeader(<span/>);
         });
-        suggestionProviders.current[1].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
+
+        suggestionProviders.current[1].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
+            if (caretPosition !== getCaretPosition()) {
+                return;
+            }
             res.component = SearchChannelSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
@@ -62,7 +78,11 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
                 />,
             );
         });
-        suggestionProviders.current[2].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
+
+        suggestionProviders.current[2].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
+            if (caretPosition !== getCaretPosition()) {
+                return;
+            }
             res.component = SearchUserSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
@@ -75,8 +95,12 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
                 />,
             );
         });
-        suggestionProviders.current[3].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
+
+        suggestionProviders.current[3].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
             if (searchType !== 'files') {
+                return;
+            }
+            if (caretPosition !== getCaretPosition()) {
                 return;
             }
             res.component = SearchFileExtensionSuggestion;
@@ -91,7 +115,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
                 />,
             );
         });
-    }, [searchTerms, searchType]);
+    }, [searchTerms, searchType, caretPosition]);
 
     return [providerResults, suggestionsHeader];
 };

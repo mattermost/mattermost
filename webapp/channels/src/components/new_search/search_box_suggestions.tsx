@@ -35,6 +35,7 @@ type Props = {
     searchType: string;
     searchTerms: string;
     setSearchTerms: (searchTerms: string) => void;
+    getCaretPosition: () => number;
     selectedOption: number;
     setSelectedOption: (idx: number) => void;
     suggestionsHeader: React.ReactNode;
@@ -43,13 +44,14 @@ type Props = {
     onSearch: (searchType: string, searchTerms: string) => void;
 }
 
-const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, focus, onSearch}: Props) => {
+const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, getCaretPosition, suggestionsHeader, providerResults, selectedOption, setSelectedOption, focus, onSearch}: Props) => {
     const license = useSelector(getLicense);
     const updateSearchValue = useCallback((value: string, matchedPretext: string) => {
-        const changedValue = value.replace(matchedPretext, '');
-        setSearchTerms(searchTerms + changedValue + ' ');
-        focus(searchTerms.length + changedValue.length + 1);
-    }, [searchTerms, setSearchTerms, focus]);
+        const caretPosition = getCaretPosition();
+        const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
+        setSearchTerms(searchTerms.slice(0, caretPosition).replace(matchedPretext, '') + value +  extraSpace + searchTerms.slice(caretPosition));
+        focus(caretPosition + value.length + 1 - matchedPretext.length);
+    }, [searchTerms, setSearchTerms, focus, getCaretPosition]);
 
     const runSearch = useCallback((searchTerms: string) => {
         onSearch(searchType, searchTerms);
