@@ -1831,7 +1831,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	_, resp, err := client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	client.Logout(context.Background())
 	_, resp, err = client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)

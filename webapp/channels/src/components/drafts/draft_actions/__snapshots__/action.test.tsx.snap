@@ -4,27 +4,10 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
 <div
   className="DraftAction"
 >
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="tooltip_"
-        placement="right"
-      >
-        
-      </Tooltip>
-    }
+  <WithTooltip
+    id="drafts_action_tooltip_"
     placement="top"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+    title=""
   >
     <button
       className="DraftAction__button"
@@ -35,6 +18,6 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
         className="icon "
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;

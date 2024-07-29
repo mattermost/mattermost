@@ -357,7 +357,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
@@ -488,7 +488,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Missing team",
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -783,7 +783,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	}
 
 	if !model.IsValidId(previewedPostID) {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -798,7 +798,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	previewedPost, err := a.GetSinglePost(c, previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -815,7 +815,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 
 	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
 	if nErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Cannot get channel members",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -830,7 +830,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -2044,7 +2044,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
+	if !a.SessionHasPermissionToReadChannel(c, *session, channel) {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})

@@ -1378,10 +1378,3 @@ func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User,
 	api.recordTime(startTime, "UpdateUserRoles", _returnsB == nil)
 	return _returnsA, _returnsB
 }
-
-func (api *apiTimerLayer) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GenerateSupportMetadata(pluginMeta)
-	api.recordTime(startTime, "GenerateSupportMetadata", _returnsB == nil)
-	return _returnsA, _returnsB
-}

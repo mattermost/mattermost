@@ -3135,14 +3135,6 @@
     "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Starten van Elasticsearch-bulkprocessor is mislukt."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch is reeds gestopt."
   },
@@ -8131,10 +8123,6 @@
     "translation": "Uitnodiging aangemaakt."
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kon de uitnodiging niet decoderen. Onjuist wachtwoord of ongeldige uitnodiging: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Kon beveiligde verbindingen niet ophalen: {{.Error}}"
   },
@@ -8972,10 +8960,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decodering van de CA voor Elasticsearch is mislukt"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10064,5 +10048,57 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Kan taakstatus niet bijwerken. Ongeldige status ingesteld"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Fout bij het schrijven van de logs naar buffer"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Er is een interne fout opgetreden bij het opslaan van het wachtwoord."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Er is een interne fout opgetreden bij het opslaan van het wachtwoord."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Je wachtwoord mag niet meer dan 72 tekens bevatten."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Kon de url van de instantie-site niet ophalen"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Kan de uitnodiging voor de externe cluster niet accepteren"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Kon de base64 string niet decoderen"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster is niet verwijderd"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Kan de uitnodiging van de externe cluster niet versleutelen met het opgegeven wachtwoord"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Externe Cluster niet gevonden"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Kon de uitnodiging voor de externe cluster niet decoderen met het opgegeven wachtwoord"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Kan aangepaste status niet instellen."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ongeldig zoekbackend. Moet elasticsearch of opensearch zijn."
   }
 ]

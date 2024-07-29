@@ -15,7 +15,7 @@ import (
 )
 
 func TestPreferenceStore(t *testing.T) {
-	StoreTest(t, storetest.TestPreferenceStore)
+	StoreTestWithSqlStore(t, storetest.TestPreferenceStore)
 }
 
 func TestDeleteUnusedFeatures(t *testing.T) {
