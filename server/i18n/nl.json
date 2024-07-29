@@ -10096,5 +10096,9 @@
   {
     "id": "app.import.custom_status.error",
     "translation": "Kan aangepaste status niet instellen."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ongeldig zoekbackend. Moet elasticsearch of opensearch zijn."
   }
 ]

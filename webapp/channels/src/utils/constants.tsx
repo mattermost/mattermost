@@ -680,11 +680,6 @@ export const CrtTutorialSteps = {
     FINISHED: 999,
 };
 
-export const ExploreOtherToolsTourSteps = {
-    PLAYBOOKS_TOUR: 1,
-    FINISHED: 999,
-};
-
 export const CrtTutorialTriggerSteps = {
     START: 0,
     STARTED: 1,
@@ -1440,7 +1435,6 @@ export const Constants = {
     AdminTutorialSteps,
     CrtTutorialSteps,
     CrtTutorialTriggerSteps,
-    ExploreOtherToolsTourSteps,
     CrtThreadPaneSteps,
     PostTypes,
     ErrorPageTypes,
