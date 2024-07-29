@@ -22,8 +22,7 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -31,7 +30,6 @@ import {isKeyPressed} from 'utils/keyboard';
 import {MenuContext, useMenuContextValue} from './menu_context';
 import {MuiMenuStyled} from './menu_styled';
 
-const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
 
@@ -203,21 +201,14 @@ export function Menu(props: Props) {
 
         if (props.menuButtonTooltip && props.menuButtonTooltip.text && !isMobileView) {
             return (
-                <OverlayTrigger
-                    delayShow={OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id={props.menuButtonTooltip.id}
+                    title={props.menuButtonTooltip.text}
                     placement={props?.menuButtonTooltip?.placement ?? 'top'}
-                    overlay={
-                        <Tooltip
-                            id={props.menuButtonTooltip.id}
-                            className={props.menuButtonTooltip?.class ?? ''}
-                        >
-                            {props.menuButtonTooltip.text}
-                        </Tooltip>
-                    }
                     disabled={isMenuOpen}
                 >
                     {triggerElement}
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
