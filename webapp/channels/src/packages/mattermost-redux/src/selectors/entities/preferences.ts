@@ -349,10 +349,6 @@ export function onboardingTourTipsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
 }
 
-export function cloudReverseTrial(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
-}
-
 export function moveThreadsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).IsLicensed === 'true';
 }
