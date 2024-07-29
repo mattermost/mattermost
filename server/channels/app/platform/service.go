@@ -159,11 +159,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
-				RedisAddr:      *cacheConfig.RedisAddress,
-				RedisPassword:  *cacheConfig.RedisPassword,
-				RedisDB:        *cacheConfig.RedisDB,
-				MaxIdleConns:   *cacheConfig.MaxIdleConns,
-				MaxActiveConns: *cacheConfig.MaxActiveConns,
+				RedisAddr:     *cacheConfig.RedisAddress,
+				RedisPassword: *cacheConfig.RedisPassword,
+				RedisDB:       *cacheConfig.RedisDB,
 			},
 		)
 	}

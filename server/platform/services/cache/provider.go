@@ -78,11 +78,9 @@ type redisProvider struct {
 }
 
 type RedisOptions struct {
-	RedisAddr      string
-	RedisPassword  string
-	RedisDB        int
-	MaxIdleConns   int
-	MaxActiveConns int
+	RedisAddr     string
+	RedisPassword string
+	RedisDB       int
 }
 
 // NewProvider creates a new CacheProvider

@@ -933,12 +933,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type CacheSettings struct {
-	CacheType      *string `access:"cache,write_restrictable,cloud_restrictable"`
-	RedisAddress   *string `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisPassword  *string `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisDB        *int    `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConns   *int    `access:"write_restrictable,cloud_restrictable"`
-	MaxActiveConns *int    `access:"write_restrictable,cloud_restrictable"`
+	CacheType     *string `access:"cache,write_restrictable,cloud_restrictable"`
+	RedisAddress  *string `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisPassword *string `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisDB       *int    `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *CacheSettings) SetDefaults() {
@@ -956,14 +954,6 @@ func (s *CacheSettings) SetDefaults() {
 
 	if s.RedisDB == nil {
 		s.RedisDB = NewInt(-1)
-	}
-
-	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = NewInt(0)
-	}
-
-	if s.MaxActiveConns == nil {
-		s.MaxActiveConns = NewInt(0)
 	}
 }
 
