@@ -14,12 +14,9 @@ import {autocompleteUsersInTeam} from 'actions/user_actions';
 import type {ProviderResult} from 'components/suggestion/provider';
 import type Provider from 'components/suggestion/provider';
 import SearchChannelProvider from 'components/suggestion/search_channel_provider';
-import SearchChannelSuggestion from 'components/suggestion/search_channel_suggestion';
 import SearchDateProvider from 'components/suggestion/search_date_provider';
-import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
-import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/search_user_provider';
+import SearchUserProvider from 'components/suggestion/search_user_provider';
 
-import SearchFileExtensionSuggestion from './extension_suggestions';
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
 const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
@@ -54,7 +51,6 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
             if (caretPosition !== getCaretPosition()) {
                 return;
             }
-            res.component = SearchDateSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
@@ -66,7 +62,6 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
             if (caretPosition !== getCaretPosition()) {
                 return;
             }
-            res.component = SearchChannelSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
@@ -83,7 +78,6 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
             if (caretPosition !== getCaretPosition()) {
                 return;
             }
-            res.component = SearchUserSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
@@ -103,7 +97,6 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
             if (caretPosition !== getCaretPosition()) {
                 return;
             }
-            res.component = SearchFileExtensionSuggestion;
             res.items = res.items.slice(0, 10);
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);

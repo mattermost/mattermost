@@ -3,7 +3,7 @@
 
 import type {ResultsCallback} from 'components/suggestion/provider';
 import Provider from 'components/suggestion/provider';
-import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
+import SearchFileExtensionSuggestion from './extension_suggestions';
 
 import Constants from 'utils/constants';
 
@@ -57,7 +57,7 @@ export class SearchFileExtensionProvider extends Provider {
                 matchedPretext,
                 terms,
                 items: extensions,
-                component: SearchDateSuggestion,
+                component: SearchFileExtensionSuggestion,
             });
         }
 
@@ -69,6 +69,6 @@ export class SearchFileExtensionProvider extends Provider {
     }
 
     presentationType() {
-        return 'date';
+        return 'text';
     }
 }
