@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -42,10 +42,13 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
         focus(searchTerms.length + changedValue.length + 1);
     }, [searchTerms, setSearchTerms, focus]);
 
-    let SearchPluginHints = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
-    if (license.IsLicensed !== 'true') {
-        SearchPluginHints = [];
-    }
+    const SearchPluginHintsList = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
+    const SearchPluginHints = useMemo(() => {
+        if (license.IsLicensed !== 'true') {
+            return [];
+        }
+        return SearchPluginHintsList;
+    }, [SearchPluginHintsList, license.IsLicensed]);
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
         return (

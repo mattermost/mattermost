@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -32,6 +32,22 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
         new SearchFileExtensionProvider(),
     ]);
 
+    const headers = useMemo<React.ReactNode[]>(() => [
+        <span/>,
+        <FormattedMessage
+            id='search_bar.channels'
+            defaultMessage='Channels'
+        />,
+        <FormattedMessage
+            id='search_bar.users'
+            defaultMessage='Users'
+        />,
+        <FormattedMessage
+            id='search_bar.file_types'
+            defaultMessage='File types'
+        />
+    ], []);
+
     useEffect(() => {
         setProviderResults(null);
         if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
@@ -47,66 +63,20 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
             return;
         }
 
-        suggestionProviders.current[0].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
-            if (caretPosition !== getCaretPosition()) {
-                return;
-            }
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(<span/>);
-        });
-
-        suggestionProviders.current[1].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
-            if (caretPosition !== getCaretPosition()) {
-                return;
-            }
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(
-                <FormattedMessage
-                    id='search_bar.channels'
-                    defaultMessage='Channels'
-                />,
-            );
-        });
-
-        suggestionProviders.current[2].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
-            if (caretPosition !== getCaretPosition()) {
-                return;
-            }
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(
-                <FormattedMessage
-                    id='search_bar.users'
-                    defaultMessage='Users'
-                />,
-            );
-        });
-
-        suggestionProviders.current[3].handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
-            if (searchType !== 'files') {
-                return;
-            }
-            if (caretPosition !== getCaretPosition()) {
-                return;
-            }
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(
-                <FormattedMessage
-                    id='search_bar.file_types'
-                    defaultMessage='File types'
-                />,
-            );
+        suggestionProviders.current.forEach((provider, idx) => {
+            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
+                if (idx ===  3 && searchType !== 'files') {
+                    return;
+                }
+                if (caretPosition !== getCaretPosition()) {
+                    return;
+                }
+                res.items = res.items.slice(0, 10);
+                res.terms = res.terms.slice(0, 10);
+                setProviderResults(res);
+                setSelectedOption(0);
+                setSuggestionsHeader(headers[idx]);
+            })
         });
     }, [searchTerms, searchType, caretPosition]);
 

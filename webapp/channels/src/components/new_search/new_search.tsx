@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
@@ -66,10 +66,14 @@ const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const license = useSelector(getLicense);
-    let pluginSearch = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
-    if (license.IsLicensed !== 'true') {
-        pluginSearch = [];
-    }
+    const pluginSearchButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
+    const pluginSearch = useMemo(() => {
+        if (license.IsLicensed !== 'true') {
+            return [];
+        }
+        return pluginSearchButtons;
+    }, [license.IsLicensed, pluginSearchButtons]);
+
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
