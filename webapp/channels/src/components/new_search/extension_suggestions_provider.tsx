@@ -13,28 +13,29 @@ export type ExtensionItem = {
     value: string;
 };
 
+let globalExtensions: ExtensionItem[] = [];
+Constants.TEXT_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'text', value: extension}));
+Constants.IMAGE_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'image', value: extension}));
+Constants.AUDIO_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'audio', value: extension}));
+Constants.VIDEO_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'video', value: extension}));
+Constants.PRESENTATION_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'presentation', value: extension}));
+Constants.SPREADSHEET_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'spreadsheet', value: extension}));
+Constants.WORD_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'word', value: extension}));
+Constants.CODE_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'code', value: extension}));
+Constants.PDF_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'pdf', value: extension}));
+Constants.PATCH_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'patch', value: extension}));
+Constants.SVG_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'svg', value: extension}));
+globalExtensions.sort((a, b) => a.label.localeCompare(b.label));
+
 export class SearchFileExtensionProvider extends Provider {
     handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<ExtensionItem>) {
         const captured = (/\b(?:ext):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const matchedPretext = captured[1];
 
-            let extensions: ExtensionItem[] = [];
+            let extensions: ExtensionItem[] = [...globalExtensions];
             if (matchedPretext.length > 0) {
-                Constants.TEXT_TYPES.forEach((extension) => extensions.push({label: extension, type: 'text', value: extension}));
-                Constants.IMAGE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'image', value: extension}));
-                Constants.AUDIO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'audio', value: extension}));
-                Constants.VIDEO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'video', value: extension}));
-                Constants.PRESENTATION_TYPES.forEach((extension) => extensions.push({label: extension, type: 'presentation', value: extension}));
-                Constants.SPREADSHEET_TYPES.forEach((extension) => extensions.push({label: extension, type: 'spreadsheet', value: extension}));
-                Constants.WORD_TYPES.forEach((extension) => extensions.push({label: extension, type: 'word', value: extension}));
-                Constants.CODE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'code', value: extension}));
-                Constants.PDF_TYPES.forEach((extension) => extensions.push({label: extension, type: 'pdf', value: extension}));
-                Constants.PATCH_TYPES.forEach((extension) => extensions.push({label: extension, type: 'patch', value: extension}));
-                Constants.SVG_TYPES.forEach((extension) => extensions.push({label: extension, type: 'svg', value: extension}));
-
                 extensions = extensions.filter((extension) => extension.label.startsWith(matchedPretext.toLowerCase()));
-                extensions.sort((a, b) => a.label.localeCompare(b.label));
                 extensions = extensions.slice(0, 10);
             } else {
                 extensions = [

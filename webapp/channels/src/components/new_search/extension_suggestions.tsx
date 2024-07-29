@@ -116,6 +116,6 @@ const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, Suggestio
         </SearchFileExtensionSuggestionContainer>
     );
 });
-SearchFileExtensionSuggestion.displayName = 'SearcFileExtensionSuggestion';
+SearchFileExtensionSuggestion.displayName = 'SearchFileExtensionSuggestion';
 
 export default SearchFileExtensionSuggestion;
