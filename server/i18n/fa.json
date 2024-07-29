@@ -1916,20 +1916,12 @@
     "translation": "جستجوی الاستیک از قبل متوقف شده است."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک راه اندازی نشد."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "نسخه سرور جستجوی الاستیک دریافت نشد."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک ایجاد نشد."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",

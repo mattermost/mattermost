@@ -108,7 +108,7 @@ export type State = {
     error: JSX.Element | string;
     adding: boolean;
     image: string;
-    orientationStyles: {transform: string; transformOrigin: string};
+    orientationStyles: { transform: string; transformOrigin: string };
     pictureFile: File | null | string;
 };
 
@@ -519,13 +519,14 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     {removeImageIcon}
                                 </div>
                                 <div
-                                    className='btn btn-sm btn-primary btn-file'
+                                    className='btn btn-primary btn-file'
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'
                                         defaultMessage='Upload Image'
                                     />
                                     <input
+                                        className='btn-file__input'
                                         accept={Constants.ACCEPT_STATIC_IMAGE}
                                         type='file'
                                         onChange={this.updatePicture}
