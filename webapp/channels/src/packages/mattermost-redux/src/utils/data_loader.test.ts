@@ -28,7 +28,7 @@ describe('IntervalDataLoader', () => {
 
         loader.startIntervalIfNeeded(period);
 
-        loader.addIdsToLoad(['id1']);
+        loader.queueForLoading(['id1']);
 
         expect(fetchBatch).not.toHaveBeenCalled();
 
@@ -41,14 +41,14 @@ describe('IntervalDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledTimes(1);
         expect(fetchBatch).toHaveBeenCalledWith(['id1']);
 
-        loader.addIdsToLoad(['id2']);
+        loader.queueForLoading(['id2']);
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
 
         jest.advanceTimersByTime(period / 2);
 
-        loader.addIdsToLoad(['id3']);
-        loader.addIdsToLoad(['id4']);
+        loader.queueForLoading(['id3']);
+        loader.queueForLoading(['id4']);
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
 
@@ -58,7 +58,7 @@ describe('IntervalDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledWith(['id2', 'id3', 'id4']);
     });
 
-    test('should dedupe identifiers passed to addIdsToLoad', () => {
+    test('should dedupe identifiers passed to queueForLoading', () => {
         const fetchBatch = jest.fn();
 
         loader = new IntervalDataLoader({
@@ -68,16 +68,16 @@ describe('IntervalDataLoader', () => {
 
         loader.startIntervalIfNeeded(period);
 
-        loader.addIdsToLoad(['id1', 'id1', 'id1']);
-        loader.addIdsToLoad(['id2']);
-        loader.addIdsToLoad(['id2']);
+        loader.queueForLoading(['id1', 'id1', 'id1']);
+        loader.queueForLoading(['id2']);
+        loader.queueForLoading(['id2']);
 
         jest.advanceTimersToNextTimer();
 
         expect(fetchBatch).toHaveBeenCalledWith(['id1', 'id2']);
     });
 
-    test("shouldn't fetch data when nothing addIdsToLoad hasn't been called", () => {
+    test("shouldn't fetch data when nothing queueForLoading hasn't been called", () => {
         const fetchBatch = jest.fn();
 
         loader = new IntervalDataLoader({
@@ -104,7 +104,7 @@ describe('IntervalDataLoader', () => {
 
         loader.startIntervalIfNeeded(period);
 
-        loader.addIdsToLoad(['id1', 'id2', 'id3', 'id4', 'id5']);
+        loader.queueForLoading(['id1', 'id2', 'id3', 'id4', 'id5']);
 
         jest.advanceTimersToNextTimer();
 
@@ -116,10 +116,10 @@ describe('IntervalDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledTimes(2);
         expect(fetchBatch).toHaveBeenCalledWith(['id4', 'id5']);
 
-        loader.addIdsToLoad(['id6']);
-        loader.addIdsToLoad(['id7']);
-        loader.addIdsToLoad(['id8']);
-        loader.addIdsToLoad(['id9']);
+        loader.queueForLoading(['id6']);
+        loader.queueForLoading(['id7']);
+        loader.queueForLoading(['id8']);
+        loader.queueForLoading(['id9']);
 
         jest.advanceTimersToNextTimer();
 
@@ -142,7 +142,7 @@ describe('IntervalDataLoader', () => {
 
         expect(jest.getTimerCount()).toBe(0);
 
-        loader.addIdsToLoad(['id1']);
+        loader.queueForLoading(['id1']);
         loader.startIntervalIfNeeded(period);
 
         expect(jest.getTimerCount()).toBe(1);
@@ -185,15 +185,15 @@ describe('DelayedDataLoader', () => {
 
         expect(jest.getTimerCount()).toBe(0);
 
-        loader.addIdsToLoad(['id1']);
+        loader.queueForLoading(['id1']);
 
         expect(jest.getTimerCount()).toBe(1);
         expect(fetchBatch).not.toHaveBeenCalled();
 
         jest.advanceTimersByTime(wait / 2);
 
-        loader.addIdsToLoad(['id2']);
-        loader.addIdsToLoad(['id3']);
+        loader.queueForLoading(['id2']);
+        loader.queueForLoading(['id3']);
 
         expect(jest.getTimerCount()).toBe(1);
         expect(fetchBatch).not.toHaveBeenCalled();
@@ -214,15 +214,15 @@ describe('DelayedDataLoader', () => {
             wait,
         });
 
-        loader.addIdsToLoad(['id1']);
+        loader.queueForLoading(['id1']);
 
         jest.advanceTimersToNextTimer();
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
         expect(fetchBatch).toHaveBeenCalledWith(['id1']);
 
-        loader.addIdsToLoad(['id2']);
-        loader.addIdsToLoad(['id3']);
+        loader.queueForLoading(['id2']);
+        loader.queueForLoading(['id3']);
 
         jest.advanceTimersToNextTimer();
 
@@ -230,7 +230,7 @@ describe('DelayedDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledWith(['id2', 'id3']);
     });
 
-    test('should be able to have multiple callers await on addIdsAndWait at once', async () => {
+    test('should be able to have multiple callers await on queueAndWait at once', async () => {
         const fetchBatch = jest.fn().mockResolvedValue(true);
 
         loader = new DelayedDataLoader({
@@ -240,17 +240,17 @@ describe('DelayedDataLoader', () => {
         });
 
         let firstResolved = false;
-        loader.addIdsAndWait(['id1']).then(() => {
+        loader.queueAndWait(['id1']).then(() => {
             firstResolved = true;
         });
 
         let secondResolved = false;
-        loader.addIdsAndWait(['id2']).then(() => {
+        loader.queueAndWait(['id2']).then(() => {
             secondResolved = true;
         });
 
         let thirdResolved = false;
-        loader.addIdsAndWait(['id3']).then(() => {
+        loader.queueAndWait(['id3']).then(() => {
             thirdResolved = true;
         });
 
@@ -289,7 +289,7 @@ describe('DelayedDataLoader', () => {
         });
 
         let firstResolved = false;
-        loader.addIdsAndWait(['id1']).then(() => {
+        loader.queueAndWait(['id1']).then(() => {
             firstResolved = true;
         });
 
@@ -300,7 +300,7 @@ describe('DelayedDataLoader', () => {
         expect(firstResolved).toBe(false);
 
         let secondResolved = false;
-        loader.addIdsAndWait(['id2']).then(() => {
+        loader.queueAndWait(['id2']).then(() => {
             secondResolved = true;
         });
 
@@ -323,7 +323,7 @@ describe('DelayedDataLoader', () => {
 
         // ...start a third batch...
         let thirdResolved = false;
-        loader.addIdsAndWait(['id3']).then(() => {
+        loader.queueAndWait(['id3']).then(() => {
             thirdResolved = true;
         });
 
@@ -356,7 +356,7 @@ describe('DelayedDataLoader', () => {
             wait,
         });
 
-        loader.addIdsToLoad(['id1', 'id2', 'id3', 'id4', 'id5']);
+        loader.queueForLoading(['id1', 'id2', 'id3', 'id4', 'id5']);
 
         jest.advanceTimersToNextTimer();
 
@@ -381,8 +381,8 @@ describe('DelayedDataLoader', () => {
             wait,
         });
 
-        loader.addIdsToLoad(['id1', 'id2']);
-        loader.addIdsToLoad(['id3', 'id4']);
+        loader.queueForLoading(['id1', 'id2']);
+        loader.queueForLoading(['id3', 'id4']);
 
         jest.advanceTimersToNextTimer();
 
@@ -408,12 +408,12 @@ describe('DelayedDataLoader', () => {
         });
 
         let firstResolved = false;
-        loader.addIdsAndWait(['id1', 'id2']).then(() => {
+        loader.queueAndWait(['id1', 'id2']).then(() => {
             firstResolved = true;
         });
 
         let secondResolved = false;
-        loader.addIdsAndWait(['id3', 'id4']).then(() => {
+        loader.queueAndWait(['id3', 'id4']).then(() => {
             secondResolved = true;
         });
 
@@ -457,27 +457,27 @@ describe('DelayedDataLoader', () => {
         });
 
         let firstResolved = false;
-        loader.addIdsAndWait(['id1', 'id2']).then(() => {
+        loader.queueAndWait(['id1', 'id2']).then(() => {
             firstResolved = true;
         });
 
         let secondResolved = false;
-        loader.addIdsAndWait(['id3', 'id2']).then(() => {
+        loader.queueAndWait(['id3', 'id2']).then(() => {
             secondResolved = true;
         });
 
         let thirdResolved = false;
-        loader.addIdsAndWait(['id3', 'id4']).then(() => {
+        loader.queueAndWait(['id3', 'id4']).then(() => {
             thirdResolved = true;
         });
 
         let fourthResolved = false;
-        loader.addIdsAndWait(['id2', 'id3']).then(() => {
+        loader.queueAndWait(['id2', 'id3']).then(() => {
             fourthResolved = true;
         });
 
         let fifthResolved = false;
-        loader.addIdsAndWait(['id3', 'id4', 'id5', 'id6', 'id7']).then(() => {
+        loader.queueAndWait(['id3', 'id4', 'id5', 'id6', 'id7']).then(() => {
             fifthResolved = true;
         });
 

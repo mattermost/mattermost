@@ -33,7 +33,7 @@ export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProf
             });
         }
 
-        loaders.pollingStatusLoader.addIdsToLoad(userIdsForStatus);
+        loaders.pollingStatusLoader.queueForLoading(userIdsForStatus);
 
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 
@@ -63,7 +63,7 @@ export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserPr
             });
         }
 
-        loaders.pollingProfileLoader.addIdsToLoad(userIdsForProfile);
+        loaders.pollingProfileLoader.queueForLoading(userIdsForProfile);
 
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 

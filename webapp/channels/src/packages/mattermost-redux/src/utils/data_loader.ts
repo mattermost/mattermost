@@ -19,7 +19,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
         this.maxBatchSize = args.maxBatchSize;
     }
 
-    public addIdsToLoad(identifiersToLoad: Identifier[]): void {
+    public queueForLoading(identifiersToLoad: Identifier[]): void {
         for (const identifier of identifiersToLoad) {
             if (!identifier) {
                 continue;
@@ -114,10 +114,10 @@ export class IntervalDataLoader<Identifier, Result = unknown> extends DataLoader
  * requesting data immediately, it will wait for an amount of time and then send a request to the server for all of
  * the data which would've been requested during that time.
  *
- * More specifically, when addIdsToLoad is first called, a timer will be started. Until that timer expires, any other
- * calls to addIdsToLoad will have the provided identifiers added to the ones from the initial call. When the timer
+ * More specifically, when queueForLoading is first called, a timer will be started. Until that timer expires, any other
+ * calls to queueForLoading will have the provided identifiers added to the ones from the initial call. When the timer
  * finally expires, the request will be sent to the server to fetch that data. After that, the timer will be reset and
- * the next call to addIdsToLoad will start a new one.
+ * the next call to queueForLoading will start a new one.
  *
  * DelayedDataLoader is intended to be used for loading data for components which are unaware of each other and may appear
  * in different places in the UI from each other which could otherwise send repeated requests for the same or similar
@@ -142,15 +142,15 @@ export class DelayedDataLoader<Identifier> extends DataLoader<Identifier, Promis
         this.wait = args.wait;
     }
 
-    public addIdsToLoad(identifiersToLoad: Identifier[]): void {
-        super.addIdsToLoad(identifiersToLoad);
+    public queueForLoading(identifiersToLoad: Identifier[]): void {
+        super.queueForLoading(identifiersToLoad);
 
         this.startTimeoutIfNeeded();
     }
 
-    public addIdsAndWait(identifiersToLoad: Identifier[]): Promise<void> {
+    public queueAndWait(identifiersToLoad: Identifier[]): Promise<void> {
         return new Promise((resolve) => {
-            super.addIdsToLoad(identifiersToLoad);
+            super.queueForLoading(identifiersToLoad);
 
             // Save the callback that will resolve this promise so that the caller of this method can wait for its
             // data to be loaded
@@ -170,7 +170,7 @@ export class DelayedDataLoader<Identifier> extends DataLoader<Identifier, Promis
 
         this.timeoutId = window.setTimeout(() => {
             // Ensure that timeoutId and timeoutCallbacks are cleared before doing anything async so that any calls to
-            // addIdsToLoad which come while we're fetching this batch are added to the next batch instead
+            // queueForLoading which come while we're fetching this batch are added to the next batch instead
             this.timeoutId = -1;
 
             const {identifiers, moreToLoad} = this.startBatch();

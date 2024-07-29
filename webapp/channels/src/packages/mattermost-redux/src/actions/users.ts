@@ -183,10 +183,10 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Arra
 
         if (missingIds.length > 0) {
             if (getIsUserStatusesConfigEnabled(state)) {
-                loaders.missingStatusLoader.addIdsToLoad(missingIds);
+                loaders.missingStatusLoader.queueForLoading(missingIds);
             }
 
-            await loaders.missingProfileLoader.addIdsAndWait(missingIds);
+            await loaders.missingProfileLoader.queueAndWait(missingIds);
         }
 
         return {
@@ -210,7 +210,7 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAs
         const missingUsernames = usernames.filter((username) => !usersByUsername[username]);
 
         if (missingUsernames.length > 0) {
-            await loaders.missingUsernameLoader.addIdsAndWait(missingUsernames);
+            await loaders.missingUsernameLoader.queueAndWait(missingUsernames);
         }
 
         return {data: missingUsernames};
