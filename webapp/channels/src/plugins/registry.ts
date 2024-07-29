@@ -128,7 +128,7 @@ export default class PluginRegistry {
 
     // Register components for search.
     // Accepts React components. Returns a unique identifier.
-    registerSearchComponents = reArg(['buttonComponent', 'suggestionsComponent', 'hintsComponent', 'action'], ({buttonComponent, suggestionsComponent, hintsComponent, action}: any) => {
+    registerSearchComponents = ({buttonComponent, suggestionsComponent, hintsComponent, action}: any) => {
         const id = generateId();
         store.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
@@ -143,7 +143,7 @@ export default class PluginRegistry {
         dispatchPluginComponentAction('SearchSuggestions', this.id, suggestionsComponent, id);
         dispatchPluginComponentAction('SearchHints', this.id, hintsComponent, id);
         return id;
-    });
+    }
 
     // Register a component to show as a tooltip when a user hovers on a link in a post.
     // Accepts a React component. Returns a unique identifier.
