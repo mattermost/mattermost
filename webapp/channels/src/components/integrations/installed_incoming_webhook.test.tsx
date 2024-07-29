@@ -6,12 +6,12 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
 
+import {wrapIntl} from '@mattermost/components/src/testUtils';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 
 import store from 'stores/redux_store';
 
 import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
-import {wrapIntl} from 'components/testUtils';
 
 import {getHistory} from 'utils/browser_history';
 

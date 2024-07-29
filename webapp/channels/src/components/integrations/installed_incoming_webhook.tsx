@@ -201,7 +201,7 @@ class InstalledIncomingWebhook extends React.PureComponent<Props> {
                         <span className='item-details__channel_name word-break--all'>
                             {channelDisplayName}
                             <CopyText
-                                value={channel.display_name ?? 'N/A'}
+                                value={channelDisplayName}
                             />
                         </span>
                     </div>

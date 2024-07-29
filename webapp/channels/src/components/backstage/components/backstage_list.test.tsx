@@ -5,7 +5,7 @@ import {render, screen} from '@testing-library/react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {wrapIntl} from 'components/testUtils';
+import {wrapIntl} from '@mattermost/components/src/testUtils';
 
 import BackstageList from './backstage_list';
 
