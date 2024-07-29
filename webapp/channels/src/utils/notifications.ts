@@ -50,12 +50,8 @@ export function showNotification(
             icon = iconWS;
         }
 
-        if (!('Notification' in window)) {
-            throw new Error('Notification not supported');
-        }
-
-        if (typeof Notification.requestPermission !== 'function') {
-            throw new Error('Notification.requestPermission not supported');
+        if (!isNotificationAPISupported()) {
+            throw new Error('Notification API is not supported');
         }
 
         if (Notification.permission !== 'granted') {
@@ -103,4 +99,21 @@ export function showNotification(
             },
         };
     };
+}
+
+export function isNotificationAPISupported() {
+    return ('Notification' in window) && (typeof Notification.requestPermission === 'function');
+}
+
+export async function requestNotificationPermission() {
+    if (!isNotificationAPISupported()) {
+        return null;
+    }
+
+    try {
+        const notificationPermission = await Notification.requestPermission();
+        return notificationPermission;
+    } catch (error) {
+        return null;
+    }
 }

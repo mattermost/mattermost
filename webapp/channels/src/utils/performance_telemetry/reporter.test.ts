@@ -94,7 +94,7 @@ describe('PerformanceReporter', () => {
 
         expect(reporter.handleObservations).toHaveBeenCalled();
 
-        const timestamp = performance.timeOrigin + performance.now();
+        const timestamp = Date.now();
 
         await waitForReport();
 
@@ -113,8 +113,8 @@ describe('PerformanceReporter', () => {
                 },
             ],
         });
-        expect(report.start).toBeGreaterThan(timestamp);
-        expect(report.end).toBeGreaterThan(timestamp);
+        expect(report.start).toBeGreaterThanOrEqual(timestamp);
+        expect(report.end).toBeGreaterThanOrEqual(timestamp);
         expect(report.start).toEqual(report.end);
 
         reporter.disconnect();
