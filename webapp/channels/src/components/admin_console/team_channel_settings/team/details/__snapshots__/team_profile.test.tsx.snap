@@ -584,6 +584,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
+                  disabled={false}
                   overlay={<Unknown />}
                   placement="bottom"
                   trigger={
