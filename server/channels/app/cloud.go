@@ -19,6 +19,8 @@ func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *m
 }
 
 // Create/ Update a subscription history event
+// This function is called when a user is created, updated, activated, or deactivated in a Cloud instance
+// This function records a record of the user count at the time of the event, saving to the CWS
 func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error) {
 	license := a.Srv().License()
 
@@ -27,10 +29,12 @@ func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHi
 		return nil, nil
 	}
 
-	// Get user count
 	userCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, err
 	}
-	return a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
+
+	event, err := a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
+
+	return event, nil
 }
