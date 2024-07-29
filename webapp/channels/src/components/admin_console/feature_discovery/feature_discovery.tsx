@@ -52,7 +52,6 @@ type Props = {
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
-    cloudFreeDeprecated: boolean;
 }
 
 type State = {
