@@ -34,6 +34,8 @@ const PopoverStyled = styled(Popover)`
     left: -90px;
     top: -12px;
     border-radius: 12px;
+    max-height: 90vh;
+    overflow-y: auto;
 
     .popover-content {
         padding: 0px;
