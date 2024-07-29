@@ -36,5 +36,5 @@ func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHi
 
 	event, err := a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
 
-	return event, nil
+	return event, err
 }
