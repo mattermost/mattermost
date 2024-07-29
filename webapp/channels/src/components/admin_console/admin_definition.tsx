@@ -4614,7 +4614,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     value: Constants.OFFICE365_SERVICE,
                                     display_name: defineMessage({id: 'admin.oauth.office365', defaultMessage: 'Entra ID'}),
                                     isHidden: it.all(it.not(it.licensedForFeature('Office365OAuth')), it.not(it.cloudLicensed)),
-                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft or Entra ID account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> that you would like users to log in with.\n2. Go to <linkApps>https://apps.dev.microsoft.com/</linkApps>, click <strong>Go to Applications > App Registrations</strong> > click <strong>New Registration<strong>.\n3. Use \"Mattermost - your-company-name\" as the <strong>Application Name</strong> click <strong>Registration</strong>, paste <strong>Client ID</strong> and <strong>Tenant ID</strong> below.\n4. Click <strong>Authentication</strong>, under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Click <strong>Certificates & secrets</strong>, Generate <strong>New client secret</strong> and paste secret value in <strong>Client Secret</strong> field below.'}),
+                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft or Entra ID account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> twith.\n2. Go to <linkApps>https://entra.microsoft.com</linkApps>, click <strong>Go to Applications > App Registrations</strong> > click <strong>New Registration<strong>.\n3. Use \"Mattermost - your-company-name\" as the <strong>Application Name</strong> click <strong>Registration</strong>, paste <strong>Client ID</strong> and <strong>Tenant ID</strong> below.\n4. Click <strong>Authentication</strong>, under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Click <strong>Certificates & secrets</strong>, Generate <strong>New client secret</strong> and paste secret value in <strong>Client Secret</strong> fieldhat you would like users to log in  below.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -4636,7 +4636,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         linkApps: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://apps.dev.microsoft.com'
+                                                href='https://entra.microsoft.com'
                                             >
                                                 {msg}
                                             </ExternalLink>
@@ -4951,7 +4951,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.OFFICE365_SERVICE,
                                     display_name: defineMessage({id: 'admin.openid.office365', defaultMessage: 'Entra ID'}),
-                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft or Entra ID account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> that you would like users to log in with.\n2. Go to <linkApps>https://apps.dev.microsoft.com/</linkApps>, click <strong>Go to Applications > App Registrations</strong> > click <strong>New Registration<strong>.\n3. Use \"Mattermost - your-company-name\" as the <strong>Application Name</strong> click <strong>Registration</strong>, paste <strong>Client ID</strong> and <strong>Tenant ID</strong> below.\n4. Click <strong>Authentication</strong>, under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Click <strong>Certificates & secrets</strong>, Generate <strong>New client secret</strong> and paste secret value in <strong>Client Secret</strong> field below.'}),
+                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft or Entra ID account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> that you would like users to log in with.\n2. Go to <linkApps>https://entra.microsoft.com</linkApps>, click <strong>Go to Applications > App Registrations</strong> > click <strong>New Registration<strong>.\n3. Use \"Mattermost - your-company-name\" as the <strong>Application Name</strong> click <strong>Registration</strong>, paste <strong>Client ID</strong> and <strong>Tenant ID</strong> below.\n4. Click <strong>Authentication</strong>, under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Click <strong>Certificates & secrets</strong>, Generate <strong>New client secret</strong> and paste secret value in <strong>Client Secret</strong> field below.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -4973,7 +4973,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         linkApps: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://apps.dev.microsoft.com'
+                                                href='https://entra.microsoft.com'
                                             >
                                                 {msg}
                                             </ExternalLink>
