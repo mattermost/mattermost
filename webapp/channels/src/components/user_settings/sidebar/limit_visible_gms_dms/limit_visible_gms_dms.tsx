@@ -16,8 +16,6 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {localizeMessage} from 'utils/utils';
-
 type Limit = {
     value: number;
     label: string;
@@ -44,7 +42,6 @@ type State = {
 }
 
 const limits: Limit[] = [
-    {value: 10000, label: localizeMessage('user.settings.sidebar.limitVisibleGMsDMs.allDirectMessages', 'All Direct Messages')},
     {value: 10, label: '10'},
     {value: 15, label: '15'},
     {value: 20, label: '20'},
