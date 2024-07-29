@@ -88,8 +88,7 @@ type AppIface interface {
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, *model.AppError)
 	// Create/ Update a subscription history event
-	// This function is called when a user is created, updated, activated, or deactivated in a Cloud instance
-	// This function records a record of the user count at the time of the event, saving to the CWS
+	// This function is run daily to record the number of activated users in the system for Cloud workspaces
 	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
