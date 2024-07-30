@@ -12,10 +12,10 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
-import WithTooltip from 'components/with_tooltip';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
