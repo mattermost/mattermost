@@ -30,7 +30,7 @@ declare namespace Cypress {
          *       // do something with bot
          *   });
          */
-        apiCreateBot({bot: BotPatch, prefix: string}?): Chainable<{bot: Bot & {fullDisplayName: string}}>;
+        apiCreateBot({bot: BotPatch = {}, prefix: string}?): Chainable<{bot: Bot & {fullDisplayName: string}}>;
 
         /**
          * Get bots.
