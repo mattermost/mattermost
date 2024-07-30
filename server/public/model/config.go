@@ -1068,8 +1068,8 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels                                  *bool   `access:"experimental_features"`
-	EnableRemoteClusterService                            *bool   `access:"experimental_features"`
+	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ServerFederationSettings.EnableSharedChannels`
+	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ServerFederationSettings.EnableRemoteClusterService`
 	DisableAppBar                                         *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
@@ -3242,6 +3242,29 @@ func (w *WranglerSettings) IsValid() *AppError {
 	return nil
 }
 
+type ServerFederationSettings struct {
+	EnableSharedChannels       *bool
+	EnableRemoteClusterService *bool
+}
+
+func (s *ServerFederationSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
+	if s.EnableSharedChannels == nil {
+		if isUpdate && e.EnableSharedChannels != nil {
+			s.EnableSharedChannels = e.EnableSharedChannels
+		} else {
+			s.EnableSharedChannels = NewPointer(false)
+		}
+	}
+
+	if s.EnableRemoteClusterService == nil {
+		if isUpdate && e.EnableRemoteClusterService != nil {
+			s.EnableRemoteClusterService = e.EnableRemoteClusterService
+		} else {
+			s.EnableRemoteClusterService = NewPointer(false)
+		}
+	}
+}
+
 type GlobalRelayMessageExportSettings struct {
 	CustomerType         *string `access:"compliance_compliance_export"` // must be either A9, A10 or CUSTOM, dictates SMTP server url
 	SMTPUsername         *string `access:"compliance_compliance_export"`
@@ -3540,6 +3563,7 @@ type Config struct {
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
 	WranglerSettings          WranglerSettings
+	ServerFederationSettings  ServerFederationSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3656,6 +3680,7 @@ func (o *Config) SetDefaults() {
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
 	o.WranglerSettings.SetDefaults()
+	o.ServerFederationSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 }
 
 func (o *Config) IsValid() *AppError {
