@@ -375,5 +375,17 @@ declare namespace Cypress {
          *   });
          */
         apiGetTotalUsers(): Chainable<number>;
+
+
+        // TODO: define a better return type
+        /**
+         * patch user roles
+         * @param {String} userId - ID of user to patch
+         * @param {String[]} roleNames - The user roles
+         * @returns {any} - the result of patching the user roles
+         * @example
+         *   cy.apiPatchUserRoles('user-id', ['system_user']);
+         */
+        apiPatchUserRoles(userId: string, roleNames: string[] = ['system_user']): any;
     }
 }
