@@ -22,10 +22,6 @@ import {canUploadFiles, isPublicLinksEnabled} from 'utils/file_utils';
 
 export const MAX_BOOKMARKS_PER_CHANNEL = 50;
 
-export const useIsChannelBookmarksEnabled = () => {
-    return useSelector(getIsChannelBookmarksEnabled);
-};
-
 const {OPEN_CHANNEL, PRIVATE_CHANNEL, GM_CHANNEL, DM_CHANNEL} = Constants as {OPEN_CHANNEL: 'O'; PRIVATE_CHANNEL: 'P'; GM_CHANNEL: 'G'; DM_CHANNEL: 'D'};
 
 type TAction = 'add' | 'edit' | 'delete' | 'order';

@@ -2491,6 +2491,13 @@ export default class Client4 {
         );
     };
 
+    getUserPreferences = (userId: string) => {
+        return this.doFetch<PreferenceType[]>(
+            `${this.getPreferencesRoute(userId)}`,
+            {method: 'get'},
+        );
+    };
+
     deletePreferences = (userId: string, preferences: PreferenceType[]) => {
         return this.doFetch<StatusOK>(
             `${this.getPreferencesRoute(userId)}/delete`,
@@ -4130,8 +4137,8 @@ export default class Client4 {
 
     getAncillaryPermissions = (subsectionPermissions: string[]) => {
         return this.doFetch<string[]>(
-            `${this.getPermissionsRoute()}/ancillary?subsection_permissions=${subsectionPermissions.join(',')}`,
-            {method: 'get'},
+            `${this.getPermissionsRoute()}/ancillary`,
+            {method: 'post', body: JSON.stringify(subsectionPermissions)},
         );
     };
 
