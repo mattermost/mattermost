@@ -54,7 +54,6 @@ const PluginTab = ({
                         sectionEl = (
                             <PluggableErrorBoundary
                                 pluginId={settings.id}
-                                hideRefresh={true}
                             >
                                 <CustomComponent/>
                             </PluggableErrorBoundary>

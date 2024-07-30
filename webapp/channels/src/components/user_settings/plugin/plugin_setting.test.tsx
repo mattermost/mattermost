@@ -216,6 +216,7 @@ describe('plugin setting', () => {
         renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText(CUSTOM_INPUT_TEXT)).not.toBeInTheDocument();
         expect(screen.queryByText('An error occurred in the pluginId plugin.')).toBeInTheDocument();
+        expect(screen.queryByText('Refresh?')).toBeInTheDocument();
         expect(console.error).toHaveBeenCalled();
 
         console.error = consoleError;

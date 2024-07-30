@@ -94,7 +94,6 @@ const PluginSetting = ({
                 <PluggableErrorBoundary
                     key={setting.name}
                     pluginId={pluginId}
-                    hideRefresh={true}
                 >
                     <CustomComponent/>
                 </PluggableErrorBoundary>
