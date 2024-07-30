@@ -2192,7 +2192,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'ServiceSettings.EnableCustomGroups',
-                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups (Beta): '}),
+                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups: '}),
                             help_text: defineMessage({id: 'admin.team.customUserGroupsDescription', defaultMessage: 'When true, users with appropriate permissions can create custom user groups and enables at-mentions for those groups.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                             isHidden: it.not(it.any(
@@ -5554,13 +5554,13 @@ const AdminDefinition: AdminDefinitionType = {
             },
             gif: {
                 url: 'integrations/gif',
-                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF'}),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                 ),
                 schema: {
                     id: 'GifSettings',
-                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF (Beta)'}),
+                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF'}),
                     settings: [
                         {
                             type: 'bool',

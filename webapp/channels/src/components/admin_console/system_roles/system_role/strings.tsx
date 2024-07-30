@@ -359,7 +359,7 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
     integrations_gif: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_integrations_gif.name',
-            defaultMessage: 'GIF (Beta)',
+            defaultMessage: 'GIF',
         },
     }),
     integrations_cors: defineMessages({
