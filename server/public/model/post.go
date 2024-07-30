@@ -273,7 +273,7 @@ func (file *FileForIndexing) ShouldIndex() bool {
 	// NOTE - this function is used in server as well as Enterprise code.
 	// Make sure to update public package dependency in both server and Enterprise code when
 	// updating the logic here and to test both places.
-	return file != nil && file.DeleteAt == 0 && (file.PostId != "" || file.CreatorId == BookmarkFileOwner)
+	return file != nil && file.DeleteAt == 0 && file.PostId != ""
 }
 
 // ShallowCopy is an utility function to shallow copy a Post to the given
