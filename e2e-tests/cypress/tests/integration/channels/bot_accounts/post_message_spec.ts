@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -11,7 +13,7 @@
 // Group: @channels @bot_accounts
 
 describe('Bot post message', () => {
-    let offTopicChannel;
+    let offTopicChannel: Channel;
 
     before(() => {
         cy.apiInitSetup().then(({team}) => {

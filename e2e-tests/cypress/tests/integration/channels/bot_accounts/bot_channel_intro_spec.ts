@@ -10,11 +10,13 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Bot} from '@mattermost/types/bots';
+import {Team} from '@mattermost/types/teams';
 import {createBotPatch} from '../../../support/api/bots';
 
 describe('Bot channel intro and avatar', () => {
-    let team;
-    let bot;
+    let team: Team;
+    let bot: Bot;
 
     before(() => {
         cy.apiInitSetup().then((out) => {

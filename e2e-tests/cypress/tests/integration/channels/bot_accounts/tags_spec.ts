@@ -10,13 +10,15 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
 import {createBotPatch} from '../../../support/api/bots';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bot tags', () => {
     let me;
-    let team;
-    let channel;
+    let team: Team;
+    let channel: Channel;
     let postId;
 
     before(() => {

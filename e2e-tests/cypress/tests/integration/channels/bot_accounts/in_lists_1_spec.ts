@@ -10,15 +10,19 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Bot} from '@mattermost/types/bots';
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {createBotPatch} from '../../../support/api/bots';
 import {generateRandomUser} from '../../../support/api/user';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bots in lists', () => {
-    let team;
-    let channel;
-    let bots;
-    let createdUsers;
+    let team: Team;
+    let channel: Channel;
+    let bots: Bot[];
+    let createdUsers: UserProfile[];
 
     before(() => {
         cy.apiInitSetup().then((out) => {
@@ -36,8 +40,10 @@ describe('Bots in lists', () => {
 
             // # Create users
             createdUsers = await Promise.all([
-                client.createUser(generateRandomUser()),
-                client.createUser(generateRandomUser()),
+
+                // TODO: remove undefined params when `Client4.createUser` changes
+                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
+                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
             ]);
 
             await Promise.all([
@@ -48,8 +54,8 @@ describe('Bots in lists', () => {
                 cy.wrap(user).its('username');
 
                 // # Add to team and channel
-                await client.addToTeam(team.id, user.user_id ?? user.id);
-                await client.addToChannel(user.user_id ?? user.id, channel.id);
+                await client.addToTeam(team.id, (user as Bot).user_id ?? (user as UserProfile).id);
+                await client.addToChannel((user as Bot).user_id ?? (user as UserProfile).id, channel.id);
             }));
         });
     });

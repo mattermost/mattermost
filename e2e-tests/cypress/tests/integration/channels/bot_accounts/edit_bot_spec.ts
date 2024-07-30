@@ -10,11 +10,12 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Team} from '@mattermost/types/teams';
 import * as MESSAGES from '../../../fixtures/messages';
 import {getRandomId} from '../../../utils';
 
 describe('Edit bot', () => {
-    let testTeam;
+    let testTeam: Team;
 
     before(() => {
         cy.apiInitSetup().then(({team, townSquareUrl}) => {
