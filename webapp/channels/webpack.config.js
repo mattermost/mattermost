@@ -133,7 +133,7 @@ var config = {
             'mattermost-redux': 'packages/mattermost-redux/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
 
-            // This alias restricts single version of styled components acros all packages
+            // This alias restricts single version of styled components across all packages
             'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],

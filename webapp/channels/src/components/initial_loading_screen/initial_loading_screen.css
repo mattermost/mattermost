@@ -2,6 +2,10 @@ body {
     margin: 0;
 }
 
+.LoadingScreen.disabled {
+    opacity: 0;
+}
+
 .LoadingScreen {
     --background-color: #f4f4f6;
     --background-color-highlight: #ffffff;
@@ -38,7 +42,6 @@ body {
     width: 100%;
     height: 100%;
 }
-
 .LoadingScreen__background {
     background: var(--background-color);
 }
@@ -64,7 +67,7 @@ body {
 
 .LoadingAnimation {
     --fade-duration: 150ms;
-    --colour: #1e325c;
+    --colour: #1E325C;
     --animation-initial-delay: 500ms;
     --animation-start-duration: 750ms;
     --animation-end-duration: 600ms;
@@ -75,7 +78,8 @@ body {
     --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
     --ease-in-out: var(--ease-in-out-cubic);
     --ease-in-out-compass-shrink: cubic-bezier(0.1, 0.25, 0.3, 1);
-    opacity: 0.3;
+
+    opacity: 1;
     transform: scale3d(1, 1, 1);
 }
 
@@ -89,250 +93,167 @@ body {
 .LoadingAnimation circle {
     transform-origin: center center;
 }
-
 .LoadingAnimation svg {
     color: var(--colour);
 }
-
 .LoadingAnimation .LoadingAnimation__spinner-gradient-color {
     stop-color: var(--colour);
 }
-
-.LoadingAnimation .LoadingAnimation__spinner-mask {
-    transform: scale3d(1.03, 1.03, 1);
-    stroke-dasharray: var(--animation-spinner-mask-stroke-length);
-    stroke-dashoffset: var(--animation-spinner-mask-stroke-length);
-}
-
 .LoadingAnimation .LoadingAnimation__spinner-container {
     opacity: 0;
     transform: scale3D(2.08, 2.08, 1) rotate3d(0, 0, 1, -10deg);
 }
-
 .LoadingAnimation .LoadingAnimation__spinner-mask-container {
     transform: rotate3d(0, 0, 1, -86deg);
 }
-
+.LoadingAnimation .LoadingAnimation__spinner-mask {
+    stroke-dasharray: var(--animation-spinner-mask-stroke-length);
+    stroke-dashoffset: var(--animation-spinner-mask-stroke-length);
+    transform: scale3d(1.03, 1.03, 1);
+}
 .LoadingAnimation .LoadingAnimation__compass {
     opacity: 1;
     transform: scale3d(1, 1, 1);
 }
-
 .LoadingAnimation .LoadingAnimation__compass-needle-container {
     transform: scale3d(1, 1, 1);
 }
-
 .LoadingAnimation .LoadingAnimation__compass-needle,
 .LoadingAnimation .LoadingAnimation__compass-needle-front-mask,
 .LoadingAnimation .LoadingAnimation__compass-needle-behind-mask {
     transform: rotate3d(0, 0, 1, 0deg);
     transform-origin: 54px 46px;
 }
-
 .LoadingAnimation .LoadingAnimation__compass-base-mask-container {
     transform: rotate3d(0, 0, 1, -86deg);
 }
-
 .LoadingAnimation .LoadingAnimation__compass-base-mask {
     stroke-dasharray: var(--animation-spinner-mask-stroke-length);
     stroke-dashoffset: var(--animation-spinner-mask-stroke-length);
 }
 
 .LoadingAnimation--loading {
-    --fade-in-duration: 300ms;
+    --fade-in-duration: 150ms;
     --fade-in-delay: 0ms;
-    animation: LoadingAnimation__fade-in-partial var(--fade-in-duration) var(--fade-in-delay) var(--ease-in) forwards;
+
     transform: scale3d(1, 1, 1);
 }
 
-.LoadingAnimation.LoadingAnimation--loading
-.LoadingAnimation__spinner-container {
+.LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__spinner-container {
     --shrink-duration: calc(var(--animation-end-duration) * 0.5);
-    --shrink-delay: calc((var(--animation-start-duration) + var(--animation-end-duration)) * 0.91 + var(--animation-initial-delay));
+    --shrink-delay: calc( ( var(--animation-start-duration) + var(--animation-end-duration) ) * 0.91 + var(--animation-initial-delay));
     --fade-in-duration: calc(var(--animation-end-duration) * 0.25);
-    --fade-in-delay: calc(var(--animation-start-duration) + var(--animation-end-duration) * 0.24 + var(--animation-initial-delay));
+    --fade-in-delay: calc( var(--animation-start-duration) + var(--animation-end-duration) * 0.24 + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__spinner-shrink var(--shrink-duration)
-        var(--shrink-delay) var(--ease-in-out-compass-shrink) forwards,
-        LoadingAnimation__fade-in var(--fade-in-duration) var(--fade-in-delay)
-        var(--ease-in) forwards;
+    animation: LoadingAnimation__spinner-shrink var(--shrink-duration) var(--shrink-delay) var(--ease-in-out-compass-shrink) forwards, LoadingAnimation__fade-in var(--fade-in-duration) var(--fade-in-delay) var(--ease-in) forwards;
 }
-
 .LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__spinner-mask {
     --reveal-duration: var(--animation-end-duration);
-    --reveal-delay: calc(
-        var(--animation-start-duration) + var(--animation-initial-delay)
-    );
+    --reveal-delay: calc(var(--animation-start-duration) + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__spinner-reveal var(--reveal-duration)
-        var(--reveal-delay) var(--ease-in) forwards;
+    animation: LoadingAnimation__spinner-reveal var(--reveal-duration) var(--reveal-delay) var(--ease-in) forwards;
 }
-
 .LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__compass {
     --shrink-duration: calc(var(--animation-end-duration) * 0.5);
-    --shrink-delay: calc(
-        (var(--animation-start-duration) + var(--animation-end-duration)) * 0.91 +
-        var(--animation-initial-delay)
-    );
+    --shrink-delay: calc( ( var(--animation-start-duration) + var(--animation-end-duration) ) * 0.91 + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__compass-shrink var(--shrink-duration)
-        var(--shrink-delay) var(--ease-in-out-compass-shrink) forwards;
+    animation: LoadingAnimation__compass-shrink var(--shrink-duration) var(--shrink-delay) var(--ease-in-out-compass-shrink) forwards;
 }
-
-.LoadingAnimation.LoadingAnimation--loading
-.LoadingAnimation__compass-needle-container {
+.LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__compass-needle-container {
     --shrink-duration: calc(var(--animation-end-duration) * 0.25);
-    --shrink-delay: calc(
-        var(--animation-start-duration) + var(--animation-end-duration) -
-        var(--animation-end-duration) * 0.25 + var(--animation-initial-delay)
-    );
+    --shrink-delay: calc( var(--animation-start-duration) + var(--animation-end-duration) - var(--animation-end-duration) * 0.25 + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__needle-shrink var(--shrink-duration)
-        var(--shrink-delay) var(--ease-in) forwards;
+    animation: LoadingAnimation__needle-shrink var(--shrink-duration) var(--shrink-delay) var(--ease-in) forwards;
 }
-
 .LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__compass-needle {
     --spin-left-duration: var(--animation-start-duration);
     --spin-left-delay: var(--animation-initial-delay);
     --spin-right-duration: var(--animation-end-duration);
-    --spin-right-delay: calc(
-        var(--animation-start-duration) + var(--animation-initial-delay)
-    );
+    --spin-right-delay: calc(var(--animation-start-duration) + var(--animation-initial-delay));
     --fade-out-duration: calc(var(--animation-end-duration) * 0.25);
-    --fade-out-delay: calc(
-        var(--animation-start-duration) + var(--animation-end-duration) -
-        var(--animation-end-duration) * 0.25 + var(--animation-initial-delay)
-    );
+    --fade-out-delay: calc( var(--animation-start-duration) + var(--animation-end-duration) - var(--animation-end-duration) * 0.25 + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__needle-spin-left var(--spin-left-duration)
-        var(--spin-left-delay) var(--ease-in-out) forwards,
-        LoadingAnimation__needle-spin-right var(--spin-right-duration)
-        var(--spin-right-delay) var(--ease-in) forwards,
-        LoadingAnimation__fade-out var(--fade-out-duration) var(--fade-out-delay)
-        var(--ease-in) forwards;
+    animation:
+        LoadingAnimation__needle-spin-left var(--spin-left-duration) var(--spin-left-delay) var(--ease-in-out) forwards,
+        LoadingAnimation__needle-spin-right var(--spin-right-duration) var(--spin-right-delay) var(--ease-in) forwards,
+        LoadingAnimation__fade-out var(--fade-out-duration) var(--fade-out-delay) var(--ease-in) forwards;
 }
-
-.LoadingAnimation.LoadingAnimation--loading
-.LoadingAnimation__compass-needle-behind-mask {
+.LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__compass-needle-behind-mask {
     --spin-left-duration: var(--animation-start-duration);
     --spin-left-delay: var(--animation-initial-delay);
     --spin-right-duration: calc(var(--animation-end-duration) * 0.3666);
-    --spin-right-delay: calc(
-        var(--animation-start-duration) + var(--animation-initial-delay)
-    );
+    --spin-right-delay: calc(var(--animation-start-duration) + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__needle-mask-spin-left var(--spin-left-duration)
-        var(--spin-left-delay) var(--ease-in-out) forwards,
-        LoadingAnimation__needle-mask-spin-right var(--spin-right-duration)
-        var(--spin-right-delay) var(--ease-in) forwards;
+    animation: LoadingAnimation__needle-mask-spin-left var(--spin-left-duration) var(--spin-left-delay) var(--ease-in-out) forwards, LoadingAnimation__needle-mask-spin-right var(--spin-right-duration) var(--spin-right-delay) var(--ease-in) forwards;
 }
-
-.LoadingAnimation.LoadingAnimation--loading
-.LoadingAnimation__compass-needle-front-mask {
+.LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__compass-needle-front-mask {
     --spin-left-duration: var(--animation-start-duration);
-    --spin-left-delay: var(--animation-initial-delay);
+    --spin-left-delay:  var(--animation-initial-delay);
     --spin-right-duration: var(--animation-end-duration);
-    --spin-right-delay: calc(
-        var(--animation-start-duration) + var(--animation-initial-delay)
-    );
+    --spin-right-delay: calc(var(--animation-start-duration) + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__needle-spin-left var(--spin-left-duration)
-        var(--spin-left-delay) var(--ease-in-out) forwards,
-        LoadingAnimation__needle-spin-right var(--spin-right-duration)
-        var(--spin-right-delay) var(--ease-in) forwards;
+    animation: LoadingAnimation__needle-spin-left var(--spin-left-duration) var(--spin-left-delay) var(--ease-in-out) forwards, LoadingAnimation__needle-spin-right var(--spin-right-duration) var(--spin-right-delay) var(--ease-in) forwards;
 }
-
-.LoadingAnimation.LoadingAnimation--loading
-.LoadingAnimation__compass-base-mask {
+.LoadingAnimation.LoadingAnimation--loading .LoadingAnimation__compass-base-mask {
     --conceal-duration: var(--animation-end-duration);
-    --conceal-delay: calc(
-        var(--animation-start-duration) + var(--animation-initial-delay)
-    );
+    --conceal-delay: calc(var(--animation-start-duration) + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__compass-base-conceal var(--conceal-duration)
-        var(--conceal-delay) var(--ease-in) forwards;
+    animation: LoadingAnimation__compass-base-conceal var(--conceal-duration) var(--conceal-delay) var(--ease-in) forwards;
 }
-
 .LoadingAnimation.LoadingAnimation--spinning .LoadingAnimation__spinner {
     --spin-duration: var(--animation-spinner-speed);
-    --spin-delay: calc(
-        (var(--animation-start-duration) + var(--animation-end-duration)) * 0.95 +
-        var(--animation-initial-delay)
-    );
+    --spin-delay: calc( ( var(--animation-start-duration) + var(--animation-end-duration) ) * 0.95 + var(--animation-initial-delay));
 
-    animation: LoadingAnimation__spinner-spin var(--spin-duration)
-        var(--spin-delay) linear infinite;
+    animation: LoadingAnimation__spinner-spin var(--spin-duration) var(--spin-delay) linear infinite;
 }
 
 .LoadingAnimation--loaded {
-    --duration: 50ms;
+    --duration: 150ms;
     --delay: 0ms;
 
-    animation: LoadingAnimation__fade-out var(--duration) var(--delay)
-        var(--ease-in) forwards,
-        LoadingAnimation__shrink var(--duration) var(--delay) var(--ease-in)
-        forwards;
+    animation: LoadingAnimation__fade-out var(--duration) var(--delay) var(--ease-in) forwards, LoadingAnimation__shrink var(--duration) var(--delay) var(--ease-in) forwards;
 }
 
 .LoadingAnimation--loaded .LoadingAnimation__spinner-container {
     opacity: 1;
     transform: scale3D(1, 1, 1) rotate3d(0, 0, 1, -10deg);
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__spinner-mask {
     stroke-dashoffset: 0;
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__compass {
     transform: scale3D(0.4166666667, 0.4166666667, 1);
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__compass-needle-container {
     transform: scale3d(0.35, 0.35, 1);
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__compass-needle {
     opacity: 0;
     transform: rotate3d(0, 0, 1, 405deg);
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__compass-needle-behind-mask {
     transform: rotate3d(0, 0, 1, 0deg);
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__compass-needle-front-mask {
     transform: rotate3d(0, 0, 1, 405deg);
 }
-
 .LoadingAnimation--loaded .LoadingAnimation__compass-base-mask {
     stroke-dashoffset: 0;
 }
 
-@keyframes LoadingAnimation__fade-in-partial {
+@keyframes LoadingAnimation__fade-in {
     0% {
-        opacity: 0.3;
+        opacity: 0;
     }
-
     100% {
         opacity: 1;
     }
-}
-
-@keyframes LoadingAnimation__fade-in {
-  0% {
-      opacity: 0;
-  }
-
-  100% {
-      opacity: 1;
-  }
 }
 
 @keyframes LoadingAnimation__fade-out {
     0% {
         opacity: 1;
     }
-
     100% {
         opacity: 0;
     }
@@ -342,7 +263,6 @@ body {
     0% {
         transform: scale3d(1, 1, 1);
     }
-
     100% {
         transform: scale3d(0.35, 0.35, 1);
     }
@@ -352,7 +272,6 @@ body {
     0% {
         transform: scale3D(2.08, 2.08, 1) rotate3d(0, 0, 1, -10deg);
     }
-
     100% {
         transform: scale3D(1, 1, 1) rotate3d(0, 0, 1, -10deg);
     }
@@ -362,20 +281,16 @@ body {
     from {
         transform: rotate3d(0, 0, 1, 0deg);
     }
-
     to {
         transform: rotate3d(0, 0, 1, 359deg);
     }
 }
 
 @keyframes LoadingAnimation__spinner-reveal {
-    0%,
-    5% {
+    0%, 5% {
         stroke-dashoffset: var(--animation-spinner-mask-stroke-length);
     }
-
-    95%,
-    100% {
+    95%, 100% {
         stroke-dashoffset: 0;
     }
 }
@@ -384,7 +299,6 @@ body {
     0% {
         transform: rotate3d(0, 0, 1, 0deg);
     }
-
     100% {
         transform: rotate3d(0, 0, 1, -20deg);
     }
@@ -394,7 +308,6 @@ body {
     0% {
         transform: rotate3d(0, 0, 1, -20deg);
     }
-
     100% {
         transform: rotate3d(0, 0, 1, 405deg);
     }
@@ -404,7 +317,6 @@ body {
     0% {
         transform: rotate3d(0, 0, 1, 0deg);
     }
-
     100% {
         transform: rotate3d(0, 0, 1, -20deg);
     }
@@ -414,7 +326,6 @@ body {
     0% {
         transform: rotate3d(0, 0, 1, -20deg);
     }
-
     100% {
         transform: rotate3d(0, 0, 1, 0deg);
     }
@@ -424,7 +335,6 @@ body {
     0% {
         transform: scale3d(1, 1, 1);
     }
-
     100% {
         transform: scale3d(0.35, 0.35, 1);
     }
@@ -434,20 +344,16 @@ body {
     0% {
         transform: scale3D(1, 1, 1);
     }
-
     100% {
         transform: scale3D(0.4166666667, 0.4166666667, 1);
     }
 }
 
 @keyframes LoadingAnimation__compass-base-conceal {
-    0%,
-    5% {
+    0%, 5% {
         stroke-dashoffset: var(--animation-spinner-mask-stroke-length);
     }
-
-    95%,
-    100% {
+    95%, 100% {
         stroke-dashoffset: 0;
     }
 }

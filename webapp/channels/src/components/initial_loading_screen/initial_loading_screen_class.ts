@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp} from 'utils/user_agent';
+
 const ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE = 'LoadingAnimation__compass-shrink';
 const ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE = 'LoadingAnimation__shrink';
 
@@ -11,13 +13,15 @@ const STATIC_CLASS_FOR_ANIMATION = 'LoadingAnimation LoadingAnimation--darkMode'
 const LOADING_CLASS_FOR_ANIMATION = STATIC_CLASS_FOR_ANIMATION + ' LoadingAnimation--spinning LoadingAnimation--loading';
 const LOADING_COMPLETE_CLASS_FOR_ANIMATION = STATIC_CLASS_FOR_ANIMATION + ' LoadingAnimation--spinning LoadingAnimation--loaded';
 
+const DESTROY_DELAY_AFTER_ANIMATION_END = 1000;
+
 export class InitialLoadingScreenClass {
-    private isLoading = true;
+    private isLoading: boolean | null = true;
 
-    private loadingScreenElement?: HTMLElement | null;
-    private loadingAnimationElement?: HTMLElement | null;
+    private loadingScreenElement: HTMLElement | null;
+    private loadingAnimationElement: HTMLElement | null;
 
-    private initialLoadingScreenCSS?: HTMLLinkElement | null;
+    private initialLoadingScreenCSS: HTMLLinkElement | null;
 
     constructor() {
         this.loadingScreenElement = document.getElementById('initialPageLoadingScreen');
@@ -28,25 +32,18 @@ export class InitialLoadingScreenClass {
         this.handleAnimationEndEvent = this.handleAnimationEndEvent.bind(this);
     }
 
-    private isMattermostDesktop() {
-        return typeof window !== 'undefined' && 'desktop' in window;
-    }
-
     private handleAnimationEndEvent(event: AnimationEvent) {
         if (!this.loadingAnimationElement) {
             return;
         }
 
-        if (
-            event.animationName === ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE ||
-            event.animationName === ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE
-        ) {
-            if (this.isLoading === false) {
+        if (event.animationName === ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE || event.animationName === ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE) {
+            if (!this.isLoading) {
                 this.loadingAnimationElement.className = STATIC_CLASS_FOR_ANIMATION;
 
                 setTimeout(() => {
-                    this.cleanUp();
-                }, 1000);
+                    this.destroy();
+                }, DESTROY_DELAY_AFTER_ANIMATION_END);
             }
         }
     }
@@ -63,32 +60,40 @@ export class InitialLoadingScreenClass {
         }
     }
 
-    private cleanUp() {
+    private destroy() {
         this.removeAnimationEndListener();
 
         if (this.loadingScreenElement) {
             this.loadingScreenElement.remove();
+            this.loadingScreenElement = null;
         }
 
         if (this.initialLoadingScreenCSS) {
             this.initialLoadingScreenCSS.remove();
+            this.initialLoadingScreenCSS = null;
         }
+
+        if (this.loadingAnimationElement) {
+            this.loadingAnimationElement = null;
+        }
+
+        this.isLoading = null;
     }
 
     public start() {
-        if (this.isMattermostDesktop()) {
-            // TODO We dont have the window yet
+        if (isDesktopApp()) {
             // Let Mattermost desktop handle the loading screen
+            this.destroy();
             return;
         }
+
+        this.addAnimationEndListener();
 
         if (!this.loadingScreenElement || !this.loadingAnimationElement) {
             // eslint-disable-next-line no-console
             console.error('InitialLoadingScreen: No loading screen or animation element found');
             return;
         }
-
-        this.addAnimationEndListener();
 
         this.isLoading = true;
 
