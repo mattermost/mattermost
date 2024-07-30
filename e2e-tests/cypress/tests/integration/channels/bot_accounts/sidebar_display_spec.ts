@@ -10,15 +10,19 @@
 // Stage: @prod
 // Group: @channels @bot_accounts @not_cloud
 
+import {Bot} from '@mattermost/types/bots';
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {createBotPatch} from '../../../support/api/bots';
 import {generateRandomUser} from '../../../support/api/user';
 
 describe('Bot accounts', () => {
-    let team;
-    let channel;
-    let testUser;
-    let bots;
-    let createdUsers;
+    let team: Team;
+    let channel: Channel;
+    let testUser: UserProfile;
+    let bots: Bot[];
+    let createdUsers: UserProfile[];
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -39,8 +43,10 @@ describe('Bot accounts', () => {
 
             // # Create users
             createdUsers = await Promise.all([
-                client.createUser(generateRandomUser()),
-                client.createUser(generateRandomUser()),
+
+                // TODO: remove undefined arguments when `E2EClient.createUSer` changes its arguments as optional
+                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
+                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
             ]);
 
             await Promise.all([
@@ -51,8 +57,8 @@ describe('Bot accounts', () => {
                 cy.wrap(user).its('username');
 
                 // # Add to team and channel
-                await client.addToTeam(team.id, user.user_id ?? user.id);
-                await client.addToChannel(user.user_id ?? user.id, channel.id);
+                await client.addToTeam(team.id, (user as Bot).user_id ?? (user as UserProfile).id);
+                await client.addToChannel((user as Bot).user_id ?? (user as UserProfile).id, channel.id);
             }));
         });
     });
@@ -72,7 +78,7 @@ describe('Bot accounts', () => {
 
             // * Verify bot icon exists
             cy.wrap($link).find('.Avatar').should('exist').
-                and('have.attr', 'src').
+                invoke('attr', 'src').
                 then((url) => cy.request({url, encoding: 'binary'})).
                 then(({body}) => {
                     // * Verify it matches default bot avatar

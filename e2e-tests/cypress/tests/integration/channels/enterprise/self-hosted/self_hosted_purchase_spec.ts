@@ -20,6 +20,7 @@
 // * Change mattermost-server utils/license.go to test public key
 //     * e.g. see (https://github.com/mattermost/mattermost-server/pull/16778/files)
 
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 function verifyPurchaseModal() {
@@ -136,7 +137,7 @@ function getCurrentUsers(): Cypress.Chainable<number> {
 }
 
 describe('Self hosted Purchase', () => {
-    let adminUser: Cypress.UserProfile | undefined;
+    let adminUser: UserProfile;
 
     beforeEach(() => {
         // prevent failed tests from bleeding over
@@ -145,9 +146,9 @@ describe('Self hosted Purchase', () => {
 
     before(() => {
         cy.apiInitSetup().then(() => {
-            cy.apiAdminLogin().then((result) => {
+            cy.apiAdminLogin().then(({user}) => {
                 // assertion because current typings are wrong.
-                adminUser = (result as unknown as {user: Cypress.UserProfile}).user;
+                adminUser = user;
                 cy.apiDeleteLicense();
                 cy.visit('/');
 

@@ -10,11 +10,12 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Team} from '@mattermost/types/teams';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getRandomId} from '../../../utils';
 
 describe('Managing bot accounts', () => {
-    let newTeam;
+    let newTeam: Team;
 
     before(() => {
         // # Create and visit new channel

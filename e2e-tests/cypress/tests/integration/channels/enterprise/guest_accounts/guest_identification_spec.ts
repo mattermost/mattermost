@@ -22,6 +22,7 @@ import {
     reUrl,
     verifyEmailBody,
 } from '../../../../utils';
+import {UserProfile} from '@mattermost/types/users';
 
 describe('Guest Accounts', () => {
     let sysadmin: Cypress.UserProfile;
@@ -40,7 +41,7 @@ describe('Guest Accounts', () => {
         });
 
         // # Log in as a team admin.
-        cy.apiAdminLogin().then((user) => {
+        cy.apiAdminLogin().then(({user}: {user: UserProfile}) => {
             sysadmin = user;
         });
     });

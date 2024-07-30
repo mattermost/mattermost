@@ -10,10 +10,11 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Team} from '@mattermost/types/teams';
 import {createBotPatch} from '../../../support/api/bots';
 
 describe('Managing bots in Teams and Channels', () => {
-    let team;
+    let team: Team;
 
     before(() => {
         cy.apiUpdateConfig({

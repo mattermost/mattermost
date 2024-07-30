@@ -10,9 +10,13 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Bot} from '@mattermost/types/bots';
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
+
 describe('Bot display name', () => {
-    let offTopicChannel;
-    let otherSysadmin;
+    let offTopicChannel: Channel;
+    let otherSysadmin: UserProfile;
 
     before(() => {
         cy.intercept('**/api/v4/**').as('resources');
@@ -77,7 +81,7 @@ describe('Bot display name', () => {
                             should('have.text', bot.display_name);
                     }).then(() => {
                         // # Change display name after prior verification
-                        cy.wrap(client.patchBot(bot.user_id, {display_name: `NEW ${bot.display_name}`})).then((newBot) => {
+                        cy.wrap(client.patchBot(bot.user_id, {display_name: `NEW ${bot.display_name}`})).then((newBot: Bot) => {
                             cy.postBotMessage({token, message: secondMessage, props, channelId: offTopicChannel.id}).
                                 its('id').
                                 should('exist').

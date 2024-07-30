@@ -260,17 +260,17 @@ describe('Group Mentions', () => {
             // # Link the group and the channel.
             cy.apiLinkGroupChannel(groupID1, channel.id);
 
-            cy.apiLogin({username: 'board.one', password: 'Password1'} as any).then((boardOne) => {
-                cy.apiAddUserToChannel(channel.id, boardOne.id);
+            cy.apiLogin({username: 'board.one', password: 'Password1'} as any).then(({user}: {user: UserProfile}) => {
+                cy.apiAddUserToChannel(channel.id, user.id);
 
                 // # Make the channel private and group-synced.
                 cy.apiPatchChannel(channel.id, {group_constrained: true, type: 'P'});
 
                 // # Login to create the dev user
-                cy.apiLogin({username: 'dev.one', password: 'Password1'} as any).then((devOne) => {
+                cy.apiLogin({username: 'dev.one', password: 'Password1'} as any).then(({user}: {user: UserProfile}) => {
                     cy.apiAdminLogin();
 
-                    cy.apiAddUserToTeam(testTeam.id, devOne.id);
+                    cy.apiAddUserToTeam(testTeam.id, user.id);
 
                     cy.apiLogin({username: 'board.one', password: 'Password1'} as any);
 
