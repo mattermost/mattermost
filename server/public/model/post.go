@@ -508,7 +508,10 @@ func (o *Post) SanitizeProps() {
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
 	o.RemoteId = NewString("")
-	o.Metadata.Embeds = nil
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
+	}
 }
 
 func (o *Post) ContainsIntegrationsReservedProps() []string {
