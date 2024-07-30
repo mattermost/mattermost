@@ -13,12 +13,12 @@
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let testUser;
-    let otherUser;
-    let testChannel;
-    let rootPost;
-    let postForAvatar;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let otherUser: Cypress.UserProfile;
+    let testChannel: Cypress.Channel;
+    let rootPost; // PostMessageResp;
+    let postForAvatar; // PostMessageResp;
 
     before(() => {
         cy.apiUpdateConfig({

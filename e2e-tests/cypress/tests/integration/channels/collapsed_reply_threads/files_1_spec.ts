@@ -15,9 +15,9 @@ import {matterpollPlugin} from '../../../utils/plugins';
 import {interceptFileUpload} from '../files_and_attachments/helpers';
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let testChannel;
-    let user1;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
+    let user1: Cypress.UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({

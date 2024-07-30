@@ -11,14 +11,14 @@
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let testChannel;
-    let user1;
-    let user2;
-    let user3;
-    let rootPost;
-    let replyPost1;
-    let replyPost2;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
+    let user1: Cypress.UserProfile;
+    let user2: Cypress.UserProfile;
+    let user3: Cypress.UserProfile;
+    let rootPost; // PostMessageResp
+    let replyPost1; // PostMessageResp
+    let replyPost2; // PostMessageResp
 
     const messages = {
         ROOT: 'ROOT POST',

@@ -13,11 +13,11 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let userA; // Member of team A and B
-    let teamA;
-    let teamB;
-    let offTopicUrlA;
-    let testChannel;
+    let userA: Cypress.UserProfile; // Member of team A and B
+    let teamA: Cypress.Team;
+    let teamB: Cypress.Team;
+    let offTopicUrlA: string;
+    let testChannel: Cypress.Channel;
 
     before(() => {
         cy.apiUpdateConfig({
