@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -48,8 +48,8 @@ function CustomStatusEmoji({
 
     const [placement, setPlacement] = useState('bottom');
     const emojiRef = useRef<HTMLSpanElement>(null);
-
-    useEffect(() => {
+     
+    const handleMouseInteraction = () => {
         const handleMouseEnter = () => {
             if (emojiRef.current) {
                 const boundingRect = emojiRef.current.getBoundingClientRect();
@@ -68,13 +68,14 @@ function CustomStatusEmoji({
         if (emojiElement) {
             emojiElement.addEventListener('mouseenter', handleMouseEnter);
         }
-
         return () => {
             if (emojiElement) {
                 emojiElement.removeEventListener('mouseenter', handleMouseEnter);
             }
         };
-    }, []);
+    };
+
+    useEffect(handleMouseInteraction, []);
 
     if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
         return null;
