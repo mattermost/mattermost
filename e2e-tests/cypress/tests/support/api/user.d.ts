@@ -376,7 +376,6 @@ declare namespace Cypress {
          */
         apiGetTotalUsers(): Chainable<number>;
 
-
         // TODO: define a better return type
         /**
          * patch user roles
