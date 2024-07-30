@@ -17,6 +17,8 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
+const clientSideTTL = 5 * time.Minute
+
 type Redis struct {
 	name          string
 	client        rueidis.Client
@@ -63,8 +65,8 @@ func (r *Redis) SetWithDefaultExpiry(key string, value any) error {
 func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 	now := time.Now()
 	defer func() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
 		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Set", elapsed)
 		}
 	}()
@@ -95,8 +97,8 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 func (r *Redis) Get(key string, value any) error {
 	now := time.Now()
 	defer func() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
 		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Get", elapsed)
 		}
 	}()
@@ -104,7 +106,7 @@ func (r *Redis) Get(key string, value any) error {
 		r.client.B().Get().
 			Key(r.name+":"+key).
 			Cache(),
-		5*time.Minute,
+		clientSideTTL,
 	).AsBytes()
 	if err != nil {
 		if rueidis.IsRedisNil(err) {
@@ -147,8 +149,8 @@ func (r *Redis) Get(key string, value any) error {
 func (r *Redis) GetMulti(keys []string, values []any) []error {
 	now := time.Now()
 	defer func() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
 		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
 			r.metrics.ObserveRedisEndpointDuration(r.name, "GetMulti", elapsed)
 		}
 	}()
@@ -162,7 +164,7 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 		r.client.B().Mget().
 			Key(newKeys...).
 			Cache(),
-		5*time.Minute,
+		clientSideTTL,
 	).ToArray()
 	if err != nil {
 		for i := range errs {
@@ -223,8 +225,8 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 func (r *Redis) Remove(key string) error {
 	now := time.Now()
 	defer func() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
 		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Del", elapsed)
 		}
 	}()
@@ -240,8 +242,8 @@ func (r *Redis) Remove(key string) error {
 func (r *Redis) Keys() ([]string, error) {
 	now := time.Now()
 	defer func() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
 		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Keys", elapsed)
 		}
 	}()
@@ -258,8 +260,8 @@ func (r *Redis) Keys() ([]string, error) {
 func (r *Redis) Len() (int, error) {
 	now := time.Now()
 	defer func() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
 		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Len", elapsed)
 		}
 	}()

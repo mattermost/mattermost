@@ -62,7 +62,7 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	var foundRoles []*model.Role
 	var rolesToQuery []string
 
-	var toPass []any
+	toPass := make([]any, 0, len(names))
 	for i := 0; i < len(names); i++ {
 		var role *model.Role
 		toPass = append(toPass, &role)

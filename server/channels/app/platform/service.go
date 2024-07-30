@@ -187,10 +187,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if err2 := ps.initLogging(); err2 != nil {
 		return nil, fmt.Errorf("failed to initialize logging: %w", err2)
 	}
-	mlog.Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
+	ps.Log().Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
+	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// Step 3: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())

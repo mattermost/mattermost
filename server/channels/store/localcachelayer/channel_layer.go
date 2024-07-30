@@ -350,7 +350,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 			newKeys = append(newKeys, teamId+name)
 		}
 
-		var toPass []any
+		toPass := make([]any, 0, len(newKeys))
 		for i := 0; i < len(newKeys); i++ {
 			var channel *model.Channel
 			toPass = append(toPass, &channel)
@@ -457,7 +457,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	counts := make(map[string]int64)
 	remainingChannels := make([]string, 0)
 
-	var toPass []any
+	toPass := make([]any, 0, len(channelIDs))
 	for i := 0; i < len(channelIDs); i++ {
 		var cacheItem int64
 		toPass = append(toPass, &cacheItem)

@@ -30,6 +30,7 @@ type Provider interface {
 	// NewCache creates a new cache with given options.
 	NewCache(opts *CacheOptions) (Cache, error)
 	// Connect opens a new connection to the cache using specific provider parameters.
+	// The returned string contains the status of the response from the cache backend.
 	Connect() (string, error)
 	// SetMetrics
 	SetMetrics(metrics einterfaces.MetricsInterface)

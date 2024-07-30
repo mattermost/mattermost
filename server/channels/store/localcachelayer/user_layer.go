@@ -158,7 +158,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	remainingUserIds := make([]string, 0)
 
 	fromMaster := false
-	var toPass []any
+	toPass := make([]any, 0, len(userIds))
 	for i := 0; i < len(userIds); i++ {
 		var user *model.User
 		toPass = append(toPass, &user)
@@ -242,7 +242,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	uniqIDs := dedup(ids)
 
 	fromMaster := false
-	var toPass []any
+	toPass := make([]any, 0, len(uniqIDs))
 	for i := 0; i < len(uniqIDs); i++ {
 		var user *model.User
 		toPass = append(toPass, &user)
