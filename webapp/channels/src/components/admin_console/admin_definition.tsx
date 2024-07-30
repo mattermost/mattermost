@@ -2398,19 +2398,19 @@ const AdminDefinition: AdminDefinitionType = {
             },
             announcement_banner: {
                 url: 'site_config/announcement_banner',
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Announcement')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'bool',
                             key: 'AnnouncementSettings.EnableBanner',
-                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable Announcement Banner:'}),
+                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable System-wide Notifications:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.enableBannerDesc', defaultMessage: 'Enable an announcement banner across all teams.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                         },
@@ -2459,14 +2459,14 @@ const AdminDefinition: AdminDefinitionType = {
             announcement_banner_feature_discovery: {
                 url: 'site_config/announcement_banner',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'custom',
