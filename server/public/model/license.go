@@ -385,6 +385,11 @@ func (l *License) HasSharedChannels() bool {
 		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
+// IsE20OrEnterprise returns true when the license is for E20 or Enterprise.
+func (l *License) IsE20OrEnterprise() bool {
+	return l.SkuShortName == LicenseShortSkuE20 || l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
