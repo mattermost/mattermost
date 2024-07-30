@@ -13,9 +13,9 @@
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bot accounts ownership and API', () => {
-    let newTeam;
-    let newUser;
-    let newChannel;
+    let newTeam: Cypress.Team;
+    let newUser: Cypress.UserProfile;
+    let newChannel: Cypress.Channel;
     let botId;
     let botName;
 
