@@ -233,7 +233,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Announcement Banner"
+                  defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
               }
@@ -3775,7 +3775,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="site_config/announcement_banner"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Announcement Banner"
+                  defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
               }
@@ -4648,7 +4648,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Announcement Banner"
+                  defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
               }
