@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -129,7 +131,7 @@ func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (str
 	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
 	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get files for post %s: %w", postID, err)
 	}
 	result, err := s.FileInfoStore.DeleteForPost(rctx, postID)
 	if err == nil {

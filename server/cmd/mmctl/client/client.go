@@ -160,4 +160,5 @@ type Client interface {
 	UpdatePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
+	DeletePost(ctx context.Context, postId string) (*model.Response, error)
 }

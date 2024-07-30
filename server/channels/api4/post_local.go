@@ -30,10 +30,7 @@ func localDeletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "permanent", permanent)
 
-	includeDeleted := false
-	if permanent {
-		includeDeleted = true
-	}
+	includeDeleted := permanent
 
 	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
 	if err != nil {

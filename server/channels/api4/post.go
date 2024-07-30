@@ -635,9 +635,16 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "permanent", permanent)
 
-	includeDeleted := false
-	if permanent {
-		includeDeleted = true
+	includeDeleted := permanent
+
+	if permanent && !*c.App.Config().ServiceSettings.EnableAPIPostDeletion {
+		c.Err = model.NewAppError("deletePost", "api.post.delete_post.not_enabled.app_error", nil, "postId="+c.Params.PostId, http.StatusNotImplemented)
+		return
+	}
+
+	if permanent && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
 	}
 
 	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
@@ -647,11 +654,6 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
-
-	if permanent && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
 
 	if c.AppContext.Session().UserId == post.UserId {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
@@ -666,11 +668,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 
 	if permanent {
-		if *c.App.Config().ServiceSettings.EnableAPIPostDeletion {
-			err = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
-		} else {
-			err = model.NewAppError("deletePost", "api.post.delete_post.not_enabled.app_error", nil, "postId="+post.Id, http.StatusUnauthorized)
-		}
+		err = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	} else {
 		_, err = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	}

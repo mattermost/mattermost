@@ -3,14 +3,13 @@
 mmctl post delete
 -----------------
 
-Permanently delete a post
+Mark posts as deleted or permanently delete posts with the --permanent flag
 
 Synopsis
 ~~~~~~~~
 
 
-Permanently delete some posts.
-Permanently deletes one or multiple posts along with all related information including files from the database.
+This command will mark the post as deleted and remove it from user's clients but it does not permanently delete the post from the database. Please use the --permanent flag to permanently delete a post and it's attachments from your database.
 
 ::
 
@@ -21,15 +20,23 @@ Examples
 
 ::
 
-    post delete postId1
+    # Mark Post as deleted
+    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw
+
+    # Permanently delete a post and it's file contents from the database and filestore
+    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw --permanent true
+
+    # Permanently delete multiple posts and their file contents from the database and filestore
+    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw 7jgcjt7tyjyyu83qz81wo84w6o --permanent true
 
 Options
 ~~~~~~~
 
 ::
 
-      --confirm   Confirm you really want to delete the post and a DB backup has been performed
-  -h, --help      help for delete
+      --confirm     Confirm you really want to delete the post and a DB backup has been performed
+  -h, --help        help for delete
+      --permanent   Permanently delete the post and its contents from the database
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

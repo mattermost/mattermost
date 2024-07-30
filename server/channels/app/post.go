@@ -2610,7 +2610,7 @@ func (a *App) PermanentDeletePost(c request.CTX, postID, deleteByID string) *mod
 
 	if len(post.FileIds) > 0 {
 		appErr := a.PermanentDeleteFilesByPost(c, post.Id)
-		if appErr != nil {
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 			return appErr
 		}
 	}

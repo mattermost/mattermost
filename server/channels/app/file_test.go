@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -770,5 +771,22 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
 		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
 		require.NotNil(t, err)
+	})
+
+	t.Run("should handle empty file list", func(t *testing.T) {
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			CreateAt:      0,
+		}
+
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		assert.Nil(t, err)
+
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
 	})
 }
