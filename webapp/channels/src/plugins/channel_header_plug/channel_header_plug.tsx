@@ -15,8 +15,8 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
-import WithTooltip from 'components/with_tooltip';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
@@ -329,7 +329,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         dropdownOpen={this.state.dropdownOpen}
                     >
                         <WithTooltip
-                            id="removeIcon"
+                            id='removeIcon'
                             placement='bottom'
                             title={this.state.dropdownOpen ? <></> : (
                                 <div aria-hidden={true}>
