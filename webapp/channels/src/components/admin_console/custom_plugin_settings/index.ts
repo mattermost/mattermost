@@ -25,7 +25,7 @@ import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition';
 import {escapePathPart} from '../schema_admin_settings';
-import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
+import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection, AdminDefinitionSettingBanner} from '../types';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 
@@ -94,6 +94,7 @@ function makeGetPluginSchema() {
                     if (section.custom) {
                         if (customSections[key]) {
                             component = customSections[key]?.component;
+                            settings = parsePluginSettings(section.settings);
                         } else {
                             // Show warning banner for custom sections when the plugin is disabled.
                             settings = [{
@@ -105,9 +106,7 @@ function makeGetPluginSchema() {
                                 banner_type: 'warning',
                             }];
                         }
-                    }
-
-                    if (settings.length === 0) {
+                    } else {
                         settings = parsePluginSettings(section.settings);
                     }
 
@@ -132,16 +131,37 @@ function makeGetPluginSchema() {
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
-                const pluginEnableSetting = getEnablePluginSetting(plugin);
+                const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
                 if (pluginEnableSetting.isDisabled) {
                     pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
                 } else {
                     pluginEnableSetting.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
                 }
 
-                if (sections.length > 0) {
-                    sections[0].settings.unshift(pluginEnableSetting as AdminDefinitionSetting);
+                if (sections.length > 0 && sections.filter((s) => (s.settings[0] as AdminDefinitionSettingBanner).banner_type !== 'warning').length === 0) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled, we show a single warning.
+                    const warningBanner = {
+                        type: Constants.SettingsTypes.TYPE_BANNER,
+                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin and click Save.'}),
+                        banner_type: 'warning' as const,
+                    };
+
+                    sections = [{
+                        key: pluginEnabledConfigKey + '.Section',
+                        header: plugin.settings_schema?.header,
+                        footer: plugin.settings_schema?.footer,
+                        settings: [pluginEnableSetting, warningBanner],
+                    }];
+                } else if (sections.length > 0) {
+                    // Have a separate section on top with the plugin enable/disable setting.
+                    sections.unshift({
+                        key: pluginEnabledConfigKey + '.section',
+                        header: plugin.settings_schema?.header,
+                        footer: plugin.settings_schema?.footer,
+                        settings: [pluginEnableSetting],
+                    });
                 } else {
+                    // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
                 }
             }
