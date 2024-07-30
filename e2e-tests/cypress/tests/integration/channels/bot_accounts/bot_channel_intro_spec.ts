@@ -33,7 +33,7 @@ describe('Bot channel intro and avatar', () => {
         cy.visit(`/${team.name}/messages/@${bot.username}`);
 
         // # Get channel intro and bot-post Avatars
-        cy.get(`#channelIntro .profile-icon > img.Avatar, img.Avatar[alt="${bot.username} profile image"]`).
+        cy.get<HTMLImageElement[]>(`#channelIntro .profile-icon > img.Avatar, img.Avatar[alt="${bot.username} profile image"]`).
             should(($imgs) => {
                 // * Verify imgs downloaded
                 expect($imgs[0].naturalWidth).to.be.greaterThan(0);
@@ -44,7 +44,7 @@ describe('Bot channel intro and avatar', () => {
                 cy.wrap($img).
                     should('be.visible').
                     and('have.attr', 'src').
-                    then((url) => cy.request({url, encoding: 'binary'})).
+                    then((url) => cy.request({url, encoding: 'binary'} as unknown as Partial<Cypress.RequestOptions>)).
                     then(({body}) => {
                         // * Verify matches expected default bot avatar
                         cy.fixture('bot-default-avatar.png', 'binary').should('deep.equal', body);
