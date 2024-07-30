@@ -1352,6 +1352,8 @@ func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 		return
 	}
 
+	mlog.Debug("Reporting daily user count for cloud subscription.")
+
 	appInstance := New(ServerConnector(s.Channels()))
 
 	_, err := appInstance.SendSubscriptionHistoryEvent("")
@@ -1359,6 +1361,8 @@ func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 	if err != nil {
 		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
 	}
+
+	mlog.Debug("Daily user count reported for cloud subscription.")
 }
 
 func (s *Server) doLicenseExpirationCheck() {
