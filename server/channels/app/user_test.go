@@ -1946,7 +1946,7 @@ func TestGetUsersForReporting(t *testing.T) {
 				EndAt:      500,
 			},
 		})
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, userReports)
 	})
 
@@ -1960,7 +1960,7 @@ func TestGetUsersForReporting(t *testing.T) {
 				PageSize:   50,
 			},
 		})
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, userReports)
 	})
 
