@@ -16035,7 +16035,6 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Sess
 	return resultVar0
 }
 
-
 func (a *OpenTracingAppLayer) SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadChannel")
