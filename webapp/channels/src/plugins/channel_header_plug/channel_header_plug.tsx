@@ -331,14 +331,12 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         <WithTooltip
                             id='removeIcon'
                             placement='bottom'
-                            title={this.state.dropdownOpen ? <></> : (
-                                <div aria-hidden={true}>
-                                    <FormattedMessage
-                                        id='generic_icons.plugins'
-                                        defaultMessage='Plugins'
-                                    />
-                                </div>
-                            )}
+                            title={
+                                <FormattedMessage
+                                    id='generic_icons.plugins'
+                                    defaultMessage='Plugins'
+                                />
+                            }
                         >
                             <React.Fragment>
                                 <PluginChannelHeaderIcon
