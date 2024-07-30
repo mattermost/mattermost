@@ -22,8 +22,8 @@ import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
-import WithTooltip from 'components/with_tooltip';
 import Avatars from 'components/widgets/users/avatars';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -86,7 +86,7 @@ function ThreadFooter({
             ) : (
                 <WithTooltip
                     id='threadFooterIndicator'
-                    placement="top"
+                    placement='top'
                     title={
                         <FormattedMessage
                             id='threading.numNewMessages'
