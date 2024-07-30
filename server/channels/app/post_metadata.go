@@ -175,8 +175,6 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	}
 
-	removeEmbeddedPostsFromMetadata(post)
-
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(c, post.Message)
 
