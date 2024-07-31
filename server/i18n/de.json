@@ -4764,11 +4764,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10084,5 +10084,9 @@
   {
     "id": "api.remote_cluster.invite_decrypt_error",
     "translation": "Der Remote Cluster Einladung konnte mit dem angegebenen Passwort nicht entschlüsselt werden"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ungültiges Such-Backend. Es muss entweder elasticsearch oder opensearch sein."
   }
 ]
