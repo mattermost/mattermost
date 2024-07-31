@@ -1437,6 +1437,18 @@ func TestGetPluginStateOverride(t *testing.T) {
 	t.Run("apps override", func(t *testing.T) {
 		t.Run("without enabled flag", func(t *testing.T) {
 			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with enabled flag set to true", func(t *testing.T) {
+			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.False(t, overrides)
 			require.False(t, value)
 		})
