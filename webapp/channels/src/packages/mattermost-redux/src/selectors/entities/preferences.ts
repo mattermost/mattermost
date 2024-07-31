@@ -16,11 +16,15 @@ export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceT
     return state.entities.preferences.myPreferences;
 }
 
-export function getUserPreferences(state: GlobalState, userID: string): { [x: string]: PreferenceType } {
+export function getUserPreferences(state: GlobalState, userID: string): PreferencesType {
     return state.entities.preferences.userPreferences[userID];
 }
 
-export function get(state: GlobalState, category: string, name: string, defaultValue: any = '') {
+export function get(state: GlobalState, category: string, name: string, defaultValue: any = '', preferences?: PreferencesType) {
+    if (preferences) {
+        return getFromPreferences(preferences, category, name, defaultValue);
+    }
+
     const key = getPreferenceKey(category, name);
     const prefs = getMyPreferences(state);
 
@@ -41,18 +45,13 @@ export function getFromPreferences(preferences: PreferencesType, category: strin
     return preferences[key].value;
 }
 
-export function getBool(state: GlobalState, category: string, name: string, defaultValue = false): boolean {
-    const value = get(state, category, name, String(defaultValue));
+export function getBool(state: GlobalState, category: string, name: string, defaultValue = false, userPreferences?: PreferencesType): boolean {
+    const value = get(state, category, name, String(defaultValue), userPreferences);
     return value !== 'false';
 }
 
-export function getBoolFromPreferences(userPreferences: PreferencesType, category: string, name: string, defaultValue = false): boolean {
-    const value = getFromPreferences(userPreferences, category, name, String(defaultValue));
-    return value !== 'false';
-}
-
-export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0): number {
-    const value = get(state, category, name, defaultValue);
+export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0, userPreferences?: PreferencesType): number {
+    const value = get(state, category, name, defaultValue, userPreferences);
     return parseInt(value, 10);
 }
 
@@ -219,42 +218,29 @@ export function makeGetStyleFromTheme<Style>(): (state: GlobalState, getStyleFro
     );
 }
 
-export function calculateUserShouldShowUnreadsCategory(userPreferences: PreferencesType, serverDefault?: string): boolean {
-    const userPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION);
-    const oldUserPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, '');
-
-    return calculateShouldShowUnreadsCategory(userPreference, oldUserPreference, serverDefault);
-}
-
-export function calculateShouldShowUnreadsCategory(userPreference: string, oldUserPreference: string, serverDefault?: string): boolean {
-    // Prefer the show_unread_section user preference over the previous version
-    if (userPreference) {
-        return userPreference === 'true';
-    }
-
-    if (oldUserPreference) {
-        return JSON.parse(oldUserPreference).unreads_at_top === 'true';
-    }
-
-    // The user setting is not set, so use the system default
-    return serverDefault === General.DEFAULT_ON;
-}
-
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.
-export const shouldShowUnreadsCategory: (state: GlobalState) => boolean = createSelector(
+export const shouldShowUnreadsCategory: (state: GlobalState, userPreferences?: PreferencesType) => boolean = createSelector(
     'shouldShowUnreadsCategory',
-    (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION),
-    (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, ''),
+    (state: GlobalState, userPreferences?: PreferencesType) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION, '', userPreferences),
+    (state: GlobalState, userPreferences?: PreferencesType) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, '', '', userPreferences),
     (state: GlobalState) => getConfig(state).ExperimentalGroupUnreadChannels,
-    calculateShouldShowUnreadsCategory,
+    (userPreference: string, oldUserPreference: string, serverDefault?: string): boolean => {
+        // Prefer the show_unread_section user preference over the previous version
+        if (userPreference) {
+            return userPreference === 'true';
+        }
+
+        if (oldUserPreference) {
+            return JSON.parse(oldUserPreference).unreads_at_top === 'true';
+        }
+
+        // The user setting is not set, so use the system default
+        return serverDefault === General.DEFAULT_ON;
+    },
 );
 
-export function getUnreadScrollPositionPreference(state: GlobalState): string {
-    return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
-}
-
-export function getUnreadScrollPositionFromPreference(userPreferences: PreferencesType): string {
-    return getFromPreferences(userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
+export function getUnreadScrollPositionPreference(state: GlobalState, userPreferences?: PreferencesType): string {
+    return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT, userPreferences);
 }
 
 export function getCollapsedThreadsPreference(state: GlobalState): string {
@@ -334,27 +320,13 @@ export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
     return isConfiguredForFeature && isConfiguredForUser;
 }
 
-export function getVisibleDmGmLimit(state: GlobalState) {
+export function getVisibleDmGmLimit(state: GlobalState, userPreferences?: PreferencesType) {
     const defaultLimit = 40;
-    return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-}
-
-export function getUserVisibleDmGmLimit(userPreferences: PreferencesType) {
-    const defaultLimit = 40;
-    const value = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-    return parseInt(value, 10);
+    return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit, userPreferences);
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
-}
-
-export function deprecateCloudFree(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'DeprecateCloudFree') === 'true';
-}
-
-export function cloudReverseTrial(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
 }
 
 export function moveThreadsEnabled(state: GlobalState): boolean {

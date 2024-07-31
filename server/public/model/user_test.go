@@ -252,11 +252,11 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId() + "^hello#"
+	user.Username = NewUsername() + "^hello#"
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId()
+	user.Username = NewUsername()
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
@@ -309,6 +309,52 @@ func TestUserIsValid(t *testing.T) {
 	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "roles_limit", user.Id, user.Roles), "expected user is valid error: %s", appErr.Error())
+}
+
+func TestUserSanitizeInput(t *testing.T) {
+	user := User{}
+	user.CreateAt = GetMillis()
+	user.UpdateAt = GetMillis()
+	user.DeleteAt = GetMillis()
+	user.LastPasswordUpdate = GetMillis()
+	user.LastPictureUpdate = GetMillis()
+
+	user.Username = "username"
+	user.Email = "  user@example.com "
+	user.Nickname = "nickname"
+	user.FirstName = "firstname"
+	user.LastName = "lastname"
+	user.RemoteId = NewString(NewId())
+	user.Position = "position"
+	user.Roles = "system_admin"
+	user.AuthData = NewString("authdata")
+	user.AuthService = "saml"
+	user.EmailVerified = true
+	user.FailedAttempts = 10
+	user.LastActivityAt = GetMillis()
+
+	user.SanitizeInput(false)
+
+	// these fields should be reset
+	require.Equal(t, NewString(""), user.AuthData)
+	require.Equal(t, "", user.AuthService)
+	require.False(t, user.EmailVerified)
+	require.Equal(t, NewString(""), user.RemoteId)
+	require.Equal(t, int64(0), user.CreateAt)
+	require.Equal(t, int64(0), user.UpdateAt)
+	require.Equal(t, int64(0), user.DeleteAt)
+	require.Equal(t, int64(0), user.LastPasswordUpdate)
+	require.Equal(t, int64(0), user.LastPictureUpdate)
+	require.Equal(t, int64(0), user.LastActivityAt)
+	require.Equal(t, 0, user.FailedAttempts)
+
+	// these fields should remain intact
+	require.Equal(t, "user@example.com", user.Email)
+	require.Equal(t, "username", user.Username)
+	require.Equal(t, "nickname", user.Nickname)
+	require.Equal(t, "firstname", user.FirstName)
+	require.Equal(t, "lastname", user.LastName)
+	require.Equal(t, "position", user.Position)
 }
 
 func HasExpectedUserIsValidError(err *AppError, fieldName, userId string, fieldValue any) bool {
@@ -383,9 +429,9 @@ var usernames = []usernamesTest{
 	{"spin-punch", true, true},
 	{"sp", true, true},
 	{"s", true, true},
-	{"1spin-punch", true, true},
-	{"-spin-punch", true, true},
-	{".spin-punch", true, true},
+	{"1spin-punch", false, false},
+	{"-spin-punch", false, false},
+	{".spin-punch", false, false},
 	{"Spin-punch", false, false},
 	{"spin punch-", false, false},
 	{"spin_punch", true, true},

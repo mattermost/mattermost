@@ -36,8 +36,6 @@ type FeatureFlags struct {
 
 	DeprecateCloudFree bool
 
-	CloudReverseTrial bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
@@ -63,13 +61,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = true
+	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.CallsEnabled = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
-	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
@@ -78,7 +75,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
 	f.ChannelBookmarks = false
-	f.WebSocketEventScope = false
+	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
 }

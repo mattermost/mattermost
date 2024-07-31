@@ -112,6 +112,7 @@ const (
 	ServiceSettingsDefaultGiphySdkKeyTest        = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags         = ""
 	ServiceSettingsDefaultUniqueReactionsPerPost = 50
+	ServiceSettingsDefaultMaxURLLength           = 2048
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
@@ -202,7 +203,7 @@ const (
 	ElasticsearchSettingsDefaultAggregatePostsAfterDays     = 365
 	ElasticsearchSettingsDefaultPostsAggregatorJobStartTime = "03:00"
 	ElasticsearchSettingsDefaultIndexPrefix                 = ""
-	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 1
+	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 10
 	ElasticsearchSettingsDefaultRequestTimeoutSeconds       = 30
 	ElasticsearchSettingsDefaultBatchSize                   = 10000
 	ElasticsearchSettingsESBackend                          = "elasticsearch"
@@ -374,7 +375,6 @@ type ServiceSettings struct {
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
 	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
-	EnablePreviewFeatures                             *bool   `access:"experimental_features"`
 	EnableTutorial                                    *bool   `access:"experimental_features"`
 	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
@@ -411,6 +411,7 @@ type ServiceSettings struct {
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -775,10 +776,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.PostEditTimeLimit = NewInt(-1)
 	}
 
-	if s.EnablePreviewFeatures == nil {
-		s.EnablePreviewFeatures = NewBool(true)
-	}
-
 	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
 		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewBool(true)
 	}
@@ -925,6 +922,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.MaximumPayloadSizeBytes == nil {
 		s.MaximumPayloadSizeBytes = NewInt64(300000)
+	}
+
+	if s.MaximumURLLength == nil {
+		s.MaximumURLLength = NewInt(ServiceSettingsDefaultMaxURLLength)
 	}
 }
 
@@ -4034,6 +4035,10 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.MaximumPayloadSizeBytes <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MaximumURLLength <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_url_length.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ReadTimeout <= 0 {

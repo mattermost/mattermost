@@ -28,10 +28,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const sendEmailNotifications = config.SendEmailNotifications === 'true';
     const requireEmailVerification = config.RequireEmailVerification === 'true';
 
-    const currentUser = ownProps.adminMode && ownProps.userID ? getUserSelector(state, ownProps.userID) : getCurrentUser(state);
+    const user = ownProps.adminMode && ownProps.userID ? getUserSelector(state, ownProps.userID) : getCurrentUser(state);
 
     return {
-        currentUser,
+        user,
         userPreferences: ownProps.adminMode && ownProps.userID ? getUserPreferencesSelector(state, ownProps.userID) : undefined,
         sendEmailNotifications,
         requireEmailVerification,

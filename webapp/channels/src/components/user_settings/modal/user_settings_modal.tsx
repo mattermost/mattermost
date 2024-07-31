@@ -16,7 +16,7 @@ import ConfirmModal from 'components/confirm_modal';
 import SettingsSidebar from 'components/settings_sidebar';
 import UserSettings from 'components/user_settings';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SmartLoader from 'components/widgets/smartLoader';
+import SmartLoader from 'components/widgets/smart_loader';
 
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
@@ -28,7 +28,6 @@ import type {PluginConfiguration} from 'types/plugins/user_settings';
 export type OwnProps = {
     userID?: string;
     adminMode?: boolean;
-    currentUser?: UserProfile;
     isContentProductSettings: boolean;
     userPreferences?: PreferencesType;
 }
@@ -42,6 +41,7 @@ export type Props = OwnProps & {
         getUser: (userID: string) => Promise<unknown>;
     };
     pluginSettings: {[pluginId: string]: PluginConfiguration};
+    user?: UserProfile;
 }
 
 type State = {
@@ -106,7 +106,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 this.props.actions.getUserPreferences(this.props.userID);
             }
 
-            if (!this.props.currentUser) {
+            if (!this.props.user) {
                 this.props.actions.getUser(this.props.userID);
             }
         }
@@ -312,12 +312,12 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
         let modalTitle: string;
 
-        if (this.props.adminMode && this.props.currentUser) {
+        if (this.props.adminMode && this.props.user) {
             modalTitle = formatMessage({
                 id: 'userSettings.adminMode.modal_header',
                 defaultMessage: "{userDisplayName}'s Settings",
             }, {
-                userDisplayName: getDisplayName(this.props.currentUser),
+                userDisplayName: getDisplayName(this.props.user),
             });
         } else {
             modalTitle = this.props.isContentProductSettings ? formatMessage({
@@ -365,7 +365,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     {
                         this.props.adminMode &&
                         <SmartLoader
-                            loading={this.props.adminMode && (!this.props.userPreferences || !this.props.currentUser)}
+                            loading={this.props.adminMode && (!this.props.userPreferences || !this.props.user)}
                             className='loadingIndicator'
                             onLoaded={this.setLoadingFinished}
                         >
@@ -374,7 +374,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     }
 
                     {
-                        !this.state.loading && this.props.currentUser &&
+                        !this.state.loading && this.props.user &&
                         <div className='settings-table'>
                             <div className='settings-links'>
                                 <SettingsSidebar
@@ -400,7 +400,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                         }
                                     }
                                     pluginSettings={this.props.pluginSettings}
-                                    user={this.props.currentUser}
+                                    user={this.props.user}
                                     adminMode={this.props.adminMode}
                                     userPreferences={this.props.userPreferences}
                                 />

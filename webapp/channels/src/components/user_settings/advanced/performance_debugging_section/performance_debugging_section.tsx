@@ -16,7 +16,7 @@ import type {PropsFromRedux} from './index';
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    userId: string;
 }
 
 type Props = PropsFromRedux & OwnProps & {
@@ -116,7 +116,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
     const [disableTypingMessages, setDisableTypingMessages] = useState(props.disableTypingMessages);
 
     const handleSubmit = useCallback(() => {
-        if (!props.currentUserId) {
+        if (!props.userId) {
             return;
         }
 
@@ -124,7 +124,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
 
         if (disableClientPlugins !== props.disableClientPlugins) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_CLIENT_PLUGINS,
                 value: disableClientPlugins.toString(),
@@ -132,7 +132,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
         }
         if (disableTelemetry !== props.disableTelemetry) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_TELEMETRY,
                 value: disableTelemetry.toString(),
@@ -140,20 +140,20 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
         }
         if (disableTypingMessages !== props.disableTypingMessages) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_TYPING_MESSAGES,
                 value: disableTypingMessages.toString(),
             });
         }
 
-        if (preferences.length !== 0 && props.currentUserId) {
-            props.savePreferences(props.currentUserId, preferences);
+        if (preferences.length !== 0 && props.userId) {
+            props.savePreferences(props.userId, preferences);
         }
 
         props.onUpdateSection('');
     }, [
-        props.currentUserId,
+        props.userId,
         props.onUpdateSection,
         props.savePreferences,
         disableClientPlugins,
