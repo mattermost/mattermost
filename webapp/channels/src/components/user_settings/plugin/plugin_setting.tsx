@@ -96,7 +96,7 @@ const PluginSetting = ({
                     pluginId={pluginId}
                     hideRefresh={true}
                 >
-                    <CustomComponent/>
+                    <CustomComponent informChange={onSettingChanged}/>
                 </PluggableErrorBoundary>
             );
             inputs.push(inputEl);

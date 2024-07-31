@@ -21,6 +21,7 @@ import SmartLoader from 'components/widgets/smart_loader';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {isValidUrl} from 'utils/url';
 import {getDisplayName} from 'utils/utils';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
@@ -300,12 +301,16 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     };
 
     getPluginsSettingsTab = () => {
-        return Object.values(this.props.pluginSettings).map((v) => ({
-            name: v.id,
-            uiName: v.uiName,
-            icon: v.icon ? {url: v.icon} : 'icon-power-plug-outline',
-            iconTitle: v.uiName,
-        }));
+        return Object.values(this.props.pluginSettings).map((v) => {
+            const className = v.icon ? `icon ${v.icon}` : 'icon icon-power-plug-outline';
+            const useURL = v.icon && (isValidUrl(v.icon) || v.icon.startsWith('/'));
+            return {
+                name: v.id,
+                uiName: v.uiName,
+                icon: useURL ? {url: v.icon!} : className,
+                iconTitle: v.uiName,
+            };
+        });
     };
 
     render() {
