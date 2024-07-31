@@ -95,7 +95,7 @@ const PluginSetting = ({
                     key={setting.name}
                     pluginId={pluginId}
                 >
-                    <CustomComponent/>
+                    <CustomComponent informChange={onSettingChanged}/>
                 </PluggableErrorBoundary>
             );
             inputs.push(inputEl);

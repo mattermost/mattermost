@@ -85,11 +85,13 @@ export type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
     options: PluginConfigurationRadioSettingOption[];
 }
 
+export type PluginCustomSettingComponent = React.ComponentType<{informChange: (name: string, value: string) => void}>;
+
 export type PluginConfigurationCustomSetting = BasePluginConfigurationSetting & {
     type: 'custom';
 
     /** A React component used to render the custom setting. */
-    component: React.ComponentType;
+    component: PluginCustomSettingComponent;
 }
 
 export type PluginConfigurationRadioSettingOption = {
