@@ -49,10 +49,10 @@ var PostDeleteCmd = &cobra.Command{
   $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw
 
   # Permanently delete a post and it's file contents from the database and filestore
-  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw --permanent true
+  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw --permanent
 
   # Permanently delete multiple posts and their file contents from the database and filestore
-  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw 7jgcjt7tyjyyu83qz81wo84w6o --permanent true`,
+  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw 7jgcjt7tyjyyu83qz81wo84w6o --permanent`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: withClient(deletePostsCmdF),
 }
