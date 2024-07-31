@@ -596,7 +596,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_roles: {
                 url: 'user_management/system_roles',
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -611,14 +611,14 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles_feature_discovery: {
                 url: 'user_management/system_roles',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
-                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'System Roles'}),
+                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                     settings: [
                         {
                             type: 'custom',
