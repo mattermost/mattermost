@@ -98,6 +98,7 @@ function makeGetPluginSchema() {
                         } else {
                             // Show warning banner for custom sections when the plugin is disabled.
                             settings = [{
+                                key: key + 'disabledWarning',
                                 type: Constants.SettingsTypes.TYPE_BANNER,
                                 label: defineMessage({
                                     id: 'admin.plugin.customSection.pluginDisabledWarning',
@@ -132,15 +133,11 @@ function makeGetPluginSchema() {
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
-                if (pluginEnableSetting.isDisabled) {
-                    pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
-                } else {
-                    pluginEnableSetting.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
-                }
 
                 if (sections.length > 0 && sections.filter((s) => (s.settings[0] as AdminDefinitionSettingBanner).banner_type !== 'warning').length === 0) {
                     // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled, we show a single warning.
                     const warningBanner = {
+                        key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
                         label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin and click Save.'}),
                         banner_type: 'warning' as const,
@@ -155,7 +152,7 @@ function makeGetPluginSchema() {
                 } else if (sections.length > 0) {
                     // Have a separate section on top with the plugin enable/disable setting.
                     sections.unshift({
-                        key: pluginEnabledConfigKey + '.section',
+                        key: pluginEnabledConfigKey + '.Section',
                         header: plugin.settings_schema?.header,
                         footer: plugin.settings_schema?.footer,
                         settings: [pluginEnableSetting],
