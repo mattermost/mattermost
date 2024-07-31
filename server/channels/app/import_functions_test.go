@@ -4619,7 +4619,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 	user2, appErr := th.App.GetUserByUsername(username2)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.Nil(t, appErr, "Failed to get user2 from database.")
 
 	// Create direct post users.
 	username3 := model.NewUsername()
@@ -4630,14 +4630,14 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	user3, appErr := th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
-	username4 := model.NewId()
+	username4 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 
 	user4, appErr := th.App.GetUserByUsername(username4)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.Nil(t, appErr, "Failed to get user4 from database.")
 
 	// Post with attachments
 	time := model.GetMillis()
