@@ -210,8 +210,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         }
       />
       <Memo(CopyText)
-        defaultMessage="Copy Client Id"
-        idMessage="integrations.copy_client_id"
+        tooltip={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Copy Client Id"
+            id="integrations.copy_client_id"
+          />
+        }
         value="r5tpgt4iepf45jt768jz84djic"
       />
       <br />
@@ -225,8 +229,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         }
       />
       <Memo(CopyText)
-        defaultMessage="Copy Client Secret"
-        idMessage="integrations.copy_client_secret"
+        tooltip={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Copy Client Secret"
+            id="integrations.copy_client_secret"
+          />
+        }
         value="<==secret==>"
       />
     </p>
