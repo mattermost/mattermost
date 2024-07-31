@@ -65,7 +65,6 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 
 		err := postListCmdF(s.th.Client, cmd, []string{teamName + ":" + channelName})
 		s.Require().NotNil(err)
-		//s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
 	})
 
 	s.RunForSystemAdminAndLocal("List all posts for a channel with since flag", func(c client.Client) {
@@ -104,7 +103,6 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 
 		err := postListCmdF(s.th.Client, cmd, []string{teamName + ":" + channelName})
 		s.Require().NotNil(err)
-		//s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
 	})
 }
 
