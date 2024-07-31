@@ -44,7 +44,7 @@ var PostListCmd = &cobra.Command{
 var PostDeleteCmd = &cobra.Command{
 	Use:   "delete [posts]",
 	Short: "Mark posts as deleted or permanently delete posts with the --permanent flag",
-	Long:  `This command will mark the post as deleted and remove it from user's clients but it does not permanently delete the post from the database. Please use the --permanent flag to permanently delete a post and it's attachments from your database.`,
+	Long:  `This command will mark the post as deleted and remove it from the user's clients, but it does not permanently delete the post from the database. Please use the --permanent flag to permanently delete a post and its attachments from your database.`,
 	Example: `  # Mark Post as deleted
   $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw
 
