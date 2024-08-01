@@ -48,9 +48,9 @@ function CustomStatusEmoji({
 
     const [placement, setPlacement] = useState('bottom');
     const emojiRef = useRef<HTMLSpanElement>(null);
-     
-    const handleMouseInteraction = () => {
-        const handleMouseEnter = () => {
+
+    useEffect(() => {
+        function handleMouseEnter() {
             if (emojiRef.current) {
                 const boundingRect = emojiRef.current.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
@@ -62,20 +62,19 @@ function CustomStatusEmoji({
                     setPlacement('bottom');
                 }
             }
-        };
+        }
 
         const emojiElement = emojiRef.current;
         if (emojiElement) {
             emojiElement.addEventListener('mouseenter', handleMouseEnter);
         }
+
         return () => {
             if (emojiElement) {
                 emojiElement.removeEventListener('mouseenter', handleMouseEnter);
             }
         };
-    };
-
-    useEffect(handleMouseInteraction, []);
+    }, []);
 
     if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
         return null;
