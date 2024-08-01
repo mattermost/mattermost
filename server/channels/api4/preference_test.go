@@ -75,7 +75,7 @@ func TestGetPreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//GetPreferences API from System Admin and Local Client
+	// GetPreferences API from System Admin and Local Client
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		prefs, resp, err := c.GetPreferences(context.Background(), user1.Id)
 		require.NotNil(t, prefs)
@@ -143,7 +143,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//GetPreferencesByCategory API from System Admin and Local Client
+	// GetPreferencesByCategory API from System Admin and Local Client
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		prefs, resp, err := c.GetPreferencesByCategory(context.Background(), user1.Id, category)
 		require.NotNil(t, prefs)
@@ -209,7 +209,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//GetPreferenceByCategoryAndName API from System Admin and Local Client
+	// GetPreferenceByCategoryAndName API from System Admin and Local Client
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		pref, resp, err := c.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 		require.NotNil(t, pref)
@@ -280,7 +280,7 @@ func TestUpdatePreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//UpdatePreferences API from System Admin and Local Client
+	// UpdatePreferences API from System Admin and Local Client
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		preferences := model.Preferences{
 			{
@@ -663,10 +663,9 @@ func TestDeletePreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//DeletePreferences API from System Admin and Local Client
+	// DeletePreferences API from System Admin and Local Client
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-
-		//Creating Test Data
+		// Creating Test Data
 		var preferences model.Preferences
 		preference := model.Preference{
 			UserId:   th.BasicUser.Id,
@@ -677,10 +676,8 @@ func TestDeletePreferences(t *testing.T) {
 		preferences = append(preferences, preference)
 		c.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
 
-		//Delete Prefrerences Operation
+		// Delete Prefrerences Operation
 		resp, err = c.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
-
-		//Validations
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
