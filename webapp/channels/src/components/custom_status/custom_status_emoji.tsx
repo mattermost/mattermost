@@ -108,9 +108,7 @@ function CustomStatusEmoji({
                             </span>
                         )}
                     </div>
-                    {customStatus.expires_at &&
-                        customStatus.duration !==
-                        CustomStatusDuration.DONT_CLEAR && (
+                    {customStatus.expires_at && customStatus.duration !== CustomStatusDuration.DONT_CLEAR && (
                         <div>
                             <ExpiryTime
                                 time={customStatus.expires_at}
@@ -128,7 +126,9 @@ function CustomStatusEmoji({
             <span
                 ref={emojiRef}
                 style={spanStyle}
-            >{statusEmoji}</span>
+            >
+                {statusEmoji}
+            </span>
         </WithTooltip>
     );
 }
