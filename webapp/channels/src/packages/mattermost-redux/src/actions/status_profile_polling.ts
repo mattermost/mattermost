@@ -18,7 +18,7 @@ import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUse
 import {getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
-import {IntervalDataLoader} from 'mattermost-redux/utils/data_loader';
+import {BackgroundDataLoader} from 'mattermost-redux/utils/data_loader';
 
 /**
  * Adds list(s) of user id(s) to the status fetching poll. Which gets fetched based on user interval polling duration
@@ -27,13 +27,13 @@ import {IntervalDataLoader} from 'mattermost-redux/utils/data_loader';
 export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProfile['id']>): ActionFunc<boolean> {
     return (dispatch, getState, {loaders}: any) => {
         if (!loaders.pollingStatusLoader) {
-            loaders.pollingStatusLoader = new IntervalDataLoader<UserProfile['id']>({
+            loaders.pollingStatusLoader = new BackgroundDataLoader<UserProfile['id']>({
                 fetchBatch: (userIds) => dispatch(getStatusesByIds(userIds)),
                 maxBatchSize: maxUserIdsPerStatusesRequest,
             });
         }
 
-        loaders.pollingStatusLoader.queueForLoading(userIdsForStatus);
+        loaders.pollingStatusLoader.queue(userIdsForStatus);
 
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 
@@ -57,13 +57,13 @@ export function addUserIdsForStatusFetchingPoll(userIdsForStatus: Array<UserProf
 export function addUserIdsForProfileFetchingPoll(userIdsForProfile: Array<UserProfile['id']>): ActionFunc<boolean> {
     return (dispatch, getState, {loaders}: any) => {
         if (!loaders.pollingProfileLoader) {
-            loaders.pollingProfileLoader = new IntervalDataLoader<UserProfile['id']>({
+            loaders.pollingProfileLoader = new BackgroundDataLoader<UserProfile['id']>({
                 fetchBatch: (userIds) => dispatch(getProfilesByIds(userIds)),
                 maxBatchSize: maxUserIdsPerProfilesRequest,
             });
         }
 
-        loaders.pollingProfileLoader.queueForLoading(userIdsForProfile);
+        loaders.pollingProfileLoader.queue(userIdsForProfile);
 
         const pollingInterval = getUsersStatusAndProfileFetchingPollInterval(getState());
 

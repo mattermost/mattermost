@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DelayedDataLoader, IntervalDataLoader} from './data_loader';
+import {DelayedDataLoader, BackgroundDataLoader} from './data_loader';
 
 jest.useFakeTimers();
 
-describe('IntervalDataLoader', () => {
+describe('BackgroundDataLoader', () => {
     const maxBatchSize = 10;
     const period = 2000;
 
-    let loader: IntervalDataLoader<string> | undefined;
+    let loader: BackgroundDataLoader<string> | undefined;
 
     afterEach(() => {
         loader?.stopInterval();
@@ -21,14 +21,14 @@ describe('IntervalDataLoader', () => {
     test('should periodically fetch data from server', () => {
         const fetchBatch = jest.fn();
 
-        loader = new IntervalDataLoader({
+        loader = new BackgroundDataLoader({
             fetchBatch,
             maxBatchSize,
         });
 
         loader.startIntervalIfNeeded(period);
 
-        loader.queueForLoading(['id1']);
+        loader.queue(['id1']);
 
         expect(fetchBatch).not.toHaveBeenCalled();
 
@@ -41,14 +41,14 @@ describe('IntervalDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledTimes(1);
         expect(fetchBatch).toHaveBeenCalledWith(['id1']);
 
-        loader.queueForLoading(['id2']);
+        loader.queue(['id2']);
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
 
         jest.advanceTimersByTime(period / 2);
 
-        loader.queueForLoading(['id3']);
-        loader.queueForLoading(['id4']);
+        loader.queue(['id3']);
+        loader.queue(['id4']);
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
 
@@ -58,29 +58,29 @@ describe('IntervalDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledWith(['id2', 'id3', 'id4']);
     });
 
-    test('should dedupe identifiers passed to queueForLoading', () => {
+    test('should dedupe identifiers passed to queue', () => {
         const fetchBatch = jest.fn();
 
-        loader = new IntervalDataLoader({
+        loader = new BackgroundDataLoader({
             fetchBatch,
             maxBatchSize: 10,
         });
 
         loader.startIntervalIfNeeded(period);
 
-        loader.queueForLoading(['id1', 'id1', 'id1']);
-        loader.queueForLoading(['id2']);
-        loader.queueForLoading(['id2']);
+        loader.queue(['id1', 'id1', 'id1']);
+        loader.queue(['id2']);
+        loader.queue(['id2']);
 
         jest.advanceTimersToNextTimer();
 
         expect(fetchBatch).toHaveBeenCalledWith(['id1', 'id2']);
     });
 
-    test("shouldn't fetch data when nothing queueForLoading hasn't been called", () => {
+    test("shouldn't fetch data when nothing queue hasn't been called", () => {
         const fetchBatch = jest.fn();
 
-        loader = new IntervalDataLoader({
+        loader = new BackgroundDataLoader({
             fetchBatch,
             maxBatchSize,
         });
@@ -97,14 +97,14 @@ describe('IntervalDataLoader', () => {
     test('should split requests into batches if too many IDs are added at once', () => {
         const fetchBatch = jest.fn();
 
-        loader = new IntervalDataLoader({
+        loader = new BackgroundDataLoader({
             fetchBatch,
             maxBatchSize: 3,
         });
 
         loader.startIntervalIfNeeded(period);
 
-        loader.queueForLoading(['id1', 'id2', 'id3', 'id4', 'id5']);
+        loader.queue(['id1', 'id2', 'id3', 'id4', 'id5']);
 
         jest.advanceTimersToNextTimer();
 
@@ -116,10 +116,10 @@ describe('IntervalDataLoader', () => {
         expect(fetchBatch).toHaveBeenCalledTimes(2);
         expect(fetchBatch).toHaveBeenCalledWith(['id4', 'id5']);
 
-        loader.queueForLoading(['id6']);
-        loader.queueForLoading(['id7']);
-        loader.queueForLoading(['id8']);
-        loader.queueForLoading(['id9']);
+        loader.queue(['id6']);
+        loader.queue(['id7']);
+        loader.queue(['id8']);
+        loader.queue(['id9']);
 
         jest.advanceTimersToNextTimer();
 
@@ -135,14 +135,14 @@ describe('IntervalDataLoader', () => {
     test('should stop fetching data after stopInterval is called', () => {
         const fetchBatch = jest.fn();
 
-        loader = new IntervalDataLoader({
+        loader = new BackgroundDataLoader({
             fetchBatch,
             maxBatchSize,
         });
 
         expect(jest.getTimerCount()).toBe(0);
 
-        loader.queueForLoading(['id1']);
+        loader.queue(['id1']);
         loader.startIntervalIfNeeded(period);
 
         expect(jest.getTimerCount()).toBe(1);
@@ -185,15 +185,15 @@ describe('DelayedDataLoader', () => {
 
         expect(jest.getTimerCount()).toBe(0);
 
-        loader.queueForLoading(['id1']);
+        loader.queue(['id1']);
 
         expect(jest.getTimerCount()).toBe(1);
         expect(fetchBatch).not.toHaveBeenCalled();
 
         jest.advanceTimersByTime(wait / 2);
 
-        loader.queueForLoading(['id2']);
-        loader.queueForLoading(['id3']);
+        loader.queue(['id2']);
+        loader.queue(['id3']);
 
         expect(jest.getTimerCount()).toBe(1);
         expect(fetchBatch).not.toHaveBeenCalled();
@@ -214,15 +214,15 @@ describe('DelayedDataLoader', () => {
             wait,
         });
 
-        loader.queueForLoading(['id1']);
+        loader.queue(['id1']);
 
         jest.advanceTimersToNextTimer();
 
         expect(fetchBatch).toHaveBeenCalledTimes(1);
         expect(fetchBatch).toHaveBeenCalledWith(['id1']);
 
-        loader.queueForLoading(['id2']);
-        loader.queueForLoading(['id3']);
+        loader.queue(['id2']);
+        loader.queue(['id3']);
 
         jest.advanceTimersToNextTimer();
 
@@ -356,7 +356,7 @@ describe('DelayedDataLoader', () => {
             wait,
         });
 
-        loader.queueForLoading(['id1', 'id2', 'id3', 'id4', 'id5']);
+        loader.queue(['id1', 'id2', 'id3', 'id4', 'id5']);
 
         jest.advanceTimersToNextTimer();
 
@@ -381,8 +381,8 @@ describe('DelayedDataLoader', () => {
             wait,
         });
 
-        loader.queueForLoading(['id1', 'id2']);
-        loader.queueForLoading(['id3', 'id4']);
+        loader.queue(['id1', 'id2']);
+        loader.queue(['id3', 'id4']);
 
         jest.advanceTimersToNextTimer();
 

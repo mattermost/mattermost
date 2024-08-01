@@ -183,7 +183,7 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Arra
 
         if (missingIds.length > 0) {
             if (getIsUserStatusesConfigEnabled(state)) {
-                loaders.missingStatusLoader.queueForLoading(missingIds);
+                loaders.missingStatusLoader.queue(missingIds);
             }
 
             await loaders.missingProfileLoader.queueAndWait(missingIds);
