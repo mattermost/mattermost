@@ -4,6 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
+import type {ValueType} from 'react-select';
 
 import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
@@ -18,7 +19,7 @@ import RadioSettingItem from 'components/widgets/modals/components/radio_setting
 import type {Option} from 'components/widgets/modals/components/react_select_item';
 
 import {IgnoreChannelMentions, NotificationLevels, DesktopSound} from 'utils/constants';
-import {getValueOfNotificationSoundsSelect} from 'utils/notification_sounds';
+import {getValueOfNotificationSoundsSelect, notificationSoundKeys, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
 
 import type {ChannelMemberNotifyProps} from './utils';
 import utils, {convertDesktopSoundNotifyPropFromUserToDesktop} from './utils';
@@ -66,8 +67,8 @@ function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channe
     const desktop = channelMemberNotifyProps?.desktop === NotificationLevels.DEFAULT ? currentUserNotifyProps.desktop : (channelMemberNotifyProps?.desktop || currentUserNotifyProps.desktop);
     const push = channelMemberNotifyProps?.push === NotificationLevels.DEFAULT ? currentUserNotifyProps.desktop : (channelMemberNotifyProps?.push || currentUserNotifyProps.push);
 
-    const desktopSound = channelMemberNotifyProps?.desktop_sound ?? convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps?.desktop_sound);
-    const desktopNotificationSound = channelMemberNotifyProps?.desktop_notification_sound ?? currentUserNotifyProps.desktop_notification_sound;
+    const desktopSound: ChannelNotifyProps['desktop_sound'] = channelMemberNotifyProps?.desktop_sound ?? convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps?.desktop_sound);
+    const desktopNotificationSound = channelMemberNotifyProps?.desktop_notification_sound ?? currentUserNotifyProps.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'];
 
     return {
         desktop,
@@ -149,6 +150,15 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
+    const handleChangeForMessageNotificationSoundSelect = (selectedOption: ValueType<Option>) => {
+        stopTryNotificationRing();
+
+        if (selectedOption && 'value' in selectedOption) {
+            handleChange({desktop_notification_sound: ((selectedOption as Option).value)});
+            tryNotificationSound(selectedOption.value);
+        }
+    };
+
     const desktopNotificationsSectionContent = (
         <>
             <RadioSettingItem
@@ -199,7 +209,7 @@ export default function ChannelNotificationsModal(props: Props) {
                         id: 'channel_notifications.desktopNotifications.soundSelectPlaceholder',
                         defaultMessage: 'Select a sound',
                     })}
-                    handleSelectChange={(selectOption) => handleChange({desktop_notification_sound: ((selectOption as Option).value)})}
+                    handleSelectChange={handleChangeForMessageNotificationSoundSelect}
                 />
             )}
         </>
@@ -282,30 +292,31 @@ export default function ChannelNotificationsModal(props: Props) {
     }
 
     const resetToDefaultBtn = useCallback((settingName: string) => {
-        const defaultSettings = props.currentUser.notify_props;
+        const userNotifyProps = props.currentUser.notify_props;
 
         const resetToDefault = (settingName: string) => {
             if (settingName === 'desktop') {
                 setSettings({
                     ...settings,
-                    desktop: defaultSettings.desktop,
-                    desktop_threads: defaultSettings.desktop_threads || settings.desktop_threads,
-                    desktop_sound: convertDesktopSoundNotifyPropFromUserToDesktop(defaultSettings.desktop_sound),
-                    desktop_notification_sound: defaultSettings.desktop_notification_sound,
+                    desktop: userNotifyProps.desktop,
+                    desktop_threads: userNotifyProps.desktop_threads || settings.desktop_threads,
+                    desktop_sound: convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps.desktop_sound),
+                    desktop_notification_sound: userNotifyProps?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'],
                 });
             }
             if (settingName === 'push') {
-                setSettings({...settings, push: defaultSettings.desktop, push_threads: defaultSettings.push_threads || settings.push_threads});
+                setSettings({...settings, push: userNotifyProps.desktop, push_threads: userNotifyProps.push_threads || settings.push_threads});
             }
         };
 
         const isDesktopSameAsDefault =
-            defaultSettings.desktop === settings.desktop &&
-            defaultSettings.desktop_threads === settings.desktop_threads &&
-            defaultSettings.desktop_notification_sound === settings.desktop_notification_sound &&
-            convertDesktopSoundNotifyPropFromUserToDesktop(defaultSettings.desktop_sound) === settings.desktop_sound;
+            userNotifyProps.desktop === settings.desktop &&
+            userNotifyProps.desktop_threads === settings.desktop_threads &&
+            userNotifyProps.desktop_notification_sound === settings.desktop_notification_sound &&
+            convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps.desktop_sound) === settings.desktop_sound;
 
-        const isPushSameAsDefault = (defaultSettings.push === settings.push && defaultSettings.push_threads === settings.push_threads);
+        const isPushSameAsDefault = (userNotifyProps.push === settings.push && userNotifyProps.push_threads === settings.push_threads);
+
         if ((settingName === 'desktop' && isDesktopSameAsDefault) || (settingName === 'push' && isPushSameAsDefault)) {
             return <></>;
         }

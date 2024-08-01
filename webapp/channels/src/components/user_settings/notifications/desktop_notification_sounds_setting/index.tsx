@@ -15,13 +15,15 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
-    callsNotificationSounds,
     notificationSoundKeys,
     stopTryNotificationRing,
     tryNotificationSound,
     tryNotificationRing,
     getValueOfNotificationSoundsSelect,
+    getValueOfIncomingCallSoundsSelect,
     optionsOfMessageNotificationSoundsSelect,
+    optionsOfIncomingCallSoundsSelect,
+    callNotificationSoundKeys,
 } from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
@@ -259,66 +261,6 @@ function DesktopNotificationSoundsSettings({
 
 function NoIndicatorSeparatorComponent() {
     return null;
-}
-
-const callNotificationSoundKeys = Array.from(callsNotificationSounds.keys());
-
-const optionsOfIncomingCallSoundsSelect: SelectOption[] = callNotificationSoundKeys.map((soundName) => {
-    if (soundName === 'Dynamic') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundDynamic'
-                    defaultMessage='Dynamic'
-                />
-            ),
-        };
-    } else if (soundName === 'Calm') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCalm'
-                    defaultMessage='Calm'
-                />
-            ),
-        };
-    } else if (soundName === 'Urgent') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundUrgent'
-                    defaultMessage='Urgent'
-                />
-            ),
-        };
-    } else if (soundName === 'Cheerful') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCheerful'
-                    defaultMessage='Cheerful'
-                />
-            ),
-        };
-    }
-    return {
-        value: '',
-        label: '',
-    };
-});
-
-function getValueOfIncomingCallSoundsSelect(soundName?: string) {
-    const soundOption = optionsOfIncomingCallSoundsSelect.find((option) => option.value === soundName);
-
-    if (!soundOption) {
-        return undefined;
-    }
-
-    return soundOption;
 }
 
 function getCollapsedText(

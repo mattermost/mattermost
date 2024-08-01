@@ -113,6 +113,66 @@ export const callsNotificationSounds = new Map([
     ['Cheerful', calls_cheerful],
 ]);
 
+export const callNotificationSoundKeys = Array.from(callsNotificationSounds.keys());
+
+export const optionsOfIncomingCallSoundsSelect: Array<{value: string; label: ReactNode}> = callNotificationSoundKeys.map((soundName) => {
+    if (soundName === 'Dynamic') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundDynamic'
+                    defaultMessage='Dynamic'
+                />
+            ),
+        };
+    } else if (soundName === 'Calm') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundCalm'
+                    defaultMessage='Calm'
+                />
+            ),
+        };
+    } else if (soundName === 'Urgent') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundUrgent'
+                    defaultMessage='Urgent'
+                />
+            ),
+        };
+    } else if (soundName === 'Cheerful') {
+        return {
+            value: soundName,
+            label: (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.soundCheerful'
+                    defaultMessage='Cheerful'
+                />
+            ),
+        };
+    }
+    return {
+        value: '',
+        label: '',
+    };
+});
+
+export function getValueOfIncomingCallSoundsSelect(soundName?: string) {
+    const soundOption = optionsOfIncomingCallSoundsSelect.find((option) => option.value === soundName);
+
+    if (!soundOption) {
+        return undefined;
+    }
+
+    return soundOption;
+}
+
 let canDing = true;
 export function ding(name: string) {
     if (hasSoundOptions() && canDing) {
