@@ -28,7 +28,6 @@ import {getBool, shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/e
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 import {
     isPostEphemeral,
     isSystemMessage,
@@ -62,6 +61,18 @@ export function getPostRepliesCount(state: GlobalState, postId: Post['id']): num
 
 export function getPostsInThread(state: GlobalState): RelationOneToMany<Post, Post> {
     return state.entities.posts.postsInThread;
+}
+
+export function getPostsInThreadOrdered(state: GlobalState, rootId: string): string[] {
+    const postIds = getPostsInThread(state)[rootId];
+    if (!postIds) {
+        return [rootId];
+    }
+
+    const allPosts = getAllPosts(state);
+    const threadPosts = postIds.map((v) => allPosts[v]).filter((v) => v);
+    const sortedPosts = threadPosts.sort(comparePosts);
+    return [...sortedPosts.map((v) => v.id), rootId];
 }
 
 export function getReactionsForPosts(state: GlobalState): RelationOneToOne<Post, {
@@ -272,8 +283,17 @@ function formatPostInChannel(post: Post, previousPost: Post | undefined | null, 
     };
 }
 
+function isPostInteractable(post: Post | undefined) {
+    return post &&
+        !post.delete_at &&
+        !isPostEphemeral(post) &&
+        !isSystemMessage(post) &&
+        !isPostPendingOrFailed(post) &&
+        post.state !== Posts.POST_DELETED;
+}
+
 export function getLatestInteractablePostId(state: GlobalState, channelId: string, rootId = '') {
-    const postsIds = rootId ? getPostsInThread(state)[rootId] : getPostIdsInChannel(state, channelId);
+    const postsIds = rootId ? getPostsInThreadOrdered(state, rootId) : getPostIdsInChannel(state, channelId);
     if (!postsIds) {
         return '';
     }
@@ -281,41 +301,23 @@ export function getLatestInteractablePostId(state: GlobalState, channelId: strin
     const allPosts = getAllPosts(state);
 
     for (const postId of postsIds) {
-        if (isCombinedUserActivityPost(postId)) {
+        if (!isPostInteractable(allPosts[postId])) {
             continue;
         }
-
-        const post = allPosts[postId];
-        if (!post) {
-            continue;
-        }
-
-        if (post.delete_at) {
-            continue;
-        }
-
-        if (isPostEphemeral(post)) {
-            continue;
-        }
-
-        if (isSystemMessage(post)) {
-            continue;
-        }
-
         return postId;
-    }
-
-    if (rootId && allPosts[rootId] && !allPosts[rootId].delete_at) {
-        return rootId;
     }
 
     return '';
 }
 
 export function getLatestPostToEdit(state: GlobalState, channelId: string, rootId = '') {
-    const postsIds = rootId ? getPostsInThread(state)[rootId] : getPostIdsInChannel(state, channelId);
+    const postsIds = rootId ? getPostsInThreadOrdered(state, rootId) : getPostIdsInChannel(state, channelId);
     if (!postsIds) {
         return '';
+    }
+
+    if (rootId) {
+        postsIds.push(rootId);
     }
 
     const allPosts = getAllPosts(state);
@@ -323,7 +325,7 @@ export function getLatestPostToEdit(state: GlobalState, channelId: string, rootI
 
     for (const postId of postsIds) {
         const post = allPosts[postId];
-        if (!post || post.user_id !== currentUserId || (post.props?.from_webhook) || post.state === Posts.POST_DELETED || isSystemMessage(post) || isPostEphemeral(post) || isPostPendingOrFailed(post)) {
+        if (post?.user_id !== currentUserId || !isPostInteractable(post)) {
             continue;
         }
 
