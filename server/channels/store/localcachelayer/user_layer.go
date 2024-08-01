@@ -77,7 +77,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 	keys, err := s.rootStore.profilesInChannelCache.Keys()
 	if err == nil {
 		for _, key := range keys {
-			var userMap map[string]*model.User
+			var userMap model.UserMap
 			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
 				if _, userInCache := userMap[userId]; userInCache {
 					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key, nil)
@@ -123,7 +123,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
-		var cachedMap map[string]*model.User
+		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
 			return cachedMap, nil
 		}
@@ -155,10 +155,14 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 
 	fromMaster := false
 	for _, userId := range userIds {
-		var cacheItem *model.User
+		// NOTE: We declare a value, not a pointer, so as not to pass
+		// a pointer-to-pointer to the cache. This makes things slightly inconsistent
+		// with how we do it in other places, but avoids type casting to **model.User
+		// in the cache package.
+		var cacheItem model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
 			if options.Since == 0 || cacheItem.UpdateAt > options.Since {
-				users = append(users, cacheItem)
+				users = append(users, &cacheItem)
 			}
 		} else {
 			// If it was invalidated, then we need to query master.
@@ -195,9 +199,13 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
 func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
-	var cacheItem *model.User
+	// NOTE: We declare a value, not a pointer, so as not to pass
+	// a pointer-to-pointer to the cache. This makes things slightly inconsistent
+	// with how we do it in other places, but avoids type casting to **model.User
+	// in the cache package.
+	var cacheItem model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
-		return cacheItem, nil
+		return &cacheItem, nil
 	}
 
 	// If it was invalidated, then we need to query master.
@@ -230,9 +238,13 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 
 	fromMaster := false
 	for _, id := range uniqIDs {
-		var cachedUser *model.User
+		// NOTE: We declare a value, not a pointer, so as not to pass
+		// a pointer-to-pointer to the cache. This makes things slightly inconsistent
+		// with how we do it in other places, but avoids type casting to **model.User
+		// in the cache package.
+		var cachedUser model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
-			cachedUsers = append(cachedUsers, cachedUser)
+			cachedUsers = append(cachedUsers, &cachedUser)
 		} else {
 			// If it was invalidated, then we need to query master.
 			s.userProfileByIdsMut.Lock()
