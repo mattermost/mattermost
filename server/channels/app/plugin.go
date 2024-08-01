@@ -1226,10 +1226,6 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
 			return true, false
 		}
-	case model.PluginIdCalls:
-		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
-			return true, false
-		}
 	}
 
 	return false, false

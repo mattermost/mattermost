@@ -4,7 +4,7 @@
 /* eslint-disable react/no-multi-comp */
 
 import React from 'react';
-import {Dropdown, Tooltip} from 'react-bootstrap';
+import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {RootCloseWrapper} from 'react-overlays';
@@ -15,8 +15,8 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
-import OverlayTrigger from 'components/overlay_trigger';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
@@ -328,19 +328,15 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         bsRole='toggle'
                         dropdownOpen={this.state.dropdownOpen}
                     >
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                        <WithTooltip
+                            id='removeIcon'
                             placement='bottom'
-                            overlay={this.state.dropdownOpen ? <></> : (
-                                <Tooltip id='removeIcon'>
-                                    <div aria-hidden={true}>
-                                        <FormattedMessage
-                                            id='generic_icons.plugins'
-                                            defaultMessage='Plugins'
-                                        />
-                                    </div>
-                                </Tooltip>
-                            )}
+                            title={
+                                <FormattedMessage
+                                    id='generic_icons.plugins'
+                                    defaultMessage='Plugins'
+                                />
+                            }
                         >
                             <React.Fragment>
                                 <PluginChannelHeaderIcon
@@ -355,7 +351,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                     {items.length}
                                 </span>
                             </React.Fragment>
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </CustomToggle>
                     <CustomMenu
                         bsRole='menu'
