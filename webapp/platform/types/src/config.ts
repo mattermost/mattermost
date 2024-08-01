@@ -47,6 +47,7 @@ export type ClientConfig = {
     EnableBanner: string;
     EnableBotAccountCreation: string;
     EnableChannelViewedMessages: string;
+    EnableClientMetrics: string;
     EnableClientPerformanceDebugging: string;
     EnableCluster: string;
     EnableCommands: string;
@@ -209,6 +210,7 @@ export type ClientConfig = {
     WranglerMoveThreadFromGroupMessageChannelEnable: string;
     ServiceEnvironment: string;
     UniqueEmojiReactionLimitPerPost: string;
+    UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
 };
 
 export type License = {
@@ -329,6 +331,7 @@ export type ServiceSettings = {
     CorsDebug: boolean;
     AllowCookiesForSubdomains: boolean;
     ExtendSessionLengthWithActivity: boolean;
+    TerminateSessionsOnPasswordChange: boolean;
     SessionLengthWebInDays: number;
     SessionLengthWebInHours: number;
     SessionLengthMobileInDays: number;

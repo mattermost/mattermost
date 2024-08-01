@@ -3485,6 +3485,39 @@ components:
         remote_id:
           description: Id of the remote cluster where the shared channel is homed
           type: string
+    RemoteCluster:
+      type: object
+      properties:
+        remote_id:
+          type: string
+        remote_team_id:
+          type: string
+        name:
+          type: string
+        display_name:
+          type: string
+        site_url:
+          description: URL of the remote cluster
+          type: string
+        create_at:
+          description: Time in milliseconds that the remote cluster was created
+          type: integer
+        last_ping_at:
+          description: Time in milliseconds when the last ping to the remote cluster was run
+          type: integer
+        token:
+          type: string
+        remote_token:
+          type: string
+        topics:
+          type: string
+        creator_id:
+          type: string
+        plugin_id:
+          type: string
+        options:
+          description: A bitmask with a set of option flags
+          type: integer
     RemoteClusterInfo:
       type: object
       properties:

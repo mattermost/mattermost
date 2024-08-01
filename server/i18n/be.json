@@ -400,10 +400,6 @@
     "translation": "Прагляд Паведамлення"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Падоўжыць зараз"
-  },
-  {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "Даведацца больш"
   },
@@ -844,10 +840,6 @@
     "translation": "Скіньце Свой Пароль"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Абнавіць Ліцэнзію"
-  },
-  {
     "id": "api.templates.invite_body_footer.title",
     "translation": "Што такое Mattermost?"
   },
@@ -1168,10 +1160,6 @@
     "translation": "Вайсці у Mattermost"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Няма ліцензіі"
-  },
-  {
     "id": "app.import.validate_user_import_data.profile_image.error",
     "translation": "Няправільны відарыс профілю."
   },
@@ -1270,10 +1258,6 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "Адказ SAML занадта доўгі"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Падаўжэнне гэтай ліцэнзіі на партале немагчыма"
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
@@ -3684,14 +3668,6 @@
     "translation": "Пакуль вас не было, {{.SenderName}} даслаў вам новае асабістае паведамленне."
   },
   {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Гэты тып ліцэнзіі не падтрымлівае генерацыю токенаў абнаўлення"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Не ўдалося згенераваць новы токен абнаўлення."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Не ўдалося абнавіць заданне."
   },
@@ -6040,10 +6016,6 @@
     "translation": "Ваша падпіска Mattermost падлягае падаўжэнню"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Увайдзіце ў свой уліковы запіс кліента, каб падоўжыць"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, тэрмін дзеяння Вашай падпіскі заканчваецца праз {{.Days}} дзён. Мы спадзяемся, што вам падабаецца гнуткае і бяспечнае каманднае супрацоўніцтва, якое забяспечвае Mattermost. Падоўжыце падпіску хуткім часам, каб Ваша каманда магла працягваць карыстацца гэтымі перавагамі."
   },
@@ -6150,10 +6122,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Не ўдалося адправіць ліцэнзію для абнаўленняў па электроннай пошце"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Не атрымалася згенераваць спасылку для падаўжэння ліцэнзіі"
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -6526,10 +6494,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Не ўдалося атрымаць пробную ліцэнзію, паспрабуйце яшчэ раз ці зьвяжыцеся з support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Памылка атрымання спасылкі абнаўлення ліцэнзіі"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",

@@ -824,7 +824,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             message={
                                 <FormattedMessage
                                     id='admin.channel_settings.channel_detail.archive_confirm.message'
-                                    defaultMessage='Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?'
+                                    defaultMessage={'Saving will archive the channel from the team and make it\'s contents inaccessible for all users. Are you sure you wish to save and archive this channel?'}
                                 />
                             }
                             confirmButtonText={

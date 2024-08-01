@@ -205,6 +205,11 @@
                 overflow: auto;
                 width: 180px;
                 background: var(--sidebar-bg);
+
+                .nav {
+                    position: fixed;
+                    margin: 0;
+                }
             }
 
             .settings-content {
@@ -527,11 +532,6 @@
         .nav-pills > li button {
             color: rgba(var(--sidebar-text-rgb), 0.75);
         }
-    }
-
-    .nav {
-        position: fixed;
-        margin: 0;
     }
 
     .nav-pills {

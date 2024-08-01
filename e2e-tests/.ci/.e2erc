@@ -87,7 +87,7 @@ alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
 # Default values for optional variables
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)"
 export BROWSER_DEFAULT="chrome"
-export SERVER_DEFAULT="self-hosted"
+export SERVER_DEFAULT="onprem"
 export TEST_DEFAULT="cypress"
 export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
 export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'

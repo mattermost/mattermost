@@ -14,6 +14,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
@@ -346,7 +348,7 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || (!IsValidEmail(u.Email) && !u.IsRemote()) {
 		return InvalidUserError("email", u.Id, u.Email)
 	}
 
@@ -376,10 +378,6 @@ func (u *User) IsValid() *AppError {
 
 	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
 		return InvalidUserError("auth_data_pwd", u.Id, *u.AuthData)
-	}
-
-	if len(u.Password) > UserPasswordMaxLength {
-		return InvalidUserError("password_limit", u.Id, "")
 	}
 
 	if !IsValidLocale(u.Locale) {
@@ -430,7 +428,7 @@ func NormalizeEmail(email string) string {
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
-func (u *User) PreSave() {
+func (u *User) PreSave() *AppError {
 	if u.Id == "" {
 		u.Id = NewId()
 	}
@@ -477,7 +475,15 @@ func (u *User) PreSave() {
 	}
 
 	if u.Password != "" {
-		u.Password = HashPassword(u.Password)
+		hashed, err := HashPassword(u.Password)
+		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		} else if err != nil {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_hash.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		}
+		u.Password = hashed
 	}
 
 	cs := u.GetCustomStatus()
@@ -485,6 +491,8 @@ func (u *User) PreSave() {
 		cs.PreSave()
 		u.SetCustomStatus(cs)
 	}
+
+	return nil
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -637,6 +645,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
+		delete(u.Props, UserPropsKeyRemoteEmail)
 	}
 	if len(options) != 0 && !options["fullname"] {
 		u.FirstName = ""
@@ -657,6 +666,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewString("")
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -926,13 +936,13 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
+func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(hash)
+	return string(hash), nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)

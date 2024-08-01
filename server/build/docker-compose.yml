@@ -44,6 +44,14 @@ services:
     extends:
         file: docker-compose.common.yml
         service: grafana
+  loki:
+    extends:
+        file: docker-compose.common.yml
+        service: loki
+  promtail:
+    extends:
+        file: docker-compose.common.yml
+        service: promtail
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest

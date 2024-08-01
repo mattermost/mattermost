@@ -371,7 +371,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 id="admin.true"
               />
             }
-            value={true}
+            value={false}
           />
           <Memo(DropdownSetting)
             disabled={false}

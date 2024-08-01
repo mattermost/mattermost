@@ -5528,10 +5528,6 @@
     "translation": "Sua licença Enterprise Edition expirou e alguns recursos podem ser desativados. Por favor renove usa licença agora."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renovar Licença Agora"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para ingressar na equipe {{ .TeamDisplayName }} como convidado"
   },
@@ -7358,22 +7354,6 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Falha ao mover arquivo enviado."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Sem licença presente"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Este tipo de licença não oferece suporte à geração de token de renovação"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Falha ao gerar um novo token de renovação."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Erro ao obter o link de renovação da licença"
   },
   {
     "id": "api.back_to_app",

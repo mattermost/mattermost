@@ -44,7 +44,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 	}
 
 	if options.IncludeLogs {
-		functions["mattermost log"] = a.getMattermostLog
+		functions["mattermost log"] = a.GetMattermostLog
 		functions["notification log"] = a.getNotificationsLog
 	}
 
@@ -321,7 +321,7 @@ func (a *App) getNotificationsLog(_ request.CTX) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) getMattermostLog(_ request.CTX) (*model.FileData, error) {
+func (a *App) GetMattermostLog(ctx request.CTX) (*model.FileData, error) {
 	if !*a.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 	}

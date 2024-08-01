@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import LatexBlock from 'components/latex_block/latex_block';
+
+import {withIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/LatexBlock', () => {
     const defaultProps = {
@@ -13,9 +15,10 @@ describe('components/LatexBlock', () => {
     };
 
     test('should match snapshot', async () => {
-        const wrapper = shallow(<LatexBlock {...defaultProps}/>);
-        await import('katex'); //manually import katex
-        expect(wrapper).toMatchSnapshot();
+        render(<LatexBlock {...defaultProps}/>);
+        const wrapper = await screen.findAllByTestId('latex-enabled');
+        expect(wrapper.length).toBe(1);
+        expect(wrapper.at(0)).toMatchSnapshot();
     });
 
     test('latex is disabled', async () => {
@@ -24,9 +27,10 @@ describe('components/LatexBlock', () => {
             enableLatex: false,
         };
 
-        const wrapper = shallow(<LatexBlock {...props}/>);
-        await import('katex'); //manually import katex
-        expect(wrapper).toMatchSnapshot();
+        render(<LatexBlock {...props}/>);
+        const wrapper = await screen.findAllByTestId('latex-disabled');
+        expect(wrapper.length).toBe(1);
+        expect(wrapper.at(0)).toMatchSnapshot();
     });
 
     test('error in katex', async () => {
@@ -35,8 +39,9 @@ describe('components/LatexBlock', () => {
             enableLatex: true,
         };
 
-        const wrapper = shallow(<LatexBlock {...props}/>);
-        await import('katex'); //manually import katex
-        expect(wrapper).toMatchSnapshot();
+        render(withIntl(<LatexBlock {...props}/>));
+        const wrapper = await screen.findAllByTestId('latex-enabled');
+        expect(wrapper.length).toBe(1);
+        expect(wrapper.at(0)).toMatchSnapshot();
     });
 });

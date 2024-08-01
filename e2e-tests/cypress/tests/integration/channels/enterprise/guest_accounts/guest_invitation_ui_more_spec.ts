@@ -54,7 +54,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
                 invitePeople(newUser.username, 1, newUser.username);
 
                 // * Verify the content and message in next screen
-                verifyInvitationError(newUser.username, testTeam, 'This person is already a member.');
+                verifyInvitationError(newUser.username, testTeam, 'This person is already a member of the workspace. Invite them as a member instead of a guest.');
             });
         });
     });
@@ -83,7 +83,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             invitePeople(regularUser.email, 1, regularUser.username);
 
             // * Verify the content and message in next screen
-            verifyInvitationError(regularUser.username, testTeam, 'This person is already a member.');
+            verifyInvitationError(regularUser.username, testTeam, 'This person is already a member of the workspace. Invite them as a member instead of a guest.');
         });
     });
 

@@ -39,6 +39,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         isMobileView: false,
         isThreadView: false,
         newMessagesSeparatorActions: [],
+        measureRhsOpened: jest.fn(),
     };
 
     const state: DeepPartial<GlobalState> = {

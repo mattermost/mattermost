@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
@@ -19,7 +19,6 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 import {a11yFocus, localizeMessage} from 'utils/utils';
 
@@ -29,7 +28,8 @@ import PerformanceDebuggingSection from './performance_debugging_section';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
+type PreReleaseFeaturesType = Record<string, {label: string; description: string}>;
+const PreReleaseFeatures: PreReleaseFeaturesType = Constants.PRE_RELEASE_FEATURES;
 
 type Settings = {
     [key: string]: string | undefined;
@@ -64,7 +64,7 @@ export type Props = {
 };
 
 type State = {
-    preReleaseFeatures: typeof PreReleaseFeatures;
+    preReleaseFeatures: PreReleaseFeaturesType;
     settings: Settings;
     enabledFeatures: number;
     isSaving: boolean;
@@ -93,7 +93,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         };
 
         const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
-        delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
 
         let enabledFeatures = 0;
@@ -224,26 +223,26 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
     // This function changes ctrl to cmd when OS is mac
     getCtrlSendText = () => {
-        const description = {
+        const description = defineMessages({
             default: {
-                id: t('user.settings.advance.sendDesc'),
+                id: 'user.settings.advance.sendDesc',
                 defaultMessage: 'When enabled, CTRL + ENTER will send the message and ENTER inserts a new line.',
             },
             mac: {
-                id: t('user.settings.advance.sendDesc.mac'),
+                id: 'user.settings.advance.sendDesc.mac',
                 defaultMessage: 'When enabled, ⌘ + ENTER will send the message and ENTER inserts a new line.',
             },
-        };
-        const title = {
+        });
+        const title = defineMessages({
             default: {
-                id: t('user.settings.advance.sendTitle'),
+                id: 'user.settings.advance.sendTitle',
                 defaultMessage: 'Send Messages on CTRL+ENTER',
             },
             mac: {
-                id: t('user.settings.advance.sendTitle.mac'),
+                id: 'user.settings.advance.sendTitle.mac',
                 defaultMessage: 'Send Messages on ⌘+ENTER',
             },
-        };
+        });
         if (isMac()) {
             return {
                 ctrlSendTitle: title.mac,
@@ -710,7 +709,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             const inputs = [];
 
             this.state.preReleaseFeaturesKeys.forEach((key) => {
-                const feature = this.state.preReleaseFeatures[key as keyof typeof PreReleaseFeatures];
+                const feature = this.state.preReleaseFeatures[key as keyof PreReleaseFeaturesType];
                 inputs.push(
                     <div key={'advancedPreviewFeatures_' + feature.label}>
                         <div className='checkbox'>

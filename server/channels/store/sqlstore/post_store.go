@@ -833,7 +833,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
+func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
 	query := s.getQueryBuilder().
 		Select("p.*").
 		From("Posts p").
@@ -855,7 +855,7 @@ func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, erro
 	}
 
 	var post model.Post
-	err = s.GetReplicaX().Get(&post, queryString, args...)
+	err = s.DBXFromContext(rctx.Context()).Get(&post, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)

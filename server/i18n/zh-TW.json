@@ -5516,10 +5516,6 @@
     "translation": "企業授權已過期，部份功能已被停用。請更新授權。"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "更新授權"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]。"
   },

@@ -90,7 +90,9 @@ func init() {
 		PermissionSysconsoleWriteEnvironmentElasticsearch.Id: {
 			PermissionTestElasticsearch,
 			PermissionCreateElasticsearchPostIndexingJob,
+			PermissionManageElasticsearchPostIndexingJob,
 			PermissionCreateElasticsearchPostAggregationJob,
+			PermissionManageElasticsearchPostAggregationJob,
 			PermissionPurgeElasticsearchIndexes,
 		},
 		PermissionSysconsoleWriteEnvironmentFileStorage.Id: {
@@ -145,12 +147,14 @@ func init() {
 		},
 		PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id: {
 			PermissionCreateDataRetentionJob,
+			PermissionManageDataRetentionJob,
 		},
 		PermissionSysconsoleReadComplianceDataRetentionPolicy.Id: {
 			PermissionReadDataRetentionJob,
 		},
 		PermissionSysconsoleWriteComplianceComplianceExport.Id: {
 			PermissionCreateComplianceExportJob,
+			PermissionManageComplianceExportJob,
 			PermissionDownloadComplianceExportResult,
 		},
 		PermissionSysconsoleReadComplianceComplianceExport.Id: {
@@ -163,9 +167,11 @@ func init() {
 		PermissionSysconsoleWriteExperimentalBleve.Id: {
 			PermissionCreatePostBleveIndexesJob,
 			PermissionPurgeBleveIndexes,
+			PermissionManagePostBleveIndexesJob,
 		},
 		PermissionSysconsoleWriteAuthenticationLdap.Id: {
 			PermissionCreateLdapSyncJob,
+			PermissionManageLdapSyncJob,
 			PermissionAddLdapPublicCert,
 			PermissionRemoveLdapPublicCert,
 			PermissionAddLdapPrivateCert,

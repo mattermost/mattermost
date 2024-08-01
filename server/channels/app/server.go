@@ -28,6 +28,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -66,7 +67,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
@@ -322,7 +322,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
+		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
 	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
 	if err2 != nil {
@@ -1348,6 +1348,10 @@ func (s *Server) doLicenseExpirationCheck() {
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
+		return
+	}
+
+	if license.IsCloud() {
 		return
 	}
 

@@ -197,7 +197,7 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.ClearUserSessionCache(userID)
 
 	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
@@ -389,7 +389,7 @@ func (h *Hub) Start() {
 				conns := connIndex.ForUser(webSessionMessage.userID)
 				var isRegistered bool
 				for _, conn := range conns {
-					if !conn.active.Load() {
+					if !conn.Active.Load() {
 						continue
 					}
 					if conn.GetSessionToken() == webSessionMessage.sessionToken {
@@ -419,13 +419,10 @@ func (h *Hub) Start() {
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
-				webConn.active.Store(true)
+				webConn.Active.Store(true)
 
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
-				if metrics := h.platform.metricsIFace; metrics != nil {
-					metrics.IncrementHTTPWebSockets(webConn.originClient)
-				}
 
 				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
@@ -437,12 +434,9 @@ func (h *Hub) Start() {
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
-				webConn.active.Store(false)
+				webConn.Active.Store(false)
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
-				if metrics := h.platform.metricsIFace; metrics != nil {
-					metrics.DecrementHTTPWebSockets(webConn.originClient)
-				}
 
 				if webConn.UserId == "" {
 					continue
@@ -477,7 +471,7 @@ func (h *Hub) Start() {
 				}
 				var latestActivity int64
 				for _, conn := range conns {
-					if !conn.active.Load() {
+					if !conn.Active.Load() {
 						continue
 					}
 					if conn.lastUserActivityAt > latestActivity {
@@ -497,7 +491,7 @@ func (h *Hub) Start() {
 				}
 			case activity := <-h.activity:
 				for _, webConn := range connIndex.ForUser(activity.userID) {
-					if !webConn.active.Load() {
+					if !webConn.Active.Load() {
 						continue
 					}
 					if webConn.GetSessionToken() == activity.sessionToken {
@@ -512,7 +506,7 @@ func (h *Hub) Start() {
 				case directMsg.conn.send <- directMsg.msg:
 				default:
 					// Don't log the warning if it's an inactive connection.
-					if directMsg.conn.active.Load() {
+					if directMsg.conn.Active.Load() {
 						mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
 							mlog.String("user_id", directMsg.conn.UserId),
 							mlog.String("conn_id", directMsg.conn.GetConnectionID()))
@@ -539,7 +533,7 @@ func (h *Hub) Start() {
 						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
 						default:
 							// Don't log the warning if it's an inactive connection.
-							if webConn.active.Load() {
+							if webConn.Active.Load() {
 								mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
 									mlog.String("user_id", webConn.UserId),
 									mlog.String("conn_id", webConn.GetConnectionID()))
@@ -607,7 +601,7 @@ func (h *Hub) Start() {
 // are inactive or not.
 func areAllInactive(conns []*WebConn) bool {
 	for _, conn := range conns {
-		if conn.active.Load() {
+		if conn.Active.Load() {
 			return false
 		}
 	}
@@ -695,7 +689,7 @@ func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 func (i *hubConnectionIndex) ForUserActiveCount(id string) int {
 	cnt := 0
 	for _, conn := range i.ForUser(id) {
-		if conn.active.Load() {
+		if conn.Active.Load() {
 			cnt++
 		}
 	}
@@ -720,7 +714,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 		return nil
 	}
 	for _, conn := range i.ForUser(userID) {
-		if conn.GetConnectionID() == connectionID && !conn.active.Load() {
+		if conn.GetConnectionID() == connectionID && !conn.Active.Load() {
 			i.Remove(conn)
 			return conn
 		}
@@ -733,7 +727,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 func (i *hubConnectionIndex) RemoveInactiveConnections() {
 	now := model.GetMillis()
 	for conn := range i.byConnection {
-		if !conn.active.Load() && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
+		if !conn.Active.Load() && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
 			i.Remove(conn)
 		}
 	}
@@ -745,7 +739,7 @@ func (i *hubConnectionIndex) RemoveInactiveConnections() {
 func (i *hubConnectionIndex) AllActive() int {
 	cnt := 0
 	for conn := range i.byConnection {
-		if conn.active.Load() {
+		if conn.Active.Load() {
 			cnt++
 		}
 	}

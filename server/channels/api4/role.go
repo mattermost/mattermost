@@ -18,6 +18,7 @@ var notAllowedPermissions = []string{
 	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
 	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
 	model.PermissionManageRoles.Id,
+	model.PermissionManageSystem.Id,
 }
 
 func (api *API) InitRole() {

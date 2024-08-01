@@ -411,11 +411,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             memberListButton = (
                 <HeaderIconWrapper
                     iconComponent={membersIcon}
-                    ariaLabel={true}
+                    tooltip={this.props.intl.formatMessage({id: 'channel_header.channelMembers', defaultMessage: 'Members'})}
                     buttonClass={membersIconClass}
                     buttonId={'member_rhs'}
                     onClick={this.toggleChannelMembersRHS}
-                    tooltipKey={'channelMembers'}
                 />
             );
         }
@@ -607,20 +606,18 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                     {memberListButton}
                                     <HeaderIconWrapper
                                         iconComponent={pinnedIcon}
-                                        ariaLabel={true}
                                         buttonClass={pinnedIconClass}
                                         buttonId={'channelHeaderPinButton'}
                                         onClick={this.showPinnedPosts}
-                                        tooltipKey={'pinnedPosts'}
+                                        tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
                                     />
                                     {this.props.isFileAttachmentsEnabled &&
                                         <HeaderIconWrapper
                                             iconComponent={channelFilesIcon}
-                                            ariaLabel={true}
                                             buttonClass={channelFilesIconClass}
                                             buttonId={'channelHeaderFilesButton'}
                                             onClick={this.showChannelFiles}
-                                            tooltipKey={'channelFiles'}
+                                            tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
                                         />
                                     }
                                 </div>

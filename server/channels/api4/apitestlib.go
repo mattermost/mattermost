@@ -359,6 +359,25 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	return th
 }
 
+func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+	searchEngine := mainHelper.GetSearchEngine()
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
+	th.InitLogin()
+	return th
+}
+
 func (th *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {
@@ -1067,6 +1086,11 @@ func CheckCreatedStatus(tb testing.TB, resp *model.Response) {
 	checkHTTPStatus(tb, resp, http.StatusCreated)
 }
 
+func CheckNoContentStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNoContent)
+}
+
 func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusForbidden)
@@ -1085,6 +1109,11 @@ func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
 func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusBadRequest)
+}
+
+func CheckUnprocessableEntityStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusUnprocessableEntity)
 }
 
 func CheckNotImplementedStatus(tb testing.TB, resp *model.Response) {

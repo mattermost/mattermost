@@ -3,7 +3,7 @@
 
 import moment from 'moment';
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -17,7 +17,6 @@ import AnnouncementBar from 'components/announcement_bar/default_announcement_ba
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import './to_paid_plan_nudge_banner.scss';
 
@@ -163,11 +162,17 @@ export const ToPaidPlanBannerDismissable = () => {
             type={announcementType}
             showCloseButton={daysToCloudFreeEnd > 10}
             onButtonClick={openPricingModal}
-            modalButtonText={t('cloud_billing.nudge_to_paid.view_plans')}
-            modalButtonDefaultText='View plans'
+            modalButtonText={messages.viewPlans}
             message={<FormattedMessage {...message}/>}
             showLinkAsButton={true}
             handleClose={showBanner}
         />
     );
 };
+
+const messages = defineMessages({
+    viewPlans: {
+        id: 'cloud_billing.nudge_to_paid.view_plans',
+        defaultMessage: 'View plans',
+    },
+});

@@ -576,10 +576,6 @@
     "translation": "Не успеа да се прати лиценца за имејли за обновување"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Неуспех при генерирање на линк за обновување на лиценцата"
-  },
-  {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "Вашата лиценца не поддржува ажурирање на шеми за дозволи"
   },

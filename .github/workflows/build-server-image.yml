@@ -1,0 +1,36 @@
+name: BuildEnv Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - server/build/Dockerfile.buildenv
+      - .github/workflows/build-server-image.yml
+
+jobs:
+  build-image:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: buildenv/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: buildenv/calculate-golang-version
+        working-directory: server/
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
+      - name: buildenv/docker-login
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+
+      - name: buildenv/build-and-push
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        with:
+          provenance: false
+          file: server/build/Dockerfile.buildenv
+          push: true
+          pull: true
+          tags: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}

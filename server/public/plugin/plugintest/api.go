@@ -3064,6 +3064,38 @@ func (_m *API) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.Ap
 	return r0, r1
 }
 
+// GetUsersByIds provides a mock function with given fields: userIDs
+func (_m *API) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	ret := _m.Called(userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUsersByIds")
+	}
+
+	var r0 []*model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.User, *model.AppError)); ok {
+		return rf(userIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.User); ok {
+		r0 = rf(userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUsersByUsernames provides a mock function with given fields: usernames
 func (_m *API) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
 	ret := _m.Called(usernames)

@@ -150,7 +150,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 id="admin.true"
               />
             }
-            value={true}
+            value={false}
           />
           <Memo(DropdownSetting)
             disabled={false}

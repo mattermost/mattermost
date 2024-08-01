@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useRef, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
@@ -15,7 +16,6 @@ import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 import 'components/payment_form/payment_form.scss';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import './index.scss';
 
@@ -67,8 +67,12 @@ export default function DowngradeModal() {
             >
                 <div id='DowngradeModal'>
                     <IconMessage
-                        title={t('admin.billing.subscription.downgrading')}
-                        subtitle={''}
+                        formattedTitle={
+                            <FormattedMessage
+                                id='admin.billing.subscription.downgrading'
+                                defaultMessage='Downgrading your workspace'
+                            />
+                        }
                         icon={
                             <CreditCardSvg
                                 width={444}

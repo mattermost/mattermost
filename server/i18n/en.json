@@ -1282,10 +1282,6 @@
     "translation": "[action]"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation from secure connection"
   },
@@ -2145,6 +2141,10 @@
     "translation": "Invalid team id provided."
   },
   {
+    "id": "api.get_site_url_error",
+    "translation": "Could not get the instance site url"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -2177,6 +2177,10 @@
     "translation": "The job types of a job you are trying to retrieve does not contain permissions"
   },
   {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
     "translation": "The job type of the job you are trying to create is invalid"
   },
@@ -2187,6 +2191,10 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "The job type you are trying to download is not supported at the moment"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -2719,12 +2727,32 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
     "id": "api.remote_cluster.delete.app_error",
     "translation": "We encountered an error deleting the secure connection."
   },
   {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
     "id": "api.remote_cluster.get.app_error",
     "translation": "We encountered an error retrieving a secure connection."
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -2733,6 +2761,10 @@
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
   },
   {
     "id": "api.remote_cluster.save.app_error",
@@ -2929,6 +2961,10 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -4135,6 +4171,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
+  },
+  {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "Only system administrators can set already-hashed passwords."
   },
@@ -5083,6 +5123,10 @@
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
+  },
+  {
     "id": "app.import.emoji.bad_file.error",
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
@@ -5671,6 +5715,10 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
+  },
+  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Error fetching last accessible file"
   },
@@ -5681,10 +5729,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Failed to get post count"
   },
   {
     "id": "app.login.doLogin.updateLastLogin.error",
@@ -6835,6 +6879,10 @@
     "translation": "Must call update for existing user."
   },
   {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
     "id": "app.user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
   },
@@ -6851,12 +6899,20 @@
     "translation": "Failed to check if user store is empty."
   },
   {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
   {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
@@ -9735,6 +9791,14 @@
     "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
+  },
+  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters."
   },
@@ -9873,6 +9937,10 @@
   {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "A team member with that ID already exists."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",

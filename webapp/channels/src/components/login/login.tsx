@@ -745,7 +745,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (ForgotPasswordLink) {
             return (
                 <div className='login-body-card-form-link'>
-                    <ExternalLink href={ForgotPasswordLink}>
+                    <ExternalLink
+                        location='login_page'
+                        href={ForgotPasswordLink}
+                    >
                         {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
                     </ExternalLink>
                 </div>

@@ -3,18 +3,15 @@
 
 import React, {memo} from 'react';
 import type {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import {HasNoMentions, HasSpecialMentions} from 'components/post_priority/error_messages';
 import PriorityLabel from 'components/post_priority/post_priority_label';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     canRemove: boolean;
@@ -97,6 +94,7 @@ function PriorityLabels({
     priority,
     requestedAck,
 }: Props) {
+    const intl = useIntl();
     return (
         <Priority padding={padding}>
             {priority && (
@@ -106,41 +104,31 @@ function PriorityLabels({
                 />
             )}
             {persistentNotifications && (
-                <OverlayTrigger
+                <WithTooltip
+                    id='post-priority-picker-persistent-notifications-tooltip'
                     placement='top'
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                    overlay={(
-                        <Tooltip id='post-priority-picker-persistent-notifications-tooltip'>
-                            <FormattedMessage
-                                id={'post_priority.persistent_notifications.tooltip'}
-                                defaultMessage={'Persistent notifications will be sent'}
-                            />
-                        </Tooltip>
-                    )}
+                    title={intl.formatMessage({
+                        id: 'post_priority.persistent_notifications.tooltip',
+                        defaultMessage: 'Persistent notifications will be sent',
+                    })}
                 >
                     <Notifications>
                         <BellRingOutlineIcon size={14}/>
                     </Notifications>
-                </OverlayTrigger>
+                </WithTooltip>
             )}
             {requestedAck && (
                 <Acknowledgements hasError={hasError}>
-                    <OverlayTrigger
+                    <WithTooltip
+                        id='post-priority-picker-ack-tooltip'
                         placement='top'
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                        overlay={(
-                            <Tooltip id='post-priority-picker-ack-tooltip'>
-                                <FormattedMessage
-                                    id={'post_priority.request_acknowledgement.tooltip'}
-                                    defaultMessage={'Acknowledgement will be requested'}
-                                />
-                            </Tooltip>
-                        )}
+                        title={intl.formatMessage({
+                            id: 'post_priority.request_acknowledgement.tooltip',
+                            defaultMessage: 'Acknowledgement will be requested',
+                        })}
                     >
                         <CheckCircleOutlineIcon size={14}/>
-                    </OverlayTrigger>
+                    </WithTooltip>
                     {!(priority) && (
                         <FormattedMessage
                             id={'post_priority.request_acknowledgement'}
@@ -155,19 +143,13 @@ function PriorityLabels({
                 </Error>
             )}
             {canRemove && (
-                <OverlayTrigger
+                <WithTooltip
+                    id='post-priority-picker-tooltip'
                     placement='top'
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                    overlay={(
-                        <Tooltip id='post-priority-picker-tooltip'>
-                            <FormattedMessage
-                                id={'post_priority.remove'}
-                                defaultMessage={'Remove {priority}'}
-                                values={{priority}}
-                            />
-                        </Tooltip>
-                    )}
+                    title={intl.formatMessage({
+                        id: 'post_priority.remove',
+                        defaultMessage: 'Remove {priority}',
+                    }, {priority})}
                 >
                     <Close
                         type='button'
@@ -183,7 +165,7 @@ function PriorityLabels({
                             />
                         </span>
                     </Close>
-                </OverlayTrigger>
+                </WithTooltip>
             )}
         </Priority>
     );

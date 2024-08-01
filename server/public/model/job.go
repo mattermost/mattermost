@@ -108,7 +108,31 @@ func (j *Job) IsValid() *AppError {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
-	switch j.Status {
+	validStatus := IsValidJobStatus(j.Status)
+	if !validStatus {
+		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (j *Job) IsValidStatusChange(newStatus string) bool {
+	currentStatus := j.Status
+
+	switch currentStatus {
+	case JobStatusInProgress:
+		return newStatus == JobStatusPending || newStatus == JobStatusCancelRequested
+	case JobStatusPending:
+		return newStatus == JobStatusCancelRequested
+	case JobStatusCancelRequested:
+		return newStatus == JobStatusCanceled
+	}
+
+	return false
+}
+
+func IsValidJobStatus(status string) bool {
+	switch status {
 	case JobStatusPending,
 		JobStatusInProgress,
 		JobStatusSuccess,
@@ -117,10 +141,20 @@ func (j *Job) IsValid() *AppError {
 		JobStatusCancelRequested,
 		JobStatusCanceled:
 	default:
-		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+		return false
 	}
 
-	return nil
+	return true
+}
+
+func IsValidJobType(jobType string) bool {
+	for _, t := range AllJobTypes {
+		if t == jobType {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (j *Job) LogClone() any {

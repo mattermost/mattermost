@@ -5547,10 +5547,6 @@
     "translation": "aynı adlı bir grup zaten bir kullanıcı adı olarak var"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Lisansı yenile"
-  },
-  {
     "id": "api.ldap_groups.existing_group_name_error",
     "translation": "aynı adlı bir grup zaten var"
   },
@@ -7371,22 +7367,6 @@
     "translation": "Dışa aktarma dosyasına yazılamadı."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Herhangi bir lisans yok"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Bu lisans türü yenileme kodu üretilmesini desteklemiyor"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Yeni bir yenileme kodu üretilemedi."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Lisans yenileme bağlantısı alınırken sorun çıktı"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Dosyaya yazılamadı."
   },
@@ -8402,10 +8382,6 @@
     "translation": "Mattermost aboneliğinizin yenilenmesi gerekiyor"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Aboneliğinizi yenilemek için müşteri hesabınızla oturum açın"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, aboneliğiniz {{.Days}} gün içinde sona erecek. Mattermost tarafından sunulan esnek ve güvenli takım çalışmasını deneyimlediğinizi umuyoruz. Takımınızın bu özellikleri kullanmayı sürdürebilmesi için aboneliğinizi yenileyin."
   },
@@ -8414,16 +8390,8 @@
     "translation": "Lisansınız yenilenmek üzere"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Şimdi yenile"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Yenileme e-postaları için lisans gönderilemedi"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Lisans yenileme bağlantısı oluşturulamadı"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8568,10 +8536,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Alınan ileti kimliklerinin sayısı en fazla boyut sınırı olan {{.MaxLength}} değerini aşıyor"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Bu lisans portal üzerinden yenilenemez"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9018,34 +8982,6 @@
     "translation": "Müşteri site sunucusu kullanılamıyor."
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Toplam giden İnternet kancası sayısı alınamadı"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Toplam gelen İnternet kancası sayısı alınamadı"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Toplam etkin kullanıcı sayısı alınamadı"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Cloud kopyalarında lisans artırımı değerlendirmesi yapılamaz"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Lisans artırımı değerlendirmesi için bir lisans gereklidir"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Lisans artırımı durumu kayıtları alınamadı"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Lisans artırımı durumu kaydı oluşturulamadı"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
   },
@@ -9100,10 +9036,6 @@
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
     "translation": "Kalıcı bildirim iletisinde en fazla {{.MaxRecipients}} alıcı olabilir."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Lisans sayısı değerlendirme profili müşteri site sunucusuna gönderilemedi."
   },
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",

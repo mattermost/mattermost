@@ -1237,7 +1237,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         type="radio"
                       />
                       <Memo(MemoizedFormattedMessage)
-                        defaultMessage="On"
+                        defaultMessage="Expanded"
                         id="user.settings.display.collapseOn"
                       />
                     </label>
@@ -1255,7 +1255,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         type="radio"
                       />
                       <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Off"
+                        defaultMessage="Collapsed"
                         id="user.settings.display.collapseOff"
                       />
                     </label>

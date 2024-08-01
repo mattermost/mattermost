@@ -15,7 +15,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
 import {createUser, loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -54,8 +54,9 @@ import type {CustomMessageInputType} from 'components/widgets/inputs/input/input
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
+import {isValidPassword} from 'utils/password';
 import {isDesktopApp} from 'utils/user_agent';
-import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
+import {isValidUsername, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -148,7 +149,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
-    const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
+    const passwordConfig = useSelector(getPasswordConfig);
+    const {error: passwordInfo} = isValidPassword('', passwordConfig, intl);
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
@@ -553,7 +555,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         const providedPassword = passwordInput.current?.value ?? '';
-        const {error, telemetryErrorIds} = isValidPassword(providedPassword, getPasswordConfig(config), intl);
+        const {error, telemetryErrorIds} = isValidPassword(providedPassword, passwordConfig, intl);
 
         if (error) {
             setPasswordError(error as string);

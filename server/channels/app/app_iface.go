@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -28,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -376,7 +376,7 @@ type AppIface interface {
 	// be included; otherwise, they will be excluded.
 	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError)
 	// This function migrates the default built in roles from code/config to the database.
-	DoAdvancedPermissionsMigration()
+	DoAdvancedPermissionsMigration() error
 	// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 	// Ensure the zip file name ends with a .zip
 	CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
@@ -511,9 +511,9 @@ type AppIface interface {
 	ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError)
 	CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) ([]string, *model.AppError)
 	CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError)
-	CountNotification(notificationType model.NotificationType)
-	CountNotificationAck(notificationType model.NotificationType)
-	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason)
+	CountNotification(notificationType model.NotificationType, platform string)
+	CountNotificationAck(notificationType model.NotificationType, platform string)
+	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
@@ -533,6 +533,7 @@ type AppIface interface {
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError)
+	CreateRemoteClusterInvite(remoteId, siteURL, token, password string) (string, *model.AppError)
 	CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateSamlRelayToken(extra string) (*model.Token, *model.AppError)
@@ -555,6 +556,7 @@ type AppIface interface {
 	DeactivateGuests(c request.CTX) *model.AppError
 	DeactivateMfa(userID string) *model.AppError
 	DeauthorizeOAuthAppForUser(c request.CTX, userID, appID string) *model.AppError
+	DecryptRemoteClusterInvite(inviteCode, password string) (*model.RemoteClusterInvite, *model.AppError)
 	DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
@@ -593,7 +595,7 @@ type AppIface interface {
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
-	DoSystemConsoleRolesCreationMigration()
+	DoSystemConsoleRolesCreationMigration() error
 	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError)
 	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
@@ -626,7 +628,7 @@ type AppIface interface {
 	GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError)
 	GetAllPrivateTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
-	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
+	GetAllRemoteClusters(page, perPage int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllTeams() ([]*model.Team, *model.AppError)
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
@@ -720,6 +722,7 @@ type AppIface interface {
 	GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetJob(c request.CTX, id string) (*model.Job, *model.AppError)
 	GetJobsByType(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
+	GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
@@ -727,6 +730,7 @@ type AppIface interface {
 	GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
 	GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
+	GetMattermostLog(ctx request.CTX) (*model.FileData, error)
 	GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError)
@@ -820,7 +824,7 @@ type AppIface interface {
 	GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]string, *model.AppError)
-	GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError)
+	GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError)
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
@@ -830,7 +834,7 @@ type AppIface interface {
 	GetTeamByName(name string) (*model.Team, *model.AppError)
 	GetTeamIcon(team *model.Team) ([]byte, *model.AppError)
 	GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *model.AppError)
-	GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
+	GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
 	GetTeamMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUser(c request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, *model.AppError)
@@ -971,6 +975,7 @@ type AppIface interface {
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
 	PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError)
 	PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)
+	PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError)
 	PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)
@@ -1004,6 +1009,7 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
+	RegisterPerformanceReport(rctx request.CTX, report *model.PerformanceReport) *model.AppError
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 	RegisterPluginForSharedChannels(rctx request.CTX, opts model.RegisterPluginOpts) (remoteID string, err error)
 	ReloadConfig() error
@@ -1098,6 +1104,7 @@ type AppIface interface {
 	SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
+	SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(session model.Session, userID string) bool
@@ -1172,6 +1179,7 @@ type AppIface interface {
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError
 	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)

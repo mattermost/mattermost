@@ -754,7 +754,7 @@ const AdvanceTextEditor = ({
             <div
                 id='postCreateFooter'
                 role='form'
-                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
+                className='AdvancedTextEditor__footer'
             >
                 {postError && (
                     <label className={classNames('post-error', {errorClass})}>
