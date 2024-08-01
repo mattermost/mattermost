@@ -24,9 +24,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// CallsEnabled controls whether or not the Calls plugin should be enabled
-	CallsEnabled bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
@@ -63,7 +60,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.CallsEnabled = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
