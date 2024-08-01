@@ -28,7 +28,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
             title={<FormattedMessage
                 id='global_header.productSettings'
                 defaultMessage='Settings'
-            />}
+                   />}
             placement='bottom'
         >
             <IconButton
