@@ -5779,11 +5779,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 122+"
+    "translation": "版本 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 122+"
+    "translation": "版本 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10076,5 +10076,9 @@
   {
     "id": "model.user.pre_save.password_too_long.app_error",
     "translation": "密码长度不能超过 72 个字符。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "搜索后端无效。必须是 elasticsearch 或 opensearch。"
   }
 ]

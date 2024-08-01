@@ -493,6 +493,7 @@ func (ts *TelemetryService) trackConfig() {
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
+		"maximum_url_length":                                      *cfg.ServiceSettings.MaximumURLLength,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -1437,6 +1438,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"skype4business",
 		"zoom",
 		"focalboard",
+		"com.mattermost.msteams-sync",
 	}
 
 	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
