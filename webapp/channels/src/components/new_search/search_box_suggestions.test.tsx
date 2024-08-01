@@ -50,6 +50,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
             component: TestProviderResultComponent,
         },
+        getCaretPosition: () => 0,
         focus: jest.fn(),
         onSearch: jest.fn(),
     };
@@ -71,7 +72,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     });
 
     test('should change the search term and focus on click with matchedPretext and previous text', () => {
-        const props = {...baseProps, searchTerms: 'something from:test-user', providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
+        const props = {...baseProps, searchTerms: 'something from:test-user', getCaretPosition: () => 24, providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
         fireEvent.click(screen.getByText('test-username1'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test-username1 ');
@@ -114,7 +115,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     });
 
     test('should on search change change the search term and focus', () => {
-        const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
+        const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t', getCaretPosition: () => 16};
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {

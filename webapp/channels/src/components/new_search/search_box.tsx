@@ -82,6 +82,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
         }
 
         if (inputRef.current) {
+            inputRef.current.addEventListener('change', updateCaretPosition);
             inputRef.current.addEventListener('keypress', updateCaretPosition);
             inputRef.current.addEventListener('keyup', updateCaretPosition);
             inputRef.current.addEventListener('mousedown', updateCaretPosition);
@@ -96,6 +97,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 
         return () => {
             if (inputRef.current) {
+                inputRef.current.removeEventListener('change', updateCaretPosition);
                 inputRef.current.removeEventListener('keypress', updateCaretPosition);
                 inputRef.current.removeEventListener('mousedown', updateCaretPosition);
                 inputRef.current.removeEventListener('keyup', updateCaretPosition);
@@ -107,9 +109,8 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 inputRef.current.removeEventListener('select', updateCaretPosition);
                 inputRef.current.removeEventListener('selectstart', updateCaretPosition);
             }
-        }
+        };
     }, [inputRef.current]);
-
 
     const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, caretPosition, getCaretPosition, setSelectedOption);
 
@@ -147,13 +148,13 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
                 onSearch(searchType, searchTerms);
             } else {
-                const caretPosition = getCaretPosition()
+                const caretPosition = getCaretPosition();
                 const matchedPretext = providerResults?.matchedPretext;
                 const value = providerResults?.terms[selectedOption];
                 const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
-                setSearchTerms(searchTerms.slice(0, caretPosition).replace(matchedPretext, '') + value +  extraSpace + searchTerms.slice(caretPosition));
+                setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext+'$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
                 setSelectedOption(-1);
-                focus(caretPosition + value.length + 1 - matchedPretext.length);
+                focus((caretPosition + value.length + 1) - matchedPretext.length);
             }
         }
     }, [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms]);

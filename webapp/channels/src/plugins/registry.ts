@@ -143,7 +143,7 @@ export default class PluginRegistry {
         dispatchPluginComponentAction('SearchSuggestions', this.id, suggestionsComponent, id);
         dispatchPluginComponentAction('SearchHints', this.id, hintsComponent, id);
         return id;
-    }
+    };
 
     // Register a component to show as a tooltip when a user hovers on a link in a post.
     // Accepts a React component. Returns a unique identifier.

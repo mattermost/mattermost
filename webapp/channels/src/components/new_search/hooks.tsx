@@ -33,19 +33,22 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
     ]);
 
     const headers = useMemo<React.ReactNode[]>(() => [
-        <span/>,
+        <span key={1}/>,
         <FormattedMessage
             id='search_bar.channels'
             defaultMessage='Channels'
+            key={2}
         />,
         <FormattedMessage
             id='search_bar.users'
             defaultMessage='Users'
+            key={3}
         />,
         <FormattedMessage
             id='search_bar.file_types'
             defaultMessage='File types'
-        />
+            key={4}
+        />,
     ], []);
 
     useEffect(() => {
@@ -54,7 +57,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
             return;
         }
 
-        let partialSearchTerms = searchTerms.slice(0, caretPosition);
+        const partialSearchTerms = searchTerms.slice(0, caretPosition);
         if (searchTerms.length > caretPosition && searchTerms[caretPosition] !== ' ') {
             return;
         }
@@ -65,7 +68,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
 
         suggestionProviders.current.forEach((provider, idx) => {
             provider.handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
-                if (idx ===  3 && searchType !== 'files') {
+                if (idx === 3 && searchType !== 'files') {
                     return;
                 }
                 if (caretPosition !== getCaretPosition()) {
@@ -76,7 +79,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
                 setProviderResults(res);
                 setSelectedOption(0);
                 setSuggestionsHeader(headers[idx]);
-            })
+            });
         });
     }, [searchTerms, searchType, caretPosition]);
 

@@ -3,9 +3,10 @@
 
 import type {ResultsCallback} from 'components/suggestion/provider';
 import Provider from 'components/suggestion/provider';
-import SearchFileExtensionSuggestion from './extension_suggestions';
 
 import Constants from 'utils/constants';
+
+import SearchFileExtensionSuggestion from './extension_suggestions';
 
 export type ExtensionItem = {
     label: string;
@@ -13,7 +14,7 @@ export type ExtensionItem = {
     value: string;
 };
 
-let globalExtensions: ExtensionItem[] = [];
+const globalExtensions: ExtensionItem[] = [];
 Constants.TEXT_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'text', value: extension}));
 Constants.IMAGE_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'image', value: extension}));
 Constants.AUDIO_TYPES.forEach((extension) => globalExtensions.push({label: extension, type: 'audio', value: extension}));

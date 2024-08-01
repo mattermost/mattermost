@@ -147,7 +147,7 @@ const NewSearch = (): JSX.Element => {
             return;
         }
         if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
-            setFocused(false)
+            setFocused(false);
             return;
         }
         openSearchBox();
