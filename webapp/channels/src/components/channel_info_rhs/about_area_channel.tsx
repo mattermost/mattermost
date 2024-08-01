@@ -58,22 +58,20 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
         <>
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>
+                    <ChannelDescriptionHeading>
+                        {formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.heading', defaultMessage: 'Channel Purpose'})}
+                    </ChannelDescriptionHeading>
                     <EditableArea
                         editable={canEditChannelProperties}
                         content={channel.purpose && (
-                            <>
-                                <ChannelDescriptionHeading>
-                                    {formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.heading', defaultMessage: 'Channel Purpose'})}
-                                </ChannelDescriptionHeading>
-                                <LineLimiter
-                                    maxLines={4}
-                                    lineHeight={20}
-                                    moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.line_limiter.more', defaultMessage: 'more'})}
-                                    lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.line_limiter.less', defaultMessage: 'less'})}
-                                >
-                                    <Markdown message={channel.purpose}/>
-                                </LineLimiter>
-                            </>
+                            <LineLimiter
+                                maxLines={4}
+                                lineHeight={20}
+                                moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.line_limiter.more', defaultMessage: 'more'})}
+                                lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.line_limiter.less', defaultMessage: 'less'})}
+                            >
+                                <Markdown message={channel.purpose}/>
+                            </LineLimiter>
                         )}
                         onEdit={actions.editChannelPurpose}
                         emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_purpose', defaultMessage: 'Add a channel purpose'})}
@@ -83,21 +81,19 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
 
             {(channel.header || canEditChannelProperties) && (
                 <ChannelHeader>
+                    <ChannelDescriptionHeading>
+                        {formatMessage({id: 'channel_info_rhs.about_area.channel_header.heading', defaultMessage: 'Channel Header'})}
+                    </ChannelDescriptionHeading>
                     <EditableArea
                         content={channel.header && (
-                            <>
-                                <ChannelDescriptionHeading>
-                                    {formatMessage({id: 'channel_info_rhs.about_area.channel_header.heading', defaultMessage: 'Channel Header'})}
-                                </ChannelDescriptionHeading>
-                                <LineLimiter
-                                    maxLines={4}
-                                    lineHeight={20}
-                                    moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
-                                    lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.less', defaultMessage: 'less'})}
-                                >
-                                    <Markdown message={channel.header}/>
-                                </LineLimiter>
-                            </>
+                            <LineLimiter
+                                maxLines={4}
+                                lineHeight={20}
+                                moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
+                                lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.less', defaultMessage: 'less'})}
+                            >
+                                <Markdown message={channel.header}/>
+                            </LineLimiter>
                         )}
                         editable={canEditChannelProperties}
                         onEdit={actions.editChannelHeader}
