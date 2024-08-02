@@ -152,7 +152,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     data-testid="post-create"
     id="post-create"
   >
-    <Memo(AdvancedCreatePost) />
+    <AdvancedCreatePost />
   </div>
 </div>
 `;

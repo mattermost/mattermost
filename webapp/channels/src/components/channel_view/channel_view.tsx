@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {lazy} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import AdvancedCreatePost from 'components/advanced_create_post';
-import ChannelBookmarks from 'components/channel_bookmarks';
+import {makeAsyncComponent} from 'components/async_load';
 import ChannelHeader from 'components/channel_header';
 import deferComponentRender from 'components/deferComponentRender';
-import FileUploadOverlay from 'components/file_upload_overlay';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 
 import type {PropsFromRedux} from './index';
+
+const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
+const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
+const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;

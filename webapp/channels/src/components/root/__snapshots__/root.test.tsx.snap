@@ -94,12 +94,12 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       theme={Object {}}
     >
       <WindowSizeObserver />
-      <Connect(ModalController) />
-      <Connect(Component) />
-      <Connect(injectIntl(SystemNotice)) />
+      <ModalController />
+      <AnnouncementBarController />
+      <SystemNotice />
       <GlobalHeader />
-      <CloudEffectsWrapper />
-      <withRouter(Connect(TeamSidebar)) />
+      <CloudEffects />
+      <TeamSidebar />
       <div
         className="main-wrapper"
       >
@@ -126,13 +126,12 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
           />
           <Connect(RootRedirect) />
         </Switch>
-        <withRouter(Connect(SidebarRight)) />
+        <SidebarRight />
       </div>
-      <Connect(Pluggable)
+      <Pluggable
         pluggableName="Global"
       />
       <AppBar />
-      <Connect(Component) />
     </CompassThemeProvider>
   </Switch>
 </RootProvider>

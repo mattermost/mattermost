@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {lazy} from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
+import {makeAsyncComponent} from 'components/async_load';
 import BrowseChannels from 'components/browse_channels';
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
 import DataPrefetch from 'components/data_prefetch';
@@ -26,9 +27,10 @@ import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
 
 import ChannelNavigator from './channel_navigator';
-import MobileSidebarHeader from './mobile_sidebar_header';
 import SidebarHeader from './sidebar_header';
 import SidebarList from './sidebar_list';
+
+const MobileSidebarHeader = makeAsyncComponent('MobileSidebarHeader', lazy(() => import('./mobile_sidebar_header')));
 
 type Props = {
     teamId: string;
