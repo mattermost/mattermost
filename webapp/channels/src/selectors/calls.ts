@@ -34,3 +34,23 @@ export function getCallsConfig(state: GlobalState): CallsConfig {
     // @ts-ignore
     return state[CALLS_PLUGIN].callsConfig;
 }
+
+export function getCallsChannelState(state: GlobalState, channelId: string): {enabled?: boolean} {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (!state[CALLS_PLUGIN] || !state[CALLS_PLUGIN].channels) {
+        return {};
+    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return state[CALLS_PLUGIN].channels[channelId] || {};
+}
+
+export function callsChannelExplicitlyEnabled(state: GlobalState, channelId: string) {
+    return Boolean(getCallsChannelState(state, channelId)?.enabled);
+}
+
+export function callsChannelExplicitlyDisabled(state: GlobalState, channelId: string) {
+    const enabled = getCallsChannelState(state, channelId)?.enabled;
+    return (typeof enabled !== 'undefined') && !enabled;
+}
