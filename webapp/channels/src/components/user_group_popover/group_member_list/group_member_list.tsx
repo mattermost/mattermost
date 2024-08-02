@@ -19,8 +19,8 @@ import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import ProfilePopover from 'components/profile_popover';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import WithTooltip from 'components/with_tooltip';
 import Avatar from 'components/widgets/users/avatar';
+import WithTooltip from 'components/with_tooltip';
 
 import * as Utils from 'utils/utils';
 
