@@ -2916,7 +2916,7 @@ func TestGetPinnedPosts(t *testing.T) {
 
 	_, resp, err = client.GetPinnedPosts(context.Background(), GenerateTestID(), "")
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = client.GetPinnedPosts(context.Background(), "junk", "")
 	require.Error(t, err)

@@ -5,12 +5,11 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getLatestReplyablePostId} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
-import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
+import {replyToLatestPostInChannel} from 'actions/views/rhs';
 
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
@@ -59,7 +58,6 @@ const useKeyHandler = (
     const lastChannelSwitchAt = useRef(0);
     const isNonFormattedPaste = useRef(false);
 
-    const latestReplyablePostId = useSelector((state: GlobalState) => (postId ? '' : getLatestReplyablePostId(state)));
     const replyToLastPost = useCallback((e: React.KeyboardEvent) => {
         if (postId) {
             return;
@@ -70,10 +68,9 @@ const useKeyHandler = (
         if (replyBox) {
             replyBox.focus();
         }
-        if (latestReplyablePostId) {
-            dispatch(selectPostFromRightHandSideSearchByPostId(latestReplyablePostId));
-        }
-    }, [latestReplyablePostId, dispatch, postId]);
+
+        dispatch(replyToLatestPostInChannel(channelId));
+    }, [dispatch, postId, channelId]);
 
     const onEditLatestPost = useCallback((e: React.KeyboardEvent) => {
         e.preventDefault();
