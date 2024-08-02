@@ -256,17 +256,6 @@ Cypress.Commands.add('apiSaveCloudTrialBannerPreference', (userId, name, value) 
     return cy.apiSaveUserPreference([preference], userId);
 });
 
-Cypress.Commands.add('apiSaveActionsMenuPreference', (userId, value = true) => {
-    const preference = {
-        user_id: userId,
-        category: 'actions_menu',
-        name: 'actions_menu_tutorial_state',
-        value: JSON.stringify({actions_menu_modal_viewed: value}),
-    };
-
-    return cy.apiSaveUserPreference([preference], userId);
-});
-
 Cypress.Commands.add('apiSaveStartTrialModal', (userId, value = 'true') => {
     const preference = {
         user_id: userId,
@@ -401,12 +390,6 @@ Cypress.Commands.add('apiDisableTutorials', (userId) => {
             category: 'crt_thread_pane_step',
             name: userId,
             value: '999',
-        },
-        {
-            user_id: userId,
-            category: 'actions_menu',
-            name: 'actions_menu_tutorial_state',
-            value: '{"actions_menu_modal_viewed":true}',
         },
         {
             user_id: userId,
