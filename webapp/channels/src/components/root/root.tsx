@@ -14,6 +14,7 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -50,7 +51,6 @@ import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import LoggedInRoute from './logged_in_route';
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
@@ -78,6 +78,7 @@ const LazyCreateTeam = React.lazy(() => import('components/create_team'));
 const LazyMfa = React.lazy(() => import('components/mfa/mfa_controller'));
 const LazyPreparingWorkspace = React.lazy(() => import('components/preparing_workspace'));
 const LazyTeamController = React.lazy(() => import('components/team_controller'));
+const LazyOnBoardingTaskList = React.lazy(() => import('components/onboarding_tasklist'));
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -97,6 +98,30 @@ const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
 const Mfa = makeAsyncComponent('Mfa', LazyMfa);
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', LazyPreparingWorkspace);
 const TeamController = makeAsyncComponent('TeamController', LazyTeamController);
+const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardingTaskList);
+
+type LoggedInRouteProps = {
+    component: React.ComponentType<RouteComponentProps<any>>;
+    path: string | string[];
+    theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
+};
+
+function LoggedInRoute(props: LoggedInRouteProps) {
+    const {component: Component, theme, ...rest} = props;
+    return (
+        <Route
+            {...rest}
+            render={(routeProps) => (
+                <LoggedIn {...routeProps}>
+                    {theme && <CompassThemeProvider theme={theme}>
+                        <OnBoardingTaskList/>
+                    </CompassThemeProvider>}
+                    <Component {...(routeProps)}/>
+                </LoggedIn>
+            )}
+        />
+    );
+}
 
 const noop = () => {};
 
