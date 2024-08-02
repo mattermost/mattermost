@@ -114,7 +114,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 
     const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, caretPosition, getCaretPosition, setSelectedOption);
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
             e.stopPropagation();
             e.preventDefault();
