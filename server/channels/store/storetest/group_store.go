@@ -241,7 +241,7 @@ func testGroupCreateWithUserIds(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NotZero(t, d1.CreateAt)
 	require.NotZero(t, d1.UpdateAt)
 	require.Zero(t, d1.DeleteAt)
-	require.Equal(t, *model.NewPointer(2), int64(*d1.MemberCount))
+	require.Equal(t, *model.NewPointer(2), *d1.MemberCount)
 
 	// Requires display name
 
