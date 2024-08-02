@@ -13,6 +13,10 @@ on:
         type: string
         description: If testing a PR, this must be specified as well.
         required: false
+      SERVER_IMAGE_UPGRADEFROM:
+        type: string
+        description: If specified, the server starts with this image, is smoketested, and then proceeds to upgrade to the image determined by ref.
+        required: false
       MM_ENV:
         type: string
         required: false
@@ -194,6 +198,7 @@ jobs:
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      SERVER_IMAGE_UPGRADEFROM: "${{ inputs.SERVER_IMAGE_UPGRADEFROM }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"

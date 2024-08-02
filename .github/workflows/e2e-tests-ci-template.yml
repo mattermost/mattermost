@@ -37,6 +37,9 @@ on:
       SERVER_IMAGE:
         type: string
         required: false
+      SERVER_IMAGE_UPGRADEFROM:
+        type: string # If this is set, perform a rolling-upgrade test starting from this server image
+        required: false
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -253,6 +256,7 @@ jobs:
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
       SERVER: "${{ inputs.SERVER }}"
       SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+      SERVER_IMAGE_UPGRADEFROM: "${{ inputs.SERVER_IMAGE_UPGRADEFROM }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
@@ -286,8 +290,37 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test
+        if: "inputs.SERVER_IMAGE_UPGRADEFROM == ''"
         run: |
           make
+      - name: ci/e2e-test-rolling-release
+        if: "inputs.SERVER_IMAGE_UPGRADEFROM != ''"
+        run: |
+          set -eu -o pipefail
+          # Run the individual steps from 'make run', to make checks and switch the server image midway and keep a single cloud user
+          echo "RollingRelease: initializing cloud user"
+          make cloud-init
+          # Run initial smoketests in a subshell, to isolate the environment
+          echo "RollingRelease: running initial smoketest against image $SERVER_IMAGE_UPGRADEFROM"
+          (
+          export SERVER_IMAGE="$SERVER_IMAGE_UPGRADEFROM"
+          export TEST_FILTER=""
+          export AUTOMATION_DASHBOARD_URL=""
+          make start-server && make prepare-server && make run-test
+          )
+          # Assert that the smokests results are successful
+          echo "RollingRelease: asserting smoketest result has zero failures."
+          FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+          if [ "$FAILURES" -ne "0" ]; then
+            echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
+            exit 1
+          fi
+          rm -rfv cypress/results
+          # Run actual tests against the new image
+          echo "RollingRelease: running full E2E test against image $SERVER_IMAGE"
+          make start-server && make prepare-server && make run-test
+          echo "RollingRelease: tearing down cloud user"
+          make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
