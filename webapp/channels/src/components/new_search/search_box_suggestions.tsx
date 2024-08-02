@@ -49,7 +49,7 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, getCaretPos
     const updateSearchValue = useCallback((value: string, matchedPretext: string) => {
         const caretPosition = getCaretPosition();
         const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
-        setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext+'$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
+        setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext + '$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
         focus((caretPosition + value.length + 1) - matchedPretext.length);
     }, [searchTerms, setSearchTerms, focus, getCaretPosition]);
 

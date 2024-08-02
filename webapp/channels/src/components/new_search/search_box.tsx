@@ -152,7 +152,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 const matchedPretext = providerResults?.matchedPretext;
                 const value = providerResults?.terms[selectedOption];
                 const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
-                setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext+'$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
+                setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext + '$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
                 setSelectedOption(-1);
                 focus((caretPosition + value.length + 1) - matchedPretext.length);
             }
