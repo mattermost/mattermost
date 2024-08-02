@@ -217,7 +217,7 @@ function verifySuggestionAtPostTextbox(...expectedUsers: Cypress.UserProfile[]) 
     });
 }
 
-function verifySuggestionAtChannelSwitcher(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.findByTestId(user.username).
             should('be.visible').

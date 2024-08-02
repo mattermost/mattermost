@@ -22,7 +22,7 @@ export function doTestPostextbox(mention: string, ...suggestion: Cypress.UserPro
     verifySuggestionAtPostTextbox(...suggestion);
 }
 
-export function doTestQuickChannelSwitcher(mention: string, ...suggestion: Cypress.UserProfile[]) {
+export function doTestQuickChannelSwitcher(mention: string, ...suggestion: SimpleUser[]) {
     getQuickChannelSwitcherInput();
     startAtMention(mention);
     verifySuggestionAtChannelSwitcher(...suggestion);
