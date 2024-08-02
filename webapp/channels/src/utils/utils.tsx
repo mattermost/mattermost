@@ -1369,11 +1369,11 @@ export function copyToClipboard(data: string) {
         clipboard.writeText(data).then(
             () => {
                 /* clipboard successfully set */
-                return
+                return;
             },
             () => {
                 /* clipboard write failed, falls back to workaround below */
-            },            
+            },   
         );
     }
 
