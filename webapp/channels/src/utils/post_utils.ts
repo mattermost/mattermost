@@ -21,8 +21,8 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
-import {makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
-import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isPostFlagged, makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
+import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetDisplayName, getCurrentUserId, getUser, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
@@ -36,7 +36,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import {getEmojiMap} from 'selectors/emojis';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
+import Constants, {PostListRowListIds} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
@@ -471,8 +471,8 @@ export function usePostAriaLabel(post: Post | undefined) {
         }
 
         const authorDisplayName = getDisplayName(state, post.user_id);
-        const reactions = getReactionsForPost(state, post?.id);
-        const isFlagged = get(state, Preferences.CATEGORY_FLAGGED_POST, post.id, null) != null;
+        const reactions = getReactionsForPost(state, post.id);
+        const isFlagged = isPostFlagged(state, post.id);
         const emojiMap = getEmojiMap(state);
         const mentions = getMentionsFromMessage(state, post);
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
