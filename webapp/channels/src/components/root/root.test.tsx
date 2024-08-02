@@ -14,12 +14,14 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import Root from 'components/root/root';
+import Root, {doesRouteBelongToTeamControllerRoutes} from 'components/root/root';
+import type {Props} from 'components/root/root';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {StoragePrefixes} from 'utils/constants';
 
 import type {ProductComponent} from 'types/store/plugins';
+import type {RhsState} from 'types/store/rhs';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 
@@ -59,13 +61,14 @@ jest.mock('mattermost-redux/actions/general', () => ({
 describe('components/Root', () => {
     const store = testConfigureStore();
 
-    const baseProps = {
+    const baseProps: Props = {
         telemetryEnabled: true,
         telemetryId: '1234ab',
         noAccounts: false,
         showTermsOfService: false,
         theme: {} as Theme,
         actions: {
+            getFirstAdminSetupComplete: jest.fn(),
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
                     config: {},
@@ -75,7 +78,6 @@ describe('components/Root', () => {
             getProfiles: jest.fn(),
             loadRecentlyUsedCustomEmojis: jest.fn(),
             migrateRecentEmojis: jest.fn(),
-            savePreferences: jest.fn(),
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
             ...bindActionCreators({
@@ -95,7 +97,11 @@ describe('components/Root', () => {
         isCloud: false,
         rhsIsExpanded: false,
         rhsIsOpen: false,
+        iosDownloadLink: '',
+        androidDownloadLink: '',
+        appDownloadLink: '',
         shouldShowAppBar: false,
+        rhsState: {} as RhsState,
     };
 
     test('should load config and license on mount and redirect to sign-up page', () => {
@@ -335,5 +341,51 @@ describe('components/Root', () => {
             expect(props.history.push).not.toHaveBeenCalled();
             wrapper.unmount();
         });
+    });
+});
+
+describe('doesRouteBelongToTeamControllerRoutes', () => {
+    test('should return true for some of team_controller routes', () => {
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/messages/abc')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/messages')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/channels/cde')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/channels')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/threads/efg')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/threads')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/drafts')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/integrations/klm')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/emoji/nop')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/integrations')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/emoji')).toBe(true);
+    });
+
+    test('should return false for other of team_controller routes', () => {
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_2')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_2/pl/permalink123')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_2/needs_team_component_plugin')).toBe(false);
+    });
+
+    test('should return false for other routes of root', () => {
+        expect(doesRouteBelongToTeamControllerRoutes('/plug/custom_route_component')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/main_component_product_1')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/product_1/public')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/_redirect/pl/message_1')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/preparing-workspace')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/mfa')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/create_team')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/oauth/authorize')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/select_team')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/landing')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/terms_of_service')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/claim')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/do_verify_email')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/should_verify_email')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/signup_user_complete')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/reset_password_complete')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/reset_password')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/access_problem')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/login')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/error')).toBe(false);
     });
 });
