@@ -20,9 +20,9 @@ import type {GlobalState} from 'types/store';
 
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 
-function mapStateToProps(state: GlobalState) {
-    const getCategory = makeGetCategory();
+const getCloudTrialBannerPreferences = makeGetCategory('getCloudTrialBannerPreferences', Preferences.CLOUD_TRIAL_BANNER);
 
+function mapStateToProps(state: GlobalState) {
     const subscription = state.entities.cloud.subscription;
     const isCloud = getLicense(state).Cloud === 'true';
     let isFreeTrial = false;
@@ -43,7 +43,7 @@ function mapStateToProps(state: GlobalState) {
         currentUser: getCurrentUser(state),
         isCloud,
         subscription,
-        preferences: getCategory(state, Preferences.CLOUD_TRIAL_BANNER),
+        preferences: getCloudTrialBannerPreferences(state),
     };
 }
 

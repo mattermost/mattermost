@@ -103,7 +103,6 @@ export const Preferences = {
     UNREAD_SCROLL_POSITION_START_FROM_LEFT: 'start_from_left_off',
     UNREAD_SCROLL_POSITION_START_FROM_NEWEST: 'start_from_newest',
     CATEGORY_THEME: 'theme',
-    CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     EMAIL_INTERVAL: 'email_interval',
     INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
@@ -147,7 +146,7 @@ export const Preferences = {
     DELINQUENCY_MODAL_CONFIRMED: 'delinquency_modal_confirmed',
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
-    OVERAGE_USERS_BANNER: 'overage_users_banner',
+    OVERAGE_USERS_BANNER: ReduxPreferences.CATEGORY_OVERAGE_USERS_BANNER,
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
