@@ -1,67 +1,66 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent} from 'react';
+import React, {memo, useCallback} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Post} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {ExtendedPost} from 'mattermost-redux/actions/posts';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 
-type CreatePostAction =
-    (post: Post, files: FileInfo[]) => (dispatch: DispatchFunc) => Promise<{data?: boolean}>;
-type RemovePostAction =
-    (post: ExtendedPost) => (dispatch: DispatchFunc, getState: GetStateFunc) => void;
+import type {ExtendedPost} from 'mattermost-redux/actions/posts';
 
 type Props = {
     post: Post;
     actions: {
-        createPost: CreatePostAction;
-        removePost: RemovePostAction;
+        createPost: (post: Post, files: FileInfo[]) => void;
+        removePost: (post: ExtendedPost) => void;
     };
 };
 
-export default class FailedPostOptions extends React.PureComponent<Props> {
-    retryPost = (e: MouseEvent): void => {
+const FailedPostOptions = ({
+    post,
+    actions,
+}: Props) => {
+    const retryPost = useCallback((e: MouseEvent): void => {
         e.preventDefault();
 
-        const post = {...this.props.post};
-        Reflect.deleteProperty(post, 'id');
-        this.props.actions.createPost(post, []);
-    };
+        const postDetails = {...post};
+        Reflect.deleteProperty(postDetails, 'id');
+        actions.createPost(postDetails, []);
+    }, [actions, post]);
 
-    cancelPost = (e: MouseEvent): void => {
+    const cancelPost = useCallback((e: MouseEvent): void => {
         e.preventDefault();
 
-        this.props.actions.removePost(this.props.post);
-    };
+        actions.removePost(post);
+    }, [actions, post]);
 
-    render(): JSX.Element {
-        return (
-            <span className='pending-post-actions'>
-                <a
-                    className='post-retry'
-                    href='#'
-                    onClick={this.retryPost}
-                >
-                    <FormattedMessage
-                        id='pending_post_actions.retry'
-                        defaultMessage='Retry'
-                    />
-                </a>
-                {' - '}
-                <a
-                    className='post-cancel'
-                    href='#'
-                    onClick={this.cancelPost}
-                >
-                    <FormattedMessage
-                        id='pending_post_actions.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </a>
-            </span>
-        );
-    }
-}
+    return (
+        <span className='pending-post-actions'>
+            <a
+                className='post-retry'
+                href='#'
+                onClick={retryPost}
+            >
+                <FormattedMessage
+                    id='pending_post_actions.retry'
+                    defaultMessage='Retry'
+                />
+            </a>
+            {' - '}
+            <a
+                className='post-cancel'
+                href='#'
+                onClick={cancelPost}
+            >
+                <FormattedMessage
+                    id='pending_post_actions.cancel'
+                    defaultMessage='Cancel'
+                />
+            </a>
+        </span>
+    );
+};
+
+export default memo(FailedPostOptions);

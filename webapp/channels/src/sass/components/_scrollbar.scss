@@ -10,8 +10,8 @@
 }
 
 ::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-s);
     background: rgba(var(--center-channel-color-rgb), 0.4);
-    border-radius: $border-rad * 2;
 }
 
 body {
@@ -44,16 +44,16 @@ body {
 
 .scrollbar--horizontal,
 .scrollbar--vertical {
-    background-color: rgba(var(--sidebar-text-rgb), 0.32);
     border-radius: 2px;
+    background-color: rgba(var(--sidebar-text-rgb), 0.32);
 }
 
 .scrollbar--vertical--RHS {
     top: 2px;
     right: 2px;
     bottom: 2px;
-    margin-right: 3px;
     border-radius: 3px;
+    margin-right: 3px;
 }
 
 .scrollbar--thumb--RHS {

@@ -9,6 +9,8 @@ type UserCountOptions struct {
 	IncludeBotAccounts bool
 	// Should include deleted users (of any type)
 	IncludeDeleted bool
+	// Include remote users
+	IncludeRemoteUsers bool
 	// Exclude regular users
 	ExcludeRegularUsers bool
 	// Only include users on a specific team. "" for any team.

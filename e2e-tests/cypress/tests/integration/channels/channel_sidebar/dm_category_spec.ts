@@ -24,6 +24,20 @@ describe('MM-T3156 DM category', () => {
         cy.apiInitSetup({loginAfter: true, promoteNewUserAsAdmin: true}).then(({team, user}) => {
             testUser = user;
             cy.visit(`/${team.name}/channels/town-square`);
+
+            const usersPrefixes = ['a', 'c', 'd', 'j', 'p', 'u', 'x', 'z'];
+            usersPrefixes.forEach((prefix) => {
+                // # Create users with prefixes in alphabetical order
+                cy.apiCreateUser({prefix}).then(({user: newUser}) => {
+                    cy.apiCreateDirectChannel([testUser.id, newUser.id]).then(({channel}) => {
+                        // # Post message in The DM channel
+                        cy.postMessageAs({sender: newUser, message: 'test', channelId: channel.id});
+
+                        // add usernames in array for reference
+                        usernames.push(newUser.username);
+                    });
+                });
+            });
         });
     });
 
@@ -36,20 +50,6 @@ describe('MM-T3156 DM category', () => {
     });
 
     it('MM-T3156_2 should order DMs based on recent interactions', () => {
-        const usersPrefixes = ['a', 'c', 'd', 'j', 'p', 'u', 'x', 'z'];
-        usersPrefixes.forEach((prefix) => {
-            // # Create users with prefixes in alphabetical order
-            cy.apiCreateUser({prefix}).then(({user: newUser}) => {
-                cy.apiCreateDirectChannel([testUser.id, newUser.id]).then(({channel}) => {
-                    // # Post message in The DM channel
-                    cy.postMessageAs({sender: newUser, message: 'test', channelId: channel.id});
-
-                    // add usernames in array for reference
-                    usernames.push(newUser.username);
-                });
-            });
-        });
-
         // get DM category group
         cy.findByLabelText('DIRECT MESSAGES').parents('.SidebarChannelGroup').within(() => {
             const usernamesReversed = [...usernames].reverse();
@@ -68,15 +68,14 @@ describe('MM-T3156 DM category', () => {
 
         // # Change sorting to be alphabetical
         cy.findByText('Sort').trigger('mouseover');
-        cy.findByText('Alphabetically').click();
+        cy.findByText('Alphabetically').click().wait(TIMEOUTS.ONE_SEC);
 
-        cy.findByLabelText('DIRECT MESSAGES').should('be.visible').
-            parents('.SidebarChannelGroup').within(() => {
-                cy.get('.NavGroupContent').children().each(($el, index) => {
-                    // * Verify that the usernames are in alphabetical order
-                    cy.wrap($el).findByText(usernames[index]).should('be.visible');
-                });
+        cy.findByLabelText('DIRECT MESSAGES').parents('.SidebarChannelGroup').within(() => {
+            cy.get('.NavGroupContent').children().each(($el, index) => {
+                // * Verify that the usernames are in alphabetical order
+                cy.wrap($el).findByText(usernames[index]).should('be.visible');
             });
+        });
     });
 
     it('MM-T3156_4 should not be able to rearrange DMs', () => {

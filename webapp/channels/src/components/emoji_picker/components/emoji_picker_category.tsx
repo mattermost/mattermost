@@ -1,18 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React, {memo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import {EmojiCategory} from '@mattermost/types/emojis';
+import type {EmojiCategory} from '@mattermost/types/emojis';
 
-import {Constants} from 'utils/constants';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
+import WithTooltip from 'components/with_tooltip';
 
-interface Props {
+export interface Props {
     category: Category;
     categoryRowIndex: CategoryOrEmojiRow['index'];
     selected: boolean;
@@ -21,6 +19,8 @@ interface Props {
 }
 
 function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onClick}: Props) {
+    const intl = useIntl();
+
     const handleClick = (event: React.MouseEvent) => {
         event.preventDefault();
 
@@ -37,31 +37,22 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
     });
 
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id={`emojiPickerCategoryTooltip-${category.name}`}
             placement='bottom'
-            overlay={
-                <Tooltip
-                    id='skinTooltip'
-                    className='emoji-tooltip'
-                >
-                    <FormattedMessage
-                        id={`emoji_picker.${category.name}`}
-                        defaultMessage={category.message}
-                    />
-                </Tooltip>
+            title={
+                <FormattedMessage {...category.label}/>
             }
         >
             <a
                 className={className}
                 href='#'
                 onClick={handleClick}
-                aria-label={category.id}
+                aria-label={intl.formatMessage(category.label)}
             >
-                <i className={category.className}/>
+                <i className={category.iconClassName}/>
             </a>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 }
 

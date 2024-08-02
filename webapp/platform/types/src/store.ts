@@ -1,43 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminState} from './admin';
-import {Bot} from './bots';
-import {ChannelsState} from './channels';
-import {ChannelCategoriesState} from './channel_categories';
-import {CloudState, CloudUsage} from './cloud';
-import {HostedCustomerState} from './hosted_customer';
-import {EmojisState} from './emojis';
-import {FilesState} from './files';
-import {GeneralState} from './general';
-import {GroupsState} from './groups';
-import {IntegrationsState} from './integrations';
-import {JobsState} from './jobs';
-import {PostsState} from './posts';
-import {PreferenceType} from './preferences';
-import {
+import type {AdminState} from './admin';
+import type {AppsState} from './apps';
+import type {Bot} from './bots';
+import type {ChannelBookmarksState} from './channel_bookmarks';
+import type {ChannelCategoriesState} from './channel_categories';
+import type {ChannelsState} from './channels';
+import type {CloudState, CloudUsage} from './cloud';
+import type {EmojisState} from './emojis';
+import type {FilesState} from './files';
+import type {GeneralState} from './general';
+import type {GroupsState} from './groups';
+import type {HostedCustomerState} from './hosted_customer';
+import type {IntegrationsState} from './integrations';
+import type {JobsState} from './jobs';
+import type {LimitsState} from './limits';
+import type {PostsState} from './posts';
+import type {PreferenceType} from './preferences';
+import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
     PostsRequestsStatuses, RolesRequestsStatuses,
     TeamsRequestsStatuses, UsersRequestsStatuses,
 } from './requests';
-import {Role} from './roles';
-import {SchemesState} from './schemes';
-import {SearchState} from './search';
-import {TeamsState} from './teams';
-import {ThreadsState} from './threads';
-import {Typing} from './typing';
-import {UsersState} from './users';
-import {AppsState} from './apps';
-import {InsightsState} from './insights';
-import {GifsState} from './gifs';
+import type {Role} from './roles';
+import type {SchemesState} from './schemes';
+import type {SearchState} from './search';
+import type {TeamsState} from './teams';
+import type {ThreadsState} from './threads';
+import type {Typing} from './typing';
+import type {UsersState} from './users';
 
 export type GlobalState = {
     entities: {
         general: GeneralState;
         users: UsersState;
+        limits: LimitsState;
         teams: TeamsState;
         channels: ChannelsState;
+        channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
         bots: {
@@ -46,6 +48,11 @@ export type GlobalState = {
         preferences: {
             myPreferences: {
                 [x: string]: PreferenceType;
+            };
+            userPreferences: {
+                [userID: string]: {
+                    [x: string]: PreferenceType;
+                };
             };
         };
         admin: AdminState;
@@ -62,14 +69,12 @@ export type GlobalState = {
             pending: Set<string>;
         };
         schemes: SchemesState;
-        gifs: GifsState;
         groups: GroupsState;
         channelCategories: ChannelCategoriesState;
         apps: AppsState;
         cloud: CloudState;
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
-        insights: InsightsState;
     };
     errors: any[];
     requests: {

@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import moment from 'moment';
+import React from 'react';
 import {createIntl} from 'react-intl';
 
-import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {fakeDate} from 'tests/helpers/date';
 import defaultMessages from 'i18n/en.json';
+import {fakeDate} from 'tests/helpers/date';
+import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-import Timestamp from './timestamp';
 import SemanticTime from './semantic_time';
+import Timestamp from './timestamp';
 
 import {RelativeRanges} from './index';
 

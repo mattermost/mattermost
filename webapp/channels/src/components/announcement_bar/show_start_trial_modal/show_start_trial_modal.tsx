@@ -4,18 +4,16 @@
 import {useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {PreferenceType} from '@mattermost/types/preferences';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {isModalOpen} from 'selectors/views/modals';
 
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
-
-import {GlobalState} from 'types/store';
 
 import {
     Preferences,
@@ -24,15 +22,13 @@ import {
     ModalIdentifiers,
 } from 'utils/constants';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {isModalOpen} from 'selectors/views/modals';
+import type {GlobalState} from 'types/store';
 
 const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const openStartTrialFormModal = useOpenStartTrialFormModal();
 
-    const dispatch = useDispatch<DispatchFunc>();
-    const getCategory = makeGetCategory();
+    const dispatch = useDispatch();
 
     const userThreshold = 10;
     const TRUE = 'true';
@@ -41,7 +37,7 @@ const ShowStartTrialModal = () => {
 
     const installationDate = useSelector((state: GlobalState) => getConfig(state).InstallationDate);
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
-    const preferences = useSelector<GlobalState, PreferenceType[]>((state) => getCategory(state, Preferences.START_TRIAL_MODAL));
+    const hadAdminDismissedModal = useSelector((state: GlobalState) => getBool(state, Preferences.START_TRIAL_MODAL, Constants.TRIAL_MODAL_AUTO_SHOWN));
 
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const currentLicense = useSelector(getLicense);
@@ -78,7 +74,6 @@ const ShowStartTrialModal = () => {
         const now = new Date().getTime();
         const hasEnvMoreThan6Hours = now > installationDatePlus6Hours;
         const hasEnvMoreThan10Users = Number(totalUsers) > userThreshold;
-        const hadAdminDismissedModal = preferences.some((pref: PreferenceType) => pref.name === Constants.TRIAL_MODAL_AUTO_SHOWN && pref.value === TRUE);
         if (isUserAdmin && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
             openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'}, handleOnClose);
             trackEvent(

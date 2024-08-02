@@ -4,9 +4,8 @@
 import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import Markdown from 'components/markdown';
 
-import alertIcon from 'images/icons/round-white-info-icon.svg';
+import Markdown from 'components/markdown';
 
 import AnnouncementBar from './default_announcement_bar';
 
@@ -18,6 +17,7 @@ interface Props extends Partial<AnnouncementBarProps> {
     allowDismissal: boolean;
     text: React.ReactNode;
     onDismissal?: () => void;
+    className?: string;
 }
 
 type State = {
@@ -67,10 +67,7 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
                 handleClose={this.handleDismiss}
                 message={
                     <>
-                        <img
-                            className='advisor-icon'
-                            src={alertIcon}
-                        />
+                        <i className='icon icon-information-outline'/>
                         {typeof text === 'string' ? (
                             <Markdown
                                 message={text}

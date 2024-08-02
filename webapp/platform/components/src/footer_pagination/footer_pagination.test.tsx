@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 
 import {FooterPagination} from './footer_pagination';
-import {wrapIntl} from '../testUtils'
+
+import {wrapIntl} from '../testUtils';
 
 describe('LegacyGenericModal/FooterPagination', () => {
     const baseProps = {
@@ -28,7 +29,7 @@ describe('LegacyGenericModal/FooterPagination', () => {
             page: 0,
             total: 17,
             itemsPerPage: 10,
-        }
+        };
 
         render(wrapIntl(<FooterPagination {...props}/>));
 

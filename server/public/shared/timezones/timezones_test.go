@@ -29,5 +29,4 @@ func TestDefaultUserTimezone(t *testing.T) {
 	require.Equal(t, "true", defaultTimezone2["useAutomaticTimezone"])
 	require.Empty(t, defaultTimezone2["automaticTimezone"])
 	require.Empty(t, defaultTimezone2["manualTimezone"])
-
 }

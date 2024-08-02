@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostWithFormatData} from 'mattermost-redux/selectors/entities/posts';
+import type {Post} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts, Preferences} from 'mattermost-redux/constants';
-
 import * as Selectors from 'mattermost-redux/selectors/entities/posts';
-
+import type {PostWithFormatData} from 'mattermost-redux/selectors/entities/posts';
 import {makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
-
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
-import {Post} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-
 import TestHelper from '../../../test/test_helper';
-
-import {UserProfile} from '@mattermost/types/users';
 
 const p = (override: Partial<PostWithFormatData>) => Object.assign(TestHelper.getPostMock(override), override);
 
@@ -43,6 +38,11 @@ describe('Selectors.Posts', () => {
 
     const testState = deepFreezeAndThrowOnMutation({
         entities: {
+            general: {
+                config: {
+                    EnableJoinLeaveMessageByDefault: 'true',
+                },
+            },
             users: {
                 currentUserId: user1.id,
                 profiles,
@@ -253,6 +253,11 @@ describe('Selectors.Posts', () => {
 
         const testStateAny = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userAny.id,
                     profiles: profilesAny,
@@ -372,6 +377,11 @@ describe('Selectors.Posts', () => {
 
         const testStateRoot = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userRoot.id,
                     profiles: profilesRoot,
@@ -485,6 +495,11 @@ describe('Selectors.Posts', () => {
 
         const testStateNever = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userNever.id,
                     profiles: profilesNever,
@@ -601,6 +616,11 @@ describe('Selectors.Posts', () => {
 
         const testStateAny = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userAny.id,
                     profiles: profilesAny,
@@ -678,6 +698,11 @@ describe('Selectors.Posts', () => {
 
         const testStateAny = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userAny.id,
                     profiles: profilesAny,
@@ -802,6 +827,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -833,6 +861,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -864,6 +895,9 @@ describe('Selectors.Posts', () => {
 
             let state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -983,6 +1017,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -1811,6 +1848,11 @@ describe('Selectors.Posts', () => {
             };
             const state = {
                 entities: {
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: testPosts,
                         postsInChannel: {
@@ -1840,6 +1882,11 @@ describe('Selectors.Posts', () => {
             };
             const state = {
                 entities: {
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: testPosts,
                         postsInChannel: {
@@ -1867,6 +1914,11 @@ describe('Selectors.Posts', () => {
                 entities: {
                     channels: {
                         currentChannelId: 'abcd',
+                    },
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
                     },
                     posts: {
                         posts: {},
@@ -1897,6 +1949,11 @@ describe('Selectors.Posts', () => {
                 entities: {
                     channels: {
                         currentChannelId: 'abcd',
+                    },
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
                     },
                     posts: {
                         posts: postsAny,
@@ -2135,6 +2192,11 @@ describe('getPostsInCurrentChannel', () => {
                 channels: {
                     currentChannelId: 'channel1',
                 },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {},
                     postsInChannel: {},
@@ -2164,6 +2226,11 @@ describe('getPostsInCurrentChannel', () => {
             entities: {
                 channels: {
                     currentChannelId: 'channel1',
+                },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
                 },
                 posts: {
                     posts: {
@@ -2202,6 +2269,11 @@ describe('getPostsInCurrentChannel', () => {
                 channels: {
                     currentChannelId: 'channel1',
                 },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {
                         post1,
@@ -2231,238 +2303,6 @@ describe('getPostsInCurrentChannel', () => {
     });
 });
 
-describe('getCurrentUsersLatestPost', () => {
-    const user1 = TestHelper.fakeUserWithId();
-    const profiles: Record<string, UserProfile> = {};
-    profiles[user1.id] = user1;
-    it('no posts', () => {
-        const noPosts = {};
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: noPosts,
-                    postsInChannel: [],
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, '');
-
-        expect(actual).toEqual(null);
-    });
-
-    it('return first post which user can edit', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-            b: {id: 'b', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', state: Posts.POST_DELETED},
-            c: {id: 'c', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: 'system_join_channel'},
-            d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'c'},
-            f: {id: 'f', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['b', 'c', 'd', 'e', 'f'], recent: true},
-                        ],
-                    },
-                    postsInThread: {},
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, '');
-
-        expect(actual).toMatchObject(postsAny.f);
-    });
-
-    it('return first post which user can edit ignore pending and failed', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-            b: {id: 'b', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id, pending_post_id: 'b'},
-            c: {id: 'c', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id, failed: true},
-            d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'c'},
-            f: {id: 'f', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['b', 'c', 'd', 'e', 'f'], recent: true},
-                        ],
-                    },
-                    postsInThread: {},
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, '');
-
-        expect(actual).toMatchObject(postsAny.f);
-    });
-
-    it('return first post which has rootId match', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-            b: {id: 'b', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', state: Posts.POST_DELETED},
-            c: {id: 'c', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: 'system_join_channel'},
-            d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'c'},
-            f: {id: 'f', root_id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['b', 'c', 'd', 'e', 'f'], recent: true},
-                        ],
-                    },
-                    postsInThread: {},
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, 'e');
-
-        expect(actual).toMatchObject(postsAny.f);
-    });
-
-    it('should not return posts outside of the recent block', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, user_id: 'a'},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['a'], recent: false},
-                        ],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, 'e');
-
-        expect(actual).toEqual(null);
-    });
-
-    it('determine the sending posts', () => {
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: {},
-                    postsInChannel: {},
-                    pendingPostIds: ['1', '2', '3'],
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-
-        expect(Selectors.isPostIdSending(state, '1')).toEqual(true);
-        expect(Selectors.isPostIdSending(state, '2')).toEqual(true);
-        expect(Selectors.isPostIdSending(state, '3')).toEqual(true);
-        expect(Selectors.isPostIdSending(state, '4')).toEqual(false);
-        expect(Selectors.isPostIdSending(state, '')).toEqual(false);
-    });
-});
-
-describe('getExpandedLink', () => {
-    it('should get the expanded link from the state', () => {
-        const state = {
-            entities: {
-                posts: {
-                    expandedURLs: {
-                        a: 'b',
-                        c: 'd',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        expect(Selectors.getExpandedLink(state, 'a')).toEqual('b');
-        expect(Selectors.getExpandedLink(state, 'c')).toEqual('d');
-    });
-
-    it('should return undefined if it is not saved', () => {
-        const state = {
-            entities: {
-                posts: {
-                    expandedURLs: {
-                        a: 'b',
-                        c: 'd',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        expect(Selectors.getExpandedLink(state, 'b')).toEqual(undefined);
-        expect(Selectors.getExpandedLink(state, '')).toEqual(undefined);
-    });
-});
-
 describe('makeGetProfilesForThread', () => {
     it('should return profiles for threads in the right order and exclude current user', () => {
         const getProfilesForThread = Selectors.makeGetProfilesForThread();
@@ -2472,6 +2312,11 @@ describe('makeGetProfilesForThread', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {
                         1001: {id: '1001', create_at: 1001, user_id: 'user1'},
@@ -2507,6 +2352,11 @@ describe('makeGetProfilesForThread', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {
                         1001: {id: '1001', create_at: 1001, user_id: 'user1'},

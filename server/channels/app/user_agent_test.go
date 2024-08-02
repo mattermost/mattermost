@@ -33,6 +33,8 @@ var testUserAgents = []testUserAgent{
 	{"Safari 9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38"},
 	{"Safari 8", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/600.7.12 (KHTML, like Gecko) Version/8.0.7 Safari/600.7.12"},
 	{"Safari Mobile", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1"},
+	{"Mobile App", "Mattermost Mobile/2.7.0+482 (Android; 13; sdk_gphone64_arm64)"},
+	{"Mobile App", "Mattermost Mobile/233.234441.341234223421341234529099823109834440981234+abcdef3214eafeabc3242331129857301afesfffff1930a84e4bd2348fe129ac1309bd929dca3419af934bfe3089fcd (Android; 13; sdk_gphone64_arm64)"},
 }
 
 func TestGetPlatformName(t *testing.T) {
@@ -53,6 +55,8 @@ func TestGetPlatformName(t *testing.T) {
 		"Macintosh",
 		"Macintosh",
 		"iPhone",
+		"Linux",
+		"Linux",
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -83,6 +87,8 @@ func TestGetOSName(t *testing.T) {
 		"Mac OS",
 		"Mac OS",
 		"iOS",
+		"Android",
+		"Android",
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -103,7 +109,7 @@ func TestGetBrowserName(t *testing.T) {
 		"Chrome",
 		"mmctl",
 		"Desktop App",
-		"Chrome",
+		"Desktop App",
 		"Edge",
 		"Internet Explorer",
 		"Internet Explorer",
@@ -113,6 +119,8 @@ func TestGetBrowserName(t *testing.T) {
 		"Safari",
 		"Safari",
 		"Safari",
+		"Mobile App",
+		"Mobile App",
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -143,6 +151,8 @@ func TestGetBrowserVersion(t *testing.T) {
 		"11.0",
 		"8.0.7",
 		"9.0",
+		"2.7.0+482",
+		"233.234441.341234223421341234529099823109834440981234+abcdef3214eafeabc3242331129857301afesfffff1930a84e4bd2348fe129ac1309bd929d", // cut off at len 128
 	}
 
 	for i, userAgent := range testUserAgents {

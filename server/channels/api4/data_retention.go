@@ -13,23 +13,23 @@ import (
 )
 
 func (api *API) InitDataRetention() {
-	api.BaseRoutes.DataRetention.Handle("/policy", api.APISessionRequired(getGlobalPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies", api.APISessionRequired(getPolicies)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies_count", api.APISessionRequired(getPoliciesCount)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies", api.APISessionRequired(createPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.APISessionRequired(getPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.APISessionRequired(patchPolicy)).Methods("PATCH")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.APISessionRequired(getTeamsForPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.APISessionRequired(addTeamsToPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.APISessionRequired(removeTeamsFromPolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams/search", api.APISessionRequired(searchTeamsInPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(addChannelsToPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(removeChannelsFromPolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels/search", api.APISessionRequired(searchChannelsInPolicy)).Methods("POST")
-	api.BaseRoutes.User.Handle("/data_retention/team_policies", api.APISessionRequired(getTeamPoliciesForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/data_retention/channel_policies", api.APISessionRequired(getChannelPoliciesForUser)).Methods("GET")
+	api.BaseRoutes.DataRetention.Handle("/policy", api.APISessionRequired(getGlobalPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.DataRetention.Handle("/policies", api.APISessionRequired(getPolicies)).Methods(http.MethodGet)
+	api.BaseRoutes.DataRetention.Handle("/policies_count", api.APISessionRequired(getPoliciesCount)).Methods(http.MethodGet)
+	api.BaseRoutes.DataRetention.Handle("/policies", api.APISessionRequired(createPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.APISessionRequired(getPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.APISessionRequired(patchPolicy)).Methods(http.MethodPatch)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.APISessionRequired(getTeamsForPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.APISessionRequired(addTeamsToPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.APISessionRequired(removeTeamsFromPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams/search", api.APISessionRequired(searchTeamsInPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(addChannelsToPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(removeChannelsFromPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels/search", api.APISessionRequired(searchChannelsInPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/data_retention/team_policies", api.APISessionRequired(getTeamPoliciesForUser)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/data_retention/channel_policies", api.APISessionRequired(getChannelPoliciesForUser)).Methods(http.MethodGet)
 }
 
 func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -264,10 +264,9 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var teamIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("team_ids", jsonErr)
+	teamIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
@@ -279,9 +278,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -292,10 +291,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var teamIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("team_ids", jsonErr)
+	teamIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
@@ -308,9 +306,9 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -347,7 +345,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.RequirePolicyId()
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil {
+	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
@@ -375,7 +373,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	channelsJSON, jsonErr := json.Marshal(channels)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
@@ -385,10 +383,9 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var channelIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("channel_ids", jsonErr)
+	channelIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
@@ -401,9 +398,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -414,10 +411,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var channelIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("channel_ids", jsonErr)
+	channelIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)
@@ -430,9 +426,9 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -462,7 +458,7 @@ func getTeamPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	js, jsonErr := json.Marshal(policies)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("getTeamPoliciesForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getTeamPoliciesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 	w.Write(js)
@@ -490,7 +486,7 @@ func getChannelPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Reques
 
 	js, jsonErr := json.Marshal(policies)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("getChannelPoliciesForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getChannelPoliciesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 	w.Write(js)

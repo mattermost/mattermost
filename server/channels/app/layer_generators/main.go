@@ -113,7 +113,6 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 					paramsToTrace[strings.TrimSpace(p)] = true
 				}
 			}
-
 		}
 	}
 	if e.Params != nil {

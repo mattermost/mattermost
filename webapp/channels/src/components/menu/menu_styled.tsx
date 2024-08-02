@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenu, {MenuProps as MuiMenuProps} from '@mui/material/Menu';
+import MuiMenu from '@mui/material/Menu';
+import type {MenuProps as MuiMenuProps} from '@mui/material/Menu';
 import {styled} from '@mui/material/styles';
 
 interface Props extends MuiMenuProps {
@@ -21,7 +22,7 @@ export const MuiMenuStyled = styled(MuiMenu, {
             backgroundColor: 'var(--center-channel-bg)',
             boxShadow: `${
                 asSubMenu ? 'var(--elevation-5)' : 'var(--elevation-4)'
-            }, 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16) inset`,
+            }, 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset`,
             minWidth: '114px',
             maxWidth: '496px',
             maxHeight: '80vh',

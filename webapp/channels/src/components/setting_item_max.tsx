@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SaveButton from 'components/save_button';
+
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {a11yFocus} from 'utils/utils';
+
 type Props = {
 
     // Array of inputs selection
@@ -41,10 +45,11 @@ type Props = {
     submitExtra?: ReactNode;
     saving?: boolean;
     title?: ReactNode;
-    width?: string;
+    isFullWidth?: boolean;
     cancelButtonText?: ReactNode;
     shiftEnter?: boolean;
     saveButtonText?: string;
+    saveButtonClassName?: string;
 }
 export default class SettingItemMax extends React.PureComponent<Props> {
     settingList: React.RefObject<HTMLDivElement>;
@@ -63,7 +68,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
 
     componentDidMount() {
         if (this.settingList.current) {
-            const focusableElements: NodeListOf<HTMLElement> = this.settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-cancel), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
+            const focusableElements: NodeListOf<HTMLElement> = this.settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
             if (focusableElements.length > 0) {
                 a11yFocus(focusableElements[0]);
             } else {
@@ -89,7 +94,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             target.tagName !== 'SELECT' &&
             target.parentElement &&
             target.parentElement.className !== 'react-select__input' &&
-            !target.classList.contains('btn-cancel') &&
+            !target.classList.contains('btn-tertiary') &&
             this.settingList.current &&
             this.settingList.current.contains(target)) {
             this.handleSubmit(e);
@@ -167,19 +172,12 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                     saving={this.props.saving}
                     disabled={this.props.saving}
                     onClick={this.handleSubmit}
+                    btnClass={this.props.saveButtonClassName}
                 />
             );
         }
 
         const inputs = this.props.inputs;
-        let widthClass;
-        if (this.props.width === 'full') {
-            widthClass = 'col-sm-12';
-        } else if (this.props.width === 'medium') {
-            widthClass = 'col-sm-10 col-sm-offset-2';
-        } else {
-            widthClass = 'col-sm-9 col-sm-offset-3';
-        }
 
         let title;
         if (this.props.title) {
@@ -226,7 +224,12 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                 className={`section-max form-horizontal ${this.props.containerStyle}`}
             >
                 {title}
-                <div className={widthClass}>
+                <div
+                    className={classNames('sectionContent', {
+                        'col-sm-12': this.props.isFullWidth,
+                        'col-sm-10 col-sm-offset-2': !this.props.isFullWidth,
+                    })}
+                >
                     <div
                         tabIndex={-1}
                         ref={this.settingList}
@@ -241,7 +244,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                             {submit}
                             <button
                                 id={'cancelSetting'}
-                                className='btn btn-sm btn-cancel cursor--pointer style--none'
+                                className='btn btn-tertiary'
                                 onClick={this.handleUpdateSection}
                             >
                                 {cancelButtonText}

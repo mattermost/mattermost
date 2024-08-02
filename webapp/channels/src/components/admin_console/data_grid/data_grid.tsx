@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {CSSProperties} from 'react';
+import {FormattedMessage} from 'react-intl';
 
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import {FilterOptions} from 'components/admin_console/filter/filter';
 
 import DataGridHeader from './data_grid_header';
 import DataGridRow from './data_grid_row';
@@ -263,10 +264,9 @@ class DataGrid extends React.PureComponent<Props, State> {
                                 total,
                             }}
                         />
-
                         <button
                             type='button'
-                            className={'btn btn-link prev ' + (firstPage ? 'disabled' : '')}
+                            className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
                             disabled={firstPage}
                         >
@@ -274,7 +274,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                         </button>
                         <button
                             type='button'
-                            className={'btn btn-link next ' + (lastPage ? 'disabled' : '')}
+                            className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}
                             disabled={lastPage}
                         >

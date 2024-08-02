@@ -3,6 +3,8 @@
 
 package model
 
+import "time"
+
 const (
 	MaxImageSize = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
 )
@@ -10,4 +12,9 @@ const (
 type FileUploadResponse struct {
 	FileInfos []*FileInfo `json:"file_infos"`
 	ClientIds []string    `json:"client_ids"`
+}
+
+type PresignURLResponse struct {
+	URL        string        `json:"url"`
+	Expiration time.Duration `json:"expiration"`
 }

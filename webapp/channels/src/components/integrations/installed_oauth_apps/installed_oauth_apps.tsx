@@ -4,23 +4,27 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {OAuthApp} from '@mattermost/types/integrations';
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
-import {localizeMessage} from 'utils/utils';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
+import {DeveloperLinks} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
+
 import InstalledOAuthApp from '../installed_oauth_app';
 import {matchesFilter} from '../installed_oauth_app/installed_oauth_app';
-import ExternalLink from 'components/external_link';
-import {DeveloperLinks} from 'utils/constants';
 
 type Props = {
 
     /**
     * The team data
     */
-    team: {name: string};
+    team?: Team;
 
     /**
     * The oauthApps data
@@ -49,17 +53,17 @@ type Props = {
         /**
         * The function to call to fetch OAuth apps
         */
-        loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<void>;
+        loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
 
         /**
         * The function to call when Regenerate Secret link is clicked
         */
-        regenOAuthAppSecret: (appId: string) => Promise<{ error?: Error }>;
+        regenOAuthAppSecret: (appId: string) => Promise<ActionResult>;
 
         /**
         * The function to call when Delete link is clicked
         */
-        deleteOAuthApp: (appId: string) => Promise<void>;
+        deleteOAuthApp: (appId: string) => Promise<ActionResult>;
     });
 };
 
@@ -120,7 +124,10 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
             );
         });
 
-    render(): JSX.Element {
+    render() {
+        if (!this.props.team) {
+            return null;
+        }
         const integrationsEnabled = this.props.enableOAuthServiceProvider && this.props.canManageOauth;
         let props;
         if (integrationsEnabled) {

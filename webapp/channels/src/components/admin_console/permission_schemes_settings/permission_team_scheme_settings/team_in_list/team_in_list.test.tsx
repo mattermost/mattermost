@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import type {TeamType} from '@mattermost/types/teams';
 
 import TeamInList
     from 'components/admin_console/permission_schemes_settings/permission_team_scheme_settings/team_in_list/team_in_list';
-import {TeamType} from '@mattermost/types/teams';
 
 describe('components/admin_console/permission_schemes_settings/permission_team_scheme_settings/team_in_list/team_in_list', () => {
     test('should match snapshot with team', () => {

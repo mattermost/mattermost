@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {mount, shallow} from 'enzyme';
 
 import Card from './card';
 import TitleAndButtonCardHeader from './title_and_button_card_header/title_and_button_card_header';

@@ -1,33 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, KeyboardEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Draggable, Droppable} from 'react-beautiful-dnd';
 import classNames from 'classnames';
+import React from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
+import {Draggable, Droppable} from 'react-beautiful-dnd';
+import {FormattedMessage, defineMessages} from 'react-intl';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
-import {PreferenceType} from '@mattermost/types/preferences';
 import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
+
 import {trackEvent} from 'actions/telemetry_actions';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import {DraggingState} from 'types/store';
-import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {isKeyPressed} from 'utils/keyboard';
-import SidebarChannel from '../sidebar_channel';
-import {SidebarCategoryHeader} from '../sidebar_category_header';
-import InviteMembersButton from '../invite_members_button';
+
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+
+import type {DraggingState} from 'types/store';
+
+import SidebarCategoryMenu from './sidebar_category_menu';
+import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 
 import AddChannelsCtaButton from '../add_channels_cta_button';
-
-import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
-import SidebarCategoryMenu from './sidebar_category_menu';
+import InviteMembersButton from '../invite_members_button';
+import {SidebarCategoryHeader} from '../sidebar_category_header';
+import SidebarChannel from '../sidebar_channel';
 
 type Props = {
     category: ChannelCategory;
@@ -309,7 +315,8 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         let displayName = category.display_name;
         if (category.type !== CategoryTypes.CUSTOM) {
-            displayName = localizeMessage(`sidebar.types.${category.type}`, category.display_name);
+            const message = categoryNames[category.type as keyof typeof categoryNames];
+            displayName = localizeMessage(message.id, message.defaultMessage);
         }
 
         return (
@@ -402,7 +409,17 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
     }
 }
 
-// Adding references to translations for i18n-extract
-t('sidebar.types.channels');
-t('sidebar.types.direct_messages');
-t('sidebar.types.favorites');
+const categoryNames = defineMessages({
+    channels: {
+        id: 'sidebar.types.channels',
+        defaultMessage: 'CHANNELS',
+    },
+    direct_messages: {
+        id: 'sidebar.types.direct_messages',
+        defaultMessage: 'DIRECT MESSAGES',
+    },
+    favorites: {
+        id: 'sidebar.types.favorites',
+        defaultMessage: 'FAVORITES',
+    },
+});

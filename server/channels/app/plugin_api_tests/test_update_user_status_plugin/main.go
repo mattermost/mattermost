@@ -39,7 +39,6 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		if s != status.Status {
 			return nil, fmt.Sprintf("Invalid status returned: %v != %v", s, status.Status)
 		}
-
 	}
 
 	status, err := p.API.UpdateUserStatus(uid, "notrealstatus")

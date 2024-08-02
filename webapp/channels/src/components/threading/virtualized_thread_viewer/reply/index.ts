@@ -8,7 +8,7 @@ import {get, getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Preferences} from 'utils/constants';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import Reply from './reply';
 

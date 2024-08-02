@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
-import {AnyAction} from 'redux';
 
-import {Channel} from '@mattermost/types/channels';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
 
+import {TeamTypes} from 'mattermost-redux/action_types';
 import {
     leaveChannel as leaveChannelRedux,
     joinChannel,
@@ -15,12 +17,9 @@ import {
     getChannel as loadChannel,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
-import {TeamTypes} from 'mattermost-redux/action_types';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {selectTeam} from 'mattermost-redux/actions/teams';
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {Posts, RequestStatus} from 'mattermost-redux/constants';
-
 import {
     getChannel,
     getChannelsNameMapInCurrentTeam,
@@ -33,56 +32,46 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getCurrentRelativeTeamUrl,
     getCurrentTeam,
     getCurrentTeamId,
-    getTeam,
+    getRelativeTeamUrl,
     getTeamsList,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
-import {closeRightHandSide} from 'actions/views/rhs';
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getLastViewedChannelName} from 'selectors/local_storage';
+import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSocketStatus} from 'selectors/views/websocket';
-import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import {getHistory} from 'utils/browser_history';
-import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
-import {isMobile} from 'utils/utils';
-import LocalStorageStore from 'stores/local_storage_store';
 import {isArchivedChannel} from 'utils/channel_utils';
+import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
-export function checkAndSetMobileView() {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_MOBILE_VIEW,
-            data: isMobile(),
-        });
-        return {data: true};
-    };
-}
-
-export function goToLastViewedChannel() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function goToLastViewedChannel(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
-        const currentChannel = getCurrentChannel(state) || {};
+        const currentChannel = getCurrentChannel(state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const directChannel = getAllDirectChannelsNameMapInCurrentTeam(state);
         const channels = Object.assign({}, channelsInTeam, directChannel);
 
         let channelToSwitchTo = getChannelByName(channels, getLastViewedChannelName(state));
 
-        if (currentChannel.id === channelToSwitchTo!.id) {
+        if (currentChannel?.id === channelToSwitchTo!.id) {
             channelToSwitchTo = getChannelByName(channels, getRedirectChannelNameForTeam(state, getCurrentTeamId(state)));
         }
 
@@ -90,31 +79,34 @@ export function goToLastViewedChannel() {
     };
 }
 
-export function switchToChannelById(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannelById(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannel(state, channelId);
-        return dispatch(switchToChannel(channel));
+        if (channel) {
+            return dispatch(switchToChannel(channel));
+        }
+        return {data: true};
     };
 }
 
-export function loadIfNecessaryAndSwitchToChannelById(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadIfNecessaryAndSwitchToChannelById(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         let channel = getChannel(state, channelId);
         if (!channel) {
             const res = await dispatch(loadChannel(channelId));
-            channel = res.data;
+            channel = res.data!;
         }
         return dispatch(switchToChannel(channel));
     };
 }
 
-export function switchToChannel(channel: Channel & {userId?: string}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannel(channel: Channel & {userId?: string}): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const selectedTeamId = channel.team_id;
-        const teamUrl = selectedTeamId ? `/${getTeam(state, selectedTeamId).name}` : getCurrentRelativeTeamUrl(state);
+        const teamUrl = selectedTeamId ? getRelativeTeamUrl(state, selectedTeamId) : getCurrentRelativeTeamUrl(state);
 
         if (channel.userId) {
             const username = channel.userId ? channel.name : channel.display_name;
@@ -130,10 +122,11 @@ export function switchToChannel(channel: Channel & {userId?: string}) {
             getHistory().push(`${teamUrl}/messages/@${channel.name}`);
         } else if (channel.type === Constants.GM_CHANNEL) {
             const gmChannel = getChannel(state, channel.id);
+            if (!gmChannel?.name) {
+                return {error: true};
+            }
             getHistory().push(`${teamUrl}/channels/${gmChannel.name}`);
         } else if (channel.type === Constants.THREADS) {
-            getHistory().push(`${teamUrl}/${channel.name}`);
-        } else if (channel.type === Constants.INSIGHTS) {
             getHistory().push(`${teamUrl}/${channel.name}`);
         } else {
             getHistory().push(`${teamUrl}/channels/${channel.name}`);
@@ -143,8 +136,8 @@ export function switchToChannel(channel: Channel & {userId?: string}) {
     };
 }
 
-export function joinChannelById(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function joinChannelById(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
@@ -153,11 +146,14 @@ export function joinChannelById(channelId: string) {
     };
 }
 
-export function leaveChannel(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function leaveChannel(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         let state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
+        if (!currentTeam) {
+            return {data: false};
+        }
         const channel = getChannel(state, channelId);
         const currentChannelId = getCurrentChannelId(state);
 
@@ -204,8 +200,8 @@ export function leaveChannel(channelId: string) {
     };
 }
 
-export function leaveDirectChannel(channelName: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function leaveDirectChannel(channelName: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const teams = getTeamsList(state); // dms are shared across teams but on local storage are set linked to one, we need to look into all.
@@ -224,9 +220,9 @@ export function leaveDirectChannel(channelName: string) {
     };
 }
 
-export function autocompleteUsersInChannel(prefix: string, channelId: string) {
+export function autocompleteUsersInChannel(prefix: string, channelId: string): ActionFuncAsync<UserAutocomplete> {
     const addLastViewAtToProfiles = makeAddLastViewAtToProfiles();
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentTeamId = getCurrentTeamId(state);
 
@@ -248,8 +244,8 @@ export function autocompleteUsersInChannel(prefix: string, channelId: string) {
     };
 }
 
-export function loadUnreads(channelId: string, prefetch = false) {
-    return async (dispatch: DispatchFunc) => {
+export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsync<{atLatestMessage: boolean; atOldestMessage: boolean}> {
+    return async (dispatch) => {
         const time = Date.now();
         if (prefetch) {
             dispatch({
@@ -273,13 +269,13 @@ export function loadUnreads(channelId: string, prefetch = false) {
                 atOldestmessage: false,
             };
         }
-        dispatch(loadCustomStatusEmojisForPostList(data.posts));
+        dispatch(loadCustomStatusEmojisForPostList(data!.posts));
 
         const actions = [];
         actions.push({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length,
         });
 
         if (prefetch) {
@@ -290,7 +286,7 @@ export function loadUnreads(channelId: string, prefetch = false) {
             });
         }
 
-        if (data.next_post_id === '') {
+        if (data!.next_post_id === '') {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
@@ -300,14 +296,14 @@ export function loadUnreads(channelId: string, prefetch = false) {
 
         dispatch(batchActions(actions));
         return {
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '',
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
 
-export function loadPostsAround(channelId: string, focusedPostId: string) {
-    return async (dispatch: DispatchFunc) => {
+export function loadPostsAround(channelId: string, focusedPostId: string): ActionFuncAsync {
+    return async (dispatch) => {
         const {data, error} = await dispatch(PostActions.getPostsAround(channelId, focusedPostId, Posts.POST_CHUNK_SIZE / 2));
         if (error) {
             return {
@@ -320,17 +316,17 @@ export function loadPostsAround(channelId: string, focusedPostId: string) {
         dispatch({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length,
         });
         return {
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '',
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
 
-export function loadLatestPosts(channelId: string) {
-    return async (dispatch: DispatchFunc) => {
+export function loadLatestPosts(channelId: string): ActionFuncAsync {
+    return async (dispatch) => {
         const time = Date.now();
         const {data, error} = await dispatch(PostActions.getPosts(channelId, 0, Posts.POST_CHUNK_SIZE / 2));
 
@@ -350,8 +346,8 @@ export function loadLatestPosts(channelId: string) {
 
         return {
             data,
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '',
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
@@ -373,9 +369,9 @@ export function loadPosts({
     channelId,
     postId,
     type,
-}: LoadPostsParameters) {
+}: LoadPostsParameters): ThunkActionFunc<Promise<LoadPostsReturnValue>> {
     //type here can be BEFORE_ID or AFTER_ID
-    return async (dispatch: DispatchFunc): Promise<LoadPostsReturnValue> => {
+    return async (dispatch) => {
         const POST_INCREASE_AMOUNT = Constants.POST_CHUNK_SIZE / 2;
 
         dispatch({
@@ -407,23 +403,23 @@ export function loadPosts({
             };
         }
 
-        dispatch(loadCustomStatusEmojisForPostList(data.posts));
+        dispatch(loadCustomStatusEmojisForPostList(data!.posts));
         actions.push({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length,
         });
 
         dispatch(batchActions(actions));
 
         return {
-            moreToLoad: type === PostRequestTypes.BEFORE_ID ? data.prev_post_id !== '' : data.next_post_id !== '',
+            moreToLoad: type === PostRequestTypes.BEFORE_ID ? data!.prev_post_id !== '' : data!.next_post_id !== '',
         };
     };
 }
 
-export function syncPostsInChannel(channelId: string, since: number, prefetch = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function syncPostsInChannel(channelId: string, since: number, prefetch = false): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const time = Date.now();
         const state = getState();
         const socketStatus = getSocketStatus(state as GlobalState);
@@ -474,8 +470,8 @@ export function syncPostsInChannel(channelId: string, since: number, prefetch = 
     };
 }
 
-export function prefetchChannelPosts(channelId: string, jitter: number) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function prefetchChannelPosts(channelId: string, jitter?: number): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const recentPostIdInChannel = getMostRecentPostIdInChannel(state, channelId);
 
@@ -497,8 +493,8 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markChannelAsReadOnFocus(channelId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markChannelAsReadOnFocus(channelId: string): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
         if (isManuallyUnread(getState(), channelId)) {
             return;
         }
@@ -508,21 +504,19 @@ export function markChannelAsReadOnFocus(channelId: string) {
 }
 
 export function updateToastStatus(status: boolean) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_TOAST_STATUS,
-            data: status,
-        });
+    return {
+        type: ActionTypes.UPDATE_TOAST_STATUS,
+        data: status,
     };
 }
 
-export function deleteChannel(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {
             return {data: false};
         }
-        const state = getState() as GlobalState;
+        const state = getState();
 
         const selectedPost = getSelectedPost(state);
         const selectedPostId = getSelectedPostId(state);

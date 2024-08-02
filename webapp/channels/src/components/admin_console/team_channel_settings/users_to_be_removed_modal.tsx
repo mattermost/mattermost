@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 

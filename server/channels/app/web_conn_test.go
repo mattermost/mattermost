@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +16,11 @@ import (
 )
 
 func TestWebConnShouldSendEvent(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser.Id,
 			TeamId: th.BasicTeam.Id,
@@ -39,7 +42,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc.SetSessionToken(session.Token)
 	basicUserWc.SetSessionExpiresAt(session.ExpiresAt)
 
-	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser2.Id,
 			TeamId: th.BasicTeam.Id,
@@ -61,7 +64,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUser2Wc.SetSessionToken(session2.Token)
 	basicUser2Wc.SetSessionExpiresAt(session2.ExpiresAt)
 
-	session3, err := th.App.CreateSession(&model.Session{UserId: th.SystemAdminUser.Id, Roles: th.SystemAdminUser.GetRawRoles()})
+	session3, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.SystemAdminUser.Id, Roles: th.SystemAdminUser.GetRawRoles()})
 	require.Nil(t, err)
 
 	adminUserWc := &platform.WebConn{
@@ -77,7 +80,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	adminUserWc.SetSessionToken(session3.Token)
 	adminUserWc.SetSessionExpiresAt(session3.ExpiresAt)
 
-	session4, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	session4, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser.Id,
 			TeamId: th.BasicTeam.Id,
@@ -162,6 +165,63 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.False(t, adminUserWc.ShouldSendEvent(event), "did not expect admin")
 	})
 
+	t.Run("should not send typing event unless in scope", func(t *testing.T) {
+		event2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", nil, "")
+		// Basic, unset case
+		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveRHSThreadChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveThreadViewThreadChannelID(platform.UnsetPresenceIndicator)
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Active channel is set to something else, thread unset
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveThreadViewThreadChannelID(platform.UnsetPresenceIndicator)
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Active channel is unset, thread set
+		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveRHSThreadChannelID("ch1")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// both are set to correct channel
+		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveRHSThreadChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveThreadViewThreadChannelID(th.BasicChannel.Id)
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// channel is correct, thread is something else.
+		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveRHSThreadChannelID("ch1")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// channel is wrong, thread is correct.
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveThreadViewThreadChannelID(th.BasicChannel.Id)
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// FINALLY, both are set to something else.
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID("ch1")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
+		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Different threads and channel
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID("ch2")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch3")
+		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Other channel. Thread unset explicitly.
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID("")
+		basicUserWc.SetActiveThreadViewThreadChannelID("")
+		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+	})
+
 	t.Run("should send to basic user and admin in channel2", func(t *testing.T) {
 		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
 
@@ -186,5 +246,4 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 
 	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
 	assert.False(t, basicUserWc.ShouldSendEvent(event3))
-
 }

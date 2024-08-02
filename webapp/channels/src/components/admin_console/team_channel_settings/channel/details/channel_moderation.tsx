@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, MessageDescriptor, defineMessages} from 'react-intl';
-import {isNil} from 'lodash';
 import classNames from 'classnames';
+import isNil from 'lodash/isNil';
+import React from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
-import {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
+import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 
 import {Permissions, Roles} from 'mattermost-redux/constants';
 
@@ -14,7 +15,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
-import {ChannelModerationRoles} from './types';
+import type {ChannelModerationRoles} from './types';
 
 const PERIOD_TO_SLASH_REGEX = /\./g;
 
@@ -26,6 +27,8 @@ const MEMBERS_CAN_MANAGE_CHANNEL_MEMBERS_PERMISSION = 'manage_{public_or_private
 const GUESTS_CAN_MANAGE_CHANNEL_MEMBERS_PERMISSION = 'guest_manage_{public_or_private}_channel_members';
 const MEMBERS_CAN_USE_CHANNEL_MENTIONS_PERMISSION = 'use_channel_mentions';
 const GUESTS_CAN_USE_CHANNEL_MENTIONS_PERMISSION = 'guest_use_channel_mentions';
+const MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION = 'manage_{public_or_private}_channel_bookmarks';
+const GUESTS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION = 'guest_manage_{public_or_private}_channel_bookmarks';
 
 function getChannelModerationPermissionNames(permission: string) {
     if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
@@ -57,6 +60,14 @@ function getChannelModerationPermissionNames(permission: string) {
             disabledGuests: GUESTS_CAN_USE_CHANNEL_MENTIONS_PERMISSION,
             disabledMembers: MEMBERS_CAN_USE_CHANNEL_MENTIONS_PERMISSION,
             disabledBoth: MEMBERS_CAN_USE_CHANNEL_MENTIONS_PERMISSION,
+        };
+    }
+
+    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_BOOKMARKS) {
+        return {
+            disabledGuests: GUESTS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
+            disabledMembers: MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
+            disabledBoth: MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
         };
     }
 
@@ -180,6 +191,29 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
     });
 
+    const manageBookmarksRowMessages = defineMessages({
+        title: {
+            id: 'admin.channel_settings.channel_moderation.manageBookmarks',
+            defaultMessage: 'Manage Bookmarks',
+        },
+        description: {
+            id: 'admin.channel_settings.channel_moderation.manageBookmarksDesc',
+            defaultMessage: 'The ability for members and guests to add, delete and sort bookmarks.',
+        },
+        disabledGuests: {
+            id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledGuest',
+            defaultMessage: 'Manage bookmarks for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+        },
+        disabledMembers: {
+            id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledMember',
+            defaultMessage: 'Manage bookmarks for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+        },
+        disabledBoth: {
+            id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledBoth',
+            defaultMessage: 'Manage bookmarks for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+        },
+    });
+
     if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
         return createPostRowMessages;
     }
@@ -196,13 +230,17 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         return channelMentionsRowMessages;
     }
 
+    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_BOOKMARKS) {
+        return manageBookmarksRowMessages;
+    }
+
     return null;
 }
 
 const channelModerationHeaderMessages = defineMessages({
     titleMessage: {
         id: 'admin.channel_settings.channel_moderation.title',
-        defaultMessage: 'Channel Moderation',
+        defaultMessage: 'Advanced Access Control',
     },
     subtitleMessageForMembersAndGuests: {
         id: 'admin.channel_settings.channel_moderation.subtitle',
@@ -439,13 +477,11 @@ export default class ChannelModeration extends React.PureComponent<Props> {
         return (
             <AdminPanel
                 id='channel_moderation'
-                titleId={channelModerationHeaderMessages.titleMessage.id}
-                titleDefault={channelModerationHeaderMessages.titleMessage.defaultMessage}
-                subtitleId={
-                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests.id : channelModerationHeaderMessages.subtitleMessageForMembers.id
-                }
-                subtitleDefault={
-                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests.defaultMessage : channelModerationHeaderMessages.subtitleMessageForMembers.defaultMessage
+                title={channelModerationHeaderMessages.titleMessage}
+                subtitle={
+                    guestAccountsEnabled ?
+                        channelModerationHeaderMessages.subtitleMessageForMembersAndGuests :
+                        channelModerationHeaderMessages.subtitleMessageForMembers
                 }
             >
                 <div className='channel-moderation'>

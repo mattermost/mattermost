@@ -3,19 +3,18 @@
 
 import React from 'react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-
-import {renderWithFullContext, screen, userEvent} from 'tests/react_testing_utils';
-
-import {GlobalState} from 'types/store';
-
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import PostComponent, {Props} from './post_component';
+import type {GlobalState} from 'types/store';
+
+import PostComponent from './post_component';
+import type {Props} from './post_component';
 
 describe('PostComponent', () => {
     const currentTeam = TestHelper.getTeamMock();
@@ -38,10 +37,10 @@ describe('PostComponent', () => {
         recentEmojis: [],
         replyCount: 0,
         team: currentTeam,
+        pluginActions: [],
         actions: {
             markPostAsUnread: jest.fn(),
             emitShortcutReactToLastPostFrom: jest.fn(),
-            setActionsMenuInitialisationState: jest.fn(),
             selectPost: jest.fn(),
             selectPostFromRightHandSideSearch: jest.fn(),
             removePost: jest.fn(),
@@ -65,7 +64,7 @@ describe('PostComponent', () => {
         };
 
         test('should show reactions in the center channel', () => {
-            renderWithFullContext(<PostComponent {...baseProps}/>, baseState);
+            renderWithContext(<PostComponent {...baseProps}/>, baseState);
 
             expect(screen.getByLabelText('reactions')).toBeInTheDocument();
         });
@@ -83,7 +82,7 @@ describe('PostComponent', () => {
                 ...baseProps,
                 location: Locations.RHS_ROOT,
             };
-            const {rerender} = renderWithFullContext(<PostComponent {...props}/>, state);
+            const {rerender} = renderWithContext(<PostComponent {...props}/>, state);
 
             expect(screen.getByLabelText('reactions')).toBeInTheDocument();
 
@@ -101,7 +100,7 @@ describe('PostComponent', () => {
                 ...baseProps,
                 location: Locations.SEARCH,
             };
-            const {rerender} = renderWithFullContext(<PostComponent {...props}/>, baseState);
+            const {rerender} = renderWithContext(<PostComponent {...props}/>, baseState);
 
             expect(screen.queryByLabelText('reactions')).not.toBeInTheDocument();
 
@@ -128,7 +127,7 @@ describe('PostComponent', () => {
     describe('thread footer', () => {
         test('should never show thread footer for a post that isn\'t part of a thread', () => {
             let props: Props = baseProps;
-            const {rerender} = renderWithFullContext(<PostComponent {...props}/>);
+            const {rerender} = renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
 
@@ -164,7 +163,7 @@ describe('PostComponent', () => {
                 post: rootPost,
                 replyCount: 1,
             };
-            const {rerender} = renderWithFullContext(<PostComponent {...props}/>, state);
+            const {rerender} = renderWithContext(<PostComponent {...props}/>, state);
 
             expect(screen.queryByText(/Follow|Following/)).toBeInTheDocument();
 
@@ -194,7 +193,7 @@ describe('PostComponent', () => {
                     root_id: 'some_other_post_id',
                 },
             };
-            const {rerender} = renderWithFullContext(<PostComponent {...props}/>);
+            const {rerender} = renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
 
@@ -238,7 +237,7 @@ describe('PostComponent', () => {
                 post: rootPost,
                 replyCount: 1,
             };
-            const {rerender} = renderWithFullContext(<PostComponent {...props}/>, state);
+            const {rerender} = renderWithContext(<PostComponent {...props}/>, state);
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
 
@@ -275,7 +274,7 @@ describe('PostComponent', () => {
             };
 
             test('should select post in RHS when clicked in center channel', () => {
-                renderWithFullContext(<PostComponent {...propsForRootPost}/>, state);
+                renderWithContext(<PostComponent {...propsForRootPost}/>, state);
 
                 userEvent.click(screen.getByText('1 reply'));
 
@@ -288,7 +287,7 @@ describe('PostComponent', () => {
                     ...propsForRootPost,
                     team: undefined,
                 };
-                renderWithFullContext(<PostComponent {...props}/>, state);
+                renderWithContext(<PostComponent {...props}/>, state);
 
                 userEvent.click(screen.getByText('1 reply'));
 
@@ -302,7 +301,7 @@ describe('PostComponent', () => {
                     ...propsForRootPost,
                     location: Locations.SEARCH,
                 };
-                renderWithFullContext(<PostComponent {...props}/>, state);
+                renderWithContext(<PostComponent {...props}/>, state);
 
                 userEvent.click(screen.getByText('1 reply'));
 
@@ -316,7 +315,7 @@ describe('PostComponent', () => {
                     location: Locations.SEARCH,
                     team: TestHelper.getTeamMock({id: 'another_team'}),
                 };
-                renderWithFullContext(<PostComponent {...props}/>, state);
+                renderWithContext(<PostComponent {...props}/>, state);
 
                 userEvent.click(screen.getByText('1 reply'));
 

@@ -5,17 +5,18 @@ import React from 'react';
 import ReactSelect from 'react-select';
 import AsyncSelect from 'react-select/async';
 
-import {AppField, AppSelectOption} from '@mattermost/types/apps';
-import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
+import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {imageURLForUser} from 'utils/utils';
 
-import {SelectUserOption} from './select_user_option';
 import {SelectChannelOption} from './select_channel_option';
+import {SelectUserOption} from './select_user_option';
 
 export type Props = {
     field: AppField;
@@ -26,7 +27,7 @@ export type Props = {
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
     teammateNameDisplay?: string;
     actions: {
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => (dispatch: any, getState: any) => Promise<void>;
+        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
 };

@@ -5,26 +5,25 @@ package last_accessible_file
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-)
-
-const (
-	JobName = "LastAccessibleFile"
 )
 
 type AppIface interface {
 	ComputeLastAccessibleFileTime() error
 }
 
-func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) *jobs.SimpleWorker {
+	const workerName = "LastAccessibleFile"
+
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && *license.Features.Cloud
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		return app.ComputeLastAccessibleFileTime()
 	}
-	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

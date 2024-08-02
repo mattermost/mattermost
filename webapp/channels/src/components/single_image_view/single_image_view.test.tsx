@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 import SizeAwareImage from 'components/size_aware_image';
+
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/SingleImageView', () => {
@@ -84,7 +85,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
         expect(wrapper.state('loaded')).toEqual(false);
-        wrapper.find(SizeAwareImage).prop('onImageLoaded')();
+        wrapper.find(SizeAwareImage).prop('onImageLoaded')?.({height: 0, width: 0});
         expect(wrapper.state('loaded')).toEqual(true);
         expect(wrapper).toMatchSnapshot();
     });

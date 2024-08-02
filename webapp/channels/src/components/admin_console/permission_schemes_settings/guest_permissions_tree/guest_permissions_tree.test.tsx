@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
+import React from 'react';
 
 import GuestPermissionsTree from 'components/admin_console/permission_schemes_settings/guest_permissions_tree/guest_permissions_tree';
+import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
 
 import {TestHelper} from 'utils/test_helper';
 

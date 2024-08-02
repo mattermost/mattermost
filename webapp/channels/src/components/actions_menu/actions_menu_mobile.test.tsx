@@ -4,7 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import ActionsMenu, {Props} from 'components/actions_menu/actions_menu';
+import ActionsMenu from 'components/actions_menu/actions_menu';
+import type {Props} from 'components/actions_menu/actions_menu';
+
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('utils/utils', () => {

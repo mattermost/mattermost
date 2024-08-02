@@ -2,30 +2,27 @@
 // See LICENSE.txt for license information.
 
 import {
-    removeReaction,
     addMessageIntoHistory,
-    moveHistoryIndexBack,
 } from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
+import {executeCommand} from 'actions/command';
+import * as HookActions from 'actions/hooks';
+import * as PostActions from 'actions/post_actions';
+import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
-    makeOnMoveHistoryIndex,
     submitPost,
-    submitReaction,
     submitCommand,
     makeOnSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
 import {removeDraft, setGlobalDraftSource} from 'actions/views/drafts';
-import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import * as PostActions from 'actions/post_actions';
-import {executeCommand} from 'actions/command';
-import * as HookActions from 'actions/hooks';
-import {StoragePrefixes} from 'utils/constants';
 
 import mockStore from 'tests/test_store';
+import {StoragePrefixes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 /* eslint-disable global-require */
 
@@ -63,6 +60,7 @@ jest.mock('actions/hooks', () => ({
 }));
 
 jest.mock('actions/post_actions', () => ({
+    submitReaction: (...args) => ({type: 'MOCK_SUBMIT_REACTION', args}),
     addReaction: (...args) => ({type: 'MOCK_ADD_REACTION', args}),
     createPost: jest.fn(() => ({type: 'MOCK_CREATE_POST'})),
     setEditingPost: (...args) => ({type: 'MOCK_SET_EDITING_POST', args}),
@@ -124,13 +122,21 @@ describe('rhs view actions', () => {
                     messages: ['test message'],
                 },
             },
+            channels: {
+                channels: {
+                    [channelId]: TestHelper.getChannelMock({id: channelId}),
+                },
+                roles: {
+                    [channelId]: new Set(['channel_roles']),
+                },
+            },
             preferences: {
                 myPreferences: {},
             },
             users: {
                 currentUserId,
                 profiles: {
-                    [currentUserId]: {id: currentUserId},
+                    [currentUserId]: TestHelper.getUserMock({id: currentUserId}),
                 },
             },
             teams: {
@@ -138,6 +144,13 @@ describe('rhs view actions', () => {
             },
             emojis: {
                 customEmoji: {},
+            },
+            roles: {
+                roles: {
+                    channel_roles: {
+                        permissions: '',
+                    },
+                },
             },
             general: {
                 config: {
@@ -199,7 +212,7 @@ describe('rhs view actions', () => {
         const draft = {message: 'test msg', fileInfos: [{id: 1}], uploadsInProgress: [2, 3]};
 
         test('it calls setGlobalItem action correctly', () => {
-            jest.useFakeTimers('modern');
+            jest.useFakeTimers();
             jest.setSystemTime(42);
             store.dispatch(updateCommentDraft(rootId, draft));
 
@@ -215,47 +228,6 @@ describe('rhs view actions', () => {
 
             expect(store.getActions()).toEqual(testStore.getActions());
             jest.useRealTimers();
-        });
-    });
-
-    describe('makeOnMoveHistoryIndex', () => {
-        beforeAll(() => {
-            jest.useFakeTimers('modern');
-            jest.setSystemTime(42);
-        });
-
-        afterAll(() => {
-            jest.useRealTimers();
-        });
-
-        test('it moves comment history index back', () => {
-            const onMoveHistoryIndex = makeOnMoveHistoryIndex(rootId, -1);
-
-            store.dispatch(onMoveHistoryIndex());
-
-            const testStore = mockStore(initialState);
-
-            testStore.dispatch(moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
-
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-            );
-        });
-
-        test('it stores history message in draft', (done) => {
-            const onMoveHistoryIndex = makeOnMoveHistoryIndex(rootId, -1);
-
-            store.dispatch(onMoveHistoryIndex());
-
-            const testStore = mockStore(initialState);
-
-            testStore.dispatch(updateCommentDraft(rootId, {message: 'test message', channelId, rootId, fileInfos: [], uploadsInProgress: []}));
-
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-            );
-
-            done();
         });
     });
 
@@ -290,25 +262,6 @@ describe('rhs view actions', () => {
 
             expect(HookActions.runMessageWillBePostedHooks).toHaveBeenCalled();
             expect(PostActions.createPost).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('submitReaction', () => {
-        test('it adds a reaction when action is +', () => {
-            store.dispatch(submitReaction('post_id_1', '+', 'emoji_name_1'));
-
-            const testStore = mockStore(initialState);
-            testStore.dispatch(PostActions.addReaction('post_id_1', 'emoji_name_1'));
-            expect(store.getActions()).toEqual(testStore.getActions());
-        });
-
-        test('it removes a reaction when action is -', () => {
-            store.dispatch(submitReaction('post_id_1', '-', 'emoji_name_1'));
-
-            const testStore = mockStore(initialState);
-            testStore.dispatch(removeReaction('post_id_1', 'emoji_name_1'));
-
-            expect(store.getActions()).toEqual(testStore.getActions());
         });
     });
 
@@ -350,7 +303,7 @@ describe('rhs view actions', () => {
 
             jest.resetModules();
 
-            const {submitCommand: remockedSubmitCommand} = require('actions/views/create_comment'); // eslint-disable-like @typescript-eslint/no-var-requires
+            const {submitCommand: remockedSubmitCommand} = require('actions/views/create_comment');
 
             await store.dispatch(remockedSubmitCommand(channelId, rootId, draft));
 
@@ -400,7 +353,7 @@ describe('rhs view actions', () => {
             }));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitReaction(latestPostId, '+', 'smile'));
+            testStore.dispatch(PostActions.submitReaction(latestPostId, '+', 'smile'));
 
             expect(store.getActions()).toEqual(
                 expect.arrayContaining(testStore.getActions()),

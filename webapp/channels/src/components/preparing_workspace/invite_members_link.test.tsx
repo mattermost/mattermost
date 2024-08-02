@@ -5,8 +5,8 @@ import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {fireEvent, render, screen} from 'tests/react_testing_utils';
 import {withIntl} from 'tests/helpers/intl-test-helper';
+import {fireEvent, render, screen} from 'tests/react_testing_utils';
 
 import InviteMembersLink from './invite_members_link';
 

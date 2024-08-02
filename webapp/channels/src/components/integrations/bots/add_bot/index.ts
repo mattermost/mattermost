@@ -2,22 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import type {RouteComponentProps} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {RouteComponentProps} from 'react-router-dom';
-
-import {updateUserRoles, uploadProfileImage, setDefaultProfileImage, createUserAccessToken} from 'mattermost-redux/actions/users';
 import {createBot, patchBot} from 'mattermost-redux/actions/bots';
+import {updateUserRoles, uploadProfileImage, setDefaultProfileImage, createUserAccessToken} from 'mattermost-redux/actions/users';
+import {Permissions} from 'mattermost-redux/constants';
 import {getBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import AddBot, {Props} from './add_bot';
+import AddBot from './add_bot';
 
 type OwnProps = {
 
@@ -45,7 +44,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             createBot,
             patchBot,
             uploadProfileImage,

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {MenuItemExternalLinkImpl} from './menu_item_external_link';
 
@@ -16,7 +16,7 @@ describe('components/MenuItemExternalLink', () => {
         );
 
         expect(wrapper).toMatchInlineSnapshot(`
-            <ExternalLink
+            <ForwardRef
               href="http://test.com"
               location="menu_item_external_link"
             >
@@ -25,7 +25,7 @@ describe('components/MenuItemExternalLink', () => {
               >
                 Whatever
               </span>
-            </ExternalLink>
+            </ForwardRef>
         `);
     });
 });

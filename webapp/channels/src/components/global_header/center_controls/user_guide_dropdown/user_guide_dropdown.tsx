@@ -2,21 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ModalIdentifiers} from 'utils/constants';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
+const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermost.html';
+const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
 type Props = WrappedComponentProps & PropsFromRedux & {
@@ -65,6 +68,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
             return (
                 <Menu.ItemAction
                     id={item.id + '_pluginmenuitem'}
+                    iconClassName='icon-thumbs-up-down'
                     key={item.id + '_pluginmenuitem'}
                     onClick={item.action}
                     text={item.text}
@@ -74,30 +78,40 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
         return (
             <Menu.Group>
+                <Menu.ItemExternalLink
+                    id='mattermostUserGuideLink'
+                    iconClassName='icon-file-text-outline'
+                    url={mattermostUserGuideLink}
+                    text={intl.formatMessage({id: 'userGuideHelp.mattermostUserGuide', defaultMessage: 'Mattermost user guide'})}
+                />
+                {this.props.helpLink && (
+                    <Menu.ItemExternalLink
+                        id='trainingResourcesLink'
+                        iconClassName='icon-lightbulb-outline'
+                        url={trainingResourcesLink}
+                        text={intl.formatMessage({id: 'userGuideHelp.trainingResources', defaultMessage: 'Training resources'})}
+                    />
+                )}
                 {this.props.enableAskCommunityLink === 'true' && (
                     <Menu.ItemExternalLink
                         id='askTheCommunityLink'
+                        iconClassName='icon-help'
                         url={askTheCommunityUrl}
                         text={intl.formatMessage({id: 'userGuideHelp.askTheCommunity', defaultMessage: 'Ask the community'})}
                         onClick={this.askTheCommunityClick}
                     />
                 )}
-                {this.props.helpLink && (
-                    <Menu.ItemExternalLink
-                        id='helpResourcesLink'
-                        url={this.props.helpLink}
-                        text={intl.formatMessage({id: 'userGuideHelp.helpResources', defaultMessage: 'Help resources'})}
-                    />
-                )}
                 {this.props.reportAProblemLink && (
                     <Menu.ItemExternalLink
                         id='reportAProblemLink'
+                        iconClassName='icon-alert-outline'
                         url={this.props.reportAProblemLink}
                         text={intl.formatMessage({id: 'userGuideHelp.reportAProblem', defaultMessage: 'Report a problem'})}
                     />
                 )}
                 <Menu.ItemAction
                     id='keyboardShortcuts'
+                    iconClassName='icon-keyboard-return'
                     onClick={this.openKeyboardShortcutsModal}
                     text={intl.formatMessage({id: 'userGuideHelp.keyboardShortcuts', defaultMessage: 'Keyboard shortcuts'})}
                 />
@@ -108,16 +122,11 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-        const tooltip = (
-            <Tooltip
-                id='userGuideHelpTooltip'
-                className='hidden-xs'
-            >
-                <FormattedMessage
-                    id={'channel_header.userHelpGuide'}
-                    defaultMessage='Help'
-                />
-            </Tooltip>
+        const tooltipText = (
+            <FormattedMessage
+                id={'channel_header.userHelpGuide'}
+                defaultMessage='Help'
+            />
         );
 
         return (
@@ -126,10 +135,10 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 className='userGuideHelp'
                 onToggle={this.buttonToggleState}
             >
-                <OverlayTrigger
-                    delayShow={500}
+                <WithTooltip
+                    id='userGuideHelpTooltip'
                     placement='bottom'
-                    overlay={this.state.buttonActive ? <></> : tooltip}
+                    title={tooltipText}
                 >
                     <IconButton
                         size={'sm'}
@@ -142,9 +151,9 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         aria-expanded={this.state.buttonActive}
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                     />
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
-                    openLeft={true}
+                    openLeft={false}
                     openUp={false}
                     id='AddChannelDropdown'
                     ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}

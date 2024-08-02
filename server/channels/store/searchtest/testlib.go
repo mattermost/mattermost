@@ -4,15 +4,15 @@
 package searchtest
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const (
 	EngineAll           = "all"
-	EngineMySql         = "mysql"
+	EngineMySQL         = "mysql"
 	EnginePostgres      = "postgres"
 	EngineElasticSearch = "elasticsearch"
 	EngineBleve         = "bleve"
@@ -35,12 +35,12 @@ type searchTest struct {
 func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
 	filteredTests := []searchTest{}
 	for _, test := range tests {
-		if utils.StringInSlice(EngineAll, test.Tags) {
+		if slices.Contains(test.Tags, EngineAll) {
 			filteredTests = append(filteredTests, test)
 			continue
 		}
 		for _, tag := range tags {
-			if utils.StringInSlice(tag, test.Tags) {
+			if slices.Contains(test.Tags, tag) {
 				filteredTests = append(filteredTests, test)
 				break
 			}
@@ -59,7 +59,6 @@ func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTes
 	filteredTests := filterTestsByTag(tests, testEngine.Driver)
 
 	for _, test := range filteredTests {
-
 		if test.Skip {
 			t.Log("SKIPPED: " + test.Name + ". Reason: " + test.SkipMessage)
 			continue

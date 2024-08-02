@@ -3,17 +3,17 @@
 
 import React from 'react';
 
-import {AppBinding, AppCallResponse} from '@mattermost/types/apps';
-import {Post} from '@mattermost/types/posts';
+import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
 import {
-    renderWithIntlAndStore,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
 
-import ButtonBinding, {ButtonBinding as ButtonBindingUnwrapped} from './button_binding';
+import ButtonBinding from './button_binding';
 
 describe('components/post_view/embedded_bindings/button_binding/', () => {
     const post = {
@@ -80,25 +80,14 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
         },
     };
 
-    const intl = {
-        formatMessage: (message: {id: string; defaultMessage: string}) => {
-            return message.defaultMessage;
-        },
-    } as any;
-
     test('should match default component state', () => {
-        renderWithIntlAndStore(<ButtonBinding {...baseProps}/>, initialState);
+        renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
 
         screen.getByText('some_label');
     });
 
     test('should call doAppSubmit on click', async () => {
-        const props = {
-            ...baseProps,
-            intl,
-        };
-
-        renderWithIntlAndStore(<ButtonBindingUnwrapped {...props}/>, initialState);
+        renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
 
         screen.getByText('some_label');
 
@@ -144,10 +133,9 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
                 postEphemeralCallResponseForPost: jest.fn(),
                 openAppsModal: jest.fn(),
             },
-            intl,
         };
 
-        renderWithIntlAndStore(<ButtonBindingUnwrapped {...props}/>, initialState);
+        renderWithContext(<ButtonBinding {...props}/>, initialState);
 
         screen.getByText('some_label');
 

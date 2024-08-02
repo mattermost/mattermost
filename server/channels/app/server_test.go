@@ -172,7 +172,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 
-	th := Setup(t, SkipProductsInitialization())
+	th := Setup(t)
 	defer th.TearDown()
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
@@ -181,7 +181,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
-	th2 := Setup(t, SkipProductsInitialization())
+	th2 := Setup(t)
 	defer th2.TearDown()
 
 	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
@@ -322,16 +322,23 @@ func TestPanicLog(t *testing.T) {
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 
-	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
-	err = logger.ConfigureTargets(cfg, nil)
+	err = logger.ConfigureTargets(logCfg, nil)
 	require.NoError(t, err)
 	logger.LockConfiguration()
 
-	// Creating a server with logger
-	s, err := newServer(t)
+	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	s.Platform().SetLogger(logger)
+	store, err := config.NewStoreFromBacking(configStore, nil, false)
+	require.NoError(t, err)
+	cfg := store.Get()
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
+	store.Set(cfg)
+
+	// Creating a server with logger
+	s, err := NewServer(ConfigStore(store), SetLogger(logger))
+	require.NoError(t, err)
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
@@ -457,7 +464,7 @@ func TestSentry(t *testing.T) {
 		select {
 		case <-data:
 			require.Fail(t, "Sentry received a message, even though it's disabled!")
-		case <-time.After(time.Second):
+		case <-time.After(2 * time.Second):
 			t.Log("Sentry request didn't arrive. Good!")
 		}
 	})

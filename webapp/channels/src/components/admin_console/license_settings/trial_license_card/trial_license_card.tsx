@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import moment from 'moment';
 
-import {ClientLicense} from '@mattermost/types/config';
+import type {ClientLicense} from '@mattermost/types/config';
+
+import AlertBanner from 'components/alert_banner';
+import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {daysToLicenseExpire} from 'utils/license_utils';
 import {getBrowserTimezone} from 'utils/timezone';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import AlertBanner from 'components/alert_banner';
 
 import './trial_license_card.scss';
 
@@ -57,16 +56,8 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
                     {messageBody()}
                 </div>
                 <div className='RenewLicenseCard__buttons'>
-                    <PurchaseLink
-                        buttonTextElement={
-                            <FormattedMessage
-                                id='admin.license.trialCard.purchase_license'
-                                defaultMessage='Purchase a license'
-                            />
-                        }
-                    />
                     <ContactUsButton
-                        customClass='light-blue-btn'
+                        customClass='contact_us_primary_cta'
                     />
                 </div>
             </div>

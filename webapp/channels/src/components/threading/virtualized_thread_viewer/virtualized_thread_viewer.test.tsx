@@ -1,69 +1,78 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
+import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {shallow} from 'enzyme';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {Post} from '@mattermost/types/posts';
+import {Permissions} from 'mattermost-redux/constants';
+
 import {TestHelper} from 'utils/test_helper';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 
 import VirtualizedThreadViewer from './virtualized_thread_viewer';
 
-describe('components/threading/VirtualizedThreadViewer', () => {
-    const post: Post = TestHelper.getPostMock({
-        channel_id: 'channel_id',
-        create_at: 1502715365009,
-        update_at: 1502715372443,
-        is_following: true,
-        reply_count: 3,
+type Props = ComponentProps<typeof VirtualizedThreadViewer>;
+function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
+    const channel = TestHelper.getChannelMock();
+    const currentUser = TestHelper.getUserMock({roles: 'role'});
+    const post = TestHelper.getPostMock({
+        channel_id: channel.id,
+        reply_count: 0,
     });
-
-    const channel: Channel = TestHelper.getChannelMock({
-        display_name: '',
-        name: '',
-        header: '',
-        purpose: '',
-        creator_id: '',
-        scheme_id: '',
-        teammate_id: '',
-        status: '',
-    });
-
-    const actions = {
-        removePost: jest.fn(),
-        selectPostCard: jest.fn(),
-        getPostThread: jest.fn(),
-        getThread: jest.fn(),
-        updateThreadRead: jest.fn(),
-        updateThreadLastOpened: jest.fn(),
-        fetchRHSAppsBindings: jest.fn(),
-    };
 
     const directTeammate: UserProfile = TestHelper.getUserMock();
-
-    const baseProps = {
+    const props: Props = {
         selected: post,
-        channel,
         currentUserId: 'user_id',
-        currentTeamId: 'team_id',
-        previewCollapsed: 'false',
-        previewEnabled: true,
-        socketConnectionStatus: true,
-        actions,
         directTeammate,
-        isCollapsedThreadsEnabled: false,
-        posts: [post],
         lastPost: post,
         onCardClick: () => {},
-        onCardClickPost: () => {},
-        replyListIds: [],
-        teamId: '',
+        replyListIds: ['create-comment'],
         useRelativeTimestamp: true,
-        isThreadView: true,
+        isMobileView: false,
+        isThreadView: false,
+        newMessagesSeparatorActions: [],
+        measureRhsOpened: jest.fn(),
     };
+
+    const state: DeepPartial<GlobalState> = {
+        entities: {
+            users: {
+                currentUserId: currentUser.id,
+                profiles: {
+                    [currentUser.id]: currentUser,
+                },
+            },
+            posts: {
+                posts: {
+                    [post.id]: post,
+                },
+            },
+            channels: {
+                channels: {
+                    [channel.id]: channel,
+                },
+            },
+            roles: {
+                roles: {
+                    role: {
+                        id: 'role',
+                        name: 'role',
+                        permissions: [Permissions.CREATE_POST, Permissions.USE_CHANNEL_MENTIONS],
+                    },
+                },
+            },
+        },
+    };
+    return [props, state];
+}
+
+describe('components/threading/VirtualizedThreadViewer', () => {
+    const [baseProps] = getBasePropsAndState();
     test('should scroll to the bottom when the current user makes a new post in the thread', () => {
         const scrollToBottom = jest.fn();
 
@@ -78,7 +87,7 @@ describe('components/threading/VirtualizedThreadViewer', () => {
             lastPost:
                 {
                     id: 'newpost',
-                    root_id: post.id,
+                    root_id: baseProps.selected.id,
                     user_id: 'user_id',
                 },
         });
@@ -101,7 +110,7 @@ describe('components/threading/VirtualizedThreadViewer', () => {
             lastPost:
                 {
                     id: 'newpost',
-                    root_id: post.id,
+                    root_id: baseProps.selected.id,
                     user_id: 'other_user_id',
                 },
         });
@@ -125,7 +134,7 @@ describe('components/threading/VirtualizedThreadViewer', () => {
             lastPost:
                 {
                     id: 'newpost',
-                    root_id: post.id,
+                    root_id: baseProps.selected.id,
                     user_id: 'user_id',
                 },
             highlightedPostId: '42',
@@ -134,3 +143,4 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         expect(scrollToBottom).not.toHaveBeenCalled();
     });
 });
+

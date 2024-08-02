@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -212,16 +211,18 @@ func TestGenerateSupportPacket(t *testing.T) {
 	th.LoginSystemManager()
 	defer th.TearDown()
 
-	t.Run("As a System Administrator", func(t *testing.T) {
+	t.Run("system admin and local client can generate support packet", func(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
-		file, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
-		require.NoError(t, err)
-		require.NotZero(t, len(file))
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+			file, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			require.NoError(t, err)
+			require.NotZero(t, len(file))
+		})
 	})
 
-	t.Run("As a System Administrator but with RestrictSystemAdmin true", func(t *testing.T) {
+	t.Run("Using system admin and local client but with RestrictSystemAdmin true", func(t *testing.T) {
 		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 		defer func() {
@@ -230,9 +231,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 			})
 		}()
 
-		_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+			_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
 	})
 
 	t.Run("As a system role, not system admin", func(t *testing.T) {
@@ -358,7 +361,7 @@ func TestGetLogs(t *testing.T) {
 	defer th.TearDown()
 
 	for i := 0; i < 20; i++ {
-		mlog.Info(strconv.Itoa(i))
+		th.TestLogger.Info(strconv.Itoa(i))
 	}
 
 	err := th.TestLogger.Flush()
@@ -395,6 +398,46 @@ func TestGetLogs(t *testing.T) {
 
 	th.Client.Logout(context.Background())
 	_, resp, err = th.Client.GetLogs(context.Background(), 0, 10)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestDownloadLogs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	for i := 0; i < 20; i++ {
+		th.TestLogger.Info(strconv.Itoa(i))
+	}
+	err := th.TestLogger.Flush()
+	require.NoError(t, err, "failed to flush log")
+
+	t.Run("Download Logs as system admin", func(t *testing.T) {
+		resData, resp, err2 := th.SystemAdminClient.DownloadLogs(context.Background())
+		require.NoError(t, err2)
+
+		require.Equal(t, "text/plain", resp.Header.Get("Content-Type"))
+		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment;filename=\"mattermost.log\"")
+
+		bodyString := string(resData)
+		for i := 0; i < 20; i++ {
+			assert.Contains(t, bodyString, fmt.Sprintf(`"msg":"%d"`, i))
+		}
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		_, resp, err2 := th.Client.DownloadLogs(context.Background())
+		require.Error(t, err2)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	_, resp, err := th.Client.DownloadLogs(context.Background())
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.Client.Logout(context.Background())
+	_, resp, err = th.Client.DownloadLogs(context.Background())
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -438,7 +481,6 @@ func TestPostLog(t *testing.T) {
 	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
-
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
@@ -587,15 +629,6 @@ func TestS3TestConnection(t *testing.T) {
 		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
 	})
 
-	t.Run("as restricted system admin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
-
-		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
 	t.Run("empty file settings", func(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
@@ -673,6 +706,33 @@ func TestRedirectLocation(t *testing.T) {
 	_, resp, err = client.GetRedirectLocation(context.Background(), "", "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// Check that too-long redirect locations are ignored
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+	urlPrefix := "https://example.co"
+	almostTooLongUrl := urlPrefix + strings.Repeat("a", 2100-len(urlPrefix))
+	testServer2 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", almostTooLongUrl)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer2.Close() }()
+
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer2.URL, "")
+	require.NoError(t, err)
+	assert.Equal(t, almostTooLongUrl, actual)
+
+	tooLongUrl := urlPrefix + strings.Repeat("a", 2101-len(urlPrefix))
+	testServer3 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", tooLongUrl)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer3.Close() }()
+
+	actual, _, err = th.SystemAdminClient.GetRedirectLocation(context.Background(), testServer3.URL, "")
+	require.NoError(t, err)
+	assert.Equal(t, "", actual)
 }
 
 func TestSetServerBusy(t *testing.T) {
@@ -939,7 +999,6 @@ func TestCompleteOnboarding(t *testing.T) {
 		case <-time.After(15 * time.Second):
 			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
 		}
-
 	})
 
 	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {

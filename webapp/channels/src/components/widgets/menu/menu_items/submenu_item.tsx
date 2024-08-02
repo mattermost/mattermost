@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
+import React from 'react';
+import type {CSSProperties} from 'react';
 
+import {showMobileSubMenuModal} from 'actions/global_actions';
+
+import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import {showMobileSubMenuModal} from 'actions/global_actions';
 
 import type {Menu} from 'types/store/plugins';
 
+import {isMobile as isMobileViewHack} from '../is_mobile_view_hack';
+
 import './menu_item.scss';
-import Constants from 'utils/constants';
 
 // Requires an object conforming to a submenu structure passed to registerPostDropdownSubMenuAction
 // of the form:
@@ -51,7 +55,7 @@ export type Props = {
     direction?: 'left' | 'right';
     openUp?: boolean;
     styleSelectableItem?: boolean;
-    extraText?: string;
+    extraText?: string| JSX.Element;
     rightDecorator?: React.ReactNode;
     isHeader?: boolean;
     tabIndex?: number;
@@ -91,10 +95,10 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         this.setState({show: false});
     };
 
-    private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
+    private onClick = (event: React.SyntheticEvent<HTMLElement>| React.BaseSyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
-        const isMobile = Utils.isMobile();
+        const isMobile = isMobileViewHack();
         if (isHeader) {
             event.stopPropagation();
             return;
@@ -108,8 +112,13 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             } else if (action) { // leaf node in the tree handles action only
                 action(postId);
             }
-        } else if (event.currentTarget.id === id && action) {
-            action(postId);
+        } else {
+            const shouldCallAction =
+                (event.type === 'keydown' && event.currentTarget.id === id) ||
+                event.target.parentElement.id === id;
+            if (shouldCallAction && action) {
+                action(postId);
+            }
         }
     };
 
@@ -141,7 +150,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
 
     public render() {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex} = this.props;
-        const isMobile = Utils.isMobile();
+        const isMobile = isMobileViewHack();
 
         if (filter && !filter(id)) {
             return ('');
@@ -182,9 +191,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
                         let aria = ariaLabel;
                         if (s.action) {
-                            aria = s.text === selectedValueText ?
-                                s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') :
-                                s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
+                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') : s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
                         }
                         return (
                             <span
@@ -231,7 +238,6 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
                     onMouseLeave={this.hide}
-                    onClick={this.onClick}
                     tabIndex={tabIndex ?? 0}
                     onKeyDown={this.handleKeyDown}
                 >

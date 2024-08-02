@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {AnimationEvent, ReactNode, useState} from 'react';
-import {Draggable} from 'react-beautiful-dnd';
 import classNames from 'classnames';
+import React, {useState} from 'react';
+import type {AnimationEvent, ReactNode} from 'react';
+import {Draggable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
@@ -31,6 +32,13 @@ function SidebarChannel({
     autoSortedCategoryIds,
 }: Props) {
     const [show, setShow] = useState(true);
+    if (!channel) {
+        return null;
+    }
+
+    if (!currentTeamName) {
+        return null;
+    }
 
     function isCollapsed() {
         return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
@@ -38,7 +46,7 @@ function SidebarChannel({
 
     function setRef(refMethod?: (element: HTMLLIElement) => void) {
         return (ref: HTMLLIElement) => {
-            setChannelRef(channel.id, ref);
+            setChannelRef(channel?.id || '', ref);
             refMethod?.(ref);
         };
     }

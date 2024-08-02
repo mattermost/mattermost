@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import store from 'stores/redux_store.jsx';
 
+import store from 'stores/redux_store';
+
+import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
+import * as ua from 'tests/helpers/user_agent_mocks';
 import Constants, {ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
-import * as ua from 'tests/helpers/user_agent_mocks';
-import {UserProfile} from '@mattermost/types/users';
 
 describe('Utils.getDisplayNameByUser', () => {
     afterEach(() => {
@@ -89,158 +89,6 @@ describe('Utils.getDisplayNameByUser', () => {
             {user: userJ, result: userJ.first_name},
         ]) {
             expect(Utils.getDisplayNameByUser(store.getState(), data.user as UserProfile)).toEqual(data.result);
-        }
-    });
-});
-
-describe('Utils.isValidPassword', () => {
-    test('Minimum length enforced', () => {
-        for (const data of [
-            {
-                password: 'tooshort',
-                config: {
-                    minimumLength: 10,
-                    requireLowercase: false,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'longenoughpassword',
-                config: {
-                    minimumLength: 10,
-                    requireLowercase: false,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require lowercase enforced', () => {
-        for (const data of [
-            {
-                password: 'UPPERCASE',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'SOMELowercase',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require uppercase enforced', () => {
-        for (const data of [
-            {
-                password: 'lowercase',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: false,
-                    requireUppercase: true,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'SOMEUppercase',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: false,
-                    requireUppercase: true,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require number enforced', () => {
-        for (const data of [
-            {
-                password: 'NoNumbers',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'S0m3Numb3rs',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require symbol enforced', () => {
-        for (const data of [
-            {
-                password: 'N0Symb0ls',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: true,
-                },
-                valid: false,
-            },
-            {
-                password: 'S0m3Symb0!s',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: true,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
         }
     });
 });
@@ -377,25 +225,25 @@ describe('Utils.imageURLForUser', () => {
 describe('Utils.isUnhandledLineBreakKeyCombo', () => {
     test('isUnhandledLineBreakKeyCombo returns true for alt + enter for Chrome UA', () => {
         ua.mockChrome();
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent() as KeyboardEvent)).toBe(true);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent())).toBe(true);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for alt + enter for Safari UA', () => {
         ua.mockSafari();
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent() as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent())).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for shift + enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getShiftKeyEvent() as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getShiftKeyEvent())).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for ctrl/command + enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getCtrlKeyEvent() as unknown as KeyboardEvent)).toBe(false);
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getMetaKeyEvent() as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getCtrlKeyEvent())).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getMetaKeyEvent())).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for just enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.BASE_EVENT as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.BASE_EVENT)).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for f (random key)', () => {
@@ -404,7 +252,7 @@ describe('Utils.isUnhandledLineBreakKeyCombo', () => {
             key: Constants.KeyCodes.F[0],
             keyCode: Constants.KeyCodes.F[1],
         };
-        expect(Utils.isUnhandledLineBreakKeyCombo(e as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(e)).toBe(false);
     });
 
     // restore initial user agent
@@ -413,10 +261,10 @@ describe('Utils.isUnhandledLineBreakKeyCombo', () => {
 
 describe('Utils.insertLineBreakFromKeyEvent', () => {
     test('insertLineBreakFromKeyEvent returns with line break appending (no selection range)', () => {
-        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getAppendEvent() as React.KeyboardEvent<HTMLInputElement>)).toBe(lineBreakHelpers.OUTPUT_APPEND);
+        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getAppendEvent())).toBe(lineBreakHelpers.OUTPUT_APPEND);
     });
     test('insertLineBreakFromKeyEvent returns with line break replacing (with selection range)', () => {
-        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getReplaceEvent() as React.KeyboardEvent<HTMLInputElement>)).toBe(lineBreakHelpers.OUTPUT_REPLACE);
+        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getReplaceEvent())).toBe(lineBreakHelpers.OUTPUT_REPLACE);
     });
 });
 

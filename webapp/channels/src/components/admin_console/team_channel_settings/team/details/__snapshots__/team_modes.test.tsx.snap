@@ -2,12 +2,19 @@
 
 exports[`admin_console/team_channel_settings/team/TeamModes should match snapshot 1`] = `
 <AdminPanel
-  className=""
   id="team_manage"
-  subtitleDefault="Choose between inviting members manually or syncing members automatically from groups."
-  subtitleId="admin.team_settings.team_detail.manageDescription"
-  titleDefault="Team Management"
-  titleId="admin.team_settings.team_detail.manageTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Choose between inviting members manually or syncing members automatically from groups.",
+      "id": "admin.team_settings.team_detail.manageDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Team Management",
+      "id": "admin.team_settings.team_detail.manageTitle",
+    }
+  }
 >
   <div
     className="group-teams-and-channels"

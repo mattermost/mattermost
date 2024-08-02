@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount} from 'enzyme';
+import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import mockStore from 'tests/test_store';
-
-import {CloudProducts} from 'utils/constants';
 import * as cloudActions from 'mattermost-redux/actions/cloud';
+
+import mockStore from 'tests/test_store';
+import {CloudProducts} from 'utils/constants';
 
 import PlanUpgradeButton from './index';
 

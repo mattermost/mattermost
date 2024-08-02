@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
@@ -255,7 +256,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	tm := time.Unix(post.CreateAt/1000, 0)
 	zone, _ := tm.Zone()
 
-	formattedTime := formattedPostTime{
+	formattedTime := utils.FormattedPostTime{
 		Hour:     fmt.Sprintf("%02d", tm.Hour()),
 		Minute:   fmt.Sprintf("%02d", tm.Minute()),
 		TimeZone: zone,
@@ -614,7 +615,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 
 	senderName := "user1"
 	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
+	teamURL := th.App.GetSiteURL() + "/landing#" + "/testteam"
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
@@ -626,6 +627,8 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
+
+	th.App.Srv().EmailService.SetStore(storeMock)
 
 	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
@@ -680,7 +683,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 
 	senderName := "user1"
 	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
+	teamURL := th.App.GetSiteURL() + "/landing#" + "/testteam"
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
@@ -692,6 +695,8 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name, ch2.Name, ch3.Name}, true).Return([]*model.Channel{ch, ch2, ch3}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
+
+	th.App.Srv().EmailService.SetStore(storeMock)
 
 	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
@@ -742,6 +747,8 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
+	th.App.Srv().EmailService.SetStore(storeMock)
+
 	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
 		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
@@ -775,8 +782,9 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
-	outMessage, err := th.App.generateHyperlinkForChannels(th.Context, message+mention, teamName, teamURL)
-	require.Nil(t, err)
+	th.App.Srv().EmailService.SetStore(storeMock)
+	outMessage, err := th.App.Srv().EmailService.GenerateHyperlinkForChannels(message+mention, teamName, teamURL)
+	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	assert.Equal(t, message+"<a href='"+channelURL+"'>"+mention+"</a>", outMessage)
 }
@@ -825,8 +833,9 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name, ch2.Name, ch3.Name}, true).Return([]*model.Channel{ch, ch2, ch3}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
-	outMessage, err := th.App.generateHyperlinkForChannels(th.Context, message, teamName, teamURL)
-	require.Nil(t, err)
+	th.App.Srv().EmailService.SetStore(storeMock)
+	outMessage, err := th.App.Srv().EmailService.GenerateHyperlinkForChannels(message, teamName, teamURL)
+	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	channelURL2 := teamURL + "/channels/" + ch2.Name
 	channelURL3 := teamURL + "/channels/" + ch3.Name
@@ -859,8 +868,9 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
-	outMessage, err := th.App.generateHyperlinkForChannels(th.Context, message, teamName, teamURL)
-	require.Nil(t, err)
+	th.App.Srv().EmailService.SetStore(storeMock)
+	outMessage, err := th.App.Srv().EmailService.GenerateHyperlinkForChannels(message, teamName, teamURL)
+	require.NoError(t, err)
 	assert.Equal(t, message, outMessage)
 }
 

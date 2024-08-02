@@ -2,17 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
-import {Action} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {flagPost, unflagPost} from 'actions/post_actions';
 
-import PostFlagIcon, {Actions} from './post_flag_icon';
+import PostFlagIcon from './post_flag_icon';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             flagPost,
             unflagPost,
         }, dispatch),

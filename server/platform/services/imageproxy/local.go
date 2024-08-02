@@ -40,8 +40,6 @@ var msgNotAllowed = "requested URL is not allowed"
 var ErrLocalRequestFailed = Error{errors.New("imageproxy.LocalBackend: failed to request proxied image")}
 
 type LocalBackend struct {
-	proxy *ImageProxy
-
 	client  *http.Client
 	baseURL *url.URL
 }
@@ -57,15 +55,14 @@ func (e URLError) Error() string {
 }
 
 func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
-	baseURL, err := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
-	if err != nil {
-		mlog.Warn("Failed to set base URL for image proxy. Relative image links may not work.", mlog.Err(err))
+	baseURL := proxy.siteURL
+	if baseURL == nil {
+		mlog.Warn("Failed to set base URL for image proxy. Relative image links may not work.")
 	}
 
 	client := proxy.HTTPService.MakeClient(false)
 
 	return &LocalBackend{
-		proxy:   proxy,
 		client:  client,
 		baseURL: baseURL,
 	}
@@ -152,13 +149,12 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 
 	resp, err := backend.client.Do(actualReq)
 	if err != nil {
-		msg := fmt.Sprintf("error fetching remote image: %v", err)
-		mlog.Warn(msg)
+		mlog.Warn("error fetching remote image", mlog.Err(err))
 		statusCode := http.StatusInternalServerError
 		if e, ok := err.(net.Error); ok && e.Timeout() {
 			statusCode = http.StatusGatewayTimeout
 		}
-		http.Error(w, msg, statusCode)
+		http.Error(w, fmt.Sprintf("error fetching remote image: %v", err), statusCode)
 		return
 	}
 	// close the original resp.Body, even if we wrap it in a NopCloser below
@@ -298,7 +294,6 @@ func newProxyRequest(r *http.Request, baseURL *url.URL) (*proxyRequest, error) {
 		if err != nil {
 			return nil, URLError{fmt.Sprintf("unable to parse remote URL: %v", err), r.URL}
 		}
-
 	}
 
 	if baseURL != nil {

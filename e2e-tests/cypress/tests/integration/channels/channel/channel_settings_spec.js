@@ -45,7 +45,7 @@ describe('Channel Settings', () => {
             cy.get('#save-button').click();
 
             // # Error is displayed and URL is unchanged
-            cy.get('.has-error').should('be.visible').and('contain', 'Unable to update the channel');
+            cy.get('.has-error').should('be.visible').and('contain', 'A channel with that name already exists on the same team.');
             cy.url().should('include', `/${testTeam.name}/channels/${channel.name}`);
 
             // # Enter a new URL and save

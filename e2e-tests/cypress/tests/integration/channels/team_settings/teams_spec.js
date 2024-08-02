@@ -76,7 +76,7 @@ describe('Teams Suite', () => {
             // # Open team menu and click "Invite People"
             cy.uiOpenTeamMenu();
             cy.uiGetLHSTeamMenu().findByText('Add people to the team');
-            cy.uiGetLHSTeamMenu().findByText('Invite People').click();
+            cy.uiGetLHSTeamMenu().findByText('Invite People').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Check that the Invitation Modal opened up
             cy.findByTestId('invitationModal', {timeout: TIMEOUTS.HALF_SEC}).should('be.visible');
@@ -93,7 +93,7 @@ describe('Teams Suite', () => {
                 click();
 
             // # Click "Invite Members" button, then "Done" button
-            cy.get('#inviteMembersButton').click();
+            cy.findByTestId('inviteButton').click();
             cy.findByTestId('confirm-done').click();
 
             // * As sysadmin, verify system message posts in Town Square and Off-Topic
@@ -134,7 +134,7 @@ describe('Teams Suite', () => {
                     and('have.text', 'System');
                 cy.wrap($el).get('.post-message__text-container').
                     should('be.visible').
-                    and('contain', `@${sysadmin.username} joined the team.`).
+                    and('contain', `@${sysadmin.username} and @${testUser.username} joined the team.`).
                     and('contain', `You were added to the team by @${sysadmin.username}.`);
             });
 
@@ -145,7 +145,7 @@ describe('Teams Suite', () => {
                     and('have.text', 'System');
                 cy.wrap($el).get('.post-message__text-container').
                     should('be.visible').
-                    and('contain', `@${sysadmin.username} joined the channel.`).
+                    and('contain', `@${sysadmin.username} and @${testUser.username} joined the channel.`).
                     and('contain', `You were added to the channel by @${sysadmin.username}.`);
             });
 
@@ -186,6 +186,9 @@ describe('Teams Suite', () => {
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team Settings');
 
+        // # Go to Access section
+        cy.get('#accessButton').click();
+
         // # Open edit settings for invite code
         cy.findByText('Invite Code').should('be.visible').click();
 
@@ -213,11 +216,8 @@ describe('Teams Suite', () => {
         // # Change team name in the input
         cy.get('#teamName').should('be.visible').clear().type(teamName);
 
-        // Save new team name
-        cy.findByText(/save/i).click();
-
-        // # Close the team settings
-        cy.get('body').typeWithForce('{esc}');
+        // Save new team name annd close<
+        cy.uiSaveAndClose();
 
         // Team display name shows as "Testing Team" at top of team menu
         cy.uiGetLHSHeader().findByText(teamName);
@@ -238,9 +238,6 @@ describe('Teams Suite', () => {
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team Settings');
 
-        // # Click on the team description menu item
-        cy.findByText('Team Description').should('be.visible').click();
-
         // # Change team description in the input
         cy.get('#teamDescription').should('be.visible').clear().type(teamDescription);
         cy.get('#teamDescription').should('have.value', teamDescription);
@@ -252,7 +249,7 @@ describe('Teams Suite', () => {
         cy.uiOpenTeamMenu('Team Settings');
 
         // * Verify team description is updated
-        cy.get('#descriptionDesc').should('have.text', teamDescription);
+        cy.get('#teamDescription').should('have.text', teamDescription);
     });
 
     it('MM-T2318 Allow anyone to join this team', () => {
@@ -262,17 +259,16 @@ describe('Teams Suite', () => {
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team Settings');
 
-        // # Click on the team description menu item
-        cy.findByText('Allow any user with an account on this server to join this team').should('be.visible').click();
+        // # Go to Access section
+        cy.get('#accessButton').click();
 
-        // # Change team description in the input
-        cy.get('#teamOpenInvite').click();
+        cy.get('.access-invite-domains-section').should('exist').within(() => {
+            // # Click on the 'Allow any user with an account on this server to join this team' checkbox
+            cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+        });
 
-        // Save new team description
-        cy.findByText(/save/i).click();
-
-        // # Close the team settings
-        cy.get('body').typeWithForce('{esc}');
+        // # Save and close
+        cy.uiSaveAndClose();
 
         // # Login as new user
         cy.apiLogin(newUser);
@@ -287,7 +283,7 @@ describe('Teams Suite', () => {
 
         // # Verify Town square is visible
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        cy.get('h2.channel-intro__title').should('be.visible').should('have.text', 'Town Square');
     });
 
     it('MM-T2322 Do not allow anyone to join this team', () => {
@@ -302,14 +298,16 @@ describe('Teams Suite', () => {
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team Settings');
 
-        // # Click on the team description menu item
-        cy.findByText('Allow any user with an account on this server to join this team').should('be.visible').click();
+        // # Go to Access section
+        cy.get('#accessButton').click();
 
-        // # Change team description in the input
-        cy.get('#teamOpenInviteNo').click();
+        cy.get('.access-invite-domains-section').should('exist').within(() => {
+            // # Click on the 'Allow any user with an account on this server to join this team' checkbox
+            cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked');
+        });
 
-        // Save new team description and close team settings
-        cy.uiSaveAndClose();
+        // # Save and close
+        cy.uiClose();
 
         // # Login as new user
         cy.apiLogin(testUser);

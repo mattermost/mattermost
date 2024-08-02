@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Action} from 'redux';
+import type React from 'react';
+import type {Action} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
-
-import {SearchType} from 'types/store/rhs';
+import type {SearchType} from 'types/store/rhs';
 
 export type SearchFilterType = 'all' | 'documents' | 'spreadsheets' | 'presentations' | 'code' | 'images' | 'audio' | 'video';
 
@@ -45,18 +43,18 @@ export type DispatchProps = {
         updateSearchTerms: (term: string) => Action;
         updateSearchTermsForShortcut: () => void;
         updateSearchType: (searchType: string) => Action;
-        showSearchResults: (isMentionSearch: boolean) => Record<string, any>;
+        showSearchResults: (isMentionSearch: boolean) => unknown;
         showChannelFiles: (channelId: string) => void;
         showMentions: () => void;
         showFlaggedPosts: () => void;
         setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
-        autocompleteChannelsForSearch: (term: string, success: (channels: Channel[]) => void, error: (err: ServerError) => void) => ActionFunc;
+        autocompleteChannelsForSearch: (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
-        getMorePostsForSearch: () => ActionFunc;
+        getMorePostsForSearch: () => void;
         openRHSSearch: () => void;
-        getMoreFilesForSearch: () => ActionFunc;
+        getMoreFilesForSearch: () => void;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }

@@ -3,40 +3,40 @@
 
 import React from 'react';
 import {isValidElementType} from 'react-is';
-import {Reducer} from 'redux';
+import type {Reducer} from 'redux';
 
-import {ProductScope} from '@mattermost/types/products';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {FileInfo} from '@mattermost/types/files';
+import type {ProductScope} from '@mattermost/types/products';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
+import {
+    registerAdminConsolePlugin,
+    unregisterAdminConsolePlugin,
+    registerAdminConsoleCustomSetting,
+    registerAdminConsoleCustomSection,
+} from 'actions/admin_actions';
+import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
+import {
+    registerPluginTranslationsSource,
+} from 'actions/views/root';
+import type {
+    TranslationPluginFunction} from 'actions/views/root';
 import {
     registerPluginWebSocketEvent,
     unregisterPluginWebSocketEvent,
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions.jsx';
+import store from 'stores/redux_store';
 
-import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
-
-import {
-    registerPluginTranslationsSource,
-    TranslationPluginFunction,
-} from 'actions/views/root';
-
-import {
-    registerAdminConsolePlugin,
-    unregisterAdminConsolePlugin,
-    registerAdminConsoleCustomSetting,
-} from 'actions/admin_actions';
-
-import store from 'stores/redux_store.jsx';
 import {ActionTypes} from 'utils/constants';
-import {generateId} from 'utils/utils';
-import {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
-import {FileInfo} from '@mattermost/types/files';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {reArg} from 'utils/func';
+import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
@@ -496,6 +496,30 @@ export default class PluginRegistry {
         return id;
     });
 
+    // Register a component to the add to the post message menu shown on hover.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostAction', this.id, component);
+    });
+
+    // Register a component to the add to the post text editor menu.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostEditorAction', this.id, component);
+    });
+
+    // Register a component to the add to the code block header.
+    // Accepts a React component. Returns a unique identifier.
+    registerCodeBlockActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('CodeBlockAction', this.id, component);
+    });
+
+    // Register a component to the add to the new messages separator.
+    // Accepts a React component. Returns a unique identifier.
+    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
+    });
+
     // Register a post menu list item by providing some text and an action function.
     // Accepts the following:
     // - text - A string or React element to display in the menu
@@ -841,6 +865,12 @@ export default class PluginRegistry {
         store.dispatch(registerAdminConsolePlugin(this.id, func));
     });
 
+    // Unregister a previously registered admin console definition override function.
+    // Returns undefined.
+    unregisterAdminConsolePlugin() {
+        store.dispatch(unregisterAdminConsolePlugin(this.id));
+    }
+
     // Register a custom React component to manage the plugin configuration for the given setting key.
     // Accepts the following:
     // - key - A key specified in the settings_schema.settings block of the plugin's manifest.
@@ -865,11 +895,22 @@ export default class PluginRegistry {
         store.dispatch(registerAdminConsoleCustomSetting(this.id, key, component, {showTitle}));
     });
 
-    // Unregister a previously registered admin console definition override function.
-    // Returns undefined.
-    unregisterAdminConsolePlugin() {
-        store.dispatch(unregisterAdminConsolePlugin(this.id));
-    }
+    // Register a custom React component to render as a section in the plugin configuration page.
+    // Accepts the following:
+    // - key - A key specified in the settings_schema.sections block of the plugin's manifest.
+    // - component - A react component to render in place of the default handling.
+    registerAdminConsoleCustomSection = reArg([
+        'key',
+        'component',
+    ], ({
+        key,
+        component,
+    }: {
+        key: string;
+        component: PluginComponent['component'];
+    }) => {
+        store.dispatch(registerAdminConsoleCustomSection(this.id, key, component));
+    });
 
     // Register a Right-Hand Sidebar component by providing a title for the right hand component.
     // Accepts the following:
@@ -1155,16 +1196,6 @@ export default class PluginRegistry {
         });
     });
 
-    registerInsightsHandler = reArg(['handler'], ({handler}) => {
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_INSIGHT,
-            data: {
-                pluginId: this.id,
-                handler,
-            },
-        });
-    });
-
     // Register a hook to intercept desktop notifications before they occur.
     // Accepts a function to run before the desktop notification is triggered.
     // The function has the following signature:
@@ -1211,5 +1242,23 @@ export default class PluginRegistry {
         });
 
         return id;
+    });
+
+    // Register a schema for user settings. This will show in the user settings modals
+    // and all values will be stored in the preferences with cateogry pp_${pluginId} and
+    // the name of the setting.
+    //
+    // The settings definition can be found in /src/types/plugins/user_settings.ts
+    //
+    // Malformed settings will be filtered out.
+    registerUserSettings = reArg(['setting'], ({setting}) => {
+        const data = {
+            pluginId: this.id,
+            setting,
+        };
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
+            data,
+        });
     });
 }

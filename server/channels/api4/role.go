@@ -12,18 +12,21 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
+const GetRolesByNamesMax = 100
+
 var notAllowedPermissions = []string{
 	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
 	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
 	model.PermissionManageRoles.Id,
+	model.PermissionManageSystem.Id,
 }
 
 func (api *API) InitRole() {
-	api.BaseRoutes.Roles.Handle("", api.APISessionRequired(getAllRoles)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getRole)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.APISessionRequiredTrustRequester(getRoleByName)).Methods("GET")
-	api.BaseRoutes.Roles.Handle("/names", api.APISessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
-	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchRole)).Methods("PUT")
+	api.BaseRoutes.Roles.Handle("", api.APISessionRequired(getAllRoles)).Methods(http.MethodGet)
+	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getRole)).Methods(http.MethodGet)
+	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.APISessionRequiredTrustRequester(getRoleByName)).Methods(http.MethodGet)
+	api.BaseRoutes.Roles.Handle("/names", api.APISessionRequiredTrustRequester(getRolesByNames)).Methods(http.MethodPost)
+	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchRole)).Methods(http.MethodPut)
 }
 
 func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -82,10 +85,19 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	rolenames := model.ArrayFromJSON(r.Body)
-
-	if len(rolenames) == 0 {
+	rolenames, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getRolesByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(rolenames) == 0 {
 		c.SetInvalidParam("rolenames")
+		return
+	}
+
+	if len(rolenames) > GetRolesByNamesMax {
+		c.Err = model.NewAppError("getRolesByNames", "api.roles.get_multiple_by_name_too_many.request_error", map[string]any{
+			"MaxNames": GetRolesByNamesMax,
+		}, "", http.StatusBadRequest)
 		return
 	}
 

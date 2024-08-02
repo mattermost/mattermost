@@ -18,8 +18,8 @@ import (
 )
 
 func (w *Web) InitWebhooks() {
-	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods("POST")
-	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods("POST")
+	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods(http.MethodPost)
+	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods(http.MethodPost)
 }
 
 func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					fields = append(fields, mlog.NamedErr("encoding_err", err))
 				} else {
-					fields = append(fields, mlog.String("payload", string(payload)))
+					fields = append(fields, mlog.String("payload", payload))
 				}
 
 				mlog.Debug("Incoming webhook received", fields...)

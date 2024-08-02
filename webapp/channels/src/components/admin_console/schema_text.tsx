@@ -3,60 +3,24 @@
 
 import marked from 'marked';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage, {CustomRenderer} from 'components/formatted_markdown_message';
 
 type Props = {
     isMarkdown?: boolean;
-    isTranslated?: boolean;
-    text: string | object;
-    textDefault?: string;
+    text: string | MessageDescriptor | JSX.Element;
     textValues?: Record<string, React.ReactNode>;
 }
 
-export default class SchemaText extends React.PureComponent<Props> {
-    static defaultProps = {
-        isTranslated: true,
-    };
-
-    renderTranslated = () => {
-        const {
-            isMarkdown,
-            text,
-            textDefault,
-            textValues,
-        } = this.props;
-
-        if (typeof text === 'object') {
-            return text;
-        }
-
+const SchemaText = ({
+    isMarkdown,
+    text,
+    textValues,
+}: Props) => {
+    if (typeof text === 'string') {
         if (isMarkdown) {
-            return (
-                <FormattedMarkdownMessage
-                    id={text}
-                    defaultMessage={textDefault}
-                    values={textValues}
-                />
-            );
-        }
-
-        return (
-            <FormattedMessage
-                id={text}
-                values={textValues}
-                defaultMessage={textDefault}
-            />
-        );
-    };
-
-    renderUntranslated = () => {
-        const {isMarkdown, text} = this.props;
-        if (isMarkdown) {
-            if (typeof text === 'object') {
-                return text;
-            }
             const html = marked(text, {
                 breaks: true,
                 sanitize: true,
@@ -67,9 +31,27 @@ export default class SchemaText extends React.PureComponent<Props> {
         }
 
         return <span>{text}</span>;
-    };
-
-    render() {
-        return this.props.isTranslated ? this.renderTranslated() : this.renderUntranslated();
     }
-}
+
+    if ('id' in text) {
+        if (isMarkdown) {
+            return (
+                <FormattedMarkdownMessage
+                    {...text}
+                    values={textValues}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                {...text}
+                values={textValues}
+            />
+        );
+    }
+
+    return text as JSX.Element;
+};
+
+export default SchemaText;

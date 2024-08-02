@@ -62,7 +62,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         target={[Function]}
         topOffset={-5}
       />
-      <Connect(ChannelPermissionGate)
+      <Memo(ChannelPermissionGate)
         channelId=""
         permissions={
           Array [
@@ -71,25 +71,14 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         }
         teamId="teamId"
       >
-        <OverlayTrigger
-          defaultOverlayShown={false}
-          delayShow={400}
-          overlay={
-            <Tooltip
-              id="addReactionTooltip"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add a reaction"
-                id="reaction_list.addReactionTooltip"
-              />
-            </Tooltip>
-          }
+        <WithTooltip
+          id="addReactionTooltip"
           placement="top"
-          trigger={
-            Array [
-              "hover",
-              "focus",
-            ]
+          title={
+            Object {
+              "defaultMessage": "Add a reaction",
+              "id": "reaction_list.addReactionTooltip",
+            }
           }
         >
           <button
@@ -104,8 +93,8 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
               <AddReactionIcon />
             </span>
           </button>
-        </OverlayTrigger>
-      </Connect(ChannelPermissionGate)>
+        </WithTooltip>
+      </Memo(ChannelPermissionGate)>
     </span>
   </div>
 </div>

@@ -76,7 +76,6 @@ func (ms *MemoryStore) Load() ([]byte, error) {
 	}
 
 	return cfgBytes, nil
-
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.

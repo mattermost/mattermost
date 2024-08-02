@@ -1,28 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, MouseEvent} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, {useState, useRef} from 'react';
+import type {MouseEvent} from 'react';
 import {Overlay} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+
+import type {Role} from '@mattermost/types/roles';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Tooltip from 'components/tooltip';
 
 import {generateId} from 'utils/utils';
 
-import {Role} from '@mattermost/types/roles';
-
-import {AdditionalValues} from './permissions_tree/types';
+import type {AdditionalValues} from './permissions_tree/types';
+import {rolesRolesStrings} from './strings/roles';
 
 type Props = {
     id: string;
-    rowType: string;
     inherited?: Partial<Role>;
     selectRow: (id: string) => void;
     additionalValues?: AdditionalValues | AdditionalValues['edit_post'];
+    description: string | JSX.Element;
 }
 
-const PermissionDescription = (props: Props): JSX.Element => {
+const PermissionDescription = ({
+    id,
+    selectRow,
+    description,
+    additionalValues,
+    inherited,
+}: Props): JSX.Element => {
     const [open, setOpen] = useState(false);
     const randomId = generateId();
     const contentRef = useRef<HTMLSpanElement>(null);
@@ -42,35 +50,24 @@ const PermissionDescription = (props: Props): JSX.Element => {
         if (parent?.className !== 'permission-description' && !isInheritLink) {
             e.stopPropagation();
         } else if (isInheritLink) {
-            props.selectRow(props.id);
+            selectRow(id);
             e.stopPropagation();
         }
     };
 
-    const {inherited, id, rowType} = props;
-
     let content: string | JSX.Element = '';
-    if (inherited) {
+    if (inherited && inherited.name) {
         content = (
             <span className='inherit-link-wrapper'>
                 <FormattedMarkdownMessage
                     id='admin.permissions.inherited_from'
-                    values={{
-                        name: intl.formatMessage({
-                            id: 'admin.permissions.roles.' + inherited.name + '.name',
-                            defaultMessage: inherited.display_name,
-                        }),
-                    }}
+                    defaultMessage='Inherited from [{name}]().'
+                    values={{name: intl.formatMessage(rolesRolesStrings[inherited.name])}}
                 />
             </span>
         );
     } else {
-        content = (
-            <FormattedMessage
-                id={'admin.permissions.' + rowType + '.' + id + '.description'}
-                values={props.additionalValues}
-            />
-        );
+        content = description;
     }
     let tooltip: JSX.Element | null = (
         <Overlay
@@ -83,7 +80,7 @@ const PermissionDescription = (props: Props): JSX.Element => {
             </Tooltip>
         </Overlay>
     );
-    if (content.props.values && Object.keys(content.props.values).length > 0) {
+    if (!inherited && additionalValues) {
         tooltip = null;
     }
     content = (

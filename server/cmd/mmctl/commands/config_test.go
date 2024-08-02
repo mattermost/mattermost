@@ -6,22 +6,24 @@ package commands
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 const (
-	configFilePayload = "{\"TeamSettings\": {\"SiteName\": \"ADifferentName\"}}"
+	configFilePayload       = "{\"TeamSettings\": {\"SiteName\": \"ADifferentName\"}}"
+	configFilePluginPayload = "{\"PluginSettings\": {\"Plugins\": {\"plugin.1\": {\"new\": \"key\", \"existing\": \"replacement\"}, \"plugin.2\": {\"this is\": \"new\"}}}}"
 )
 
 func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
@@ -33,7 +35,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -52,7 +54,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -71,7 +73,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -90,7 +92,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -109,7 +111,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -130,7 +132,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -141,7 +143,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Get error if the key doesn't exists", func() {
+	s.Run("Get error if the key doesn't exist", func() {
 		printer.Clean()
 		args := []string{"SqlSettings.WrongKey"}
 		outputConfig := &model.Config{}
@@ -151,7 +153,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -171,7 +173,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
@@ -198,7 +200,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(7)
 
@@ -256,7 +258,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
 
@@ -273,7 +275,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -297,12 +299,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -325,12 +327,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -353,12 +355,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -381,12 +383,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -408,12 +410,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -435,7 +437,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -444,7 +446,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Get error if the key doesn't exists", func() {
+	s.Run("Get error if the key doesn't exist", func() {
 		printer.Clean()
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
@@ -454,7 +456,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -476,12 +478,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
@@ -516,13 +518,13 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(3)
 
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(3)
 
@@ -556,7 +558,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -577,7 +579,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -589,18 +591,25 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
-	s.Require().Nil(err)
+	tmpFile, err := os.CreateTemp(os.TempDir(), "config_*.json")
+	s.Require().NoError(err)
 
-	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
-	s.Require().Nil(err)
+	invalidFile, err := os.CreateTemp(os.TempDir(), "invalid_config_*.json")
+	s.Require().NoError(err)
+
+	pluginFile, err := os.CreateTemp(os.TempDir(), "plugin_config_*.json")
+	s.Require().NoError(err)
 
 	_, err = tmpFile.Write([]byte(configFilePayload))
-	s.Require().Nil(err)
+	s.Require().NoError(err)
+
+	_, err = pluginFile.Write([]byte(configFilePluginPayload))
+	s.Require().NoError(err)
 
 	defer func() {
 		os.Remove(tmpFile.Name())
 		os.Remove(invalidFile.Name())
+		os.Remove(pluginFile.Name())
 	}()
 
 	s.Run("Patch config with a valid file", func() {
@@ -618,12 +627,12 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.Background(), inputConfig).
+			PatchConfig(context.TODO(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -634,6 +643,46 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Correctly patch with a valid file that affects plugins", func() {
+		printer.Clean()
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		defaultConfig.PluginSettings.Plugins = map[string]map[string]any{
+			"plugin.1": {
+				"existing": "value",
+			},
+		}
+		expectedPluginConfig := map[string]map[string]any{
+			"plugin.1": {
+				"new":      "key",
+				"existing": "replacement",
+			},
+			"plugin.2": {
+				"this is": "new",
+			},
+		}
+		expectedConfig := &model.Config{}
+		expectedConfig.SetDefaults()
+		expectedConfig.PluginSettings.Plugins = expectedPluginConfig
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(defaultConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(context.TODO(), expectedConfig).
+			Return(expectedConfig, &model.Response{}, nil).
+			Times(1)
+
+		err = configPatchCmdF(s.client, &cobra.Command{}, []string{pluginFile.Name()})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], expectedConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("Fail to patch config if file is invalid", func() {
 		printer.Clean()
 		defaultConfig := &model.Config{}
@@ -641,7 +690,7 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -669,12 +718,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(context.Background(), defaultConfig).
+			UpdateConfig(context.TODO(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -695,12 +744,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(context.Background(), defaultConfig).
+			UpdateConfig(context.TODO(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -714,7 +763,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Should fail if the key doesn't exists", func() {
+	s.Run("Should fail if the key doesn't exist", func() {
 		printer.Clean()
 		args := []string{"WrongKey"}
 		defaultConfig := &model.Config{}
@@ -722,7 +771,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -743,7 +792,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -760,7 +809,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.Background()).
+			GetConfig(context.TODO()).
 			Return(nil, &model.Response{}, configError).
 			Times(1)
 
@@ -776,7 +825,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig(context.Background()).
+			ReloadConfig(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -790,7 +839,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig(context.Background()).
+			ReloadConfig(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -814,7 +863,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(context.Background(), args[0], args[1]).
+			MigrateConfig(context.TODO(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -832,7 +881,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(context.Background(), args[0], args[1]).
+			MigrateConfig(context.TODO(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -875,4 +924,81 @@ func TestCloudRestricted(t *testing.T) {
 
 		require.True(t, cloudRestricted(cfg, parseConfigPath(path)))
 	})
+}
+
+func TestSetConfigValue(t *testing.T) {
+	tests := map[string]struct {
+		path           string
+		config         *model.Config
+		args           []string
+		expectedConfig *model.Config
+	}{
+		"bool": {
+			path: "LogSettings.EnableConsole",
+			args: []string{"true"},
+			config: &model.Config{LogSettings: model.LogSettings{
+				EnableConsole: model.NewBool(false),
+			}},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				EnableConsole: model.NewBool(true),
+			}},
+		},
+		"string": {
+			path: "LogSettings.ConsoleLevel",
+			args: []string{"foo"},
+			config: &model.Config{LogSettings: model.LogSettings{
+				ConsoleLevel: model.NewString("ConsoleLevel"),
+			}},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				ConsoleLevel: model.NewString("foo"),
+			}},
+		},
+		"int": {
+			path: "LogSettings.MaxFieldSize",
+			args: []string{"123"},
+			config: &model.Config{LogSettings: model.LogSettings{
+				MaxFieldSize: model.NewInt(0),
+			}},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				MaxFieldSize: model.NewInt(123),
+			}},
+		},
+		"int64": {
+			path: "ServiceSettings.TLSStrictTransportMaxAge",
+			config: &model.Config{ServiceSettings: model.ServiceSettings{
+				TLSStrictTransportMaxAge: model.NewInt64(0),
+			}},
+			args: []string{"123"},
+			expectedConfig: &model.Config{ServiceSettings: model.ServiceSettings{
+				TLSStrictTransportMaxAge: model.NewInt64(123),
+			}},
+		},
+		"string slice": {
+			path: "SqlSettings.DataSourceReplicas",
+			args: []string{"abc", "def"},
+			config: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{},
+			}},
+			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"abc", "def"},
+			}},
+		},
+		"json.RawMessage": {
+			path: "LogSettings.AdvancedLoggingJSON",
+			config: &model.Config{LogSettings: model.LogSettings{
+				AdvancedLoggingJSON: nil,
+			}},
+			args: []string{`{"console1":{"Type":"console"}}`},
+			expectedConfig: &model.Config{LogSettings: model.LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`{"console1":{"Type":"console"}}`),
+			}},
+		},
+	}
+
+	for name, tc := range tests {
+		err := setConfigValue(parseConfigPath(tc.path), tc.config, tc.args)
+		require.NoError(t, err)
+
+		assert.Equal(t, tc.expectedConfig, tc.config, name)
+	}
 }

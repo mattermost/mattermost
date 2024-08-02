@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {ChannelType} from '@mattermost/types/channels';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -42,7 +43,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         onToggleMenu: jest.fn(),
         multiSelectedChannelIds: [],
         displayedChannels: [],
-        markChannelAsRead: jest.fn(),
+        markMultipleChannelsAsRead: jest.fn(),
         markMostRecentPostInChannelAsUnread: jest.fn(),
         favoriteChannel: jest.fn(),
         unfavoriteChannel: jest.fn(),

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PluginManifest} from './plugins';
-import {AppManifest} from './apps';
+import type {AppManifest} from './apps';
+import type {PluginManifest} from './plugins';
 
 export type MarketplaceLabel = {
     name: string;

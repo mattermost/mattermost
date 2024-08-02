@@ -1,5 +1,5 @@
 .CommercialSupportModal {
-    padding: 20px 20px;
+    padding: 0 32px 32px 32px;
 
     .DownloadSupportPacket {
         margin-top: 20px;
@@ -8,4 +8,19 @@
     .AlertBanner {
         margin-top: 20px;
     }
+
+    &__packet_contents_download {
+        margin-top: 20px;
+        margin-bottom: 12px;
+    }
+
+    &__options_checkbox_label {
+        padding-left: 12px;
+        font-weight: 500;
+    }
+}
+
+.modal-header .modal-title {
+    font-family: Metropolis, sans-serif;
+    font-weight: 600;
 }

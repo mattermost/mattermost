@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
+import type {
     Limits,
     Subscription,
     Product,
     CloudCustomer,
     CloudState,
 } from '@mattermost/types/cloud';
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getLicense} from './general';
 

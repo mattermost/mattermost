@@ -5,6 +5,8 @@ package docextractor
 
 import (
 	"io"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // ExtractSettings defines the features enabled/disable during the document text extraction.
@@ -15,13 +17,15 @@ type ExtractSettings struct {
 }
 
 // Extract extract the text from a document using the system default extractors
-func Extract(filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
-	return ExtractWithExtraExtractors(filename, r, settings, []Extractor{})
+func Extract(logger mlog.LoggerIFace, filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
+	return ExtractWithExtraExtractors(logger, filename, r, settings, []Extractor{})
 }
 
 // ExtractWithExtraExtractors extract the text from a document using the provided extractors beside the system default extractors.
-func ExtractWithExtraExtractors(filename string, r io.ReadSeeker, settings ExtractSettings, extraExtractors []Extractor) (string, error) {
-	enabledExtractors := &combineExtractor{}
+func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.ReadSeeker, settings ExtractSettings, extraExtractors []Extractor) (string, error) {
+	enabledExtractors := &combineExtractor{
+		logger: logger,
+	}
 	for _, extraExtractor := range extraExtractors {
 		enabledExtractors.Add(extraExtractor)
 	}

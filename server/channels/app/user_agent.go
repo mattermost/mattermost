@@ -10,6 +10,8 @@ import (
 	"github.com/avct/uasurfer"
 )
 
+const maxUserAgentVersionLength = 128
+
 var platformNames = map[uasurfer.Platform]string{
 	uasurfer.PlatformUnknown:      "Windows",
 	uasurfer.PlatformWindows:      "Windows",
@@ -84,22 +86,33 @@ func getOSName(ua *uasurfer.UserAgent) string {
 }
 
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
+	if index := strings.Index(userAgentString, "Mattermost Mobile/"); index != -1 {
+		afterVersion := userAgentString[index+len("Mattermost Mobile/"):]
+		// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
+		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
+	}
+
 	if index := strings.Index(userAgentString, "Mattermost/"); index != -1 {
 		afterVersion := userAgentString[index+len("Mattermost/"):]
-		return strings.Fields(afterVersion)[0]
+		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
 	}
 
 	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
 		afterVersion := userAgentString[index+len("mmctl/"):]
-		return strings.Fields(afterVersion)[0]
+		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
 	}
 
 	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
 		afterVersion := userAgentString[index+len("Franz/"):]
-		return strings.Fields(afterVersion)[0]
+		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
 	}
 
 	return getUAVersion(ua.Browser.Version)
+}
+
+func limitStringLength(field string, limit int) string {
+	endPos := min(len(field), limit)
+	return field[:endPos]
 }
 
 func getUAVersion(version uasurfer.Version) string {
@@ -123,8 +136,13 @@ var browserNames = map[uasurfer.BrowserName]string{
 func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 	browser := ua.Browser.Name
 
-	if strings.Contains(userAgentString, "Mattermost") {
+	if strings.Contains(userAgentString, "Electron") ||
+		(strings.Contains(userAgentString, "Mattermost") && !strings.Contains(userAgentString, "Mattermost Mobile")) {
 		return "Desktop App"
+	}
+
+	if strings.Contains(userAgentString, "Mattermost Mobile") {
+		return "Mobile App"
 	}
 
 	if strings.Contains(userAgentString, "mmctl") {
@@ -140,5 +158,4 @@ func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 	}
 
 	return browserNames[uasurfer.BrowserUnknown]
-
 }

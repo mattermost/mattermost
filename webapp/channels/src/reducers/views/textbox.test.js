@@ -3,7 +3,7 @@
 
 import textboxReducer from 'reducers/views/textbox';
 
-import {ActionTypes} from '../../utils/constants';
+import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.RHS', () => {
     const initialState = {

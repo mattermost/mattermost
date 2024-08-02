@@ -8,11 +8,12 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
-	job, err := a.Srv().Store().Job().Get(id)
+func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
+	job, err := a.Srv().Store().Job().Get(c, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -26,25 +27,12 @@ func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
 	return job, nil
 }
 
-func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobs(page*perPage, perPage)
+func (a *App) GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	return a.GetJobsByType(c, jobType, page*perPage, perPage)
 }
 
-func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllPage(offset, limit)
-	if err != nil {
-		return nil, model.NewAppError("GetJobs", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return jobs, nil
-}
-
-func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByType(jobType, page*perPage, perPage)
-}
-
-func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypePage(jobType, offset, limit)
+func (a *App) GetJobsByType(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypePage(c, jobType, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -52,24 +40,45 @@ func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job
 	return jobs, nil
 }
 
-func (a *App) GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByTypes(jobType, page*perPage, perPage)
+func (a *App) GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	return a.GetJobsByTypes(c, jobType, page*perPage, perPage)
 }
 
-func (a *App) GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(jobTypes, offset, limit)
+func (a *App) GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(c, jobTypes, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
 
-func (a *App) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
-	return a.Srv().Jobs.CreateJob(job.Type, job.Data)
+func (a *App) GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypeAndStatusPage(c, jobTypes, status, page*perPage, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetAllByTypeAndStatusPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return jobs, nil
 }
 
-func (a *App) CancelJob(jobId string) *model.AppError {
-	return a.Srv().Jobs.RequestCancellation(jobId)
+func (a *App) CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError) {
+	return a.Srv().Jobs.CreateJob(c, job.Type, job.Data)
+}
+
+func (a *App) CancelJob(c request.CTX, jobId string) *model.AppError {
+	return a.Srv().Jobs.RequestCancellation(c, jobId)
+}
+
+func (a *App) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError {
+	switch newStatus {
+	case model.JobStatusPending:
+		return a.Srv().Jobs.SetJobPending(job)
+	case model.JobStatusCancelRequested:
+		return a.Srv().Jobs.RequestCancellation(c, job.Id)
+	case model.JobStatusCanceled:
+		return a.Srv().Jobs.SetJobCanceled(job)
+	default:
+		return model.NewAppError("UpdateJobStatus", "app.job.update_status.app_error", nil, "", http.StatusInternalServerError)
+	}
 }
 
 func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
@@ -102,6 +111,44 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 	}
 
 	return false, nil
+}
+
+func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+	var permission *model.Permission
+
+	switch job.Type {
+	case model.JobTypeBlevePostIndexing:
+		permission = model.PermissionManagePostBleveIndexesJob
+	case model.JobTypeDataRetention:
+		permission = model.PermissionManageDataRetentionJob
+	case model.JobTypeMessageExport:
+		permission = model.PermissionManageComplianceExportJob
+	case model.JobTypeElasticsearchPostIndexing:
+		permission = model.PermissionManageElasticsearchPostIndexingJob
+	case model.JobTypeElasticsearchPostAggregation:
+		permission = model.PermissionManageElasticsearchPostAggregationJob
+	case model.JobTypeLdapSync:
+		permission = model.PermissionManageLdapSyncJob
+	case
+		model.JobTypeMigrations,
+		model.JobTypePlugins,
+		model.JobTypeProductNotices,
+		model.JobTypeExpiryNotify,
+		model.JobTypeActiveUsers,
+		model.JobTypeImportProcess,
+		model.JobTypeImportDelete,
+		model.JobTypeExportProcess,
+		model.JobTypeExportDelete,
+		model.JobTypeCloud,
+		model.JobTypeExtractContent:
+		permission = model.PermissionManageJobs
+	}
+
+	if permission == nil {
+		return false, nil
+	}
+
+	return a.SessionHasPermissionTo(session, permission), permission
 }
 
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {

@@ -537,7 +537,7 @@ func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
 		s.th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 		err := userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), ": You do not have the appropriate permissions.")
+		s.Require().Equal(err.Error(), "You do not have the appropriate permissions.")
 
 		s.th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 		err = userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
@@ -550,7 +550,7 @@ func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
 		printer.Clean()
 		err = userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), ": no matching group found")
+		s.Require().Equal(err.Error(), "no matching group found")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

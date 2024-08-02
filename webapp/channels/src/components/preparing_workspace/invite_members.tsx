@@ -2,25 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useMemo, useEffect} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
-import {FormattedMessage, useIntl} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-
-import {t} from 'utils/i18n';
-import {Constants} from 'utils/constants';
+import type {UserProfile} from '@mattermost/types/users';
 
 import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
-import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
+import {Constants} from 'utils/constants';
 
-import Title from './title';
 import Description from './description';
-import PageBody from './page_body';
-import SingleColumnLayout from './single_column_layout';
-
-import PageLine from './page_line';
 import InviteMembersLink from './invite_members_link';
+import PageBody from './page_body';
+import PageLine from './page_line';
+import SingleColumnLayout from './single_column_layout';
+import {Animations, mapAnimationReasonToClass} from './steps';
+import type {Form, PreparingWorkspacePageProps} from './steps';
+import Title from './title';
 
 import './invite_members.scss';
 
@@ -65,10 +63,7 @@ const InviteMembers = (props: Props) => {
     });
     const errorProperties = {
         showError: false,
-        errorMessageId: t(
-            'invitation_modal.invite_members.exceeded_max_add_members_batch',
-        ),
-        errorMessageDefault: 'No more than **{text}** people can be invited at once',
+        errorMessage: messages.exceededMaxBatch,
         errorMessageValues: {
             text: Constants.MAX_ADD_MEMBERS_BATCH.toString(),
         },
@@ -116,8 +111,7 @@ const InviteMembers = (props: Props) => {
             inputValue={email}
             emailInvitationsEnabled={true}
             autoFocus={true}
-            validAddressMessageId={t('invitation_modal.members.users_emails_input.valid_email')}
-            validAddressMessageDefault={'Invite **{email}** as a team member'}
+            validAddressMessage={messages.validAddress}
             suppressNoOptionsMessage={suppressNoOptionsMessage}
         />
     );
@@ -168,7 +162,7 @@ const InviteMembers = (props: Props) => {
                 <Title>
                     <FormattedMessage
                         id={'onboarding_wizard.invite_members_cloud.title'}
-                        defaultMessage='Who works with you?'
+                        defaultMessage='Invite your team members'
                     />
                 </Title>
                 <Description>
@@ -242,5 +236,16 @@ const InviteMembers = (props: Props) => {
         </CSSTransition>
     );
 };
+
+const messages = defineMessages({
+    exceededMaxBatch: {
+        id: 'invitation_modal.invite_members.exceeded_max_add_members_batch',
+        defaultMessage: 'No more than **{text}** people can be invited at once',
+    },
+    validAddress: {
+        id: 'invitation_modal.members.users_emails_input.valid_email',
+        defaultMessage: 'Invite **{email}** as a team member',
+    },
+});
 
 export default InviteMembers;

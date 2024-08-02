@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Reducer} from 'redux';
+import type {Reducer} from 'redux';
 
 // Based on http://nicolasgallagher.com/redux-modules-and-code-splitting/
 export class ReducerRegistry {

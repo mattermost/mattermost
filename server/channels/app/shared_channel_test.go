@@ -12,33 +12,40 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func setupSharedChannels(tb testing.TB) *TestHelper {
+	return SetupConfig(tb, func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
+		*cfg.ExperimentalSettings.EnableSharedChannels = true
+	})
+}
+
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic()
 
 	channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel3 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	data := []struct {
-		channelId string
+		channelID string
 		home      bool
 		name      string
-		remoteId  string
+		remoteID  string
 	}{
-		{channelId: channel1.Id, home: true, name: "test_home", remoteId: ""},
-		{channelId: channel2.Id, home: false, name: "test_remote", remoteId: model.NewId()},
+		{channelID: channel1.Id, home: true, name: "test_home", remoteID: ""},
+		{channelID: channel2.Id, home: false, name: "test_remote", remoteID: model.NewId()},
 	}
 
 	for _, d := range data {
 		sc := &model.SharedChannel{
-			ChannelId: d.channelId,
+			ChannelId: d.channelID,
 			TeamId:    th.BasicTeam.Id,
 			Home:      d.home,
 			ShareName: d.name,
 			CreatorId: th.BasicUser.Id,
-			RemoteId:  d.remoteId,
+			RemoteId:  d.remoteID,
 		}
-		_, err := th.App.SaveSharedChannel(th.Context, sc)
+		_, err := th.App.ShareChannel(th.Context, sc)
 		require.NoError(t, err)
 	}
 
@@ -73,12 +80,12 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 	})
 
 	t.Run("Test CheckCanInviteToSharedChannel: Home shared channel", func(t *testing.T) {
-		err := th.App.CheckCanInviteToSharedChannel(data[0].channelId)
+		err := th.App.CheckCanInviteToSharedChannel(data[0].channelID)
 		assert.NoError(t, err, "home channel should allow invites")
 	})
 
 	t.Run("Test CheckCanInviteToSharedChannel: Remote shared channel", func(t *testing.T) {
-		err := th.App.CheckCanInviteToSharedChannel(data[1].channelId)
+		err := th.App.CheckCanInviteToSharedChannel(data[1].channelID)
 		assert.Error(t, err, "home channel should not allow invites")
 	})
 

@@ -7,6 +7,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,7 +86,6 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestGetDrafts(t *testing.T) {
-	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -104,7 +104,6 @@ func TestGetDrafts(t *testing.T) {
 
 	draft1 := &model.Draft{
 		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel1.Id,
 		Message:   "draft1",
@@ -112,7 +111,6 @@ func TestGetDrafts(t *testing.T) {
 
 	draft2 := &model.Draft{
 		CreateAt:  11111,
-		UpdateAt:  32222,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -123,6 +121,9 @@ func TestGetDrafts(t *testing.T) {
 	// upsert draft1
 	_, _, err := client.UpsertDraft(context.Background(), draft1)
 	require.NoError(t, err)
+
+	// Wait a bit so the second draft gets a newer UpdateAt
+	time.Sleep(100 * time.Millisecond)
 
 	// upsert draft2
 	_, _, err = client.UpsertDraft(context.Background(), draft2)
@@ -157,7 +158,6 @@ func TestGetDrafts(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
-	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -176,7 +176,6 @@ func TestDeleteDraft(t *testing.T) {
 
 	draft1 := &model.Draft{
 		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel1.Id,
 		Message:   "draft1",
@@ -185,7 +184,6 @@ func TestDeleteDraft(t *testing.T) {
 
 	draft2 := &model.Draft{
 		CreateAt:  11111,
-		UpdateAt:  32222,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -195,6 +193,9 @@ func TestDeleteDraft(t *testing.T) {
 	// upsert draft1
 	_, _, err := client.UpsertDraft(context.Background(), draft1)
 	require.NoError(t, err)
+
+	// Wait a bit so the second draft gets a newer UpdateAt
+	time.Sleep(100 * time.Millisecond)
 
 	// upsert draft2
 	_, _, err = client.UpsertDraft(context.Background(), draft2)

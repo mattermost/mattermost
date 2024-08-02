@@ -2,19 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {useCurrentProductId} from 'utils/products';
 
 import CenterControls from './center_controls/center_controls';
+import {useIsLoggedIn} from './hooks';
 import LeftControls from './left_controls/left_controls';
 import RightControls from './right_controls/right_controls';
-
-import {useIsLoggedIn} from './hooks';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import {useSelector} from 'react-redux';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 const GlobalHeaderContainer = styled.header`
     position: relative;
@@ -22,11 +22,9 @@ const GlobalHeaderContainer = styled.header`
     flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
-    height: 40px;
-    background: var(--global-header-background);
-    border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
-    color: rgba(var(--global-header-text-rgb), 0.64);
-    padding: 0 12px;
+    height: 44px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
+    padding: 0 4px 0 8px;
     z-index: 99;
 
     > * + * {

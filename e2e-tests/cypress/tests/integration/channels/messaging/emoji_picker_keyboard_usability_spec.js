@@ -37,7 +37,7 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
             and('have.focus').
             type('si').
             should('have.value', 'si').
-            type('{leftarrow}m').
+            type('{leftarrow}{leftarrow}m').
             should('have.value', 'smi');
     });
 
@@ -48,11 +48,12 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
             and('have.focus').
             type('si').
             should('have.value', 'si').
-            type('{leftarrow}m').
+            type('{leftarrow}{leftarrow}m').
             should('have.value', 'smi').
+            type('{leftarrow}{leftarrow}').
             type('{rightarrow}l').
-            should('have.value', 'smil').
-            type('{rightarrow}');
+            should('have.value', 'smil');
+
         cy.get('.emoji-picker__item.selected').should('exist').within(() => {
             cy.findByTestId('smile').should('exist');
         });
@@ -72,10 +73,6 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
 
     it('On up or down arrow key press, move the selection up or down the emoji items', () => {
         // * Check initial state of emoji preview
-        cy.get('.emoji-picker__preview').should('have.text', 'Select an Emoji');
-
-        // # Press down arrow and verify selected emoji
-        cy.get('body').type('{downarrow}');
         cy.get('.emoji-picker__preview').should('have.text', ':grinning:');
 
         // # Again, press down arrow and verify next selected emoji
@@ -97,11 +94,11 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
         cy.findByLabelText('Search for an emoji').should('have.value', 'mi');
 
         // # Move cursor to the beginning of search text, type "s", and then verify search text input
-        cy.get('body').type('{uparrow}').type('s');
+        cy.get('body').type('{uparrow}{uparrow}').type('s');
         cy.findByLabelText('Search for an emoji').should('have.value', 'smi');
 
         // # Move cursor to the end of the text
-        cy.findByLabelText('Search for an emoji').type('{downarrow}{uparrow}');
+        cy.findByLabelText('Search for an emoji').type('{uparrow}');
 
         // * Verify that nothing is initially selected
         verifySelectedTextAs('');
@@ -117,10 +114,10 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
         cy.findByLabelText('Search for an emoji').should('have.value', 'sm');
 
         // # Move cursor to the beginning then end of search text, type "i", and then verify search text input
-        cy.findByLabelText('Search for an emoji').type('{uparrow}{downarrow}i').should('have.value', 'smi');
+        cy.findByLabelText('Search for an emoji').type('{uparrow}{uparrow}{downarrow}i').should('have.value', 'smi');
 
         // # Move cursor to the beginning of search text
-        cy.findByLabelText('Search for an emoji').type('{uparrow}');
+        cy.findByLabelText('Search for an emoji').type('{uparrow}{uparrow}');
 
         // * Verify that nothing is initially selected
         verifySelectedTextAs('');

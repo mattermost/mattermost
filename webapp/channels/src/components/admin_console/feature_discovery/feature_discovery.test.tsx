@@ -2,19 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider as ReduxProvider} from 'react-redux';
 
 import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
 
-import store from 'stores/redux_store';
-
 import {
-    renderWithIntl,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
 import {AboutLinks, LicenseSkus} from 'utils/constants';
 
 import SamlSVG from './features/images/saml_svg';
@@ -26,33 +22,34 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithIntl(
-                <ReduxProvider store={store}>
-                    <FeatureDiscovery
-                        featureName='test'
-                        minimumSKURequiredForFeature={LicenseSkus.Professional}
-                        titleID='translation.test.title'
-                        titleDefault='Foo'
-                        copyID='translation.test.copy'
-                        copyDefault={'Bar'}
-                        learnMoreURL='https://test.mattermost.com/secondary/'
-                        featureDiscoveryImage={<SamlSVG/>}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        stats={{TOTAL_USERS: 20}}
-                        prevTrialLicense={{IsLicensed: 'false'}}
-                        isCloud={false}
-                        isCloudTrial={false}
-                        hadPrevCloudTrial={false}
-                        isSubscriptionLoaded={true}
-                        isPaidSubscription={false}
-                        cloudFreeDeprecated={false}
-                        actions={{
-                            getPrevTrialLicense,
-                            getCloudSubscription,
-                            openModal,
-                        }}
-                    />
-                </ReduxProvider>,
+            renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<SamlSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={false}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isSubscriptionLoaded={true}
+                    isPaidSubscription={false}
+                    actions={{
+                        getPrevTrialLicense,
+                        getCloudSubscription,
+                        openModal,
+                    }}
+                />,
             );
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
@@ -77,39 +74,41 @@ describe('components/feature_discovery', () => {
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
         });
+
         test('should match component state when is cloud environment', async () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
             await waitFor(() => {
-                renderWithIntl(
-                    <ReduxProvider store={store}>
-                        <FeatureDiscovery
-                            featureName='test'
-                            minimumSKURequiredForFeature={LicenseSkus.Professional}
-                            titleID='translation.test.title'
-                            titleDefault='Foo'
-                            copyID='translation.test.copy'
-                            copyDefault={'Bar'}
-                            learnMoreURL='https://test.mattermost.com/secondary/'
-                            featureDiscoveryImage={<SamlSVG/>}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            stats={{TOTAL_USERS: 20}}
-                            prevTrialLicense={{IsLicensed: 'false'}}
-                            isCloud={true}
-                            isCloudTrial={false}
-                            hadPrevCloudTrial={false}
-                            isPaidSubscription={false}
-                            isSubscriptionLoaded={true}
-                            cloudFreeDeprecated={false}
-                            actions={{
-                                getPrevTrialLicense,
-                                getCloudSubscription,
-                                openModal,
-                            }}
-                        />
-                    </ReduxProvider>,
+                renderWithContext(
+                    <FeatureDiscovery
+                        featureName='test'
+                        minimumSKURequiredForFeature={LicenseSkus.Professional}
+                        title={{
+                            id: 'translation.test.title',
+                            defaultMessage: 'Foo',
+                        }}
+                        copy={{
+                            id: 'translation.test.copy',
+                            defaultMessage: 'Bar',
+                        }}
+                        learnMoreURL='https://test.mattermost.com/secondary/'
+                        featureDiscoveryImage={<SamlSVG/>}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        stats={{TOTAL_USERS: 20}}
+                        prevTrialLicense={{IsLicensed: 'false'}}
+                        isCloud={true}
+                        isCloudTrial={false}
+                        hadPrevCloudTrial={false}
+                        isPaidSubscription={false}
+                        isSubscriptionLoaded={true}
+                        actions={{
+                            getPrevTrialLicense,
+                            getCloudSubscription,
+                            openModal,
+                        }}
+                    />,
                 );
             });
 
@@ -120,12 +119,9 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             //this option is visible only when it is cloud environment
-            expect(screen.getByRole('button', {name: 'Try free for 30 days'})).toBeInTheDocument();
-            expect(screen.getAllByText('Try free for 30 days')).toHaveLength(2);
+            expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
 
             expect(screen.getByTestId('featureDiscovery_secondaryCallToAction')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
-
-            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', 'https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
 
@@ -145,33 +141,34 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithIntl(
-                <ReduxProvider store={store}>
-                    <FeatureDiscovery
-                        featureName='test'
-                        minimumSKURequiredForFeature={LicenseSkus.Professional}
-                        titleID='translation.test.title'
-                        titleDefault='Foo'
-                        copyID='translation.test.copy'
-                        copyDefault={'Bar'}
-                        learnMoreURL='https://test.mattermost.com/secondary/'
-                        featureDiscoveryImage={<SamlSVG/>}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        stats={{TOTAL_USERS: 20}}
-                        prevTrialLicense={{IsLicensed: 'false'}}
-                        isCloud={true}
-                        isCloudTrial={false}
-                        hadPrevCloudTrial={false}
-                        isSubscriptionLoaded={false}
-                        isPaidSubscription={false}
-                        cloudFreeDeprecated={false}
-                        actions={{
-                            getPrevTrialLicense,
-                            getCloudSubscription,
-                            openModal,
-                        }}
-                    />
-                </ReduxProvider>,
+            renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<SamlSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={true}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isSubscriptionLoaded={false}
+                    isPaidSubscription={false}
+                    actions={{
+                        getPrevTrialLicense,
+                        getCloudSubscription,
+                        openModal,
+                    }}
+                />,
             );
 
             // when is cloud and subscription is not loaded yet, then only loading spinner is visible

@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General, Users} from '../constants';
+import type {Channel, ChannelType, ChannelMembership, ChannelNotifyProps, ChannelMessageCount} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UsersState, UserProfile, UserNotifyProps} from '@mattermost/types/users';
+import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@mattermost/types/utilities';
+
 import {MarkUnread} from 'mattermost-redux/constants/channels';
 
-import {Channel, ChannelType, ChannelMembership, ChannelNotifyProps, ChannelMessageCount} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {UsersState, UserProfile, UserNotifyProps} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
-import {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@mattermost/types/utilities';
-
 import {displayUsername} from './user_utils';
+
+import {General, Users} from '../constants';
 
 const channelTypeOrder: Record<ChannelType, number> = {
     [General.OPEN_CHANNEL]: 0,
@@ -150,8 +151,8 @@ export function getGroupDisplayNameFromUserIds(userIds: Set<string>, profiles: I
     return names.sort(sortUsernames).join(', ');
 }
 
-export function isDefault(channel: Channel): boolean {
-    return channel.name === General.DEFAULT_CHANNEL;
+export function isDefault(channel?: Channel): boolean {
+    return channel?.name === General.DEFAULT_CHANNEL;
 }
 
 export function completeDirectGroupInfo(usersState: UsersState, teammateNameDisplay: string, channel: Channel, omitCurrentUser = true) {

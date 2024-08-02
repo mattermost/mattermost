@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable mattermost/use-external-link */
+/* eslint-disable @mattermost/use-external-link */
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 type ExternalLinkQueryParams = {
     utm_source?: string;
@@ -24,11 +25,11 @@ type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     rel?: string;
     onClick?: (event: React.MouseEvent<HTMLElement>) => void;
     queryParams?: ExternalLinkQueryParams;
-    location?: string;
+    location: string;
     children: React.ReactNode;
 };
 
-export default function ExternalLink(props: Props) {
+const ExternalLink = forwardRef<HTMLAnchorElement, Props>((props, ref) => {
     const userId = useSelector(getCurrentUserId);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
@@ -69,6 +70,7 @@ export default function ExternalLink(props: Props) {
     return (
         <a
             {...props}
+            ref={ref}
             target={props.target || '_blank'}
             rel={props.rel || 'noopener noreferrer'}
             onClick={handleClick}
@@ -77,4 +79,6 @@ export default function ExternalLink(props: Props) {
             {props.children}
         </a>
     );
-}
+});
+
+export default ExternalLink;

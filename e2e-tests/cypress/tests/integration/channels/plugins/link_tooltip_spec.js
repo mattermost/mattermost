@@ -17,6 +17,21 @@ describe('Link tooltips', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
 
+        // # Set plugin settings
+        const newSettings = {
+            PluginSettings: {
+                Enable: true,
+            },
+            ServiceSettings: {
+                EnableGifPicker: true,
+            },
+            FileSettings: {
+                EnablePublicLink: true,
+            },
+        };
+
+        cy.apiUpdateConfig(newSettings);
+
         // # Enable the demo-plugin
         cy.apiUploadAndEnablePlugin(demoPlugin);
 

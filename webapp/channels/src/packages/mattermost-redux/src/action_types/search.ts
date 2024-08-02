@@ -17,7 +17,6 @@ export default keyMirror({
     SEARCH_PINNED_POSTS_REQUEST: null,
     SEARCH_PINNED_POSTS_SUCCESS: null,
     SEARCH_PINNED_POSTS_FAILURE: null,
-    REMOVE_SEARCH_PINNED_POSTS: null,
     RECEIVED_SEARCH_POSTS: null,
     RECEIVED_SEARCH_FILES: null,
     RECEIVED_SEARCH_FLAGGED_POSTS: null,
@@ -25,5 +24,4 @@ export default keyMirror({
     RECEIVED_SEARCH_TERM: null,
     REMOVE_SEARCH_POSTS: null,
     REMOVE_SEARCH_FILES: null,
-    REMOVE_SEARCH_TERM: null,
 });

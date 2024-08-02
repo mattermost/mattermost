@@ -1,0 +1,130 @@
+[
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 nuk është i konfiguruar ose i përkrahur në këtë server."
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "E pamundur hapja e skedarit të çertifikatës."
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Asnjë skedar nën 'imazh' të kërkuar"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 nuk është i konfiguruar ose i përkrahur në këtë server."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "E pamundur hapja e skedarit të çertifikatës."
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Asnjë skedar nën 'imazh' të kërkuar"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Nuk mund te hapet skedari."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Asnjë skedar nën 'skedar' të kërkuar"
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "E pamundur hapja e skedarit të çertifikatës."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Asnjë skedar nën 'çertifikatë' të kërkuar"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Asnjë skedar nën 'imazh' të kërkuar"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 nuk është i konfiguruar ose i përkrahur në këtë server."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "E pamundur ruajtja e skedarit të çertifikatës."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Ruajtja e imazhit nuk është e konfiguruar."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Gabim gjatë leximit të skedarit të log."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "E pamundur ruajtja e skedarit të çertifikatës."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "E pamundur hapja e skedarit të çertifikatës."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Asnjë skedar nën 'çertifikatë' të kërkuar."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Asnjë skedar nën 'çertifikatë' të kërkuar."
+  },
+  {
+    "id": "September",
+    "translation": "Shtator"
+  },
+  {
+    "id": "October",
+    "translation": "Tetor"
+  },
+  {
+    "id": "November",
+    "translation": "Nëntor"
+  },
+  {
+    "id": "May",
+    "translation": "Maj"
+  },
+  {
+    "id": "March",
+    "translation": "Mars"
+  },
+  {
+    "id": "June",
+    "translation": "Qershor"
+  },
+  {
+    "id": "July",
+    "translation": "Korrik"
+  },
+  {
+    "id": "January",
+    "translation": "Janar"
+  },
+  {
+    "id": "February",
+    "translation": "Shkurt"
+  },
+  {
+    "id": "December",
+    "translation": "Dhjetor"
+  },
+  {
+    "id": "August",
+    "translation": "Gusht"
+  },
+  {
+    "id": "April",
+    "translation": "Prill"
+  }
+]

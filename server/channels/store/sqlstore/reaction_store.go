@@ -4,6 +4,10 @@
 package sqlstore
 
 import (
+	"database/sql"
+	"fmt"
+	"time"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -105,6 +109,25 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 	return reactions, nil
 }
 
+func (s *SqlReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	query := s.getQueryBuilder().
+		Select("1").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"EmojiName": emojiName}).
+		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0})
+
+	var hasRows bool
+	if err := s.GetReplicaX().GetBuilder(&hasRows, query); err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "failed to check for existing reaction")
+	}
+
+	return hasRows, nil
+}
+
 // GetForPostSince returns all reactions associated with `postId` updated after `since`.
 func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
 	query := s.getQueryBuilder().
@@ -136,6 +159,21 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 	return reactions, nil
 }
 
+func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(DISTINCT EmojiName)").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	var count int64
+	err := s.GetReplicaX().GetBuilder(&count, query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count Reactions")
+	}
+	return int(count), nil
+}
+
 func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	placeholder, values := constructArrayArgs(postIds)
 	var reactions []*model.Reaction
@@ -159,6 +197,33 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 		return nil, errors.Wrap(err, "failed to get Reactions")
 	}
 	return reactions, nil
+}
+
+func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error) {
+	query := s.getQueryBuilder().
+		Select("UserId", "PostId", "EmojiName", "CreateAt",
+			"COALESCE(UpdateAt, CreateAt) As UpdateAt", "COALESCE(DeleteAt, 0) As DeleteAt",
+			"RemoteId", "ChannelId").
+		From("Reactions").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Eq{"PostId": postID}).
+		Where(sq.Eq{"COALESCE(RemoteId, '')": remoteID}).
+		Where(sq.Eq{"EmojiName": emojiName})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "reactions_getsingle_tosql")
+	}
+
+	var reactions []*model.Reaction
+	if err := s.GetReplicaX().Select(&reactions, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find reaction")
+	}
+	if len(reactions) == 0 {
+		return nil, store.NewErrNotFound("Reaction", fmt.Sprintf("user_id=%s, post_id=%s, remote_id=%s, emoji_name=%s",
+			userID, postID, remoteID, emojiName))
+	}
+	return reactions[0], nil
 }
 
 func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
@@ -205,24 +270,91 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return nil
 }
 
-// DeleteOrphanedRows removes entries from Reactions when a corresponding post no longer exists.
-func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Reactions WHERE PostId IN (
-		SELECT * FROM (
-			SELECT PostId FROM Reactions
-			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-			WHERE Posts.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	result, err := s.GetMasterX().Exec(query, limit)
+func (s *SqlReactionStore) permanentDeleteReactions(userId string, postIds *[]string) error {
+	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
-		return
+		return err
 	}
-	deleted, err = result.RowsAffected()
-	return
+	defer finalizeTransactionX(txn, &err)
+
+	err = txn.Select(postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
+	}
+
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(sq.And{
+			sq.Eq{"PostId": postIds},
+			sq.Eq{"UserId": userId},
+		})
+
+	_, err = txn.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
+	}
+	if err = txn.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
+	now := model.GetMillis()
+	postIds := []string{}
+
+	err := s.permanentDeleteReactions(userId, &postIds)
+	if err != nil {
+		return err
+	}
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	for _, postId := range postIds {
+		_, err = transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
+		if err != nil {
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+				mlog.String("post_id", postId),
+				mlog.Err(err))
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if err = transaction.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(txn, &err)
+
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(
+			sq.Eq{"PostId": r.Ids},
+		)
+
+	_, err = txn.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s", r.Id)
+	}
+	err = deleteFromRetentionIdsTx(txn, r.Id)
+	if err != nil {
+		return err
+	}
+	if err = txn.Commit(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
@@ -243,124 +375,6 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 		return 0, errors.Wrap(err, "unable to get rows affected for deleted Reactions")
 	}
 	return rowsAffected, nil
-}
-
-// GetTopForTeamSince returns the instance counts of the following Reactions sets:
-// a) those created by anyone in private channels in the given user's membership graph on the given team, and
-// b) those created by anyone in public channels on the given team.
-func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	reactions := make([]*model.TopReaction, 0)
-
-	query := `
-		SELECT
-			EmojiName,
-			sum(EmojiCount) AS Count
-		FROM ((
-				SELECT
-					EmojiName,
-					count(EmojiName) AS EmojiCount,
-					Reactions.DeleteAt AS DeleteAt,
-					Reactions.CreateAt AS CreateAt
-				FROM
-					ChannelMembers
-					INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
-					INNER JOIN Reactions ON Channels.Id = Reactions.ChannelId
-				WHERE
-					ChannelMembers.UserId = ?
-					AND Channels.Type = 'P'
-					AND Channels.TeamId = ?
-				GROUP BY
-					Reactions.EmojiName,
-					Reactions.DeleteAt,
-					Reactions.CreateAt)
-			UNION ALL (
-				SELECT
-					EmojiName,
-					count(EmojiName) AS EmojiCount,
-					Reactions.DeleteAt AS DeleteAt,
-					Reactions.CreateAt AS CreateAt
-				FROM
-					Reactions
-					INNER JOIN PublicChannels ON Reactions.ChannelId = PublicChannels.Id
-				WHERE
-					PublicChannels.TeamId = ?
-				GROUP BY
-					Reactions.EmojiName,
-					Reactions.DeleteAt,
-					Reactions.CreateAt)) AS A
-		WHERE
-			DeleteAt = 0
-			AND CreateAt > ?
-		GROUP BY
-			EmojiName
-		ORDER BY
-			Count DESC,
-			EmojiName ASC
-		LIMIT ?
-		OFFSET ?`
-
-	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, teamID, since, limit+1, offset); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Reactions")
-	}
-
-	return model.GetTopReactionListWithPagination(reactions, limit), nil
-}
-
-// GetTopForUserSince returns the instance counts of the following Reactions sets:
-// a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
-// b) those created by the given user in DM or group channels.
-func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	reactions := make([]*model.TopReaction, 0)
-	var args []any
-	var query string
-
-	if teamID != "" {
-		query = `
-		SELECT
-			EmojiName,
-			count(EmojiName) AS Count
-		FROM
-			Reactions
-			INNER JOIN Channels ON Channels.Id = Reactions.ChannelId
-		WHERE
-			Reactions.DeleteAt = 0
-			AND Reactions.UserId = ?
-			AND (Channels.TeamId = ? OR Channels.Type = 'D' OR Channels.Type = 'G')
-			AND Reactions.CreateAt > ?
-		GROUP BY
-			EmojiName
-		ORDER BY
-			Count DESC,
-			EmojiName ASC
-		LIMIT ?
-		OFFSET ?`
-		args = []any{userID, teamID, since, limit + 1, offset}
-	} else {
-		query = `
-			SELECT
-				EmojiName,
-				count(EmojiName) AS Count
-			FROM
-				Reactions
-			WHERE
-				Reactions.DeleteAt = 0
-				AND Reactions.UserId = ?
-				AND Reactions.CreateAt > ?
-			GROUP BY
-				Reactions.EmojiName
-			ORDER BY
-				Count DESC,
-				EmojiName ASC
-			LIMIT ?
-			OFFSET ?`
-		args = []any{userID, since, limit + 1, offset}
-	}
-
-	if err := s.GetReplicaX().Select(&reactions, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Reactions")
-	}
-
-	return model.GetTopReactionListWithPagination(reactions, limit), nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {

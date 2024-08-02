@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import bing from 'sounds/bing.mp3';
+import calls_calm from 'sounds/calls_calm.mp3';
+import calls_cheerful from 'sounds/calls_cheerful.mp3';
+import calls_dynamic from 'sounds/calls_dynamic.mp3';
+import calls_urgent from 'sounds/calls_urgent.mp3';
 import crackle from 'sounds/crackle.mp3';
 import down from 'sounds/down.mp3';
 import hello from 'sounds/hello.mp3';
 import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
-import calls_dynamic from 'sounds/calls_dynamic.mp3';
-import calls_calm from 'sounds/calls_calm.mp3';
-import calls_urgent from 'sounds/calls_urgent.mp3';
-import calls_cheerful from 'sounds/calls_cheerful.mp3';
-
 import * as UserAgent from 'utils/user_agent';
 
 export const notificationSounds = new Map([

@@ -8,13 +8,18 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {AdvancedSections} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
-type Props = PropsFromRedux & {
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+}
+
+type Props = PropsFromRedux & OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
     onUpdateSection: (section?: string) => void;
@@ -111,11 +116,15 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
     const [disableTypingMessages, setDisableTypingMessages] = useState(props.disableTypingMessages);
 
     const handleSubmit = useCallback(() => {
+        if (!props.userId) {
+            return;
+        }
+
         const preferences = [];
 
         if (disableClientPlugins !== props.disableClientPlugins) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_CLIENT_PLUGINS,
                 value: disableClientPlugins.toString(),
@@ -123,7 +132,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
         }
         if (disableTelemetry !== props.disableTelemetry) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_TELEMETRY,
                 value: disableTelemetry.toString(),
@@ -131,20 +140,20 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
         }
         if (disableTypingMessages !== props.disableTypingMessages) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_TYPING_MESSAGES,
                 value: disableTypingMessages.toString(),
             });
         }
 
-        if (preferences.length !== 0) {
-            props.savePreferences(props.currentUserId, preferences);
+        if (preferences.length !== 0 && props.userId) {
+            props.savePreferences(props.userId, preferences);
         }
 
         props.onUpdateSection('');
     }, [
-        props.currentUserId,
+        props.userId,
         props.onUpdateSection,
         props.savePreferences,
         disableClientPlugins,

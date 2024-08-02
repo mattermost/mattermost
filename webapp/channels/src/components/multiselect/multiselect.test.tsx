@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-import MultiSelect, {Value} from './multiselect';
-import MultiSelectList, {Props as MultiSelectProps} from './multiselect_list';
+import MultiSelect from './multiselect';
+import type {Value} from './multiselect';
+import MultiSelectList from './multiselect_list';
+import type {Props as MultiSelectProps} from './multiselect_list';
 
 const element = () => <div/>;
 
@@ -26,6 +28,7 @@ describe('components/multiselect/multiselect', () => {
         handleDelete: jest.fn(),
         handleInput: jest.fn(),
         handleSubmit: jest.fn(),
+        intl: {} as IntlShape,
         optionRenderer: element,
         options: users,
         perPage: 5,
@@ -34,11 +37,14 @@ describe('components/multiselect/multiselect', () => {
         users,
         valueRenderer: element as any,
         values: [{id: 'id', label: 'label', value: 'value'}],
+        valueWithImage: false,
     };
 
     test('should match snapshot', () => {
         const wrapper = shallow(
-            <MultiSelect {...baseProps}/>,
+            <MultiSelect
+                {...baseProps}
+            />,
         );
 
         expect(wrapper).toMatchSnapshot();
@@ -46,7 +52,9 @@ describe('components/multiselect/multiselect', () => {
 
     test('should match snapshot for page 2', () => {
         const wrapper = shallow(
-            <MultiSelect {...baseProps}/>,
+            <MultiSelect
+                {...baseProps}
+            />,
         );
 
         wrapper.find('.filter-control__next').simulate('click');

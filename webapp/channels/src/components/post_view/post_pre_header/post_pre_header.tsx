@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-
-import {t} from 'utils/i18n';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
 
@@ -35,11 +34,6 @@ enum MessageInfoKey {
 }
 
 class PostPreHeader extends React.PureComponent<Props> {
-    messageInfos = {
-        flagged: {id: t('post_pre_header.flagged'), defaultMessage: 'Saved'},
-        pinned: {id: t('post_pre_header.pinned'), defaultMessage: 'Pinned'},
-    };
-
     getPostStatus(isFlagged: boolean, isPinned?: boolean): PostPinnedOrFlagged {
         if (isFlagged) {
             if (isPinned) {
@@ -115,8 +109,7 @@ class PostPreHeader extends React.PureComponent<Props> {
                         <span>
                             <a onClick={() => this.handleLinkClick(messageKey, channelId)}>
                                 <FormattedMessage
-                                    id={this.messageInfos[messageKey].id}
-                                    defaultMessage={this.messageInfos[messageKey].defaultMessage}
+                                    {...messages[messageKey]}
                                 />
                             </a>
                         </span>
@@ -126,15 +119,13 @@ class PostPreHeader extends React.PureComponent<Props> {
                         <span>
                             <a onClick={() => this.handleLinkClick(MessageInfoKey.Pinned, channelId)}>
                                 <FormattedMessage
-                                    id={this.messageInfos[MessageInfoKey.Pinned].id}
-                                    defaultMessage={this.messageInfos[MessageInfoKey.Pinned].defaultMessage}
+                                    {...messages[MessageInfoKey.Pinned]}
                                 />
                             </a>
                             <span className='post-pre-header__link-separator'>{'\u2B24'}</span>
                             <a onClick={() => this.handleLinkClick(MessageInfoKey.Flagged)}>
                                 <FormattedMessage
-                                    id={this.messageInfos[MessageInfoKey.Flagged].id}
-                                    defaultMessage={this.messageInfos[MessageInfoKey.Flagged].defaultMessage}
+                                    {...messages[MessageInfoKey.Flagged]}
                                 />
                             </a>
                         </span>
@@ -144,5 +135,16 @@ class PostPreHeader extends React.PureComponent<Props> {
         );
     }
 }
+
+const messages = defineMessages({
+    [MessageInfoKey.Flagged]: {
+        id: 'post_pre_header.flagged',
+        defaultMessage: 'Saved',
+    },
+    [MessageInfoKey.Pinned]: {
+        id: 'post_pre_header.pinned',
+        defaultMessage: 'Pinned',
+    },
+});
 
 export default injectIntl(PostPreHeader);

@@ -2,21 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {isModalOpen} from 'selectors/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
-import {Invoice} from '@mattermost/types/cloud';
+import type {Invoice} from '@mattermost/types/cloud';
+
 import {closeModal} from 'actions/views/modals';
-import {GlobalState} from 'types/store';
+import {isModalOpen} from 'selectors/views/modals';
 
-import './billing_history_modal.scss';
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import BillingHistoryTable from './billing_history_table';
 
+import './billing_history_modal.scss';
 import './billing_history.scss';
 
 type BillingHistoryModalProps = {

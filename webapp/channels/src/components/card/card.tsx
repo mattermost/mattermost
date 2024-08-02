@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {Children, isValidElement, cloneElement} from 'react';
 import classNames from 'classnames';
+import React, {Children, isValidElement, cloneElement} from 'react';
 
-import CardHeader from './card_header';
 import CardBody from './card_body';
+import CardHeader from './card_header';
 
 import './card.scss';
 
@@ -24,7 +24,7 @@ export default class Card extends React.PureComponent<Props> {
 
         const childrenWithProps = Children.map(children, (child) => {
             // Checking isValidElement is the safe way and avoids a TS error too.
-            if (isValidElement(child)) {
+            if (isValidElement<{expanded?: boolean}>(child)) {
                 return cloneElement(child, {expanded});
             }
             return child;

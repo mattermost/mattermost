@@ -110,6 +110,7 @@ describe('Custom emojis', () => {
             // * Select the custom emoji
             cy.findAllByTestId('emojiItem').children().click();
         });
+        cy.uiGetPostTextBox().type('+' + builtinEmojiWithColons).wait(TIMEOUTS.HALF_SEC).type('{enter}').type('{enter}');
 
         cy.getLastPostId().then((postId) => {
             cy.get(`#postReaction-${postId}-` + builtinEmoji).should('be.visible');
@@ -218,7 +219,7 @@ describe('Custom emojis', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmojiWithColons, {delay: TIMEOUTS.HALF_SEC});
 
         // * Get list of emojis based on search text
-        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for "' + customEmoji + '"');
+        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for “' + customEmoji + '”');
 
         // # Navigate to a channel
         cy.visit(townsquareLink);
@@ -302,7 +303,7 @@ describe('Custom emojis', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmojiWithColons, {delay: TIMEOUTS.HALF_SEC});
 
         // * Get list of emojis based on search text
-        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for "' + customEmoji + '"');
+        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for “' + customEmoji + '”');
 
         // # Navigate to a channel
         cy.visit(townsquareLink);

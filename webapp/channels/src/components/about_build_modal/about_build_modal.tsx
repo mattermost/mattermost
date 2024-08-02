@@ -5,14 +5,13 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import Nbsp from 'components/html_entities/nbsp';
-
-import {AboutLinks} from 'utils/constants';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
+import Nbsp from 'components/html_entities/nbsp';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
+
+import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
 
@@ -171,24 +170,17 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             </ExternalLink>
         );
 
-        // Only show build number if it's a number (so only builds from Jenkins)
-        let buildnumber: JSX.Element | null = (
+        const buildnumber: JSX.Element | null = (
             <div data-testid='aboutModalBuildNumber'>
                 <FormattedMessage
                     id='about.buildnumber'
                     defaultMessage='Build Number:'
                 />
-                <span id='buildnumberString'>{'\u00a0' + config.BuildNumber}</span>
+                <span id='buildnumberString'>{'\u00a0' + (config.BuildNumber === 'dev' ? 'n/a' : config.BuildNumber)}</span>
             </div>
         );
-        if (isNaN(Number(config.BuildNumber))) {
-            buildnumber = null;
-        }
 
-        let mmversion: string | undefined = config.BuildNumber;
-        if (!isNaN(Number(config.BuildNumber))) {
-            mmversion = 'ci';
-        }
+        const mmversion: string | undefined = config.BuildNumber === 'dev' ? config.BuildNumber : config.Version;
 
         return (
             <Modal

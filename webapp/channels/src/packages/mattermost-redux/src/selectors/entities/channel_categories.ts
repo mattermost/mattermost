@@ -3,21 +3,20 @@
 
 import shallowEquals from 'shallow-equals';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import type {ChannelCategory, ChannelCategoryType} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelMessageCounts, getCurrentChannelId, getMyChannelMemberships, makeGetChannelsForIds} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getMyPreferences, getTeammateNameDisplaySetting, getVisibleDmGmLimit, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
-import {ChannelCategory, ChannelCategoryType, CategorySorting} from '@mattermost/types/channel_categories';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
-
 import {
     calculateUnreadCount,
     getUserIdFromChannelName,
@@ -103,7 +102,7 @@ export function makeFilterAutoclosedDMs(): (state: GlobalState, channels: Channe
         getCurrentUserId,
         getMyChannelMemberships,
         getChannelMessageCounts,
-        getVisibleDmGmLimit,
+        (state) => getVisibleDmGmLimit(state),
         getMyPreferences,
         isCollapsedThreadsEnabled,
         (channels, categoryType, currentChannelId, profiles, currentUserId, myMembers, messageCounts, limitPref, myPreferences, collapsedThreads) => {
@@ -448,13 +447,18 @@ export function makeGetChannelsByCategory() {
 
         const channelsByCategory: RelationOneToOne<ChannelCategory, Channel[]> = {};
 
+        // TODO: This avoids some rendering, but there is a bigger issue underneath
+        // Every time myPreferences or myChannels change (which can happen for many
+        // unrelated reasons) the whole list of channels gets reordered and re-filtered.
+        let allEquals = categoryIds === lastCategoryIds;
         for (const category of categories) {
             const channels = getChannels[category.id](state, category.channel_ids);
             channelsByCategory[category.id] = filterAndSortChannels[category.id](state, channels, category);
+            allEquals = allEquals && shallowEquals(channelsByCategory[category.id], lastChannelsByCategory[category.id]);
         }
 
         // Do a shallow equality check of channelsByCategory to avoid returning a new object containing the same data
-        if (shallowEquals(channelsByCategory, lastChannelsByCategory)) {
+        if (allEquals) {
             return lastChannelsByCategory;
         }
 

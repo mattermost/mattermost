@@ -33,14 +33,14 @@
         }
 
         :last-child {
-            color: rgba(63, 69, 80, 0.72);
+            color: rgba(63, 69, 80, 0.64);
         }
     }
 
     .purchase_buttons {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
         margin-top: 20px;
 
         button {
@@ -54,7 +54,7 @@
 
             &.contact-us {
                 width: 130px;
-                margin-left: 15px;
+                margin-left: 0px !important;
             }
         }
 
@@ -93,7 +93,7 @@
 
     .pre-title {
         margin-bottom: 10px;
-        color: rgba(63, 67, 80, 0.56) !important;
+        color: rgba(63, 67, 80, 0.75) !important;
         font-size: 12px;
         font-weight: 600;
         line-height: 16px;

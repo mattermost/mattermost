@@ -2,41 +2,31 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
-
-import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
-import {getMembersInTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getMembersInTeams} from 'mattermost-redux/selectors/entities/teams';
+import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import {memoizeResult} from 'mattermost-redux/utils/helpers';
+import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
 import {loadChannelMembersForProfilesList, loadTeamMembersForProfilesList} from 'actions/user_actions';
 import {setModalSearchTerm, setModalFilters} from 'actions/views/search';
 
-import UsersToRemove, {Filters, Memberships} from './users_to_remove';
+import type {GlobalState} from 'types/store';
+
+import UsersToRemove from './users_to_remove';
+import type {Filters, Memberships} from './users_to_remove';
 
 type Props = {
     members: UserProfile[];
     scope: 'team' | 'channel';
     scopeId: string;
     total: number;
-};
-
-type Actions = {
-    loadTeamMembersForProfilesList: (profiles: UserProfile[], id: string, reloadAllMembers?: boolean) => Promise<{
-        data: boolean;
-    }>;
-    loadChannelMembersForProfilesList: (profiles: UserProfile[], id: string, reloadAllMembers?: boolean) => Promise<{
-        data: boolean;
-    }>;
-    setModalSearchTerm: (term: string) => ActionResult;
-    setModalFilters: (filters: Filters) => ActionResult;
 };
 
 function makeMapStateToProps() {
@@ -88,9 +78,9 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             loadChannelMembersForProfilesList,
             loadTeamMembersForProfilesList,
             setModalSearchTerm,

@@ -22,7 +22,6 @@ func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 }
 
 func (s SqlPreferenceStore) deleteUnusedFeatures() {
-	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"Category": model.PreferenceCategoryAdvancedSettings}).
@@ -172,7 +171,6 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s, category=%s", userId, category)
 	}
 	return preferences, nil
-
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
@@ -205,7 +203,6 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) error {
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) error {
-
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"UserId": userId}).
@@ -224,7 +221,6 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 }
 
 func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {
-
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"UserId": userId}).
@@ -317,5 +313,56 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		return int64(0), errors.Wrap(err, "unable to get rows affected")
 	}
 
+	return rowsAffected, nil
+}
+
+// Delete preference for limit_visible_dms_gms where their value is greater than "40" or less than "1"
+func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
+	var queryString string
+	var args []interface{}
+	var err error
+
+	// We need to pad the value field with zeros when doing comparison's because the value is stored as a string.
+	// Having them the same length allows Postgres/MySQL to compare them correctly.
+	whereClause := sq.And{
+		sq.Eq{"Category": model.PreferenceCategorySidebarSettings},
+		sq.Eq{"Name": model.PreferenceLimitVisibleDmsGms},
+		sq.Or{
+			sq.Gt{"SUBSTRING(CONCAT('000000000000000', Value), LENGTH(Value) + 1, 15)": "000000000000040"},
+			sq.Lt{"SUBSTRING(CONCAT('000000000000000', Value), LENGTH(Value) + 1, 15)": "000000000000001"},
+		},
+	}
+	if s.DriverName() == "postgres" {
+		subQuery := s.getQueryBuilder().
+			Select("UserId, Category, Name").
+			From("Preferences").
+			Where(whereClause).
+			Limit(100)
+		queryString, args, err = s.getQueryBuilder().
+			Delete("Preferences").
+			Where(sq.Expr("(userid, category, name) IN (?)", subQuery)).
+			ToSql()
+		if err != nil {
+			return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
+		}
+	} else {
+		queryString, args, err = s.getQueryBuilder().
+			Delete("Preferences").
+			Where(whereClause).
+			Limit(100).
+			ToSql()
+		if err != nil {
+			return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
+		}
+	}
+
+	result, err := s.GetMasterX().Exec(queryString, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Preference")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "unable to get rows affected")
+	}
 	return rowsAffected, nil
 }

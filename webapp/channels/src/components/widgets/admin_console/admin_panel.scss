@@ -1,11 +1,13 @@
 @import 'utils/module';
 
 .AdminPanel {
+    overflow: hidden;
     padding: 0;
-    border: solid 1px alpha-color($black, 0.1);
+    border: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: var(--radius-s);
     margin: 2em 0 1em;
-    border-radius: $border-rad;
-    box-shadow: 0 1px 2px 0 alpha-color($black, 0.5);
+    background-color: var(--center-channel-bg);
+    box-shadow: var(--elevation-1);
     font-size: 0.95em;
 
     .AdminPanel__content {
@@ -35,6 +37,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 20px;
+        border-radius: var(--radius-s) var(--radius-s) 0 0;
         background: $white;
 
         h3 {

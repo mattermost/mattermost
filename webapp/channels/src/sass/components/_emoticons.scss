@@ -79,6 +79,10 @@
     vertical-align: middle;
 }
 
+.emoticon-suggestion__image-container {
+    margin-right: 8px;
+}
+
 .emoji-picker {
     position: absolute;
     z-index: 1100;
@@ -86,10 +90,9 @@
     width: 350px;
     flex-direction: column;
     border: 1px solid;
+    border-radius: var(--radius-s);
     margin-right: 3px;
     background: var(--center-channel-bg);
-    border-radius: $border-rad;
-    border-radius: 4px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     user-select: none;
 
@@ -154,10 +157,10 @@
                 a {
                     height: 34px;
                     padding-top: 9px;
+                    border-radius: 0;
                     margin-right: 5px;
                     margin-left: 5px;
                     background: transparent;
-                    border-radius: 0;
                     opacity: 1;
 
                     &:hover,
@@ -186,7 +189,7 @@
     flex-shrink: 0;
     justify-content: space-between;
     padding: 0 12px;
-    margin: 8px 0 8px 0;
+    margin: 0 0 8px 0;
 
     .emoji-picker__category {
         display: inline-flex;
@@ -195,12 +198,12 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         text-decoration: none;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:active {
@@ -209,8 +212,8 @@
         }
 
         &--selected {
-            background: rgba(var(--button-bg-rgb), 0.08);
             border-radius: 4px;
+            background: rgba(var(--button-bg-rgb), 0.08);
             color: var(--button-bg);
             fill: var(--button-bg);
         }
@@ -266,7 +269,7 @@
     align-items: center;
     justify-content: space-between;
     border-color: transparent !important;
-    margin: 12px 12px 0 12px;
+    margin: 12px;
 
     .skin-tones-animation {
         &-enter {
@@ -296,6 +299,7 @@
         height: 100%;
         align-items: center;
         background: var(--center-channel-bg);
+        margin-inline-start: 8px;
 
         &--active {
             position: absolute;
@@ -322,8 +326,8 @@
             opacity: 1;
 
             &:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
 
             &:last-child {
@@ -351,10 +355,9 @@
     .emoji-picker__text-container {
         position: relative;
         z-index: 5;
-        width: 284px;
+        width: 100%;
         height: 32px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        margin-right: 8px;
         border-radius: 4px;
 
         &:focus-within {
@@ -393,13 +396,13 @@
         align-items: center;
         justify-content: center;
         border: none;
-        background: none;
         border-radius: 4px;
-        color: rgba(v(center-channel-color-rgb), 0.56);
+        background: none;
+        color: rgba(v(center-channel-color-rgb), 0.75);
 
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.72);
+            color: rgba(v(center-channel-color-rgb), 0.75);
         }
 
         &:active,
@@ -418,8 +421,8 @@
         height: 32px;
         align-items: center;
         justify-content: center;
-        margin-left: 8px;
         border-radius: 4px;
+        margin-left: 8px;
         transition: all 0.35s ease;
 
         &:hover {
@@ -447,8 +450,8 @@
         height: 26px;
         padding: 4px 0 0 31px;
         border-width: 0;
-        background: var(--center-channel-bg);
         border-radius: inherit;
+        background: var(--center-channel-bg);
         font-size: 13px;
 
         &:focus {
@@ -456,7 +459,22 @@
             outline: none;
         }
     }
+
+    .gif-attribution {
+        padding: 5px 0 5px 5px;
+        margin-inline-start: 8px;
+
+        & > img {
+            width: 100%;
+            height: auto;
+        }
+    }
 }
+
+$emoji-picker-footer-margin: 12px;
+$emoji-footer-border-width: 1px;
+$emoji-half-height: 33px;
+$emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-picker-footer-margin * 2;
 
 .emoji-picker__items {
     position: relative;
@@ -468,6 +486,13 @@
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     overflow-y: auto;
+
+    &.gif-picker__items {
+        display: flex;
+        height: 380px;
+        justify-content: center;
+        padding: 12px 12px 0 12px;
+    }
 
     .emoji-picker__container {
         position: relative;
@@ -518,6 +543,17 @@
     &.selected,
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.16);
+
+        img {
+            -moz-transform: scale(0.45);
+            zoom: 0.45;
+
+            &.emoji-category--custom {
+                -moz-transform: scale(1);
+                transform: scale(1.25);
+                zoom: 1;
+            }
+        }
     }
 
     &:active {
@@ -530,6 +566,7 @@
 
     img {
         position: relative;
+        transition: transform 0.2s ease-in-out;
 
         &.emoji-category--custom {
             top: auto;
@@ -538,7 +575,6 @@
             max-width: 22px;
             height: auto;
             max-height: 22px;
-            transform: scale(1);
         }
     }
 }
@@ -547,17 +583,12 @@
     z-index: 99999;
 }
 
-$emoji-picker-footer-margin: 12px;
-$emoji-half-height: 33px;
-
 .emoji-picker__footer {
-    $border-width: 1px;
-
     display: flex;
-    min-height: $border-width + $emoji-half-height + $emoji-picker-footer-margin * 2; // prevents tiny layout shift when emoji replaces placeholder
+    min-height: $emoji-footer-height; // prevents tiny layout shift when emoji replaces placeholder
     align-items: center;
     justify-content: space-between;
-    border-top: solid $border-width rgba(61, 60, 64, 0.2);
+    border-top: solid $emoji-footer-border-width rgba(61, 60, 64, 0.2);
 }
 
 .emoji-picker__custom {
@@ -567,8 +598,8 @@ $emoji-half-height: 33px;
 
     a,
     a:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
         border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg) !important; // it gets overriden by link color
         fill: var(--button-bg);
         font-size: 12px;

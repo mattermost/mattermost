@@ -1,28 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
-import classNames from 'classnames';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
-
-import {getSiteURL} from 'utils/url';
-import {Constants} from 'utils/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import useCopyText from 'components/common/hooks/useCopyText';
-import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
-import {getAnalyticsCategory} from 'components/onboarding_tasks';
 
-import {t} from 'utils/i18n';
+import useCopyText from 'components/common/hooks/useCopyText';
+import {getAnalyticsCategory} from 'components/onboarding_tasks';
+import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
+
+import {Constants} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 import {getTrackFlowRole, getRoleForTrackFlow, getSourceForTrackFlow} from 'utils/utils';
 
-import AddToChannels, {CustomMessageProps, InviteChannels, defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
+import AddToChannels, {defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
+import type {CustomMessageProps, InviteChannels} from './add_to_channels';
 import InviteAs, {InviteType} from './invite_as';
 import OverageUsersBannerNotice from './overage_users_banner_notice';
 
@@ -53,7 +55,7 @@ export type Props = InviteState & {
     onChannelsInputChange: (channelsInputValue: string) => void;
     onClose: () => void;
     currentTeam: Team;
-    currentChannel: Channel;
+    currentChannel?: Channel;
     setCustomMessage: (message: string) => void;
     toggleCustomMessage: () => void;
     channelsLoader: (value: string, callback?: (channels: Channel[]) => void) => Promise<Channel[]>;
@@ -74,6 +76,9 @@ export type Props = InviteState & {
 }
 
 export default function InviteView(props: Props) {
+    const trackFlowRole = useSelector(getTrackFlowRole);
+    const roleForTrackFlow = useSelector(getRoleForTrackFlow);
+
     useEffect(() => {
         if (!props.currentTeam.invite_id) {
             props.regenerateTeamInviteId(props.currentTeam.id);
@@ -83,11 +88,11 @@ export default function InviteView(props: Props) {
     const {formatMessage} = useIntl();
 
     const inviteURL = useMemo(() => {
-        return `${getSiteURL()}/signup_user_complete/?id=${props.currentTeam.invite_id}&md=link&sbr=${getTrackFlowRole()}`;
-    }, [props.currentTeam.invite_id]);
+        return `${getSiteURL()}/signup_user_complete/?id=${props.currentTeam.invite_id}&md=link&sbr=${trackFlowRole}`;
+    }, [props.currentTeam.invite_id, trackFlowRole]);
 
     const copyText = useCopyText({
-        trackCallback: () => trackEvent(getAnalyticsCategory(props.isAdmin), 'click_copy_invite_link', {...getRoleForTrackFlow(), ...getSourceForTrackFlow()}),
+        trackCallback: () => trackEvent(getAnalyticsCategory(props.isAdmin), 'click_copy_invite_link', {...roleForTrackFlow, ...getSourceForTrackFlow()}),
         text: inviteURL,
     });
 
@@ -101,7 +106,7 @@ export default function InviteView(props: Props) {
                     defaultMessage: 'team invite link {inviteURL}',
                 }, {inviteURL})
             }
-            className='InviteView__copyLink'
+            className='btn btn-secondary'
             aria-live='polite'
         >
             {!copyText.copiedRecently && (
@@ -127,42 +132,37 @@ export default function InviteView(props: Props) {
 
     const errorProperties = {
         showError: false,
-        errorMessageId: '',
-        errorMessageDefault: '',
+        errorMessage: messages.exceededMaxBatch,
         errorMessageValues: {
-            text: '',
+            text: Constants.MAX_ADD_MEMBERS_BATCH.toString(),
         },
-        extraErrorText: '',
     };
 
     if (props.usersEmails.length > Constants.MAX_ADD_MEMBERS_BATCH) {
         errorProperties.showError = true;
-        errorProperties.errorMessageId = t(
-            'invitation_modal.invite_members.exceeded_max_add_members_batch',
-        );
-        errorProperties.errorMessageDefault = 'No more than **{text}** people can be invited at once';
-        errorProperties.errorMessageValues.text = Constants.MAX_ADD_MEMBERS_BATCH.toString();
     }
 
-    let placeholder = formatMessage({
-        id: 'invite_modal.add_invites',
-        defaultMessage: 'Enter a name or email address',
-    });
-    let noMatchMessageId = t(
-        'invitation_modal.members.users_emails_input.no_user_found_matching',
-    );
-    let noMatchMessageDefault =
-        'No one found matching **{text}**. Enter their email to invite them.';
-
-    if (!props.emailInvitationsEnabled) {
+    let placeholder;
+    let noMatchMessage;
+    if (props.emailInvitationsEnabled) {
+        placeholder = formatMessage({
+            id: 'invite_modal.add_invites',
+            defaultMessage: 'Enter a name or email address',
+        });
+        noMatchMessage = messages.noUserFound;
+    } else {
         placeholder = formatMessage({
             id: 'invitation_modal.members.search-and-add.placeholder-email-disabled',
             defaultMessage: 'Add members',
         });
-        noMatchMessageId = t(
-            'invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled',
-        );
-        noMatchMessageDefault = 'No one found matching **{text}**';
+        noMatchMessage = messages.noUserFoundEmailDisabled;
+    }
+
+    let validAddressMessage;
+    if (props.inviteType === InviteType.MEMBER) {
+        validAddressMessage = messages.validAddressMember;
+    } else {
+        validAddressMessage = messages.validAddressGuest;
     }
 
     const isInviteValid = useMemo(() => {
@@ -185,7 +185,10 @@ export default function InviteView(props: Props) {
     return (
         <>
             <Modal.Header className={props.headerClass}>
-                <h1 id='invitation_modal_title'>
+                <h1
+                    id='invitation_modal_title'
+                    className='modal-title'
+                >
                     <FormattedMessage
                         id='invite_modal.title'
                         defaultMessage={'Invite {inviteType} to {team_name}'}
@@ -199,13 +202,13 @@ export default function InviteView(props: Props) {
                 </h1>
                 <button
                     id='closeIcon'
-                    className='icon icon-close'
+                    className='icon icon-close close'
                     aria-label='Close'
                     title='Close'
                     onClick={props.onClose}
                 />
             </Modal.Header>
-            <Modal.Body>
+            <Modal.Body className='overflow-visible'>
                 <div className='InviteView__sectionTitle InviteView__sectionTitle--first'>
                     <FormattedMessage
                         id='invite_modal.to'
@@ -224,12 +227,8 @@ export default function InviteView(props: Props) {
                         props.onChangeUsersEmails(usersEmails);
                     }}
                     value={props.usersEmails}
-                    validAddressMessageId={props.inviteType === InviteType.MEMBER ? t(
-                        'invitation_modal.members.users_emails_input.valid_email',
-                    ) : t('invitation_modal.guests.users_emails_input.valid_email')}
-                    validAddressMessageDefault={props.inviteType === InviteType.MEMBER ? 'Invite **{email}** as a team member' : 'Invite **{email}** as a guest'}
-                    noMatchMessageId={noMatchMessageId}
-                    noMatchMessageDefault={noMatchMessageDefault}
+                    validAddressMessage={validAddressMessage}
+                    noMatchMessage={noMatchMessage}
                     onInputChange={props.onUsersInputChange}
                     inputValue={props.usersEmailsSearch}
                     emailInvitationsEnabled={props.emailInvitationsEnabled}
@@ -267,7 +266,7 @@ export default function InviteView(props: Props) {
                     disabled={!isInviteValid}
                     onClick={props.invite}
                     className={'btn btn-primary'}
-                    id={props.inviteType === InviteType.MEMBER ? 'inviteMembersButton' : 'inviteGuestButton'}
+                    data-testid={'inviteButton'}
                 >
                     <FormattedMessage
                         id='invite_modal.invite'
@@ -278,3 +277,26 @@ export default function InviteView(props: Props) {
         </>
     );
 }
+
+const messages = defineMessages({
+    exceededMaxBatch: {
+        id: 'invitation_modal.invite_members.exceeded_max_add_members_batch',
+        defaultMessage: 'No more than **{text}** people can be invited at once',
+    },
+    noUserFound: {
+        id: 'invitation_modal.members.users_emails_input.no_user_found_matching',
+        defaultMessage: 'No one found matching **{text}**. Enter their email to invite them.',
+    },
+    noUserFoundEmailDisabled: {
+        id: 'invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled',
+        defaultMessage: 'No one found matching **{text}**',
+    },
+    validAddressGuest: {
+        id: 'invitation_modal.guests.users_emails_input.valid_email',
+        defaultMessage: 'Invite **{email}** as a guest',
+    },
+    validAddressMember: {
+        id: 'invitation_modal.members.users_emails_input.valid_email',
+        defaultMessage: 'Invite **{email}** as a team member',
+    },
+});

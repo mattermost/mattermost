@@ -36,7 +36,7 @@ func (emoji *Emoji) Auditable() map[string]interface{} {
 	}
 }
 
-func inSystemEmoji(emojiName string) bool {
+func IsSystemEmojiName(emojiName string) bool {
 	_, ok := SystemEmojis[emojiName]
 	return ok
 }
@@ -92,7 +92,7 @@ func IsValidEmojiName(name string) *AppError {
 	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
-	if inSystemEmoji(name) {
+	if IsSystemEmojiName(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.system_emoji_name.app_error", nil, "", http.StatusBadRequest)
 	}
 

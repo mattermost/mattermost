@@ -101,6 +101,12 @@ func (i *Autolink) Destination() string {
 	return destination
 }
 
+type Emoji struct {
+	inlineBase
+
+	Name string
+}
+
 type delimiterType int
 
 const (
@@ -575,12 +581,24 @@ func (p *inlineParser) Parse() []Inline {
 			p.parseLinkOrImageDelimiter()
 		case ']':
 			p.lookForLinkOrImage()
-		case 'w', 'W', ':':
+		case 'w', 'W':
 			matched := p.parseAutolink(c)
 
 			if !matched {
 				p.parseText()
 			}
+		case ':':
+			matched := p.parseAutolink(c)
+			if matched {
+				continue
+			}
+
+			matched = p.parseEmoji()
+			if matched {
+				continue
+			}
+
+			p.parseText()
 		default:
 			p.parseText()
 		}

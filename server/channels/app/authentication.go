@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
@@ -44,8 +45,7 @@ func (tl TokenLocation) String() string {
 	}
 }
 
-func (a *App) IsPasswordValid(password string) *model.AppError {
-
+func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError {
 	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
 		var invErr *users.ErrInvalidPassword
 		switch {
@@ -59,8 +59,8 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 	return nil
 }
 
-func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError {
+	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
 		return err
 	}
 
@@ -80,7 +80,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		}
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
@@ -100,7 +100,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 
 	a.InvalidateCacheForUser(user.Id)
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
 	}
 
@@ -108,7 +108,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError {
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
@@ -138,19 +138,24 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(c, *ldapId, password)
+	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapId, password)
 	if err != nil {
+		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
+		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapId))
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	}
 
-	if err := a.CheckUserMfa(ldapUser, mfaToken); err != nil {
+	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -162,19 +167,19 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *st
 	return ldapUser, nil
 }
 
-func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
+	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
 		return err
 	}
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
@@ -190,7 +195,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 	return nil
 }
 
-func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError {
 	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -198,7 +203,7 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 	return nil
 }
 
-func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
+func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError {
 	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
@@ -241,7 +246,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *App) authenticateUser(c *request.Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
@@ -251,7 +256,7 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(c, user.AuthData, password, mfaToken)
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(rctx, user.AuthData, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
@@ -270,7 +275,11 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 		return user, err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken); err != nil {
+		if err.Id == "api.user.check_user_password.invalid.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched a Mattermost account, but the password was incorrect.", mlog.String("username", user.Username))
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return user, err
 	}

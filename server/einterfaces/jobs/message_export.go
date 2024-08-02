@@ -9,5 +9,5 @@ import (
 
 type MessageExportJobInterface interface {
 	MakeWorker() model.Worker
-	MakeScheduler() model.Scheduler
+	MakeScheduler() Scheduler
 }

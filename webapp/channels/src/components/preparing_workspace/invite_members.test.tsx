@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {fireEvent, render, screen} from 'tests/react_testing_utils';
 import {withIntl} from 'tests/helpers/intl-test-helper';
+import {fireEvent, render, screen} from 'tests/react_testing_utils';
 
 import InviteMembers from './invite_members';
 

@@ -2,66 +2,14 @@
 
 .modal {
     .modal-content {
-        border-radius: $border-rad;
+        border-radius: var(--radius-s);
         box-shadow: 0 0 10px rgba($black, 0.5);
     }
 
     .about-modal {
-        .modal-content {
-            .modal-header {
-                display: flex;
-                align-items: center;
-                padding: 20px 25px;
-                border: none;
-                border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-                background: transparent;
-                color: inherit;
-
-                .close {
-                    right: 15px;
-                    color: inherit;
-                    font-size: 30px;
-                    font-weight: normal;
-                    opacity: 0.5;
-                }
-
-                .more-modal__image {
-                    margin-right: 12px;
-                }
-
-                .modal-title {
-                    color: inherit;
-                    font-size: 17px;
-                    font-weight: 600;
-                }
-
-                .icon {
-                    position: relative;
-                    top: 1px;
-                    margin: 0 5px 0 8px;
-
-                    svg {
-                        width: 14px;
-                        height: 14px;
-                        opacity: 0.8;
-                    }
-                }
-            }
-        }
-
         .modal-body {
             max-height: calc(100vh - 220px);
-            padding: 15px 25px;
-        }
-
-        .modal-footer {
-            .btn {
-                height: 40px;
-                padding: 0 20px;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: 600;
-            }
+            padding: 16px 32px;
         }
 
         label {
@@ -112,7 +60,7 @@
 
         .about-modal__copyright {
             margin-top: 0.5em;
-            opacity: 0.6;
+            opacity: 0.73;
         }
 
         .about-modal__links {
@@ -129,7 +77,7 @@
         }
 
         .about-modal__subtitle {
-            opacity: 0.6;
+            opacity: 0.73;
         }
 
         .about-modal__hash {

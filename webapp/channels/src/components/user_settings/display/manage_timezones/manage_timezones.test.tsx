@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import ManageTimezones from './manage_timezones';
 
@@ -24,6 +24,7 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
         updateSection: jest.fn(),
         actions: {
             updateMe: jest.fn(() => Promise.resolve({})),
+            patchUser: jest.fn(() => Promise.resolve({})),
         },
     };
 

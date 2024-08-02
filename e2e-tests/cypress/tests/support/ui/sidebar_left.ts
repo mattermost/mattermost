@@ -116,11 +116,6 @@ function uiGetSidebarThreadsButton(): ChainableT<JQuery> {
 }
 Cypress.Commands.add('uiGetSidebarThreadsButton', uiGetSidebarThreadsButton);
 
-function uiGetSidebarInsightsButton(): ChainableT<JQuery> {
-    return cy.get('#sidebar-insights-button').should('be.visible');
-}
-Cypress.Commands.add('uiGetSidebarInsightsButton', uiGetSidebarInsightsButton);
-
 Cypress.Commands.add('uiGetChannelSidebarMenu', (channelName, isChannelId = false) => {
     cy.uiGetLHS().within(() => {
         if (isChannelId) {
@@ -142,7 +137,7 @@ Cypress.Commands.add('uiClickSidebarItem', (name) => {
                 cy.uiCloseModal('A new way to view and follow threads');
             }
         });
-        cy.findByRole('heading', {name: 'Followed threads'});
+        cy.get('#tutorial-threads-mobile-header span.Button_label').contains('Followed threads');
     } else {
         cy.findAllByTestId('postView').should('be.visible');
     }
@@ -273,8 +268,6 @@ declare global {
             uiGetSystemConsoleMenu: typeof uiGetSystemConsoleMenu;
 
             uiGetSidebarThreadsButton: typeof uiGetSidebarThreadsButton;
-
-            uiGetSidebarInsightsButton: typeof uiGetSidebarInsightsButton;
         }
     }
 }

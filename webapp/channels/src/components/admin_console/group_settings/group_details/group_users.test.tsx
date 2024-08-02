@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import {range} from 'lodash';
+import range from 'lodash/range';
 import React from 'react';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
-import {UserProfile} from '@mattermost/types/users';
 
 describe('components/admin_console/group_settings/group_details/GroupUsers', () => {
     const members = range(0, 55).map((i) => ({

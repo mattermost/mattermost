@@ -42,7 +42,7 @@ func (ps *PlatformService) updateFeatureFlagValuesFromManagement() {
 	newFlags := ps.featureFlagSynchronizer.UpdateFeatureFlagValues(oldFlags)
 	oldFlagsBytes, _ := json.Marshal(oldFlags)
 	newFlagsBytes, _ := json.Marshal(newFlags)
-	ps.logger.Debug("Checking feature flags from management service", mlog.String("old_flags", string(oldFlagsBytes)), mlog.String("new_flags", string(newFlagsBytes)))
+	ps.logger.Debug("Checking feature flags from management service", mlog.String("old_flags", oldFlagsBytes), mlog.String("new_flags", newFlagsBytes))
 	if oldFlags != newFlags {
 		ps.logger.Debug("Feature flag change detected, updating config")
 		*newCfg.FeatureFlags = newFlags

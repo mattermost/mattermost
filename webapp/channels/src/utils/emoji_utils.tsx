@@ -4,7 +4,7 @@
 import emojiRegex from 'emoji-regex';
 import React from 'react';
 
-import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {EmojiIndicesByUnicode, Emojis} from 'utils/emoji';
 
@@ -177,6 +177,10 @@ export function getSkin(emoji: Emoji) {
         }
     }
     return null;
+}
+
+export function trimmedEmojiName(emojiName: string) {
+    return emojiName.startsWith(':') && emojiName.endsWith(':') ? emojiName.slice(1, -1) : emojiName;
 }
 
 export function emojiMatchesSkin(emoji: Emoji, skin: string) {

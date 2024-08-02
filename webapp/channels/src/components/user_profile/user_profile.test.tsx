@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {UserProfile as UserProfileType} from '@mattermost/types/users';
+import type {UserProfile as UserProfileType} from '@mattermost/types/users';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import UserProfile from './user_profile';
@@ -13,9 +14,12 @@ describe('components/UserProfile', () => {
     const baseProps = {
         displayName: 'nickname',
         isBusy: false,
+        isMobileView: false,
         user: {username: 'username'} as UserProfileType,
         userId: 'user_id',
         theme: Preferences.THEMES.onyx,
+        isShared: false,
+        dispatch: jest.fn(),
     };
 
     test('should match snapshot', () => {

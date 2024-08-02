@@ -1,0 +1,98 @@
+[
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Группыг зохистой ашиглах тухай мэдээлэл өөрчлөх"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Группын товч тайлбар/уриаг өөрчлөх"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Mai"
+  },
+  {
+    "id": "March",
+    "translation": "Mars"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "January",
+    "translation": "Januar"
+  },
+  {
+    "id": "February",
+    "translation": "Februar"
+  },
+  {
+    "id": "December",
+    "translation": "Desember"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan ikke fjerne en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan ikke slette en anerkjennelse etter at det har gått 5 minutter."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan ikke gi en anerkjennelse i en arkivert kanal."
+  }
+]

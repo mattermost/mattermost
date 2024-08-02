@@ -2,22 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 
-import {Emoji} from '@mattermost/types/emojis';
+import type {Emoji} from '@mattermost/types/emojis';
 
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
+import store from 'stores/redux_store';
 
-import store from 'stores/redux_store.jsx';
-
-import {Preferences} from 'utils/constants';
-import * as Emoticons from 'utils/emoticons';
 import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
+import * as Emoticons from 'utils/emoticons';
 
-import {SuggestionContainer, SuggestionProps} from './suggestion';
-import Provider, {ResultsCallback} from './provider';
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
@@ -28,6 +29,8 @@ type EmojiItem = {
     type: string;
 }
 
+const suggestionTypeEmoji = 'emoji';
+
 const EmoticonSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<EmojiItem>>((props, ref) => {
     const text = props.term;
     const emoji = props.item.emoji;
@@ -37,7 +40,7 @@ const EmoticonSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Emoj
             ref={ref}
             {...props}
         >
-            <div className='pull-left'>
+            <div className='pull-left emoticon-suggestion__image-container'>
                 <img
                     alt={text}
                     className='emoticon-suggestion__image'
@@ -130,7 +133,7 @@ export default class EmoticonProvider extends Provider {
 
                         // if the emoji has skin, only add those that match with the user selected skin.
                         if (emojiMatchesSkin(emoji, skintone)) {
-                            matchedArray.push({name: alias, emoji, type: Preferences.CATEGORY_EMOJI});
+                            matchedArray.push({name: alias, emoji, type: suggestionTypeEmoji});
                         }
                         break;
                     }
@@ -144,7 +147,7 @@ export default class EmoticonProvider extends Provider {
 
                 const matchedArray = recentEmojis.includes(name) ? recentMatched : matched;
 
-                matchedArray.push({name, emoji, type: Preferences.CATEGORY_EMOJI});
+                matchedArray.push({name, emoji, type: suggestionTypeEmoji});
             }
         }
 
@@ -175,3 +178,10 @@ export default class EmoticonProvider extends Provider {
         });
     }
 }
+
+defineMessages({
+    emojisDivider: {
+        id: 'suggestion.emoji',
+        defaultMessage: 'Emoji',
+    },
+});

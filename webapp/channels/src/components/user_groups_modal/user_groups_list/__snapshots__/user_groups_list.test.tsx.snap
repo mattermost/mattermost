@@ -3,276 +3,39 @@
 exports[`component/user_groups_modal should match snapshot with groups 1`] = `
 <div
   className="user-groups-modal__content user-groups-list"
-  onScroll={[MockFunction]}
   style={
     Object {
       "overflow": "overlay",
     }
   }
 >
-  <div
-    className="group-row"
-    key="group0"
-    onClick={[Function]}
+  <InfiniteLoader
+    isItemLoaded={[Function]}
+    itemCount={100000}
+    loadMoreItems={[MockFunction]}
   >
-    <span
-      className="group-display-name"
-    >
-      Group 0
-    </span>
-    <span
-      className="group-name"
-    >
-      @
-      group0
-    </span>
-    <div
-      className="group-member-count"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="{member_count} {member_count, plural, one {member} other {members}}"
-        id="user_groups_modal.memberCount"
-        values={
-          Object {
-            "member_count": 1,
-          }
-        }
-      />
-    </div>
-    <div
-      className="group-action"
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        id="customWrapper-group0"
-        isDisabled={false}
-        stopPropagationOnToggle={true}
-      >
-        <button
-          className="action-wrapper"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </button>
-        <Menu
-          ariaLabel="User Actions Menu"
-          className="group-actions-menu"
-          openLeft={true}
-          openUp={false}
-        >
-          <MenuGroup>
-            <MenuItemAction
-              disabled={false}
-              icon={
-                <i
-                  className="icon-account-multiple-outline"
-                />
-              }
-              onClick={[Function]}
-              show={true}
-              text="View Group"
-            />
-          </MenuGroup>
-          <MenuGroup>
-            <MenuItemAction
-              disabled={false}
-              icon={
-                <i
-                  className="icon-archive-outline"
-                />
-              }
-              isDangerous={true}
-              onClick={[Function]}
-              show={true}
-              text="Archive Group"
-            />
-          </MenuGroup>
-        </Menu>
-      </MenuWrapper>
-    </div>
-  </div>
-  <div
-    className="group-row"
-    key="group1"
-    onClick={[Function]}
-  >
-    <span
-      className="group-display-name"
-    >
-      Group 1
-    </span>
-    <span
-      className="group-name"
-    >
-      @
-      group1
-    </span>
-    <div
-      className="group-member-count"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="{member_count} {member_count, plural, one {member} other {members}}"
-        id="user_groups_modal.memberCount"
-        values={
-          Object {
-            "member_count": 2,
-          }
-        }
-      />
-    </div>
-    <div
-      className="group-action"
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        id="customWrapper-group1"
-        isDisabled={false}
-        stopPropagationOnToggle={true}
-      >
-        <button
-          className="action-wrapper"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </button>
-        <Menu
-          ariaLabel="User Actions Menu"
-          className="group-actions-menu"
-          openLeft={true}
-          openUp={true}
-        >
-          <MenuGroup>
-            <MenuItemAction
-              disabled={false}
-              icon={
-                <i
-                  className="icon-account-multiple-outline"
-                />
-              }
-              onClick={[Function]}
-              show={true}
-              text="View Group"
-            />
-          </MenuGroup>
-          <MenuGroup>
-            <MenuItemAction
-              disabled={false}
-              icon={
-                <i
-                  className="icon-archive-outline"
-                />
-              }
-              isDangerous={true}
-              onClick={[Function]}
-              show={true}
-              text="Archive Group"
-            />
-          </MenuGroup>
-        </Menu>
-      </MenuWrapper>
-    </div>
-  </div>
-  <div
-    className="group-row"
-    key="group2"
-    onClick={[Function]}
-  >
-    <span
-      className="group-display-name"
-    >
-      Group 2
-    </span>
-    <span
-      className="group-name"
-    >
-      @
-      group2
-    </span>
-    <div
-      className="group-member-count"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="{member_count} {member_count, plural, one {member} other {members}}"
-        id="user_groups_modal.memberCount"
-        values={
-          Object {
-            "member_count": 3,
-          }
-        }
-      />
-    </div>
-    <div
-      className="group-action"
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        id="customWrapper-group2"
-        isDisabled={false}
-        stopPropagationOnToggle={true}
-      >
-        <button
-          className="action-wrapper"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </button>
-        <Menu
-          ariaLabel="User Actions Menu"
-          className="group-actions-menu"
-          openLeft={true}
-          openUp={true}
-        >
-          <MenuGroup>
-            <MenuItemAction
-              disabled={false}
-              icon={
-                <i
-                  className="icon-account-multiple-outline"
-                />
-              }
-              onClick={[Function]}
-              show={true}
-              text="View Group"
-            />
-          </MenuGroup>
-          <MenuGroup>
-            <MenuItemAction
-              disabled={false}
-              icon={
-                <i
-                  className="icon-archive-outline"
-                />
-              }
-              isDangerous={true}
-              onClick={[Function]}
-              show={true}
-              text="Archive Group"
-            />
-          </MenuGroup>
-        </Menu>
-      </MenuWrapper>
-    </div>
-  </div>
-  <ADLDAPUpsellBanner />
+    <Component />
+  </InfiniteLoader>
+  <Memo(ADLDAPUpsellBanner) />
 </div>
 `;
 
 exports[`component/user_groups_modal should match snapshot without groups 1`] = `
 <div
   className="user-groups-modal__content user-groups-list"
-  onScroll={[MockFunction]}
   style={
     Object {
       "overflow": "overlay",
     }
   }
 >
-  <ADLDAPUpsellBanner />
+  <InfiniteLoader
+    isItemLoaded={[Function]}
+    itemCount={100000}
+    loadMoreItems={[MockFunction]}
+  >
+    <Component />
+  </InfiniteLoader>
+  <Memo(ADLDAPUpsellBanner) />
 </div>
 `;

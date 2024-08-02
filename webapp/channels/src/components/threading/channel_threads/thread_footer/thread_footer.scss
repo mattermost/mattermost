@@ -7,10 +7,10 @@
     display: inline-flex;
     width: calc(100% + 15px);
     align-items: center;
-    padding: 0 0 5px 10px;
+    padding: 4px 0 4px 9px;
     margin-top: 1px;
     margin-bottom: 5px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 15px;
     white-space: nowrap;
@@ -24,12 +24,12 @@
     .dot-unreads {
         width: 8px;
         height: 8px;
-        background: rgba(var(--sidebar-text-active-border-rgb), 1);
         border-radius: 50%;
+        background: rgba(var(--sidebar-text-active-border-rgb), 1);
     }
 
     .Avatars {
-        margin-right: 4px;
+        margin-right: 2px;
         font-weight: 600;
     }
 

@@ -4,6 +4,7 @@
 import {SearchTypes} from 'mattermost-redux/action_types';
 
 import rhsReducer from 'reducers/views/rhs';
+
 import {ActionTypes, RHSStates} from 'utils/constants';
 
 describe('Reducers.RHS', () => {
@@ -19,6 +20,7 @@ describe('Reducers.RHS', () => {
         searchTerms: '',
         searchType: '',
         searchResultsTerms: '',
+        size: 'medium',
         pluggableId: '',
         isSearchingFlaggedPost: false,
         isSearchingPinnedPost: false,
@@ -26,6 +28,7 @@ describe('Reducers.RHS', () => {
         isSidebarOpen: false,
         isSidebarExpanded: false,
         editChannelMembers: false,
+        shouldFocusRHS: false,
     };
 
     test('Initial state', () => {
@@ -210,6 +213,7 @@ describe('Reducers.RHS', () => {
             selectedPostFocussedAt: 1234,
             selectedChannelId: '321',
             isSidebarOpen: true,
+            shouldFocusRHS: true,
         });
     });
 
@@ -294,6 +298,7 @@ describe('Reducers.RHS', () => {
             selectedPostFocussedAt: 1234,
             selectedChannelId: '321',
             isSidebarOpen: true,
+            shouldFocusRHS: true,
         });
 
         const nextState2 = rhsReducer(
@@ -315,6 +320,7 @@ describe('Reducers.RHS', () => {
             selectedChannelId: '321',
             previousRhsStates: [RHSStates.SEARCH],
             isSidebarOpen: true,
+            shouldFocusRHS: true,
         });
 
         const nextState3 = rhsReducer(
@@ -337,6 +343,7 @@ describe('Reducers.RHS', () => {
             selectedChannelId: '321',
             previousRhsStates: [RHSStates.SEARCH, RHSStates.FLAG],
             isSidebarOpen: true,
+            shouldFocusRHS: true,
         });
     });
 
@@ -417,6 +424,7 @@ describe('Reducers.RHS', () => {
             selectedChannelId: '321',
             previousRhsStates: [RHSStates.PIN],
             isSidebarOpen: true,
+            shouldFocusRHS: true,
         });
     });
 
@@ -609,6 +617,7 @@ describe('Reducers.RHS', () => {
             searchTerms: 'user_id',
             searchType: '',
             searchResultsTerms: 'user id',
+            size: 'medium',
             pluggableId: 'pluggable_id',
             isSearchingFlaggedPost: true,
             isSearchingPinnedPost: true,
@@ -616,6 +625,7 @@ describe('Reducers.RHS', () => {
             isSidebarOpen: true,
             isSidebarExpanded: true,
             editChannelMembers: false,
+            shouldFocusRHS: false,
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});

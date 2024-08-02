@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
+import type {GroupChannel, GroupTeam} from '@mattermost/types/groups';
+
 import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/group_details/group_teams_and_channels_row';
-import {GroupChannel, GroupTeam} from '@mattermost/types/groups';
 
 export type Props = {
     id: string;
@@ -85,9 +85,7 @@ State
                 channelEntriesByTeam[channel.team_id] || [];
             channelEntriesByTeam[channel.team_id].push({
                 type:
-                    channel.channel_type === 'O' ?
-                        'public-channel' :
-                        'private-channel',
+                    channel.channel_type === 'O' ? 'public-channel' : 'private-channel',
                 name: channel.channel_display_name,
                 id: channel.channel_id,
                 schemeAdmin: channel.scheme_admin,
@@ -97,9 +95,7 @@ State
                 existingTeams.add(channel.team_id);
                 teamEntries.push({
                     type:
-                        channel.team_type === 'O' ?
-                            'public-team' :
-                            'private-team',
+                        channel.team_type === 'O' ? 'public-team' : 'private-team',
                     hasChildren: true,
                     name: channel.team_display_name,
                     collapsed: this.state.collapsed[channel.team_id],

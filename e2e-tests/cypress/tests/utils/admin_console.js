@@ -15,7 +15,7 @@ export const adminConsoleNavigation = [
         url: 'admin_console/billing/subscription',
     },
     {
-        type: ['cloud_enterprise', 'e20'],
+        type: ['cloud_enterprise'],
         header: 'Billing History',
         sidebar: 'Billing History',
         url: 'admin_console/billing/billing_history',
@@ -49,6 +49,7 @@ export const adminConsoleNavigation = [
     {
         type: ['team', 'e20', 'cloud_enterprise'],
         header: 'Mattermost Users',
+        headerSelector: '.admin-console__header #systemUsersTable-headerId',
         sidebar: 'Users',
         url: 'admin_console/user_management/users',
     },
@@ -79,8 +80,8 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['team', 'e20', 'cloud_enterprise'],
-        header: 'System Roles',
-        sidebar: 'System Roles',
+        header: 'Delegated Granular Administration',
+        sidebar: 'Delegated Granular Administration',
         url: 'admin_console/user_management/system_roles',
     },
     {
@@ -306,8 +307,8 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['team', 'e20', 'cloud_enterprise'],
-        header: 'GIF (Beta)',
-        sidebar: 'GIF (Beta)',
+        header: 'GIF',
+        sidebar: 'GIF',
         url: 'admin_console/integrations/gif',
     },
     {

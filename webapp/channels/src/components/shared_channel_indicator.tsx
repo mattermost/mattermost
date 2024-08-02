@@ -4,10 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType} from '@mattermost/types/channels';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
+
 import {Constants} from 'utils/constants';
 
 type Props = {
@@ -28,23 +28,21 @@ const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
         return sharedIcon;
     }
 
-    const sharedTooltip = (
-        <Tooltip id='sharedTooltip'>
-            <FormattedMessage
-                id='shared_channel_indicator.tooltip'
-                defaultMessage='Shared with trusted organizations'
-            />
-        </Tooltip>
+    const sharedTooltipText = (
+        <FormattedMessage
+            id='shared_channel_indicator.tooltip'
+            defaultMessage='Shared with trusted organizations'
+        />
     );
 
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='sharedTooltip'
             placement='bottom'
-            overlay={sharedTooltip}
+            title={sharedTooltipText}
         >
             {sharedIcon}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

@@ -25,7 +25,16 @@ async function watchAllWithDevServer() {
             killOthers: 'failure',
         },
     );
-    await result;
+
+    let exitCode = 0;
+    try {
+        await result;
+    } catch (closeEvents) {
+        exitCode = getExitCode(closeEvents, 0);
+    }
+    return exitCode;
 }
 
-watchAllWithDevServer();
+watchAllWithDevServer().then((exitCode) => {
+    process.exit(exitCode);
+});

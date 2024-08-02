@@ -1,19 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
-import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
-import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-
-import {getScheme as loadScheme} from 'mattermost-redux/actions/schemes';
 import {
     addChannelMember,
     deleteChannel,
@@ -27,21 +20,25 @@ import {
     updateChannelMemberSchemeRoles,
     updateChannelPrivacy,
 } from 'mattermost-redux/actions/channels';
-import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
 import {
     getGroupsAssociatedToChannel as fetchAssociatedGroups,
     linkGroupSyncable,
     patchGroupSyncable,
     unlinkGroupSyncable,
 } from 'mattermost-redux/actions/groups';
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {LicenseSkus} from 'utils/constants';
+import {getScheme as loadScheme} from 'mattermost-redux/actions/schemes';
+import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
+import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
+import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import ChannelDetails, {ChannelDetailsActions} from './channel_details';
+import {LicenseSkus} from 'utils/constants';
+
+import ChannelDetails from './channel_details';
 
 type OwnProps = {
     match: {
@@ -65,13 +62,13 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
-    const channel = getChannel(state, channelID) || {};
-    const team = getTeam(state, channel.team_id) || {};
+    const channel = getChannel(state, channelID);
+    const team = channel ? getTeam(state, channel.team_id) : undefined;
     const groups = getGroupsAssociatedToChannel(state, channelID);
     const totalGroups = groups.length;
     const allGroups = getAllGroups(state);
     const channelPermissions = getChannelModerations(state, channelID);
-    const teamScheme = getScheme(state, team.scheme_id);
+    const teamScheme = team ? getScheme(state, team.scheme_id) : undefined;
     return {
         channelID,
         channel,
@@ -89,7 +86,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, ChannelDetailsActions>({
+        actions: bindActionCreators({
             getGroups: fetchAssociatedGroups,
             linkGroupSyncable,
             unlinkGroupSyncable,

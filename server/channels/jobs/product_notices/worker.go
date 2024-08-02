@@ -9,25 +9,25 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-const jobName = "ProductNotices"
-
 type AppIface interface {
 	UpdateProductNotices() *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
+	const workerName = "ProductNotices"
+
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		if err := app.UpdateProductNotices(); err != nil {
-			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.Err(err))
+			logger.Error("Worker: Failed to fetch product notices", mlog.Err(err))
 			return err
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

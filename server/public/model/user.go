@@ -14,6 +14,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
@@ -36,6 +38,7 @@ const (
 	ChannelMentionsNotifyProp      = "channel"
 	CommentsNotifyProp             = "comments"
 	MentionKeysNotifyProp          = "mention_keys"
+	HighlightsNotifyProp           = "highlight_keys"
 	CommentsNotifyNever            = "never"
 	CommentsNotifyRoot             = "root"
 	CommentsNotifyAny              = "any"
@@ -105,6 +108,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	LastLogin              int64     `json:"last_login,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -128,7 +132,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"locale":                     u.Locale,
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
-		"remote_id":                  u.RemoteId,
+		"remote_id":                  u.GetRemoteID(),
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -136,6 +140,29 @@ func (u *User) Auditable() map[string]interface{} {
 		"terms_of_service_id":        u.TermsOfServiceId,
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
+	}
+}
+
+func (u *User) LogClone() any {
+	return map[string]interface{}{
+		"id":              u.Id,
+		"create_at":       u.CreateAt,
+		"update_at":       u.UpdateAt,
+		"delete_at":       u.DeleteAt,
+		"username":        u.Username,
+		"auth_data":       u.GetAuthData(),
+		"auth_service":    u.AuthService,
+		"email":           u.Email,
+		"email_verified":  u.EmailVerified,
+		"position":        u.Position,
+		"roles":           u.Roles,
+		"allow_marketing": u.AllowMarketing,
+		"props":           u.Props,
+		"notify_props":    u.NotifyProps,
+		"locale":          u.Locale,
+		"timezone":        u.Timezone,
+		"mfa_active":      u.MfaActive,
+		"remote_id":       u.GetRemoteID(),
 	}
 }
 
@@ -185,7 +212,6 @@ func (u *UserPatch) Auditable() map[string]interface{} {
 
 //msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
@@ -341,7 +367,7 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || (!IsValidEmail(u.Email) && !u.IsRemote()) {
 		return InvalidUserError("email", u.Id, u.Email)
 	}
 
@@ -373,10 +399,6 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data_pwd", u.Id, *u.AuthData)
 	}
 
-	if len(u.Password) > UserPasswordMaxLength {
-		return InvalidUserError("password_limit", u.Id, "")
-	}
-
 	if !IsValidLocale(u.Locale) {
 		return InvalidUserError("locale", u.Id, u.Locale)
 	}
@@ -392,6 +414,13 @@ func (u *User) IsValid() *AppError {
 	if len(u.Roles) > UserRolesMaxLength {
 		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
 			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id+" roles_limit="+u.Roles, http.StatusBadRequest)
+	}
+
+	if u.Props != nil {
+		if !u.ValidateCustomStatus() {
+			return NewAppError("User.IsValid", "model.user.is_valid.invalidProperty.app_error",
+				map[string]any{"Props": u.Props}, "user_id="+u.Id, http.StatusBadRequest)
+		}
 	}
 
 	return nil
@@ -418,13 +447,13 @@ func NormalizeEmail(email string) string {
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
-func (u *User) PreSave() {
+func (u *User) PreSave() *AppError {
 	if u.Id == "" {
 		u.Id = NewId()
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = NewUsername()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -465,49 +494,24 @@ func (u *User) PreSave() {
 	}
 
 	if u.Password != "" {
-		u.Password = HashPassword(u.Password)
+		hashed, err := HashPassword(u.Password)
+		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		} else if err != nil {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_hash.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		}
+		u.Password = hashed
 	}
-}
 
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
+	cs := u.GetCustomStatus()
+	if cs != nil {
+		cs.PreSave()
+		u.SetCustomStatus(cs)
+	}
 
-func (u *User) CreateAt_() float64 {
-	return float64(u.CreateAt)
-}
-
-func (u *User) DeleteAt_() float64 {
-	return float64(u.DeleteAt)
-}
-
-func (u *User) UpdateAt_() float64 {
-	return float64(u.UpdateAt)
-}
-
-func (u *User) LastPictureUpdate_() float64 {
-	return float64(u.LastPictureUpdate)
-}
-
-func (u *User) LastPasswordUpdate_() float64 {
-	return float64(u.LastPasswordUpdate)
-}
-
-func (u *User) FailedAttempts_() float64 {
-	return float64(u.FailedAttempts)
-}
-
-func (u *User) LastActivityAt_() float64 {
-	return float64(u.LastActivityAt)
-}
-
-func (u *User) BotLastIconUpdate_() float64 {
-	return float64(u.BotLastIconUpdate)
-}
-
-func (u *User) TermsOfServiceCreateAt_() float64 {
-	return float64(u.TermsOfServiceCreateAt)
+	return nil
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -543,6 +547,14 @@ func (u *User) PreUpdate() {
 			}
 		}
 		u.NotifyProps[MentionKeysNotifyProp] = strings.Join(goodKeys, ",")
+	}
+
+	if u.Props != nil {
+		cs := u.GetCustomStatus()
+		if cs != nil {
+			cs.PreSave()
+			u.SetCustomStatus(cs)
+		}
 	}
 }
 
@@ -648,9 +660,11 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
+		delete(u.Props, UserPropsKeyRemoteEmail)
 	}
 	if len(options) != 0 && !options["fullname"] {
 		u.FirstName = ""
@@ -671,6 +685,9 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewString("")
+	u.CreateAt = 0
+	u.UpdateAt = 0
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -678,21 +695,25 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.Email = strings.TrimSpace(u.Email)
+	u.LastActivityAt = 0
 }
 
-func (u *User) ClearNonProfileFields() {
+func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
-	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.FailedAttempts = 0
+
+	if !asAdmin {
+		u.NotifyProps = StringMap{}
+	}
 }
 
-func (u *User) SanitizeProfile(options map[string]bool) {
-	u.ClearNonProfileFields()
+func (u *User) SanitizeProfile(options map[string]bool, asAdmin bool) {
+	u.ClearNonProfileFields(asAdmin)
 
 	u.Sanitize(options)
 }
@@ -746,6 +767,17 @@ func (u *User) ClearCustomStatus() {
 	u.Props[UserPropsKeyCustomStatus] = ""
 }
 
+func (u *User) ValidateCustomStatus() bool {
+	status, exists := u.Props[UserPropsKeyCustomStatus]
+	if exists && status != "" {
+		cs := u.GetCustomStatus()
+		if cs == nil {
+			return false
+		}
+	}
+	return true
+}
+
 func (u *User) GetFullName() string {
 	if u.FirstName != "" && u.LastName != "" {
 		return u.FirstName + " " + u.LastName
@@ -753,9 +785,8 @@ func (u *User) GetFullName() string {
 		return u.FirstName
 	} else if u.LastName != "" {
 		return u.LastName
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (u *User) getDisplayName(baseName, nameFormat string) string {
@@ -797,7 +828,6 @@ func (u *User) GetRawRoles() string {
 }
 
 func IsValidUserRoles(userRoles string) bool {
-
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
@@ -877,15 +907,16 @@ func (u *User) GetTimezoneLocation() *time.Location {
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
-	return u.RemoteId != nil && *u.RemoteId != ""
+	return SafeDereference(u.RemoteId) != ""
 }
 
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
-	if u.RemoteId != nil {
-		return *u.RemoteId
-	}
-	return ""
+	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetAuthData() string {
+	return SafeDereference(u.AuthData)
 }
 
 // GetProp fetches a prop value by name.
@@ -931,17 +962,18 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
+func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(hash)
+	return string(hash), nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
+var validUsername = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]*$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]*$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
@@ -955,7 +987,7 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	if !validUsernameChars.MatchString(s) {
+	if !validUsername.MatchString(s) {
 		return false
 	}
 
@@ -976,7 +1008,7 @@ func IsValidUsernameAllowRemote(s string) bool {
 	return !found
 }
 
-func CleanUsername(username string) string {
+func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
@@ -997,8 +1029,8 @@ func CleanUsername(username string) string {
 	s = strings.Trim(s, "-")
 
 	if !IsValidUsername(s) {
-		s = "a" + NewId()
-		mlog.Warn("Generating new username since provided username was invalid",
+		s = NewUsername()
+		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
@@ -1042,4 +1074,17 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
+}
+
+func (u *User) EmailDomain() string {
+	at := strings.LastIndex(u.Email, "@")
+	// at >= 0 holds true and this is not checked here. It holds true, because during signup we run `mail.ParseAddress(email)`
+	return u.Email[at+1:]
+}
+
+type UserPostStats struct {
+	LastStatusAt *int64 `json:"last_status_at,omitempty"`
+	LastPostDate *int64 `json:"last_post_date,omitempty"`
+	DaysActive   *int   `json:"days_active,omitempty"`
+	TotalPosts   *int   `json:"total_posts,omitempty"`
 }

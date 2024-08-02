@@ -5,21 +5,20 @@ package expirynotify
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-const (
-	JobName = "ExpiryNotify"
-)
+func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) *jobs.SimpleWorker {
+	const workerName = "ExpiryNotify"
 
-func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		return notifySessionsExpired()
 	}
-	return jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 }

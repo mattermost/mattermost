@@ -3,15 +3,16 @@
 
 import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {Channel} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {localizeMessage} from 'utils/utils';
-import {Constants} from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
 import Menu from 'components/widgets/menu/menu';
+
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
 
@@ -23,7 +24,7 @@ type Props = {
     /**
      * Object with info about currentTeam
      */
-    currentTeam: Team;
+    currentTeam?: Team;
 
     /**
      * String with info about redirect
@@ -85,7 +86,9 @@ export default class CloseMessage extends React.PureComponent<Props> {
         leaveDirectChannel(channel.name);
         savePreferences(currentUser.id, [{user_id: currentUser.id, category, name, value: 'false'}]);
 
-        getHistory().push(`/${currentTeam.name}/channels/${redirectChannel}`);
+        if (currentTeam) {
+            getHistory().push(`/${currentTeam.name}/channels/${redirectChannel}`);
+        }
     };
 
     render(): React.ReactNode {

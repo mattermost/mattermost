@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
 import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import SidebarCategory from './sidebar_category';
 
@@ -33,7 +35,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             setCategoryCollapsed,

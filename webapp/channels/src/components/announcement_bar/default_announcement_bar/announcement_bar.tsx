@@ -1,45 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
-
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {WarnMetricStatus} from '@mattermost/types/config';
-
-import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
-import {isStringContainingUrl} from 'utils/url';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import WarnMetricAckModal from 'components/warn_metric_ack_modal';
-import ToggleModalButton from 'components/toggle_modal_button';
+import WithTooltip from 'components/with_tooltip';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {AnnouncementBarTypes} from 'utils/constants';
+import {isStringContainingUrl} from 'utils/url';
 
 type Props = {
     id?: string;
     showCloseButton: boolean;
+    className?: string;
     color: string;
     textColor: string;
     type: string;
-    message: React.ReactNode;
-    tooltipMsg?: React.ReactNode;
+    message: ReactNode;
+    tooltipMsg?: ReactNode;
     handleClose?: (e?: any) => void;
     showModal?: boolean;
     announcementBarCount?: number;
     onButtonClick?: (e?: any) => void;
-    modalButtonText?: string;
-    modalButtonDefaultText?: string;
+    modalButtonText?: MessageDescriptor;
     showLinkAsButton: boolean;
-    icon?: React.ReactNode;
-    warnMetricStatus?: WarnMetricStatus;
+    icon?: ReactNode;
     actions: {
         incrementAnnouncementBarCount: () => void;
         decrementAnnouncementBarCount: () => void;
     };
     showCTA?: boolean;
+    ctaText?: ReactNode;
+    ctaDisabled?: boolean;
 }
 
 type State = {
@@ -136,6 +131,10 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             barClass = 'announcement-bar announcement-bar-general';
         }
 
+        if (this.props.className) {
+            barClass += ` ${this.props.className}`;
+        }
+
         let closeButton;
         if (this.props.showCloseButton) {
             closeButton = (
@@ -156,16 +155,54 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <FormattedMarkdownMessage id={this.props.message as string}/>
             );
         }
-        const announcementTooltip = this.state.showTooltip ? (
-            <Tooltip id='announcement-bar__tooltip'>
-                {this.props.tooltipMsg ? this.props.tooltipMsg : message}
-            </Tooltip>
-        ) : <></>;
 
         const announcementIcon = () => {
             return this.props.showLinkAsButton &&
-            (this.props.showCloseButton ? <div className='content__icon'>{'\uF5D6'}</div> : <div className='content__icon'>{'\uF02A'}</div>);
+            (this.props.showCloseButton ? <i className='icon icon-alert-circle-outline'/> : <i className='icon icon-alert-outline'/>);
         };
+
+        let barContent = (<div className='announcement-bar__text'>
+            {this.props.icon ? this.props.icon : announcementIcon()}
+            <span
+                ref={this.messageRef}
+                onMouseEnter={this.enableToolTipIfNeeded}
+            >
+                {message}
+            </span>
+            {
+                this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
+                <button
+                    onClick={this.props.onButtonClick}
+                    disabled={this.props.ctaDisabled}
+                >
+                    <FormattedMessage
+                        {...this.props.modalButtonText}
+                    />
+                </button>
+            }
+            {
+                this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
+                <button
+                    onClick={this.props.onButtonClick}
+                    disabled={this.props.ctaDisabled}
+                >
+                    {this.props.ctaText}
+                </button>
+            }
+        </div>);
+
+        if (this.state.showTooltip) {
+            barContent = (
+                <WithTooltip
+                    id='announcement-bar__tooltip'
+                    title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
+                    placement='bottom'
+                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
+                >
+                    {barContent}
+
+                </WithTooltip>);
+        }
 
         return (
             <div
@@ -175,61 +212,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 css={{gridArea: 'announcement'}}
                 data-testid={this.props.id}
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='bottom'
-                    overlay={announcementTooltip}
-                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
-                >
-                    <div className='announcement-bar__text'>
-                        {this.props.icon ? this.props.icon : announcementIcon()}
-                        <span
-                            ref={this.messageRef}
-                            onMouseEnter={this.enableToolTipIfNeeded}
-                        >
-                            {message}
-                        </span>
-                        {
-                            !this.props.showLinkAsButton && this.props.showCTA &&
-                            <span className='announcement-bar__link'>
-                                {this.props.showModal &&
-                                <FormattedMessage
-                                    id={this.props.modalButtonText}
-                                    defaultMessage={this.props.modalButtonDefaultText}
-                                >
-                                    {(linkmessage) => (
-                                        <ToggleModalButton
-                                            ariaLabel={linkmessage as unknown as string}
-                                            className={'color--link--adminack'}
-                                            dialogType={WarnMetricAckModal}
-                                            onClick={() => trackEvent('admin', 'click_warn_metric_learn_more')}
-                                            modalId={ModalIdentifiers.WARN_METRIC_ACK}
-                                            dialogProps={{
-                                                warnMetricStatus: this.props.warnMetricStatus,
-                                                closeParentComponent: this.props.handleClose,
-                                            }}
-                                        >
-                                            {linkmessage}
-                                        </ToggleModalButton>
-                                    )}
-                                </FormattedMessage>
-                                }
-                            </span>
-                        }
-                        {
-                            this.props.showLinkAsButton && this.props.showCTA &&
-                            <button
-                                className='upgrade-button'
-                                onClick={this.props.onButtonClick}
-                            >
-                                <FormattedMessage
-                                    id={this.props.modalButtonText}
-                                    defaultMessage={this.props.modalButtonDefaultText}
-                                />
-                            </button>
-                        }
-                    </div>
-                </OverlayTrigger>
+                {barContent}
                 {closeButton}
             </div>
         );

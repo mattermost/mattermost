@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useSelector} from 'react-redux';
 import {useLocation, matchPath} from 'react-router-dom';
 
-import {useSelector} from 'react-redux';
+import type {Product} from '@mattermost/types/cloud';
+import type {ProductIdentifier, ProductScope} from '@mattermost/types/products';
 
-import {ProductComponent} from 'types/store/plugins';
 import {selectProducts, selectCurrentProductId, selectCurrentProduct} from 'selectors/products';
-import {GlobalState} from 'types/store';
 
-import {Product} from '@mattermost/types/cloud';
-import {ProductIdentifier, ProductScope} from '@mattermost/types/products';
+import type {GlobalState} from 'types/store';
+import type {ProductComponent} from 'types/store/plugins';
 
 import {RecurringIntervals} from './constants';
 

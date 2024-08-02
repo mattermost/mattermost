@@ -82,6 +82,13 @@ func SetFileStore(filestore filestore.FileBackend) Option {
 	}
 }
 
+func SetExportFileStore(filestore filestore.FileBackend) Option {
+	return func(ps *PlatformService) error {
+		ps.exportFilestore = filestore
+		return nil
+	}
+}
+
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(ps *PlatformService) error {

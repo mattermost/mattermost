@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DialogElement} from '@mattermost/types/integrations';
+import type {DialogElement} from '@mattermost/types/integrations';
 
 type DialogError = {
     id: string;
@@ -9,7 +9,7 @@ type DialogError = {
     values?: any;
 };
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
-    if (!value && !elem.optional) {
+    if ((!value && value !== 0) && !elem.optional) {
         return {
             id: 'interactive_dialog.error.required',
             defaultMessage: 'This field is required.',
@@ -70,9 +70,7 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
 // If we're returned errors that don't match any of the elements we have,
 // ignore them and complete the dialog
 
-export function checkIfErrorsMatchElements(errors: {
-    [x: string]: DialogError;
-} = {}, elements: DialogElement[] = []) {
+export function checkIfErrorsMatchElements(errors: Record<string, string> = {}, elements: DialogElement[] = []) {
     for (const name in errors) {
         if (!errors.hasOwnProperty(name)) {
             continue;

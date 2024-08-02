@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/global/product_switcher_menu should match snapshot with id 1`] = `
-<MenuGroup>
+<Memo(MenuGroup)>
   <div
     onClick={[Function]}
   >
@@ -11,18 +11,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_about_edition_and_license",
-        ]
-      }
-    >
-      <MenuStartTrial
-        id="startTrial"
-      />
-    </Connect(SystemPermissionGate)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -97,7 +86,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -117,10 +106,13 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       }
       dialogType={
         Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
+          "$$typeof": Symbol(react.forward_ref),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "render": [Function],
         }
       }
       disabled={false}
@@ -135,7 +127,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -160,7 +152,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         show={false}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
@@ -192,11 +184,11 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       text="About "
     />
   </div>
-</MenuGroup>
+</Memo(MenuGroup)>
 `;
 
 exports[`components/global/product_switcher_menu should match snapshot with most of the thing enabled 1`] = `
-<MenuGroup>
+<Memo(MenuGroup)>
   <div
     onClick={[Function]}
   >
@@ -206,18 +198,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_about_edition_and_license",
-        ]
-      }
-    >
-      <MenuStartTrial
-        id="startTrial"
-      />
-    </Connect(SystemPermissionGate)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -292,7 +273,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -312,10 +293,13 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       }
       dialogType={
         Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
+          "$$typeof": Symbol(react.forward_ref),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "render": [Function],
         }
       }
       disabled={false}
@@ -330,7 +314,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -355,7 +339,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         show={true}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
@@ -387,7 +371,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       text="About "
     />
   </div>
-</MenuGroup>
+</Memo(MenuGroup)>
 `;
 
 exports[`components/global/product_switcher_menu should match userGroups snapshot with EnableCustomGroups config 1`] = `
@@ -399,10 +383,13 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   dialogType={
     Object {
-      "$$typeof": Symbol(react.memo),
-      "WrappedComponent": [Function],
-      "compare": null,
-      "type": [Function],
+      "$$typeof": Symbol(react.forward_ref),
+      "WrappedComponent": Object {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      },
+      "render": [Function],
     }
   }
   disabled={false}
@@ -428,10 +415,13 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   dialogType={
     Object {
-      "$$typeof": Symbol(react.memo),
-      "WrappedComponent": [Function],
-      "compare": null,
-      "type": [Function],
+      "$$typeof": Symbol(react.forward_ref),
+      "WrappedComponent": Object {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      },
+      "render": [Function],
     }
   }
   disabled={true}
@@ -470,10 +460,13 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   dialogType={
     Object {
-      "$$typeof": Symbol(react.memo),
-      "WrappedComponent": [Function],
-      "compare": null,
-      "type": [Function],
+      "$$typeof": Symbol(react.forward_ref),
+      "WrappedComponent": Object {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      },
+      "render": [Function],
     }
   }
   disabled={false}
@@ -518,18 +511,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_about_edition_and_license",
-        ]
-      }
-    >
-      <MenuStartTrial
-        id="startTrial"
-      />
-    </Connect(SystemPermissionGate)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -604,7 +586,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -624,10 +606,13 @@ exports[`components/global/product_switcher_menu should show integrations should
       }
       dialogType={
         Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
+          "$$typeof": Symbol(react.forward_ref),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "render": [Function],
         }
       }
       disabled={false}
@@ -642,7 +627,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -667,7 +652,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         show={false}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon

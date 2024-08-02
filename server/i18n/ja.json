@@ -675,7 +675,9 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} は既にチャンネルに追加されています。"
+    "translation": {
+      "other": "{{.User}} は既にチャンネルに追加されています。"
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1293,7 +1295,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Usernames}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
+    "translation": "@{{.Username}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1354,10 +1356,6 @@
     "translation": {
       "other": "{{.Count}} 画像送信: {{.Filenames}}{{.Count}} 画像送信: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1725,7 +1723,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "チームを{{.Domain}}に制限することはシステム設定により許可されていません。詳細はシステム管理者に問い合わせてください。"
+    "translation": "チームを{{ .Domain }}に制限することはシステム設定により許可されていません。詳細はシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2257,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "ウェブソケット接続をアップグレードできませんでした。"
+    "translation": "CORSによりブロックされたURLです。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2665,7 +2663,7 @@
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "ロールもしくは役割が不正です。"
+    "translation": "ロールに対する不正な権限です。"
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
@@ -2753,7 +2751,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "ユーザーのチャネルメンバーシップのロールが不正です。"
+    "translation": "ユーザーのチャンネルメンバーシップのロールが不正です。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -2849,7 +2847,7 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{.ChannelName}}の新しいグループメッセージ"
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{ .ChannelName}}の新しいグループメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -2857,7 +2855,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.TeamName}}の通知"
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{ .TeamName}}の通知"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -2945,7 +2943,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "対話型ダイアログのJSONをエンコードする際にエラーが発生しました。"
+    "translation": "Interactive DialogのJSONをエンコードする際にエラーが発生しました。"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3132,14 +3130,6 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした。"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch Bulk Processorを開始することが出来ませんでした。"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています。"
   },
@@ -3320,16 +3310,8 @@
     "translation": "認証プロバイダーへのリクエストを初期化する際にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "認証プロバイダーへのリクエストをエンコードする際にエラーが発生しました。システム管理者に連絡してください。"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAMLログインは、暗号化が有効になっていないため、失敗しました。システム管理者に連絡してください。"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "認証プロバイダーの公開証明書ファイルが見付かりません。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3340,20 +3322,12 @@
     "translation": "SAMLログインは、認証プロバイダーのレスポンスが暗号化されていないため失敗しました。システム管理者に連絡してください。"
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAMLログインは、認証プロバイダーからのレスポンスを復号する際にエラーが発生したため、失敗しました。システム管理者に連絡してください。"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "認証プロバイダーから空のレスポンスを受け取りました。"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "認証プロバイダーからのレスポンスを解析中にエラーが発生しました。システム管理者に連絡してください。"
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "認証プロバイダーからのレスポンスの妥当性を確認中にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3369,27 +3343,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "対話型ダイアログのトリガーIDをbase64でデコードできませんでした。"
+    "translation": "Interactive DialogのTrigger IDをbase64でデコードできませんでした。"
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "対話型ダイアログのトリガーIDが期限切れです。トリガーIDは最大{{.Seconds}}秒間有効です。"
+    "translation": "Interactive DialogのTrigger IDが期限切れです。トリガーIDは最大{{.Duration}}有効です。"
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "対話型ダイアログに必要なデータであるトリガーIDが含まれていません。"
+    "translation": "Interactive Dialogに必要なデータであるTrigger IDが含まれていません。"
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+    "translation": "Interactive DialogにおけるTrigger IDのbase64署名のデコードに失敗しました。"
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "対話型ダイアログのトリガーIDの署名検証に失敗しました。"
+    "translation": "Interactive DialogのTrigger IDの署名検証に失敗しました。"
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "対話型ダイアログに対して生成されたトリガーIDに署名できませんでした。"
+    "translation": "Interactive Dialogに対して生成されたTrigger IDに署名できませんでした。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3717,11 +3691,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "ファイル保持期間は１日以上でなくてはなりません。"
+    "translation": "ファイル保持日数は0より小さくできません。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "メッセージ保持期間は１日以上でなくてはなりません。"
+    "translation": "メッセージ保持日数は0より小さくできません。"
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3881,7 +3855,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomerTypeには 'A9' か 'A10' のいずれかを設定してください。"
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomerTypeには 'A9'、'A10'、'CUSTOM'のいずれかを設定してください。"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -3929,7 +3903,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "認証プロバイダーのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
+    "translation": "Identity Provider Issuer URLを空文字列にはできません。"
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4034,10 +4008,6 @@
   {
     "id": "model.emoji.user_id.app_error",
     "translation": "不正なcreator idです。"
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "GIFをデコードできません。"
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -4468,10 +4438,6 @@
     "translation": "有効なメールアドレスを入力してください。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "パスワードは{{.Min}}文字以上に設定してください。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英小文字にしてください。"
   },
@@ -4737,23 +4703,23 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4941,7 +4907,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+    "translation": "Interactive DialogにおけるTrigger Dのbase64署名のデコードに失敗しました。"
   },
   {
     "id": "groups.unsupported_syncable_type",
@@ -4961,11 +4927,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "サイズ制限超過。[最大ページサイズ](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)を確認してください。"
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "チーム/チャンネルのメンバーシップの削除エラー"
+    "translation": "サイズ制限超過。最大ページサイズ設定を大きくしてください。詳しくは https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded を確認してください。"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5548,10 +5510,6 @@
     "translation": "エンタープライズエディションのライセンスの有効期限が切れ、一部の機能が無効になることがあります。今すぐライセンスを更新してください。"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "今すぐライセンスを更新する"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} がゲストとしてあなたを {{ .TeamDisplayName }} チームに招待しました"
   },
@@ -5637,7 +5595,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Usernames}}はこのチャンネルにいないため、通知は行われません。また、彼らはリンクされたグループのメンバーではないため、チャンネルに追加することもできません。彼らをこのチャンネルに追加するには、リンクされたグループに追加しなければなりません。"
+    "translation": "@{{.Username}}はこのチャンネルにいないため、通知は行われません。また、彼らはリンクされたグループのメンバーではないため、チャンネルに追加することもできません。彼らをこのチャンネルに追加するには、リンクされたグループに追加しなければなりません。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -5693,11 +5651,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} はチームのメンバーではありません。"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
+    "translation": "{{.Users}}をこのチャンネルに追加するには、**{{.Team}}**チームのメンバーにする必要があります。"
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -5761,7 +5715,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "チャンネルメンバーシップはグループ制約により以下のユーザーを拒否しました: {{.UserIDs }}"
+    "translation": "チャンネルメンバーシップはグループ制約により以下のユーザーを拒否しました: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -6192,10 +6146,6 @@
     "translation": "パーソナルアクセストークンを削除できませんでした。"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTPサーバーが必要です"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "メッセージエクスポートデータを選択できませんでした。"
   },
@@ -6230,18 +6180,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "設定を削除する際にエラーが発生しました。"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "サイトURL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "総アクティブユーザー: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "電子メールアドレス: "
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6324,112 +6262,20 @@
     "translation": "内向きのウェブフックをカウントできませんでした。"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報をMattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
     "id": "model.command.is_valid.plugin_id.app_error",
     "translation": "不正なプラグインIDです。"
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "{{.WarnMetricName}}に値を保存できませんでした"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermostアドバイザー"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "config.json内のDownloadExportResultsが無効になっています。このジョブの結果をダウンロードするには有効にしてください。"
   },
   {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "診断ID: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "連絡先: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mattermostをスケーリングする"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\n問い合わせる をクリックすると、あなたの情報をMattermost Inc.へ共有します。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Mattermostをスケーリングする"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "メールにてお問い合わせください"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Mattermostへお問い合わせていただき、ありがとうございます。すぐにこちらからご連絡いたします。"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "メッセージを送信できませんでした。"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "メールでお問い合わせください。"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Contact Usリクエスト"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "サイトURL: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "全アクティブユーザー: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "電子メール: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "診断ID: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "連絡先: {{.Contact}}"
-  },
-  {
     "id": "api.job.unable_to_download_job",
     "translation": "このジョブをダウンロードできませんでした"
   },
   {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "警告メトリックが見つかりません。"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "管理者承認メールの送信に失敗しました"
-  },
-  {
     "id": "api.context.get_user.app_error",
     "translation": "セッションユーザーIDからユーザーを取得できませんでした。"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Contact Usリクエスト"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
   },
   {
     "id": "app.role.save.invalid_role.app_error",
@@ -6489,7 +6335,7 @@
   },
   {
     "id": "app.post.delete.app_error",
-    "translation": "役割を削除できませんでした。"
+    "translation": "投稿を削除できませんでした。"
   },
   {
     "id": "app.status.get.missing.app_error",
@@ -6532,10 +6378,6 @@
     "translation": "システム変数が見付かりませんでした。"
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "システム設定値を探す際にエラーが発生しました。"
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "空の電子メールアドレスでのSAMLログインを完了できませんでした。"
   },
@@ -6558,10 +6400,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "AD/LDAP同期処理がタイムアウトしました。"
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -7124,178 +6962,6 @@
     "translation": "リクエストボディを解析できませんでした。"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。**システムコンソール > ユーザー管理 > 権限**へ行き、高度な権限設定を有効にしてください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "高度な権限設定を利用する"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\n問い合わせ をクリックすることで、あなたの情報を Mattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。チームスキームによる高度な権限設定に興味があります。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。Elasticsearchサーバーがある場合、**システムコンソール > 環境 > Elasticsearch**へ行き、Elasticsearchの設定をしてください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "パフォーマンス改善"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\n問い合わせ をクリックすると、あなたの情報は Mattermost, Inc. へ共有されます。詳しくは[説明文書}(https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。Elasticsearchによるパフォーマンスの改善に興味があります。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。**システムコンソール > ユーザー管理 > 権限**へ行き、高度な権限設定を有効にしてください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどのロールの人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。システムスキーマによる高度な権限設定に興味があります。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどのロールの人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "高度な権限設定を利用する"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。システムコンソールへ行き、追加の機能を有効にしてください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermostに問い合わせる。我々のチームには500名以上のユーザーがおり、Mattermost Enterprise Editionを検討しています。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "閲覧専用の連絡チャンネル"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。チャンネルを作成し、**システムコンソール > ユーザー管理 > チャンネル** へ行き、投稿をチャンネル管理者に制限してください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\n問い合わせ をクリックすると、あなたの情報を Mattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。閲覧専用の連絡チャンネル機能に興味があります。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。 **システムコンソール > 利用登録 > SAML 2.0**へ行き、SAML 2.0 プロバイダーと連携してください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。我々のチームには200名以上のユーザーがおり、Mattermost Enterprise Editionを検討しています。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。**システムコンソール > 利用登録 > AD/LDAP**へ行き、AD/LDAPサービスと連携してください。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/) に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Mattermostをスケールする"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\n問い合わせ をクリックすると、あなたの情報を Mattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。我々のチームには100名以上のユーザーがおり、Mattermost Enterprise Editionを検討しています。\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。**システムコンソール > 利用登録 > 他要素認証**へ行き、多要素認証を強制してください。"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "多要素認証を強制する"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。多要素認証の強制機能について興味があります。\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "エンタープライズトライアルは有効です。**システムコンソール > 利用登録 > ゲストアカウント** へ行き、ゲストアカウントを有効にしてください。"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/pl/privacy-policy/) に同意したことになり、製品に関する電子メールを受信するようになります。"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "ゲストアカウントを作成する"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報が Mattermost Inc. へ送信されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermostへ問い合わせる。ゲストアカウント機能について興味があります。\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "トライアルライセンスを取得できませんでした。 https://mattermost.com/trial/ からライセンスをリクエストしてください。"
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "トライアルライセンスを取得できませんでした。 support@mattermost.comまで連絡してください。登録ユーザー数を取得できません。"
-  },
-  {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした。"
   },
@@ -7434,10 +7100,6 @@
   {
     "id": "api.templates.email_us_anytime_at",
     "translation": "いつでもメールしてください "
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "app.user.permanent_delete.app_error",
@@ -7660,46 +7322,6 @@
     "translation": "カスタム権限スキームは現在のライセンスではサポートされていません"
   },
   {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Mattermost Cloudサブスクリプションへの支払い予定"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Mattermost Cloud請求期限"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "請求書を確認し、支払い方法を追加するには「今すぐしはらい」を選択してください。"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "直近支払い期限に対するMattermost Cloudの請求書が処理されましたが、有効な支払い情報がありません。"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "今すぐ支払う"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "支払いが正常に処理されませんでした"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "注意: Mattermost {{.Plan}}の支払いができませんでした"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost {{.Plan}}へアクセスし続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "理由:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
-  },
-  {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "閲覧済みのお知らせを更新できませんでした"
   },
@@ -7726,22 +7348,6 @@
   {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "エクスポートファイルを書き込めませんでした。"
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "ライセンスがありません"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "このタイプのライセンスは更新トークンの生成をサポートしていません"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "新しい更新トークンを生成できませんでした。"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "ライセンス更新リンクを取得する際にエラーが発生しました"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7948,16 +7554,8 @@
     "translation": "ファイルインデックスを破棄できませんでした。"
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "電子メールを正常に送信できませんでした"
-  },
-  {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "インデックス付与中にファイルを一括取得できませんでした。"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "インポート中に添付ファイルを読み込めませんでした。"
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
@@ -8118,10 +7716,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "フィールドをJSONにエンコードできませんでした"
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "ダイレクト共有チャネルの作成中にエラーが発生しました。"
   },
   {
     "id": "app.import.generate_password.app_error",
@@ -8401,7 +7995,7 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "現在の共有チャネルに外部Mattermostインスタンスを招待する"
+    "translation": "現在の共有チャンネルに外部Mattermostインスタンスを招待する"
   },
   {
     "id": "api.command_share.invitation_sent",
@@ -8429,7 +8023,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "共有チャネルの存在確認中にエラーが発生しました: {{.Error}}"
+    "translation": "共有チャンネル {{.ChannelID}} の存在確認中にエラーが発生しました: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8437,7 +8031,7 @@
   },
   {
     "id": "api.command_share.channel_status.help",
-    "translation": "この共有チャネルのステータスを表示"
+    "translation": "この共有チャンネルのステータスを表示"
   },
   {
     "id": "api.command_share.channel_shared",
@@ -8445,11 +8039,11 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "共有チャネルの安全な接続 `{{.RemoteId}}`がこのチャネルには存在しません。"
+    "translation": "共有チャンネルの安全な接続 `{{.RemoteId}}`がこのチャンネルには存在しません。"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "他の場所から発信された共有チャネルに、安全な接続を招待できませんでした。"
+    "translation": "他の場所から発信された共有チャンネルに、安全な接続を招待できませんでした。"
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -8554,10 +8148,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "安全な接続からの招待"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "招待を復号できませんでした。不正なパスワードか、招待が壊れています: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8713,7 +8303,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
-    "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャネルを作成することはできません。"
+    "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャンネルを作成することはできません。"
   },
   {
     "id": "app.valid_password_generic.app_error",
@@ -8756,10 +8346,6 @@
     "translation": "システム"
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "管理者リストが空です。"
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "管理者リストが空です。"
   },
@@ -8772,10 +8358,6 @@
     "translation": "トライアルが開始可能か確認できませんでした"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "カスタマーアカウントでログインして更新"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}さん、あなたのサブスクリプションは{{.Days}}日で期限切れになるように設定されています。Mattermostが可能にする柔軟で安全なチームコラボレーションを体験していただければ幸いです。チームがこれらのメリットを引き続き享受できるように、今すぐ更新してください。"
   },
@@ -8784,16 +8366,8 @@
     "translation": "ライセンスは更新中です"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "更新する"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "ライセンスの確認メールを送信できませんでした"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "ライセンスの更新リンク生成に失敗しました"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8929,7 +8503,7 @@
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "アーカイブされたチャネルのユーザーを取得できません"
+    "translation": "アーカイブされたチャンネルのユーザーを取得できません"
   },
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
@@ -8942,10 +8516,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "受信したPost IDの数が{{.MaxLength}}の最大サイズを超えています"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "ポータルでこのライセンスを更新することはできません"
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
@@ -9076,20 +8646,12 @@
     "translation": "{{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelName }} チャンネルに招待しました"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Bodyデータを解析中にエラーが発生しました。"
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "リクエストボディが不正です。"
   },
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "禁輸国に対する制限のため、リクエストを処理することができませんでした。輸出制限に関するご質問は、[説明文書を参照するか](https://mattermost.com/pl/limitations-for-embargoed-countries)、legal@mattermost.com までお問い合わせください。"
-  },
-  {
-    "id": "api.insights.feature_disabled",
-    "translation": "インサイトは有効化されていない機能フラグに含まれる機能です。"
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9104,20 +8666,8 @@
     "translation": "電子メールの設定に未設定の値があります。"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "アップグレードが完了しました!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermostアップグレードの確認"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearchの設定に未設定の値があります。"
-  },
-  {
-    "id": "app.recent_searches.app_error",
-    "translation": "最近の検索履歴を取得する際にエラーが発生しました"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9148,24 +8698,12 @@
     "translation": "チーム数の制限に達したため、チームを作成できませんでした"
   },
   {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "ユーザーのトップスレッドを取得できませんでした。"
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "チームのトップスレッドを取得できませんでした。"
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "インサイト機能は無効化されています。"
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "管理者に通知済み"
   },
   {
     "id": "common.parse_error_int64",
-    "translation": " "
+    "translation": "値を解析できませんでした: {{.Value}} から int64"
   },
   {
     "id": "app.last_accessible_post.app_error",
@@ -9192,166 +8730,6 @@
     "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "ユーザーのトップDMを取得できませんでした。"
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "サブスクリプションは滞納されていません"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "クラウドサブスクリプションを取得できませんでした"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "クラウドプロダクトを取得できませんでした"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "あなたのMattermost Cloudワークスペースがダウングレードされました"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "データのアーカイブを解除し、有料機能を利用し続けるには、支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "重要な業務でCloud ProfessionalやEnterpriseの機能を利用している場合、それらが利用できなくなり、パフォーマンスの低下を体感することになるでしょう。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "あなたのMattermost Cloudワークスペースがダウングレードされました"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "プランと価格を見る"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "あなたのワークスペースは15日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "あなたのMattermostワークスペースは15日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Cloud Freeへダウングレード"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "支払いが完了していません"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "{{.Plan}}プランを利用し続けるには、できるだけ早く金融機関にご連絡ください。その後、必要に応じて支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "直近のお支払いを処理できませんでした。"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "あなたのMattermostワークスペースは30日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "お支払いの処理ができない場合、30日後に自動的にワークスペースをダウングレードします。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "未払いの請求書を処理するため、すぐに支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "対応が必要です: ワークスペースは30日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Cloud Freeへのダウングレード"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "あなたのワークスペースはまもなくダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "今すぐクレジットカード情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "{{.DelinquencyDate}} 以降の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "お知らせ: あなたのMattermost {{.Plan}} はまもなくダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "あなたのワークスペースはまもなくダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "何も行動がとられない場合、あなたのワークスペースがダウングレードされ、以下のデータがアーカイブされる可能性があります:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "まだMattermost {{.Plan}} はアクティブになっていますが、支払い方法に関する問題を解決する必要があります。"
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Mattermost {{.Plan}} の機能を利用し続けるには"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "すべての制限事項に関する説明文書を確認する。"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "メッセージ履歴"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "ファイル"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "支払いが確認できていません"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "金融機関に連絡し、問題を解決してください。その後、必要に応じて支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Mattermost {{.Plan}} の支払いが遅れています"
-  },
-  {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "このデバイスではmarketplaceコマンドはサポートされていません。"
   },
@@ -9365,39 +8743,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost は、ツールやチームをまたがるセキュアなコミュニケーション、コラボレーション、オーケストレーションのためのオープンソースプラットフォームです。\nMattermostには、3つの主要なツールが含まれています:\n\n**Channels** - 1対1もしくはグループとのメッセージングによりチームを常に繋がった状態にします\n**[Playbooks](/playbooks)** - 繰り返し行われる作業をプロセス化し、予測可能な結果を残せるようにします\n**[Boards](/boards)** - Kanban形式のボードでプロジェクトとタスクを管理し、チームが重要なマイルストーンを達成できるよう支援します\n\n[ドキュメントとガイドを見る]({{.HelpLink}})"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "滞納メールを送信するための必須項目が不足しています。"
+    "translation": "Mattermost は、ツールやチームをまたがるセキュアなコミュニケーション、コラボレーション、オーケストレーションのためのオープンソースプラットフォームです。\nMattermostには、2つの主要なツールが含まれています:\n\n**Channels** - 1対1もしくはグループとのメッセージングによりチームを常に繋がった状態にします\n**[Playbooks](/playbooks)** - 繰り返し行われる作業をプロセス化し、予測可能な結果を残せるようにします\n\n[ドキュメントとガイドを見る]({{.HelpLink}})"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9432,16 +8778,8 @@
     "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
   },
   {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "現在のプラン名を取得できませんでした"
-  },
-  {
     "id": "app.job.error",
     "translation": "ジョブ実行中にエラーが発生しました。"
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "時間の範囲が無効です。"
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -9462,14 +8800,6 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "ゲストアカウントは無効化されています"
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic type はすでに存在しています。"
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection typeはすでに存在しています。"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -9497,7 +8827,7 @@
   },
   {
     "id": "model.draft.is_valid.create_at.app_error",
-    "translation": "Create atは有効な時刻でなくてはなりません。"
+    "translation": "作成日時は有効な時刻でなくてはなりません。"
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
@@ -9596,36 +8926,12 @@
     "translation": "アーカイブされたチャンネルでは、確認応答を削除することはできません。"
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "プロダクト"
-  },
-  {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "不正な優先度"
   },
   {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "作業テンプレートを取得できませんでした"
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "作業テンプレートのカテゴリを取得できませんでした"
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "検証中のロール取得時にエラーが発生しました。"
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "請求書を見る"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。{{.Date}} から課金されます"
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -9648,156 +8954,16 @@
     "translation": "ElasticsearchのCAファイルを開くことができませんでした"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Elasticsearch用CAのデコードに失敗しました"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "ワークスペースがダウングレードされると、ワークスペースで実行されている重要なワークフロー、その他のビジネス上の重要な活動に悪影響を与える可能性があります。"
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWSサーバーは使用できません。"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "外向きのウェブフックの総数を取得できませんでした"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "内向きのウェブフックの総数を取得できませんでした"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "総アクティブユーザー数を取得できませんでした"
-  },
-  {
-    "id": "worktemplate.category.leadership",
-    "translation": "リーダーシップ"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "会社全体"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Playbookに関連するチャンネルが見つかりませんでした。"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Playbookを作成する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "チャンネルを作成する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Boardを作成する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "作業テンプレートを実行する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "あなたのライセンスは非公開Playbooksをサポートしていません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "公開Playbookを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "公開チャンネルを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "公開Boardを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "非公開Playbookを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "非公開チャンネルを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "非公開Boardを作成する権限がありません。"
   },
   {
     "id": "app.group.username_conflict",
     "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "作業テンプレートは無効です。"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "棚卸しはクラウドインスタンスには許可されていません"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "棚卸しにはライセンスが必要です"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "棚卸し状況のレコードを取得できませんでした"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "棚卸し状況のレコードを作成できませんでした"
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "サーバーの翻訳を更新できませんでした。"
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "templates"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS サーバーはワークスペースの削除に失敗しました。"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "テンプレートウィンドウから作成を開く"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "名称欄には64文字以上入力できません。"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "プロダクトキーが見つかりませんでした"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "インターフェースが期待された型ではありませんでした"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "Boardへのパッチ適用エラー"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "Board作成エラー"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "Boardsテンプレート取得エラー"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "重複したBoardによるエラー"
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9812,336 +8978,12 @@
     "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
   },
   {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "あなたのデバイスではテンプレートコマンドはサポートされていません。"
-  },
-  {
-    "id": "app.user.run.update_status.title",
-    "translation": "ステータスの更新"
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "ステータスを更新"
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "次回更新のリマインド"
-  },
-  {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "other": "関係者に更新内容を提供します。この投稿は {{.Count}} チャンネルに配信されます。"
-    }
-  },
-  {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "また、実行を終了としてマークする"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "実行を終了する"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "前回更新時からの変更点"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} は [{{.RunName}}]({{.RunURL}}) のステータス更新を有効化しました"
-  },
-  {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} は [{{.RunName}}]({{.RunURL}}) のステータス更新を無効化しました"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} は [{{.RunName}}]({{.RunURL}}) のステータスの更新を要求しました。 \n"
-  },
-  {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} は実行の参加者で、このチャンネルへの参加を希望しています。チャンネルのメンバーなら誰でも招待できます。\n"
-  },
-  {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "実行終了の確認"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "実行を終了する"
-  },
-  {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "other": "**{{.Count}} 個の未解決タスク**があります。 本当に実行 *{{.RunName}}* を終了してもよろしいですか?"
-    }
-  },
-  {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "タイムラインに表示される短い要約"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "最大 64 文字"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "概要"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Playbookを実行"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "新しいタスクを追加"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "タスクを追加"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "名前"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "説明"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Playbookを実行する"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "実行開始"
-  },
-  {
-    "id": "app.user.new_run.run_name",
-    "translation": "実行名"
-  },
-  {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**オーナー** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "割り当てられたタスクがありません。"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "other": "{{.Count}}タスクが割り当てられています:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "あなたに割り当てられたタスク"
-  },
-  {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "昨日で期限切れ"
-  },
-  {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "{{.Count}}日前に期限切れ"
-  },
-  {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "今日が期限です"
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "other": "期限は{{.Count}}日後です"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "other": "**今日で期限切れとなるタスクが {{.Count}} 件**割り当てられています。"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "`/playbook todo`を使用すると、あなたのすべてのタスクを確認することができます。"
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "進行中の実行はありません。"
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "other": "現在、 {{.Count}} の実行が進行中です:"
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "進行中の実行"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "期限切れの実行は 0 です。"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "other": "ステータス更新の期日が過ぎた実行が {{.Count}} あります:"
-    }
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "期限切れステータスの更新"
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "oauth データを削除することができませんでした。"
   },
   {
-    "id": "app.command.execute.error",
-    "translation": "コマンドを実行できませんでした。"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "営業に問い合わせる"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Zoomなどのよく使われるツールと統合し、チャンネルでの生産性を高めていきましょう。これらはあなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Boardsや統合機能と簡単に連携できるチャンネルで、チームと会話しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "週次目標に向けてスプリントへの分解、優先順位付け、オーナー割り当て、コメントなどを行い、チームの進捗を追跡しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "利用者からのフィードバックや優先順位についてチームで会話し、一緒に進捗を確認しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "プロダクトロードマップBoardを使用して、ユーザーフィードバックの管理、リソースの割り当て、カレンダービューでの成果物の表示、課題の優先順位付などを行いましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "目標や進捗についてチームと会話し、一つのチャンネルで最新の状況が把握することができるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "機能開発プロセスをサポートするタスクチェックリストと自動化機能により、部門を超えたコラボレーションを促進しましょう。開発が完了したら、レトロスペクティブを実施し、次のリリースに向けて改善しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "機能のリリースをサポートするGitHubなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Boards、Playbooks、その他の統合機能と簡単に連携できるチャンネルで、リリースに向けた問題点や変更点についてチームで会話しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "ミーティングアジェンダBoardで会議を滞りなく進めましょう。また、プロジェクトタスクBoardで仕事量を管理しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "チェックリストを使ってテスト担当領域を割り当て、自動タスクを使って包括的なバグバッシュプロセスを遂行しましょう。レトロスペクティブを利用して、プロセスの見直しを行い、次回に向けて改善しましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Bug bashの進捗を追跡するためにJiraなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "チームが簡単にアクセスできるチャンネルで、バグ報告や解決策を計画・管理しましょう。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "目標や進捗についてチームと会話し、一つのチャンネルで最新の状況が把握することができるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "プロダクトのリリースを確実かつ予定通りに行うために、簡単に実行可能な再現性のあるワークフローを作成しましょう。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "日々のマイルストーンや問題点、成果物に対する変更について簡潔かつ素早くチームで会話しましょう。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "プロダクトリリースBoardを使って、リリースに向けた期間やプロセスを把握し、全員がどのタスクに期限があるかを把握できるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "チェックリストや、主要なチームメンバーを集める自動化を利用して、インシデント解決に向けた作業状況を共有しましょう。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "一つのチャンネルの中で優先順位についてチームで会話し、関係者を追加し、最新情報を提供し、課題解決に向けて作業しましょう。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "インシデント解決Boardを使用して、チーム全体で再現性のあるプロセスをサポートし、定義済みのタスクを割り当てます。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "目標や進捗についてチームと会話し、一つのチャンネルで最新の状況が把握することができるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "よく使われるツールと統合し、チャンネルでの生産性を高めていきましょう。これらはあなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "共同作業を行うためのチャンネルで新しいプロジェクトについてチームと会話し、どのように進めていくか決定してきましょう。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "カンバンボードを使用してタスクと進捗を定義し、追跡しましょう。"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -10156,15 +8998,1087 @@
     "translation": "プラグイン {{.Id}} は、既存のバージョンと同じかより新しいため、インストールをスキップします。"
   },
   {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "プラグイン {{.Id}} はブロックリストに登録されています。いくつかのプラグインは、このバージョンの Mattermost に組み込まれているためブロックされています。"
-  },
-  {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "CWSサーバーがニュースレターを購読できませんでした。"
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "トライアル用のビジネス用電子メールが不正です"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "チームの取得中にエラーが発生しました。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "チャンネル別の永続的な通知を削除できませんでした。"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "永続的な通知は、最大 {{.MaxRecipients}} 人の受信者への通知が許可されています。"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "エラー: セルフホストのオンボーディングで組織名が指定されていません。"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "削除されない通知では、少なくとも1人の受信対象の指定が必要です。"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "永続的な通知の投稿を削除できませんでした"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "channel-auto-follow-threadsの値が不正です。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "投稿ごとの永続的な通知の総数が不正です。正の数である必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "永続的な通知の間隔が不正です。2分以上でなくてはなりません。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "チーム別の永続的な通知を削除できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "永続的な通知の最大受信者数が不正です。正の数である必要があります。"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "エクスポートをダウンロードするためのリンクを生成します。"
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "エクスポートファイルが見つかりません。"
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "要求されたファイルが見つかりませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "ファイルはこちらからダウンロードできます: {{.Link}}。\nこのリンクの有効期限は {{.Expiration}} です。"
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "エクスポートファイルを取得できませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "このコマンドを実行するのに十分な権限がありません。"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Presign URLを生成できませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "指定されたチャンネルのメンバー数が見つかりませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "メンバー数が見つかりませんでした。"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "チャンネルメンバーを更新できませんでした。notify propsのサイズが制限を超えています。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Presigned URLを生成できませんでした。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "この操作には、専用のエクスポート保存先を使用する必要があります。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "お使いのエクスポート保存先ドライバはPresign URLの生成をサポートしていません。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "この機能はフィーチャーフラグによって制限されています。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "ファイルの存在を確認できませんでした。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "エクスポートファイルが見つかりませんでした。"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify propsのサイズが制限を超えています。"
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "ローカルソケットファイルのディレクトリが見つかりませんでした。"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "GIFをデコードできませんでした。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "優先度付きの投稿や永続的な通知の作成は許可されていません。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "優先度の設定はrootの投稿にのみ許可されています。"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "パスワードリカバリトークンを無効にする際に、タイプ別のトークンを取得できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "パスワードリカバリトークンを無効化する際にトークンを解析できませんでした"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "永続的な通知の検証に失敗しました。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "破棄時に無視されるインデックスはダッシュで始まっていてはいけません。"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "永続的な通知の投稿は、緊急の優先度が設定されている必要があります。"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "パスワードリカバリトークンを無効にする際に、トークンを削除できませんでした"
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "チャンネルメンバーを更新できませんでした。"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "設定保存時のplugin hookを実行する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "グループメッセージから非公開チャンネルへの変換は許可されていません"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "ダイレクトメッセージ、グループメッセージの名前、表示名、目的の更新は許可されていません。"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "未読とメンションを確認できませんでした"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "チャンネルはグループメッセージではありません。"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "共通のチームを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "変換されたグループメッセージに対する既存のサイドバーカテゴリを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "ユーザーのチャンネルメンバーシップが見つかりませんでした"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "変換リクエスト内で指定されたチームIDに、グループメッセージのメンバー全員が含まれていません"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "変換予定のチャンネルはグループメッセージではありません。グループメッセージのみ変換できます"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "チャンネル変換投稿へのグループメッセージを作成できませんでした"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "トークンが存在しないか期限切れです"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "トークンが有効でないか期限切れです"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "このトークンに対するユーザーが見つかりませんでした"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "ファイルの検索可能なコンテンツを設定できませんでした。"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "インポートしたチャンネルをアーカイブできませんでした。"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "ユーザーに対するリアクションを削除できませんでした。"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "チャンネルの全てのスレッドを既読としてマークできませんでした"
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}}と{{.LastItem}}"
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "リンクメタデータのタイムアウト値が不正です。正の数でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "ユーザーステータスが離席中になるタイムアウト値が不正です。正の数でなければなりません。"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "リモートユーザーのログインが許可されていないため、ログインできませんでした。"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "ファイル保存先ドライバはリンク生成をサポートしていません。"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}}と他{{.Others}}名は既にチャンネルに追加されています。"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.Channel}}チャンネルに{{.FirstUser}}と他{{.Others}}名を追加しました。"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "{{.FirstUser}}と他{{.Others}}名をこのチャンネルに追加するには、**{{.Team}}**チームのメンバーにする必要があります。"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}}が{{.GMMembers}}とのグループメッセージからこのチャンネルを作成しました。"
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "ダイレクトメッセージ、グループメッセージの名前、表示名、目的の更新は許可されていません。"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "一度に多くの絵文字を取得することはできません。一度にリクエストできるのは {{.MaxNames}} 絵文字までです。"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "不正なフォーマット: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "JSONを解析できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "IP フィルタの取得中にエラーが発生しました"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "IPフィルタの適用中にエラーが発生しました"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "{{ .InitiatingUserEmail }} にメールを送信する"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "変更内容の確認"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }}が、次のワークスペースのIPフィルタリング設定を変更しました: {{ .SiteURL }}"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "SiteURLのサブパスを解析できませんでした"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audienceは空欄にできません。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Audience URLが不正です: {{ .Url }}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "不正なclient idです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "不正なclient secretです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "作成日時は有効な時刻にしてください。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "不正なcreator idです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "不正なgrant typedです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "不正なidです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "不正なnameです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "不正なoauth token urlです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "不正なpassword credentialsです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update atは有効な時刻にしてください。"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "クライアントのIPアドレス取得中にエラーが発生しました"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "このサーバーではIPフィルタリングは利用できません"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "ワークスペースのIPフィルターの変更"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "サポートに連絡する"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "カスタマーポータルにログインしてIPフィルタリングをリセットする"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "ワークスペースのIPフィルタリングの変更"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "ワークスペースへのアクセスでお困りですか?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "最終ログイン日時を更新できませんでした"
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "この投稿に対するリアクションの上限に達しました。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "不正な入力パラメータです。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "アクティブなユーザーと非アクティブなユーザーの両方を非表示にすることはできません。"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "スレッドを削除できませんでした"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "外向きの OAuth 接続の削除中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "外向きの OAuth 接続の取得中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "外向きのOAuth接続が見つかりませんでした。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "外向きのOAuth接続の取得中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "外向きの OAuth 接続の保存中にエラーが発生しました: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "外向きの OAuth 接続の更新中にエラーが発生しました: {{ .Error }}"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "指定されたソートカラムが無効です。"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "チャンネル{{.ChannelID}} が共有されていないため、リモートを招待できません。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "外向きの OAuth 接続の一覧表示中にエラーが発生しました。"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "このスレッドは別のチャンネルから移動されました"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "一度に多くのロールを取得することはできません。一度にリクエストできるのは {{.MaxNames}} ロールまでです。"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "メッセージがダイレクト/グループメッセージに移動されました。\n"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "カスタムステータスを更新できませんでした。指定された名前の絵文字が存在しません。"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "ファイルの開始位置が見つかりませんでした。"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "スレッド移動は無効化されています"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "このスレッドを移動する権限がありません。"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "メッセージが移動されました: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "{{.NumMessages}} メッセージのあるスレッドが移動されました: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "{{.NumMessages}} メッセージを含むスレッドがダイレクト/グループメッセージに移動されました。\n"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "ユーザーレポートを取得できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "GlobalRelaySettings.CustomerTypeが 'CUSTOM' の場合、GlobalRelaySettings.CustomSMTPServerNameとGlobalRelaySettings.CustomSMTPPortを設定する必要があります。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "ページサイズが不正、もしくは大きすぎます。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "不正なチームIDが入力されました。"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "スレッド移動設定のドメインが不正です"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "サービス設定の外向きの統合機能リクエストタイムアウトが不正です。正の整数を指定してください。"
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "指定された日付範囲が不正です。"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "招待を確認できなせんでした: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "ペイロードの解析中にエラーが発生しました。"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "チャンネルメンバーの通知設定を更新できませんでした。"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "多数のチャンネルメンバーを更新できませんでした。一度に{{.Max}}人まで更新できます。"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "ユーザー数を取得できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "ファイル保持日数とファイル保持時間の両方を0にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "ファイル保持時間は0より小さくできません"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "メッセージ保持日数とメッセージ保持時間の両方を0にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "メッセージ保持時間は0より小さくできません"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "メッセージ保持日数とメッセージ保持時間の両方を0より大きくすることはできません。"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "ユーザーが見つかりませんでした。"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "ユーザーがカスタムプロフィール画像を設定しているかチェックする際にエラーが発生しました。"
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "サービス設定の最大ペイロードサイズが不正です。0より大きい整数にしてください。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "ファイル保持日数とファイル保持時間の両方を0より大きくすることはできません。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "このサーバーでは外向きのOAuth接続は利用できません。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "外向きの OAuth 接続の更新中にエラーが発生しました。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "不正な入力パラメーターです。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "外向きのOAuth接続の認証情報を検証中にエラーが発生しました。"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "過去30日間"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "過去6ヶ月間"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "先月"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "ファイル情報を保存できませんでした。"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "日付範囲がありません"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "レポート送信先のユーザーIDがありません"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "提供されたAudienceに対する外向きのOAuth接続は既に存在します。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "このサーバーでは外向きのOAuth接続は利用できません。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Audienceに対する外向きのOAuth接続の取得中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "提供されたAudienceに対する外向きのOAuth接続が見つかりませんでした。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "提供されたAudienceが不正です: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "提供されたAudienceが不正です: {{ .Error }}"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "バッチ処理でのレポートエクスポートはProfessional版とEnterprise版でのみ利用可能です。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "{{.DateRange}}のユーザーデータのエクスポートを開始しました。エクスポートが完了すると、CSVファイルがこのダイレクトメッセージで配信されます。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "あなたのライセンスは外向きのOAuth接続をサポートしていません。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "外向きのOAuth接続を作成中にエラーが発生しました。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "不正な入力パラメーターです。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "外向きのOAuth接続を削除中にエラーが発生しました。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "指定された接続構成の認証情報を取得できませんでした。"
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "不正な email_token"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "チームメンバーの不正な更新: ゲストをチームメンバーやチーム管理者にすることはできません。先にユーザーに昇格してください。"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "CSVヘッダーを書き込めませんでした。"
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "サポートされていないレポート形式です。"
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "サポートされていないレポート形式です。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "提供されたAudienceに対する外向きのOAuth接続はありません。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "提供されたAudienceに対する外向きのOAuth接続は既に存在します: {{ .Audience }}"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "ユーザーをチャンネルのメンバーとして追加できませんでした。"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "全期間"
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "エクスポートの準備ができました。CSVファイルには {{.DateRange}} のユーザーデータが含まれます。下にあるリンクをクリックしてダウンロードしてください。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "このユーザーと日付範囲のジョブは既に存在します。"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "CSVチャンクを書き込めませんでした。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "外向きのOAuth接続の認証中にエラーが発生しました: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "提供されたAudienceに対する外向きのOAuth接続は既に存在します: {{ .Audience }}"
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "不正なスキーマです。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "ブックマークをソートできませんでした。"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Elasticsearch チャネルインデックススキーマが古くなっています。チャンネルインデックスを再生成してください。\n問題を解決するには[システムコンソールの Elasticsearch セクション]({{.ElasticsearchSection}}) にある `チャンネルインデックスの再構築` ボタンをクリックしてください。\n詳しくは Mattermost changelog を参照してください。"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "インポートデータ行に \"role\" タイプがありますが、roleオブジェクトがnullです。"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "不正なprops(カスタムステータス)です"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "スキーマのページを取得できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "あなたのライセンスはチャンネルブックマークをサポートしていません。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "ユーザーはチャンネルブックマークの作成を許可されていません。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークを作成できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "チャンネルブックマークを作成できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "ユーザーを作成できません。安全なユーザー数を超えています。ERROR_SAFETY_LIMITS_EXCEEDEDについて管理者へ連絡してください。"
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "ブックマークを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "ブックマークを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "更新対象のブックマークを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "ブックマークを保存できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "ブックマークを更新できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "ブックマークをソートできませんでした。不正な入力です。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "ブックマークをソートできませんでした。対象が見つかりませんでした。"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "未使用期間の最も長いセッションを取得できませんでした。"
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "ユーザーを有効化できません。安全なユーザー数を超えています。ERROR_SAFETY_LIMITS_EXCEEDEDについて管理者に連絡してください。"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "リスト破棄機能はBleveでは利用できません。"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Elasticsearchインデックスを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "指定された不明なインデックスを削除できませんでした"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "不正なチャンネルIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "作成日時は有効な時刻にしてください。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "表示名が見つかりません。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "ファイルIDが見つからないか不正です。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "不正なIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "リンクURLが見つからないか不正です。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "不正な画像URLです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "リンクとファイルを同じブックマークにすることは設定できません。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "不正なParent IDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "不正なオリジナルIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "不正なオーナーIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "不正なtypeです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "更新日時は有効な時刻にしてください。"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "チャンネルにリモートを招待できません: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Mattermostカスタマーポータルとのやり取りはシステム管理者によって無効化されています。"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URLが長すぎます"
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "チャンネルインデックススキーマが古いため、チャンネル自動補完を有効にできません。チャンネルインデックスを再生成してください。詳しくはMattermost changelogを参照してください"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "チャンネルメンバーの不正な更新: ゲストをチームメンバーやチーム管理者にすることはできません。先にユーザーへ昇格してください。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "チームメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "チャンネルメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} と @{{.LastUsername}} はこのチームのメンバーではないため、このメンションによる通知は行われませんでした。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} はこのチームのメンバーではないため、このメンションによる通知は行われませんでした。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "リクエストボディにdisplay_nameがありません"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "リクエストボディにteam_idがありません"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "電子メールによる利用登録が無効化されているため、認証転送は利用できません。"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "電子メールログインもユーザー名ログインも無効化されているため、認証転送は利用できません。"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "リクエストを解析できませんでした"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "プラグインをreattachできませんでした"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "マニフェストが見つかりません"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "プラグインのreattach設定が見つかりません"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "パスワードは72文字以内でなければなりません。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "パスワードは{{.Min}}文字以上でなければなりません。"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "ファイル探索エラー: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "ファイルステータスの読み込みエラー： \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "ユーザー数を取得できませんでした"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "ZIPファイルをクローズできませんでした"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "エクスポートファイルの開始位置が見つかりませんでした。"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "このURLのチームはすでに存在します。"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "システム管理者アカウント数を確認する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "最後のシステム管理者を降格することはできません。"
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "そのユーザー名がすでに存在するか判断できませんでした"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "ログをバッファーに書き込めませんでした"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "パスワードの保存中に内部エラーが発生しました。"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "パスワードの保存中に内部エラーが発生しました。"
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "パスワードは72文字以内でなければなりません。"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "無効なステータスが設定されました"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "このジョブ種別を管理する権限がありません"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "ジョブの状態を更新できませんでした。無効なステータスが設定されました"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "インスタンスサイトのURLを取得できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "リモートクラスタの招待を承認できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "base64文字列をデコードできませんでした"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "リモートクラスタが削除されていません"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "提供されたパスワードを使用してリモートクラスタの招待を暗号化できませんでした"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "リモートクラスターが見つかりません"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "提供されたパスワードを使用してリモートクラスタの招待を復号化できませんでした"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "カスタムステータスを設定できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "検索バックエンドが不正です。elasticsearch または opensearch のいずれかでなければなりません。"
   }
 ]

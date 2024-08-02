@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import {UserThreadType} from '@mattermost/types/threads';
+import type {UserThread, ThreadsState, UserThreadSynthetic} from '@mattermost/types/threads';
+import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {GlobalState} from '@mattermost/types/store';
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
-import {UserThread, ThreadsState, UserThreadType, UserThreadSynthetic} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
-import {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
 
 export function getThreadsInTeam(state: GlobalState): RelationOneToMany<Team, UserThread> {
     return state.entities.threads.threadsInTeam;
@@ -175,25 +176,20 @@ function sortByLastReply(ids: Array<UserThread['id']>, threads: ReturnType<typeo
 export const getThreadsInChannel: (
     state: GlobalState,
     channelID: string,
-) => Array<UserThread['id']> = createSelector(
+) => UserThread[] = createSelector(
     'getThreadsInChannel',
     getThreads,
-    (state: GlobalState, channelID: string) => channelID,
-    (allThreads: IDMappedObjects<UserThread>, channelID: string) => {
-        return Object.keys(allThreads).filter((id) => allThreads[id].post.channel_id === channelID);
-    },
-);
+    (_: GlobalState, channelID: string) => channelID,
+    (threads: IDMappedObjects<UserThread>, channelID: Channel['id']) => {
+        const allThreads = Object.values(threads);
 
-export const getThreadItemsInChannel: (
-    state: GlobalState,
-    channelID: string,
-) => UserThread[] = createSelector(
-    'getThreadItemsInChannel',
-    getThreads,
-    (state: GlobalState, channelID: string) => channelID,
-    (allThreads: IDMappedObjects<UserThread>, channelID: Channel['id']) => {
-        return Object.keys(allThreads).
-            map((id) => allThreads[id]).
-            filter((item) => item.post.channel_id === channelID);
+        const threadsInChannel: UserThread[] = [];
+        for (const thread of allThreads) {
+            if (thread && thread.post && thread.post.channel_id && thread.post.channel_id === channelID) {
+                threadsInChannel.push(thread);
+            }
+        }
+
+        return threadsInChannel;
     },
 );

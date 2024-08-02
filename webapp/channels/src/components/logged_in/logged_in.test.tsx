@@ -1,31 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import LoggedIn, {Props} from 'components/logged_in/logged_in';
-import BrowserStore from 'stores/browser_store';
+import type {UserProfile} from '@mattermost/types/users';
+
 import * as GlobalActions from 'actions/global_actions';
-import {UserProfile} from '@mattermost/types/users';
+import BrowserStore from 'stores/browser_store';
+
+import LoggedIn from 'components/logged_in/logged_in';
+import type {Props} from 'components/logged_in/logged_in';
+
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),
+    close: jest.fn(),
 }));
 
 BrowserStore.signalLogin = jest.fn();
 
 describe('components/logged_in/LoggedIn', () => {
+    const originalFetch = global.fetch;
+    beforeAll(() => {
+        global.fetch = jest.fn();
+    });
+    afterAll(() => {
+        global.fetch = originalFetch;
+    });
+
     const children = <span>{'Test'}</span>;
     const baseProps: Props = {
         currentUser: {} as UserProfile,
         mfaRequired: false,
-        enableTimezone: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),
-            viewChannel: jest.fn(),
+            updateApproximateViewTime: jest.fn(),
         },
+        isCurrentChannelManuallyUnread: false,
         showTermsOfService: false,
         location: {
             pathname: '/',
@@ -175,5 +189,19 @@ describe('components/logged_in/LoggedIn', () => {
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
         expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+    });
+
+    it('should not make viewChannel call on unload', () => {
+        const props = {
+            ...baseProps,
+            mfaRequired: false,
+            showTermsOfService: false,
+        };
+
+        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        expect(screen.getByText('Test')).toBeInTheDocument();
+
+        fireEvent(window, new Event('beforeunload'));
+        expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
     });
 });

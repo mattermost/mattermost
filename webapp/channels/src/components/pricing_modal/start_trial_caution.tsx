@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
+
+import ExternalLink from 'components/external_link';
 
 import {AboutLinks, LicenseLinks} from 'utils/constants';
-import ExternalLink from 'components/external_link';
 
 const ContainerSpan = styled.span`
 font-style: normal;
@@ -15,7 +16,7 @@ font-weight: 400;
 font-size: 10px;
 line-height: 14px;
 letter-spacing: 0.02em;
-color: rgba(var(--center-channel-color-rgb), 0.56);
+color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const Span = styled.span`

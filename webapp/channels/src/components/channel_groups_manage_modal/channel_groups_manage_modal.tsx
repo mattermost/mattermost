@@ -2,37 +2,35 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Group, SyncableType} from '@mattermost/types/groups';
+import type {Channel} from '@mattermost/types/channels';
+import {SyncableType} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
 
-import {Channel} from '@mattermost/types/channels';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
-
-import {ModalIdentifiers} from 'utils/constants';
-
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
-
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import groupsAvatar from 'images/groups-avatar.png';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-
-import {ModalData} from 'types/actions';
-
+import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 type Props = {
     channel: Channel;
     intl: IntlShape;
     actions: {
-        getGroupsAssociatedToChannel: (channelId: string, searchTerm: string, pageNumber: number, perPage: number) => any;
-        unlinkGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: string) => any;
-        patchGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: string, params: {scheme_admin: boolean}) => any;
-        getMyChannelMember: (channelId: string) => any;
+        getGroupsAssociatedToChannel: (channelId: string, searchTerm: string, pageNumber: number, perPage: number) => Promise<ActionResult>;
+        unlinkGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: SyncableType) => Promise<ActionResult>;
+        patchGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: SyncableType, params: {scheme_admin: boolean}) => Promise<ActionResult>;
+        getMyChannelMember: (channelId: string) => void;
         closeModal: (modalId: string) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };

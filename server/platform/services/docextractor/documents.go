@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	"code.sajari.com/docconv"
+	"code.sajari.com/docconv/v2"
 )
 
 type documentExtractor struct{}
@@ -24,6 +24,10 @@ var doconvConverterByExtensions = map[string]func(io.Reader) (string, map[string
 	// "pages": docconv.ConvertPages,
 	"rtf": docconv.ConvertRTF,
 	"pdf": docconv.ConvertPDF,
+}
+
+func (de *documentExtractor) Name() string {
+	return "documentExtractor"
 }
 
 func (de *documentExtractor) Match(filename string) bool {

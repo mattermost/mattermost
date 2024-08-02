@@ -10,7 +10,6 @@ import (
 )
 
 func TestURLEncode(t *testing.T) {
-
 	toEncode := "testing 1 2 3"
 	encoded := URLEncode(toEncode)
 

@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {setNavigationBlocked} from 'actions/admin_actions';
 import {
     getGroup as fetchGroup,
     getGroupStats,
@@ -23,10 +24,10 @@ import {
     getGroupTeams,
 } from 'mattermost-redux/selectors/entities/groups';
 import {getProfilesInGroup as selectProfilesInGroup} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {GlobalState} from '@mattermost/types/store';
 
-import GroupDetails, {Props} from './group_details';
+import {setNavigationBlocked} from 'actions/admin_actions';
+
+import GroupDetails from './group_details';
 
 type OwnProps = {
     match: {
@@ -54,12 +55,9 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<
-        ActionCreatorsMapObject<ActionFunc | GenericAction>,
-        Props['actions']
-        >(
+        actions: bindActionCreators(
             {
                 setNavigationBlocked,
                 getGroup: fetchGroup,

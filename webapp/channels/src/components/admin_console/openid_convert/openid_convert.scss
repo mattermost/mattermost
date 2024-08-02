@@ -4,9 +4,9 @@
     display: grid;
     padding: 0;
     border: 1px solid rgba(87, 158, 255, 0.24);
+    border-radius: 4px;
     margin-bottom: 25px;
     background-color: rgba(87, 158, 255, 0.08);
-    border-radius: 4px;
     font-family: Open Sans;
     font-style: normal;
     font-weight: normal;
@@ -19,9 +19,9 @@
     .btn {
         width: 191px;
         height: 32px;
+        border-radius: 4px;
         margin-right: 10px;
         background: $primary-color;
-        border-radius: 4px;
         color: $white;
         font-size: 12px;
         font-weight: 600;
@@ -41,8 +41,8 @@
         height: 32px;
         align-items: center;
         justify-content: center;
-        margin: 0 10px 0 0;
         border-radius: 4px;
+        margin: 0 10px 0 0;
         text-decoration: none;
 
         &:hover {

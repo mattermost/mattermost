@@ -22,7 +22,6 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-
 	channels, err := p.API.GetChannelsForTeamForUser(p.configuration.BasicTeamID, p.configuration.BasicUserID, false)
 	if err != nil {
 		return nil, err.Error()

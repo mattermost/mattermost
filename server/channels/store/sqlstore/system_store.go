@@ -6,16 +6,12 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type SqlSystemStore struct {
@@ -54,24 +50,6 @@ func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
 
 	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to upsert system property")
-	}
-
-	return nil
-}
-
-func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	if err := s.SaveOrUpdate(system); err != nil {
-		return err
-	}
-
-	if strings.HasPrefix(system.Name, model.WarnMetricStatusStorePrefix) &&
-		(system.Value == model.WarnMetricStatusRunonce || system.Value == model.WarnMetricStatusLimitReached) {
-		if err := s.SaveOrUpdate(&model.System{
-			Name:  model.SystemWarnMetricLastRunTimestampKey,
-			Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
-		}); err != nil {
-			return errors.Wrapf(err, "failed to save system property with name=%s", model.SystemWarnMetricLastRunTimestampKey)
-		}
 	}
 
 	return nil

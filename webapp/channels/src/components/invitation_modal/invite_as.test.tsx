@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {shallow} from 'enzyme';
-
-import {CloudProducts} from 'utils/constants';
+import RadioGroup from 'components/common/radio_group';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
-import RadioGroup from 'components/common/radio_group';
+import {CloudProducts} from 'utils/constants';
 
 import InviteAs, {InviteType} from './invite_as';
 

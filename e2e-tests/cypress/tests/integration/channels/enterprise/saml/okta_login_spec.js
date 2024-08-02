@@ -59,9 +59,6 @@ context('Okta', () => {
             UsernameAttribute: 'Username',
             LoginButtonText: loginButtonText,
         },
-        ExperimentalSettings: {
-            UseNewSAMLLibrary: true,
-        },
         GuestAccountsSettings: {
             Enable: true,
         },

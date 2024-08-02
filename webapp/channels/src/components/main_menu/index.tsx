@@ -2,34 +2,31 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-
+import {Permissions} from 'mattermost-redux/constants';
+import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {
     getConfig,
     getLicense,
 } from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {
     getJoinableTeamIds,
     getCurrentTeam,
-    getCurrentRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {Permissions} from 'mattermost-redux/constants';
+import {openModal} from 'actions/views/modals';
+import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
+import {getRhsState} from 'selectors/rhs';
 
 import {RHSStates, CloudProducts} from 'utils/constants';
-
-import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
-import {openModal} from 'actions/views/modals';
-import {getRhsState} from 'selectors/rhs';
 import {isCloudLicense} from 'utils/license_utils';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import MainMenu from './main_menu';
 
@@ -79,23 +76,21 @@ function mapStateToProps(state: GlobalState) {
         pluginMenuItems: state.plugins.components.MainMenu,
         moreTeamsToJoin,
         siteName,
-        teamId: currentTeam.id,
-        teamName: currentTeam.name,
+        teamId: currentTeam?.id,
+        teamName: currentTeam?.name,
         currentUser,
         isMentionSearch: rhsState === RHSStates.MENTION,
-        teamIsGroupConstrained: Boolean(currentTeam.group_constrained),
+        teamIsGroupConstrained: Boolean(currentTeam?.group_constrained),
         isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
-        teamUrl: getCurrentRelativeTeamUrl(state),
         guestAccessEnabled: config.EnableGuestAccounts === 'true',
         canInviteTeamMember,
-        isFirstAdmin: isFirstAdmin(state),
         isCloud,
         isStarterFree,
         isFreeTrial,
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

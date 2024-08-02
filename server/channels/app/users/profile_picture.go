@@ -22,6 +22,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	xfont "golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
 
 const (
@@ -141,23 +143,37 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 	}
 
 	color := colors[int64(seed)%int64(len(colors))]
+
 	dstImg := image.NewRGBA(image.Rect(0, 0, imageProfilePixelDimension, imageProfilePixelDimension))
-	srcImg := image.White
+
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.Point{}, draw.Src)
+
 	size := float64(imageProfilePixelDimension / 2)
 
-	c := freetype.NewContext()
-	c.SetFont(font)
-	c.SetFontSize(size)
-	c.SetClip(dstImg.Bounds())
-	c.SetDst(dstImg)
-	c.SetSrc(srcImg)
+	opts := truetype.Options{}
+	opts.Size = size
+	face := truetype.NewFace(font, &opts)
 
-	pt := freetype.Pt(imageProfilePixelDimension/5, imageProfilePixelDimension*2/3)
-	_, err = c.DrawString(initial, pt)
-	if err != nil {
-		return nil, UserInitialsError
+	d := &xfont.Drawer{
+		Dst:  dstImg,
+		Src:  image.White,
+		Face: face,
 	}
+
+	bounds, advance, ok := face.GlyphBounds([]rune(initial)[0])
+
+	if !ok {
+		return nil, GlyphError
+	}
+
+	x := (fixed.I(imageProfilePixelDimension) - advance) / 2
+	y := (fixed.I(imageProfilePixelDimension) + (bounds.Max.Y - bounds.Min.Y)) / 2
+
+	d.Dot = fixed.Point26_6{
+		X: x,
+		Y: y,
+	}
+	d.DrawString(initial)
 
 	buf := new(bytes.Buffer)
 

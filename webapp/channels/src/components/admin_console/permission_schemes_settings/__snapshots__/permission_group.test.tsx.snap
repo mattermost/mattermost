@@ -20,13 +20,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -75,13 +73,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -130,13 +126,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -185,13 +179,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -240,13 +232,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -297,13 +287,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -370,13 +358,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -425,13 +411,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -482,13 +466,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -546,13 +528,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -601,13 +581,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>
@@ -656,13 +634,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     <span
       className="permission-name"
     >
-      <MemoizedFormattedMessage
-        id="admin.permissions.group.name.name"
-      />
+      name
     </span>
     <PermissionDescription
+      description=""
       id="name"
-      rowType="group"
       selectRow={[MockFunction]}
     />
   </div>

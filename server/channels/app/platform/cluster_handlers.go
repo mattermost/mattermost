@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -18,9 +17,6 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventPublish, ps.ClusterPublishHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateStatus, ps.ClusterUpdateStatusHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, ps.ClusterInvalidateAllCachesHandler)
-	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMembersNotifyProps, ps.clusterInvalidateCacheForChannelMembersNotifyPropHandler)
-	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, ps.clusterInvalidateCacheForChannelByNameHandler)
-	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUser, ps.clusterInvalidateCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserTeams, ps.clusterInvalidateCacheForUserTeamsHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, ps.clusterBusyStateChgHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
@@ -71,18 +67,6 @@ func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterM
 	ps.InvalidateAllCachesSkipSend()
 }
 
-func (ps *PlatformService) clusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
-	ps.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(string(msg.Data))
-}
-
-func (ps *PlatformService) clusterInvalidateCacheForChannelByNameHandler(msg *model.ClusterMessage) {
-	ps.invalidateCacheForChannelByNameSkipClusterSend(msg.Props["id"], msg.Props["name"])
-}
-
-func (ps *PlatformService) clusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
-	ps.InvalidateCacheForUserSkipClusterSend(string(msg.Data))
-}
-
 func (ps *PlatformService) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
 	ps.invalidateWebConnSessionCacheForUser(string(msg.Data))
 }
@@ -113,27 +97,10 @@ func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage)
 
 	ps.Busy.ClusterEventChanged(&sbs)
 	if sbs.Busy {
-		ps.logger.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
+		ps.logger.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int("expires_sec", sbs.Expires))
 	} else {
 		ps.logger.Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
-}
-
-func (ps *PlatformService) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {
-	ps.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
-}
-
-func (ps *PlatformService) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
-	if teamID == "" {
-		teamID = "dm"
-	}
-
-	ps.Store.Channel().InvalidateChannelByName(teamID, name)
-}
-
-func (ps *PlatformService) InvalidateCacheForUserSkipClusterSend(userID string) {
-	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
 }
 
 func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
@@ -159,11 +126,9 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 }
 
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
-	debug.FreeOSMemory()
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
-
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

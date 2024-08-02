@@ -1,33 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import './actions_menu.scss';
+import React from 'react';
+import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
-import {Tooltip} from 'react-bootstrap';
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
+
+import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {Post} from '@mattermost/types/posts';
-import {AppBinding} from '@mattermost/types/apps';
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
-import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {ModalData} from 'types/actions';
-import MarketplaceModal, {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import Pluggable from 'plugins/pluggable';
+import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {PluginComponent} from 'types/store/plugins';
+import WithTooltip from 'components/with_tooltip';
+
+import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
+import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
+import type {PluginComponent} from 'types/store/plugins';
+
+import './actions_menu.scss';
+
+import {ActionsMenuIcon} from './actions_menu_icon';
 
 const MENU_BOTTOM_MARGIN = 80;
 
@@ -77,7 +83,7 @@ export type Props = {
         /**
          * Function to get the post menu bindings for this post.
          */
-        fetchBindings: (channelId: string, teamId: string) => Promise<{data: AppBinding[]}>;
+        fetchBindings: (channelId: string, teamId: string) => Promise<ActionResult<AppBinding[]>>;
 
     }; // TechDebt: Made non-mandatory while converting to typescript
 }
@@ -105,18 +111,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         this.buttonRef = React.createRef<HTMLButtonElement>();
     }
 
-    tooltip = (
-        <Tooltip
-            id='actions-menu-icon-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='post_info.tooltip.actions'
-                defaultMessage='Message actions'
-            />
-        </Tooltip>
-    );
-
     componentDidUpdate(prevProps: Props) {
         if (this.props.isMenuOpen && !prevProps.isMenuOpen) {
             this.fetchBindings();
@@ -124,7 +118,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     }
 
     static getDerivedStateFromProps(props: Props) {
-        const state: Partial<State> = { };
+        const state: Partial<State> = {};
         if (props.appBindings) {
             state.appBindings = props.appBindings;
         }
@@ -217,7 +211,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         className='btn btn-primary visit-marketplace-button'
                         onClick={this.handleOpenMarketplace}
                     >
-                        {Utils.getMenuItemIcon('icon-view-grid-plus-outline visit-marketplace-button-icon')}
+                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
                             <FormattedMarkdownMessage
                                 id='post_info.actions.visitMarketplace'
@@ -270,8 +264,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         if (isSystemMessage) {
             return null;
         }
-
-        // const isMobile = this.props.isMobileView TODO;
 
         const pluginItems = this.props.pluginMenuItems?.
             filter((item) => {
@@ -339,7 +331,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         key={`marketplace_${this.props.post.id}`}
                         show={true}
                         text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={Utils.getMenuItemIcon('icon-view-grid-plus-outline')}
+                        icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
                         onClick={this.handleOpenMarketplace}
                     />
                 </React.Fragment>
@@ -382,12 +374,15 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 open={this.props.isMenuOpen}
                 onToggle={this.handleDropdownOpened}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
+                <WithTooltip
+                    id={`${this.props.location}_${this.props.post.id}_tooltip`}
+                    title={
+                        <FormattedMessage
+                            id='post_info.tooltip.actions'
+                            defaultMessage='Message actions'
+                        />
+                    }
                     placement='top'
-                    overlay={this.tooltip}
-                    rootClose={true}
                 >
                     <button
                         key='more-actions-button'
@@ -402,7 +397,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     >
                         <i className={'icon icon-apps'}/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                     openLeft={true}
@@ -412,7 +407,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 >
                     {menuItems}
                 </Menu>
-            </MenuWrapper>
+            </MenuWrapper >
         );
     }
 }

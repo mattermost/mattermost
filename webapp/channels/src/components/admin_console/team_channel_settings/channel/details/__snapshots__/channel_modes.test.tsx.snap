@@ -2,12 +2,19 @@
 
 exports[`admin_console/team_channel_settings/channel/ChannelModes should match snapshot - not licensed for Group 1`] = `
 <AdminPanel
-  className=""
   id="channel_manage"
-  subtitleDefault="Choose between inviting members manually or syncing members automatically from groups."
-  subtitleId="admin.channel_settings.channel_detail.manageDescription"
-  titleDefault="Channel Management"
-  titleId="admin.channel_settings.channel_detail.manageTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Choose between inviting members manually or syncing members automatically from groups.",
+      "id": "admin.channel_settings.channel_detail.manageDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Management",
+      "id": "admin.channel_settings.channel_detail.manageTitle",
+    }
+  }
 >
   <div
     className="group-teams-and-channels"
@@ -29,12 +36,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
 
 exports[`admin_console/team_channel_settings/channel/ChannelModes should match snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_manage"
-  subtitleDefault="Choose between inviting members manually or syncing members automatically from groups."
-  subtitleId="admin.channel_settings.channel_detail.manageDescription"
-  titleDefault="Channel Management"
-  titleId="admin.channel_settings.channel_detail.manageTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Choose between inviting members manually or syncing members automatically from groups.",
+      "id": "admin.channel_settings.channel_detail.manageDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Management",
+      "id": "admin.channel_settings.channel_detail.manageTitle",
+    }
+  }
 >
   <div
     className="group-teams-and-channels"

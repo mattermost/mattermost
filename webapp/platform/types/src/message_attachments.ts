@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostAction} from './integration_actions';
+import type {PostAction} from './integration_actions';
 
 export type MessageAttachment = {
     id: number;

@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useRef, useState} from 'react';
-import styled from 'styled-components';
 import {CSSTransition} from 'react-transition-group';
+import styled from 'styled-components';
 
 interface LineLimiterProps {
     children: React.ReactNode;

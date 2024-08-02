@@ -1,0 +1,97 @@
+.modal .channel-notifications-settings-modal {
+    overflow: hidden;
+    width: 100%;
+    max-width: 600px;
+    margin-top: -24px;
+
+    .modal-content {
+        display: flex;
+        overflow: hidden;
+        max-height: calc(100vh - 240px);
+        flex-direction: column;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
+        box-shadow: var(--elevation-6);
+    }
+
+    &__ctr {
+        display: flex;
+        place-items: center;
+    }
+
+    .modal-header {
+        border: none;
+        border-bottom: var(--border-light);
+        background: none;
+    }
+
+    &__body {
+        display: flex;
+        width: 100%;
+        max-width: 1024px;
+        min-height: 150px;
+        flex-direction: column;
+        padding: 28px 32px;
+        gap: 24px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    &__footer {
+        display: flex;
+        width: 100%;
+        max-width: 1024px;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 24px 32px;
+        border-top: var(--border-light);
+        gap: 8px;
+    }
+
+    &__reset-btn {
+        display: flex;
+        padding: 5px 8px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--button-bg);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 9.5px;
+        place-items: center;
+
+        &:hover,
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    &__server-error {
+        flex-grow: 1;
+        color: var(--error-text);
+    }
+
+    &__divider {
+        border-bottom: var(--border-light);
+    }
+
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+        margin: 0;
+
+        .modal-content {
+            display: flex;
+            height: 100vh;
+            max-height: unset;
+            flex-direction: column;
+            border-radius: unset;
+        }
+    }
+
+    @media screen and (max-height: 900px) and (min-width: 768px) {
+        .modal-content {
+            max-height: calc(100vh - 160px);
+        }
+    }
+}

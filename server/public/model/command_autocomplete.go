@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -211,7 +212,6 @@ func (ad *AutocompleteData) UpdateRelativeURLsForPluginCommands(baseURL *url.URL
 			absURL.Path = path.Join(absURL.Path, dynamicList.FetchURL)
 			dynamicList.FetchURL = absURL.String()
 		}
-
 	}
 	for _, command := range ad.SubCommands {
 		err := command.UpdateRelativeURLsForPluginCommands(baseURL)
@@ -234,7 +234,7 @@ func (ad *AutocompleteData) IsValid() error {
 		return errors.New("Command should be lowercase")
 	}
 	roles := []string{SystemAdminRoleId, SystemUserRoleId, ""}
-	if stringNotInSlice(ad.RoleID, roles) {
+	if !slices.Contains(roles, ad.RoleID) {
 		return errors.New("Wrong role in the autocomplete data")
 	}
 	if len(ad.Arguments) > 0 && len(ad.SubCommands) > 0 {
@@ -398,13 +398,4 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		a.Data = &AutocompleteDynamicListArg{FetchURL: url}
 	}
 	return nil
-}
-
-func stringNotInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return false
-		}
-	}
-	return true
 }

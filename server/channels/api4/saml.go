@@ -16,29 +16,29 @@ import (
 )
 
 func (api *API) InitSaml() {
-	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata)).Methods(http.MethodGet)
 
-	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(addSamlPublicCertificate)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(addSamlPrivateCertificate)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(addSamlIdpCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(addSamlPublicCertificate)).Methods(http.MethodPost)
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(addSamlPrivateCertificate)).Methods(http.MethodPost)
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(addSamlIdpCertificate)).Methods(http.MethodPost)
 
-	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(removeSamlPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(removeSamlPrivateCertificate)).Methods("DELETE")
-	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(removeSamlPublicCertificate)).Methods(http.MethodDelete)
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(removeSamlPrivateCertificate)).Methods(http.MethodDelete)
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.APISessionRequired(removeSamlIdpCertificate)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.SAML.Handle("/certificate/status", api.APISessionRequired(getSamlCertificateStatus)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/certificate/status", api.APISessionRequired(getSamlCertificateStatus)).Methods(http.MethodGet)
 
-	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APIHandler(getSamlMetadataFromIdp)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.APIHandler(getSamlMetadataFromIdp)).Methods(http.MethodPost)
 
-	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APISessionRequired(resetAuthDataToEmail)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APISessionRequired(resetAuthDataToEmail)).Methods(http.MethodPost)
 }
 
 func (api *API) InitSamlLocal() {
-	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APILocal(resetAuthDataToEmail)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.APILocal(resetAuthDataToEmail)).Methods(http.MethodPost)
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	metadata, err := c.App.GetSamlMetadata()
+	metadata, err := c.App.GetSamlMetadata(c.AppContext)
 	if err != nil {
 		c.Err = err
 		return
@@ -52,7 +52,7 @@ func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
 	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
-		return nil, model.NewAppError("addSamlCertificate", "api.admin.add_certificate.no_file.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("addSamlCertificate", "api.admin.add_certificate.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	m := r.MultipartForm
@@ -130,7 +130,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	d, _, err := mime.ParseMediaType(v)
 	if err != nil {
-		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -141,7 +141,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	if d == "application/x-pem-file" {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
 
@@ -251,7 +251,7 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	metadata, err := c.App.GetSamlMetadataFromIdp(url)
 	if err != nil {
-		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_metadata_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_metadata_from_idp.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -272,7 +272,7 @@ func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	var params *ResetAuthDataParams
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
-	if jsonErr != nil {
+	if jsonErr != nil || params == nil {
 		c.Err = model.NewAppError("resetAuthDataToEmail", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}

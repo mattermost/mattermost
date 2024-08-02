@@ -5,13 +5,14 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {OAuthApp} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
-import * as Utils from 'utils/utils';
+import CopyText from 'components/copy_text';
 import FormError from 'components/form_error';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CopyText from 'components/copy_text';
+
+import * as Utils from 'utils/utils';
 
 import DeleteIntegrationLink from '../delete_integration_link';
 
@@ -30,7 +31,7 @@ export type InstalledOAuthAppProps = {
     /**
      * The team data
      */
-    team: Partial<Team>;
+    team?: Team;
 
     /**
      * The oauthApp data
@@ -213,8 +214,12 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                         }}
                     />
                     <CopyText
-                        idMessage='integrations.copy_client_secret'
-                        defaultMessage='Copy Client Secret'
+                        tooltip={
+                            <FormattedMessage
+                                id='integrations.copy_client_secret'
+                                defaultMessage='Copy Client Secret'
+                            />
+                        }
                         value={this.state.clientSecret}
                     />
                 </span>
@@ -254,7 +259,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                     {' - '}
                     {regen}
                     {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}>
+                    <Link to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}>
                         <FormattedMessage
                             id='installed_integrations.edit'
                             defaultMessage='Edit'
@@ -308,8 +313,12 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                                 }}
                             />
                             <CopyText
-                                idMessage='integrations.copy_client_id'
-                                defaultMessage='Copy Client Id'
+                                tooltip={
+                                    <FormattedMessage
+                                        id='integrations.copy_client_id'
+                                        defaultMessage='Copy Client Id'
+                                    />
+                                }
                                 value={oauthApp.id}
                             />
                         </span>

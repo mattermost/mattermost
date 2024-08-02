@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {t} from 'utils/i18n';
-
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import LineSwitch from '../../line_switch';
 import ExternalLink from 'components/external_link';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+
+import LineSwitch from '../../line_switch';
 
 interface Props {
     isPublic: boolean;
@@ -115,10 +114,8 @@ export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
     return (
         <AdminPanel
             id='channel_manage'
-            titleId={t('admin.channel_settings.channel_detail.manageTitle')}
-            titleDefault='Channel Management'
-            subtitleId={t('admin.channel_settings.channel_detail.manageDescription')}
-            subtitleDefault='Choose between inviting members manually or syncing members automatically from groups.'
+            title={defineMessage({id: 'admin.channel_settings.channel_detail.manageTitle', defaultMessage: 'Channel Management'})}
+            subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.manageDescription', defaultMessage: 'Choose between inviting members manually or syncing members automatically from groups.'})}
         >
             <div className='group-teams-and-channels'>
                 <div className='group-teams-and-channels--body'>

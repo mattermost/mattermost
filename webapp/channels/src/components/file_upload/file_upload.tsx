@@ -1,24 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, PureComponent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
+import React, {PureComponent} from 'react';
+import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 
-import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-import {ServerError} from '@mattermost/types/errors';
+import type {UploadFile} from 'actions/file_actions';
 
-import dragster from 'utils/dragster';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {hasPlainText, createFileFromClipboardDataItem} from 'utils/paste';
 import {
     isIosChrome,
     isMobileApp,
 } from 'utils/user_agent';
-import {getHtmlTable} from 'utils/paste';
 import {
     clearFileInput,
     generateId,
@@ -28,17 +38,7 @@ import {
     isTextDroppableEvent,
 } from 'utils/utils';
 
-import {UploadFile} from 'actions/file_actions';
-
-import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {FilePreviewInfo} from '../file_preview/file_preview';
+import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 
 const holders = defineMessages({
     limited: {
@@ -60,10 +60,6 @@ const holders = defineMessages({
     zeroBytesFile: {
         id: 'file_upload.zeroBytesFile',
         defaultMessage: 'You are uploading an empty file: {filename}',
-    },
-    pasted: {
-        id: 'file_upload.pasted',
-        defaultMessage: 'Image Pasted at ',
     },
     uploadFile: {
         id: 'file_upload.upload_files',
@@ -361,7 +357,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         if (files.length === 0) {
-            this.props.onUploadError(localizeMessage('file_upload.drag_folder', 'Folders cannot be uploaded. Please drag all files separately.'));
+            this.props.onUploadError(localizeMessage('file_upload.drag_folder', 'This attachment cannot be uploaded.'));
             return;
         }
 
@@ -448,10 +444,12 @@ export class FileUpload extends PureComponent<Props, State> {
 
     containsEventTarget = (targetElement: HTMLInputElement | null, eventTarget: EventTarget | null) => targetElement && targetElement.contains(eventTarget as Node);
 
+    /**
+     * This paste handler sole responsibility is to detect if the clipboard data contains "files" and pass them to the upload file handler.
+     */
     pasteUpload = (e: ClipboardEvent) => {
-        const {formatMessage} = this.props.intl;
-
-        if (!e.clipboardData || !e.clipboardData.items || getHtmlTable(e.clipboardData)) {
+        // If the clipboard data doesn't contain anything or it contains plain text, do nothing and let the browser and other handlers do their thing.
+        if (!e.clipboardData || !e.clipboardData.items || hasPlainText(e.clipboardData)) {
             return;
         }
 
@@ -462,53 +460,28 @@ export class FileUpload extends PureComponent<Props, State> {
 
         this.props.onUploadError(null);
 
-        const items = [];
-        for (let i = 0; i < e.clipboardData.items.length; i++) {
-            const item = e.clipboardData.items[i];
+        const fileClipboardItems = Array.
+            from(e.clipboardData.items).
+            filter((item) => item.kind === 'file');
 
-            if (item.kind !== 'file') {
-                continue;
-            }
-
-            items.push(item);
-        }
-
-        if (items && items.length > 0) {
+        if (fileClipboardItems.length > 0) {
             if (!this.props.canUploadFiles) {
-                this.props.onUploadError(localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                this.props.onUploadError(this.props.intl.formatMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
                 return;
             }
 
-            e.preventDefault();
+            const fileNamePrefixIfNoName = this.props.intl.formatMessage({id: 'file_upload.pasted', defaultMessage: 'Image Pasted at '});
 
-            const files = [];
+            const fileList = fileClipboardItems.
+                map((fileClipboardItem) => createFileFromClipboardDataItem(fileClipboardItem, fileNamePrefixIfNoName)).
+                filter((file): file is NonNullable<typeof file> => file !== null);
 
-            for (let i = 0; i < items.length; i++) {
-                const file = items[i].getAsFile();
+            if (fileList.length > 0) {
+                // Prevent default will stop event propagation to other handlers such as those in advanced text editor
+                // so we do that here because we want to only paste the files from the clipboard and not other content.
+                e.preventDefault();
 
-                if (!file) {
-                    continue;
-                }
-
-                const now = new Date();
-                const hour = now.getHours().toString().padStart(2, '0');
-                const minute = now.getMinutes().toString().padStart(2, '0');
-
-                let ext = '';
-                if (file.name && file.name.includes('.')) {
-                    ext = file.name.substr(file.name.lastIndexOf('.'));
-                } else if (items[i].type.includes('/')) {
-                    ext = '.' + items[i].type.split('/')[1].toLowerCase();
-                }
-
-                const name = file.name || formatMessage(holders.pasted) + now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate() + ' ' + hour + '-' + minute + ext;
-
-                const newFile: File = new File([file], name, {type: file.type});
-                files.push(newFile);
-            }
-
-            if (files.length > 0) {
-                this.checkPluginHooksAndUploadFiles(files);
+                this.checkPluginHooksAndUploadFiles(fileList);
                 this.props.onFileUploadChange();
             }
         }
@@ -736,7 +709,6 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         return (
-
             <div className={uploadsRemaining <= 0 ? ' style--none btn-file__disabled' : 'style--none'}>
                 {bodyAction}
             </div>

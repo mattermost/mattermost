@@ -2,21 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
+
+import type {Product} from '@mattermost/types/cloud';
 
 import {getCloudProducts} from 'mattermost-redux/selectors/entities/cloud';
 
 import {openModal, closeModal} from 'actions/views/modals';
+
 import CloudUsageModal from 'components/cloud_usage_modal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 
 import {CloudProducts, ModalIdentifiers} from 'utils/constants';
 import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
-import {t} from 'utils/i18n';
-
-import {Product} from '@mattermost/types/cloud';
 
 const Disclaimer = styled.div`
 margin-bottom: 8px;
@@ -46,27 +46,27 @@ function StarterDisclaimerCTA() {
             dialogType: CloudUsageModal,
             dialogProps: {
                 backdropClassName: 'cloud-usage-backdrop',
-                title: {
-                    id: t('workspace_limits.modals.informational.title'),
+                title: defineMessage({
+                    id: 'workspace_limits.modals.informational.title',
                     defaultMessage: '{planName} limits',
                     values: {
                         planName: starterProductName,
                     },
-                },
-                description: {
-                    id: t('workspace_limits.modals.informational.description.freeLimits'),
+                }),
+                description: defineMessage({
+                    id: 'workspace_limits.modals.informational.description.freeLimits',
                     defaultMessage: '{planName} is restricted to {messages} message history and {storage} file storage.',
                     values: {
                         planName: starterProductName,
                         messages: intl.formatNumber(fallbackStarterLimits.messages.history),
                         storage: asGBString(fallbackStarterLimits.files.totalStorage, intl.formatNumber),
                     },
-                },
+                }),
                 secondaryAction: {
-                    message: {
-                        id: t('workspace_limits.modals.close'),
+                    message: defineMessage({
+                        id: 'workspace_limits.modals.close',
                         defaultMessage: 'Close',
-                    },
+                    }),
                     onClick: () => {
                         dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
                     },

@@ -8,17 +8,9 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isDevModeEnabled} from 'selectors/general';
+import store from 'stores/redux_store';
 
-import store from 'stores/redux_store.jsx';
-
-const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
-const SUPPORTS_MARK = isSupported([performance.mark]);
-const SUPPORTS_MEASURE_METHODS = isSupported([
-    performance.measure,
-    performance.getEntries,
-    performance.getEntriesByName,
-    performance.clearMeasures,
-]);
+const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 
 export function isTelemetryEnabled(state) {
     const config = getConfig(state);
@@ -57,59 +49,37 @@ export function pageVisited(category, name) {
  *
  */
 export function clearMarks(names) {
-    if (!shouldTrackPerformance() || !SUPPORTS_CLEAR_MARKS) {
-        return;
-    }
     names.forEach((name) => performance.clearMarks(name));
 }
 
 export function mark(name) {
-    if (!shouldTrackPerformance() || !SUPPORTS_MARK) {
+    performance.mark(name);
+
+    if (!shouldTrackPerformance()) {
         return;
     }
-    performance.mark(name);
 
     initRequestCountingIfNecessary();
     updateRequestCountAtMark(name);
 }
 
 /**
- * Takes the names of two markers and invokes performance.measure on
- * them. The measured duration (ms) and the string name of the measure is
- * are returned.
+ * Takes the names of two markers and returns the number of requests sent between them.
  *
  * @param   {string} name1 the first marker
  * @param   {string} name2 the second marker
  *
- * @returns {{duration: number; requestCount: number; measurementName: string}}
- * An object containing the measured duration (in ms) between two marks, the
- * number of API requests made during that period, and the name of the measurement.
- * Returns a duration and request count of -1 if performance isn't being tracked
- * or one of the markers can't be found.
+ * @returns {number} Returns a request count of -1 if performance isn't being tracked
  *
  */
-export function measure(name1, name2) {
-    if (!shouldTrackPerformance() || !SUPPORTS_MEASURE_METHODS) {
-        return {duration: -1, requestCount: -1, measurementName: ''};
+export function countRequestsBetween(name1, name2) {
+    if (!shouldTrackPerformance()) {
+        return -1;
     }
-
-    // Check for existence of entry name to avoid DOMException
-    const performanceEntries = performance.getEntries();
-    if (![name1, name2].every((name) => performanceEntries.find((item) => item.name === name))) {
-        return {duration: -1, requestCount: -1, measurementName: ''};
-    }
-
-    const displayPrefix = '🐐 Mattermost: ';
-    const measurementName = `${displayPrefix}${name1} - ${name2}`;
-    performance.measure(measurementName, name1, name2);
-    const duration = mostRecentDurationByEntryName(measurementName);
 
     const requestCount = getRequestCountAtMark(name2) - getRequestCountAtMark(name1);
 
-    // Clean up the measures we created
-    performance.clearMeasures(measurementName);
-
-    return {duration, requestCount, measurementName};
+    return requestCount;
 }
 
 /**
@@ -151,11 +121,6 @@ export function measurePageLoadTelemetry() {
 
         trackEvent('performance', 'page_load', {duration: pageLoadTime, numOfRequest, maxAPIResourceSize, longestAPIResource, longestAPIResourceDuration});
     }, tenSeconds);
-}
-
-function mostRecentDurationByEntryName(entryName) {
-    const entriesWithName = performance.getEntriesByName(entryName);
-    return entriesWithName.map((item) => item.duration)[entriesWithName.length - 1];
 }
 
 function isSupported(checks) {
@@ -210,18 +175,19 @@ export function trackSelectorMetrics() {
         }
 
         const selectors = getSortedTrackedSelectors();
+        const filteredSelectors = selectors.filter((selector) => selector.calls > 5);
 
         trackEvent('performance', 'least_effective_selectors', {
             after: 'one_minute',
-            first: selectors[0]?.name || '',
-            first_effectiveness: selectors[0]?.effectiveness,
-            first_recomputations: selectors[0]?.recomputations,
-            second: selectors[1]?.name || '',
-            second_effectiveness: selectors[1]?.effectiveness,
-            second_recomputations: selectors[1]?.recomputations,
-            third: selectors[2]?.name || '',
-            third_effectiveness: selectors[2]?.effectiveness,
-            third_recomputations: selectors[2]?.recomputations,
+            first: filteredSelectors[0]?.name || '',
+            first_effectiveness: filteredSelectors[0]?.effectiveness,
+            first_recomputations: filteredSelectors[0]?.recomputations,
+            second: filteredSelectors[1]?.name || '',
+            second_effectiveness: filteredSelectors[1]?.effectiveness,
+            second_recomputations: filteredSelectors[1]?.recomputations,
+            third: filteredSelectors[2]?.name || '',
+            third_effectiveness: filteredSelectors[2]?.effectiveness,
+            third_recomputations: filteredSelectors[2]?.recomputations,
         });
     }, 60000);
 }
@@ -239,7 +205,7 @@ function initRequestCountingIfNecessary() {
         for (const entry of entries.getEntries()) {
             const url = entry.name;
 
-            if (!url.includes('/api/v4/') && !url.includes('/api/v5/')) {
+            if (!url.includes('/api/v4/')) {
                 // Don't count requests made outside of the MM server's API
                 continue;
             }
@@ -263,3 +229,16 @@ function updateRequestCountAtMark(name) {
 function getRequestCountAtMark(name) {
     return requestCountAtMark[name] ?? 0;
 }
+
+/**
+ * This allows the server to know that a given HTTP request occurred during page load or reconnect.
+ * The server then uses this information to store metrics fields based on the request context.
+ * The setTimeout approach is a "best effort" approach that will produce false positives.
+ * A more accurate approach will result in more obtrusive code, which would add risk and maintenance cost.
+ */
+export const temporarilySetPageLoadContext = (pageLoadContext) => {
+    Client4.setHeader(HEADER_X_PAGE_LOAD_CONTEXT, pageLoadContext);
+    setTimeout(() => {
+        Client4.removeHeader(HEADER_X_PAGE_LOAD_CONTEXT);
+    }, 5000);
+};

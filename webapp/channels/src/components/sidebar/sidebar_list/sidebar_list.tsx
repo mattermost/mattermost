@@ -1,40 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
-import Scrollbars from 'react-custom-scrollbars';
-import {DragDropContext, Droppable, DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
-import {Spring, SpringSystem} from 'rebound';
 import classNames from 'classnames';
-
 import debounce from 'lodash/debounce';
+import React from 'react';
+import type {CSSProperties} from 'react';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
+import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage} from 'react-intl';
+import {SpringSystem} from 'rebound';
+import type {Spring} from 'rebound';
 
-import * as ChannelUtils from 'utils/channel_utils';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {DraggingState} from 'types/store';
+
+import DraftsLink from 'components/drafts/drafts_link/drafts_link';
+import GlobalThreadsLink from 'components/threading/global_threads_link';
+
+import * as ChannelUtils from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import {StaticPage} from 'types/store/lhs';
 
-import GlobalThreadsLink from 'components/threading/global_threads_link';
-import DraftsLink from 'components/drafts/drafts_link/drafts_link';
-import ActivityAndInsightsLink
-    from 'components/activity_and_insights/activity_and_insights_link/activity_and_insights_link';
-
-import {Team} from '@mattermost/types/teams';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-import {Channel} from '@mattermost/types/channels';
+import type {DraggingState} from 'types/store';
+import type {StaticPage} from 'types/store/lhs';
 
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
 import UnreadChannels from '../unread_channels';
 
-export function renderView(props: any) {
+export function renderView(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -43,7 +44,7 @@ export function renderView(props: any) {
     );
 }
 
-export function renderThumbHorizontal(props: any) {
+export function renderThumbHorizontal(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -52,7 +53,7 @@ export function renderThumbHorizontal(props: any) {
     );
 }
 
-export function renderTrackVertical(props: any) {
+export function renderTrackVertical(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -61,7 +62,7 @@ export function renderTrackVertical(props: any) {
     );
 }
 
-export function renderThumbVertical(props: any) {
+export function renderThumbVertical(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -73,7 +74,7 @@ export function renderThumbVertical(props: any) {
 const scrollbarStyles: CSSProperties = {position: 'absolute'};
 
 type Props = {
-    currentTeam: Team;
+    currentTeam?: Team;
     currentChannelId: string;
     categories: ChannelCategory[];
     unreadChannelIds: string[];
@@ -101,13 +102,13 @@ type Props = {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
-        multiSelectChannelAdd: (channelId: string) => void;
     };
 };
 
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
+    autoHide: boolean;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -125,6 +126,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
     scrollbar: React.RefObject<Scrollbars>;
     animate: SpringSystem;
     scrollAnimation: Spring;
+    channelsListScrollTimeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -133,6 +135,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
+            autoHide: true,
         };
         this.scrollbar = React.createRef();
 
@@ -454,12 +457,26 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
                 trackEvent('ui', 'ui_sidebar_dragdrop_dropped_channel');
             } else if (result.type === 'SIDEBAR_CATEGORY') {
-                this.props.actions.moveCategory(this.props.currentTeam.id, result.draggableId, result.destination.index);
+                this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
                 trackEvent('ui', 'ui_sidebar_dragdrop_dropped_category');
             }
         }
 
         this.props.actions.stopDragging();
+    };
+
+    showChannelListScrollbar = () => {
+        if (this.channelsListScrollTimeout !== null) {
+            clearTimeout(this.channelsListScrollTimeout);
+        }
+
+        this.setState({autoHide: false});
+    };
+
+    hideChannelListScrollbar = () => {
+        this.channelsListScrollTimeout = setTimeout(() => {
+            this.setState({autoHide: true});
+        }, 300);
     };
 
     render() {
@@ -535,7 +552,6 @@ export default class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                <ActivityAndInsightsLink/>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
                 <div
@@ -563,20 +579,23 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
-                    <Scrollbars
-                        ref={this.scrollbar}
-                        autoHide={true}
-                        autoHideTimeout={500}
-                        autoHideDuration={500}
-                        renderThumbHorizontal={renderThumbHorizontal}
-                        renderThumbVertical={renderThumbVertical}
-                        renderTrackVertical={renderTrackVertical}
-                        renderView={renderView}
-                        onScroll={this.onScroll}
-                        style={scrollbarStyles}
+                    <div
+                        onPointerLeave={this.hideChannelListScrollbar}
+                        onPointerOver={this.showChannelListScrollbar}
                     >
-                        {channelList}
-                    </Scrollbars>
+                        <Scrollbars
+                            ref={this.scrollbar}
+                            autoHide={this.state.autoHide}
+                            renderThumbHorizontal={renderThumbHorizontal}
+                            renderThumbVertical={renderThumbVertical}
+                            renderTrackVertical={renderTrackVertical}
+                            renderView={renderView}
+                            onScroll={this.onScroll}
+                            style={scrollbarStyles}
+                        >
+                            {channelList}
+                        </Scrollbars>
+                    </div>
                 </div>
             </>
         );

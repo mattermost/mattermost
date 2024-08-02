@@ -49,5 +49,4 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 		require.NoError(t, err, "unmarshal should not fail")
 		assert.Equal(t, optionsExpected, optionsReceived)
 	})
-
 }

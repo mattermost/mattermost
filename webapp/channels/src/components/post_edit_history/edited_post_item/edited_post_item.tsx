@@ -1,30 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useState} from 'react';
-
-import {defineMessages, useIntl} from 'react-intl';
 import classNames from 'classnames';
-
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import React, {memo, useCallback, useState} from 'react';
+import {defineMessages, useIntl} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {CheckIcon} from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
 
-import {Post} from '@mattermost/types/posts';
-
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {imageURLForUser} from 'utils/utils';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
-import OverlayTrigger from 'components/overlay_trigger';
-import PostMessageContainer from 'components/post_view/post_message_view';
-import Tooltip from 'components/tooltip';
-import Avatar from 'components/widgets/users/avatar';
-import UserProfileComponent from 'components/user_profile';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
 import InfoToast from 'components/info_toast/info_toast';
+import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
+import PostMessageContainer from 'components/post_view/post_message_view';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
+import UserProfileComponent from 'components/user_profile';
+import Avatar from 'components/widgets/users/avatar';
+import WithTooltip from 'components/with_tooltip';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
 import RestorePostModal from '../restore_post_modal';
 
@@ -147,7 +144,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             <div className={'edit-post-history__header__username'}>
                 <UserProfileComponent
                     userId={post.user_id}
-                    hasMention={true}
                     disablePopover={true}
                     overwriteName={overwriteName}
                 />
@@ -174,21 +170,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         </div>
     );
 
-    const tooltip = (
-        <Tooltip
-            id='editPostRestoreTooltip'
-            className='hidden-xs'
-        >
-            {formatMessage(itemMessages.helpText)}
-        </Tooltip>
-    );
-
     const restoreButton = isCurrent ? null : (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='editPostRestoreTooltip'
             placement='left'
-            overlay={tooltip}
+            title={formatMessage(itemMessages.helpText)}
         >
             <IconButton
                 className='edit-post-history__icon__button restore-icon'
@@ -198,7 +184,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 compact={true}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     const postContainerClass = classNames('edit-post-history__container', {'edit-post-history__container__background': open});

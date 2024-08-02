@@ -45,10 +45,12 @@ describe('Signup Email page', () => {
 
     it('should match elements, back button', () => {
         // * Check elements in the header with back button
-        cy.get('#back_button').should('be.visible');
-        cy.get('#back_button').should('contain', 'Back');
-        cy.get('#back_button_icon').should('be.visible');
-        cy.get('#back_button_icon').should('have.attr', 'title', 'Back Icon');
+        cy.findByTestId('back_button').
+            should('be.visible').
+            and('have.text', 'Back');
+        cy.get('#back_button_icon').
+            should('be.visible').
+            and('have.attr', 'title', 'Back Icon');
     });
 
     it('should match elements, body', () => {
@@ -73,7 +75,7 @@ describe('Signup Email page', () => {
         cy.findByText('You can use lowercase letters, numbers, periods, dashes, and underscores.').should('be.visible');
 
         cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Choose a Password');
-        cy.findByText('Must be 5-64 characters long.').should('be.visible');
+        cy.findByText('Must be 5-72 characters long.').should('be.visible');
 
         cy.get('#saveSetting').scrollIntoView().should('be.visible');
         cy.get('#saveSetting').should('contain', 'Create Account');
@@ -94,20 +96,20 @@ describe('Signup Email page', () => {
         // * Check elements in the footer
         cy.get('.hfroute-footer').scrollIntoView().should('be.visible').within(() => {
             // * Check if about footer link is present
-            cy.findByText('About').should('exist').
-                and('have.attr', 'href', config.SupportSettings.AboutLink || ABOUT_LINK);
+            cy.findByText('About').should('be.visible').
+                should('have.attr', 'href').and('match', new RegExp(`${config.SupportSettings.AboutLink || ABOUT_LINK}/*`));
 
             // * Check if privacy footer link is present
-            cy.findByText('Privacy Policy').should('exist').
-                and('have.attr', 'href', config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK);
+            cy.findByText('Privacy Policy').should('be.visible').
+                should('have.attr', 'href').and('match', new RegExp(`${config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK}/*`));
 
             // * Check if terms footer link is present
-            cy.findByText('Terms').should('exist').
-                and('have.attr', 'href', config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK);
+            cy.findByText('Terms').should('be.visible').
+                should('have.attr', 'href').and('match', new RegExp(`${config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK}/*`));
 
             // * Check if help footer link is present
-            cy.findByText('Help').should('exist').
-                and('have.attr', 'href', config.SupportSettings.HelpLink || HELP_LINK);
+            cy.findByText('Help').should('be.visible').
+                should('have.attr', 'href').and('match', new RegExp(`${config.SupportSettings.HelpLink || HELP_LINK}/*`));
 
             const todaysDate = new Date();
             const currentYear = todaysDate.getFullYear();

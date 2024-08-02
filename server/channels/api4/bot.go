@@ -14,20 +14,20 @@ import (
 )
 
 func (api *API) InitBot() {
-	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(createBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(patchBot)).Methods("PUT")
-	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(getBot)).Methods("GET")
-	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(getBots)).Methods("GET")
-	api.BaseRoutes.Bot.Handle("/disable", api.APISessionRequired(disableBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequired(enableBot)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequired(convertBotToUser)).Methods("POST")
-	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignBot)).Methods("POST")
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(createBot)).Methods(http.MethodPost)
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(patchBot)).Methods(http.MethodPut)
+	api.BaseRoutes.Bot.Handle("", api.APISessionRequired(getBot)).Methods(http.MethodGet)
+	api.BaseRoutes.Bots.Handle("", api.APISessionRequired(getBots)).Methods(http.MethodGet)
+	api.BaseRoutes.Bot.Handle("/disable", api.APISessionRequired(disableBot)).Methods(http.MethodPost)
+	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequired(enableBot)).Methods(http.MethodPost)
+	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequired(convertBotToUser)).Methods(http.MethodPost)
+	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignBot)).Methods(http.MethodPost)
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
-	if err != nil {
+	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
@@ -83,7 +83,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
-	if err != nil {
+	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
@@ -93,12 +93,12 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameterAuditable(auditRec, "bot", botPatch)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
 
-	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
+	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -122,7 +122,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
-	bot, appErr := c.App.GetBot(botUserId, includeDeleted)
+	bot, appErr := c.App.GetBot(c.AppContext, botUserId, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -135,13 +135,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
-			c.Err = model.MakeBotNotFoundError(botUserId)
+			c.Err = model.MakeBotNotFoundError("permissions", botUserId)
 			return
 		}
 	} else {
 		// Pretend like the bot doesn't exist at all, to avoid revealing that the
 		// user is a bot.
-		c.Err = model.MakeBotNotFoundError(botUserId)
+		c.Err = model.MakeBotNotFoundError("permissions", botUserId)
 		return
 	}
 
@@ -170,7 +170,7 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bots, appErr := c.App.GetBots(&model.BotGetOptions{
+	bots, appErr := c.App.GetBots(c.AppContext, &model.BotGetOptions{
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 		OwnerId:        OwnerId,
@@ -211,7 +211,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameter(auditRec, "enable", active)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -245,7 +245,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameter(auditRec, "user_id", userId)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -257,7 +257,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	bot, err := c.App.UpdateBotOwner(botUserId, userId)
+	bot, err := c.App.UpdateBotOwner(c.AppContext, botUserId, userId)
 	if err != nil {
 		c.Err = err
 		return
@@ -278,7 +278,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.GetBot(c.Params.BotUserId, false)
+	bot, err := c.App.GetBot(c.AppContext, c.Params.BotUserId, false)
 	if err != nil {
 		c.Err = err
 		return

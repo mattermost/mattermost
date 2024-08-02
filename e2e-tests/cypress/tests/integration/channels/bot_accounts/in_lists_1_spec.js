@@ -12,6 +12,7 @@
 
 import {createBotPatch} from '../../../support/api/bots';
 import {generateRandomUser} from '../../../support/api/user';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bots in lists', () => {
     let team;
@@ -59,13 +60,13 @@ describe('Bots in lists', () => {
 
         bots.forEach(({username}) => {
             // # Search for bot
-            cy.get('#searchUsers').clear().type(`@${username}`);
+            cy.get('#input_searchTerm').clear().type(`${username}`).wait(TIMEOUTS.ONE_SEC);
 
             // * Verify bot not in list
-            cy.findByTestId('noUsersFound').should('have.text', 'No users found');
+            cy.get('.noRows').should('have.text', 'No data');
 
             // * Verify pseudo checksum total of non bot users
-            cy.get('#searchableUserListTotal').contains('0 users of').should('be.visible');
+            cy.get('.adminConsoleListTabletOptionalHead > span').should('have.text', '0 users').should('be.visible');
         });
     });
 });

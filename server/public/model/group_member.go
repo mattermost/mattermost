@@ -21,3 +21,8 @@ func (gm *GroupMember) IsValid() *AppError {
 	}
 	return nil
 }
+
+type GroupMemberList struct {
+	Members []*User `json:"members"`
+	Count   int     `json:"total_member_count"`
+}

@@ -20,6 +20,8 @@ export type Options = {
     url?: string;
     credentials?: 'omit' | 'same-origin' | 'include';
     body?: any;
+    signal?: RequestInit['signal'];
+    ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
 };
 
 export type StatusOK = {

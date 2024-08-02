@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
@@ -26,7 +27,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     const requiredProps: ComponentProps<typeof AdvancedSettingsDisplay> = {
-        currentUser: user,
+        user,
         updateSection: jest.fn(),
         activeSection: '',
         closeModal: jest.fn(),
@@ -43,7 +44,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         syncDrafts: '',
         unreadScrollPosition: Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT,
         codeBlockOnCtrlEnter: 'false',
-        enablePreviewFeatures: false,
         enableUserDeactivation: false,
         syncedDraftsAreAllowed: true,
     };
@@ -77,7 +77,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         wrapper.instance().handleDeactivateAccountSubmit();
         expect(updateUserActive).toHaveBeenCalled();
-        expect(updateUserActive).toHaveBeenCalledWith(requiredProps.currentUser.id, false);
+        expect(updateUserActive).toHaveBeenCalledWith(requiredProps.user.id, false);
     });
 
     test('handleDeactivateAccountSubmit() should have called revokeAllSessions', () => {
@@ -85,7 +85,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         wrapper.instance().handleDeactivateAccountSubmit();
         expect(requiredProps.actions.revokeAllSessionsForUser).toHaveBeenCalled();
-        expect(requiredProps.actions.revokeAllSessionsForUser).toHaveBeenCalledWith(requiredProps.currentUser.id);
+        expect(requiredProps.actions.revokeAllSessionsForUser).toHaveBeenCalledWith(requiredProps.user.id);
     });
 
     test('handleDeactivateAccountSubmit() should have updated state.serverError', async () => {

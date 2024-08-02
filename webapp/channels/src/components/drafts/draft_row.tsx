@@ -4,6 +4,7 @@
 import React, {memo} from 'react';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
 import type {Draft} from 'selectors/drafts';
 
 import ChannelDraft from './channel_draft';

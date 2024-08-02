@@ -4,16 +4,16 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import BrowserStore from 'stores/browser_store';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import BrowserStore from 'stores/browser_store';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
 import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
 type Props = {
     defaultTheme: any;
@@ -98,12 +98,13 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
     };
 
-    handleChecked = () => {
+    handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({rememberChecked: e.target.checked});
+
         // If it was checked, and now we're unchecking it, clear the preference
-        if (this.state.rememberChecked) {
+        if (!e.target.checked) {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
         }
-        this.setState({rememberChecked: !this.state.rememberChecked});
     };
 
     setPreference = (pref: string, clearIfNotChecked?: boolean) => {
@@ -160,14 +161,14 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     renderGoNativeAppMessage = () => {
         return (
             <a
-                href={Utils.isMobile() ? '#' : this.state.nativeLocation}
+                href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
                 onMouseDown={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                 }}
                 onClick={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
-                    if (Utils.isMobile()) {
+                    if (UserAgent.isMobile()) {
                         if (UserAgent.isAndroidWeb()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
@@ -198,16 +199,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
 
     handleBrandImageError = () => {
         this.setState({brandImageError: true});
-    };
-
-    renderCheckboxIcon = () => {
-        if (this.state.rememberChecked) {
-            return (
-                <CheckboxCheckedIcon/>
-            );
-        }
-
-        return null;
     };
 
     renderGraphic = () => {
@@ -373,40 +364,36 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
             <div className='get-app__dialog-body'>
                 {this.renderDialogHeader()}
                 <div className='get-app__buttons'>
-                    <div className='get-app__status'>
-                        {this.renderGoNativeAppMessage()}
-                    </div>
-                    <div className='get-app__status'>
-                        <a
-                            href={this.state.location}
-                            onMouseDown={() => {
-                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                            }}
-                            onClick={() => {
-                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                                this.setState({navigating: true});
-                            }}
-                            className='btn btn-default btn-lg get-app__continue'
-                        >
-                            <FormattedMessage
-                                id='get_app.continueToBrowser'
-                                defaultMessage='View in Browser'
-                            />
-                        </a>
-                    </div>
-                </div>
-                <div className='get-app__preference'>
-                    <button
-                        className={`get-app__checkbox ${this.state.rememberChecked ? 'checked' : ''}`}
-                        onClick={this.handleChecked}
+                    {this.renderGoNativeAppMessage()}
+                    <a
+                        href={this.state.location}
+                        onMouseDown={() => {
+                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                        }}
+                        onClick={() => {
+                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                            this.setState({navigating: true});
+                        }}
+                        className='btn btn-tertiary btn-lg'
                     >
-                        {this.renderCheckboxIcon()}
-                    </button>
+                        <FormattedMessage
+                            id='get_app.continueToBrowser'
+                            defaultMessage='View in Browser'
+                        />
+                    </a>
+                </div>
+                <label className='get-app__preference'>
+                    <input
+                        type='checkbox'
+                        checked={this.state.rememberChecked}
+                        className='get-app__checkbox'
+                        onChange={this.handleChecked}
+                    />
                     <FormattedMessage
                         id='get_app.rememberMyPreference'
                         defaultMessage='Remember my preference'
                     />
-                </div>
+                </label>
                 {this.renderDownloadLinkSection()}
             </div>
         );

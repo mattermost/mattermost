@@ -1,61 +1,60 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, useCallback, useEffect, useRef, useState, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
+import type {MouseEvent} from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
-import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, AppEvents, Locations} from 'utils/constants';
-
-import * as PostUtils from 'utils/post_utils';
-
-import {PostPluginComponent} from 'types/store/plugins';
-
-import FileAttachmentListContainer from 'components/file_attachment_list';
-import DateSeparator from 'components/post_view/date_separator';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import PostProfilePicture from 'components/post_profile_picture';
-import FailedPostOptions from 'components/post_view/failed_post_options';
-import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
-import PostTime from 'components/post_view/post_time';
-import ReactionList from 'components/post_view/reaction_list';
-import MessageWithAdditionalContent from 'components/message_with_additional_content';
-import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import PostPreHeader from 'components/post_view/post_pre_header';
-import EditPost from 'components/edit_post';
-import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
-import {Props as TimestampProps} from 'components/timestamp/timestamp';
-import ThreadFooter from 'components/threading/channel_threads/thread_footer';
-import PostAcknowledgements from 'components/post_view/acknowledgements';
-import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
-import PostMessageContainer from 'components/post_view/post_message_view';
-import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-import {isKeyPressed} from 'utils/keyboard';
-
 import {trackEvent} from 'actions/telemetry_actions';
 
-import CommentedOn from 'components/post_view/commented_on/commented_on';
+import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
+import EditPost from 'components/edit_post';
+import FileAttachmentListContainer from 'components/file_attachment_list';
+import MessageWithAdditionalContent from 'components/message_with_additional_content';
 import PriorityLabel from 'components/post_priority/post_priority_label';
+import PostProfilePicture from 'components/post_profile_picture';
+import PostAcknowledgements from 'components/post_view/acknowledgements';
+import CommentedOn from 'components/post_view/commented_on/commented_on';
+import DateSeparator from 'components/post_view/date_separator';
+import FailedPostOptions from 'components/post_view/failed_post_options';
+import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
+import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
+import PostMessageContainer from 'components/post_view/post_message_view';
+import PostPreHeader from 'components/post_view/post_pre_header';
+import PostTime from 'components/post_view/post_time';
+import ReactionList from 'components/post_view/reaction_list';
+import ThreadFooter from 'components/threading/channel_threads/thread_footer';
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+import ArchiveIcon from 'components/widgets/icons/archive_icon';
+import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
+import WithTooltip from 'components/with_tooltip';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Post} from '@mattermost/types/posts';
-import {Emoji} from '@mattermost/types/emojis';
+import {getHistory} from 'utils/browser_history';
+import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import * as PostUtils from 'utils/post_utils';
+import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
 
-import PostUserProfile from './user_profile';
+import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
+
 import PostOptions from './post_options';
-import {Team} from '@mattermost/types/teams';
+import PostUserProfile from './user_profile';
 
 export type Props = {
     post: Post;
-    currentTeam: Team;
+    currentTeam?: Team;
     team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
@@ -92,7 +91,6 @@ export type Props = {
     actions: {
         markPostAsUnread: (post: Post, location: string) => void;
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
-        setActionsMenuInitialisationState: (viewed: Record<string, boolean>) => void;
         selectPost: (post: Post) => void;
         selectPostFromRightHandSideSearch: (post: Post) => void;
         removePost: (post: Post) => void;
@@ -118,6 +116,7 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {
@@ -127,7 +126,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
-    const teamId = props.team?.id || props.currentTeam.id;
+    const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
     const [a11yActive, setA11y] = useState(false);
@@ -301,7 +300,7 @@ const PostComponent = (props: Props): JSX.Element => {
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
-            'post--thread': props.location === Locations.RHS_COMMENT || props.location === Locations.RHS_ROOT,
+            'post--thread': isRHS,
         });
     };
 
@@ -390,12 +389,12 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam.id === teamId) {
+        if (props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -508,14 +507,20 @@ const PostComponent = (props: Props): JSX.Element => {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 
+    let postAriaLabelDivTestId = '';
+    if (props.location === Locations.CENTER) {
+        postAriaLabelDivTestId = 'postView';
+    } else if (props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT) {
+        postAriaLabelDivTestId = 'rhsPostView';
+    }
+
     return (
         <>
             {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
-                role='listitem'
                 id={getTestId()}
-                data-testid={props.location === 'CENTER' ? 'postView' : ''}
+                data-testid={postAriaLabelDivTestId}
                 tabIndex={0}
                 post={post}
                 className={getClassName()}
@@ -528,7 +533,7 @@ const PostComponent = (props: Props): JSX.Element => {
                         className='search-channel__name__container'
                         aria-hidden='true'
                     >
-                        {Boolean(isSearchResultItem) &&
+                        {(Boolean(isSearchResultItem) || props.isFlaggedPosts) &&
                         <span className='search-channel__name'>
                             {channelDisplayName}
                         </span>
@@ -542,7 +547,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             />
                         </span>
                         }
-                        {Boolean(isSearchResultItem) && Boolean(props.teamDisplayName) &&
+                        {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
                             {props.teamDisplayName}
                         </span>
@@ -586,17 +591,15 @@ const PostComponent = (props: Props): JSX.Element => {
                                 }
                                 {priority}
                                 {post.props && post.props.card &&
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='top'
-                                        overlay={
-                                            <Tooltip>
-                                                <FormattedMessage
-                                                    id='post_info.info.view_additional_info'
-                                                    defaultMessage='View additional info'
-                                                />
-                                            </Tooltip>
+                                    <WithTooltip
+                                        id='post_info.info.view_additional_info'
+                                        title={
+                                            <FormattedMessage
+                                                id='post_info.info.view_additional_info'
+                                                defaultMessage='View additional info'
+                                            />
                                         }
+                                        placement='top'
                                     >
                                         <button
                                             className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
@@ -610,7 +613,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                                 aria-hidden='true'
                                             />
                                         </button>
-                                    </OverlayTrigger>
+                                    </WithTooltip>
                                 }
                                 {visibleMessage}
                             </div>

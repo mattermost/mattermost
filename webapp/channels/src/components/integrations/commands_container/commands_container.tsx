@@ -4,18 +4,17 @@
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 
-import {Team} from '@mattermost/types/teams';
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
-import {Command} from '@mattermost/types/integrations';
-
-import InstalledCommands from 'components/integrations/installed_commands';
 import AddCommand from 'components/integrations/add_command';
-import EditCommand from 'components/integrations/edit_command';
 import ConfirmIntegration from 'components/integrations/confirm_integration';
+import EditCommand from 'components/integrations/edit_command';
+import InstalledCommands from 'components/integrations/installed_commands';
 
 interface IProps {
     component: any;
@@ -75,7 +74,7 @@ type Props = {
         /**
          * The function to call to fetch team commands
          */
-        loadCommandsAndProfilesForTeam: (teamId?: string) => any; // TechDebt-TODO: This needs to be changed to 'Promise<void>'
+        loadCommandsAndProfilesForTeam: (teamId: string) => Promise<ActionResult>;
     };
 
     /**
@@ -98,7 +97,7 @@ export default class CommandsContainer extends React.PureComponent<Props, State>
 
     componentDidMount() {
         if (this.props.enableCommands) {
-            this.props.actions.loadCommandsAndProfilesForTeam(this.props.team?.id).then(
+            this.props.actions.loadCommandsAndProfilesForTeam(this.props.team?.id || '').then(
                 () => this.setState({loading: false}),
             );
         }

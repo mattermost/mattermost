@@ -17,9 +17,10 @@ export default defineConfig({
     workers: testConfig.workers,
     expect: {
         timeout: duration.ten_sec,
-        toMatchSnapshot: {
+        toHaveScreenshot: {
             threshold: 0.4,
             maxDiffPixelRatio: 0.0001,
+            animations: 'disabled',
         },
     },
     use: {
@@ -52,13 +53,6 @@ export default defineConfig({
         },
     },
     projects: [
-        {
-            name: 'iphone',
-            use: {
-                browserName: 'chromium',
-                ...devices['iPhone 13 Pro'],
-            },
-        },
         {
             name: 'ipad',
             use: {

@@ -59,7 +59,6 @@ func (ad *AccessData) IsValid() *AppError {
 }
 
 func (ad *AccessData) IsExpired() bool {
-
 	if ad.ExpiresAt <= 0 {
 		return false
 	}

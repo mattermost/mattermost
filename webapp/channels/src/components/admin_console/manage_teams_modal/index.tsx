@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import {updateTeamMemberSchemeRoles, getTeamMembersForUser, getTeamsForUser, removeUserFromTeam} from 'mattermost-redux/actions/teams';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import {updateTeamMemberSchemeRoles, getTeamMembersForUser, getTeamsForUser, removeUserFromTeam} from 'mattermost-redux/actions/teams';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import ManageTeamsModal, {Props} from './manage_teams_modal';
+import ManageTeamsModal from './manage_teams_modal';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -18,9 +19,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             getTeamMembersForUser,
             getTeamsForUser,
             updateTeamMemberSchemeRoles,

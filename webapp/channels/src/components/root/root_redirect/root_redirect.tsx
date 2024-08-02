@@ -4,6 +4,8 @@
 import React, {useEffect} from 'react';
 import {Redirect, useHistory} from 'react-router-dom';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import * as GlobalActions from 'actions/global_actions';
 
 export type Props = {
@@ -12,7 +14,7 @@ export type Props = {
     location?: Location;
     isFirstAdmin: boolean;
     actions: {
-        getFirstAdminSetupComplete: () => Promise<{data: boolean; error: any}>;
+        getFirstAdminSetupComplete: () => Promise<ActionResult>;
     };
 }
 

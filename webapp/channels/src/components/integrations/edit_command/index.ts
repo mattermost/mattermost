@@ -2,24 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {editCommand, getCustomTeamCommands} from 'mattermost-redux/actions/integrations';
-import {getCommands} from 'mattermost-redux/selectors/entities/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {GlobalState} from '@mattermost/types/store';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {Command} from '@mattermost/types/integrations';
+import {getCommands} from 'mattermost-redux/selectors/entities/integrations';
 
 import EditCommand from './edit_command';
 
 type Props = {
     location: Location;
-}
-
-type Actions = {
-    getCustomTeamCommands: (teamId: string) => Promise<Command[]>;
-    editCommand: (command?: Command) => Promise<{data?: Command; error?: Error}>;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
@@ -34,9 +29,9 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getCustomTeamCommands,
             editCommand,
         }, dispatch),

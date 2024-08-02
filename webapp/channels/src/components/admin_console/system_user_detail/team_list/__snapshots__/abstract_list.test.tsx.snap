@@ -55,7 +55,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Name
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.team_settings.team_list.header.name"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -66,7 +69,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Type
+      <MemoizedFormattedMessage
+        defaultMessage="Type"
+        id="admin.systemUserDetail.teamList.header.type"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -77,8 +83,20 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Role
+      <MemoizedFormattedMessage
+        defaultMessage="Role"
+        id="admin.systemUserDetail.teamList.header.role"
+      />
     </div>
+    <div
+      className="AbstractList__header-label"
+      key="3"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    />
   </div>
   <div
     className="AbstractList__body"
@@ -243,24 +261,20 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       />
     </div>
     <button
-      className="btn btn-link prev "
+      className="btn btn-tertiary prev "
       disabled={false}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next "
+      className="btn btn-tertiary next "
       disabled={false}
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -284,7 +298,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Name
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.team_settings.team_list.header.name"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -295,7 +312,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Type
+      <MemoizedFormattedMessage
+        defaultMessage="Type"
+        id="admin.systemUserDetail.teamList.header.type"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -306,8 +326,20 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Role
+      <MemoizedFormattedMessage
+        defaultMessage="Role"
+        id="admin.systemUserDetail.teamList.header.role"
+      />
     </div>
+    <div
+      className="AbstractList__header-label"
+      key="3"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    />
   </div>
   <div
     className="AbstractList__body"
@@ -472,24 +504,20 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next "
+      className="btn btn-tertiary next "
       disabled={false}
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -513,7 +541,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Name
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.team_settings.team_list.header.name"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -524,7 +555,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Type
+      <MemoizedFormattedMessage
+        defaultMessage="Type"
+        id="admin.systemUserDetail.teamList.header.type"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -535,8 +569,20 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Role
+      <MemoizedFormattedMessage
+        defaultMessage="Role"
+        id="admin.systemUserDetail.teamList.header.role"
+      />
     </div>
+    <div
+      className="AbstractList__header-label"
+      key="3"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    />
   </div>
   <div
     className="AbstractList__body"
@@ -589,24 +635,20 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next disabled"
+      className="btn btn-tertiary next disabled"
       disabled={true}
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>

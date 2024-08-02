@@ -5,10 +5,11 @@ import {connect} from 'react-redux';
 
 import {makeGenerateCombinedPost} from 'mattermost-redux/utils/post_list';
 
-import {GlobalState} from 'types/store';
-
 import Post from 'components/post';
+
 import {shouldShowDotMenu} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     combinedId: string;

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, ReactNode} from 'react';
+import React from 'react';
+import type {ChangeEvent, ReactNode} from 'react';
 
 import Setting from './setting';
 
@@ -13,9 +14,9 @@ export type Props = {
     label: ReactNode;
     labelClassName?: string;
     placeholder?: string;
+    value: string | number | string[];
     helpText?: ReactNode;
     footer?: ReactNode;
-    value: string | number;
     inputClassName?: string;
     maxLength?: number;
     resizable?: boolean;
@@ -25,6 +26,7 @@ export type Props = {
     // This is a custom prop that is not part of the HTML input element type
     type?: InputTypes;
     autoFocus?: boolean;
+    multiple?: boolean;
 }
 
 function TextSetting(props: Props) {
@@ -33,6 +35,12 @@ function TextSetting(props: Props) {
     function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if (props.type === 'number') {
             props.onChange(props.id, parseInt(event.target.value, 10));
+        } else if (props.type === 'text' && props.multiple) {
+            if (event.target.value === '') {
+                props.onChange(props.id, []);
+            } else {
+                props.onChange(props.id, event.target.value.split(','));
+            }
         } else {
             props.onChange(props.id, event.target.value);
         }

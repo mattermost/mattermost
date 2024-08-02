@@ -20,6 +20,7 @@ export default keyMirror({
     DISABLE_PLUGIN_REQUEST: null,
 
     RECEIVED_LOGS: null,
+    RECEIVED_ALL_PLAIN_LOGS: null,
     RECEIVED_PLAIN_LOGS: null,
     RECEIVED_AUDITS: null,
     RECEIVED_CONFIG: null,
@@ -31,7 +32,6 @@ export default keyMirror({
     RECEIVED_SYSTEM_ANALYTICS: null,
     RECEIVED_TEAM_ANALYTICS: null,
     RECEIVED_USER_ACCESS_TOKEN: null,
-    RECEIVED_USER_ACCESS_TOKENS: null,
     RECEIVED_USER_ACCESS_TOKENS_FOR_USER: null,
     RECEIVED_PLUGINS: null,
     RECEIVED_PLUGIN_STATUSES: null,

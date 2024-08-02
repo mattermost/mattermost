@@ -2,48 +2,48 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef, useCallback, useEffect, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
-import {FormattedMessage} from 'react-intl';
+import {CloseIcon, PlayIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
-import {getShowTaskListBool} from 'selectors/onboarding';
-
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
     getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
-import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+import {getShowTaskListBool} from 'selectors/onboarding';
+
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {
     useTasksListWithStatus,
     OnboardingTaskCategory,
     OnboardingTaskList,
 } from 'components/onboarding_tasks';
-import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {useHandleOnBoardingTaskTrigger} from 'components/onboarding_tasks/onboarding_tasks_manager';
 import OnBoardingVideoModal from 'components/onboarding_tasks/onboarding_video_modal/onboarding_video_modal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
-import {openModal} from 'actions/views/modals';
-import {GlobalState} from 'types/store';
-import {trackEvent} from 'actions/telemetry_actions';
 import checklistImg from 'images/onboarding-checklist.svg';
-
 import {Preferences, RecommendedNextStepsLegacy} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
+import {CompletedAnimation} from './onboarding_tasklist_animations';
+import Completed from './onboarding_tasklist_completed';
 import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
-import Completed from './onboarding_tasklist_completed';
-import {CompletedAnimation} from './onboarding_tasklist_animations';
-import {CloseIcon, PlayIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
 const TaskItems = styled.div`
-    border-radius: 4px;
+    border-radius: var(--radius-m);
     border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
     background-color: var(--center-channel-bg);
     width: 352px;
@@ -69,7 +69,7 @@ const TaskItems = styled.div`
 
     p {
         font-size: 12px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         padding: 4px 24px;
     }
 
@@ -91,9 +91,9 @@ const Button = styled.button<{open: boolean}>(({open}) => {
         width: 36px;
         height: 36px;
         padding: 7px;
-        border-radius: 50%;
-        left: 20px;
-        bottom: 20px;
+        border-radius: var(--radius-full);
+        left: 15px;
+        bottom: 15px;
         position: fixed;
         z-index: 101;
         display: flex;
@@ -101,36 +101,36 @@ const Button = styled.button<{open: boolean}>(({open}) => {
         background: var(--center-channel-bg);
         border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: var(--elevation-3);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             box-shadow: var(--elevation-4);
-            color: rgba(var(--center-channel-color-rgb), 0.72)
+            color: rgba(var(--center-channel-color-rgb), 0.75)
         }
 
         span {
             width: 20px;
             height: 16px;
             background: var(--button-bg);
-            position: fixed;
+            position: absolute;
             display: ${open ? 'none' : 'block'};
             border-radius: 12px;
             color: var(--button-color);
             font-weight: bold;
             font-size: 11px;
             line-height: 16px;
-            bottom: 47px;
-            left: 41px;
+            bottom: 22px;
+            left: 22px;
         }
     `;
 });
 
 const PlayButton = styled.button`
-    padding: 10px 20px;
+    padding: 10px 0;
     max-width: 175px;
     background: var(--button-bg);
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     color: var(--button-color);
     border: none;
     font-weight: bold;
@@ -161,11 +161,11 @@ const Skeleton = styled.div`
 `;
 
 const OnBoardingTaskList = (): JSX.Element | null => {
-    const myPreferences = useSelector((state: GlobalState) => getMyPreferencesSelector(state));
+    const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
-        if (Object.keys(myPreferences).length === 0) {
+        if (!hasPreferences) {
             dispatch(getMyPreferences());
         }
     }, []);
@@ -182,7 +182,10 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const isCurrentUserSystemAdmin = useIsCurrentUserSystemAdmin();
     const isFirstAdmin = useFirstAdminUser();
     const isEnableOnboardingFlow = useSelector((state: GlobalState) => getConfig(state).EnableOnboardingFlow === 'true');
-    const [showTaskList, firstTimeOnboarding] = useSelector(getShowTaskListBool);
+    const [showTaskList, firstTimeOnboarding] = useSelector(
+        getShowTaskListBool,
+        (a, b) => a[0] === b[0] && a[1] === b[1],
+    );
     const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
@@ -284,7 +287,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }));
     }, []);
 
-    if (Object.keys(myPreferences).length === 0 || !showTaskList || !isEnableOnboardingFlow) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
         return null;
     }
 
@@ -306,62 +309,63 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                 onClick={toggleTaskList}
             >
                 <TaskItems className={open ? 'open' : ''}>
-                    {completedCount === tasksList.length ?
+                    {completedCount === tasksList.length ? (
                         <Completed
                             dismissAction={dismissChecklist}
                             isFirstAdmin={isFirstAdmin}
                             isCurrentUserSystemAdmin={isCurrentUserSystemAdmin}
-                        /> : (
-                            <>
-                                <h1>
-                                    <FormattedMessage
-                                        id='next_steps_view.welcomeToMattermost'
-                                        defaultMessage='Welcome to Mattermost'
-                                    />
-                                </h1>
-                                <p>
-                                    <FormattedMessage
-                                        id='onboardingTask.checklist.main_subtitle'
-                                        defaultMessage="Let's get up and running."
-                                    />
-                                </p>
-                                <Skeleton>
-                                    <img
-                                        src={checklistImg}
-                                        alt={'On Boarding video'}
-                                        style={{display: 'block', margin: '1rem auto', borderRadius: '4px'}}
-                                    />
-                                    <PlayButton
-                                        onClick={openVideoModal}
-                                    >
-                                        <PlayIcon size={18}/>
-                                        <FormattedMessage
-                                            id='onboardingTask.checklist.video_title'
-                                            defaultMessage='Watch overview'
-                                        />
-                                    </PlayButton>
-                                </Skeleton>
-                                {tasksList.map((task) => (
-                                    <Task
-                                        key={OnboardingTaskCategory + task.name}
-                                        label={task.label()}
-                                        onClick={() => {
-                                            startTask(task.name);
-                                        }}
-                                        completedStatus={task.status}
-                                    />
-                                ))}
-                                <span
-                                    className='link'
-                                    onClick={dismissChecklist}
+                        />
+                    ) : (
+                        <>
+                            <h1>
+                                <FormattedMessage
+                                    id='next_steps_view.welcomeToMattermost'
+                                    defaultMessage='Welcome to Mattermost'
+                                />
+                            </h1>
+                            <p>
+                                <FormattedMessage
+                                    id='onboardingTask.checklist.main_subtitle'
+                                    defaultMessage="Let's get up and running."
+                                />
+                            </p>
+                            <Skeleton>
+                                <img
+                                    src={checklistImg}
+                                    alt={'On Boarding video'}
+                                    style={{display: 'block', margin: '1rem auto', borderRadius: '4px'}}
+                                />
+                                <PlayButton
+                                    onClick={openVideoModal}
                                 >
+                                    <PlayIcon size={18}/>
                                     <FormattedMessage
-                                        id='onboardingTask.checklist.dismiss_link'
-                                        defaultMessage='No thanks, I’ll figure it out myself'
+                                        id='onboardingTask.checklist.video_title'
+                                        defaultMessage='Watch overview'
                                     />
-                                </span>
-                            </>
-                        )}
+                                </PlayButton>
+                            </Skeleton>
+                            {tasksList.map((task) => (
+                                <Task
+                                    key={OnboardingTaskCategory + task.name}
+                                    label={task.label()}
+                                    onClick={() => {
+                                        startTask(task.name);
+                                    }}
+                                    completedStatus={task.status}
+                                />
+                            ))}
+                            <span
+                                className='link'
+                                onClick={dismissChecklist}
+                            >
+                                <FormattedMessage
+                                    id='onboardingTask.checklist.dismiss_link'
+                                    defaultMessage='No thanks, I’ll figure it out myself'
+                                />
+                            </span>
+                        </>
+                    )}
                 </TaskItems>
             </TaskListPopover>
         </CompassThemeProvider>

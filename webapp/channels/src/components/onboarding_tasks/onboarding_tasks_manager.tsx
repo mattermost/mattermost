@@ -4,12 +4,32 @@
 import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {matchPath, useHistory, useLocation} from 'react-router-dom';
+import {matchPath, useLocation} from 'react-router-dom';
+
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+import {
+    openInvitationsModal,
+    setShowOnboardingCompleteProfileTour,
+    setShowOnboardingVisitConsoleTour,
+    switchToChannels,
+} from 'actions/views/onboarding_tasks';
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {setStatusDropdown} from 'actions/views/status_dropdown';
-import {openModal} from 'actions/views/modals';
+import {getOnboardingTaskPreferences} from 'selectors/onboarding';
+
+import Channels from 'components/common/svg_images_components/channels_svg';
+import Gears from 'components/common/svg_images_components/gears_svg';
+import Handshake from 'components/common/svg_images_components/handshake_svg';
+import Phone from 'components/common/svg_images_components/phone_svg';
+import Security from 'components/common/svg_images_components/security_svg';
+import Sunglasses from 'components/common/svg_images_components/sunglasses_svg';
+import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 import {
     AutoTourStatus,
     FINISHED,
@@ -18,38 +38,13 @@ import {
     TTNameMapToATStatusKey,
     TutorialTourName,
 } from 'components/tours';
-import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
-import {GlobalState} from 'types/store';
-import {
-    openInvitationsModal,
-    setShowOnboardingCompleteProfileTour,
-    setShowOnboardingVisitConsoleTour,
-    switchToChannels,
-} from 'actions/views/onboarding_tasks';
-
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
-
-import BullsEye from 'components/common/svg_images_components/bulls_eye_svg';
-import Channels from 'components/common/svg_images_components/channels_svg';
-import Clipboard from 'components/common/svg_images_components/clipboard_svg';
-import Gears from 'components/common/svg_images_components/gears_svg';
-import Handshake from 'components/common/svg_images_components/handshake_svg';
-import Phone from 'components/common/svg_images_components/phone_svg';
-import Security from 'components/common/svg_images_components/security_svg';
-import Sunglasses from 'components/common/svg_images_components/sunglasses_svg';
-import Wrench from 'components/common/svg_images_components/wrench_svg';
+import type {GlobalState} from 'types/store';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
 import {generateTelemetryTag} from './utils';
-
-const getCategory = makeGetCategory();
 
 const useGetTaskDetails = () => {
     const {formatMessage} = useIntl();
@@ -60,22 +55,6 @@ const useGetTaskDetails = () => {
             message: formatMessage({
                 id: 'onboardingTask.checklist.task_learn_more_about_messaging',
                 defaultMessage: 'Take a tour of Channels.',
-            }),
-        },
-        [OnboardingTasksName.BOARDS_TOUR]: {
-            id: 'task_plan_sprint_with_kanban_style_boards',
-            svg: BullsEye,
-            message: formatMessage({
-                id: 'onboardingTask.checklist.task_plan_sprint_with_kanban_style_boards',
-                defaultMessage: 'Manage tasks with your first board.',
-            }),
-        },
-        [OnboardingTasksName.PLAYBOOKS_TOUR]: {
-            id: 'task_resolve_incidents_faster_with_playbooks',
-            svg: Clipboard,
-            message: formatMessage({
-                id: 'onboardingTask.checklist.task_resolve_incidents_faster_with_playbooks',
-                defaultMessage: 'Explore workflows with your first playbook.',
             }),
         },
         [OnboardingTasksName.INVITE_PEOPLE]: {
@@ -92,15 +71,6 @@ const useGetTaskDetails = () => {
             message: formatMessage({
                 id: 'onboardingTask.checklist.task_complete_your_profile',
                 defaultMessage: 'Complete your profile.',
-            }),
-        },
-
-        [OnboardingTasksName.EXPLORE_OTHER_TOOLS]: {
-            id: 'task_explore_other_tools_in_platform',
-            svg: Wrench,
-            message: formatMessage({
-                id: 'onboardingTask.checklist.task_explore_other_tools_in_platform',
-                defaultMessage: 'Explore other tools in the platform.',
             }),
         },
 
@@ -133,7 +103,6 @@ const useGetTaskDetails = () => {
 };
 
 export const useTasksList = () => {
-    const pluginsList = useSelector((state: GlobalState) => state.plugins.plugins);
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const license = useSelector(getLicense);
     const isPrevLicensed = prevTrialLicense?.IsLicensed;
@@ -156,12 +125,6 @@ export const useTasksList = () => {
     const showStartTrialTask = selfHostedTrialCondition || cloudTrialCondition;
 
     const list: Record<string, string> = {...OnboardingTasksName};
-    if (!pluginsList.focalboard || !isUserFirstAdmin) {
-        delete list.BOARDS_TOUR;
-    }
-    if (!pluginsList.playbooks || !isUserFirstAdmin) {
-        delete list.PLAYBOOKS_TOUR;
-    }
     if (!showStartTrialTask) {
         delete list.START_TRIAL;
     }
@@ -169,11 +132,6 @@ export const useTasksList = () => {
     if (!isUserFirstAdmin && !isUserAdmin) {
         delete list.VISIT_SYSTEM_CONSOLE;
         delete list.START_TRIAL;
-    }
-
-    // explore other tools tour is only shown to subsequent admins and end users
-    if (isUserFirstAdmin || (!pluginsList.playbooks && !pluginsList.focalboard)) {
-        delete list.EXPLORE_OTHER_TOOLS;
     }
 
     // invite other users is hidden for guest users
@@ -185,7 +143,7 @@ export const useTasksList = () => {
 };
 
 export const useTasksListWithStatus = () => {
-    const dataInDb = useSelector((state: GlobalState) => getCategory(state, OnboardingTaskCategory));
+    const dataInDb = useSelector(getOnboardingTaskPreferences);
     const tasksList = useTasksList();
     const getTaskDetails = useGetTaskDetails();
     return useMemo(() =>
@@ -245,7 +203,6 @@ export const useHandleOnBoardingTaskData = () => {
 
 export const useHandleOnBoardingTaskTrigger = () => {
     const dispatch = useDispatch();
-    const history = useHistory();
     const {pathname} = useLocation();
 
     const handleSaveData = useHandleOnBoardingTaskData();
@@ -253,8 +210,6 @@ export const useHandleOnBoardingTaskTrigger = () => {
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));
     const inAdminConsole = matchPath(pathname, {path: '/admin_console'}) != null;
     const inChannels = matchPath(pathname, {path: '/:team/channels/:chanelId'}) != null;
-    const pluginsList = useSelector((state: GlobalState) => state.plugins.plugins);
-    const boards = pluginsList.focalboard;
 
     return (taskName: string) => {
         switch (taskName) {
@@ -283,47 +238,11 @@ export const useHandleOnBoardingTaskTrigger = () => {
             }
             break;
         }
-        case OnboardingTasksName.BOARDS_TOUR: {
-            history.push('/boards');
-            localStorage.setItem(OnboardingTaskCategory, 'true');
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);
-            break;
-        }
-        case OnboardingTasksName.PLAYBOOKS_TOUR: {
-            history.push('/playbooks/start');
-            localStorage.setItem(OnboardingTaskCategory, 'true');
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);
-            break;
-        }
         case OnboardingTasksName.COMPLETE_YOUR_PROFILE: {
             dispatch(setStatusDropdown(true));
             dispatch(setShowOnboardingCompleteProfileTour(true));
             handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
             if (inAdminConsole) {
-                dispatch(switchToChannels());
-            }
-            break;
-        }
-        case OnboardingTasksName.EXPLORE_OTHER_TOOLS: {
-            dispatch(setProductMenuSwitcherOpen(true));
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
-            const tourCategory = TutorialTourName.EXPLORE_OTHER_TOOLS;
-            const preferences = [
-                {
-                    user_id: currentUserId,
-                    category: tourCategory,
-                    name: currentUserId,
-                    value: boards ? ExploreOtherToolsTourSteps.BOARDS_TOUR.toString() : ExploreOtherToolsTourSteps.PLAYBOOKS_TOUR.toString(),
-                },
-                {
-                    user_id: currentUserId,
-                    category: tourCategory,
-                    name: TTNameMapToATStatusKey[tourCategory],
-                    value: AutoTourStatus.ENABLED.toString(),
-                },
-            ];
-            dispatch(savePreferences(currentUserId, preferences));
-            if (!inChannels) {
                 dispatch(switchToChannels());
             }
             break;

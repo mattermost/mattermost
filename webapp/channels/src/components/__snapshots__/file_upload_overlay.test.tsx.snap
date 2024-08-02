@@ -13,17 +13,12 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Files"
         className="overlay__files"
-        src={null}
+        src=""
       />
       <span>
-        <LocalizedIcon
+        <i
           className="fa fa-upload"
-          title={
-            Object {
-              "defaultMessage": "Upload Icon",
-              "id": "generic_icons.upload",
-            }
-          }
+          title="Upload Icon"
         />
         <MemoizedFormattedMessage
           defaultMessage="Drop a file to upload it."
@@ -33,7 +28,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Logo"
         className="overlay__logo"
-        src={null}
+        src=""
       />
     </div>
   </div>
@@ -53,17 +48,12 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Files"
         className="overlay__files"
-        src={null}
+        src=""
       />
       <span>
-        <LocalizedIcon
+        <i
           className="fa fa-upload"
-          title={
-            Object {
-              "defaultMessage": "Upload Icon",
-              "id": "generic_icons.upload",
-            }
-          }
+          title="Upload Icon"
         />
         <MemoizedFormattedMessage
           defaultMessage="Drop a file to upload it."
@@ -73,7 +63,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Logo"
         className="overlay__logo"
-        src={null}
+        src=""
       />
     </div>
   </div>
@@ -93,17 +83,12 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Files"
         className="overlay__files"
-        src={null}
+        src=""
       />
       <span>
-        <LocalizedIcon
+        <i
           className="fa fa-upload"
-          title={
-            Object {
-              "defaultMessage": "Upload Icon",
-              "id": "generic_icons.upload",
-            }
-          }
+          title="Upload Icon"
         />
         <MemoizedFormattedMessage
           defaultMessage="Drop a file to upload it."
@@ -113,7 +98,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Logo"
         className="overlay__logo"
-        src={null}
+        src=""
       />
     </div>
   </div>

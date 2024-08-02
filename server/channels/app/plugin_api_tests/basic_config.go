@@ -20,7 +20,6 @@ type BasicConfig struct {
 }
 
 func IsEmpty(object any) bool {
-
 	// get nil case out of the way
 	if object == nil {
 		return true

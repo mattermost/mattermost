@@ -1,18 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {
+    MessageHistory,
+    OpenGraphMetadata,
+    Post,
+    PostAcknowledgement,
+    PostOrderBlock,
+} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToOne,
+    RelationOneToMany,
+} from '@mattermost/types/utilities';
+
 import {General, Posts, Preferences} from 'mattermost-redux/constants';
-
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannelId, getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getBool, shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
+import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-
 import {
     isPostEphemeral,
     isSystemMessage,
@@ -21,29 +36,7 @@ import {
     isPostPendingOrFailed,
     isPostCommentMention,
 } from 'mattermost-redux/utils/post_utils';
-
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
-import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
-
-import {Channel} from '@mattermost/types/channels';
-import {
-    MessageHistory,
-    OpenGraphMetadata,
-    Post,
-    PostAcknowledgement,
-    PostOrderBlock,
-} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import type {Team} from '@mattermost/types/teams';
-import {
-    IDMappedObjects,
-    RelationOneToOne,
-    RelationOneToMany,
-} from '@mattermost/types/utilities';
 
 export function getAllPosts(state: GlobalState) {
     return state.entities.posts.posts;
@@ -58,12 +51,28 @@ export function getPost(state: GlobalState, postId: Post['id']): Post {
     return getAllPosts(state)[postId];
 }
 
+export function isPostFlagged(state: GlobalState, postId: Post['id']): boolean {
+    return getBool(state, Preferences.CATEGORY_FLAGGED_POST, postId);
+}
+
 export function getPostRepliesCount(state: GlobalState, postId: Post['id']): number {
     return state.entities.posts.postsReplies[postId] || 0;
 }
 
 export function getPostsInThread(state: GlobalState): RelationOneToMany<Post, Post> {
     return state.entities.posts.postsInThread;
+}
+
+export function getPostsInThreadOrdered(state: GlobalState, rootId: string): string[] {
+    const postIds = getPostsInThread(state)[rootId];
+    if (!postIds) {
+        return [rootId];
+    }
+
+    const allPosts = getAllPosts(state);
+    const threadPosts = postIds.map((v) => allPosts[v]).filter((v) => v);
+    const sortedPosts = threadPosts.sort(comparePosts);
+    return [...sortedPosts.map((v) => v.id), rootId];
 }
 
 export function getReactionsForPosts(state: GlobalState): RelationOneToOne<Post, {
@@ -274,9 +283,62 @@ function formatPostInChannel(post: Post, previousPost: Post | undefined | null, 
     };
 }
 
+function isPostInteractable(post: Post | undefined) {
+    return post &&
+        !post.delete_at &&
+        !isPostEphemeral(post) &&
+        !isSystemMessage(post) &&
+        !isPostPendingOrFailed(post) &&
+        post.state !== Posts.POST_DELETED;
+}
+
+export function getLatestInteractablePostId(state: GlobalState, channelId: string, rootId = '') {
+    const postsIds = rootId ? getPostsInThreadOrdered(state, rootId) : getPostIdsInChannel(state, channelId);
+    if (!postsIds) {
+        return '';
+    }
+
+    const allPosts = getAllPosts(state);
+
+    for (const postId of postsIds) {
+        if (!isPostInteractable(allPosts[postId])) {
+            continue;
+        }
+        return postId;
+    }
+
+    return '';
+}
+
+export function getLatestPostToEdit(state: GlobalState, channelId: string, rootId = '') {
+    const postsIds = rootId ? getPostsInThreadOrdered(state, rootId) : getPostIdsInChannel(state, channelId);
+    if (!postsIds) {
+        return '';
+    }
+
+    if (rootId) {
+        postsIds.push(rootId);
+    }
+
+    const allPosts = getAllPosts(state);
+    const currentUserId = getCurrentUserId(state);
+
+    for (const postId of postsIds) {
+        const post = allPosts[postId];
+        if (post?.user_id !== currentUserId || !isPostInteractable(post)) {
+            continue;
+        }
+
+        return post.id;
+    }
+
+    return '';
+}
+
+export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = (state) => getLatestInteractablePostId(state, getCurrentChannelId(state));
+
 // makeGetPostsInChannel creates a selector that returns up to the given number of posts loaded at the bottom of the
 // given channel. It does not include older posts such as those loaded by viewing a thread or a permalink.
-
 export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel['id'], numPosts: number) => PostWithFormatData[] | undefined | null {
     return createSelector(
         'makeGetPostsInChannel',
@@ -284,24 +346,21 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
         getPostsInThread,
         (state: GlobalState, channelId: Channel['id']) => getPostIdsInChannel(state, channelId),
         getCurrentUser,
-        getMyPreferences,
+        shouldShowJoinLeaveMessages,
         (state: GlobalState, channelId: Channel['id'], numPosts: number) => numPosts || Posts.POST_CHUNK_SIZE,
-        (allPosts, postsInThread, allPostIds, currentUser, myPreferences, numPosts) => {
+        (allPosts, postsInThread, allPostIds, currentUser, showJoinLeave, numPosts) => {
             if (!allPostIds) {
                 return null;
             }
 
             const posts: PostWithFormatData[] = [];
 
-            const joinLeavePref = myPreferences[getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)];
-            const showJoinLeave = joinLeavePref ? joinLeavePref.value !== 'false' : true;
-
             const postIds = numPosts === -1 ? allPostIds : allPostIds.slice(0, numPosts);
 
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
 
-                if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
+                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
                     continue;
                 }
 
@@ -328,20 +387,18 @@ export function makeGetPostsAroundPost(): (state: GlobalState, postId: Post['id'
         getPostsInThread,
         (state: GlobalState, focusedPostId) => focusedPostId,
         getCurrentUser,
-        getMyPreferences,
-        (postIds, allPosts, postsInThread, focusedPostId, currentUser, myPreferences) => {
+        shouldShowJoinLeaveMessages,
+        (postIds, allPosts, postsInThread, focusedPostId, currentUser, showJoinLeave) => {
             if (!postIds || !currentUser) {
                 return null;
             }
 
             const posts: PostWithFormatData[] = [];
-            const joinLeavePref = myPreferences[getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)];
-            const showJoinLeave = joinLeavePref ? joinLeavePref.value !== 'false' : true;
 
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
 
-                if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser.username)) {
+                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser.username)) {
                     continue;
                 }
 
@@ -375,15 +432,19 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
                 thread.push(rootPost);
             }
 
-            postsForThread?.forEach((id) => {
-                const post = posts[id];
+            if (postsForThread && Array.isArray(postsForThread) && postsForThread.length > 0) {
+                for (const postId of postsForThread) {
+                    const post = posts[postId];
+                    if (!post) {
+                        continue;
+                    }
 
-                const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
-
-                if (post && !skip) {
-                    thread.push(post);
+                    const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
+                    if (!skip) {
+                        thread.push(post);
+                    }
                 }
-            });
+            }
 
             thread.sort(comparePosts);
             return thread;
@@ -501,13 +562,11 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
     'getMostRecentPostIdInChannel',
     getAllPosts,
     (state: GlobalState, channelId: string) => getPostIdsInChannel(state, channelId),
-    getMyPreferences,
-    (posts, postIdsInChannel, preferences) => {
+    shouldShowJoinLeaveMessages,
+    (posts, postIdsInChannel, allowSystemMessages) => {
         if (!postIdsInChannel) {
             return '';
         }
-        const key = getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE);
-        const allowSystemMessages = preferences[key] ? preferences[key].value === 'true' : true;
 
         if (!allowSystemMessages) {
             // return the most recent non-system message in the channel
@@ -524,50 +583,6 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
 
         // return the most recent message in the channel
         return postIdsInChannel[0];
-    },
-);
-
-export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = createSelector(
-    'getLatestReplyablePostId',
-    getPostsInCurrentChannel,
-    (posts) => {
-        if (!posts) {
-            return '';
-        }
-
-        const latestReplyablePost = posts.find((post) => post.state !== Posts.POST_DELETED && !isSystemMessage(post) && !isPostEphemeral(post));
-        if (!latestReplyablePost) {
-            return '';
-        }
-
-        return latestReplyablePost.id;
-    },
-);
-
-export const getCurrentUsersLatestPost: (state: GlobalState, postId: Post['id']) => PostWithFormatData | undefined | null = createSelector(
-    'getCurrentUsersLatestPost',
-    getPostsInCurrentChannel,
-    getCurrentUser,
-    (state: GlobalState, rootId: string) => rootId,
-    (posts, currentUser, rootId) => {
-        if (!posts) {
-            return null;
-        }
-
-        const lastPost = posts.find((post) => {
-            // don't edit webhook posts, deleted posts, or system messages
-            if (post.user_id !== currentUser.id || (post.props && post.props.from_webhook) || post.state === Posts.POST_DELETED || isSystemMessage(post) || isPostEphemeral(post) || isPostPendingOrFailed(post)) {
-                return false;
-            }
-
-            if (rootId) {
-                return post.root_id === rootId || post.id === rootId;
-            }
-
-            return true;
-        });
-
-        return lastPost;
     },
 );
 
@@ -755,10 +770,6 @@ export const makeIsPostCommentMention = (): ((state: GlobalState, postId: Post['
         },
     );
 };
-
-export function getExpandedLink(state: GlobalState, link: string): string {
-    return state.entities.posts.expandedURLs[link];
-}
 
 export function getLimitedViews(state: GlobalState): GlobalState['entities']['posts']['limitedViews'] {
     return state.entities.posts.limitedViews;

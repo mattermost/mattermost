@@ -2,41 +2,41 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {t} from 'utils/i18n';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {
+    getSubscriptionProduct,
+} from 'mattermost-redux/selectors/entities/cloud';
+import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getCurrentUser,
+} from 'mattermost-redux/selectors/entities/users';
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import AnnouncementBar from '../default_announcement_bar';
+import useGetLimits from 'components/common/hooks/useGetLimits';
+import useGetSubscription from 'components/common/hooks/useGetSubscription';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+
 import {
     AnnouncementBarTypes,
     Preferences,
     CloudBanners,
     CloudProducts,
 } from 'utils/constants';
-import {GlobalState} from 'types/store';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {
-    getCurrentUser,
-} from 'mattermost-redux/selectors/entities/users';
-import {
-    getSubscriptionProduct,
-} from 'mattermost-redux/selectors/entities/cloud';
+
+import type {GlobalState} from 'types/store';
+
+import AnnouncementBar from '../default_announcement_bar';
+
+const getCloudTrialEndBannerPreferences = makeGetCategory('getCloudTrialEndBannerPreferences', Preferences.CLOUD_TRIAL_END_BANNER);
 
 const CloudTrialEndAnnouncementBar: React.FC = () => {
     const limits = useGetLimits();
     const subscription = useGetSubscription();
-    const getCategory = makeGetCategory();
     const dispatch = useDispatch();
-    const preferences = useSelector((state: GlobalState) =>
-        getCategory(state, Preferences.CLOUD_TRIAL_END_BANNER),
-    );
+    const preferences = useSelector(getCloudTrialEndBannerPreferences);
     const currentUser = useSelector((state: GlobalState) =>
         getCurrentUser(state),
     );
@@ -102,20 +102,13 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         );
     };
 
-    const message = {
-        id: t('free.banner.downgraded'),
-        defaultMessage:
-            'Your workspace now has restrictions and some data has been archived',
-    };
-
     return (
         <AnnouncementBar
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={true}
             onButtonClick={() => openPricingModal({trackingLocation: 'cloud_trial_ended_announcement_bar'})}
-            modalButtonText={t('more.details')}
-            modalButtonDefaultText={'More details'}
-            message={<FormattedMessage {...message}/>}
+            modalButtonText={messages.moreDetails}
+            message={<FormattedMessage {...messages.downgraded}/>}
             showLinkAsButton={true}
             isTallBanner={true}
             icon={<i className='icon icon-alert-outline'/>}
@@ -123,5 +116,16 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         />
     );
 };
+
+const messages = defineMessages({
+    downgraded: {
+        id: 'free.banner.downgraded',
+        defaultMessage: 'Your workspace now has restrictions and some data has been archived',
+    },
+    moreDetails: {
+        id: 'more.details',
+        defaultMessage: 'More details',
+    },
+});
 
 export default CloudTrialEndAnnouncementBar;

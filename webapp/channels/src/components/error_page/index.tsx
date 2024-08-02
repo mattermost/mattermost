@@ -3,12 +3,11 @@
 
 import {connect} from 'react-redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-
-import {GlobalState} from 'types/store';
-
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ErrorPage from './error_page';
 

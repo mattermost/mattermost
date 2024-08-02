@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {Link} from 'react-router-dom';
-
 import styled from 'styled-components';
 
-import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import glyphMap, {CheckIcon} from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+
 export interface ProductMenuItemProps {
     destination: string;
     icon: IconGlyphTypes;

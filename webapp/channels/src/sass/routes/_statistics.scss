@@ -10,6 +10,10 @@
     }
 }
 
+.analytics_tooltip_body {
+    font-weight: 400;
+}
+
 .team_statistics {
     &--warning {
         // Adding the !important because this class has less preference in some html elements
@@ -49,9 +53,9 @@
     .total-count {
         width: 100%;
         border: 1px solid $light-gray;
+        border-radius: 3px;
         margin: 1em 0;
         background: $white;
-        border-radius: 3px;
         text-align: center;
 
         &--has-message {
@@ -71,6 +75,11 @@
                 width: calc(100% - 20px);
                 text-overflow: ellipsis;
                 white-space: nowrap;
+
+                svg {
+                    margin-left: 5px;
+                    vertical-align: text-top;
+                }
             }
 
             .fa {

@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ModalIdentifiers} from 'utils/constants';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import UserGuideIcon from 'components/widgets/icons/user_guide_icon';
 import Menu from 'components/widgets/menu/menu';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
@@ -86,16 +86,11 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-        const tooltip = (
-            <Tooltip
-                id='userGuideHelpTooltip'
-                className='hidden-xs'
-            >
-                <FormattedMessage
-                    id={'channel_header.userHelpGuide'}
-                    defaultMessage='Help'
-                />
-            </Tooltip>
+        const tooltipText = (
+            <FormattedMessage
+                id={'channel_header.userHelpGuide'}
+                defaultMessage='Help'
+            />
         );
 
         return (
@@ -103,10 +98,10 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 className='userGuideHelp'
                 onToggle={this.buttonToggleState}
             >
-                <OverlayTrigger
-                    delayShow={500}
+                <WithTooltip
+                    id='userGuideHelpTooltip'
                     placement='bottom'
-                    overlay={this.state.buttonActive ? <></> : tooltip}
+                    title={this.state.buttonActive ? '' : tooltipText}
                 >
                     <button
                         id='channelHeaderUserGuideButton'
@@ -116,7 +111,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     >
                         <UserGuideIcon className='icon'/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     openLeft={true}
                     openUp={false}

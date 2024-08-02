@@ -103,3 +103,7 @@ func (c *FakeClusterInterface) ClearMessages() {
 	defer c.mut.Unlock()
 	c.messages = nil
 }
+
+func (c *FakeClusterInterface) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
+}

@@ -5,11 +5,11 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import CopyText from 'components/copy_text';
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import CopyText from 'components/copy_text';
 
 import DeleteIntegrationLink from './delete_integration_link';
 
@@ -149,14 +149,14 @@ export default class InstalledCommand extends React.PureComponent<Props> {
             <div className='backstage-list__item'>
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <div>
-                            <strong className='item-details__name'>
+                        <div className='item-details__name'>
+                            <strong>
                                 {name}
                             </strong>
-                            <span className='item-details__trigger'>
-                                {trigger}
-                            </span>
                         </div>
+                        <span className='item-details__trigger'>
+                            {trigger}
+                        </span>
                         {actions}
                     </div>
                     {description}

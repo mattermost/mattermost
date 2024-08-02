@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {injectIntl, IntlShape} from 'react-intl';
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
 
-import {AppBinding} from '@mattermost/types/apps';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-
-import {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
 import {createCallContext} from 'utils/apps';
+
+import type {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
 
 type Props = {
     intl: IntlShape;
@@ -33,7 +35,7 @@ type State = {
     executing: boolean;
 }
 
-export class ButtonBinding extends React.PureComponent<Props, State> {
+class ButtonBinding extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -103,7 +105,6 @@ export class ButtonBinding extends React.PureComponent<Props, State> {
 
     render() {
         const {binding} = this.props;
-        let customButtonStyle;
 
         if (!binding.submit && !binding.form?.submit && !binding.form?.source) {
             return null;
@@ -116,8 +117,8 @@ export class ButtonBinding extends React.PureComponent<Props, State> {
 
         return (
             <button
+                className='btn btn-sm'
                 onClick={this.handleClick}
-                style={customButtonStyle}
             >
                 <LoadingWrapper
                     loading={this.state.executing}

@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/gziphandler"
+	"github.com/klauspost/compress/gzhttp"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -39,15 +39,15 @@ func (w *Web) InitStatic() {
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 
 		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-			staticHandler = gziphandler.GzipHandler(staticHandler)
-			pluginHandler = gziphandler.GzipHandler(pluginHandler)
+			staticHandler = gzhttp.GzipHandler(staticHandler)
+			pluginHandler = gzhttp.GzipHandler(pluginHandler)
 		}
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))
-		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods("GET")
+		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods(http.MethodGet)
 
 		// When a subpath is defined, it's necessary to handle redirects without a
 		// trailing slash. We don't want to use StrictSlash on the w.MainRouter and affect
@@ -60,7 +60,6 @@ func (w *Web) InitStatic() {
 }
 
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !CheckClientCompatibility(r.UserAgent()) {
 		w.Header().Set("Cache-Control", "no-store")
 		data := renderUnsupportedBrowser(c.AppContext, r)

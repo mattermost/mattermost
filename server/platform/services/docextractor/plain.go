@@ -11,6 +11,10 @@ import (
 
 type plainExtractor struct{}
 
+func (pe *plainExtractor) Name() string {
+	return "plainExtractor"
+}
+
 func (pe *plainExtractor) Match(filename string) bool {
 	return true
 }

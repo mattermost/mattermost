@@ -3,13 +3,12 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
-import {getName} from 'country-list';
 
 import DropdownInput from 'components/dropdown_input';
-
 import Input from 'components/widgets/inputs/input/input';
 
-import {US_STATES, CA_PROVINCES, StateCode} from 'utils/states';
+import {US_STATES, CA_PROVINCES} from 'utils/states';
+import type {StateCode} from 'utils/states';
 
 type Props = {
     country: string;
@@ -29,9 +28,9 @@ export default function StateSelector(props: Props) {
     };
 
     let stateList = [] as StateCode[];
-    if (props.country === getName('US')) {
+    if (props.country === 'US') {
         stateList = US_STATES;
-    } else if (props.country === getName('CA')) {
+    } else if (props.country === 'CA') {
         stateList = CA_PROVINCES;
     }
 
@@ -51,7 +50,7 @@ export default function StateSelector(props: Props) {
                 }))}
                 legend={formatMessage({id: 'admin.billing.subscription.stateprovince', defaultMessage: 'State/Province'})}
                 placeholder={formatMessage({id: 'admin.billing.subscription.stateprovince', defaultMessage: 'State/Province'})}
-                name={'billing_dropdown'}
+                name={'country_dropdown'}
             />
         );
     }

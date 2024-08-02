@@ -293,7 +293,8 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	serverNames := []string{}
-	var maxNameLen, maxUsernameLen, maxInstanceURLLen int
+	nameTitle, usernameTitle, instanceURLTitle := "Name", "Username", "InstanceURL"
+	maxNameLen, maxUsernameLen, maxInstanceURLLen := len(nameTitle), len(usernameTitle), len(instanceURLTitle)
 	for _, c := range *credentialsList {
 		serverNames = append(serverNames, c.Name)
 		if maxNameLen <= len(c.Name) {
@@ -310,7 +311,7 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 		return serverNames[i] < serverNames[j]
 	})
 
-	printer.Print(fmt.Sprintf("\n    | Active | %*s | %*s | %*s |", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceURLLen, "InstanceURL"))
+	printer.Print(fmt.Sprintf("\n    | Active | %*s | %*s | %*s |", maxNameLen, nameTitle, maxUsernameLen, usernameTitle, maxInstanceURLLen, instanceURLTitle))
 	printer.Print(fmt.Sprintf("    |%s|%s|%s|%s|", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2)))
 	for _, name := range serverNames {
 		c := (*credentialsList)[name]

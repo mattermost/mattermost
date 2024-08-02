@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {randomUUID} from 'crypto';
 import nock from 'nock';
 
-import {randomUUID} from 'crypto';
-
-import {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
-import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
-import {Bot} from '@mattermost/types/bots';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Role} from '@mattermost/types/roles';
-import {Post, PostMetadata} from '@mattermost/types/posts';
-import {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile, UserNotifyProps} from '@mattermost/types/users';
-import {Scheme} from '@mattermost/types/schemes';
-import {FileInfo} from '@mattermost/types/files';
-
 import {Client4} from '@mattermost/client';
-
-import General from 'mattermost-redux/constants/general';
-import {generateId} from 'mattermost-redux/utils/helpers';
+import type {Bot} from '@mattermost/types/bots';
+import type {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
+import type {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {Role} from '@mattermost/types/roles';
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
+import type {UserProfile, UserNotifyProps} from '@mattermost/types/users';
 
 export const DEFAULT_SERVER = 'http://localhost:8065';
 const PASSWORD = 'password1';
+
+import General from 'mattermost-redux/constants/general';
+import {generateId} from 'mattermost-redux/utils/helpers';
 
 const {DEFAULT_LOCALE} = General;
 
@@ -104,6 +104,7 @@ class TestHelper {
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
+                highlight_keys: '',
                 mention_keys: '',
                 push: 'none',
                 push_status: 'offline',
@@ -146,6 +147,7 @@ class TestHelper {
                 first_name: 'false',
                 mark_unread: 'mention',
                 mention_keys: '',
+                highlight_keys: '',
                 push: 'none',
                 push_status: 'offline',
             },
@@ -452,6 +454,8 @@ class TestHelper {
         return {
             desktop: 'default',
             desktop_sound: 'off',
+            desktop_threads: 'default',
+            push_threads: 'default',
             email: 'default',
             mark_unread: 'mention',
             push: 'default',
@@ -474,6 +478,7 @@ class TestHelper {
             first_name: 'true',
             channel: 'true',
             mention_keys: '',
+            highlight_keys: '',
             ...override,
         };
     };
@@ -549,6 +554,23 @@ class TestHelper {
         };
     };
 
+    fakeThread = (userId: string, channelId: string, override?: Partial<UserThread>): UserThread => {
+        return {
+            id: this.generateId(),
+            reply_count: 0,
+            last_reply_at: 0,
+            last_viewed_at: 0,
+            participants: [],
+            unread_replies: 0,
+            unread_mentions: 0,
+            is_following: true,
+            post: {
+                channel_id: channelId,
+                user_id: userId,
+            },
+            ...override,
+        };
+    };
     getFileInfoMock = (override: Partial<FileInfo>): FileInfo => {
         return {
             id: '',
@@ -716,6 +738,16 @@ class TestHelper {
             permissions: [],
             scheme_managed: false,
             built_in: false,
+            ...override,
+        };
+    }
+
+    getReactionMock(override: Partial<Reaction> = {}): Reaction {
+        return {
+            user_id: '',
+            post_id: '',
+            emoji_name: '',
+            create_at: 0,
             ...override,
         };
     }

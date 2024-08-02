@@ -2,29 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {BrowserRouter} from 'react-router-dom';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {ErrorPageTypes} from 'utils/constants';
-
 import {TestHelper} from 'utils/test_helper';
 
 import ErrorPage from './error_page';
 
 describe('ErrorPage', () => {
     it('displays cloud archived page correctly', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             (
-                <BrowserRouter>
-                    <ErrorPage
-                        location={{
-                            search: `?type=${ErrorPageTypes.CLOUD_ARCHIVED}`,
-                        }}
-                    />
-                </BrowserRouter>
+                <ErrorPage
+                    location={{
+                        search: `?type=${ErrorPageTypes.CLOUD_ARCHIVED}`,
+                    }}
+                />
             ),
             {
                 entities: {

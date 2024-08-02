@@ -33,6 +33,7 @@ declare namespace Cypress {
     type UserCustomStatus = import('@mattermost/types/users').UserCustomStatus;
     type UserAccessToken = import('@mattermost/types/users').UserAccessToken;
     type DeepPartial = import('@mattermost/types/utilities').DeepPartial;
+    type Group = import('@mattermost/types/groups').Group;
     interface Chainable {
         tab: (options?: {shift?: boolean}) => Chainable<JQuery>;
     }

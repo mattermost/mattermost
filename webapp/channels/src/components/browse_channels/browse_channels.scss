@@ -1,0 +1,272 @@
+@charset 'UTF-8';
+
+#browseChannelsModal {
+    .modal-dialog {
+        margin-top: calc(45vh - 240px) !important;
+    }
+
+    .filter-row--full {
+        position: relative;
+        padding: 0 32px;
+
+        .input-clear {
+            top: 16px;
+            right: 46px;
+        }
+
+        #searchIcon {
+            position: absolute;
+            z-index: 2;
+            top: 16px;
+            left: 46px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            pointer-events: none;
+        }
+
+        #searchChannelsTextbox {
+            height: 48px;
+            padding-left: 40px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            box-shadow: none;
+            font-size: 16px;
+
+            &::placeholder {
+                color: var(--center-channel-color);
+            }
+
+            &:focus {
+                border: 2px solid var(--button-bg);
+            }
+        }
+    }
+
+    .more-modal__dropdown {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 32px;
+        border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
+        margin: 0;
+
+        span {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        #channelCountLabel {
+            color: var(--center-channel-color);
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        #modalPreferenceContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .get-app__checkbox {
+                position: relative;
+                display: flex;
+                width: 16px;
+                height: 16px;
+                align-items: center;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+                border-radius: var(--radius-xs);
+                margin-right: 6px;
+                background-color: var(--center-channel-bg);
+
+                &.checked {
+                    border: none;
+                }
+
+                svg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 16px;
+                    height: 16px;
+                    fill: var(--button-bg);
+                }
+            }
+
+            #hideJoinedPreferenceCheckbox {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+            }
+
+            #menuWrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 6px 4px 8px;
+                border: none;
+                margin-right: 10px;
+                background-color: unset;
+
+                &[aria-expanded='true'] {
+                    border-radius: 4px;
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
+                }
+            }
+
+            #menuWrapper:hover {
+                border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 0;
+
+        .filtered-user-list {
+            height: 500px;
+        }
+
+        .more-modal__row {
+            padding: 0 32px; // todo check
+            border-bottom: none;
+
+            .more-modal__details {
+                padding-left: 0;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+
+                svg {
+                    flex-shrink: 0;
+                }
+
+                .more-modal__name {
+                    align-items: center;
+                    margin-top: 0;
+
+                    span {
+                        color: var(--center-channel-color);
+                        font-weight: 500;
+                    }
+                }
+
+                #channelPurposeContainer {
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+
+                    .dot {
+                        width: 3px;
+                        height: 3px;
+                        flex-shrink: 0;
+                        border-radius: 50%;
+                        background-color: rgba(var(--center-channel-color-rgb), 0.75);
+                    }
+
+                    .more-modal__description {
+                        margin-left: 4px;
+                        font-weight: 400;
+                    }
+
+                    #membershipIndicatorContainer {
+                        display: flex;
+                        align-items: center;
+
+                        span,
+                        svg {
+                            color: var(--online-indicator);
+                        }
+                    }
+
+                    span {
+                        margin: 0 4px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        line-height: 12px;
+                        opacity: 1;
+                    }
+                }
+
+                .shared-channel-icon {
+                    width: 18px;
+                    height: 18px;
+                    margin-right: 6px;
+                    color: rgba(61, 60, 64, 0.75);
+                    font-size: 18px;
+                    line-height: 18px;
+                }
+            }
+
+            .more-modal__actions {
+                button {
+                    display: none;
+                    min-width: 54px;
+                    height: 32px;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        .more-modal__row:hover,
+        .more-modal__row:focus {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            cursor: pointer;
+
+            .more-modal__actions {
+                .primaryButton,
+                .outlineButton {
+                    display: inline-block;
+                }
+            }
+        }
+
+        .form-group {
+            padding: 0 32px;
+            margin-bottom: 0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: none;
+        }
+    }
+
+    .modal-header {
+        .GenericModal__header {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            padding-right: 4px;
+        }
+    }
+
+    .filter-controls {
+        padding-top: 24px;
+    }
+}
+
+#moreChannelsList {
+    .primary-message {
+        margin-top: 8px;
+        color: var(--center-channel-color);
+        line-height: 28px;
+    }
+
+    .secondary-message {
+        margin-bottom: 30px;
+    }
+
+    #createNewChannelButton {
+        padding: 10px 20px;
+    }
+}
+
+#browseChannelsDropdown {
+    .label-elements {
+        padding: 2px 4px;
+        font-size: 14px;
+        line-height: 20px;
+    }
+}

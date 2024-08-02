@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 
-import {Post} from '@mattermost/types/posts';
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
-import {AppBinding} from '@mattermost/types/apps';
-
-import {TextFormattingOptions} from 'utils/text_formatting';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import EmbeddedBinding from './embedded_binding';
 
@@ -30,31 +29,24 @@ type Props = {
 
 }
 
-export default class EmbeddedBindings extends React.PureComponent<Props> {
-    static defaultProps = {
-        imagesMetadata: {},
-    };
+const EmbeddedBindings = ({
+    embeds,
+    post,
+    options,
+}: Props) => (
+    <div
+        id={`messageAttachmentList_${post.id}`}
+        className='attachment__list'
+    >
+        {embeds.map((embed, i) => (
+            <EmbeddedBinding
+                embed={embed}
+                post={post}
+                key={'att_' + i}
+                options={options}
+            />
+        ))}
+    </div>
+);
 
-    render() {
-        const content = [] as JSX.Element[];
-        this.props.embeds.forEach((embed, i) => {
-            content.push(
-                <EmbeddedBinding
-                    embed={embed}
-                    post={this.props.post}
-                    key={'att_' + i}
-                    options={this.props.options}
-                />,
-            );
-        });
-
-        return (
-            <div
-                id={`messageAttachmentList_${this.props.post.id}`}
-                className='attachment__list'
-            >
-                {content}
-            </div>
-        );
-    }
-}
+export default memo(EmbeddedBindings);

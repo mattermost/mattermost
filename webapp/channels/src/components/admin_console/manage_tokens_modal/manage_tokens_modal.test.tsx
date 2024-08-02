@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -16,8 +16,8 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         user: TestHelper.getUserMock({
             id: 'defaultuser',
         }),
-        show: false,
-        onModalDismissed: jest.fn(),
+        onHide: jest.fn(),
+        onExited: jest.fn(),
     };
 
     test('should match snapshot', () => {

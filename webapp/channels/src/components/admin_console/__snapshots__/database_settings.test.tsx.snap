@@ -1,0 +1,467 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/DatabaseSettings should match snapshot 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Database Settings"
+        id="admin.database.title"
+      />
+    </AdminHeader>
+    <Memo(SettingsGroup)>
+      <div
+        className="banner"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Changing properties in this section will require a server restart before taking effect."
+          id="admin.sql.noteDescription"
+        />
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="DriverName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Driver Name:"
+            id="admin.sql.driverName"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <input
+            className="form-control"
+            disabled={true}
+            type="text"
+          />
+          <div
+            className="help-text"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Set the database driver in the config.json file."
+              id="admin.sql.driverNameDescription"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="DataSource"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Data Source:"
+            id="admin.sql.dataSource"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <input
+            className="form-control"
+            disabled={true}
+            type="text"
+            value="**********@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+          />
+          <div
+            className="help-text"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Set the database source in the config.json file."
+              id="admin.sql.dataSourceDescription"
+            />
+          </div>
+        </div>
+      </div>
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum number of idle connections held open to the database."
+            id="admin.sql.maxConnectionsDescription"
+          />
+        }
+        id="maxIdleConns"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum Idle Connections:"
+            id="admin.sql.maxConnectionsTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"10\\"",
+            "id": "admin.sql.maxConnectionsExample",
+          }
+        }
+        setByEnv={false}
+        type="text"
+        value={10}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum number of open connections held open to the database."
+            id="admin.sql.maxOpenDescription"
+          />
+        }
+        id="maxOpenConns"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum Open Connections:"
+            id="admin.sql.maxOpenTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"10\\"",
+            "id": "admin.sql.maxOpenExample",
+          }
+        }
+        setByEnv={false}
+        type="text"
+        value={100}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query."
+            id="admin.sql.queryTimeoutDescription"
+          />
+        }
+        id="queryTimeout"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Query Timeout:"
+            id="admin.sql.queryTimeoutTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"30\\"",
+            "id": "admin.sql.queryTimeoutExample",
+          }
+        }
+        setByEnv={false}
+        type="text"
+        value={10}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum lifetime for a connection to the database in milliseconds."
+            id="admin.sql.connMaxLifetimeDescription"
+          />
+        }
+        id="connMaxLifetimeMilliseconds"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum Connection Lifetime:"
+            id="admin.sql.connMaxLifetimeTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"3600000\\"",
+            "id": "admin.sql.connMaxLifetimeExample",
+          }
+        }
+        setByEnv={false}
+        type="text"
+        value={10}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum idle time for a connection to the database in milliseconds."
+            id="admin.sql.connMaxIdleTimeDescription"
+          />
+        }
+        id="connMaxIdleTimeMilliseconds"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum Connection Idle Time:"
+            id="admin.sql.connMaxIdleTimeTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"300000\\"",
+            "id": "admin.sql.connMaxIdleTimeExample",
+          }
+        }
+        setByEnv={false}
+        type="text"
+        value={20}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>."
+            id="admin.service.minimumHashtagLengthDescription"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="minimumHashtagLength"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Minimum Hashtag Length:"
+            id="admin.service.minimumHashtagLengthTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"3\\"",
+            "id": "admin.service.minimumHashtagLengthExample",
+          }
+        }
+        setByEnv={false}
+        type="text"
+        value={10}
+      />
+      <BooleanSetting
+        disabled={false}
+        falseText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="False"
+            id="admin.false"
+          />
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="(Development Mode) When true, executing SQL statements are written to the log."
+            id="admin.sql.traceDescription"
+          />
+        }
+        id="trace"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="SQL Statement Logging: "
+            id="admin.sql.traceTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        trueText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="True"
+            id="admin.true"
+          />
+        }
+        value={false}
+      />
+      <RequestButton
+        buttonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Recycle Database Connections"
+            id="admin.recycle.button"
+          />
+        }
+        disabled={false}
+        errorMessage={
+          Object {
+            "defaultMessage": "Recycling unsuccessful: {error}",
+            "id": "admin.recycle.reloadFail",
+          }
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating \\"config.json\\" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings."
+            id="admin.recycle.recycleDescription"
+            values={
+              Object {
+                "featureName": <b>
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Recycle Database Connections"
+                    id="admin.recycle.recycleDescription.featureName"
+                  />
+                </b>,
+                "reloadConfiguration": <a
+                  href="../environment/web_server"
+                >
+                  <b>
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Environment > Web Server > Reload Configuration from Disk"
+                      id="admin.recycle.recycleDescription.reloadConfiguration"
+                    />
+                  </b>
+                </a>,
+              }
+            }
+          />
+        }
+        includeDetailedError={true}
+        requestAction={[MockFunction]}
+        saveNeeded={false}
+        showSuccessMessage={false}
+        successMessage={
+          Object {
+            "defaultMessage": "Test Successful",
+            "id": "admin.requestButton.requestSuccess",
+          }
+        }
+      />
+      <BooleanSetting
+        disabled={false}
+        falseText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="False"
+            id="admin.false"
+          />
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured."
+            id="admin.sql.disableDatabaseSearchDescription"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="disableDatabaseSearch"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Disable database search: "
+            id="admin.sql.disableDatabaseSearchTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        trueText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="True"
+            id="admin.true"
+          />
+        }
+        value={true}
+      />
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Schema Migrations:"
+            id="admin.database.migrations_table.title"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <div
+            className="migrations-table-setting"
+          >
+            <Connect(MigrationsTable)
+              createHelpText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="All applied migrations."
+                  id="admin.database.migrations_table.help_text"
+                />
+              }
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Active Search Backend:"
+            id="admin.database.search_backend.title"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <input
+            className="form-control"
+            disabled={true}
+            type="text"
+            value=""
+          />
+          <div
+            className="help-text"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc."
+              id="admin.database.search_backend.help_text"
+            />
+          </div>
+        </div>
+      </div>
+    </Memo(SettingsGroup)>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass=""
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;

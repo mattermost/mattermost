@@ -2,18 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesNotInGroup, searchProfiles, getProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentGroup, getUserStatuses, getProfiles as getUsers} from 'mattermost-redux/selectors/entities/users';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-
-import {Value} from 'components/multiselect/multiselect';
 
 import {loadStatusesForProfilesList} from 'actions/status_actions';
 
-import {GlobalState} from 'types/store';
+import type {Value} from 'components/multiselect/multiselect';
+
+import type {GlobalState} from 'types/store';
 
 import AddUserToGroupMultiSelect from './add_user_to_group_multiselect';
 
@@ -40,16 +41,9 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-type Actions = {
-    getProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
-    getProfilesNotInGroup: (groupId: string, page?: number, perPage?: number) => Promise<ActionResult>;
-    loadStatusesForProfilesList: (users: UserProfile[]) => void;
-    searchProfiles: (term: string, options: any) => Promise<ActionResult>;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             getProfiles,
             getProfilesNotInGroup,
             loadStatusesForProfilesList,

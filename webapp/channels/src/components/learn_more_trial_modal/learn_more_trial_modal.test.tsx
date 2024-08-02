@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
-
 import {Provider} from 'react-redux';
 
-import {shallow} from 'enzyme';
+import {GenericModal} from '@mattermost/components';
 
 import Carousel from 'components/common/carousel/carousel';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
-import {GenericModal} from '@mattermost/components';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
@@ -22,11 +21,6 @@ jest.mock('actions/telemetry_actions.jsx', () => {
     };
 });
 
-const CloudStartTrialButton = () => {
-    return (<button>{'Start Cloud Trial'}</button>);
-};
-
-jest.mock('components/cloud_start_trial/cloud_start_trial_btn', () => CloudStartTrialButton);
 describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
     // required state to mount using the provider
     const state = {
@@ -51,21 +45,18 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             general: {
                 license: {
                     IsLicensed: 'false',
-                    Cloud: 'true',
+                    Cloud: 'false',
                 },
                 config: {
                     DiagnosticsEnabled: 'false',
                 },
-            },
-            cloud: {
-                subscription: {id: 'subscription'},
             },
         },
         views: {
             modals: {
                 modalState: {
                     learn_more_trial_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },
@@ -173,20 +164,6 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         expect(activeSlideId).toBe('ldap');
     });
 
-    test('should have the start cloud trial button when is cloud workspace and cloud free is enabled', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <LearnMoreTrialModal
-                    {...props}
-                />
-            </Provider>,
-        );
-
-        const trialButton = wrapper.find('CloudStartTrialButton');
-
-        expect(trialButton).toHaveLength(1);
-    });
-
     test('should have the self hosted request trial button cloud free is disabled', () => {
         const nonCloudState = {
             ...state,
@@ -210,10 +187,6 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
                 />
             </Provider>,
         );
-
-        // validate the cloud start trial button is not present
-        const trialButton = wrapper.find('CloudStartTrialButton');
-        expect(trialButton).toHaveLength(0);
 
         // validate the cloud start trial button is not present
         const selfHostedRequestTrialButton = wrapper.find('StartTrialBtn');

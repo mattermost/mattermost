@@ -53,3 +53,10 @@ func SetMetricsCollector(collector MetricsCollector, updateFreqMillis int64) Opt
 func StackFilter(pkg ...string) Option {
 	return logr.StackFilter(pkg...)
 }
+
+// MaxFieldLen is the maximum number of characters for a field.
+// If exceeded, remaining bytes will be discarded.
+// Defaults to DefaultMaxFieldLength.
+func MaxFieldLen(size int) Option {
+	return logr.MaxFieldLen(size)
+}

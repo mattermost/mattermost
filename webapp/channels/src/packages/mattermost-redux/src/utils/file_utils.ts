@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Files, General} from '../constants';
+import type {FileInfo} from '@mattermost/types/files';
+
 import {Client4} from 'mattermost-redux/client';
-import {FileInfo} from '@mattermost/types/files';
+
+import {Files, General} from '../constants';
 
 export function getFormattedFileSize(file: FileInfo): string {
     const bytes = file.size;
@@ -12,7 +14,7 @@ export function getFormattedFileSize(file: FileInfo): string {
         ['GB', 1024 * 1024 * 1024],
         ['MB', 1024 * 1024],
         ['KB', 1024],
-    ];
+    ] as const;
     const size = fileSizes.find((unitAndMinBytes) => {
         const minBytes = unitAndMinBytes[1];
         return bytes > minBytes;

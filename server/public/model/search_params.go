@@ -33,7 +33,7 @@ type SearchParams struct {
 	IncludeDeletedChannels bool     `json:"include_deleted_channels,omitempty"`
 	TimeZoneOffset         int      `json:"timezone_offset,omitempty"`
 	// True if this search doesn't originate from a "current user".
-	SearchWithoutUserId bool   `json:"search_without_userid,omitempty"`
+	SearchWithoutUserId bool   `json:"search_without_user_id,omitempty"`
 	Modifier            string `json:"modifier"`
 }
 

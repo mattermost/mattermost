@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
 
 import {General, Posts} from 'mattermost-redux/constants';
+import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import * as Utils from 'utils/utils';
-import {TextFormattingOptions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
+import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {Team} from '@mattermost/types/teams';
+import type {TextFormattingOptions} from 'utils/text_formatting';
+import {getSiteURL} from 'utils/url';
 
-function renderUsername(value: string): ReactNode {
+export function renderUsername(value: string): ReactNode {
     const username = (value[0] === '@') ? value : `@${value}`;
 
     const options = {
@@ -186,7 +189,6 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     }
 
     const headerOptions = {
-        singleline: true,
         channelNamesMap: post.props && post.props.channel_mentions,
         mentionHighlight: true,
     };
@@ -386,10 +388,10 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.ME]: renderMeMessage,
 };
 
-export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
-    const isEphemeral = Utils.isPostEphemeral(post);
+export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
+    const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
-        return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
+        return renderReminderACKMessage(post, currentTeamName, Boolean(isMilitaryTime), timezone);
     }
     if (post.props && post.props.add_channel_member) {
         if (channel && (channel.type === General.PRIVATE_CHANNEL || channel.type === General.OPEN_CHANNEL) &&
@@ -424,14 +426,21 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
                 messageData={messageData}
             />
         );
+    } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {
+        // This is rendered via a separate component instead of registering in
+        // systemMessageRenderers because we need to format a list with keeping i18n support
+        // which cannot be done outside a react component.
+        return (
+            <GMConversionMessage post={post}/>
+        );
     }
 
     return null;
 }
 
-function renderReminderACKMessage(post: Post, currentTeam: Team, isMilitaryTime: boolean, timezone?: string): ReactNode {
+function renderReminderACKMessage(post: Post, currentTeamName: string, isMilitaryTime: boolean, timezone?: string): ReactNode {
     const username = renderUsername(post.props.username);
-    const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeam.name}`;
+    const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeamName}`;
     const link = `${teamUrl}/pl/${post.props.post_id}`;
     const permaLink = renderFormattedText(`[${link}](${link})`);
     const localTime = new Date(post.props.target_time * 1000);
@@ -480,3 +489,48 @@ export function renderReminderSystemBotMessage(post: Post, currentTeam: Team): R
         />
     );
 }
+
+// These messages are used by app.MoveThread on the server
+defineMessages({
+    channelMultipleMessages: {
+        id: 'app.post.move_thread_command.channel.multiple_messages',
+        defaultMessage: 'A thread with {numMessages, number} messages has been moved: {link}\n',
+    },
+    channelOneMessage: {
+        id: 'app.post.move_thread_command.channel.one_message',
+        defaultMessage: 'A message has been moved: {link}\n',
+    },
+    dmMultipleMessages: {
+        id: 'app.post.move_thread_command.direct_or_group.multiple_messages',
+        defaultMessage: 'A thread with {numMessages, number} messages has been moved to a Direct/Group Message\n',
+    },
+    dmOneMessage: {
+        id: 'app.post.move_thread_command.direct_or_group.one_message',
+        defaultMessage: 'A message has been moved to a Direct/Group Message\n',
+    },
+    fromAnotherChannel: {
+        id: 'app.post.move_thread.from_another_channel',
+        defaultMessage: 'This thread was moved from another channel',
+    },
+});
+
+export function renderWranglerSystemMessage(post: Post): ReactNode {
+    let values = {} as any;
+    const id = post.props.TranslationID;
+    if (post.props && post.props.MovedThreadPermalink) {
+        values = {
+            link: post.props.MovedThreadPermalink,
+        };
+        if (post.props.NumMessages > 1) {
+            values.number = post.props.NumMessages;
+        }
+    }
+    return (
+        <FormattedMessage
+            id={id}
+            defaultMessage={post.message}
+            values={values}
+        />
+    );
+}
+

@@ -17,9 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -167,9 +166,9 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
-	username := model.NewId()
-	username2 := model.NewId()
-	username3 := model.NewId()
+	username := model.NewUsername()
+	username2 := model.NewUsername()
+	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
@@ -268,12 +267,16 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
+	t.Helper()
+
 	fileInfos, err := th.App.Srv().Store().FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	return fileInfos
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+	t.Helper()
+
 	postID := files[0].PostId
 	require.NotNil(t, postID)
 
@@ -287,8 +290,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestProcessAttachments(t *testing.T) {
-	logger, _ := mlog.NewLogger()
-	c := request.EmptyContext(logger)
+	c := request.TestContext(t)
 
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
@@ -461,7 +463,7 @@ func BenchmarkBulkImport(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, runtime.NumCPU(), dir)
+		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
 	b.StopTimer()
@@ -499,7 +501,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, model.ExportDataDir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
 
 	adminUser, appErr := th.App.GetUserByUsername("sysadmin")

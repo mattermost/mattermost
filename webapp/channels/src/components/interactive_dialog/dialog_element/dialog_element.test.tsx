@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import TextSetting from 'components/widgets/settings/text_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
+import TextSetting from 'components/widgets/settings/text_setting';
 
 import DialogElement from './dialog_element';
 
@@ -16,11 +16,21 @@ describe('components/interactive_dialog/DialogElement', () => {
         type: 'text',
         maxLength: 100,
         actions: {
-            autocompleteChannels: jest.fn(),
+            autocompleteActiveChannels: jest.fn(),
             autocompleteUsers: jest.fn(),
         },
         onChange: jest.fn(),
     };
+
+    it('type textarea', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                type='textarea'
+            />,
+        );
+        expect(wrapper.find(TextSetting).dive().find('textarea').exists()).toBe(true);
+    });
 
     it('subtype blank', () => {
         const wrapper = shallow(
@@ -31,6 +41,32 @@ describe('components/interactive_dialog/DialogElement', () => {
         );
 
         expect(wrapper.find(TextSetting).props().type).toEqual('text');
+    });
+
+    describe('subtype number', () => {
+        test('value is 0', () => {
+            const wrapper = shallow(
+                <DialogElement
+                    {...baseDialogProps}
+                    type='text'
+                    subtype='number'
+                    value={0}
+                />,
+            );
+            expect(wrapper.find(TextSetting).props().value).toEqual(0);
+        });
+
+        test('value is 123', () => {
+            const wrapper = shallow(
+                <DialogElement
+                    {...baseDialogProps}
+                    type='text'
+                    subtype='number'
+                    value={123}
+                />,
+            );
+            expect(wrapper.find(TextSetting).props().value).toEqual(123);
+        });
     });
 
     it('subtype email', () => {

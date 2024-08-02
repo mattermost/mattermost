@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {isValidElement} from 'react';
 import classNames from 'classnames';
+import React, {isValidElement} from 'react';
 import {NavLink, Route} from 'react-router-dom';
 
 type Props = {
     icon: JSX.Element;
-    title: JSX.Element;
+    title: string | JSX.Element;
     action?: JSX.Element;
     children?: JSX.Element[];
     definitionKey?: string;
@@ -20,7 +20,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     let link = parentLink;
     let titleDiv = (
         <div className='category-title category-title--active'>
-            {icon}
+            <span className='category-icon'>{icon}</span>
             <span className='category-title__text'>
                 {title}
             </span>

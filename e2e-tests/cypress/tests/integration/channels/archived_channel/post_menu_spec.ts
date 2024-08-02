@@ -26,7 +26,7 @@ describe('Archived channels', () => {
 
     it('MM-T1721 Archive channel posts menu should have copy link and reply options', () => {
         // # Click to add a channel description
-        cy.findByRoleExtended('button', {name: 'Add a channel header'}).should('be.visible').click();
+        cy.findByRoleExtended('button', {name: 'Set header'}).should('be.visible').click();
 
         // # Add channel header for system message
         const header = 'this is a header!';

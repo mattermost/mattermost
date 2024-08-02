@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {GlobalState} from 'types/store';
 import {StoragePrefixes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {makeGetDrafts, makeGetDraftsByPrefix, makeGetDraftsCount} from './drafts';
 
@@ -28,7 +29,7 @@ const initialState = {
                 currentChannelId: {id: currentChannelId, team_id: currentTeamId},
             },
             channelsInTeam: {
-                currentTeamId: [currentChannelId],
+                currentTeamId: new Set([currentChannelId]),
             },
             myMembers: {
                 currentChannelId: {

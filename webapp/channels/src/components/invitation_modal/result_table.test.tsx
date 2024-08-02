@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import React from 'react';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
-import EmailIcon from 'components/widgets/icons/mail_icon';
 import AlertIcon from 'components/widgets/icons/alert_icon';
+import EmailIcon from 'components/widgets/icons/mail_icon';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import ResultTable, {Props} from './result_table';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+
+import ResultTable from './result_table';
+import type {Props} from './result_table';
 
 let props: Props = {
     sent: true,
@@ -72,7 +73,7 @@ describe('ResultTable', () => {
     test('emails render as email', () => {
         props.rows = [{
             email: 'aa@aa.aa',
-            reason: 'some reason',
+            reason: {id: 'some_reason', defaultMessage: 'some reason'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(EmailIcon).length).toBe(1);
@@ -81,7 +82,7 @@ describe('ResultTable', () => {
     test('unsent invites render as unsent invites', () => {
         props.rows = [{
             text: '@incomplete_userna',
-            reason: 'This was not a complete user',
+            reason: {id: 'incomplete_user', defaultMessage: 'This was not a complete user'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(AlertIcon).length).toBe(1);
@@ -90,7 +91,7 @@ describe('ResultTable', () => {
     test('user invites render as users', () => {
         props.rows = [{
             user: defaultUser,
-            reason: 'added successfuly',
+            reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(Avatar).length).toBe(1);
@@ -104,7 +105,7 @@ describe('ResultTable', () => {
                 ...defaultUser,
                 is_bot: true,
             },
-            reason: 'added successfuly',
+            reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(Avatar).length).toBe(1);
@@ -118,7 +119,7 @@ describe('ResultTable', () => {
                 ...defaultUser,
                 roles: 'system_guest',
             },
-            reason: 'added successfuly',
+            reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(Avatar).length).toBe(1);

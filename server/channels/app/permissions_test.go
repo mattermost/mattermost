@@ -89,7 +89,6 @@ func TestExportPermissions(t *testing.T) {
 			t.Errorf("Expected %v but got %v.", expected, actual)
 		}
 	}
-
 }
 
 func TestImportPermissions(t *testing.T) {
@@ -106,7 +105,6 @@ func TestImportPermissions(t *testing.T) {
 	var results []*model.Scheme
 	var beforeCount int
 	withMigrationMarkedComplete(th, func() {
-
 		var appErr *model.AppError
 		results, appErr = th.App.GetSchemes(scope, 0, 100)
 		if appErr != nil {
@@ -125,7 +123,6 @@ func TestImportPermissions(t *testing.T) {
 		if appErr != nil {
 			panic(appErr)
 		}
-
 	})
 
 	actual := len(results)
@@ -169,7 +166,6 @@ func TestImportPermissions(t *testing.T) {
 			t.Errorf("Expected %v but got %v.", expected, actual)
 		}
 	}
-
 }
 
 func TestImportPermissions_idempotentScheme(t *testing.T) {
@@ -212,7 +208,6 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	if expected != actual {
 		t.Errorf("Expected count to be %v but got %v", expected, actual)
 	}
-
 }
 
 func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
@@ -254,7 +249,6 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 	if expected != actual {
 		t.Errorf("Expected count to be %v but got %v", expected, actual)
 	}
-
 }
 
 func TestMigration(t *testing.T) {

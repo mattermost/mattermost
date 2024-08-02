@@ -123,46 +123,13 @@
     }
 }
 
-.get-app__download {
-    border: none !important;
-    background-color: #145dbf !important;
-
-    &:hover {
-        background-color: #145dbf !important;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1), 0 2px 10px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    &:active,
-    &:focus {
-        background-color: #1151a6 !important;
-    }
-}
-
-.get-app__continue {
-    border-color: #145dbf !important;
-    color: #145dbf !important;
-
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1), 0 2px 10px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    &:active {
-        background-color: rgba(20, 93, 191, 0.1) !important;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1), 0 2px 10px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    &:focus {
-        background-color: rgba(20, 93, 191, 0.1) !important;
-    }
-}
-
 .get-app__preference {
     display: flex;
     margin-top: 23px;
+    cursor: pointer;
 
     > span {
-        margin-top: -2px;
+        margin-top: 1px;
         color: #000;
         font-family: "Open Sans";
         font-size: 16px;
@@ -170,27 +137,12 @@
         line-height: 22px;
         opacity: 0.8;
     }
-}
 
-.get-app__checkbox {
-    width: 18px;
-    height: 18px;
-    padding: 0;
-    border: 2px solid $dark-gray;
-    margin-right: 7px;
-    background: none;
-    border-radius: 3px;
-
-    > * {
-        pointer-events: none;
-    }
-
-    &.checked {
-        border: 0;
-
-        svg {
-            fill: #145dbf;
-        }
+    .get-app__checkbox {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        margin-right: 7px;
     }
 }
 
@@ -337,6 +289,7 @@
 
     .get-app__buttons {
         margin-top: 25px;
+        margin-bottom: 25px;
     }
 
     .get-app__preference {

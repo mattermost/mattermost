@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from './channels';
-import {Team} from './teams';
-import {UserProfile} from './users';
-import {IDMappedObjects, RelationOneToOne} from './utilities';
+import type {Channel} from './channels';
+import type {Team} from './teams';
+import type {UserProfile} from './users';
+import type {IDMappedObjects, RelationOneToOne} from './utilities';
 
 export type ChannelCategoryType = 'favorites' | 'channels' | 'direct_messages' | 'custom';
 

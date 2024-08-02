@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isMac} from 'utils/user_agent';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     onSave: () => void;

@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
+
+import type {AdminConfig} from '@mattermost/types/config';
 
 import PushSettings from 'components/admin_console/push_settings';
-import {AdminConfig} from '@mattermost/types/config';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/PushSettings', () => {
     test('should match snapshot, licensed', () => {
@@ -28,7 +30,7 @@ describe('components/PushSettings', () => {
             },
         };
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <PushSettings {...props}/>,
         );
 
@@ -53,7 +55,7 @@ describe('components/PushSettings', () => {
             license: {},
         };
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <PushSettings {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();

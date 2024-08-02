@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-import 'tests/helpers/localstorage.jsx';
+import React from 'react';
+
+import 'tests/helpers/localstorage';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar/announcement_bar';
 
@@ -98,6 +99,21 @@ describe('components/AnnouncementBar', () => {
         // Banner should return
         newProps.bannerText = 'Some new text';
         wrapper.setProps(newProps as any);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, admin configured bar', () => {
+        const props = {...baseProps, enableBanner: true, bannerText: 'Banner text'};
+        const wrapper = shallow(
+            <div>
+                <AnnouncementBar {...props}/>
+                <AnnouncementBar
+                    {...props}
+                    className='admin-announcement'
+                />
+            </div>,
+        );
+
         expect(wrapper).toMatchSnapshot();
     });
 });

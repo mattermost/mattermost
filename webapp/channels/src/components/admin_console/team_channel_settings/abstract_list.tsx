@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {MouseEvent} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
-import {Group} from '@mattermost/types/groups';
-import {Team} from '@mattermost/types/teams';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import {TeamWithMembership} from '../system_user_detail/team_list/types';
+
+import type {TeamWithMembership} from '../system_user_detail/team_list/types';
 
 export const PAGE_SIZE = 10;
 
@@ -26,10 +29,9 @@ type Props = {
     total: number;
     header: JSX.Element;
     renderRow: (item: Group | TeamWithMembership) => JSX.Element;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
+    emptyListText: MessageDescriptor;
     actions: {
-        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<Array<Group | Team>>;
+        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<void>;
     };
     noPadding?: boolean;
 };
@@ -89,10 +91,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         if (this.props.data.length === 0) {
             return (
                 <div className='groups-list-empty'>
-                    <FormattedMessage
-                        id={this.props.emptyListTextId}
-                        defaultMessage={this.props.emptyListTextDefaultMessage}
-                    />
+                    <FormattedMessage {...this.props.emptyListText}/>
                 </div>
             );
         }
@@ -105,7 +104,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
 
         this.props.actions.getData(page, PAGE_SIZE, '', false, true).then((response) => {
             if (this.props.onPageChangedCallback) {
-                this.props.onPageChangedCallback(this.getPaging(), response);
+                this.props.onPageChangedCallback(this.getPaging(), response as unknown as Array<Group | Team>);
             }
             this.setState({loading: false});
         });
@@ -157,7 +156,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                     </div>
                     <button
                         type='button'
-                        className={'btn btn-link prev ' + (firstPage ? 'disabled' : '')}
+                        className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
                         onClick={firstPage ? undefined : this.previousPage}
                         disabled={firstPage}
                     >
@@ -165,7 +164,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                     </button>
                     <button
                         type='button'
-                        className={'btn btn-link next ' + (lastPage ? 'disabled' : '')}
+                        className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
                         onClick={lastPage ? undefined : this.nextPage}
                         disabled={lastPage}
                         data-testid='page-link-next'

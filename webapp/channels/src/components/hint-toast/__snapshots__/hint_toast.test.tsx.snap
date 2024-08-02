@@ -2,26 +2,23 @@
 
 exports[`components/HintToast should match snapshot 1`] = `
 <div
-  className="hint-toast__wrapper"
+  className="hint-toast"
+  data-testid="hint-toast"
 >
   <div
-    className="hint-toast"
+    className="hint-toast__message"
   >
-    <div
-      className="hint-toast__message"
-    >
-      A hint
-    </div>
-    <div
-      className="hint-toast__dismiss"
-      data-testid="dismissHintToast"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        className="close-btn"
-        id="dismissHintToast"
-      />
-    </div>
+    A hint
+  </div>
+  <div
+    className="hint-toast__dismiss"
+    data-testid="dismissHintToast"
+    onClick={[Function]}
+  >
+    <CloseIcon
+      className="close-btn"
+      id="dismissHintToast"
+    />
   </div>
 </div>
 `;

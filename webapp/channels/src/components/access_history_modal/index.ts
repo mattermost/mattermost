@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getUserAudits} from 'mattermost-redux/actions/users';
 import {getCurrentUserId, getUserAudits as getCurrentUserAudits} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import AccessHistoryModal from './access_history_modal';
 
@@ -19,7 +19,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getUserAudits,

@@ -44,7 +44,6 @@
  *   BROWSER                    : Chrome by default. Set to run test on other browser such as chrome, edge, electron and firefox.
  *                                The environment should have the specified browser to successfully run.
  *   HEADLESS                   : Headless by default (true) or false to run on headed mode.
- *   CI_BASE_URL                : Test server base URL in CI
  *
  * Example:
  * 1. "node generate_test_cycle.js"

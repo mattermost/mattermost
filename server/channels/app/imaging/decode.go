@@ -16,6 +16,7 @@ import (
 	_ "github.com/oov/psd"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 // DecoderOptions holds configuration options for an image decoder.
@@ -113,7 +114,7 @@ func (d *Decoder) DecodeConfig(rd io.Reader) (image.Config, string, error) {
 // GetDimensions returns the dimensions for the given encoded image data.
 func GetDimensions(imageData io.Reader) (int, int, error) {
 	cfg, _, err := image.DecodeConfig(imageData)
-	if seeker, ok := imageData.(io.ReadSeeker); ok {
+	if seeker, ok := imageData.(io.Seeker); ok {
 		defer seeker.Seek(0, 0)
 	}
 	return cfg.Width, cfg.Height, err

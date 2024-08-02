@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -19,7 +20,6 @@ const (
 	PreferenceCategoryFlaggedPost       = "flagged_post"
 	PreferenceCategoryFavoriteChannel   = "favorite_channel"
 	PreferenceCategorySidebarSettings   = "sidebar_settings"
-	PreferenceCategoryInsights          = "insights"
 
 	PreferenceCategoryDisplaySettings     = "display_settings"
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
@@ -31,7 +31,8 @@ const (
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
-	PreferenceNameInsights                = "insights_tutorial_state"
+
+	PreferenceCategorySystemNotice = "system_notice"
 
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
@@ -60,6 +61,10 @@ const (
 	PreferenceEmailIntervalHour              = "hour"
 	PreferenceEmailIntervalHourAsSeconds     = "3600"
 	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
+
+	PreferenceLimitVisibleDmsGms         = "limit_visible_dms_gms"
+	PreferenceMaxLimitVisibleDmsGmsValue = 40
+	MaxPreferenceValueLength             = 20000
 )
 
 type Preference struct {
@@ -84,7 +89,7 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.name.app_error", nil, "name="+o.Name, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Value) > 2000 {
+	if utf8.RuneCountInString(o.Value) > MaxPreferenceValueLength {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 	}
 
@@ -92,6 +97,13 @@ func (o *Preference) IsValid() *AppError {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if o.Category == PreferenceCategorySidebarSettings && o.Name == PreferenceLimitVisibleDmsGms {
+		visibleDmsGmsValue, convErr := strconv.Atoi(o.Value)
+		if convErr != nil || visibleDmsGmsValue < 1 || visibleDmsGmsValue > PreferenceMaxLimitVisibleDmsGmsValue {
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.limit_visible_dms_gms.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 

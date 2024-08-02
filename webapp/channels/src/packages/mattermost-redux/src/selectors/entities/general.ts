@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {GiphyFetch} from '@giphy/js-fetch-api';
+
+import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {General} from 'mattermost-redux/constants';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
-
-import {GlobalState} from '@mattermost/types/store';
-import {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
 
 export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
@@ -20,6 +21,28 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
+export type PasswordConfig = {
+    minimumLength: number;
+    requireLowercase: boolean;
+    requireUppercase: boolean;
+    requireNumber: boolean;
+    requireSymbol: boolean;
+};
+
+export const getPasswordConfig: (state: GlobalState) => PasswordConfig = createSelector(
+    'getPasswordConfig',
+    getConfig,
+    (config) => {
+        return {
+            minimumLength: parseInt(config.PasswordMinimumLength!, 10),
+            requireLowercase: config.PasswordRequireLowercase === 'true',
+            requireUppercase: config.PasswordRequireUppercase === 'true',
+            requireNumber: config.PasswordRequireNumber === 'true',
+            requireSymbol: config.PasswordRequireSymbol === 'true',
+        };
+    },
+);
+
 export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
 }
@@ -29,10 +52,6 @@ export const isCloudLicense: (state: GlobalState) => boolean = createSelector(
     getLicense,
     (license: ClientLicense) => license?.Cloud === 'true',
 );
-
-export function warnMetricsStatus(state: GlobalState): any {
-    return state.entities.general.warnMetricsStatus;
-}
 
 export function isCompatibleWithJoinViewTeamPermissions(state: GlobalState): boolean {
     const version = state.entities.general.serverVersion;
@@ -110,5 +129,31 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
     getConfig,
     (config) => {
         return config.PluginsEnabled === 'true' && config.EnableMarketplace === 'true';
+    },
+);
+
+export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = createSelector(
+    'getGiphyFetchInstance',
+    (state) => getConfig(state).GiphySdkKey,
+    (giphySdkKey) => {
+        if (giphySdkKey) {
+            const giphyFetch = new GiphyFetch(giphySdkKey);
+            return giphyFetch;
+        }
+
+        return null;
+    },
+);
+
+export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
+    'getUsersStatusAndProfileFetchingPollInterval',
+    getConfig,
+    (config) => {
+        const usersStatusAndProfileFetchingPollInterval = config.UsersStatusAndProfileFetchingPollIntervalMilliseconds;
+        if (usersStatusAndProfileFetchingPollInterval) {
+            return parseInt(usersStatusAndProfileFetchingPollInterval, 10);
+        }
+
+        return null;
     },
 );

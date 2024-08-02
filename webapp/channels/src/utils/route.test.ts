@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {ClientLicense} from '@mattermost/types/config';
-
-import {checkIfMFARequired, ConfigOption} from './route';
+import {checkIfMFARequired} from './route';
+import type {ConfigOption} from './route';
 
 describe('Utils.Route', () => {
     describe('checkIfMFARequired', () => {
@@ -35,7 +35,9 @@ describe('Utils.Route', () => {
                     comments: 'never',
                     first_name: 'true',
                     channel: 'true',
-                    mention_keys: ''},
+                    mention_keys: '',
+                    highlight_keys: '',
+                },
                 last_password_update: 0,
                 last_picture_update: 0,
                 locale: '',
@@ -83,7 +85,8 @@ describe('Utils.Route', () => {
                 position: '',
                 roles: '',
                 props: {userid: '121'},
-                notify_props: {desktop: 'default',
+                notify_props: {
+                    desktop: 'default',
                     desktop_sound: 'false',
                     calls_desktop_sound: 'true',
                     email: 'true',
@@ -93,7 +96,9 @@ describe('Utils.Route', () => {
                     comments: 'never',
                     first_name: 'true',
                     channel: 'true',
-                    mention_keys: ''},
+                    mention_keys: '',
+                    highlight_keys: '',
+                },
                 last_password_update: 0,
                 last_picture_update: 0,
                 locale: '',

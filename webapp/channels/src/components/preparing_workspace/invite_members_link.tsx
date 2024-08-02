@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import useCopyText from 'components/common/hooks/useCopyText';
 import {trackEvent} from 'actions/telemetry_actions';
+
+import useCopyText from 'components/common/hooks/useCopyText';
 
 import './invite_members_link.scss';
 

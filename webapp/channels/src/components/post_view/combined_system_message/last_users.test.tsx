@@ -5,8 +5,7 @@ import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
 
-import {renderWithIntlAndStore, screen, userEvent} from 'tests/react_testing_utils';
-
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import LastUsers from './last_users';
@@ -50,7 +49,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
     } as any;
 
     test('should match component state', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <LastUsers {...baseProps}/>, initialState,
         );
 
@@ -67,7 +66,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
     });
 
     test('should match component state, expanded', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <LastUsers {...baseProps}/>, initialState,
         );
 

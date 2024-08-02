@@ -3,41 +3,55 @@
 
 /* eslint-disable max-lines */
 
-import React, {ChangeEvent, RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
+import type {ChangeEvent} from 'react';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
+import CreatableReactSelect from 'react-select/creatable';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PreferencesType} from '@mattermost/types/preferences';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import Constants, {NotificationLevels} from 'utils/constants';
-import * as NotificationSounds from 'utils/notification_sounds';
-import {a11yFocus, localizeMessage, moveCursorToEnd} from 'utils/utils';
-import {t} from 'utils/i18n';
-
+import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
-import LocalizedIcon from 'components/localized_icon';
-
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-
 import SettingItemMax from 'components/setting_item_max';
+import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
+import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {a11yFocus} from 'utils/utils';
+
+import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notification_setting';
+import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
-export type Props = {
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
+
+import type {PropsFromRedux} from './index';
+
+const WHITE_SPACE_REGEX = /\s+/g;
+const COMMA_REGEX = /,/g;
+
+type MultiInputValue = {
+    label: string;
+    value: string;
+}
+
+export type OwnProps = {
     user: UserProfile;
     updateSection: (section: string) => void;
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-    sendPushNotifications: boolean;
-    enableAutoResponder: boolean;
-    actions: {
-        updateMe: (user: UserProfile) => Promise<ActionResult>;
-    };
-    isCollapsedThreadsEnabled: boolean;
-    isCallsRingingEnabled: boolean;
+    adminMode?: boolean;
+    userPreferences?: PreferencesType;
 }
+
+export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
 type State = {
     enableEmail: UserNotifyProps['email'];
@@ -52,8 +66,11 @@ type State = {
     desktopNotificationSound: UserNotifyProps['desktop_notification_sound'];
     callsNotificationSound: UserNotifyProps['calls_notification_sound'];
     usernameKey: boolean;
-    customKeys: string;
-    customKeysChecked: boolean;
+    isCustomKeysWithNotificationInputChecked: boolean;
+    customKeysWithNotification: MultiInputValue[];
+    customKeysWithNotificationInputValue: string;
+    customKeysWithHighlight: MultiInputValue[];
+    customKeysWithHighlightInputValue: string;
     firstNameKey: boolean;
     channelKey: boolean;
     autoResponderActive: boolean;
@@ -61,11 +78,10 @@ type State = {
     notifyCommentsLevel: UserNotifyProps['comments'];
     isSaving: boolean;
     serverError: string;
+    desktopAndMobileSettingsDifferent: boolean;
 };
 
-function getNotificationsStateFromProps(props: Props): State {
-    const user = props.user;
-
+function getDefaultStateFromProps(props: Props): State {
     let desktop: UserNotifyProps['desktop'] = NotificationLevels.MENTION;
     let desktopThreads: UserNotifyProps['desktop_threads'] = NotificationLevels.ALL;
     let pushThreads: UserNotifyProps['push_threads'] = NotificationLevels.ALL;
@@ -79,87 +95,102 @@ function getNotificationsStateFromProps(props: Props): State {
     let pushActivity: UserNotifyProps['push'] = NotificationLevels.MENTION;
     let pushStatus: UserNotifyProps['push_status'] = Constants.UserStatuses.AWAY;
     let autoResponderActive = false;
-    let autoResponderMessage: UserNotifyProps['auto_responder_message'] = localizeMessage(
-        'user.settings.notifications.autoResponderDefault',
-        'Hello, I am out of office and unable to respond to messages.',
-    );
+    let autoResponderMessage: UserNotifyProps['auto_responder_message'] = props.intl.formatMessage({
+        id: 'user.settings.notifications.autoResponderDefault',
+        defaultMessage: 'Hello, I am out of office and unable to respond to messages.',
+    });
+    let desktopAndMobileSettingsDifferent = true;
 
-    if (user.notify_props) {
-        if (user.notify_props.desktop) {
-            desktop = user.notify_props.desktop;
+    if (props.user.notify_props) {
+        if (props.user.notify_props.desktop) {
+            desktop = props.user.notify_props.desktop;
         }
-        if (user.notify_props.desktop_threads) {
-            desktopThreads = user.notify_props.desktop_threads;
+        if (props.user.notify_props.desktop_threads) {
+            desktopThreads = props.user.notify_props.desktop_threads;
         }
-        if (user.notify_props.push_threads) {
-            pushThreads = user.notify_props.push_threads;
+        if (props.user.notify_props.push_threads) {
+            pushThreads = props.user.notify_props.push_threads;
         }
-        if (user.notify_props.email_threads) {
-            emailThreads = user.notify_props.email_threads;
+        if (props.user.notify_props.email_threads) {
+            emailThreads = props.user.notify_props.email_threads;
         }
-        if (user.notify_props.desktop_sound) {
-            sound = user.notify_props.desktop_sound;
+        if (props.user.notify_props.desktop_sound) {
+            sound = props.user.notify_props.desktop_sound;
         }
-        if (user.notify_props.calls_desktop_sound) {
-            callsSound = user.notify_props.calls_desktop_sound;
+        if (props.user.notify_props.calls_desktop_sound) {
+            callsSound = props.user.notify_props.calls_desktop_sound;
         }
-        if (user.notify_props.desktop_notification_sound) {
-            desktopNotificationSound = user.notify_props.desktop_notification_sound;
+        if (props.user.notify_props.desktop_notification_sound) {
+            desktopNotificationSound = props.user.notify_props.desktop_notification_sound;
         }
-        if (user.notify_props.calls_notification_sound) {
-            callsNotificationSound = user.notify_props.calls_notification_sound;
+        if (props.user.notify_props.calls_notification_sound) {
+            callsNotificationSound = props.user.notify_props.calls_notification_sound;
         }
-        if (user.notify_props.comments) {
-            comments = user.notify_props.comments;
+        if (props.user.notify_props.comments) {
+            comments = props.user.notify_props.comments;
         }
-        if (user.notify_props.email) {
-            enableEmail = user.notify_props.email;
+        if (props.user.notify_props.email) {
+            enableEmail = props.user.notify_props.email;
         }
-        if (user.notify_props.push) {
-            pushActivity = user.notify_props.push;
+        if (props.user.notify_props.push) {
+            pushActivity = props.user.notify_props.push;
         }
-        if (user.notify_props.push_status) {
-            pushStatus = user.notify_props.push_status;
-        }
-
-        if (user.notify_props.auto_responder_active) {
-            autoResponderActive = user.notify_props.auto_responder_active === 'true';
+        if (props.user.notify_props.push_status) {
+            pushStatus = props.user.notify_props.push_status;
         }
 
-        if (user.notify_props.auto_responder_message) {
-            autoResponderMessage = user.notify_props.auto_responder_message;
+        if (props.user.notify_props.auto_responder_active) {
+            autoResponderActive = props.user.notify_props.auto_responder_active === 'true';
+        }
+
+        if (props.user.notify_props.auto_responder_message) {
+            autoResponderMessage = props.user.notify_props.auto_responder_message;
+        }
+
+        if (props.user.notify_props.desktop && props.user.notify_props.push) {
+            desktopAndMobileSettingsDifferent = areDesktopAndMobileSettingsDifferent(props.user.notify_props.desktop, props.user.notify_props.push, props.user.notify_props?.desktop_threads, props.user.notify_props?.push_threads, props.isCollapsedThreadsEnabled);
         }
     }
 
     let usernameKey = false;
-    let customKeys = '';
     let firstNameKey = false;
     let channelKey = false;
+    let isCustomKeysWithNotificationInputChecked = false;
+    const customKeysWithNotification: MultiInputValue[] = [];
+    const customKeysWithHighlight: MultiInputValue[] = [];
 
-    if (user.notify_props) {
-        if (user.notify_props.mention_keys) {
-            const keys = user.notify_props.mention_keys.split(',');
-
-            if (keys.indexOf(user.username) === -1) {
-                usernameKey = false;
-            } else {
-                usernameKey = true;
-                keys.splice(keys.indexOf(user.username), 1);
-                if (keys.indexOf(`@${user.username}`) !== -1) {
-                    keys.splice(keys.indexOf(`@${user.username}`), 1);
+    if (props.user.notify_props) {
+        if (props.user.notify_props?.mention_keys?.length > 0) {
+            const mentionKeys = props.user.notify_props.mention_keys.split(',').filter((key) => key.length > 0);
+            mentionKeys.forEach((mentionKey) => {
+                // Remove username(s) from list of keys
+                if (mentionKey !== props.user.username && mentionKey !== `@${props.user.username}`) {
+                    customKeysWithNotification.push({
+                        label: mentionKey,
+                        value: mentionKey,
+                    });
                 }
-            }
+            });
 
-            customKeys = keys.join(',');
+            // Check if username is in list of keys, if so, set the checkbox to true
+            usernameKey = mentionKeys.includes(props.user.username);
+
+            // Check if there are any keys in the list, if so, set the checkbox of custom keys to true
+            isCustomKeysWithNotificationInputChecked = customKeysWithNotification.length > 0;
         }
 
-        if (user.notify_props.first_name) {
-            firstNameKey = user.notify_props.first_name === 'true';
+        if (props.user.notify_props?.highlight_keys?.length > 0) {
+            const highlightKeys = props.user.notify_props.highlight_keys.split(',').filter((key) => key.length > 0);
+            highlightKeys.forEach((highlightKey) => {
+                customKeysWithHighlight.push({
+                    label: highlightKey,
+                    value: highlightKey,
+                });
+            });
         }
 
-        if (user.notify_props.channel) {
-            channelKey = user.notify_props.channel === 'true';
-        }
+        firstNameKey = props.user.notify_props?.first_name === 'true';
+        channelKey = props.user.notify_props?.channel === 'true';
     }
 
     return {
@@ -175,8 +206,11 @@ function getNotificationsStateFromProps(props: Props): State {
         desktopNotificationSound,
         callsNotificationSound,
         usernameKey,
-        customKeys,
-        customKeysChecked: customKeys.length > 0,
+        customKeysWithNotification,
+        isCustomKeysWithNotificationInputChecked,
+        customKeysWithNotificationInputValue: '',
+        customKeysWithHighlight,
+        customKeysWithHighlightInputValue: '',
         firstNameKey,
         channelKey,
         autoResponderActive,
@@ -184,15 +218,11 @@ function getNotificationsStateFromProps(props: Props): State {
         notifyCommentsLevel: comments,
         isSaving: false,
         serverError: '',
+        desktopAndMobileSettingsDifferent,
     };
 }
 
-export default class NotificationsTab extends React.PureComponent<Props, State> {
-    customCheckRef: RefObject<HTMLInputElement>;
-    customMentionsRef: RefObject<HTMLInputElement>;
-    drawerRef: RefObject<HTMLHeadingElement>;
-    wrapperRef: RefObject<HTMLDivElement>;
-
+class NotificationsTab extends React.PureComponent<Props, State> {
     static defaultProps = {
         activeSection: '',
     };
@@ -200,15 +230,11 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
     constructor(props: Props) {
         super(props);
 
-        this.state = getNotificationsStateFromProps(props);
-        this.customCheckRef = React.createRef();
-        this.customMentionsRef = React.createRef();
-        this.drawerRef = React.createRef();
-        this.wrapperRef = React.createRef();
+        this.state = getDefaultStateFromProps(props);
     }
 
-    handleSubmit = (): void => {
-        const data: UserNotifyProps = {} as UserNotifyProps;
+    handleSubmit = async () => {
+        const data: UserNotifyProps = {...this.props.user.notify_props};
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
         data.calls_desktop_sound = this.state.callsDesktopSound;
@@ -217,51 +243,77 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         data.desktop = this.state.desktopActivity;
         data.desktop_threads = this.state.desktopThreads;
         data.email_threads = this.state.emailThreads;
-        data.push_threads = this.state.pushThreads;
-        data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
         data.comments = this.state.notifyCommentsLevel;
-        data.auto_responder_active = this.state.autoResponderActive.toString() as UserNotifyProps['auto_responder_active'];
+        data.auto_responder_active = this.state.autoResponderActive ? 'true' : 'false';
         data.auto_responder_message = this.state.autoResponderMessage;
+        data.first_name = this.state.firstNameKey ? 'true' : 'false';
+        data.channel = this.state.channelKey ? 'true' : 'false';
 
-        if (!data.auto_responder_message || data.auto_responder_message === '') {
-            data.auto_responder_message = localizeMessage(
-                'user.settings.notifications.autoResponderDefault',
-                'Hello, I am out of office and unable to respond to messages.',
-            );
+        if (this.state.desktopAndMobileSettingsDifferent) {
+            data.push = this.state.pushActivity;
+            data.push_threads = this.state.pushThreads;
+        } else {
+            data.push = this.state.desktopActivity;
+            data.push_threads = this.state.desktopThreads;
         }
 
-        const mentionKeys = [];
+        if (!data.auto_responder_message || data.auto_responder_message === '') {
+            data.auto_responder_message = this.props.intl.formatMessage({
+                id: 'user.settings.notifications.autoResponderDefault',
+                defaultMessage: 'Hello, I am out of office and unable to respond to messages.',
+            });
+        }
+
+        const mentionKeys: string[] = [];
         if (this.state.usernameKey) {
             mentionKeys.push(this.props.user.username);
         }
-
-        let stringKeys = mentionKeys.join(',');
-        if (this.state.customKeys.length > 0 && this.state.customKeysChecked) {
-            stringKeys += ',' + this.state.customKeys;
+        if (this.state.isCustomKeysWithNotificationInputChecked && this.state.customKeysWithNotification.length > 0) {
+            this.state.customKeysWithNotification.forEach((key) => {
+                mentionKeys.push(key.value);
+            });
         }
+        data.mention_keys = mentionKeys.join(',');
 
-        data.mention_keys = stringKeys;
-        data.first_name = this.state.firstNameKey.toString() as UserNotifyProps['first_name'];
-        data.channel = this.state.channelKey.toString() as UserNotifyProps['channel'];
+        const highlightKeys: string[] = [];
+        if (this.state.customKeysWithHighlight.length > 0) {
+            this.state.customKeysWithHighlight.forEach((key) => {
+                highlightKeys.push(key.value);
+            });
+        }
+        data.highlight_keys = highlightKeys.join(',');
 
         this.setState({isSaving: true});
-        NotificationSounds.stopTryNotificationRing();
+        stopTryNotificationRing();
 
-        this.props.actions.updateMe({notify_props: data} as UserProfile).
-            then(({data: result, error: err}) => {
-                if (result) {
-                    this.handleUpdateSection('');
-                    this.setState(getNotificationsStateFromProps(this.props));
-                } else if (err) {
-                    this.setState({serverError: err.message, isSaving: false});
-                }
-            });
+        let updatedUser: UserProfile | undefined;
+        let error;
+
+        if (this.props.adminMode) {
+            const payloadUser = {...this.props.user, notify_props: data};
+            const response = await this.props.patchUser(payloadUser);
+            updatedUser = response.data;
+            error = response.error;
+        } else {
+            const response = await this.props.updateMe({notify_props: data});
+            updatedUser = response.data;
+            error = response.error;
+        }
+
+        if (updatedUser) {
+            this.handleUpdateSection('');
+            this.setState(getDefaultStateFromProps(this.props));
+        } else if (error) {
+            this.setState({serverError: error.message, isSaving: false});
+        } else {
+            this.setState({serverError: '', isSaving: false});
+        }
     };
 
     handleCancel = (): void => {
-        this.setState(getNotificationsStateFromProps(this.props));
-        NotificationSounds.stopTryNotificationRing();
+        this.setState(getDefaultStateFromProps(this.props));
+        stopTryNotificationRing();
     };
 
     handleUpdateSection = (section: string): void => {
@@ -280,366 +332,168 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         this.setState((prevState) => ({...prevState, ...data}));
     };
 
-    handleNotifyPushThread = (e: ChangeEvent<HTMLInputElement>): void => {
-        const pushThreads = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
-        this.setState({pushThreads});
-    };
-
     handleNotifyCommentsRadio = (notifyCommentsLevel: UserNotifyProps['comments'], e?: React.ChangeEvent): void => {
         this.setState({notifyCommentsLevel});
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
-    handlePushRadio = (pushActivity: UserNotifyProps['push'], e?: React.ChangeEvent): void => {
-        this.setState({pushActivity});
-        a11yFocus(e?.currentTarget as HTMLElement);
+    handleEmailRadio = (enableEmail: UserNotifyProps['email']): void => {
+        this.setState({enableEmail});
     };
 
-    handlePushStatusRadio = (pushStatus: UserNotifyProps['push_status'], e?: React.ChangeEvent): void => {
-        this.setState({pushStatus});
-        a11yFocus(e?.currentTarget as HTMLElement);
+    handleChangeForUsernameKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({usernameKey: checked});
     };
 
-    handleEmailRadio = (enableEmail: UserNotifyProps['email']): void => this.setState({enableEmail});
+    handleChangeForFirstNameKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({firstNameKey: checked});
+    };
 
-    updateUsernameKey = (val: boolean): void => this.setState({usernameKey: val});
+    handleChangeForChannelKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({channelKey: checked});
+    };
 
-    updateFirstNameKey = (val: boolean): void => this.setState({firstNameKey: val});
+    handleChangeForCustomKeysWithNotificationCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({isCustomKeysWithNotificationInputChecked: checked});
+    };
 
-    updateChannelKey = (val: boolean): void => this.setState({channelKey: val});
+    handleChangeForCustomKeysWithNotificationInput = (values: ValueType<{ value: string }>) => {
+        if (values && Array.isArray(values) && values.length > 0) {
+            // Check the custom keys input checkbox when atleast a single key is entered
+            if (this.state.isCustomKeysWithNotificationInputChecked === false) {
+                this.setState({
+                    isCustomKeysWithNotificationInputChecked: true,
+                });
+            }
 
-    updateCustomMentionKeys = (): void => {
-        const checked = this.customCheckRef.current?.checked;
-
-        if (checked) {
-            const text = this.customMentionsRef.current?.value || '';
-
-            // remove all spaces and split string into individual keys
-            this.setState({customKeys: text.replace(/ /g, ''), customKeysChecked: true});
+            const customKeysWithNotification = values.
+                map((value: MultiInputValue) => {
+                    // Remove all spaces from the value
+                    const formattedValue = value.value.trim().replace(WHITE_SPACE_REGEX, '');
+                    return {value: formattedValue, label: formattedValue};
+                }).
+                filter((value) => value.value.length > 0);
+            this.setState({customKeysWithNotification});
         } else {
-            this.setState({customKeys: '', customKeysChecked: false});
+            this.setState({
+                isCustomKeysWithNotificationInputChecked: false,
+                customKeysWithNotification: [],
+            });
         }
     };
 
-    onCustomChange = (): void => {
-        if (this.customCheckRef.current) {
-            this.customCheckRef.current.checked = true;
+    updateCustomKeysWithNotificationWithInputValue = (newValue: string) => {
+        const customKeysWithNotification = [
+            ...this.state.customKeysWithNotification,
+            {
+                value: newValue,
+                label: newValue,
+            },
+        ];
+
+        this.setState({
+            customKeysWithNotification,
+            customKeysWithNotificationInputValue: '', // Clear the input field
+        });
+
+        if (!this.state.isCustomKeysWithNotificationInputChecked) {
+            this.setState({isCustomKeysWithNotificationInputChecked: true});
         }
-        this.updateCustomMentionKeys();
     };
 
-    createPushNotificationSection = () => {
-        const active = this.props.activeSection === 'push';
-        const inputs = [];
-        let submit = null;
-        let max = null;
-
-        if (active) {
-            if (this.props.sendPushNotifications) {
-                const pushActivityRadio = [false, false, false];
-                if (this.state.pushActivity === NotificationLevels.ALL) {
-                    pushActivityRadio[0] = true;
-                } else if (this.state.pushActivity === NotificationLevels.NONE) {
-                    pushActivityRadio[2] = true;
-                } else {
-                    pushActivityRadio[1] = true;
-                }
-
-                const pushStatusRadio = [false, false, false];
-                if (this.state.pushStatus === Constants.UserStatuses.ONLINE) {
-                    pushStatusRadio[0] = true;
-                } else if (this.state.pushStatus === Constants.UserStatuses.AWAY) {
-                    pushStatusRadio[1] = true;
-                } else {
-                    pushStatusRadio[2] = true;
-                }
-
-                let pushThreadsNotificationSelection = null;
-                if (this.props.isCollapsedThreadsEnabled && this.state.pushActivity === NotificationLevels.MENTION) {
-                    pushThreadsNotificationSelection = (
-                        <React.Fragment key='userNotificationPushThreadsOptions'>
-                            <hr/>
-                            <fieldset>
-                                <legend className='form-legend'>
-                                    <FormattedMessage
-                                        id='user.settings.notifications.threads.push'
-                                        defaultMessage='Thread reply notifications'
-                                    />
-                                </legend>
-                                <div className='checkbox'>
-                                    <label>
-                                        <input
-                                            id='pushThreadsNotificationAllActivity'
-                                            type='checkbox'
-                                            name='pushThreadsNotificationLevel'
-                                            checked={this.state.pushThreads === NotificationLevels.ALL}
-                                            onChange={this.handleNotifyPushThread}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.notifications.push_threads.allActivity'
-                                            defaultMessage={'Notify me about threads I\'m following'}
-                                        />
-                                    </label>
-                                    <br/>
-                                </div>
-                                <div className='mt-5'>
-                                    <FormattedMessage
-                                        id='user.settings.notifications.push_threads'
-                                        defaultMessage={'When enabled, any reply to a thread you\'re following will send a mobile push notification.'}
-                                    />
-                                </div>
-                            </fieldset>
-                        </React.Fragment>
-                    );
-                }
-                let pushStatusSettings;
-                if (this.state.pushActivity !== NotificationLevels.NONE) {
-                    pushStatusSettings = (
-                        <React.Fragment key='userNotificationPushStatusOptions'>
-                            <hr/>
-                            <fieldset>
-                                <legend className='form-legend'>
-                                    <FormattedMessage
-                                        id='user.settings.notifications.push_notification.status'
-                                        defaultMessage='Trigger push notifications when'
-                                    />
-                                </legend>
-                                <div className='radio'>
-                                    <label>
-                                        <input
-                                            id='pushNotificationOnline'
-                                            type='radio'
-                                            name='pushNotificationStatus'
-                                            checked={pushStatusRadio[0]}
-                                            onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.ONLINE)}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.online'
-                                            defaultMessage='Online, away or offline'
-                                        />
-                                    </label>
-                                </div>
-                                <div className='radio'>
-                                    <label>
-                                        <input
-                                            id='pushNotificationAway'
-                                            type='radio'
-                                            name='pushNotificationStatus'
-                                            checked={pushStatusRadio[1]}
-                                            onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.AWAY)}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.away'
-                                            defaultMessage='Away or offline'
-                                        />
-                                    </label>
-                                </div>
-                                <div className='radio'>
-                                    <label>
-                                        <input
-                                            id='pushNotificationOffline'
-                                            type='radio'
-                                            name='pushNotificationStatus'
-                                            checked={pushStatusRadio[2]}
-                                            onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.OFFLINE)}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.offline'
-                                            defaultMessage='Offline'
-                                        />
-                                    </label>
-                                </div>
-                                <div className='mt-5'>
-                                    <span>
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.status_info'
-                                            defaultMessage='Notification alerts are only pushed to your mobile device when your availability matches the selection above.'
-                                        />
-                                    </span>
-                                </div>
-                            </fieldset>
-                        </React.Fragment>
-                    );
-                }
-
-                inputs.push(
-                    <div>
-                        <fieldset key='userNotificationLevelOption'>
-                            <legend className='form-legend'>
-                                <FormattedMessage
-                                    id='user.settings.push_notification.send'
-                                    defaultMessage='Send mobile push notifications'
-                                />
-                            </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='pushNotificationAllActivity'
-                                        type='radio'
-                                        name='pushNotificationLevel'
-                                        checked={pushActivityRadio[0]}
-                                        onChange={this.handlePushRadio.bind(this, NotificationLevels.ALL)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.push_notification.allActivity'
-                                        defaultMessage='For all activity'
-                                    />
-                                </label>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='pushNotificationMentions'
-                                        type='radio'
-                                        name='pushNotificationLevel'
-                                        checked={pushActivityRadio[1]}
-                                        onChange={this.handlePushRadio.bind(this, NotificationLevels.MENTION)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.push_notification.onlyMentions'
-                                        defaultMessage='For mentions and direct messages'
-                                    />
-                                </label>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='pushNotificationNever'
-                                        type='radio'
-                                        name='pushNotificationLevel'
-                                        checked={pushActivityRadio[2]}
-                                        onChange={this.handlePushRadio.bind(this, NotificationLevels.NONE)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.notifications.never'
-                                        defaultMessage='Never'
-                                    />
-                                </label>
-                            </div>
-                            <div className='mt-5'>
-                                <FormattedMessage
-                                    id='user.settings.push_notification.info'
-                                    defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
-                                />
-                            </div>
-                        </fieldset>
-                    </div>,
-                    pushStatusSettings,
-                    pushThreadsNotificationSelection,
-                );
-
-                submit = this.handleSubmit;
-            } else {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='pt-2'
-                    >
-                        <FormattedMessage
-                            id='user.settings.push_notification.disabled_long'
-                            defaultMessage='Push notifications have not been enabled by your System Administrator.'
-                        />
-                    </div>,
-                );
+    handleOnKeydownForCustomKeysWithNotificationInput = (event: React.KeyboardEvent) => {
+        if (event.key === Constants.KeyCodes.COMMA[0] || event.key === Constants.KeyCodes.TAB[0]) {
+            const unsavedCustomKeyWithNotification = this.state.customKeysWithNotificationInputValue?.trim()?.replace(WHITE_SPACE_REGEX, '')?.replace(COMMA_REGEX, '') ?? '';
+            if (unsavedCustomKeyWithNotification.length > 0) {
+                this.updateCustomKeysWithNotificationWithInputValue(unsavedCustomKeyWithNotification);
             }
-            max = (
-                <SettingItemMax
-                    title={localizeMessage('user.settings.notifications.push', 'Mobile Push Notifications')}
-                    inputs={inputs}
-                    submit={submit}
-                    serverError={this.state.serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
         }
+    };
 
-        let describe: JSX.Element;
-        if (this.state.pushActivity === NotificationLevels.ALL) {
-            if (this.state.pushStatus === Constants.UserStatuses.AWAY) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.allActivityAway'
-                        defaultMessage='For all activity when away or offline'
-                    />
-                );
-            } else if (this.state.pushStatus === Constants.UserStatuses.OFFLINE) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.allActivityOffline'
-                        defaultMessage='For all activity when offline'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.allActivityOnline'
-                        defaultMessage='For all activity when online, away or offline'
-                    />
-                );
-            }
-        } else if (this.state.pushActivity === NotificationLevels.NONE) {
-            describe = (
-                <FormattedMessage
-                    id='user.settings.notifications.never'
-                    defaultMessage='Never'
-                />
-            );
-        } else if (this.props.sendPushNotifications) {
-            if (this.state.pushStatus === Constants.UserStatuses.AWAY) { //eslint-disable-line no-lonely-if
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.onlyMentionsAway'
-                        defaultMessage='For mentions and direct messages when away or offline'
-                    />
-                );
-            } else if (this.state.pushStatus === Constants.UserStatuses.OFFLINE) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.onlyMentionsOffline'
-                        defaultMessage='For mentions and direct messages when offline'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.onlyMentionsOnline'
-                        defaultMessage='For mentions and direct messages when online, away or offline'
-                    />
-                );
-            }
+    handleChangeForCustomKeysWithNotificationInputValue = (value: string) => {
+        // Check if input contains comma, if so, add the value to the list of custom keys
+        if (!value.includes(Constants.KeyCodes.COMMA[0])) {
+            const formattedValue = value.trim().replace(WHITE_SPACE_REGEX, '');
+            this.setState({customKeysWithNotificationInputValue: formattedValue});
+        }
+    };
+
+    handleBlurForCustomKeysWithNotificationInput = () => {
+        const unsavedCustomKeyWithNotification = this.state.customKeysWithNotificationInputValue?.trim()?.replace(WHITE_SPACE_REGEX, '')?.replace(COMMA_REGEX, '') ?? '';
+        if (unsavedCustomKeyWithNotification.length > 0) {
+            this.updateCustomKeysWithNotificationWithInputValue(unsavedCustomKeyWithNotification);
+        }
+    };
+
+    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
+        if (values && Array.isArray(values) && values.length > 0) {
+            const customKeysWithHighlight = values.
+                map((value: MultiInputValue) => {
+                    const formattedValue = value.value.trim();
+                    return {value: formattedValue, label: formattedValue};
+                }).
+                filter((value) => value.value.length > 0);
+            this.setState({customKeysWithHighlight});
         } else {
-            describe = (
-                <FormattedMessage
-                    id='user.settings.push_notification.disabled'
-                    defaultMessage='Push notifications are not enabled'
-                />
-            );
+            this.setState({
+                customKeysWithHighlight: [],
+            });
         }
-
-        return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                title={localizeMessage('user.settings.notifications.push', 'Mobile Push Notifications')}
-                describe={describe}
-                section={'push'}
-                updateSection={this.handleUpdateSection}
-                max={max}
-            />
-        );
     };
 
-    createKeysSection = () => {
+    handleChangeForCustomKeysWithHighlightInputValue = (value: string) => {
+        if (!value.includes(Constants.KeyCodes.COMMA[0])) {
+            this.setState({customKeysWithHighlightInputValue: value});
+        }
+    };
+
+    updateCustomKeysWithHighlightWithInputValue = (newValue: State['customKeysWithHighlightInputValue']) => {
+        const unsavedCustomKeyWithHighlight = newValue?.trim()?.replace(COMMA_REGEX, '') ?? '';
+
+        if (unsavedCustomKeyWithHighlight.length > 0) {
+            const customKeysWithHighlight = [
+                ...this.state.customKeysWithHighlight,
+                {
+                    value: unsavedCustomKeyWithHighlight,
+                    label: unsavedCustomKeyWithHighlight,
+                },
+            ];
+
+            this.setState({
+                customKeysWithHighlight,
+                customKeysWithHighlightInputValue: '',
+            });
+        }
+    };
+
+    handleBlurForCustomKeysWithHighlightInput = () => {
+        this.updateCustomKeysWithHighlightWithInputValue(this.state.customKeysWithHighlightInputValue);
+    };
+
+    handleOnKeydownForCustomKeysWithHighlightInput = (event: React.KeyboardEvent) => {
+        if (event.key === Constants.KeyCodes.COMMA[0] || event.key === Constants.KeyCodes.TAB[0]) {
+            this.updateCustomKeysWithHighlightWithInputValue(this.state.customKeysWithHighlightInputValue);
+        }
+    };
+
+    handleCloseSettingsModal = () => {
+        this.props.closeModal();
+    };
+
+    createKeywordsWithNotificationSection = () => {
         const serverError = this.state.serverError;
         const user = this.props.user;
-        const active = this.props.activeSection === 'keys';
+        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.KEYWORDS_MENTIONS;
 
-        let max = null;
-        if (active) {
+        let expandedSection = null;
+        if (isSectionExpanded) {
             const inputs = [];
 
             if (user.first_name) {
-                const handleUpdateFirstNameKey = (e: ChangeEvent<HTMLInputElement>): void => this.updateFirstNameKey(e.target.checked);
                 inputs.push(
                     <div key='userNotificationFirstNameOption'>
                         <div className='checkbox'>
@@ -648,11 +502,11 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                                     id='notificationTriggerFirst'
                                     type='checkbox'
                                     checked={this.state.firstNameKey}
-                                    onChange={handleUpdateFirstNameKey}
+                                    onChange={this.handleChangeForFirstNameKeyCheckbox}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.sensitiveName'
-                                    defaultMessage='Your case sensitive first name "{first_name}"'
+                                    defaultMessage='Your case-sensitive first name "{first_name}"'
                                     values={{
                                         first_name: user.first_name,
                                     }}
@@ -663,7 +517,6 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                 );
             }
 
-            const handleUpdateUsernameKey = (e: ChangeEvent<HTMLInputElement>): void => this.updateUsernameKey(e.target.checked);
             inputs.push(
                 <div key='userNotificationUsernameOption'>
                     <div className='checkbox'>
@@ -672,7 +525,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                                 id='notificationTriggerUsername'
                                 type='checkbox'
                                 checked={this.state.usernameKey}
-                                onChange={handleUpdateUsernameKey}
+                                onChange={this.handleChangeForUsernameKeyCheckbox}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveUsername'
@@ -686,7 +539,6 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                 </div>,
             );
 
-            const handleUpdateChannelKey = (e: ChangeEvent<HTMLInputElement>): void => this.updateChannelKey(e.target.checked);
             inputs.push(
                 <div key='userNotificationChannelOption'>
                     <div className='checkbox'>
@@ -695,7 +547,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                                 id='notificationTriggerShouts'
                                 type='checkbox'
                                 checked={this.state.channelKey}
-                                onChange={handleUpdateChannelKey}
+                                onChange={this.handleChangeForChannelKeyCheckbox}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
@@ -707,51 +559,60 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
             );
 
             inputs.push(
-                <div key='userNotificationCustomOption'>
+                <div
+                    key='userNotificationCustomOption'
+                    className='customKeywordsWithNotificationSubsection'
+                >
                     <div className='checkbox'>
                         <label>
                             <input
                                 id='notificationTriggerCustom'
-                                ref={this.customCheckRef}
                                 type='checkbox'
-                                checked={this.state.customKeysChecked}
-                                onChange={this.updateCustomMentionKeys}
+                                checked={this.state.isCustomKeysWithNotificationInputChecked}
+                                onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
                             />
                             <FormattedMessage
-                                id='user.settings.notifications.sensitiveWords'
-                                defaultMessage='Other non-case sensitive words, separated by commas:'
+                                id='user.settings.notifications.sensitiveCustomWords'
+                                defaultMessage='Other non case-sensitive words, press Tab or use commas to separate keywords:'
                             />
                         </label>
                     </div>
-                    <input
-                        id='notificationTriggerCustomText'
-                        autoFocus={this.state.customKeysChecked}
-                        ref={this.customMentionsRef}
-                        className='form-control mentions-input'
-                        type='text'
-                        defaultValue={this.state.customKeys}
-                        onChange={this.onCustomChange}
-                        onFocus={moveCursorToEnd}
+                    <CreatableReactSelect
+                        inputId='notificationTriggerCustomText'
+                        autoFocus={true}
+                        isClearable={false}
+                        isMulti={true}
+                        styles={customKeywordsSelectorStyles}
+                        placeholder=''
+                        components={{
+                            DropdownIndicator: () => null,
+                            Menu: () => null,
+                            MenuList: () => null,
+                        }}
                         aria-labelledby='notificationTriggerCustom'
+                        onChange={this.handleChangeForCustomKeysWithNotificationInput}
+                        value={this.state.customKeysWithNotification}
+                        inputValue={this.state.customKeysWithNotificationInputValue}
+                        onInputChange={this.handleChangeForCustomKeysWithNotificationInputValue}
+                        onBlur={this.handleBlurForCustomKeysWithNotificationInput}
+                        onKeyDown={this.handleOnKeydownForCustomKeysWithNotificationInput}
                     />
                 </div>,
             );
 
             const extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.notifications.mentionsInfo'
-                        defaultMessage='Mentions trigger when someone sends a message that includes your username (@{username}) or any of the options selected above.'
-                        values={{
-                            username: user.username,
-                        }}
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.notifications.keywordsWithNotification.extraInfo'
+                    defaultMessage='Notifications are triggered when someone sends a message that includes your username ("@{username}") or any of the options selected above.'
+                    values={{
+                        username: user.username,
+                    }}
+                />
             );
 
-            max = (
+            expandedSection = (
                 <SettingItemMax
-                    title={localizeMessage('user.settings.notifications.wordsTrigger', 'Words That Trigger Mentions')}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
@@ -762,60 +623,174 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
             );
         }
 
-        let keys = ['@' + user.username];
+        const selectedMentionKeys = ['@' + user.username];
         if (this.state.firstNameKey) {
-            keys.push(user.first_name);
+            selectedMentionKeys.push(user.first_name);
         }
         if (this.state.usernameKey) {
-            keys.push(user.username);
+            selectedMentionKeys.push(user.username);
         }
-
         if (this.state.channelKey) {
-            keys.push('@channel');
-            keys.push('@all');
-            keys.push('@here');
+            selectedMentionKeys.push('@channel');
+            selectedMentionKeys.push('@all');
+            selectedMentionKeys.push('@here');
         }
-        if (this.state.customKeys.length > 0) {
-            keys = keys.concat(this.state.customKeys.split(','));
+        if (this.state.customKeysWithNotification.length > 0) {
+            const customKeysWithNotificationStringArray = this.state.customKeysWithNotification.map((key) => key.value);
+            selectedMentionKeys.push(...customKeysWithNotificationStringArray);
         }
+        const collapsedDescription = selectedMentionKeys.filter((key) => key.trim().length !== 0).map((key) => `"${key}"`).join(', ');
 
-        let describe: JSX.Element | string = '';
-        for (let i = 0; i < keys.length; i++) {
-            if (keys[i] !== '') {
-                describe += '"' + keys[i] + '", ';
-            }
-        }
+        return (
+            <SettingItem
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
+                section={UserSettingsNotificationSections.KEYWORDS_MENTIONS}
+                active={isSectionExpanded}
+                areAllSectionsInactive={this.props.activeSection === ''}
+                describe={collapsedDescription}
+                updateSection={this.handleUpdateSection}
+                max={expandedSection}
+            />);
+    };
 
-        if (describe.length > 0) {
-            describe = describe.substring(0, describe.length - 2);
-        } else {
-            describe = (
+    createKeywordsWithHighlightSection = () => {
+        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.KEYWORDS_HIGHLIGHT;
+
+        let expandedSection = null;
+        if (isSectionExpanded) {
+            const inputs = [(
+                <div
+                    key='userNotificationHighlightOption'
+                    className='customKeywordsWithNotificationSubsection'
+                >
+                    <label htmlFor='mentionKeysWithHighlightInput'>
+                        <FormattedMessage
+                            id='user.settings.notifications.keywordsWithHighlight.inputTitle'
+                            defaultMessage='Enter non case-sensitive keywords, press Tab or use commas to separate them:'
+                        />
+                    </label>
+                    <CreatableReactSelect
+                        inputId='mentionKeysWithHighlightInput'
+                        autoFocus={true}
+                        isClearable={false}
+                        isMulti={true}
+                        styles={customKeywordsSelectorStyles}
+                        placeholder=''
+                        components={{
+                            DropdownIndicator: () => null,
+                            Menu: () => null,
+                            MenuList: () => null,
+                        }}
+                        aria-labelledby='mentionKeysWithHighlightInput'
+                        onChange={this.handleChangeForCustomKeysWithHightlightInput}
+                        value={this.state.customKeysWithHighlight}
+                        inputValue={this.state.customKeysWithHighlightInputValue}
+                        onInputChange={this.handleChangeForCustomKeysWithHighlightInputValue}
+                        onBlur={this.handleBlurForCustomKeysWithHighlightInput}
+                        onKeyDown={this.handleOnKeydownForCustomKeysWithHighlightInput}
+                    />
+                </div>
+            )];
+
+            const extraInfo = (
                 <FormattedMessage
-                    id='user.settings.notifications.noWords'
-                    defaultMessage='No words configured'
+                    id='user.settings.notifications.keywordsWithHighlight.extraInfo'
+                    defaultMessage='These keywords will be shown to you with a highlight when anyone sends a message that includes them.'
+                />
+            );
+
+            expandedSection = (
+                <SettingItemMax
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords that get highlighted (without notifications)'})}
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    saving={this.state.isSaving}
+                    serverError={this.state.serverError}
+                    extraInfo={extraInfo}
+                    updateSection={this.handleUpdateSection}
                 />
             );
         }
 
+        let collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
+        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady && this.state.customKeysWithHighlight.length > 0) {
+            const customKeysWithHighlightStringArray = this.state.customKeysWithHighlight.map((key) => key.value);
+            collapsedDescription = customKeysWithHighlightStringArray.map((key) => `"${key}"`).join(', ');
+        }
+
+        const collapsedEditButtonWhenDisabled = (
+            <RestrictedIndicator
+                blocked={this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady}
+                feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
+                minimumPlanRequiredForFeature={LicenseSkus.Professional}
+                tooltipTitle={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipTitle',
+                    defaultMessage: 'Professional feature',
+                })}
+                tooltipMessageBlocked={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipMessage',
+                    defaultMessage:
+                    'This feature is available on the Professional plan',
+                })}
+                titleAdminPreTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPreTrial',
+                    defaultMessage: 'Highlight keywords without notifications with Mattermost Professional',
+                })}
+                messageAdminPreTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPreTrial',
+                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to Professional plan to unlock this feature.',
+                })}
+                titleAdminPostTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPostTrial',
+                    defaultMessage: 'Highlight keywords without notifications with Mattermost Professional',
+                })}
+                messageAdminPostTrial={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPostTrial',
+                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to Professional plan to unlock this feature.',
+                },
+                )}
+                titleEndUser={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleEndUser',
+                    defaultMessage: 'Highlight keywords without notifications with Mattermost Professional',
+                })}
+                messageEndUser={this.props.intl.formatMessage(
+                    {
+                        id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageEndUser',
+                        defaultMessage: 'Get the ability to passively highlight keywords that you care about.{br}{br}Request your admin to upgrade to Mattermost Professional to access this feature.',
+                    },
+                    {
+                        br: <br/>,
+                    },
+                )}
+                ctaExtraContent={
+                    <FormattedMessage
+                        id='user.settings.notifications.keywordsWithHighlight.professional'
+                        defaultMessage='Professional'
+                    />
+                }
+                clickCallback={this.handleCloseSettingsModal}
+            />
+        );
+
         return (
             <SettingItem
-                active={active}
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords that get highlighted (without notifications)'})}
+                section={UserSettingsNotificationSections.KEYWORDS_HIGHLIGHT}
+                active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
-                title={localizeMessage('user.settings.notifications.wordsTrigger', 'Words That Trigger Mentions')}
-                describe={describe}
-                section={'keys'}
+                describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
-                max={max}
-
+                max={expandedSection}
+                isDisabled={this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady}
+                collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
 
     createCommentsSection = () => {
         const serverError = this.state.serverError;
 
-        const active = this.props.activeSection === 'comments';
         let max = null;
-        if (active) {
+        if (this.props.activeSection === UserSettingsNotificationSections.REPLY_NOTIFCATIONS) {
             const commentsActive = [false, false, false];
             if (this.state.notifyCommentsLevel === 'never') {
                 commentsActive[2] = true;
@@ -830,7 +805,10 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
             inputs.push(
                 <fieldset key='userNotificationLevelOption'>
                     <legend className='form-legend hidden-label'>
-                        {localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
+                        <FormattedMessage
+                            id='user.settings.notifications.comments'
+                            defaultMessage='Reply notifications'
+                        />
                     </legend>
                     <div className='radio'>
                         <label>
@@ -893,7 +871,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
 
             max = (
                 <SettingItemMax
-                    title={localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply notifications'})}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
@@ -930,10 +908,10 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
 
         return (
             <SettingItem
-                active={active}
-                title={localizeMessage('user.settings.notifications.comments', 'Reply notifications')}
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply notifications'})}
+                active={this.props.activeSection === UserSettingsNotificationSections.REPLY_NOTIFCATIONS}
                 describe={describe}
-                section={'comments'}
+                section={UserSettingsNotificationSections.REPLY_NOTIFCATIONS}
                 updateSection={this.handleUpdateSection}
                 max={max}
                 areAllSectionsInactive={this.props.activeSection === ''}
@@ -942,150 +920,178 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
     };
 
     createAutoResponderSection = () => {
-        if (this.props.enableAutoResponder) {
-            const describe = this.state.autoResponderActive ? (
-                <FormattedMessage
-                    id='user.settings.notifications.autoResponderEnabled'
-                    defaultMessage='Enabled'
-                />
-            ) : (
-                <FormattedMessage
-                    id='user.settings.notifications.autoResponderDisabled'
-                    defaultMessage='Disabled'
-                />
-            );
+        const describe = this.state.autoResponderActive ? (
+            <FormattedMessage
+                id='user.settings.notifications.autoResponderEnabled'
+                defaultMessage='Enabled'
+            />
+        ) : (
+            <FormattedMessage
+                id='user.settings.notifications.autoResponderDisabled'
+                defaultMessage='Disabled'
+            />
+        );
 
-            return (
-                <SettingItem
-                    active={this.props.activeSection === 'auto-responder'}
-                    areAllSectionsInactive={this.props.activeSection === ''}
-                    title={
-                        <FormattedMessage
-                            id='user.settings.notifications.autoResponder'
-                            defaultMessage='Automatic Direct Message Replies'
+        return (
+            <SettingItem
+                active={this.props.activeSection === UserSettingsNotificationSections.AUTO_RESPONDER}
+                areAllSectionsInactive={this.props.activeSection === ''}
+                title={
+                    <FormattedMessage
+                        id='user.settings.notifications.autoResponder'
+                        defaultMessage='Automatic direct message replies'
+                    />
+                }
+                describe={describe}
+                section={UserSettingsNotificationSections.AUTO_RESPONDER}
+                updateSection={this.handleUpdateSection}
+                max={(
+                    <div>
+                        <ManageAutoResponder
+                            autoResponderActive={this.state.autoResponderActive}
+                            autoResponderMessage={this.state.autoResponderMessage || ''}
+                            updateSection={this.handleUpdateSection}
+                            setParentState={this.setStateValue}
+                            submit={this.handleSubmit}
+                            error={this.state.serverError}
+                            saving={this.state.isSaving}
                         />
-                    }
-                    describe={describe}
-                    section={'auto-responder'}
-                    updateSection={this.handleUpdateSection}
-                    max={(
-                        <div>
-                            <ManageAutoResponder
-                                autoResponderActive={this.state.autoResponderActive}
-                                autoResponderMessage={this.state.autoResponderMessage || ''}
-                                updateSection={this.handleUpdateSection}
-                                setParentState={this.setStateValue}
-                                submit={this.handleSubmit}
-                                error={this.state.serverError}
-                                saving={this.state.isSaving}
-                            />
-                            <div className='divider-dark'/>
-                        </div>
-                    )}
-                />
-            );
-        }
-
-        return null;
+                        <div className='divider-dark'/>
+                    </div>
+                )}
+            />
+        );
     };
 
     render() {
-        const autoResponderSection = this.createAutoResponderSection();
+        const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
+        const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
         const commentsSection = this.createCommentsSection();
-        const keysSection = this.createKeysSection();
-        const pushNotificationSection = this.createPushNotificationSection();
-        const enableEmailProp = this.state.enableEmail === 'true';
+        const autoResponderSection = this.createAutoResponderSection();
+
+        const areAllSectionsInactive = this.props.activeSection === '';
 
         return (
             <div id='notificationSettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                        ref={this.drawerRef}
-                    >
-                        <div className='modal-back'>
-                            <LocalizedIcon
-                                className='fa fa-angle-left'
-                                ariaLabel={{
-                                    id: t('generic_icons.collapse'),
-                                    defaultMessage: 'Collapse Icon',
-                                }}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.notifications.title'
-                            defaultMessage='Notification Settings'
+                            defaultMessage='Notification settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div
-                    ref={this.wrapperRef}
                     className='user-settings'
                 >
-                    <h3
+                    <SettingDesktopHeader
                         id='notificationSettingsTitle'
-                        className='tab-header'
-                    >
-                        <FormattedMessage
-                            id='user.settings.notifications.header'
-                            defaultMessage='Notifications'
-                        />
-                    </h3>
+                        text={
+                            <FormattedMessage
+                                id='user.settings.notifications.header'
+                                defaultMessage='Notifications'
+                            />
+                        }
+                        info={
+                            <FormattedMessage
+                                id='user.settings.notifications.learnMore'
+                                defaultMessage='<a>Learn more about notifications</a>'
+                                values={{
+                                    a: (chunks: string) => ((
+                                        <ExternalLink
+                                            location='user_settings_notifications'
+                                            href='https://mattermost.com/pl/about-notifications'
+                                            className='btn btn-link'
+                                        >
+                                            <LightbulbOutlineIcon className='circular-border'/>
+                                            <span>{chunks}</span>
+                                        </ExternalLink>
+                                    )),
+                                }}
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
-                    <DesktopNotificationSettings
-                        activity={this.state.desktopActivity}
-                        threads={this.state.desktopThreads}
-                        sound={this.state.desktopSound}
-                        callsSound={this.state.callsDesktopSound}
+                    <DesktopAndMobileNotificationSettings
+                        active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
                         updateSection={this.handleUpdateSection}
-                        setParentState={this.setStateValue}
-                        submit={this.handleSubmit}
+                        onSubmit={this.handleSubmit}
+                        onCancel={this.handleCancel}
                         saving={this.state.isSaving}
-                        cancel={this.handleCancel}
                         error={this.state.serverError}
-                        active={this.props.activeSection === 'desktop'}
-                        selectedSound={this.state.desktopNotificationSound || 'default'}
-                        callsSelectedSound={this.state.callsNotificationSound || 'default'}
+                        setParentState={this.setStateValue}
+                        areAllSectionsInactive={areAllSectionsInactive}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        desktopActivity={this.state.desktopActivity}
+                        pushActivity={this.state.pushActivity}
+                        sendPushNotifications={this.props.sendPushNotifications}
+                        pushStatus={this.state.pushStatus}
+                        desktopThreads={this.state.desktopThreads}
+                        pushThreads={this.state.pushThreads}
+                        desktopAndMobileSettingsDifferent={this.state.desktopAndMobileSettingsDifferent}
+                    />
+                    <div className='divider-light'/>
+                    <DesktopNotificationSoundsSettings
+                        active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
+                        updateSection={this.handleUpdateSection}
+                        onSubmit={this.handleSubmit}
+                        onCancel={this.handleCancel}
+                        saving={this.state.isSaving}
+                        error={this.state.serverError}
+                        setParentState={this.setStateValue}
+                        areAllSectionsInactive={areAllSectionsInactive}
+                        desktopSound={this.state.desktopSound}
+                        desktopNotificationSound={this.state.desktopNotificationSound}
                         isCallsRingingEnabled={this.props.isCallsRingingEnabled}
+                        callsDesktopSound={this.state.callsDesktopSound}
+                        callsNotificationSound={this.state.callsNotificationSound}
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting
-                        activeSection={this.props.activeSection}
+                        active={this.props.activeSection === UserSettingsNotificationSections.EMAIL}
                         updateSection={this.handleUpdateSection}
-                        enableEmail={enableEmailProp}
                         onSubmit={this.handleSubmit}
                         onCancel={this.handleCancel}
-                        onChange={this.handleEmailRadio}
                         saving={this.state.isSaving}
-                        serverError={this.state.serverError}
-                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
+                        error={this.state.serverError}
                         setParentState={this.setStateValue}
+                        areAllSectionsInactive={areAllSectionsInactive}
+                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
+                        enableEmail={this.state.enableEmail === 'true'}
+                        onChange={this.handleEmailRadio}
                         threads={this.state.emailThreads || ''}
                     />
                     <div className='divider-light'/>
-                    {pushNotificationSection}
-                    <div className='divider-light'/>
-                    {keysSection}
+                    {keywordsWithNotificationSection}
+                    {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
+                        <>
+                            <div className='divider-light'/>
+                            {keywordsWithHighlightSection}
+                        </>
+                    )}
                     <div className='divider-light'/>
                     {!this.props.isCollapsedThreadsEnabled && (
                         <>
-                            {commentsSection}
                             <div className='divider-light'/>
+                            {commentsSection}
                         </>
                     )}
-                    {autoResponderSection}
+                    {this.props.enableAutoResponder && (
+                        <>
+                            <div className='divider-light'/>
+                            {autoResponderSection}
+                        </>
+                    )}
+
+                    {/*  We placed the disabled items in the last */}
+                    {(this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
+                        <>
+                            <div className='divider-light'/>
+                            {keywordsWithHighlightSection}
+                        </>
+                    )}
                     <div className='divider-dark'/>
                 </div>
             </div>
@@ -1093,3 +1099,80 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         );
     }
 }
+
+const customKeywordsSelectorStyles: ReactSelectStyles = {
+    container: ((baseStyle) => ({
+        ...baseStyle,
+        marginBlockStart: '10px',
+    })),
+    control: ((baseStyles) => ({
+        ...baseStyles,
+        backgroundColor: 'var(--center-channel-bg)',
+        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16);',
+        ':hover': {
+            borderColor: 'rgba(var(--center-channel-color-rgb), 0.48);',
+        },
+    })),
+    multiValue: ((baseStyles) => ({
+        ...baseStyles,
+        background: 'rgba(var(--center-channel-color-rgb), 0.08)',
+    })),
+    multiValueLabel: ((baseStyles) => ({
+        ...baseStyles,
+        color: 'var(--center-channel-color);',
+    })),
+    input: ((baseStyles) => ({
+        ...baseStyles,
+        color: 'var(--center-channel-color)',
+    })),
+    indicatorSeparator: ((indicatorSeperatorStyles) => ({
+        ...indicatorSeperatorStyles,
+        display: 'none',
+    })),
+    multiValueRemove: ((multiValueRemoveStyles) => ({
+        ...multiValueRemoveStyles,
+        cursor: 'pointer',
+        color: 'rgba(var(--center-channel-color-rgb),0.32);',
+        ':hover': {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.56);',
+        },
+    })),
+};
+
+const validNotificationLevels = Object.values(NotificationLevels);
+
+export function areDesktopAndMobileSettingsDifferent(
+    desktopActivity: UserNotifyProps['desktop'],
+    pushActivity: UserNotifyProps['push'],
+    desktopThreads?: UserNotifyProps['desktop_threads'],
+    pushThreads?: UserNotifyProps['push_threads'],
+    isCollapsedThreadsEnabled?: boolean,
+): boolean {
+    if (!desktopActivity || !pushActivity || !desktopThreads || !pushThreads) {
+        return true;
+    }
+
+    if (
+        !validNotificationLevels.includes(desktopActivity) ||
+        !validNotificationLevels.includes(pushActivity) ||
+        !validNotificationLevels.includes(desktopThreads) ||
+        !validNotificationLevels.includes(pushThreads)
+    ) {
+        return true;
+    }
+
+    if (desktopActivity === pushActivity) {
+        if (isCollapsedThreadsEnabled) {
+            if (desktopThreads === pushThreads) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    return true;
+}
+
+export default injectIntl(NotificationsTab);

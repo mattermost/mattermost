@@ -257,7 +257,6 @@ func TestImportValidateRoleImportData(t *testing.T) {
 }
 
 func TestImportValidateTeamImportData(t *testing.T) {
-
 	// Test with minimum required valid properties.
 	data := TeamImportData{
 		Name:        ptrStr("teamname"),
@@ -355,7 +354,6 @@ func TestImportValidateTeamImportData(t *testing.T) {
 }
 
 func TestImportValidateChannelImportData(t *testing.T) {
-
 	// Test with minimum required valid properties.
 	chanTypeOpen := model.ChannelTypeOpen
 	data := ChannelImportData{
@@ -469,7 +467,6 @@ func TestImportValidateChannelImportData(t *testing.T) {
 }
 
 func TestImportValidateUserImportData(t *testing.T) {
-
 	// Test with minimum required valid properties.
 	data := UserImportData{
 		Username: ptrStr("bob"),
@@ -671,11 +668,9 @@ func TestImportValidateUserAuth(t *testing.T) {
 			require.NotNil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
 		}
 	}
-
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {
-
 	// Invalid Name.
 	data := []UserTeamImportData{
 		{
@@ -721,7 +716,6 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 }
 
 func TestImportValidateUserChannelsImportData(t *testing.T) {
-
 	// Invalid Name.
 	data := []UserChannelImportData{
 		{
@@ -1027,7 +1021,6 @@ func TestImportValidatePostImportData(t *testing.T) {
 }
 
 func TestImportValidateDirectChannelImportData(t *testing.T) {
-
 	// Test with valid number of members for direct message.
 	data := DirectChannelImportData{
 		Members: &[]string{

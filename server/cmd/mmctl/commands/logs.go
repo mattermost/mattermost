@@ -27,7 +27,7 @@ var LogsCmd = &cobra.Command{
 }
 
 func init() {
-	LogsCmd.Flags().IntP("number", "n", 200, "Number of log lines to retrieve.")
+	LogsCmd.Flags().IntP("number", "n", DefaultPageSize, "Number of log lines to retrieve.")
 	LogsCmd.Flags().BoolP("logrus", "l", false, "Use logrus for formatting.")
 	RootCmd.AddCommand(LogsCmd)
 }

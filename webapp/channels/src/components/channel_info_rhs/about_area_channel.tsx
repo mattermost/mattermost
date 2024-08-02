@@ -2,22 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import Markdown from 'components/markdown';
 
-import {Channel} from '@mattermost/types/channels';
-
-import LineLimiter from './components/linelimiter';
 import EditableArea from './components/editable_area';
+import LineLimiter from './components/linelimiter';
 
 const ChannelId = styled.div`
     margin-bottom: 12px;
     font-size: 11px;
     line-height: 16px;
     letter-spacing: 0.02em;
-    color: rgba(var(--center-channel-color-rgb), .64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const ChannelPurpose = styled.div`

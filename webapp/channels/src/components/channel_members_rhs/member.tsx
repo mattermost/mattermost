@@ -1,44 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
 import classNames from 'classnames';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import styled from 'styled-components';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import ProfilePopover from 'components/profile_popover';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import ProfilePicture from 'components/profile_picture';
 import {Client4} from 'mattermost-redux/client';
-import ChannelMembersDropdown from 'components/channel_members_dropdown';
-
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
-
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
+import ChannelMembersDropdown from 'components/channel_members_dropdown';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import ProfilePicture from 'components/profile_picture';
+import ProfilePopover from 'components/profile_popover';
+import GuestTag from 'components/widgets/tag/guest_tag';
+import WithTooltip from 'components/with_tooltip';
 
-import {ChannelMember} from './channel_members_rhs';
+import type {ChannelMember} from './channel_members_rhs';
 
 const Avatar = styled.div`
     flex-basis: fit-content;
     flex-shrink: 0;
-`;
-
-const UserInfo = styled.div`
-    display: flex;
-    flex: 1;
-    cursor: pointer;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 `;
 
 const DisplayName = styled.span`
@@ -54,7 +39,7 @@ const DisplayName = styled.span`
 
 const Username = styled.span`
     margin-left: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 18px;
 `;
@@ -74,7 +59,7 @@ const SendMessage = styled.button`
     }
 
     .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 14.4px;
     };
 `;
@@ -112,19 +97,10 @@ interface Props {
     };
 }
 
-interface MMOverlayTrigger extends BaseOverlayTrigger {
-    hide: () => void;
-}
-
 const Member = ({className, channel, member, index, totalUsers, editing, actions}: Props) => {
-    const overlay = React.createRef<MMOverlayTrigger>();
-    const profileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
+    const {formatMessage} = useIntl();
 
-    const hideProfilePopover = () => {
-        if (overlay.current) {
-            overlay.current.hide();
-        }
-    };
+    const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
 
     return (
         <div
@@ -132,61 +108,46 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
             style={{height: '48px'}}
             data-testid={`memberline-${member.user.id}`}
         >
-
-            <OverlayTrigger
-                ref={overlay}
-                trigger={['click']}
-                placement={'left'}
-                rootClose={true}
-                overlay={
-                    <ProfilePopover
-                        className='user-profile-popover'
+            <span className='ProfileSpan'>
+                <Avatar>
+                    <ProfilePicture
+                        size='sm'
+                        status={member.status}
+                        isBot={member.user.is_bot}
                         userId={member.user.id}
-                        src={profileSrc}
-                        hide={hideProfilePopover}
-                        isRHS={true}
-                        hideStatus={member.user.is_bot}
+                        username={member.displayName}
+                        src={userProfileSrc}
                     />
-                }
-            >
-                <span className='ProfileSpan'>
-                    <Avatar>
-                        <ProfilePicture
-                            isRHS={true}
-                            popoverPlacement='left'
-                            size='sm'
-                            status={member.status}
-                            isBot={member.user.is_bot}
-                            userId={member.user.id}
-                            username={member.displayName}
-                            src={Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update)}
-                        />
-                    </Avatar>
-                    <UserInfo>
-                        <DisplayName>
-                            {member.displayName}
-                            {isGuest(member.user.roles) && <GuestTag/>}
-                        </DisplayName>
-                        {
-                            member.displayName === member.user.username ? null : <Username>{'@'}{member.user.username}</Username>
-                        }
-                        <CustomStatusEmoji
-                            userID={member.user.id}
-                            showTooltip={true}
-                            emojiSize={16}
-                            spanStyle={{
-                                display: 'flex',
-                                flex: '0 0 auto',
-                                alignItems: 'center',
-                            }}
-                            emojiStyle={{
-                                marginLeft: '8px',
-                                alignItems: 'center',
-                            }}
-                        />
-                    </UserInfo>
-                </span>
-            </OverlayTrigger>
+                </Avatar>
+                <ProfilePopover
+                    triggerComponentClass='profileSpan_userInfo'
+                    userId={member.user.id}
+                    src={userProfileSrc}
+                    hideStatus={member.user.is_bot}
+                >
+                    <DisplayName>
+                        {member.displayName}
+                        {isGuest(member.user.roles) && <GuestTag/>}
+                    </DisplayName>
+                    {
+                        member.displayName === member.user.username ? null : <Username>{'@'}{member.user.username}</Username>
+                    }
+                    <CustomStatusEmoji
+                        userID={member.user.id}
+                        showTooltip={true}
+                        emojiSize={16}
+                        spanStyle={{
+                            display: 'flex',
+                            flex: '0 0 auto',
+                            alignItems: 'center',
+                        }}
+                        emojiStyle={{
+                            marginLeft: '8px',
+                            alignItems: 'center',
+                        }}
+                    />
+                </ProfilePopover>
+            </span>
 
             <RoleChooser
                 className={classNames({editing}, 'member-role-chooser')}
@@ -221,22 +182,18 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                 )}
             </RoleChooser>
             {!editing && (
-                <SendMessage onClick={() => actions.openDirectMessage(member.user)}>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='left'
-                        overlay={
-                            <Tooltip>
-                                <FormattedMessage
-                                    id='channel_members_rhs.member.send_message'
-                                    defaultMessage='Send message'
-                                />
-                            </Tooltip>
-                        }
-                    >
+                <WithTooltip
+                    id={`member-tooltip-${member.user.id}`}
+                    title={formatMessage({
+                        id: 'channel_members_rhs.member.send_message',
+                        defaultMessage: 'Send message',
+                    })}
+                    placement='left'
+                >
+                    <SendMessage onClick={() => actions.openDirectMessage(member.user)}>
                         <i className='icon icon-send'/>
-                    </OverlayTrigger>
-                </SendMessage>
+                    </SendMessage>
+                </WithTooltip>
             )}
         </div>
     );
@@ -251,7 +208,7 @@ export default styled(Member)`
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         ${SendMessage} {
             display: block;
@@ -260,14 +217,20 @@ export default styled(Member)`
     }
 
     .ProfileSpan {
-        display: flex;
-        overflow: hidden;
         width: 100%;
+        display: flex;
         flex-direction: row;
         align-items: center;
-        // This padding is to make sure the status icon doesnt get clipped off because of the overflow
-        padding: 4px 0;
-        margin-right: auto;
+        padding: 4px 0; // This padding is to make sure the status icon doesn't get clipped off because of the overflow
+
+        .profileSpan_userInfo {
+            display: flex;
+            flex-grow: 1;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     .MenuWrapper {

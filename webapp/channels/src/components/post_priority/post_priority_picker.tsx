@@ -2,19 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, memo} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 
-import BetaTag from '../widgets/tag/beta_tag';
-
-import {PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
-
 import Menu, {MenuGroup, MenuItem, ToggleItem} from './post_priority_picker_item';
+
 import './post_priority_picker.scss';
 
 type Props = {
@@ -32,15 +31,15 @@ const ImportantIcon = styled(AlertCircleOutlineIcon)`
 `;
 
 const StandardIcon = styled(MessageTextOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const AcknowledgementIcon = styled(CheckCircleOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const Header = styled.h4`
@@ -54,11 +53,6 @@ const Header = styled.h4`
     line-height: 20px;
     padding: 14px 16px 6px;
     text-align: left;
-`;
-
-const Feedback = styled.a`
-    margin-left: auto;
-    font-size: 11px;
 `;
 
 const Footer = styled.div`
@@ -136,8 +130,6 @@ function PostPriorityPicker({
         onClose();
     };
 
-    const feedbackLink = postAcknowledgementsEnabled ? 'https://forms.gle/noA8Azg7RdaBZtMB6' : 'https://forms.gle/mMcRFQzyKAo9Sv49A';
-
     return (
         <Picker className='PostPriorityPicker'>
             <Header className='modal-title'>
@@ -145,17 +137,6 @@ function PostPriorityPicker({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',
                 })}
-                <BetaTag/>
-                <Feedback
-                    href={feedbackLink}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                >
-                    <FormattedMessage
-                        id={'post_priority.picker.feedback'}
-                        defaultMessage={'Give feedback'}
-                    />
-                </Feedback>
             </Header>
             <div role='application'>
                 <Menu className='Menu'>

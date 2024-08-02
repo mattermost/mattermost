@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General, Posts, RequestStatus} from 'mattermost-redux/constants';
 import {leaveChannel, markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
-import * as UserActions from 'mattermost-redux/actions/users';
 import * as PostActions from 'mattermost-redux/actions/posts';
+import * as UserActions from 'mattermost-redux/actions/users';
+import {General, Posts, RequestStatus} from 'mattermost-redux/constants';
 
-import {getHistory} from 'utils/browser_history';
 import * as Actions from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
+
 import mockStore from 'tests/test_store';
+import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostRequestTypes} from 'utils/constants';
 
 jest.mock('utils/channel_utils.tsx', () => {
@@ -80,7 +81,9 @@ describe('channel view actions', () => {
                 },
             },
             general: {
-                config: {},
+                config: {
+                    EnableJoinLeaveMessageByDefault: 'true',
+                },
                 serverVersion: '5.12.0',
             },
             roles: {
@@ -588,7 +591,7 @@ describe('channel view actions', () => {
 
     describe('markChannelAsReadOnFocus', () => {
         test('should mark channel as read when channel is not manually unread', async () => {
-            test = mockStore(initialState);
+            store = mockStore(initialState);
 
             await store.dispatch(Actions.markChannelAsReadOnFocus(channel1.id));
 

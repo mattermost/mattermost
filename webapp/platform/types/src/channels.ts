@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IDMappedObjects, RelationOneToMany, RelationOneToOne} from './utilities';
-import {Team} from './teams';
+import type {Team} from './teams';
+import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from './utilities';
 
 // e.g.
 // **O**pen channel,
@@ -20,12 +20,14 @@ export type ChannelStats = {
 };
 
 export type ChannelNotifyProps = {
+    desktop_threads: 'default' | 'all' | 'mention' | 'none';
     desktop: 'default' | 'all' | 'mention' | 'none';
     desktop_sound: 'on' | 'off';
     desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     email: 'default' | 'all' | 'mention' | 'none';
     mark_unread: 'all' | 'mention';
     push: 'default' | 'all' | 'mention' | 'none';
+    push_threads: 'default' | 'all' | 'mention' | 'none';
     ignore_channel_mentions: 'default' | 'off' | 'on';
     channel_auto_follow_threads: 'off' | 'on';
 };
@@ -145,7 +147,7 @@ export type ChannelUnread = {
 export type ChannelsState = {
     currentChannelId: string;
     channels: IDMappedObjects<Channel>;
-    channelsInTeam: RelationOneToMany<Team, Channel>;
+    channelsInTeam: RelationOneToManyUnique<Team, Channel>;
     myMembers: RelationOneToOne<Channel, ChannelMembership>;
     roles: RelationOneToOne<Channel, Set<string>>;
     membersInChannel: RelationOneToOne<Channel, Record<string, ChannelMembership>>;
@@ -156,6 +158,7 @@ export type ChannelsState = {
     channelModerations: RelationOneToOne<Channel, ChannelModeration[]>;
     channelMemberCountsByGroup: RelationOneToOne<Channel, ChannelMemberCountsByGroup>;
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
+    channelsMemberCount: Record<string, number>;
 };
 
 export type ChannelModeration = {

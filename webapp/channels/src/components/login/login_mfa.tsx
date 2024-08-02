@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {MessageDescriptor, useIntl} from 'react-intl';
+import React, {type ReactNode, useState} from 'react';
+import {useIntl} from 'react-intl';
 
+import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
+import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
-import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
-import {SubmitOptions} from 'components/claim/components/email_to_ldap';
 
 import './login_mfa.scss';
 
 type LoginMfaProps = {
     loginId: string | null;
     password: string;
-    title?: MessageDescriptor;
-    subtitle?: MessageDescriptor;
+    title?: ReactNode;
+    subtitle?: ReactNode;
     onSubmit: ({loginId, password, token}: SubmitOptions) => void;
 }
 
@@ -48,8 +48,8 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
 
     return (
         <ColumnLayout
-            title={formatMessage(title || {id: 'login_mfa.title', defaultMessage: 'Enter MFA Token'})}
-            message={formatMessage(subtitle || {id: 'login_mfa.subtitle', defaultMessage: 'To complete the sign in process, please enter a token from your smartphone\'s authenticator'})}
+            title={title || formatMessage({id: 'login_mfa.title', defaultMessage: 'Enter MFA Token'})}
+            message={subtitle || formatMessage({id: 'login_mfa.subtitle', defaultMessage: 'To complete the sign in process, please enter a token from your smartphone\'s authenticator'})}
             SVGElement={<ShieldWithCheckmarkSVG/>}
             extraContent={(
                 <div className='login-mfa-form'>

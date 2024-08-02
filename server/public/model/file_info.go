@@ -97,7 +97,7 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(fi.CreatorId) && fi.CreatorId != "nouser" {
+	if !IsValidId(fi.CreatorId) && (fi.CreatorId != "nouser" && fi.CreatorId != BookmarkFileOwner) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 

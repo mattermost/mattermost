@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import InstalledOAuthApp from 'components/integrations/installed_oauth_app/installed_oauth_app';
 
+import {TestHelper} from 'utils/test_helper';
+
 describe('components/integrations/InstalledOAuthApp', () => {
     const FAKE_SECRET = '***************';
-    const team = {name: 'team_name'};
+    const team = TestHelper.getTeamMock({name: 'team_name'});
     const oauthApp = {
         id: 'facxd9wpzpbpfp8pad78xj75pr',
         name: 'testApp',

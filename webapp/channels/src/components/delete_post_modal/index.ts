@@ -1,22 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
+
 import {makeGetCommentCountForPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {GlobalState} from 'types/store';
 import {deleteAndRemovePost} from 'actions/post_actions';
 
-import DeletePostModal from './delete_post_modal';
+import type {GlobalState} from 'types/store';
 
-type Actions = {
-    deleteAndRemovePost: (post: Post) => Promise<{data: boolean}>;
-};
+import DeletePostModal from './delete_post_modal';
 
 type Props = {
     channelName?: string;
@@ -47,7 +45,7 @@ function makeMapStateToProps() {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             deleteAndRemovePost,
         }, dispatch),
     };

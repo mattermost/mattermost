@@ -54,7 +54,6 @@
         "EnableUserStatuses": true,
         "ExperimentalEnableAuthenticationTransfer": true,
         "ClusterLogTimeoutMilliseconds": 2000,
-        "EnablePreviewFeatures": true,
         "EnableTutorial": true,
         "EnableOnboardingFlow": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
@@ -90,7 +89,7 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s\u0026maxAllowedPacket=4194304",
+        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4\u0026readTimeout=30s\u0026writeTimeout=30s\u0026maxAllowedPacket=4194304",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
@@ -167,7 +166,7 @@
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": "",
+        "LoginButtonTextColor": ""
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -307,11 +306,7 @@
         "UseIPAddress": true,
         "UseExperimentalGossip": true,
         "ReadOnlyConfig": true,
-        "GossipPort": 8074,
-        "StreamingPort": 8075,
-        "MaxIdleConns": 100,
-        "MaxIdleConnsPerHost": 128,
-        "IdleConnTimeoutMilliseconds": 90000
+        "GossipPort": 8074
     },
     "MetricsSettings": {
         "Enable": false,
@@ -327,6 +322,7 @@
     },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://localhost:9200",
+        "Backend": "elasticsearch",
         "Username": "elastic",
         "Password": "changeme",
         "EnableIndexing": false,
@@ -386,7 +382,6 @@
         }
     },
     "DisplaySettings": {
-        "CustomUrlSchemes": [],
-        "ExperimentalTimezone": false
+        "CustomUrlSchemes": []
     }
 }

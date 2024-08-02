@@ -58,11 +58,10 @@ describe('Authentication', () => {
 
             // # Navigate to System Console -> User Management -> Users
             cy.visit('/admin_console/user_management/users');
-            cy.get('#searchUsers', {timeout: TIMEOUTS.ONE_MIN}).type(testUser.email);
+            cy.findByPlaceholderText('Search users').type(testUser.username).wait(TIMEOUTS.HALF_SEC);
 
             // * Remove MFA option not available for the user
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
             cy.findByText('Remove MFA').should('not.exist');
 
             cy.apiLogout();
@@ -105,11 +104,10 @@ describe('Authentication', () => {
 
         // # Navigate to System Console -> User Management -> Users
         cy.visit('/admin_console/user_management/users');
-        cy.get('#searchUsers', {timeout: TIMEOUTS.ONE_MIN}).type(testUser.email);
+        cy.findByPlaceholderText('Search users').type(testUser.username).wait(TIMEOUTS.HALF_SEC);
 
         // * Remove MFA option available for the user and click it
-        cy.wait(TIMEOUTS.HALF_SEC);
-        cy.findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Remove MFA').should('be.visible').click();
 
         // # Navigate to System Console -> Authentication -> MFA Page.
@@ -121,6 +119,7 @@ describe('Authentication', () => {
 
         // # Click "Save".
         cy.findByText('Save').click().wait(TIMEOUTS.ONE_SEC);
+        cy.apiLogout();
 
         // # Login as test user
         cy.apiLogin(testUser);
@@ -138,11 +137,11 @@ describe('Authentication', () => {
 
         // # Navigate to System Console -> User Management -> Users
         cy.visit('/admin_console/user_management/users');
-        cy.get('#searchUsers', {timeout: TIMEOUTS.ONE_MIN}).type(testUser.email);
+        cy.findByPlaceholderText('Search users').type(testUser.username).wait(TIMEOUTS.HALF_SEC);
 
         // * Remove MFA option available for the user and click it
         cy.wait(TIMEOUTS.HALF_SEC);
-        cy.findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Remove MFA').should('not.exist');
 
         // # Done with that MFA stuff so we disable it all

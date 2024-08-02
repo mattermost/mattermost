@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {NotificationLevels} from 'utils/constants';
 
@@ -22,7 +22,7 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow<UnmuteChannelButton>(<UnmuteChannelButton {...baseProps}/>);
+        const wrapper = shallow(<UnmuteChannelButton {...baseProps}/>);
 
         expect(wrapper).toMatchSnapshot();
     });
@@ -31,7 +31,7 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
         const props = baseProps;
         props.actions.updateChannelNotifyProps = jest.fn();
 
-        const wrapper = shallow<UnmuteChannelButton>(<UnmuteChannelButton {...props}/>);
+        const wrapper = shallow(<UnmuteChannelButton {...props}/>);
         wrapper.simulate('click');
 
         expect(props.actions.updateChannelNotifyProps).toBeCalledWith(

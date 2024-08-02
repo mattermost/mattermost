@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -26,7 +25,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should return the default config file location if nothing else is set", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
+		tmp, _ := os.MkdirTemp("", "mmctl-")
 		defer os.RemoveAll(tmp)
 		testUser.HomeDir = tmp
 		SetUser(testUser)
@@ -40,7 +39,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should return config file location from xdg environment variable", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
+		tmp, _ := os.MkdirTemp("", "mmctl-")
 		defer os.RemoveAll(tmp)
 		testUser.HomeDir = tmp
 		SetUser(testUser)
@@ -55,7 +54,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should return the user-defined config file path if one is set", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
+		tmp, _ := os.MkdirTemp("", "mmctl-")
 		defer os.RemoveAll(tmp)
 
 		testUser.HomeDir = "path/should/be/ignored"
@@ -72,7 +71,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should resolve config file path if $HOME variable is used", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
+		tmp, _ := os.MkdirTemp("", "mmctl-")
 		defer os.RemoveAll(tmp)
 
 		testUser.HomeDir = "path/should/be/ignored"
@@ -89,7 +88,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should create the user-defined config file path if one is set", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
+		tmp, _ := os.MkdirTemp("", "mmctl-")
 		defer os.RemoveAll(tmp)
 
 		testUser.HomeDir = "path/should/be/ignored"
@@ -112,7 +111,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should return error if the config flag is set to a directory", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
+		tmp, _ := os.MkdirTemp("", "mmctl-")
 		defer os.RemoveAll(tmp)
 
 		testUser.HomeDir = "path/should/be/ignored"
@@ -129,7 +128,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 }
 
 func TestReadSecretFromFile(t *testing.T) {
-	f, err := ioutil.TempFile(t.TempDir(), "mmctl")
+	f, err := os.CreateTemp(t.TempDir(), "mmctl")
 	require.NoError(t, err)
 
 	_, err = f.WriteString("test-pass")

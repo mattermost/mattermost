@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyActiveChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {get, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {Preferences} from 'mattermost-redux/constants';
-
-import {GlobalState} from 'types/store';
-import {DraftInfo, PostDraft} from 'types/store/draft';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {StoragePrefixes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
 
-import {getIsMobileView} from 'selectors/views/browser';
+import type {GlobalState} from 'types/store';
+import type {DraftInfo, PostDraft} from 'types/store/draft';
 
 export type Draft = DraftInfo & {
     key: keyof GlobalState['storage']['storage'];
@@ -72,14 +71,14 @@ export function makeGetDraftsByPrefix(prefix: string): DraftSelector {
     );
 }
 
+const getChannelDrafts = makeGetDraftsByPrefix(StoragePrefixes.DRAFT);
+const getRHSDrafts = makeGetDraftsByPrefix(StoragePrefixes.COMMENT_DRAFT);
+
 /**
  * Gets all local drafts in storage.
  * @param excludeInactive determines if we filter drafts based on active channels.
  */
 export function makeGetDrafts(excludeInactive = true): DraftSelector {
-    const getChannelDrafts = makeGetDraftsByPrefix(StoragePrefixes.DRAFT);
-    const getRHSDrafts = makeGetDraftsByPrefix(StoragePrefixes.COMMENT_DRAFT);
-
     return createSelector(
         'makeGetDrafts',
         getChannelDrafts,
@@ -94,8 +93,6 @@ export function makeGetDrafts(excludeInactive = true): DraftSelector {
 }
 
 export function makeGetDraftsCount(): DraftCountSelector {
-    const getChannelDrafts = makeGetDraftsByPrefix(StoragePrefixes.DRAFT);
-    const getRHSDrafts = makeGetDraftsByPrefix(StoragePrefixes.COMMENT_DRAFT);
     return createSelector(
         'makeGetDraftsCount',
         getChannelDrafts,

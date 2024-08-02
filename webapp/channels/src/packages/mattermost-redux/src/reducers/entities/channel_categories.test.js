@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-
 import {ChannelTypes, TeamTypes} from 'mattermost-redux/action_types';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import * as Reducers from './channel_categories';
 

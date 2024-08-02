@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -109,33 +109,5 @@ describe('components/global/product_switcher_menu', () => {
         expect(wrapper.find('.FeatureRestrictedModal__buttons').hasClass('single')).toEqual(false);
         expect(wrapper.find('.button-plans').length).toEqual(1);
         expect(wrapper.find('StartTrialBtn').length).toEqual(1);
-    });
-
-    test('should show with system admin pre trial for cloud', () => {
-        mockState.entities.users.profiles.user1.roles = 'system_admin';
-        mockState.entities.general.license = {
-            Cloud: 'true',
-        };
-
-        const wrapper = shallow(<FeatureRestrictedModal {...defaultProps}/>);
-
-        expect(wrapper.find('.FeatureRestrictedModal__description').text()).toEqual(defaultProps.messageAdminPreTrial);
-        expect(wrapper.find('.FeatureRestrictedModal__terms').length).toEqual(1);
-        expect(wrapper.find('.FeatureRestrictedModal__buttons').hasClass('single')).toEqual(false);
-        expect(wrapper.find('.button-plans').length).toEqual(1);
-        expect(wrapper.find('CloudStartTrialButton').length).toEqual(1);
-    });
-
-    test('should match snapshot with system admin post trial', () => {
-        mockState.entities.users.profiles.user1.roles = 'system_admin';
-        mockState.entities.cloud.subscription.is_free_trial = 'false';
-        mockState.entities.cloud.subscription.trial_end_at = 1;
-
-        const wrapper = shallow(<FeatureRestrictedModal {...defaultProps}/>);
-
-        expect(wrapper.find('.FeatureRestrictedModal__description').text()).toEqual(defaultProps.messageAdminPostTrial);
-        expect(wrapper.find('.FeatureRestrictedModal__terms').length).toEqual(0);
-        expect(wrapper.find('.button-plans').length).toEqual(1);
-        expect(wrapper.find('CloudStartTrialButton').length).toEqual(0);
     });
 });

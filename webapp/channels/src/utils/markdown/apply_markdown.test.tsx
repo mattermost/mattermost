@@ -441,4 +441,100 @@ describe('applyMarkdown', () => {
             selectionEnd: 14,
         });
     });
+
+    /* ***************
+     * CODE (inline code and code block)
+     * ************** */
+    test('should apply inline code markdown to the selection', () => {
+        // "Fafda" is selected with ctrl + alt + C hotkey
+        const result = applyMarkdown({
+            message: 'Jalebi Fafda & Sambharo',
+            selectionStart: 7,
+            selectionEnd: 12,
+            markdownMode: 'code',
+        });
+
+        expect(result).toEqual({
+            message: 'Jalebi `Fafda` & Sambharo',
+            selectionStart: 8,
+            selectionEnd: 13,
+        });
+    });
+
+    test('should remove inline code markdown to the selection', () => {
+        // "Fafda" is selected with ctrl + alt + C hotkey
+        const result = applyMarkdown({
+            message: 'Jalebi `Fafda` & Sambharo',
+            selectionStart: 8,
+            selectionEnd: 13,
+            markdownMode: 'code',
+        });
+
+        expect(result).toEqual({
+            message: 'Jalebi Fafda & Sambharo',
+            selectionStart: 7,
+            selectionEnd: 12,
+        });
+    });
+
+    test('should apply code block markdown to the full message (multi-lines)', () => {
+        // all message is selected with ctrl + alt + C hotkey
+        const result = applyMarkdown({
+            message: 'Jalebi\nFafda\nSambharo',
+            selectionStart: 0,
+            selectionEnd: 21,
+            markdownMode: 'code',
+        });
+        expect(result).toEqual({
+            message: '```\nJalebi\nFafda\nSambharo\n```',
+            selectionStart: 4,
+            selectionEnd: 25,
+        });
+    });
+
+    test('should remove code block markdown to the full message', () => {
+        // all message is selected with ctrl + alt + C hotkey
+        const result = applyMarkdown({
+            message: '```\nJalebi\nFafda\nSambharo\n```',
+            selectionStart: 4,
+            selectionEnd: 25,
+            markdownMode: 'code',
+        });
+
+        expect(result).toEqual({
+            message: 'Jalebi\nFafda\nSambharo',
+            selectionStart: 0,
+            selectionEnd: 21,
+        });
+    });
+
+    test('should apply code block markdown to the sub-message (multi-lines)', () => {
+        // "bi\nFaf" is selected with ctrl + alt + C hotkey
+        const result = applyMarkdown({
+            message: 'Jalebi\nFafda\nSambharo',
+            selectionStart: 4,
+            selectionEnd: 10,
+            markdownMode: 'code',
+        });
+        expect(result).toEqual({
+            message: 'Jale```\nbi\nFaf\n```da\nSambharo',
+            selectionStart: 8,
+            selectionEnd: 14,
+        });
+    });
+
+    test('should remove code block markdown to the sub-message', () => {
+        // "bi\nFaf" is selected with ctrl + alt + C hotkey
+        const result = applyMarkdown({
+            message: 'Jale```\nbi\nFaf\n```da\nSambharo',
+            selectionStart: 8,
+            selectionEnd: 14,
+            markdownMode: 'code',
+        });
+        expect(result).toEqual({
+            message: 'Jalebi\nFafda\nSambharo',
+            selectionStart: 4,
+            selectionEnd: 10,
+        });
+    });
 });

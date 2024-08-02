@@ -12,15 +12,15 @@ import (
 )
 
 func (api *API) InitBrand() {
-	api.BaseRoutes.Brand.Handle("/image", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
-	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage)).Methods("POST")
-	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+	api.BaseRoutes.Brand.Handle("/image", api.APIHandlerTrustRequester(getBrandImage)).Methods(http.MethodGet)
+	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(deleteBrandImage)).Methods(http.MethodDelete)
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
-	img, err := c.App.GetBrandImage()
+	img, err := c.App.GetBrandImage(c.AppContext)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
@@ -65,7 +65,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SaveBrandImage(imageArray[0]); err != nil {
+	if err := c.App.SaveBrandImage(c.AppContext, imageArray[0]); err != nil {
 		c.Err = err
 		return
 	}
@@ -86,7 +86,7 @@ func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DeleteBrandImage(); err != nil {
+	if err := c.App.DeleteBrandImage(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}

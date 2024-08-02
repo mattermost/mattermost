@@ -13,10 +13,7 @@ import (
 	_ "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/mattermost/server/v8/channels/imports"
-
-	// Blank imports for each product to register themselves
-	_ "github.com/mattermost/mattermost/server/v8/boards/product"
+	_ "github.com/mattermost/mattermost/server/v8/enterprise"
 )
 
 func main() {

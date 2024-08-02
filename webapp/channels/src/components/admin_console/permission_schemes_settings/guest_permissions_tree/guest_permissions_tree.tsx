@@ -4,14 +4,15 @@
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Permissions from 'mattermost-redux/constants/permissions';
-import {Role} from '@mattermost/types/roles';
-import {ClientLicense} from '@mattermost/types/config';
-import {Permissions as PermissionsType} from '../permissions_tree/types';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
 
-import PermissionGroup from '../permission_group';
+import Permissions from 'mattermost-redux/constants/permissions';
+
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
+import PermissionGroup from '../permission_group';
+import type {Permissions as PermissionsType} from '../permissions_tree/types';
 
 type Props = {
     license: ClientLicense;
@@ -30,7 +31,14 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
             Permissions.CREATE_PRIVATE_CHANNEL,
             Permissions.EDIT_POST,
             Permissions.DELETE_POST,
-            Permissions.CREATE_POST,
+            {
+                id: 'guest_' + Permissions.CREATE_POST,
+                combined: true,
+                permissions: [
+                    Permissions.CREATE_POST,
+                    Permissions.UPLOAD_FILE,
+                ],
+            },
             {
                 id: 'guest_reactions',
                 combined: true,

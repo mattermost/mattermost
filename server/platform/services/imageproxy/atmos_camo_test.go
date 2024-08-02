@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 )
 
 func makeTestAtmosCamoProxy() *ImageProxy {
@@ -66,14 +66,13 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	defer mock.Close()
 
 	proxy := makeTestAtmosCamoProxy()
-	parsedURL, err := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
+	parsedURL, err := url.Parse("https://mattermost.example.com")
 	require.NoError(t, err)
 
 	remoteURL, err := url.Parse(mock.URL)
 	require.NoError(t, err)
 
 	backend := &AtmosCamoBackend{
-		proxy:     proxy,
 		siteURL:   parsedURL,
 		remoteURL: remoteURL,
 		client:    proxy.HTTPService.MakeClient(false),
@@ -177,13 +176,12 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			require.NoError(t, err)
 
 			backend := &AtmosCamoBackend{
-				proxy:     makeTestAtmosCamoProxy(),
-				siteURL:   parsedURL,
-				remoteURL: remoteURL,
+				siteURL:       parsedURL,
+				remoteURL:     remoteURL,
+				remoteOptions: *makeTestAtmosCamoProxy().ConfigService.Config().ImageProxySettings.RemoteImageProxyOptions,
 			}
 
 			assert.Equal(t, test.Expected, backend.getAtmosCamoImageURL(test.Input))
 		})
 	}
-
 }

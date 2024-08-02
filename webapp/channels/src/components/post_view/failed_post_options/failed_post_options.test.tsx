@@ -5,8 +5,7 @@ import React from 'react';
 
 import FailedPostOptions from 'components/post_view/failed_post_options/failed_post_options';
 
-import {renderWithIntl, screen, userEvent} from 'tests/react_testing_utils';
-
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/FailedPostOptions', () => {
@@ -19,7 +18,7 @@ describe('components/post_view/FailedPostOptions', () => {
     };
 
     test('should match default component state', () => {
-        renderWithIntl(<FailedPostOptions {...baseProps}/>);
+        renderWithContext(<FailedPostOptions {...baseProps}/>);
 
         const retryLink = screen.getByText('Retry');
         const cancelLink = screen.getByText('Cancel');
@@ -44,7 +43,7 @@ describe('components/post_view/FailedPostOptions', () => {
             },
         };
 
-        renderWithIntl(<FailedPostOptions {...props}/>);
+        renderWithContext(<FailedPostOptions {...props}/>);
 
         const retryLink = screen.getByText('Retry');
 
@@ -66,7 +65,7 @@ describe('components/post_view/FailedPostOptions', () => {
             },
         };
 
-        renderWithIntl(<FailedPostOptions {...props}/>);
+        renderWithContext(<FailedPostOptions {...props}/>);
 
         const cancelLink = screen.getByText('Cancel');
 

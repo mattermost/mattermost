@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useState} from 'react';
+import {useSelector} from 'react-redux';
 
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
-
 import * as TextFormatting from 'utils/text_formatting';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     code: string;
@@ -59,18 +61,47 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
     // search term highlighting and overlap them
     const [content, setContent] = useState(TextFormatting.sanitizeHtml(code));
     useEffect(() => {
-        SyntaxHighlighting.highlight(usedLanguage, code).then((content) => setContent(content));
+        let shouldSetContent = true;
+
+        SyntaxHighlighting.highlight(usedLanguage, code).then((content) => {
+            // Ensure the component is still mounted and that usedLanguage and code haven't changed to prevent two
+            // highlight calls from racing
+            if (shouldSetContent) {
+                setContent(content);
+            }
+        });
+
+        return () => {
+            shouldSetContent = false;
+        };
     }, [usedLanguage, code]);
 
     let htmlContent = content;
     if (searchedContent) {
-        htmlContent = `${searchedContent} ${content}`;
+        htmlContent = searchedContent + content;
     }
+
+    const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
+    const pluginItems = codeBlockActions?.
+        map((item) => {
+            if (!item.component) {
+                return null;
+            }
+
+            const Component = item.component as any;
+            return (
+                <Component
+                    key={item.id}
+                    code={code}
+                />
+            );
+        });
 
     return (
         <div className={className}>
             <div className='post-code__overlay'>
                 <CopyButton content={code}/>
+                {pluginItems}
                 {header}
             </div>
             <div className='hljs'>

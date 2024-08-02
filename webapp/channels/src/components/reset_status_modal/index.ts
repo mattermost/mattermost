@@ -2,15 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
-import {GlobalState} from 'types/store/index.js';
-
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
-
-import {UserStatus} from '@mattermost/types/users';
-
-import {PreferenceType} from '@mattermost/types/preferences';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setStatus} from 'mattermost-redux/actions/users';
@@ -19,6 +12,8 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {autoResetStatus} from 'actions/user_actions';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import ResetStatusModal from './reset_status_modal';
 
@@ -30,15 +25,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    autoResetStatus: () => Promise<{data: UserStatus}>;
-    setStatus: (status: UserStatus) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => void;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             autoResetStatus,
             setStatus,
             savePreferences,

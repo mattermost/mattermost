@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {TestHelper} from 'utils/test_helper';
+import React from 'react';
 
 import FileAttachment from 'components/file_attachment';
 import SingleImageView from 'components/single_image_view';
+
+import {TestHelper} from 'utils/test_helper';
 
 import FileAttachmentList from './file_attachment_list';
 

@@ -6,46 +6,48 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (api *API) InitUserLocal() {
-	api.BaseRoutes.Users.Handle("", api.APILocal(localGetUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("", api.APILocal(localPermanentDeleteAllUsers)).Methods("DELETE")
-	api.BaseRoutes.Users.Handle("", api.APILocal(createUser)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/password/reset/send", api.APILocal(sendPasswordReset)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/ids", api.APILocal(localGetUsersByIds)).Methods("POST")
+	api.BaseRoutes.Users.Handle("", api.APILocal(localGetUsers)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("", api.APILocal(localPermanentDeleteAllUsers)).Methods(http.MethodDelete)
+	api.BaseRoutes.Users.Handle("", api.APILocal(createUser)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/password/reset/send", api.APILocal(sendPasswordReset)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/ids", api.APILocal(localGetUsersByIds)).Methods(http.MethodPost)
 
-	api.BaseRoutes.User.Handle("", api.APILocal(localGetUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("", api.APILocal(updateUser)).Methods("PUT")
-	api.BaseRoutes.User.Handle("", api.APILocal(localDeleteUser)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("/roles", api.APILocal(updateUserRoles)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/mfa", api.APILocal(updateUserMfa)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/active", api.APILocal(updateUserActive)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/password", api.APILocal(updatePassword)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/convert_to_bot", api.APILocal(convertUserToBot)).Methods("POST")
-	api.BaseRoutes.User.Handle("/email/verify/member", api.APILocal(verifyUserEmailWithoutToken)).Methods("POST")
-	api.BaseRoutes.User.Handle("/promote", api.APILocal(promoteGuestToUser)).Methods("POST")
-	api.BaseRoutes.User.Handle("/demote", api.APILocal(demoteUserToGuest)).Methods("POST")
+	api.BaseRoutes.User.Handle("", api.APILocal(localGetUser)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("", api.APILocal(updateUser)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("", api.APILocal(localDeleteUser)).Methods(http.MethodDelete)
+	api.BaseRoutes.User.Handle("/roles", api.APILocal(updateUserRoles)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/mfa", api.APILocal(updateUserMfa)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/active", api.APILocal(updateUserActive)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/password", api.APILocal(updatePassword)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/convert_to_bot", api.APILocal(convertUserToBot)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/email/verify/member", api.APILocal(verifyUserEmailWithoutToken)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/promote", api.APILocal(promoteGuestToUser)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/demote", api.APILocal(demoteUserToGuest)).Methods(http.MethodPost)
 
-	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods("GET")
-	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods("GET")
+	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods(http.MethodGet)
+	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APILocal(revokeUserAccessToken)).Methods("POST")
-	api.BaseRoutes.User.Handle("/tokens", api.APILocal(getUserAccessTokensForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/tokens", api.APILocal(createUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APILocal(revokeUserAccessToken)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/tokens", api.APILocal(getUserAccessTokensForUser)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/tokens", api.APILocal(createUserAccessToken)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APILocal(migrateAuthToLDAP)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APILocal(migrateAuthToSaml)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APILocal(migrateAuthToLDAP)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APILocal(migrateAuthToSaml)).Methods(http.MethodPost)
 
-	api.BaseRoutes.User.Handle("/uploads", api.APILocal(localGetUploadsForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/uploads", api.APILocal(localGetUploadsForUser)).Methods(http.MethodGet)
 }
 
 func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -85,7 +87,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("role")
 			return
 		}
-		roleValid := utils.StringInSlice(role, roleNamesAll)
+		roleValid := slices.Contains(roleNamesAll, role)
 		if !roleValid {
 			c.SetInvalidParam("role")
 			return
@@ -192,9 +194,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if inTeamId != "" {
 		if sort == "last_activity_at" {
-			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, c.Params.TeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else if sort == "create_at" {
-			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(c.AppContext, c.Params.TeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, "")
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
@@ -231,9 +233,11 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
+	userIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -245,15 +249,15 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, err := strconv.ParseInt(sinceString, 10, 64)
-		if err != nil {
-			c.SetInvalidParamWithErr("since", err)
+		since, parseErr := strconv.ParseInt(sinceString, 10, 64)
+		if parseErr != nil {
+			c.SetInvalidParamWithErr("since", parseErr)
 			return
 		}
 		options.Since = since
 	}
 
-	users, appErr := c.App.GetUsersByIds(userIds, options)
+	users, appErr := c.App.GetUsersByIds(userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return

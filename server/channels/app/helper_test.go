@@ -4,7 +4,11 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -46,7 +50,8 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, options []Option, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
+	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
@@ -59,8 +64,12 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+	if updateConfig != nil {
+		updateConfig(memoryConfig)
+	}
 	configStore.Set(memoryConfig)
 
 	buffer := &mlog.Buffer{}
@@ -99,7 +108,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
 	}
-	th.Context.SetLogger(testLogger)
+
+	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
@@ -127,17 +137,21 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		*cfg.PasswordSettings.Number = false
 	})
 
-	if enterprise {
-		th.App.Srv().SetLicense(model.NewTestLicense())
-	} else {
-		th.App.Srv().SetLicense(nil)
-	}
-
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
 
 	return th
+}
+
+func getLicense(enterprise bool, cfg *model.Config) *model.License {
+	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+	}
+	if enterprise {
+		return model.NewTestLicense()
+	}
+	return nil
 }
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
@@ -149,7 +163,31 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, options, tb)
+	return setupTestHelper(dbStore, false, true, nil, options, tb)
+}
+
+func SetupEnterprise(tb testing.TB, options ...Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, true, true, nil, options, tb)
+}
+
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, false, true, updateConfig, nil, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -159,16 +197,13 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	// Only boards migrations are applied
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 
-	return setupTestHelper(dbStore, false, true, nil, tb)
+	return setupTestHelper(dbStore, false, true, nil, nil, tb)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	setupOptions := []Option{SkipProductsInitialization()}
-	th := setupTestHelper(mockStore, false, false, setupOptions, tb)
+	th := setupTestHelper(mockStore, false, false, nil, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -189,8 +224,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	setupOptions := []Option{SkipProductsInitialization()}
-	th := setupTestHelper(mockStore, true, false, setupOptions, tb)
+	th := setupTestHelper(mockStore, true, false, nil, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -212,7 +246,7 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, true, true, []Option{SetCluster(cluster)}, tb)
+	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
 var initBasicOnce sync.Once
@@ -256,9 +290,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) DeleteBots() *TestHelper {
-	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
+	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(bot.UserId)
+		th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	}
 	return th
 }
@@ -376,7 +410,7 @@ func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(c, &model.SharedChannel{
+		_, err := th.App.ShareChannel(c, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -725,4 +759,25 @@ func NewTestId() string {
 
 func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 	return th.App.NewPluginAPI(th.Context, manifest)
+}
+
+func decodeJSON[T any](o any, result *T) *T {
+	var r io.Reader
+	switch v := o.(type) {
+	case string:
+		r = strings.NewReader(v)
+	case []byte:
+		r = bytes.NewReader(v)
+	case io.Reader:
+		r = v
+	default:
+		panic(fmt.Sprintf("Unable to decode JSON from %T (%v)", v, v))
+	}
+
+	err := json.NewDecoder(r).Decode(result)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }

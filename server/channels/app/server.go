@@ -28,21 +28,26 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
@@ -54,15 +59,15 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_post_stats"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
@@ -107,11 +112,10 @@ type Server struct {
 	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
+	outgoingWebhookClient  *http.Client
 
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
-
-	licenseWrapper *licenseWrapper
 
 	timezones *timezones.Timezones
 
@@ -135,20 +139,16 @@ type Server struct {
 
 	Audit *audit.Audit
 
-	joinCluster bool
-	// startSearchEngine bool
+	joinCluster  bool
 	skipPostInit bool
 
-	Cloud einterfaces.CloudInterface
+	Cloud                   einterfaces.CloudInterface
+	IPFiltering             einterfaces.IPFilteringInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 
 	tracer *tracing.Tracer
 
-	skipProductsInit bool
-
-	products map[string]product.Product
-	services map[product.ServiceKey]any
-
-	hooksManager *product.HooksManager
+	ch *Channels
 }
 
 func (s *Server) Store() store.Store {
@@ -173,8 +173,6 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
-		products:    make(map[string]product.Product),
-		services:    make(map[product.ServiceKey]any),
 	}
 
 	for _, option := range options {
@@ -222,15 +220,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
-	}
-
-	s.licenseWrapper = &licenseWrapper{
-		srv: s,
-	}
-
 	s.teamService, err = teams.New(teams.ServiceConfig{
 		TeamStore:    s.Store().Team(),
 		ChannelStore: s.Store().Channel(),
@@ -244,53 +233,25 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	s.hooksManager = product.NewHooksManager(s.GetMetrics())
-
-	// ensure app implements `product.UserService`
-	var _ product.UserService = (*App)(nil)
-
-	app := New(ServerConnector(s.Channels()))
-	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                s,
-		product.ConfigKey:        s.platform,
-		product.LicenseKey:       s.licenseWrapper,
-		product.FilestoreKey:     s.platform.FileBackend(),
-		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		product.ClusterKey:       s.platform,
-		product.UserKey:          app,
-		product.LogKey:           s.platform.Log(),
-		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:       s.platform,
-		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:        &systemServiceAdapter{server: s},
-		product.SessionKey:       app,
-		product.FrontendKey:      app,
-		product.CommandKey:       app,
-	}
-
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
-	s.platform.Start()
+	s.platform.Start(s.makeBroadcastHooks())
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
 
-	// Step 5: Initialize products.
+	// Step 5: Initialize channels.
 	// Depends on s.httpService, and depends on the hub to be initialized.
 	// Otherwise we run into race conditions.
-	err = s.initializeProducts(product.GetProducts(), serviceMap)
+	channels, err := NewChannels(s)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize products")
+		return nil, errors.Wrap(err, "failed to initialize channels")
 	}
-	s.services = serviceMap
+	s.ch = channels
 
 	// After channel is initialized set it to the App object
-	channelsWrapper, ok := serviceMap[product.ChannelKey].(*channelsWrapper)
-	if !ok {
-		return nil, errors.Wrap(err, "channels product is not initialized")
-	}
-	app.ch = channelsWrapper.app.ch
+	app := New(ServerConnector(channels))
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -336,6 +297,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
+	s.outgoingWebhookClient = s.httpService.MakeClient(false)
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -361,7 +323,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
+		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
 	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
 	if err2 != nil {
@@ -397,6 +359,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.initJobs()
 
+	if ipFilteringInterface != nil {
+		s.IPFiltering = ipFilteringInterface(app)
+	}
+
+	if outgoingOauthConnectionInterface != nil {
+		s.OutgoingOAuthConnection = outgoingOauthConnectionInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
@@ -422,6 +392,11 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
+	isTrial := false
+	if licence := s.License(); licence != nil {
+		isTrial = licence.IsTrial
+	}
+
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
@@ -433,7 +408,11 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		mlog.Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
@@ -495,12 +474,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.runEssentialJobs {
-		s.Go(func() {
-			appInstance := New(ServerConnector(s.Channels()))
-			s.runLicenseExpirationCheckJob()
-			runDNDStatusExpireJob(appInstance)
-			runPostReminderJob(appInstance)
-		})
 		s.runJobs()
 	}
 
@@ -518,10 +491,19 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	app.initElasticsearchChannelIndexCheck()
+
 	return s, nil
 }
 
 func (s *Server) runJobs() {
+	s.runLicenseExpirationCheckJob()
+
+	s.Go(func() {
+		appInstance := New(ServerConnector(s.Channels()))
+		runDNDStatusExpireJob(appInstance)
+		runPostReminderJob(appInstance)
+	})
 	s.Go(func() {
 		runSecurityJob(s)
 	})
@@ -548,6 +530,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runConfigCleanupJob(s)
+	})
+	s.Go(func() {
+		runCloudUserCountReportJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -578,8 +563,7 @@ func (s *Server) AppOptions() []AppOption {
 }
 
 func (s *Server) Channels() *Channels {
-	ch, _ := s.products["channels"].(*Channels)
-	return ch
+	return s.ch
 }
 
 // Return Database type (postgres or mysql) and current version of the schema
@@ -609,8 +593,8 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	var err error
-
-	rcs, err := remotecluster.NewRemoteClusterService(s)
+	appInstance := New(ServerConnector(s.Channels()))
+	rcs, err := remotecluster.NewRemoteClusterService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -637,8 +621,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	appInstance := New(ServerConnector(s.Channels()))
-	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
+	scs, err := sharedchannel.NewSharedChannelService(s, s.Platform(), appInstance)
 	if err != nil {
 		return err
 	}
@@ -753,13 +736,11 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	// Stop products.
-	// This needs to happen last because products are dependent
+	// Stop channels.
+	// This needs to happen last because channels are dependent
 	// on parent services.
-	for name, product := range s.products {
-		if err2 := product.Stop(); err2 != nil {
-			s.Log().Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
-		}
+	if err = s.Channels().Stop(); err != nil {
+		s.Log().Warn("Unable to cleanly stop channels", mlog.Err(err))
 	}
 
 	if err = s.platform.Shutdown(); err != nil {
@@ -857,20 +838,10 @@ func stripPort(hostport string) string {
 }
 
 func (s *Server) Start() error {
-	// Start products.
-	// This needs to happen before because products are dependent on the HTTP server.
-
-	// make sure channels starts first
-	if err := s.products["channels"].Start(); err != nil {
+	// Start channels.
+	// This needs to happen before because channels is dependent on the HTTP server.
+	if err := s.Channels().Start(); err != nil {
 		return errors.Wrap(err, "Unable to start channels")
-	}
-	for name, product := range s.products {
-		if name == "channels" {
-			continue
-		}
-		if err := product.Start(); err != nil {
-			return errors.Wrapf(err, "Unable to start %s", name)
-		}
 	}
 
 	if s.joinCluster && s.platform.Cluster() != nil {
@@ -1033,7 +1004,6 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -1268,6 +1238,13 @@ func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
 
+// Reports activated user count to the CWS every 24 hours
+func runCloudUserCountReportJob(s *Server) {
+	model.CreateRecurringTask("Report user count for cloud subscription", func() {
+		s.doReportUserCountForCloudSubscriptionJob()
+	}, time.Hour*24)
+}
+
 func doTokenCleanup(s *Server) {
 	expiry := model.GetMillis() - model.MaxTokenExipryTime
 
@@ -1331,16 +1308,6 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
-	if appErr != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
-	if err != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	// we want to at least have one email sent out to an admin
 	countNotOks := 0
 
@@ -1350,13 +1317,10 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 			name = user.Username
 		}
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaTitle := T("api.templates.license_up_for_renewal_subtitle_two")
-		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsRenewable {
-			ctaTitle = ""
-			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
-			ctaLink = "https://mattermost.com/contact-sales/"
-		}
+
+		ctaTitle := ""
+		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
+		ctaLink := "https://mattermost.com/contact-sales/"
 
 		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, ctaTitle, ctaLink, ctaText, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
@@ -1381,6 +1345,26 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	return nil
 }
 
+func (s *Server) doReportUserCountForCloudSubscriptionJob() {
+	s.LoadLicense()
+
+	if !s.License().IsCloud() {
+		return
+	}
+
+	mlog.Debug("Reporting daily user count for cloud subscription.")
+
+	appInstance := New(ServerConnector(s.Channels()))
+
+	_, err := appInstance.SendSubscriptionHistoryEvent("")
+
+	if err != nil {
+		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
+	}
+
+	mlog.Debug("Daily user count reported for cloud subscription.")
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 
@@ -1400,7 +1384,6 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
 		return
 	}
 
@@ -1423,18 +1406,6 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
-	if appErr != nil {
-		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr).Error())
-		return
-	}
-
-	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
-	if err != nil {
-		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err).Error())
-		return
-	}
-
 	//send email to admin(s)
 	for _, user := range users {
 		user := user
@@ -1444,11 +1415,8 @@ func (s *Server) doLicenseExpirationCheck() {
 		}
 
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaText := T("api.templates.remove_expired_license.body.renew_button")
-		if !status.IsRenewable {
-			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
-			ctaLink = "https://mattermost.com/contact-sales/"
-		}
+		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
+		ctaLink := "https://mattermost.com/contact-sales/"
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
@@ -1465,7 +1433,6 @@ func (s *Server) doLicenseExpirationCheck() {
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, siteURL string) *model.AppError {
-
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1475,6 +1442,10 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, 
 
 func (s *Server) FileBackend() filestore.FileBackend {
 	return s.platform.FileBackend()
+}
+
+func (s *Server) ExportFileBackend() filestore.FileBackend {
+	return s.platform.ExportFileBackend()
 }
 
 func (s *Server) TotalWebsocketConnections() int {
@@ -1490,7 +1461,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics())
+	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics(), s.Log())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1510,11 +1481,6 @@ func (s *Server) initJobs() {
 	if jobsElasticsearchIndexerInterface != nil {
 		builder := jobsElasticsearchIndexerInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
-	}
-
-	if jobsElasticsearchFixChannelIndexInterface != nil {
-		builder := jobsElasticsearchFixChannelIndexInterface(s)
-		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
 	}
 
 	if jobsLdapSyncInterface != nil {
@@ -1563,6 +1529,21 @@ func (s *Server) initJobs() {
 		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		import_delete.MakeScheduler(s.Jobs),
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeS3PathMigration,
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteEmptyDraftsMigration,
+		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteOrphanDraftsMigration,
+		delete_orphan_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
@@ -1638,9 +1619,26 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
-		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
+		cleanup_desktop_tokens.MakeWorker(s.Jobs),
 		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeRefreshPostStats,
+		refresh_post_stats.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportUsersToCSV,
+		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteDmsPreferencesMigration,
+		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
 
 	s.platform.Jobs = s.Jobs
 }
@@ -1713,7 +1711,7 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 		return img, false, nil
 	}
 
-	path := "users/" + user.Id + "/profile.png"
+	path := getProfileImagePath(user.Id)
 
 	data, err := s.ReadFile(path)
 	if err != nil {
@@ -1792,15 +1790,19 @@ func runDNDStatusExpireJob(a *App) {
 
 func runPostReminderJob(a *App) {
 	if a.IsLeader() {
+		rctx := request.EmptyContext(a.Log())
 		withMut(&a.ch.postReminderMut, func() {
-			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+			fn := func() { a.CheckPostReminders(rctx) }
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
+			rctx := request.EmptyContext(a.Log())
 			withMut(&a.ch.postReminderMut, func() {
-				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+				fn := func() { a.CheckPostReminders(rctx) }
+				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)

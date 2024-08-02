@@ -2,26 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import styled from 'styled-components';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import styled from 'styled-components';
 
-import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {get as selectPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {get as selectPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
-
-import useGetUsage from 'components/common/hooks/useGetUsage';
+import AlertBanner from 'components/alert_banner';
 import useGetLimits from 'components/common/hooks/useGetLimits';
+import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
-import AlertBanner from 'components/alert_banner';
-import Tooltip from 'components/tooltip';
 
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
 import {asGBString} from 'utils/limits';
+
+import type {GlobalState} from 'types/store';
 
 interface FileLimitSnoozePreference {
     lastSnoozeTimestamp: number;
@@ -147,19 +146,13 @@ function FileLimitStickyBanner() {
             />
         );
 
-    const tooltip = (
-        <Tooltip id='file_limit_banner_snooze'>
-            {formatMessage({id: 'create_post.file_limit_sticky_banner.snooze_tooltip', defaultMessage: 'Snooze for {snoozeDays} days'}, {snoozeDays: snoozeCoolOffDays})}
-        </Tooltip>
-    );
-
     return (
         <StyledDiv id='cloud_file_limit_banner'>
             <AlertBanner
                 mode={'warning'}
                 variant={'app'}
                 onDismiss={snoozeBanner}
-                closeBtnTooltip={tooltip}
+                closeBtnTooltip={formatMessage({id: 'create_post.file_limit_sticky_banner.snooze_tooltip', defaultMessage: 'Snooze for {snoozeDays} days'}, {snoozeDays: snoozeCoolOffDays})}
                 title={title}
                 message={isAdmin ? adminMessage : nonAdminMessage}
             />

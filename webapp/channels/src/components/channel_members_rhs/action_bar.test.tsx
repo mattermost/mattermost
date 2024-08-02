@@ -3,10 +3,11 @@
 
 import React from 'react';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
-import ActionBar, {Props} from './action_bar';
+import ActionBar from './action_bar';
+import type {Props} from './action_bar';
 
 describe('channel_members_rhs/action_bar', () => {
     const actionBarDefaultProps: Props = {
@@ -32,7 +33,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should display the members count', () => {
         const testProps: Props = {...actionBarDefaultProps};
 
-        renderWithIntl(
+        renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -44,7 +45,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should display Add button', () => {
         const testProps: Props = {...actionBarDefaultProps};
 
-        renderWithIntl(
+        renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -58,7 +59,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should not display Add button to members', () => {
         const testProps: Props = {...actionBarDefaultProps, canManageMembers: false};
 
-        renderWithIntl(
+        renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -70,7 +71,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should display Manage', () => {
         const testProps: Props = {...actionBarDefaultProps};
 
-        renderWithIntl(
+        renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -87,7 +88,7 @@ describe('channel_members_rhs/action_bar', () => {
             editing: true,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -101,7 +102,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should not display manage button to members', () => {
         const testProps: Props = {...actionBarDefaultProps, canManageMembers: false};
 
-        renderWithIntl(
+        renderWithContext(
             <ActionBar
                 {...testProps}
             />,

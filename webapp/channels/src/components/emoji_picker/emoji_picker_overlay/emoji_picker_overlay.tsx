@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {Overlay} from 'react-bootstrap';
 import memoize from 'memoize-one';
+import React from 'react';
+import type {ComponentProps, ReactNode} from 'react';
+import {Overlay} from 'react-bootstrap';
 
-import {popOverOverlayPosition} from 'utils/position_utils';
+import type {Emoji} from '@mattermost/types/emojis';
+
 import {Constants} from 'utils/constants';
-
-import {Emoji} from '@mattermost/types/emojis';
+import {popOverOverlayPosition} from 'utils/position_utils';
 
 import EmojiPickerTabs from '../emoji_picker_tabs';
 
@@ -19,9 +20,11 @@ export interface Props extends PropsFromRedux {
     target: () => ReactNode;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
+    onAddCustomEmojiClick?: () => void;
     onHide: () => void;
     onExited?: () => void;
     show: boolean;
+    placement?: ComponentProps<typeof Overlay>['placement'];
     topOffset?: number;
     rightOffset?: number;
     leftOffset?: number;
@@ -69,7 +72,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
 
     getPlacement = memoize((target, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show) => {
         if (!show) {
-            return 'top';
+            return 'top' as const;
         }
 
         if (target) {
@@ -77,7 +80,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
             return popOverOverlayPosition(targetBounds, window.innerHeight, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition);
         }
 
-        return 'top';
+        return 'top' as const;
     });
 
     render() {
@@ -88,7 +91,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
         return (
             <Overlay
                 show={show}
-                placement={placement}
+                placement={this.props.placement ?? placement}
                 rootClose={!isMobileView}
                 container={this.props.container}
                 onHide={this.props.onHide}
@@ -104,6 +107,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
                     rightOffset={calculatedRightOffset}
                     topOffset={this.props.topOffset}
                     leftOffset={this.props.leftOffset}
+                    onAddCustomEmojiClick={this.props.onAddCustomEmojiClick}
                 />
             </Overlay>
         );

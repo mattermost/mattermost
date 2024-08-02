@@ -30,7 +30,7 @@ describe('ConfirmModalRedux', () => {
         wrapper.find('#confirmModalButton').simulate('click');
 
         expect(wrapper.find(Modal).prop('show')).toBe(false);
-    }, 1000);
+    }, 5000);
 
     test('should call onExited after cancelling', (done) => {
         baseProps.onExited.mockImplementation(() => done());
@@ -47,5 +47,5 @@ describe('ConfirmModalRedux', () => {
         wrapper.find('#cancelModalButton').simulate('click');
 
         expect(wrapper.find(Modal).prop('show')).toBe(false);
-    }, 1000);
+    }, 5000);
 });

@@ -59,13 +59,13 @@ describe('Keyboard Shortcuts', () => {
             });
 
             // # Verify that we are in the test channel
-            cy.get('#channelIntro').contains('.channel-intro__title', `Beginning of ${testChannel.display_name}`).should('be.visible');
+            cy.get('#channelIntro').contains('.channel-intro__title', `${testChannel.display_name}`).should('be.visible');
 
             // # Verify that the right channel is displayed in LHS
             cy.uiGetLhsSection('CHANNELS').findByText(testChannel.display_name).should('be.visible');
 
             // # Verify that the current user(sysadmin) created the channel
-            cy.get('#channelIntro').contains('.channel-intro__content', `This is the start of the ${testChannel.display_name} channel, created by sysadmin`).should('be.visible');
+            cy.get('#channelIntro').contains('.channel-intro__created', 'Public channel created by sysadmin').should('be.visible');
         });
     });
 

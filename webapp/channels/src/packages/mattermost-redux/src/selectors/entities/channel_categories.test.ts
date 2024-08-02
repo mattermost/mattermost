@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {MarkUnread} from 'mattermost-redux/constants/channels';
-
-import mergeObjects from '../../../test/merge_objects';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import TestHelper from '../../../test/test_helper';
 
 import * as Selectors from './channel_categories';
+
+import mergeObjects from '../../../test/merge_objects';
+import TestHelper from '../../../test/test_helper';
 
 const ch = TestHelper.getChannelMock;
 
@@ -1385,35 +1384,6 @@ describe('makeGetChannelsByCategory', () => {
             const result = getChannelsByCategory(state, 'team1');
 
             expect(result).toBe(previousResult);
-        });
-
-        test('should return a new object when user profiles change', () => {
-            // This behaviour isn't ideal, but it's better than the previous version which returns a new object
-            // whenever anything user-related changes
-            const getChannelsByCategory = Selectors.makeGetChannelsByCategory();
-
-            const state = mergeObjects(baseState, {
-                entities: {
-                    users: {
-                        profiles: {
-                            newUser: {id: 'newUser'},
-                        },
-                    },
-                },
-            });
-
-            const previousResult = getChannelsByCategory(baseState, 'team1');
-            const result = getChannelsByCategory(state, 'team1');
-
-            expect(result).not.toBe(previousResult);
-            expect(result).toEqual(previousResult);
-
-            // Categories not containing DMs/GMs and sorted alphabetically should still remain the same
-            expect(result.favoritesCategory).not.toBe(previousResult.favoritesCategory);
-            expect(result.favoritesCategory).toEqual(previousResult.favoritesCategory);
-            expect(result.channelsCategory).toBe(previousResult.channelsCategory);
-            expect(result.directMessagesCategory).toEqual(previousResult.directMessagesCategory);
-            expect(result.directMessagesCategory).toEqual(previousResult.directMessagesCategory);
         });
 
         test('should return the same object when other user state changes', () => {

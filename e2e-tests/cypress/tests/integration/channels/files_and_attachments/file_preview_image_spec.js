@@ -103,6 +103,18 @@ describe('Upload Files - Image', () => {
 
         testImage(properties);
     });
+
+    it('MM-T2264_7 - WEBP', () => {
+        const properties = {
+            filePath: 'mm_file_testing/Images/WEBP.webp',
+            fileName: 'WEBP.webp',
+            originalWidth: 640,
+            originalHeight: 426,
+            mimeType: 'image/webp',
+        };
+
+        testImage(properties);
+    });
 });
 
 function testImage(properties) {

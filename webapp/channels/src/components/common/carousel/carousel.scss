@@ -4,7 +4,7 @@
     width: 100%;
     min-width: 400px;
     height: 100%;
-    min-height: 400px;
+    min-height: 450px;
 
     @media screen and (max-width: 700px) {
         .container-slider {
@@ -57,11 +57,12 @@
     .container-footer {
         position: absolute;
         z-index: 2;
-        bottom: 3%;
+        bottom: 0;
         display: flex;
         width: 100%;
         align-items: center;
         justify-content: flex-start;
+        padding: 24px 0;
 
         .container-buttons {
             margin-left: auto;
@@ -97,9 +98,9 @@
             .dot {
                 width: 8px;
                 height: 8px;
+                border-radius: 50%;
                 margin: 0 5px;
                 background: rgba(var(--button-bg-rgb), 0.25);
-                border-radius: 50%;
             }
 
             .dot.active {

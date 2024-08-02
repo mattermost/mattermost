@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -79,7 +79,7 @@ func (cfg *AutoPostCreator) CreateRandomPost(c request.CTX) (*model.Post, error)
 	return cfg.CreateRandomPostNested(c, "")
 }
 
-func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootId string) (*model.Post, error) {
+func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootID string) (*model.Post, error) {
 	var fileIDs []string
 	if cfg.HasImage {
 		var err error
@@ -99,7 +99,7 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootId string)
 	post := &model.Post{
 		ChannelId: cfg.channelid,
 		UserId:    cfg.userid,
-		RootId:    rootId,
+		RootId:    rootID,
 		Message:   postText,
 		FileIds:   fileIDs,
 	}

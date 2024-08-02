@@ -145,13 +145,14 @@ func TestSyncLdap(t *testing.T) {
 	ldapMock := &mocks.LdapInterface{}
 	mockCall := ldapMock.On(
 		"StartSynchronizeJob",
+		mock.AnythingOfType("*request.Context"),
 		mock.AnythingOfType("bool"),
 		mock.AnythingOfType("bool"),
 	).Return(nil, nil)
 	ready := make(chan bool)
 	includeRemovedMembers := false
 	mockCall.RunFn = func(args mock.Arguments) {
-		includeRemovedMembers = args[1].(bool)
+		includeRemovedMembers = args[2].(bool)
 		ready <- true
 	}
 	th.App.Channels().Ldap = ldapMock
@@ -298,14 +299,38 @@ func TestAddUserToGroupSyncables(t *testing.T) {
 	id := model.NewId()
 	user := &model.User{
 		Email:       "test@localhost",
-		Username:    model.NewId(),
+		Username:    model.NewUsername(),
 		AuthData:    &id,
 		AuthService: model.UserAuthServiceLdap,
 	}
-	user, err = th.App.Srv().Store().User().Save(user)
+	user, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
 
 	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(context.Background(), user.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
+
+	t.Run("should sync SAML users when SamlSettings.EnableSyncWithLdap is true", func(t *testing.T) {
+		id = model.NewId()
+		user = &model.User{
+			Email:       "test123@localhost",
+			Username:    model.NewUsername(),
+			AuthData:    &id,
+			AuthService: model.UserAuthServiceSaml,
+		}
+		user, err = th.App.Srv().Store().User().Save(th.Context, user)
+		require.NoError(t, err)
+
+		resp, err = th.Client.AddUserToGroupSyncables(context.Background(), user.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SamlSettings.EnableSyncWithLdap = true
+		})
+
+		resp, err = th.SystemAdminClient.AddUserToGroupSyncables(context.Background(), user.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }

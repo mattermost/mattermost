@@ -2,23 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+import {CSSTransition} from 'react-transition-group';
+import styled from 'styled-components';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
-
+import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 
 import completedImg from 'images/completed.svg';
-import ExternalLink from 'components/external_link';
+import {AboutLinks, LicenseLinks} from 'utils/constants';
 
 const CompletedWrapper = styled.div`
     display: flex;
@@ -72,7 +70,7 @@ const CompletedWrapper = styled.div`
 
     .start-trial-text, .completed-subtitle {
         font-size: 14px !important;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         line-height: 20px;
     }
 
@@ -83,7 +81,7 @@ const CompletedWrapper = styled.div`
     .disclaimer, .download-apps {
         width: 90%;
         margin-top: 15px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: "Open Sans";
         font-style: normal;
         font-weight: normal;
@@ -142,21 +140,15 @@ const Completed = (props: Props): JSX.Element => {
     const isCurrentLicensed = license?.IsLicensed;
 
     // Cloud conditions
-    const subscription = useSelector((state: GlobalState) => state.entities.cloud.subscription);
     const isCloud = license?.Cloud === 'true';
-    const isFreeTrial = subscription?.is_free_trial === 'true';
-    const hadPrevCloudTrial = subscription?.is_free_trial === 'false' && subscription?.trial_end_at > 0;
-    const isPaidSubscription = isCloud && license?.SkuShortName !== LicenseSkus.Starter && !isFreeTrial;
 
     // Show this CTA if the instance is currently not licensed and has never had a trial license loaded before
     // also check that the user is a system admin (this after the onboarding task list is shown to all users)
     const selfHostedTrialCondition = (isCurrentLicensed === 'false' && isPrevLicensed === 'false') &&
-    (props.isCurrentUserSystemAdmin || props.isFirstAdmin);
+        (props.isCurrentUserSystemAdmin || props.isFirstAdmin);
 
-    // if Cloud, show if not in trial and had never been on trial
-    const cloudTrialCondition = isCloud && !isFreeTrial && !hadPrevCloudTrial && !isPaidSubscription;
-
-    const showStartTrialBtn = selfHostedTrialCondition || cloudTrialCondition;
+    // if Cloud, don't show
+    const showStartTrialBtn = selfHostedTrialCondition && !isCloud;
 
     const {formatMessage} = useIntl();
 
@@ -197,20 +189,11 @@ const Completed = (props: Props): JSX.Element => {
                                     defaultMessage='Start your free Enterprise trial now!'
                                 />
                             </span>
-                            {isCloud ? (
-                                <CloudStartTrialButton
-                                    message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
-                                    telemetryId={'start_cloud_trial_after_completing_steps'}
-                                    extraClass={'btn btn-primary'}
-                                    afterTrialRequest={dismissAction}
-                                />
-                            ) : (
-                                <StartTrialBtn
-                                    message={formatMessage({id: 'start_trial.modal_btn.start_free_trial', defaultMessage: 'Start free 30-day trial'})}
-                                    telemetryId='start_trial_from_onboarding_completed_task'
-                                    onClick={dismissAction}
-                                />
-                            )}
+                            <StartTrialBtn
+                                message={formatMessage({id: 'start_trial.modal_btn.start_free_trial', defaultMessage: 'Start free 30-day trial'})}
+                                telemetryId='start_trial_from_onboarding_completed_task'
+                                onClick={dismissAction}
+                            />
                             <button
                                 onClick={dismissAction}
                                 className={'no-thanks-link style-link'}

@@ -45,23 +45,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            shared_channels, err := Client.GetAllSharedChannels(teamID, 0, 100)
-        - lang: curl
-          source: |
-            curl -X POST \
-              'http://your-mattermost-url.com/api/v4/sharedchannels/4xp9fdt77pncbef59f4k1qe83o' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
-
   "/api/v4/sharedchannels/remote_info/{remote_id}":
     get:
       tags:
@@ -97,20 +80,3 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            remoteID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            info, err := Client.GetRemoteClusterInfo(remoteID)
-        - lang: curl
-          source: |
-            curl -X POST \
-              'http://your-mattermost-url.com/api/v4/sharedchannels/getremote/4xp9fdt77pncbef59f4k1qe83o' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
-

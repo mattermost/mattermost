@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {intersection, isPlainObject, zipObject} from 'lodash';
+import intersection from 'lodash/intersection';
+import isPlainObject from 'lodash/isPlainObject';
+import zipObject from 'lodash/zipObject';
 
 /**
  * Transform a function with multiple args into one that receives a normalized args object.

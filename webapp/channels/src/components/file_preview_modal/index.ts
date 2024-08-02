@@ -4,18 +4,19 @@
 import React from 'react';
 import {connect} from 'react-redux';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {makeAsyncComponent} from 'components/async_load';
-
-import {Post} from '@mattermost/types/posts';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
-import {FilePreviewComponent} from 'types/store/plugins';
+import {makeAsyncComponent} from 'components/async_load';
 
 import {canDownloadFiles} from 'utils/file_utils';
+
+import type {GlobalState} from 'types/store';
+import type {FilePreviewComponent} from 'types/store/plugins';
 
 import type {Props} from './file_preview_modal';
 

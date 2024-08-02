@@ -12,7 +12,7 @@ import (
 
 const schedFreq = 10 * time.Minute
 
-func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}

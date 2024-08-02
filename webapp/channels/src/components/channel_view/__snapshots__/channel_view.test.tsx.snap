@@ -13,8 +13,10 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     channelIsArchived={true}
     deactivatedChannel={false}
     enableOnboardingFlow={true}
+    enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -69,8 +71,10 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     channelIsArchived={false}
     deactivatedChannel={true}
     enableOnboardingFlow={true}
+    enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -124,8 +128,10 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     channelIsArchived={false}
     deactivatedChannel={false}
     enableOnboardingFlow={true}
+    enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -143,11 +149,10 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
   />
   <div
     className="post-create__container AdvancedTextEditor__ctr"
+    data-testid="post-create"
     id="post-create"
   >
-    <Connect(AdvancedCreatePost)
-      getChannelView={[Function]}
-    />
+    <Memo(AdvancedCreatePost) />
   </div>
 </div>
 `;

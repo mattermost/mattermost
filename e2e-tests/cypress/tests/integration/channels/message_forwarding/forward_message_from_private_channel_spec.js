@@ -23,9 +23,7 @@ describe('Forward Message', () => {
     const replyMessage = 'Forward this reply';
 
     before(() => {
-        // # Testing Forwarding from Insights view requires a license
         cy.apiRequireLicense();
-        cy.shouldHaveFeatureFlag('InsightsEnabled', true);
 
         cy.apiUpdateConfig({
             ServiceSettings: {
@@ -191,7 +189,7 @@ describe('Forward Message', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.cancel').should('not.be.disabled').click();
+                cy.get('.btn-tertiary').should('not.be.disabled').click();
             } else {
                 // * Assert if button is active
                 cy.get('.GenericModal__button.confirm').should('not.be.disabled').click();

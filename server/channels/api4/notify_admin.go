@@ -13,7 +13,7 @@ import (
 func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
+	if err != nil || notifyAdminRequest == nil {
 		c.SetInvalidParamWithErr("notifyAdminRequest", err)
 		return
 	}
@@ -36,7 +36,7 @@ func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Re
 
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
+	if err != nil || notifyAdminRequest == nil {
 		c.SetInvalidParamWithErr("notifyAdminRequest", err)
 		return
 	}

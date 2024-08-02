@@ -25,9 +25,21 @@ describe('Collapsed Reply Threads', () => {
         });
 
         // # Log in as user that hasn't had CRT enabled before
-        cy.apiInitSetup({loginAfter: true, promoteNewUserAsAdmin: true, userPrefix: 'tipbutton'}).then(({team, channel}) => {
+        cy.apiInitSetup({loginAfter: true, promoteNewUserAsAdmin: true, userPrefix: 'tipbutton'}).then(({team, channel, user}) => {
             testTeam = team;
             testChannel = channel;
+
+            cy.apiSaveUserPreference([{
+                user_id: user.id,
+                category: 'crt_thread_pane_step',
+                name: user.id,
+                value: '0',
+            }, {
+                user_id: user.id,
+                category: 'crt_tutorial_triggered',
+                name: user.id,
+                value: '0',
+            }], user.id);
 
             cy.apiCreateUser({prefix: 'other'}).then(({user: user1}) => {
                 otherUser = user1;

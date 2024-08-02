@@ -1,0 +1,21 @@
+.system-users-export__keyIndicator {
+    position: relative;
+    top: -6px;
+    right: 14px;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    align-self: flex-start;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--online-indicator, #3db887);
+
+    i {
+        color: var(--center-channel-bg, #fff);
+        font-size: 12px;
+
+        &::before {
+            margin: 0;
+        }
+    }
+}

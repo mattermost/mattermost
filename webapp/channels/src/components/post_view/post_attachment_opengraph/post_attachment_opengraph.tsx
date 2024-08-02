@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useRef} from 'react';
 import classNames from 'classnames';
-import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
-
+import React, {memo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
-import {
+import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
+import type {
     OpenGraphMetadata,
     OpenGraphMetadataImage,
     Post,
@@ -16,12 +15,12 @@ import {
 
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import Constants, {PostTypes} from 'utils/constants';
+import ExternalLink from 'components/external_link';
+import WithTooltip from 'components/with_tooltip';
+
+import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
 import {makeUrlSafe} from 'utils/url';
-import ExternalLink from 'components/external_link';
 
 import {getNearestPoint} from './get_nearest_point';
 
@@ -119,12 +118,6 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
         return actions.editPost(patchedPost);
     };
 
-    const removeButtonTooltip = (
-        <Tooltip id={`removeLinkPreview-${post.id}`}>
-            {formatMessage({id: 'link_preview.remove_link_preview', defaultMessage: 'Remove link preview'})}
-        </Tooltip>
-    );
-
     const safeLink = makeUrlSafe(openGraphData?.url || link);
 
     return (
@@ -136,10 +129,10 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             location='post_attachment_opengraph'
         >
             {rest.currentUserId === post.user_id && !isInPermalink && (
-                <OverlayTrigger
+                <WithTooltip
+                    id={`removeLinkPreview-${post.id}`}
                     placement='top'
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    overlay={removeButtonTooltip}
+                    title={formatMessage({id: 'link_preview.remove_link_preview', defaultMessage: 'Remove link preview'})}
                 >
                     <button
                         type='button'
@@ -153,7 +146,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
                             color={'currentColor'}
                         />
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             )}
             <PostAttachmentOpenGraphBody
                 isInPermalink={isInPermalink}

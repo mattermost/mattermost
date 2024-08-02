@@ -17,17 +17,19 @@ import (
 
 const (
 	EmojiMaxAutocompleteItems = 100
+	GetEmojisByNamesMax       = 200
 )
 
 func (api *API) InitEmoji() {
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods("GET")
-	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods("DELETE")
-	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods("GET")
-	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods(http.MethodGet)
+	api.BaseRoutes.Emojis.Handle("/names", api.APISessionRequired(getEmojisByNames)).Methods(http.MethodPost)
+	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods(http.MethodPost)
+	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods(http.MethodGet)
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods(http.MethodDelete)
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods(http.MethodGet)
+	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods(http.MethodGet)
+	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods(http.MethodGet)
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -44,7 +46,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(app.MaxEmojiFileSize); err != nil {
-		c.Err = model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -52,7 +54,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext, c.AppContext.Session().UserId, "", true)
 
 	if err != nil {
 		c.Err = err
@@ -144,7 +146,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("emoji")
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext, c.AppContext.Session().UserId, "", true)
 
 	if err != nil {
 		c.Err = err
@@ -221,6 +223,11 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
+		c.Err = model.NewAppError("getEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	emoji, err := c.App.GetEmojiByName(c.AppContext, c.Params.EmojiName)
 	if err != nil {
 		c.Err = err
@@ -228,6 +235,39 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emoji); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getEmojisByNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	names, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getEmojisByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(names) == 0 {
+		c.SetInvalidParam("names")
+		return
+	}
+
+	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
+		c.Err = model.NewAppError("getEmojisByNames", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if len(names) > GetEmojisByNamesMax {
+		c.Err = model.NewAppError("getEmojisByNames", "api.emoji.get_multiple_by_name_too_many.request_error", map[string]any{
+			"MaxNames": GetEmojisByNamesMax,
+		}, "", http.StatusBadRequest)
+		return
+	}
+
+	emojis, appErr := c.App.GetMultipleEmojiByName(c.AppContext, names)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(emojis); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

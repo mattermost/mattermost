@@ -5,7 +5,6 @@ package commands
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -48,7 +47,7 @@ func (s *MmctlE2ETestSuite) TestUploadLicenseCmdF() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	// create temporary file
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "testLicense-")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "testLicense-")
 	s.Require().NoError(err)
 
 	license := model.NewTestLicense()

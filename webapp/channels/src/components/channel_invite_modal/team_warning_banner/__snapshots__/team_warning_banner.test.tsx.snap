@@ -1,0 +1,1036 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with < 10 guest profiles 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(TeamWarningBanner)
+    guests={
+      Array [
+        Object {
+          "delete_at": 0,
+          "id": "user-0",
+          "label": "user-0",
+          "username": "user-0",
+          "value": "user-0",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-1",
+          "label": "user-1",
+          "username": "user-1",
+          "value": "user-1",
+        },
+      ]
+    }
+    teamId="team1"
+    users={Array []}
+  >
+    <AlertBanner
+      footerMessage={
+        Array [
+          <FormattedList
+            value={
+              Array [
+                <Memo(Connect(Component))
+                  mentionName="user-0"
+                />,
+                <Memo(Connect(Component))
+                  mentionName="user-1"
+                />,
+              ]
+            }
+          />,
+          " are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
+        ]
+      }
+      id="teamWarningBanner"
+      message={false}
+      mode="warning"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+          id="channel_invite.invite_team_members.title"
+          values={
+            Object {
+              "count": 2,
+            }
+          }
+        />
+      }
+      variant="app"
+    >
+      <div
+        className="AlertBanner warning AlertBanner--app"
+        data-testid="teamWarningBanner"
+      >
+        <div
+          className="AlertBanner__icon"
+        >
+          <AlertOutlineIcon
+            size={24}
+          >
+            <svg
+              fill="currentColor"
+              height={24}
+              version="1.1"
+              viewBox="0 0 24 24"
+              width={24}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.638,16.575L14.64,3.578C14.117,2.605,13.105,2,12,2S9.883,2.605,9.359,3.578L2.362,16.575c-0.505,0.939-0.481,2.046,0.065,2.962C2.974,20.453,3.937,21,5.003,21h13.994c1.066,0,2.029-0.547,2.575-1.463
+	C22.119,18.622,22.143,17.514,21.638,16.575z M18.995,18.998H5.001c-0.757,0-1.239-0.808-0.88-1.475l6.997-12.997
+	C11.307,4.175,11.652,4,11.998,4s0.691,0.175,0.88,0.526l6.997,12.997C20.234,18.19,19.752,18.998,18.995,18.998z M12.5,13h-1L11,7
+	h2L12.5,13z M12.999,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1C12.552,15,12.999,15.448,12.999,16z"
+              />
+            </svg>
+          </AlertOutlineIcon>
+        </div>
+        <div
+          className="AlertBanner__body"
+        >
+          <div
+            className="AlertBanner__title"
+          >
+            <FormattedMessage
+              defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+              id="channel_invite.invite_team_members.title"
+              values={
+                Object {
+                  "count": 2,
+                }
+              }
+            >
+              <span>
+                2 users were not selected because they are not a part of this team
+              </span>
+            </FormattedMessage>
+          </div>
+          <div
+            className="AlertBanner__footerMessage"
+          >
+            <FormattedList
+              key=".0"
+              value={
+                Array [
+                  <Memo(Connect(Component))
+                    mentionName="user-0"
+                  />,
+                  <Memo(Connect(Component))
+                    mentionName="user-1"
+                  />,
+                ]
+              }
+            >
+              <span>
+                <Connect(Component)
+                  key="user-0"
+                  mentionName="user-0"
+                >
+                  <Memo(AtMention)
+                    currentUserId="admin1"
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    mentionName="user-0"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(Component)>
+                 and 
+                <Connect(Component)
+                  key="user-1"
+                  mentionName="user-1"
+                >
+                  <Memo(AtMention)
+                    currentUserId="admin1"
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    mentionName="user-1"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(Component)>
+              </span>
+            </FormattedList>
+             are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
+          </div>
+        </div>
+      </div>
+    </AlertBanner>
+  </Memo(TeamWarningBanner)>
+</Provider>
+`;
+
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with < 10 profiles 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(TeamWarningBanner)
+    guests={Array []}
+    teamId="team1"
+    users={
+      Array [
+        Object {
+          "delete_at": 0,
+          "id": "user-0",
+          "label": "user-0",
+          "username": "user-0",
+          "value": "user-0",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-1",
+          "label": "user-1",
+          "username": "user-1",
+          "value": "user-1",
+        },
+      ]
+    }
+  >
+    <AlertBanner
+      footerMessage={false}
+      id="teamWarningBanner"
+      message={
+        Array [
+          "You can add ",
+          <FormattedList
+            value={
+              Array [
+                <Memo(Connect(Component))
+                  mentionName="user-0"
+                />,
+                <Memo(Connect(Component))
+                  mentionName="user-1"
+                />,
+              ]
+            }
+          />,
+          " to this channel once they are members of the ",
+          <strong>
+            Team Name Display
+          </strong>,
+          " team.",
+        ]
+      }
+      mode="warning"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+          id="channel_invite.invite_team_members.title"
+          values={
+            Object {
+              "count": 2,
+            }
+          }
+        />
+      }
+      variant="app"
+    >
+      <div
+        className="AlertBanner warning AlertBanner--app"
+        data-testid="teamWarningBanner"
+      >
+        <div
+          className="AlertBanner__icon"
+        >
+          <AlertOutlineIcon
+            size={24}
+          >
+            <svg
+              fill="currentColor"
+              height={24}
+              version="1.1"
+              viewBox="0 0 24 24"
+              width={24}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.638,16.575L14.64,3.578C14.117,2.605,13.105,2,12,2S9.883,2.605,9.359,3.578L2.362,16.575c-0.505,0.939-0.481,2.046,0.065,2.962C2.974,20.453,3.937,21,5.003,21h13.994c1.066,0,2.029-0.547,2.575-1.463
+	C22.119,18.622,22.143,17.514,21.638,16.575z M18.995,18.998H5.001c-0.757,0-1.239-0.808-0.88-1.475l6.997-12.997
+	C11.307,4.175,11.652,4,11.998,4s0.691,0.175,0.88,0.526l6.997,12.997C20.234,18.19,19.752,18.998,18.995,18.998z M12.5,13h-1L11,7
+	h2L12.5,13z M12.999,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1C12.552,15,12.999,15.448,12.999,16z"
+              />
+            </svg>
+          </AlertOutlineIcon>
+        </div>
+        <div
+          className="AlertBanner__body"
+        >
+          <div
+            className="AlertBanner__title"
+          >
+            <FormattedMessage
+              defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+              id="channel_invite.invite_team_members.title"
+              values={
+                Object {
+                  "count": 2,
+                }
+              }
+            >
+              <span>
+                2 users were not selected because they are not a part of this team
+              </span>
+            </FormattedMessage>
+          </div>
+          <div
+            className="AlertBanner__message"
+          >
+            You can add 
+            <FormattedList
+              key=".1"
+              value={
+                Array [
+                  <Memo(Connect(Component))
+                    mentionName="user-0"
+                  />,
+                  <Memo(Connect(Component))
+                    mentionName="user-1"
+                  />,
+                ]
+              }
+            >
+              <span>
+                <Connect(Component)
+                  key="user-0"
+                  mentionName="user-0"
+                >
+                  <Memo(AtMention)
+                    currentUserId="admin1"
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    mentionName="user-0"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(Component)>
+                 and 
+                <Connect(Component)
+                  key="user-1"
+                  mentionName="user-1"
+                >
+                  <Memo(AtMention)
+                    currentUserId="admin1"
+                    dispatch={[Function]}
+                    groupsByName={Object {}}
+                    mentionName="user-1"
+                    teammateNameDisplay="username"
+                    usersByUsername={Object {}}
+                  />
+                </Connect(Component)>
+              </span>
+            </FormattedList>
+             to this channel once they are members of the 
+            <strong
+              key=".3"
+            >
+              Team Name Display
+            </strong>
+             team.
+          </div>
+        </div>
+      </div>
+    </AlertBanner>
+  </Memo(TeamWarningBanner)>
+</Provider>
+`;
+
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with > 10 guest profiles 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(TeamWarningBanner)
+    guests={
+      Array [
+        Object {
+          "delete_at": 0,
+          "id": "user-0",
+          "label": "user-0",
+          "username": "user-0",
+          "value": "user-0",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-1",
+          "label": "user-1",
+          "username": "user-1",
+          "value": "user-1",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-2",
+          "label": "user-2",
+          "username": "user-2",
+          "value": "user-2",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-3",
+          "label": "user-3",
+          "username": "user-3",
+          "value": "user-3",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-4",
+          "label": "user-4",
+          "username": "user-4",
+          "value": "user-4",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-5",
+          "label": "user-5",
+          "username": "user-5",
+          "value": "user-5",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-6",
+          "label": "user-6",
+          "username": "user-6",
+          "value": "user-6",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-7",
+          "label": "user-7",
+          "username": "user-7",
+          "value": "user-7",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-8",
+          "label": "user-8",
+          "username": "user-8",
+          "value": "user-8",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-9",
+          "label": "user-9",
+          "username": "user-9",
+          "value": "user-9",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-10",
+          "label": "user-10",
+          "username": "user-10",
+          "value": "user-10",
+        },
+      ]
+    }
+    teamId="team1"
+    users={Array []}
+  >
+    <AlertBanner
+      footerMessage={
+        Array [
+          <Memo(Connect(Component))
+            mentionName="user-0"
+          />,
+          " and ",
+          <SimpleTooltip
+            content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+            id="usernames-overflow"
+          >
+            <span
+              className="add-others-link"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="{count} others"
+                id="channel_invite.invite_team_members.messageOthers"
+                values={
+                  Object {
+                    "count": 10,
+                  }
+                }
+              />
+            </span>
+          </SimpleTooltip>,
+          " are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
+        ]
+      }
+      id="teamWarningBanner"
+      message={false}
+      mode="warning"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+          id="channel_invite.invite_team_members.title"
+          values={
+            Object {
+              "count": 11,
+            }
+          }
+        />
+      }
+      variant="app"
+    >
+      <div
+        className="AlertBanner warning AlertBanner--app"
+        data-testid="teamWarningBanner"
+      >
+        <div
+          className="AlertBanner__icon"
+        >
+          <AlertOutlineIcon
+            size={24}
+          >
+            <svg
+              fill="currentColor"
+              height={24}
+              version="1.1"
+              viewBox="0 0 24 24"
+              width={24}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.638,16.575L14.64,3.578C14.117,2.605,13.105,2,12,2S9.883,2.605,9.359,3.578L2.362,16.575c-0.505,0.939-0.481,2.046,0.065,2.962C2.974,20.453,3.937,21,5.003,21h13.994c1.066,0,2.029-0.547,2.575-1.463
+	C22.119,18.622,22.143,17.514,21.638,16.575z M18.995,18.998H5.001c-0.757,0-1.239-0.808-0.88-1.475l6.997-12.997
+	C11.307,4.175,11.652,4,11.998,4s0.691,0.175,0.88,0.526l6.997,12.997C20.234,18.19,19.752,18.998,18.995,18.998z M12.5,13h-1L11,7
+	h2L12.5,13z M12.999,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1C12.552,15,12.999,15.448,12.999,16z"
+              />
+            </svg>
+          </AlertOutlineIcon>
+        </div>
+        <div
+          className="AlertBanner__body"
+        >
+          <div
+            className="AlertBanner__title"
+          >
+            <FormattedMessage
+              defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+              id="channel_invite.invite_team_members.title"
+              values={
+                Object {
+                  "count": 11,
+                }
+              }
+            >
+              <span>
+                11 users were not selected because they are not a part of this team
+              </span>
+            </FormattedMessage>
+          </div>
+          <div
+            className="AlertBanner__footerMessage"
+          >
+            <Connect(Component)
+              key=".$user-0"
+              mentionName="user-0"
+            >
+              <Memo(AtMention)
+                currentUserId="admin1"
+                dispatch={[Function]}
+                groupsByName={Object {}}
+                mentionName="user-0"
+                teammateNameDisplay="username"
+                usersByUsername={Object {}}
+              />
+            </Connect(Component)>
+             and 
+            <SimpleTooltip
+              content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+              id="usernames-overflow"
+              key=".2"
+            >
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={100}
+                overlay={
+                  <Tooltip
+                    className="hidden-xs"
+                    id="usernames-overflow"
+                    placement="top"
+                  >
+                    @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <OverlayTrigger
+                  defaultOverlayShown={false}
+                  delayShow={100}
+                  overlay={
+                    <OverlayWrapper
+                      className="hidden-xs"
+                      id="usernames-overflow"
+                      intl={
+                        Object {
+                          "$t": [Function],
+                          "defaultFormats": Object {},
+                          "defaultLocale": "en",
+                          "defaultRichTextElements": undefined,
+                          "fallbackOnEmptyString": true,
+                          "formatDate": [Function],
+                          "formatDateTimeRange": [Function],
+                          "formatDateToParts": [Function],
+                          "formatDisplayName": [Function],
+                          "formatList": [Function],
+                          "formatListToParts": [Function],
+                          "formatMessage": [Function],
+                          "formatNumber": [Function],
+                          "formatNumberToParts": [Function],
+                          "formatPlural": [Function],
+                          "formatRelativeTime": [Function],
+                          "formatTime": [Function],
+                          "formatTimeToParts": [Function],
+                          "formats": Object {},
+                          "formatters": Object {
+                            "getDateTimeFormat": [Function],
+                            "getDisplayNames": [Function],
+                            "getListFormat": [Function],
+                            "getMessageFormat": [Function],
+                            "getNumberFormat": [Function],
+                            "getPluralRules": [Function],
+                            "getRelativeTimeFormat": [Function],
+                          },
+                          "locale": "en",
+                          "messages": Object {},
+                          "onError": [Function],
+                          "onWarn": [Function],
+                          "textComponent": "span",
+                          "timeZone": "Etc/UTC",
+                          "wrapRichTextChunksInFragment": undefined,
+                        }
+                      }
+                      placement="top"
+                    >
+                      @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
+                    </OverlayWrapper>
+                  }
+                  placement="top"
+                  trigger={
+                    Array [
+                      "hover",
+                      "focus",
+                    ]
+                  }
+                >
+                  <span
+                    className="add-others-link"
+                    onBlur={[Function]}
+                    onClick={null}
+                    onFocus={[Function]}
+                    onMouseOut={[Function]}
+                    onMouseOver={[Function]}
+                  >
+                    <FormattedMessage
+                      defaultMessage="{count} others"
+                      id="channel_invite.invite_team_members.messageOthers"
+                      values={
+                        Object {
+                          "count": 10,
+                        }
+                      }
+                    >
+                      <span>
+                        10 others
+                      </span>
+                    </FormattedMessage>
+                  </span>
+                </OverlayTrigger>
+              </OverlayTrigger>
+            </SimpleTooltip>
+             are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
+          </div>
+        </div>
+      </div>
+    </AlertBanner>
+  </Memo(TeamWarningBanner)>
+</Provider>
+`;
+
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with > 10 profiles 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(TeamWarningBanner)
+    guests={Array []}
+    teamId="team1"
+    users={
+      Array [
+        Object {
+          "delete_at": 0,
+          "id": "user-0",
+          "label": "user-0",
+          "username": "user-0",
+          "value": "user-0",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-1",
+          "label": "user-1",
+          "username": "user-1",
+          "value": "user-1",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-2",
+          "label": "user-2",
+          "username": "user-2",
+          "value": "user-2",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-3",
+          "label": "user-3",
+          "username": "user-3",
+          "value": "user-3",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-4",
+          "label": "user-4",
+          "username": "user-4",
+          "value": "user-4",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-5",
+          "label": "user-5",
+          "username": "user-5",
+          "value": "user-5",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-6",
+          "label": "user-6",
+          "username": "user-6",
+          "value": "user-6",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-7",
+          "label": "user-7",
+          "username": "user-7",
+          "value": "user-7",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-8",
+          "label": "user-8",
+          "username": "user-8",
+          "value": "user-8",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-9",
+          "label": "user-9",
+          "username": "user-9",
+          "value": "user-9",
+        },
+        Object {
+          "delete_at": 0,
+          "id": "user-10",
+          "label": "user-10",
+          "username": "user-10",
+          "value": "user-10",
+        },
+      ]
+    }
+  >
+    <AlertBanner
+      footerMessage={false}
+      id="teamWarningBanner"
+      message={
+        Array [
+          "You can add ",
+          <Memo(Connect(Component))
+            mentionName="user-0"
+          />,
+          " and ",
+          <SimpleTooltip
+            content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+            id="usernames-overflow"
+          >
+            <span
+              className="add-others-link"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="{count} others"
+                id="channel_invite.invite_team_members.messageOthers"
+                values={
+                  Object {
+                    "count": 10,
+                  }
+                }
+              />
+            </span>
+          </SimpleTooltip>,
+          " to this channel once they are members of the ",
+          <strong>
+            Team Name Display
+          </strong>,
+          " team.",
+        ]
+      }
+      mode="warning"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+          id="channel_invite.invite_team_members.title"
+          values={
+            Object {
+              "count": 11,
+            }
+          }
+        />
+      }
+      variant="app"
+    >
+      <div
+        className="AlertBanner warning AlertBanner--app"
+        data-testid="teamWarningBanner"
+      >
+        <div
+          className="AlertBanner__icon"
+        >
+          <AlertOutlineIcon
+            size={24}
+          >
+            <svg
+              fill="currentColor"
+              height={24}
+              version="1.1"
+              viewBox="0 0 24 24"
+              width={24}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.638,16.575L14.64,3.578C14.117,2.605,13.105,2,12,2S9.883,2.605,9.359,3.578L2.362,16.575c-0.505,0.939-0.481,2.046,0.065,2.962C2.974,20.453,3.937,21,5.003,21h13.994c1.066,0,2.029-0.547,2.575-1.463
+	C22.119,18.622,22.143,17.514,21.638,16.575z M18.995,18.998H5.001c-0.757,0-1.239-0.808-0.88-1.475l6.997-12.997
+	C11.307,4.175,11.652,4,11.998,4s0.691,0.175,0.88,0.526l6.997,12.997C20.234,18.19,19.752,18.998,18.995,18.998z M12.5,13h-1L11,7
+	h2L12.5,13z M12.999,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1C12.552,15,12.999,15.448,12.999,16z"
+              />
+            </svg>
+          </AlertOutlineIcon>
+        </div>
+        <div
+          className="AlertBanner__body"
+        >
+          <div
+            className="AlertBanner__title"
+          >
+            <FormattedMessage
+              defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
+              id="channel_invite.invite_team_members.title"
+              values={
+                Object {
+                  "count": 11,
+                }
+              }
+            >
+              <span>
+                11 users were not selected because they are not a part of this team
+              </span>
+            </FormattedMessage>
+          </div>
+          <div
+            className="AlertBanner__message"
+          >
+            You can add 
+            <Connect(Component)
+              key=".$user-0"
+              mentionName="user-0"
+            >
+              <Memo(AtMention)
+                currentUserId="admin1"
+                dispatch={[Function]}
+                groupsByName={Object {}}
+                mentionName="user-0"
+                teammateNameDisplay="username"
+                usersByUsername={Object {}}
+              />
+            </Connect(Component)>
+             and 
+            <SimpleTooltip
+              content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+              id="usernames-overflow"
+              key=".3"
+            >
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={100}
+                overlay={
+                  <Tooltip
+                    className="hidden-xs"
+                    id="usernames-overflow"
+                    placement="top"
+                  >
+                    @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <OverlayTrigger
+                  defaultOverlayShown={false}
+                  delayShow={100}
+                  overlay={
+                    <OverlayWrapper
+                      className="hidden-xs"
+                      id="usernames-overflow"
+                      intl={
+                        Object {
+                          "$t": [Function],
+                          "defaultFormats": Object {},
+                          "defaultLocale": "en",
+                          "defaultRichTextElements": undefined,
+                          "fallbackOnEmptyString": true,
+                          "formatDate": [Function],
+                          "formatDateTimeRange": [Function],
+                          "formatDateToParts": [Function],
+                          "formatDisplayName": [Function],
+                          "formatList": [Function],
+                          "formatListToParts": [Function],
+                          "formatMessage": [Function],
+                          "formatNumber": [Function],
+                          "formatNumberToParts": [Function],
+                          "formatPlural": [Function],
+                          "formatRelativeTime": [Function],
+                          "formatTime": [Function],
+                          "formatTimeToParts": [Function],
+                          "formats": Object {},
+                          "formatters": Object {
+                            "getDateTimeFormat": [Function],
+                            "getDisplayNames": [Function],
+                            "getListFormat": [Function],
+                            "getMessageFormat": [Function],
+                            "getNumberFormat": [Function],
+                            "getPluralRules": [Function],
+                            "getRelativeTimeFormat": [Function],
+                          },
+                          "locale": "en",
+                          "messages": Object {},
+                          "onError": [Function],
+                          "onWarn": [Function],
+                          "textComponent": "span",
+                          "timeZone": "Etc/UTC",
+                          "wrapRichTextChunksInFragment": undefined,
+                        }
+                      }
+                      placement="top"
+                    >
+                      @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
+                    </OverlayWrapper>
+                  }
+                  placement="top"
+                  trigger={
+                    Array [
+                      "hover",
+                      "focus",
+                    ]
+                  }
+                >
+                  <span
+                    className="add-others-link"
+                    onBlur={[Function]}
+                    onClick={null}
+                    onFocus={[Function]}
+                    onMouseOut={[Function]}
+                    onMouseOver={[Function]}
+                  >
+                    <FormattedMessage
+                      defaultMessage="{count} others"
+                      id="channel_invite.invite_team_members.messageOthers"
+                      values={
+                        Object {
+                          "count": 10,
+                        }
+                      }
+                    >
+                      <span>
+                        10 others
+                      </span>
+                    </FormattedMessage>
+                  </span>
+                </OverlayTrigger>
+              </OverlayTrigger>
+            </SimpleTooltip>
+             to this channel once they are members of the 
+            <strong
+              key=".5"
+            >
+              Team Name Display
+            </strong>
+             team.
+          </div>
+        </div>
+      </div>
+    </AlertBanner>
+  </Memo(TeamWarningBanner)>
+</Provider>
+`;
+
+exports[`components/channel_invite_modal/team_warning_banner should return empty snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(TeamWarningBanner)
+    guests={Array []}
+    teamId="team1"
+    users={Array []}
+  />
+</Provider>
+`;

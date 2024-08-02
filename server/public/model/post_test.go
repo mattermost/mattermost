@@ -142,6 +142,41 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.NotNil(t, post3.GetProp("attachments"))
 }
 
+func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
+	post1 := &Post{
+		Message: "test",
+	}
+	keys1 := post1.ContainsIntegrationsReservedProps()
+	require.Len(t, keys1, 0)
+
+	post2 := &Post{
+		Message: "test",
+		Props: StringInterface{
+			"from_webhook":         "true",
+			"webhook_display_name": "overridden_display_name",
+			"override_username":    "overridden_username",
+			"override_icon_url":    "a-custom-url",
+			"override_icon_emoji":  ":custom_emoji_name:",
+		},
+	}
+	keys2 := post2.ContainsIntegrationsReservedProps()
+	require.Len(t, keys2, 5)
+}
+
+func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
+	postPatch1 := &PostPatch{
+		Props: &StringInterface{
+			"from_webhook": "true",
+		},
+	}
+	keys1 := postPatch1.ContainsIntegrationsReservedProps()
+	require.Len(t, keys1, 1)
+
+	postPatch2 := &PostPatch{}
+	keys2 := postPatch2.ContainsIntegrationsReservedProps()
+	require.Len(t, keys2, 0)
+}
+
 func TestPost_AttachmentsEqual(t *testing.T) {
 	post1 := &Post{}
 	post2 := &Post{}
@@ -936,5 +971,4 @@ func TestPostForPlugin(t *testing.T) {
 		pluginPost := p.ForPlugin()
 		require.NotNil(t, pluginPost.GetProp("requested_features"))
 	})
-
 }

@@ -4,9 +4,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
-
 import QuickInput from 'components/quick_input';
+
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
@@ -22,7 +21,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The list component to render, usually SuggestionList
          */
-        listComponent: PropTypes.func.isRequired,
+        listComponent: PropTypes.any.isRequired,
 
         /**
          * Where the list will be displayed relative to the input box, defaults to 'top'
@@ -37,7 +36,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The date component to render
          */
-        dateComponent: PropTypes.func,
+        dateComponent: PropTypes.any,
 
         /**
          * The value of in the input
@@ -105,11 +104,6 @@ export default class SuggestionBox extends React.PureComponent {
         onItemSelected: PropTypes.func,
 
         /**
-         * Flags if the suggestion_box is for the RHS (Reply).
-         */
-        isRHS: PropTypes.bool,
-
-        /**
          * The number of characters required to show the suggestion list, defaults to 1
          */
         requiredCharacters: PropTypes.number,
@@ -141,11 +135,6 @@ export default class SuggestionBox extends React.PureComponent {
         contextId: PropTypes.string,
 
         /**
-         * If true, listen for clicks on a mention and populate the input with said mention, defaults to false
-         */
-        listenForMentionKeyClick: PropTypes.bool,
-
-        /**
          * Allows parent to access received suggestions
          */
         onSuggestionsReceived: PropTypes.func,
@@ -163,6 +152,26 @@ export default class SuggestionBox extends React.PureComponent {
         actions: PropTypes.shape({
             addMessageIntoHistory: PropTypes.func.isRequired,
         }).isRequired,
+
+        /**
+         * Props for input
+         */
+        id: PropTypes.string,
+        className: PropTypes.string,
+        placeholder: PropTypes.string,
+        maxLength: PropTypes.string,
+        delayInputUpdate: PropTypes.bool,
+        spellCheck: PropTypes.string,
+        onMouseUp: PropTypes.func,
+        onKeyUp: PropTypes.func,
+        onHeightChange: PropTypes.func,
+        onWidthChange: PropTypes.func,
+        onPaste: PropTypes.func,
+        style: PropTypes.object,
+        tabIndex: PropTypes.string,
+        type: PropTypes.string,
+        clearable: PropTypes.bool,
+        onClear: PropTypes.func,
     };
 
     static defaultProps = {
@@ -172,12 +181,10 @@ export default class SuggestionBox extends React.PureComponent {
         renderNoResults: false,
         shouldSearchCompleteText: false,
         completeOnTab: true,
-        isRHS: false,
         requiredCharacters: 1,
         openOnFocus: false,
         openWhenEmpty: false,
         replaceAllInputOnSelect: false,
-        listenForMentionKeyClick: false,
         forceSuggestionsWhenBlur: false,
         alignWithTextbox: false,
     };
@@ -221,14 +228,7 @@ export default class SuggestionBox extends React.PureComponent {
     }
 
     componentDidMount() {
-        if (this.props.listenForMentionKeyClick) {
-            EventEmitter.addListener('mention_key_click', this.handleMentionKeyClick);
-        }
         this.handlePretextChanged(this.pretext);
-    }
-
-    componentWillUnmount() {
-        EventEmitter.removeListener('mention_key_click', this.handleMentionKeyClick);
     }
 
     componentDidUpdate(prevProps) {
@@ -248,20 +248,9 @@ export default class SuggestionBox extends React.PureComponent {
         }
     }
 
-    handleMentionKeyClick = (mentionKey, isRHS) => {
-        if (this.props.isRHS !== isRHS) {
-            return;
-        }
-
-        let insertText = '@' + mentionKey;
-
-        // if the current text does not end with a whitespace, then insert a space
-        if (this.props.value && (/[^\s]$/).test(this.props.value)) {
-            insertText = ' ' + insertText;
-        }
-
-        this.addTextAtCaret(insertText, '');
-    };
+    componentWillUnmount() {
+        clearTimeout(this.timeoutId);
+    }
 
     getTextbox = () => {
         if (!this.inputRef.current) {
@@ -274,6 +263,7 @@ export default class SuggestionBox extends React.PureComponent {
     handleEmitClearSuggestions = (delay = 0) => {
         setTimeout(() => {
             this.clear();
+            this.handlePretextChanged('');
         }, delay);
     };
 
@@ -306,7 +296,7 @@ export default class SuggestionBox extends React.PureComponent {
         this.setState({focused: false});
 
         if (this.props.onBlur) {
-            this.props.onBlur();
+            this.props.onBlur(e);
         }
     };
 
@@ -401,15 +391,14 @@ export default class SuggestionBox extends React.PureComponent {
             prefix = pretext.substring(0, pretext.length - overlap.length - matchedPretext.length);
         }
 
-        const suffix = text.substring(caret);
-
-        let newValue;
         if (keepPretext) {
-            newValue = pretext;
-        } else {
-            newValue = prefix + term + ' ' + suffix;
+            // The term no longer fits the pretext, so don't change anything or else we might erase something
+            return;
         }
 
+        const suffix = text.substring(caret);
+
+        const newValue = prefix + term + ' ' + suffix;
         textbox.value = newValue;
 
         if (this.props.onChange) {
@@ -480,6 +469,7 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         this.clear();
+        this.handlePretextChanged('');
 
         if (openCommandInModal) {
             const appProvider = this.props.providers.find((p) => p.openAppsModalFromCommand);
@@ -571,7 +561,6 @@ export default class SuggestionBox extends React.PureComponent {
                 selection: '',
                 suggestionBoxAlgn: undefined,
             });
-            this.handlePretextChanged('');
         }
     };
 
@@ -676,11 +665,16 @@ export default class SuggestionBox extends React.PureComponent {
         return {selection, matchedPretext: suggestions.matchedPretext};
     };
 
-    handleReceivedSuggestionsAndComplete = (suggestions) => {
-        const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
-        if (selection) {
-            this.handleCompleteWord(selection, matchedPretext);
-        }
+    makeHandleReceivedSuggestionsAndComplete = () => {
+        let firstComplete = true;
+        return (suggestions) => {
+            const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
+
+            if (selection && firstComplete) {
+                this.handleCompleteWord(selection, matchedPretext);
+                firstComplete = false;
+            }
+        };
     };
 
     nonDebouncedPretextChanged = (pretext, complete = false) => {
@@ -689,7 +683,7 @@ export default class SuggestionBox extends React.PureComponent {
         let handled = false;
         let callback = this.handleReceivedSuggestions;
         if (complete) {
-            callback = this.handleReceivedSuggestionsAndComplete;
+            callback = this.makeHandleReceivedSuggestionsAndComplete();
         }
         for (const provider of this.props.providers) {
             handled = provider.handlePretextChanged(pretext, callback) || handled;
@@ -792,7 +786,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'onComposition');
         Reflect.deleteProperty(props, 'onItemSelected');
         Reflect.deleteProperty(props, 'completeOnTab');
-        Reflect.deleteProperty(props, 'isRHS');
         Reflect.deleteProperty(props, 'requiredCharacters');
         Reflect.deleteProperty(props, 'openOnFocus');
         Reflect.deleteProperty(props, 'openWhenEmpty');
@@ -802,7 +795,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
         Reflect.deleteProperty(props, 'renderDividers');
         Reflect.deleteProperty(props, 'contextId');
-        Reflect.deleteProperty(props, 'listenForMentionKeyClick');
         Reflect.deleteProperty(props, 'forceSuggestionsWhenBlur');
         Reflect.deleteProperty(props, 'onSuggestionsReceived');
         Reflect.deleteProperty(props, 'actions');

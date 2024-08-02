@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import UsersEmailsInput from './users_emails_input';
 
@@ -25,8 +25,10 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
                         last_name: 'user',
                     } as UserProfile,
                 ]}
-                errorMessageId='errorMessageId'
-                errorMessageDefault='errorMessageDefault'
+                errorMessage={{
+                    id: 'errorMessageId',
+                    defaultMessage: 'errorMessageDefault',
+                }}
                 onInputChange={jest.fn()}
                 inputValue=''
                 emailInvitationsEnabled={false}

@@ -5,37 +5,41 @@ package model
 
 import (
 	"net/http"
-	"time"
 )
 
 const (
-	JobTypeDataRetention                = "data_retention"
-	JobTypeMessageExport                = "message_export"
-	JobTypeElasticsearchPostIndexing    = "elasticsearch_post_indexing"
-	JobTypeElasticsearchPostAggregation = "elasticsearch_post_aggregation"
-	JobTypeElasticsearchFixChannelIndex = "elasticsearch_fix_channel_index"
-	JobTypeBlevePostIndexing            = "bleve_post_indexing"
-	JobTypeLdapSync                     = "ldap_sync"
-	JobTypeMigrations                   = "migrations"
-	JobTypePlugins                      = "plugins"
-	JobTypeExpiryNotify                 = "expiry_notify"
-	JobTypeProductNotices               = "product_notices"
-	JobTypeActiveUsers                  = "active_users"
-	JobTypeImportProcess                = "import_process"
-	JobTypeImportDelete                 = "import_delete"
-	JobTypeExportProcess                = "export_process"
-	JobTypeExportDelete                 = "export_delete"
-	JobTypeCloud                        = "cloud"
-	JobTypeResendInvitationEmail        = "resend_invitation_email"
-	JobTypeExtractContent               = "extract_content"
-	JobTypeLastAccessiblePost           = "last_accessible_post"
-	JobTypeLastAccessibleFile           = "last_accessible_file"
-	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
-	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
-	JobTypePostPersistentNotifications  = "post_persistent_notifications"
-	JobTypeInstallPluginNotifyAdmin     = "install_plugin_notify_admin"
-	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
-	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
+	JobTypeDataRetention                 = "data_retention"
+	JobTypeMessageExport                 = "message_export"
+	JobTypeElasticsearchPostIndexing     = "elasticsearch_post_indexing"
+	JobTypeElasticsearchPostAggregation  = "elasticsearch_post_aggregation"
+	JobTypeBlevePostIndexing             = "bleve_post_indexing"
+	JobTypeLdapSync                      = "ldap_sync"
+	JobTypeMigrations                    = "migrations"
+	JobTypePlugins                       = "plugins"
+	JobTypeExpiryNotify                  = "expiry_notify"
+	JobTypeProductNotices                = "product_notices"
+	JobTypeActiveUsers                   = "active_users"
+	JobTypeImportProcess                 = "import_process"
+	JobTypeImportDelete                  = "import_delete"
+	JobTypeExportProcess                 = "export_process"
+	JobTypeExportDelete                  = "export_delete"
+	JobTypeCloud                         = "cloud"
+	JobTypeResendInvitationEmail         = "resend_invitation_email"
+	JobTypeExtractContent                = "extract_content"
+	JobTypeLastAccessiblePost            = "last_accessible_post"
+	JobTypeLastAccessibleFile            = "last_accessible_file"
+	JobTypeUpgradeNotifyAdmin            = "upgrade_notify_admin"
+	JobTypeTrialNotifyAdmin              = "trial_notify_admin"
+	JobTypePostPersistentNotifications   = "post_persistent_notifications"
+	JobTypeInstallPluginNotifyAdmin      = "install_plugin_notify_admin"
+	JobTypeHostedPurchaseScreening       = "hosted_purchase_screening"
+	JobTypeS3PathMigration               = "s3_path_migration"
+	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
+	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
+	JobTypeRefreshPostStats              = "refresh_post_stats"
+	JobTypeDeleteOrphanDraftsMigration   = "delete_orphan_drafts_migration"
+	JobTypeExportUsersToCSV              = "export_users_to_csv"
+	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -67,6 +71,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
+	JobTypeRefreshPostStats,
 }
 
 type Job struct {
@@ -104,7 +109,31 @@ func (j *Job) IsValid() *AppError {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
-	switch j.Status {
+	validStatus := IsValidJobStatus(j.Status)
+	if !validStatus {
+		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (j *Job) IsValidStatusChange(newStatus string) bool {
+	currentStatus := j.Status
+
+	switch currentStatus {
+	case JobStatusInProgress:
+		return newStatus == JobStatusPending || newStatus == JobStatusCancelRequested
+	case JobStatusPending:
+		return newStatus == JobStatusCancelRequested
+	case JobStatusCancelRequested:
+		return newStatus == JobStatusCanceled
+	}
+
+	return false
+}
+
+func IsValidJobStatus(status string) bool {
+	switch status {
 	case JobStatusPending,
 		JobStatusInProgress,
 		JobStatusSuccess,
@@ -113,10 +142,24 @@ func (j *Job) IsValid() *AppError {
 		JobStatusCancelRequested,
 		JobStatusCanceled:
 	default:
-		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+		return false
 	}
 
-	return nil
+	return true
+}
+
+func IsValidJobType(jobType string) bool {
+	for _, t := range AllJobTypes {
+		if t == jobType {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (j *Job) LogClone() any {
+	return j.Auditable()
 }
 
 type Worker interface {
@@ -124,10 +167,4 @@ type Worker interface {
 	Stop()
 	JobChannel() chan<- Job
 	IsEnabled(cfg *Config) bool
-}
-
-type Scheduler interface {
-	Enabled(cfg *Config) bool
-	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
-	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
 }

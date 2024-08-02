@@ -280,6 +280,78 @@ func TestGetEmojiList(t *testing.T) {
 	require.Greater(t, len(listEmoji), 0, "should return more than 0")
 }
 
+func TestGetEmojisByNames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Set up some custom emojis
+	adminClient := th.SystemAdminClient
+
+	imageBytes := utils.CreateTestJpeg(t, 10, 10)
+
+	emoji1 := &model.Emoji{
+		CreatorId: th.SystemAdminUser.Id,
+		Name:      model.NewId(),
+	}
+	emoji1, _, err := adminClient.CreateEmoji(context.Background(), emoji1, imageBytes, "emoji.jpg")
+	require.NoError(t, err)
+
+	emoji2 := &model.Emoji{
+		CreatorId: th.SystemAdminUser.Id,
+		Name:      model.NewId(),
+	}
+	emoji2, _, err = adminClient.CreateEmoji(context.Background(), emoji2, imageBytes, "emoji.jpg")
+	require.NoError(t, err)
+
+	client := th.Client
+
+	t.Run("should return a single emoji", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name})
+
+		require.NoError(t, err)
+		require.Len(t, emojis, 1)
+		assert.Equal(t, emoji1.Id, emojis[0].Id)
+	})
+
+	t.Run("should return multiple emojis", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name, emoji2.Name})
+
+		var emojiIds []string
+		for _, emoji := range emojis {
+			emojiIds = append(emojiIds, emoji.Id)
+		}
+
+		require.NoError(t, err)
+		require.Len(t, emojis, 2)
+		assert.Contains(t, emojiIds, emoji1.Id)
+		assert.Contains(t, emojiIds, emoji2.Id)
+	})
+
+	t.Run("should ignore non-existent emojis", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name, emoji2.Name, model.NewId()})
+		var emojiIds []string
+		for _, emoji := range emojis {
+			emojiIds = append(emojiIds, emoji.Id)
+		}
+
+		require.NoError(t, err)
+		require.Len(t, emojis, 2)
+		assert.Contains(t, emojiIds, emoji1.Id)
+		assert.Contains(t, emojiIds, emoji2.Id)
+	})
+
+	t.Run("should return an error when too many emojis are requested", func(t *testing.T) {
+		names := make([]string, GetEmojisByNamesMax+1)
+		for i := 0; i < len(names); i++ {
+			names[i] = model.NewId()
+		}
+
+		_, _, err := client.GetEmojisByNames(context.Background(), names)
+
+		require.Error(t, err)
+	})
+}
+
 func TestDeleteEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

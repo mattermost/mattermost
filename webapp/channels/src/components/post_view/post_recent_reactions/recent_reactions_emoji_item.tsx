@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
-import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
-import {Emoji} from '@mattermost/types/emojis';
+import type {Emoji} from '@mattermost/types/emojis';
+
+import {getEmojiImageUrl, getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 type Props = {
     emoji: Emoji;
@@ -23,7 +24,7 @@ const EmojiItem = ({emoji, onItemClick, order}: Props) => {
 
     const itemClassName = 'post-menu__item';
 
-    const emojiName = isSystemEmoji(emoji) ? emoji.short_name ?? emoji.name : emoji.name;
+    const emojiName = getEmojiName(emoji);
 
     return (
         <div

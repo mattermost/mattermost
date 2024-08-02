@@ -7,7 +7,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 #TeamSidebar {
     z-index: 13;
     display: flex;
-    width: 65px;
+    width: 64px;
     height: 100%;
     flex-direction: column;
     background-color: var(--sidebar-header-bg);
@@ -24,14 +24,30 @@ $sidebarOpacityAnimationDuration: 0.15s;
 }
 
 #SidebarContainer {
+    position: relative;
     z-index: 16;
     left: 0;
     display: flex;
-    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
     height: 100%;
     flex-direction: column;
-    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background-color: var(--sidebar-bg);
+
+    @media screen and (min-width: 769px) {
+        width: var(--overrideLhsWidth, 264px);
+        min-width: 200px;
+        max-width: 264px;
+        background: none;
+    }
+
+    @media screen and (min-width: 1201px) {
+        max-width: 304px;
+    }
+
+    @media screen and (min-width: 1681px) {
+        max-width: 440px;
+    }
 
     h1,
     h2,
@@ -93,8 +109,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarHeader {
-        background-color: var(--sidebar-header-bg);
-
         .header__info {
             color: var(--sidebar-header-text-color);
 
@@ -183,7 +197,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             display: flex;
             padding: 6px 0;
             margin-left: 15px;
-            color: rgba(var(--sidebar-text-rgb), 0.72);
+            color: rgba(var(--sidebar-text-rgb), 0.64);
             line-height: 20px;
             list-style: none;
 
@@ -200,10 +214,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             &--untouched {
                 color: var(--sidebar-unread-text);
                 font-weight: $font-weight--semibold;
-
-                i::before {
-                    font-weight: $font-weight--semibold;
-                }
             }
         }
 
@@ -212,7 +222,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             margin-left: 0;
             background: none;
 
-            li {
+            div {
                 display: flex;
                 margin-left: 15px;
             }
@@ -227,7 +237,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             min-width: 28px;
             height: 28px;
             border: 0;
-            color: rgba(var(--sidebar-text-rgb), 0.72);
+            color: rgba(var(--sidebar-text-rgb), 0.64);
             font-size: 18px;
             vertical-align: middle;
 
@@ -241,9 +251,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
             width: 100%;
             align-items: center;
             padding: 0 5px 0 2px;
+            border-radius: 4px;
             margin-bottom: 8px;
             background: rgba(var(--sidebar-text-rgb), 0.08);
-            border-radius: 4px;
             font-family: 'Open Sans', sans-serif;
             font-size: 12px;
             text-align: left;
@@ -285,14 +295,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
         .SidebarChannelNavigator_backButton {
             padding: 0;
-            background: transparent;
             border-radius: 4px;
+            background: transparent;
         }
 
         .SidebarChannelNavigator_forwardButton {
             padding: 0;
-            background: transparent;
             border-radius: 4px;
+            background: transparent;
         }
     }
 
@@ -305,7 +315,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         width: 28px;
         height: 28px;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         font-weight: 400;
         line-height: 26px;
@@ -342,7 +352,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 16px;
                 line-height: 16px;
             }
@@ -356,8 +366,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
         height: 28px;
         padding: 0;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: rgba(var(--sidebar-text-rgb), 0.8);
         font-size: 20px;
     }
@@ -376,14 +386,16 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .sidebar-header {
         display: flex;
+        overflow: hidden;
         flex-direction: row;
         align-items: center;
     }
 
     .SidebarHeaderMenuWrapper {
+        overflow: hidden;
         padding-left: 5px;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
 
         &:hover,
         &:active,
@@ -398,7 +410,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .AddChannelDropdown_dropdownButton {
         background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        color: rgba(var(--sidebar-text-rgb), 0.72);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
     }
 
     .SidebarMenu {
@@ -418,13 +430,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 16px;
                 line-height: 16px;
             }
 
             svg {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
 
@@ -513,7 +525,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             .selected {
                 width: 60%;
                 margin-top: 1px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 text-align: right;
                 text-transform: none;
@@ -527,9 +539,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
         justify-content: center;
         padding: 0;
         border: none;
-        background: transparent;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        background: transparent;
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 16px;
         line-height: 16px;
 
@@ -581,10 +593,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
         height: 16px;
         align-items: center;
         padding: 0 4px;
+        border-radius: 4px;
         margin-right: 16px;
         margin-left: 4px;
         background: var(--mention-bg);
-        border-radius: 4px;
         color: var(--mention-color);
         font-size: 10px;
         font-weight: 600;
@@ -602,19 +614,19 @@ $sidebarOpacityAnimationDuration: 0.15s;
             align-items: center;
             padding: 10px;
             border: 1px dashed rgba(var(--sidebar-text-rgb), 0.3);
-            margin: 0 16px;
             border-radius: 4px;
+            margin: 0 16px;
             opacity: 1;
 
             >i {
-                color: rgba(var(--sidebar-text-rgb), 0.6);
+                color: rgba(var(--sidebar-text-rgb), 0.64);
                 font-size: 18px;
                 line-height: 16px;
             }
 
             .SidebarCategory_newDropBox-label {
                 margin-left: 8px;
-                color: rgba(var(--sidebar-text-rgb), 0.72);
+                color: rgba(var(--sidebar-text-rgb), 0.64);
                 font-size: 12px;
                 line-height: 16px;
             }
@@ -696,7 +708,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: var(--sidebar-bg);
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-family: 'Open Sans', sans-serif;
         text-align: left;
         text-overflow: ellipsis;
@@ -748,12 +760,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
             color: rgba(var(--center-channel-color-rgb), 0.9);
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
     }
 
-    #introTextInvite,
+    #inviteMembersButton,
     #addChannelsCta {
         display: flex;
         width: 100%;
@@ -779,8 +791,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
             height: 32px;
             padding: 3px 10px;
             border: 1px solid var(--sidebar-text);
-            background-color: inherit;
             border-radius: 4px;
+            background-color: inherit;
             color: var(--sidebar-text);
             cursor: pointer;
             font-size: 12px;
@@ -810,10 +822,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: transparent;
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
+        letter-spacing: 0.05em;
         text-align: left;
         text-transform: uppercase;
         transition: box-shadow 0.25s ease-in-out;
@@ -911,12 +924,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannelGroup .draggingOver {
         border-radius: 4px;
-        box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 0 -1px 0 rgba(var(--sidebar-text-rgb), 0.6), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.6);
+        box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 -1px 0 rgba(var(--sidebar-text-rgb), 0.64), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.64);
 
         .SidebarChannelGroupHeader {
-            background-color: var(--sidebar-bg);
             border-radius: 4px 4px 0 0;
-            box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.6);
+            background-color: var(--sidebar-bg);
+            box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.64);
         }
     }
 
@@ -945,9 +958,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
         height: 28px;
         padding: 0;
         border: none;
+        border-radius: 4px;
         margin: 2px 16px 2px 2px;
         background: transparent;
-        border-radius: 4px;
         color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         line-height: 16px;
@@ -971,9 +984,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
         height: 28px;
         padding: 0;
         border: none;
+        border-radius: 4px;
         margin: 2px 2px 2px auto;
         background: transparent;
-        border-radius: 4px;
         color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 16px;
         line-height: 16px;
@@ -1030,7 +1043,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         align-items: center;
 
         /* border: solid 2px transparent; */
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         list-style-type: none;
         opacity: 1;
         transition-duration: $sidebarHeightTransitionDuration;
@@ -1048,13 +1061,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.dragging {
             /* MM-32401: Needed to ensure that the channel selected count is displayed correctly */
             overflow: visible;
-            background-color: var(--sidebar-bg);
             border-radius: 4px;
+            background-color: var(--sidebar-bg);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
 
             .SidebarLink {
-                background: rgba(255, 255, 255, 0.08);
                 border-radius: 4px;
+                background: rgba(255, 255, 255, 0.08);
             }
         }
 
@@ -1101,8 +1114,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
             right: -8px;
             height: 25px;
             padding: 2px 9px 7px 9px;
-            background: var(--center-channel-color);
             border-radius: 20px;
+            background: var(--center-channel-color);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
 
             >span {
@@ -1114,14 +1127,18 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         >span {
+            width: 100%;
             flex-grow: 1;
         }
 
         & span.SidebarChannelLinkLabel {
+            overflow: hidden;
             max-width: 100%;
             height: 18px;
             line-height: 18px;
             text-align: justify;
+            text-overflow: ellipsis;
+            user-select: none;
             white-space: nowrap;
         }
 
@@ -1159,14 +1176,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .SidebarChannel .SidebarLink {
         position: relative;
         display: flex;
-        width: 240px;
+        width: 100%;
         height: 32px;
         align-items: center;
         padding: 7px 16px 7px 19px;
         border-top: 0;
         border-bottom: 0;
         margin-right: 0;
-        color: rgba(var(--sidebar-text-rgb), 0.72);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 14px;
         text-decoration: none;
 
@@ -1233,20 +1250,20 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         &.selected {
-            background: rgba(var(--sidebar-text-active-border-rgb), 0.56);
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
 
             &:hover {
-                background: rgba(var(--sidebar-text-active-border-rgb), 0.72);
+                background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
             }
         }
     }
 
     .SidebarLink.selected {
-        background: rgba(var(--sidebar-text-active-border-rgb), 0.56);
+        background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         color: rgba(var(--sidebar-text-rgb), 1);
 
         &:hover {
-            background: rgba(var(--sidebar-text-active-border-rgb), 0.72);
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         }
     }
 
@@ -1257,16 +1274,19 @@ $sidebarOpacityAnimationDuration: 0.15s;
         left: -2px;
         width: 4px;
         height: 100%;
-        background: var(--sidebar-text-active-border);
         border-radius: 4px;
+        background: var(--sidebar-text-active-border);
         content: '';
     }
 
     .SidebarChannel.unread .SidebarChannelLinkLabel,
-    .SidebarChannel.unread .SidebarLink > i,
     .SidebarChannel.unread .SidebarLink:hover .SidebarChannelLinkLabel {
         color: var(--sidebar-unread-text);
         font-weight: 600;
+    }
+
+    .SidebarChannel.unread .SidebarLink > i {
+        color: var(--sidebar-unread-text);
     }
 
     .SidebarChannel .SidebarLink > i {
@@ -1280,13 +1300,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         overflow: hidden;
         flex-grow: 1;
-    }
-
-    .SidebarChannelLinkLabel_wrapper > div.truncated {
-        display: block;
-        overflow: hidden;
-        width: 100%;
-        text-overflow: ellipsis;
+        gap: 8px;
     }
 
     .DirectChannel__profile-picture {
@@ -1302,8 +1316,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
             height: 13px;
             align-items: center;
             justify-content: center;
-            background: var(--sidebar-bg);
             border-radius: 100%;
+            background: var(--sidebar-bg);
             font-size: 12px;
         }
     }
@@ -1361,8 +1375,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
 .multi-teams {
     #SidebarContainer {
-        left: 65px;
-
         +.inner-wrap #app-content {
             margin-left: 305px;
         }
@@ -1374,8 +1386,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
     z-index: 100;
     padding: 2px 0;
     border: 1px solid #c6c6c6;
-    background: #f0f0f0;
     border-radius: 5px;
+    background: #f0f0f0;
     color: black;
     cursor: pointer;
 }
@@ -1396,11 +1408,15 @@ $sidebarOpacityAnimationDuration: 0.15s;
 }
 
 // Manual override of the global menu (and items) styling for the sidebar dropdown menu
-#sidebarDropdownMenu .MenuItem {
-    >button,
-    >div,
-    >a {
-        padding: 0 32px 0 24px;
+#sidebarDropdownMenu {
+    position: fixed;
+
+    .MenuItem {
+        >button,
+        >div,
+        >a {
+            padding: 0 32px 0 24px;
+        }
     }
 }
 

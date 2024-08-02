@@ -16,13 +16,13 @@ import (
 // semantics at the unit test level. Validating the default, enterprise service environment is left
 // to smoketests before releasing.
 func TestGetServiceEnvironment(t *testing.T) {
-	t.Run("no env defaults to test (without production tag)", func(t *testing.T) {
-		require.Equal(t, model.ServiceEnvironmentTest, model.GetServiceEnvironment())
+	t.Run("no env defaults to dev (without production tag)", func(t *testing.T) {
+		require.Equal(t, model.ServiceEnvironmentDev, model.GetServiceEnvironment())
 	})
-	t.Run("empty string defaults to test (without production tag)", func(t *testing.T) {
+	t.Run("empty string defaults to dev (without production tag)", func(t *testing.T) {
 		os.Setenv("MM_SERVICEENVIRONMENT", "")
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
-		require.Equal(t, model.ServiceEnvironmentTest, model.GetServiceEnvironment())
+		require.Equal(t, model.ServiceEnvironmentDev, model.GetServiceEnvironment())
 	})
 	t.Run("production", func(t *testing.T) {
 		os.Setenv("MM_SERVICEENVIRONMENT", "production")

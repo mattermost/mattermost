@@ -2,23 +2,30 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {updateMe} from 'mattermost-redux/actions/users';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {patchUser, updateMe} from 'mattermost-redux/actions/users';
+
+import {getLanguages} from 'i18n/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import ManageLanguages from './manage_languages';
 
-type Actions = {
-    updateMe: (user: UserProfile) => Promise<ActionResult>;
+function mapStateToProps(state: GlobalState) {
+    return {
+        locales: getLanguages(state),
+    };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             updateMe,
-        }, dispatch)};
+            patchUser,
+        }, dispatch),
+    };
 }
 
-export default connect(null, mapDispatchToProps)(ManageLanguages);
+export default connect(mapStateToProps, mapDispatchToProps)(ManageLanguages);

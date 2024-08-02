@@ -12,16 +12,15 @@ import (
 )
 
 func (api *API) InitDrafts() {
-	api.BaseRoutes.Drafts.Handle("", api.APISessionRequired(upsertDraft)).Methods("POST")
+	api.BaseRoutes.Drafts.Handle("", api.APISessionRequired(upsertDraft)).Methods(http.MethodPost)
 
-	api.BaseRoutes.TeamForUser.Handle("/drafts", api.APISessionRequired(getDrafts)).Methods("GET")
+	api.BaseRoutes.TeamForUser.Handle("/drafts", api.APISessionRequired(getDrafts)).Methods(http.MethodGet)
 
-	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteDraft)).Methods("DELETE")
-	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods("DELETE")
+	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
+	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
 		c.Err = model.NewAppError("upsertDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -87,7 +86,7 @@ func getDrafts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	drafts, err := c.App.GetDraftsForUser(c.AppContext.Session().UserId, c.Params.TeamId)
+	drafts, err := c.App.GetDraftsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
@@ -136,7 +135,7 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.DeleteDraft(userID, channelID, rootID, connectionID); err != nil {
+	if err := c.App.DeleteDraft(c.AppContext, draft, connectionID); err != nil {
 		c.Err = err
 		return
 	}

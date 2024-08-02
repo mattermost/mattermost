@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import AbstractList from './abstract_list';
 import TeamRow from './team_row';
-import {TeamWithMembership} from './types';
+import type {TeamWithMembership} from './types';
 
 describe('admin_console/system_user_detail/team_list/AbstractList', () => {
     const renderRow = jest.fn((item) => {
@@ -37,8 +37,10 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
 
     const headerLabels = [
         {
-            id: 'admin.team_settings.team_list.header.name',
-            default: 'Name',
+            label: {
+                id: 'admin.team_settings.team_list.header.name',
+                defaultMessage: 'Name',
+            },
             style: {
                 flexGrow: 1,
                 minWidth: '284px',
@@ -46,15 +48,24 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
             },
         },
         {
-            id: 'admin.systemUserDetail.teamList.header.type',
-            default: 'Type',
+            label: {
+                id: 'admin.systemUserDetail.teamList.header.type',
+                defaultMessage: 'Type',
+            },
             style: {
                 width: '150px',
             },
         },
         {
-            id: 'admin.systemUserDetail.teamList.header.role',
-            default: 'Role',
+            label: {
+                id: 'admin.systemUserDetail.teamList.header.role',
+                defaultMessage: 'Role',
+            },
+            style: {
+                width: '150px',
+            },
+        },
+        {
             style: {
                 width: '150px',
             },
@@ -68,8 +79,10 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         total: 0,
         headerLabels,
         renderRow,
-        emptyListTextId: 'admin.team_settings.team_list.no_teams_found',
-        emptyListTextDefaultMessage: 'No teams found',
+        emptyList: {
+            id: 'admin.team_settings.team_list.no_teams_found',
+            defaultMessage: 'No teams found',
+        },
         actions: {
             getTeamsData: jest.fn().mockResolvedValue(Promise.resolve([])),
             removeGroup: jest.fn(),

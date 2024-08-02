@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import {GroupTypes} from 'mattermost-redux/action_types';
-import {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
 
-function syncables(state: Record<string, GroupSyncablesState> = {}, action: GenericAction) {
+import {GroupTypes} from 'mattermost-redux/action_types';
+
+function syncables(state: Record<string, GroupSyncablesState> = {}, action: AnyAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_TEAMS: {
         return {
@@ -140,7 +141,7 @@ function syncables(state: Record<string, GroupSyncablesState> = {}, action: Gene
     }
 }
 
-function myGroups(state: string[] = [], action: GenericAction) {
+function myGroups(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case GroupTypes.ADD_MY_GROUP: {
         const groupId = action.id;
@@ -164,8 +165,7 @@ function myGroups(state: string[] = [], action: GenericAction) {
 
         return nextState;
     }
-    case GroupTypes.REMOVE_MY_GROUP:
-    case GroupTypes.ARCHIVED_GROUP: {
+    case GroupTypes.REMOVE_MY_GROUP: {
         const groupId = action.id;
         const index = state.indexOf(groupId);
 
@@ -185,7 +185,7 @@ function myGroups(state: string[] = [], action: GenericAction) {
     }
 }
 
-function stats(state: any = {}, action: GenericAction) {
+function stats(state: any = {}, action: AnyAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_STATS: {
         const stat = action.data;
@@ -199,10 +199,12 @@ function stats(state: any = {}, action: GenericAction) {
     }
 }
 
-function groups(state: Record<string, Group> = {}, action: GenericAction) {
+function groups(state: Record<string, Group> = {}, action: AnyAction) {
     switch (action.type) {
     case GroupTypes.CREATE_GROUP_SUCCESS:
     case GroupTypes.PATCHED_GROUP:
+    case GroupTypes.RESTORED_GROUP:
+    case GroupTypes.ARCHIVED_GROUP:
     case GroupTypes.RECEIVED_GROUP: {
         return {
             ...state,
@@ -239,11 +241,6 @@ function groups(state: Record<string, Group> = {}, action: GenericAction) {
             nextState[group.id] = group;
         }
 
-        return nextState;
-    }
-    case GroupTypes.ARCHIVED_GROUP: {
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, action.id);
         return nextState;
     }
     default:

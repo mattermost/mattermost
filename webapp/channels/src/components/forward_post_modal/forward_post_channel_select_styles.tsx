@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CSSProperties} from 'react';
-import {ControlProps} from 'react-select';
-import * as CSS from 'csstype';
+import type * as CSS from 'csstype';
+import type {CSSProperties} from 'react';
+import type {ControlProps} from 'react-select';
 
-import {ChannelOption} from './forward_post_channel_select';
+import type {ChannelOption} from './forward_post_channel_select';
 
 type Pseudos = CSS.Pseudos | '::-webkit-scrollbar' | '::-webkit-scrollbar-track' | '::-webkit-scrollbar-thumb';
 
@@ -27,7 +27,7 @@ const getBaseStyles = (bodyHeight: number) => {
         placeholder: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
             ...provided,
             margin: 0,
-            color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.75)',
             fontSize: '14px',
             lineHeight: '20px',
         }),
@@ -120,7 +120,7 @@ const getBaseStyles = (bodyHeight: number) => {
             justifyContent: 'flex-start',
             padding: '0 0 0 2rem',
             margin: 0,
-            color: 'rgba(var(--center-channel-color-rgb), 0.56)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.75)',
             backgroundColor: 'none',
             fontSize: '1.2rem',
             fontWeight: 600,

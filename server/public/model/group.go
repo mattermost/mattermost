@@ -45,18 +45,35 @@ type Group struct {
 	AllowReference              bool        `json:"allow_reference"`
 	ChannelMemberCount          *int        `db:"-" json:"channel_member_count,omitempty"`
 	ChannelMemberTimezonesCount *int        `db:"-" json:"channel_member_timezones_count,omitempty"`
+	MemberIDs                   []string    `db:"-" json:"member_ids"`
 }
 
 func (group *Group) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"id":              group.Id,
 		"source":          group.Source,
-		"remote_id":       group.RemoteId,
+		"remote_id":       group.GetRemoteId(),
 		"create_at":       group.CreateAt,
 		"update_at":       group.UpdateAt,
 		"delete_at":       group.DeleteAt,
 		"has_syncables":   group.HasSyncables,
-		"member_count":    group.MemberCount,
+		"member_count":    group.GetMemberCount(),
+		"allow_reference": group.AllowReference,
+	}
+}
+
+func (group *Group) LogClone() any {
+	return map[string]interface{}{
+		"id":              group.Id,
+		"name":            group.GetName(),
+		"display_name":    group.DisplayName,
+		"source":          group.Source,
+		"remote_id":       group.GetRemoteId(),
+		"create_at":       group.CreateAt,
+		"update_at":       group.UpdateAt,
+		"delete_at":       group.DeleteAt,
+		"has_syncables":   group.HasSyncables,
+		"member_count":    group.GetMemberCount(),
 		"allow_reference": group.AllowReference,
 	}
 }
@@ -70,12 +87,12 @@ func (group *GroupWithUserIds) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"id":              group.Id,
 		"source":          group.Source,
-		"remote_id":       group.RemoteId,
+		"remote_id":       group.GetRemoteId(),
 		"create_at":       group.CreateAt,
 		"update_at":       group.UpdateAt,
 		"delete_at":       group.DeleteAt,
 		"has_syncables":   group.HasSyncables,
-		"member_count":    group.MemberCount,
+		"member_count":    group.GetMemberCount(),
 		"allow_reference": group.AllowReference,
 		"user_ids":        group.UserIds,
 	}
@@ -133,10 +150,18 @@ type GroupSearchOpts struct {
 
 	IncludeChannelMemberCount string
 	IncludeTimezones          bool
+	IncludeMemberIDs          bool
+
+	// Include archived groups
+	IncludeArchived bool
+
+	// Only return archived groups
+	FilterArchived bool
 }
 
 type GetGroupOpts struct {
 	IncludeMemberCount bool
+	IncludeMemberIDs   bool
 }
 
 type PageOpts struct {
@@ -234,7 +259,6 @@ func (group *Group) IsValidForUpdate() *AppError {
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
-
 	if group.Name == nil {
 		if group.AllowReference {
 			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
@@ -256,17 +280,15 @@ func (group *Group) IsValidName() *AppError {
 }
 
 func (group *Group) GetName() string {
-	if group.Name == nil {
-		return ""
-	}
-	return *group.Name
+	return SafeDereference(group.Name)
 }
 
 func (group *Group) GetRemoteId() string {
-	if group.RemoteId == nil {
-		return ""
-	}
-	return *group.RemoteId
+	return SafeDereference(group.RemoteId)
+}
+
+func (group *Group) GetMemberCount() int {
+	return SafeDereference(group.MemberCount)
 }
 
 type GroupsWithCount struct {

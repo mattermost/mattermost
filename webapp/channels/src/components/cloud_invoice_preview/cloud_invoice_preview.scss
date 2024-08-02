@@ -2,8 +2,8 @@
     top: 15px;
     width: 860px;
     height: 1030px;
-    margin: 0 auto;
     border-radius: 8px;
+    margin: 0 auto;
     overflow-y: hidden !important;
 
     .modal-header {
@@ -16,7 +16,7 @@
         .close {
             margin-top: auto;
             margin-bottom: auto;
-            color: rgba(#3f4350, 0.56) !important;
+            color: rgba(#3f4350, 0.75) !important;
         }
 
         .modal-title {
@@ -29,7 +29,7 @@
 
         .subtitle {
             margin-top: 10px;
-            color: rgba(#3d3c40, 0.72);
+            color: rgba(#3d3c40, 0.75);
             font-family: 'Metropolis';
             font-size: 14px;
             font-style: normal;

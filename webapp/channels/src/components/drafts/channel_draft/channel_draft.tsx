@@ -5,26 +5,29 @@ import React, {memo, useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
-import {openModal} from 'actions/views/modals';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
 import {createPost} from 'actions/post_actions';
 import {removeDraft} from 'actions/views/drafts';
-import {PostDraft} from 'types/store/draft';
-import {hasRequestedPersistentNotifications, specialMentionsInText} from 'utils/post_utils';
+import {openModal} from 'actions/views/modals';
+
+import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
+
 import {ModalIdentifiers} from 'utils/constants';
+import {hasRequestedPersistentNotifications, specialMentionsInText} from 'utils/post_utils';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
-import {Post, PostMetadata} from '@mattermost/types/posts';
+import type {PostDraft} from 'types/store/draft';
 
-import DraftTitle from '../draft_title';
 import DraftActions from '../draft_actions';
+import DraftTitle from '../draft_title';
 import Panel from '../panel/panel';
-import Header from '../panel/panel_header';
 import PanelBody from '../panel/panel_body';
+import Header from '../panel/panel_header';
 
 type Props = {
-    channel: Channel;
+    channel?: Channel;
     channelUrl: string;
     displayName: string;
     draftId: string;
@@ -48,6 +51,7 @@ function ChannelDraft({
     user,
     value,
     isRemote,
+    id: channelId,
 }: Props) {
     const dispatch = useDispatch();
     const history = useHistory();
@@ -57,16 +61,20 @@ function ChannelDraft({
     }, [history, channelUrl]);
 
     const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel.id));
-    }, [dispatch, channel.id]);
+        dispatch(removeDraft(id, channelId));
+    }, [dispatch, channelId]);
 
     const doSubmit = useCallback((id: string, post: Post) => {
         dispatch(createPost(post, value.fileInfos));
-        dispatch(removeDraft(id, channel.id));
+        dispatch(removeDraft(id, channelId));
         history.push(channelUrl);
-    }, [dispatch, history, value.fileInfos, channel.id, channelUrl]);
+    }, [dispatch, history, value.fileInfos, channelId, channelUrl]);
 
     const showPersistNotificationModal = useCallback((id: string, post: Post) => {
+        if (!channel) {
+            return;
+        }
+
         dispatch(openModal({
             modalId: ModalIdentifiers.PERSIST_NOTIFICATION_CONFIRM_MODAL,
             dialogType: PersistNotificationConfirmModal,
@@ -77,7 +85,7 @@ function ChannelDraft({
                 onConfirm: () => doSubmit(id, post),
             },
         }));
-    }, [channel.type, dispatch, doSubmit]);
+    }, [channel, dispatch, doSubmit]);
 
     const handleOnSend = useCallback(async (id: string) => {
         const post = {} as Post;
@@ -132,7 +140,7 @@ function ChannelDraft({
                         remote={isRemote || false}
                     />
                     <PanelBody
-                        channelId={channel.id}
+                        channelId={channelId}
                         displayName={displayName}
                         fileInfos={value.fileInfos}
                         message={value.message}

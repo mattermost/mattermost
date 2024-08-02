@@ -6,15 +6,16 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Constants, {CloudProducts} from 'utils/constants';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct as selectSubscriptionProduct, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import useOpenPricingModal, {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import WithTooltip from 'components/with_tooltip';
+
+import {CloudProducts} from 'utils/constants';
 
 const UpgradeButton = styled.button`
 background: var(--denim-button-bg);
@@ -81,18 +82,11 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         return null;
     }
 
-    const tooltip = (
-        <Tooltip id='upgrade_button_tooltip'>
-            {formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            trigger={['hover']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='upgrade_button_tooltip'
+            title={formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
             placement='bottom'
-            overlay={tooltip}
         >
             <UpgradeButton
                 id='UpgradeButton'
@@ -101,7 +95,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
             </UpgradeButton>
-        </OverlayTrigger>);
+        </WithTooltip>);
 };
 
 export default PlanUpgradeButton;

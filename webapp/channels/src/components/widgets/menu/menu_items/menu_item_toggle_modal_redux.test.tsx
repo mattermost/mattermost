@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {MenuItemToggleModalReduxImpl} from './menu_item_toggle_modal_redux';
 
@@ -19,7 +19,7 @@ describe('components/MenuItemToggleModalRedux', () => {
 
         expect(wrapper).toMatchInlineSnapshot(`
             <Fragment>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 className=""
                 dialogProps={
                   Object {
@@ -34,7 +34,7 @@ describe('components/MenuItemToggleModalRedux', () => {
                 >
                   Whatever
                 </span>
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </Fragment>
         `);
     });

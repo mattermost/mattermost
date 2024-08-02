@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 
-import {GlobalState} from 'types/store/index';
+import type {GlobalState} from 'types/store/index';
 
 import CallButton from './call_button';
 

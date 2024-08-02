@@ -1,88 +1,90 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-import {shallow} from 'enzyme';
+import React from 'react';
+import {type IntlShape} from 'react-intl';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {NotificationLevels} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import {UserNotifyProps} from '@mattermost/types/users';
-
-import UserSettingsNotifications from './user_settings_notifications';
+import UserSettingsNotifications, {areDesktopAndMobileSettingsDifferent} from './user_settings_notifications';
 
 describe('components/user_settings/display/UserSettingsDisplay', () => {
-    const user = TestHelper.getUserMock({
-        id: 'user_id',
-    });
-
-    const requiredProps: ComponentProps<typeof UserSettingsNotifications> = {
-        user,
+    const defaultProps = {
+        user: TestHelper.getUserMock({id: 'user_id'}),
         updateSection: jest.fn(),
         activeSection: '',
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
-        actions: {
-            updateMe: jest.fn(() => Promise.resolve({})),
-        },
-        isCollapsedThreadsEnabled: false,
+        updateMe: jest.fn(() => Promise.resolve({})),
+        patchUser: jest.fn(() => Promise.resolve({})),
+        isCollapsedThreadsEnabled: true,
         sendPushNotifications: false,
         enableAutoResponder: false,
-        isCallsRingingEnabled: true,
+        isCallsRingingEnabled: false,
+        intl: {} as IntlShape,
+        isEnterpriseOrCloudOrSKUStarterFree: false,
+        isEnterpriseReady: true,
     };
 
-    test('should have called handleSubmit', async () => {
-        const props = {...requiredProps, actions: {...requiredProps.actions}};
-        const wrapper = shallow<UserSettingsNotifications>(
-            <UserSettingsNotifications {...props}/>,
+    test('should match snapshot', () => {
+        const wrapper = renderWithContext(
+            <UserSettingsNotifications {...defaultProps}/>,
         );
 
-        await wrapper.instance().handleSubmit();
-        expect(requiredProps.actions.updateMe).toHaveBeenCalled();
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should have called handleSubmit', async () => {
-        const updateMe = jest.fn(() => Promise.resolve({data: true}));
+    test('should match snapshot when its a starter free', () => {
+        const props = {...defaultProps, isEnterpriseOrCloudOrSKUStarterFree: true};
 
-        const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallow<UserSettingsNotifications>(
+        const wrapper = renderWithContext(
             <UserSettingsNotifications {...props}/>,
         );
 
-        await wrapper.instance().handleSubmit();
-        expect(requiredProps.updateSection).toHaveBeenCalled();
-        expect(requiredProps.updateSection).toHaveBeenCalledWith('');
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should reset state when handleUpdateSection is called', () => {
-        const newUpdateSection = jest.fn();
-        const updateArg = 'unreadChannels';
-        const props = {...requiredProps, updateSection: newUpdateSection, user: {...user, notify_props: {desktop: 'on'} as unknown as UserNotifyProps}};
-        const wrapper = shallow<UserSettingsNotifications>(
+    test('should match snapshot when its team edition', () => {
+        const props = {...defaultProps, isEnterpriseReady: false};
+
+        const wrapper = renderWithContext(
             <UserSettingsNotifications {...props}/>,
         );
 
-        wrapper.setState({isSaving: true, desktopActivity: 'off' as unknown as UserNotifyProps['desktop']});
-        wrapper.instance().handleUpdateSection(updateArg);
-
-        expect(wrapper.state('isSaving')).toEqual(false);
-        expect(wrapper.state('desktopActivity')).toEqual('on');
-        expect(newUpdateSection).toHaveBeenCalledTimes(1);
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should show reply notifications section when CRT off', () => {
-        const wrapper = shallow<UserSettingsNotifications>(
-            <UserSettingsNotifications {...requiredProps}/>,
-        );
-        expect(wrapper.exists('SettingItem[section="comments"]')).toBe(true);
+        const props = {...defaultProps, isCollapsedThreadsEnabled: false};
+
+        renderWithContext(<UserSettingsNotifications {...props}/>);
+
+        expect(screen.getByText('Reply notifications')).toBeInTheDocument();
+    });
+});
+
+describe('areDesktopAndMobileSettingsDifferent', () => {
+    test('should return true when desktop and push notification levels are different', () => {
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.ALL, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.ALL, NotificationLevels.MENTION, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.MENTION, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.NONE, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.NONE, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.ALL, NotificationLevels.MENTION, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.ALL, NotificationLevels.NONE, true)).toBe(true);
     });
 
-    test('should not show reply notifications section when CRT on', () => {
-        const wrapper = shallow<UserSettingsNotifications>(
-            <UserSettingsNotifications
-                {...requiredProps}
-                isCollapsedThreadsEnabled={true}
-            />,
-        );
-        expect(wrapper.exists('SettingItem[section="comments"]')).toBe(false);
+    test('should return false when desktop and push notification levels are the same', () => {
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(false);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.MENTION, NotificationLevels.MENTION, NotificationLevels.MENTION, NotificationLevels.MENTION, false)).toBe(false);
+    });
+
+    test('should return true any of desktop or push settings are undefined', () => {
+        expect(areDesktopAndMobileSettingsDifferent(undefined as any, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, undefined as any, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, undefined as any, NotificationLevels.ALL, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, undefined as any, true)).toBe(true);
     });
 });

@@ -3,24 +3,24 @@
 
 import {connect} from 'react-redux';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import type {Post} from '@mattermost/types/posts';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-
-import {FakePost} from 'types/store/rhs';
-
+import {measureRhsOpened} from 'actions/views/rhs';
+import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
+import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
 
 type OwnProps = {
-    channel: Channel;
+    channelId: string;
     postIds: Array<Post['id'] | FakePost['id']>;
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
@@ -32,12 +32,12 @@ function makeMapStateToProps() {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const {postIds, useRelativeTimestamp, selected, channel} = ownProps;
+        const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
-        const directTeammate = getDirectTeammate(state, channel.id);
+        const directTeammate = getDirectTeammate(state, channelId);
 
         const lastPost = getPost(state, postIds[0]);
 
@@ -46,14 +46,21 @@ function makeMapStateToProps() {
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
+        const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
         return {
             currentUserId,
             directTeammate,
+            isMobileView: getIsMobileView(state),
             lastPost,
             replyListIds,
+            newMessagesSeparatorActions,
         };
     };
 }
 
-export default connect(makeMapStateToProps)(ThreadViewerVirtualized);
+const mapDispatchToProps = {
+    measureRhsOpened,
+};
+
+export default connect(makeMapStateToProps, mapDispatchToProps)(ThreadViewerVirtualized);

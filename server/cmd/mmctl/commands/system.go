@@ -6,10 +6,13 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -65,15 +68,28 @@ var SystemStatusCmd = &cobra.Command{
 	RunE:    withClient(systemStatusCmdF),
 }
 
+var SystemSupportPacketCmd = &cobra.Command{
+	Use:     "supportpacket",
+	Short:   "Download a Support Packet",
+	Long:    "Generate and download a Support Packet of the server to share it with Mattermost Support",
+	Example: `  system supportpacket`,
+	Args:    cobra.NoArgs,
+	RunE:    withClient(systemSupportPacketCmdF),
+}
+
 func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
+
+	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Output file name (default \"mattermost_support_packet_YYYY-MM-DD-HH-MM.zip\")")
+
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
 		SystemSetBusyCmd,
 		SystemClearBusyCmd,
 		SystemVersionCmd,
 		SystemStatusCmd,
+		SystemSupportPacketCmd,
 	)
 	RootCmd.AddCommand(SystemCmd)
 }
@@ -135,7 +151,10 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	status, _, err := c.GetPingWithFullServerStatus(context.TODO())
+	status, _, err := c.GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+		FullStatus:    true,
+		RESTSemantics: true,
+	})
 	if err != nil {
 		return fmt.Errorf("unable to fetch server status: %w", err)
 	}
@@ -150,5 +169,38 @@ Ios Minimum Version: {{.IosMinVersion}}
 Database Status: {{.database_status}}
 Filestore Status: {{.filestore_status}}`, status)
 
+	return nil
+}
+
+func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	printer.SetSingle(true)
+
+	filename, err := cmd.Flags().GetString("output-file")
+	if err != nil {
+		return err
+	}
+
+	if filename == "" {
+		filename = fmt.Sprintf("mattermost_support_packet_%s.zip", time.Now().Format("2006-01-02-03-04"))
+	}
+
+	printer.Print("Downloading Support Packet")
+
+	data, _, err := c.GenerateSupportPacket(context.TODO())
+	if err != nil {
+		return fmt.Errorf("unable to fetch Support Packet: %w", err)
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("failed to create zip file: %w", err)
+	}
+
+	_, err = file.Write(data)
+	if err != nil {
+		return fmt.Errorf("failed to write to zip file: %w", err)
+	}
+
+	printer.PrintT("Downloaded Support Packet to {{ .filename }}", map[string]string{"filename": filename})
 	return nil
 }

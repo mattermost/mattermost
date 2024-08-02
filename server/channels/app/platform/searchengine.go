@@ -5,7 +5,6 @@ package platform
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (ps *PlatformService) StartSearchEngine() (string, string) {
@@ -26,23 +25,23 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		if ps.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					mlog.Error(err.Error())
+					ps.Log().Error(err.Error())
 				}
 			})
 		} else if ps.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					mlog.Error(err.Error())
+					ps.Log().Error(err.Error())
 				}
 			})
 		} else if ps.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
 			ps.Go(func() {
 				if *oldConfig.ElasticsearchSettings.EnableIndexing {
 					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
+						ps.Log().Error(err.Error())
 					}
 					if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
+						ps.Log().Error(err.Error())
 					}
 				}
 			})
@@ -57,7 +56,7 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
 				ps.Go(func() {
 					if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
+						ps.Log().Error(err.Error())
 					}
 				})
 			}
@@ -65,7 +64,7 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			if ps.SearchEngine.ElasticsearchEngine != nil {
 				ps.Go(func() {
 					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
+						ps.Log().Error(err.Error())
 					}
 				})
 			}

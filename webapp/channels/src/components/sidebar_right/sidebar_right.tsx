@@ -1,37 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
-import {ProductIdentifier} from '@mattermost/types/products';
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
-
-import {RhsState} from 'types/store/rhs';
+import type {Channel} from '@mattermost/types/channels';
+import type {ProductIdentifier} from '@mattermost/types/products';
+import type {Team} from '@mattermost/types/teams';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import Constants from 'utils/constants';
-import {isMac} from 'utils/user_agent';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-
-import FileUploadOverlay from 'components/file_upload_overlay';
-import RhsThread from 'components/rhs_thread';
-import RhsCard from 'components/rhs_card';
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
-import Search from 'components/search/index';
-import PostEditHistory from 'components/post_edit_history';
+import FileUploadOverlay from 'components/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
+import PostEditHistory from 'components/post_edit_history';
+import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
+import RhsCard from 'components/rhs_card';
+import RhsThread from 'components/rhs_thread';
+import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
+import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {isMac} from 'utils/user_agent';
 
-type Props = {
+import type {RhsState} from 'types/store/rhs';
+
+export type Props = {
     isExpanded: boolean;
     isOpen: boolean;
-    channel: Channel;
-    team: Team;
+    channel?: Channel;
+    team?: Team;
     teamId: Team['id'];
     productId: ProductIdentifier;
     postRightVisible: boolean;
@@ -44,7 +44,7 @@ type Props = {
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
-    rhsChannel: Channel;
+    rhsChannel?: Channel;
     selectedPostId: string;
     selectedPostCardId: string;
     actions: {
@@ -65,13 +65,15 @@ type State = {
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRight: React.RefObject<HTMLDivElement>;
+    sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
 
     constructor(props: Props) {
         super(props);
 
-        this.sidebarRight = React.createRef();
+        this.sidebarRightWidthHolder = React.createRef<HTMLDivElement>();
+        this.sidebarRight = React.createRef<HTMLDivElement>();
         this.state = {
             isOpened: false,
         };
@@ -148,11 +150,11 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         }
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
-        if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel.id !== prevProps.rhsChannel.id) {
+        if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showPinnedPosts(rhsChannel.id);
         }
 
-        if (isChannelFiles && prevProps.isChannelFiles === isChannelFiles && rhsChannel.id !== prevProps.rhsChannel.id) {
+        if (isChannelFiles && prevProps.isChannelFiles === isChannelFiles && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showChannelFiles(rhsChannel.id);
         }
 
@@ -262,14 +264,20 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         return (
             <>
-                <div className={'sidebar--right sidebar--right--width-holder'}/>
                 <div
+                    className={'sidebar--right sidebar--right--width-holder'}
+                    ref={this.sidebarRightWidthHolder}
+                />
+                <ResizableRhs
                     className={containerClassName}
                     id='sidebar-right'
                     role='complementary'
-                    ref={this.sidebarRight}
+                    rightWidthHolderRef={this.sidebarRightWidthHolder}
                 >
-                    <div className='sidebar-right-container'>
+                    <div
+                        className='sidebar-right-container'
+                        ref={this.sidebarRight}
+                    >
                         {isRHSLoading ? (
                             <div className='sidebar-right__body'>
                                 {/* Sometimes the channel/team is not loaded yet, so we need to wait for it */}
@@ -286,7 +294,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                             </Search>
                         )}
                     </div>
-                </div>
+                </ResizableRhs>
             </>
         );
     }

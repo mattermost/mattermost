@@ -1,62 +1,63 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
 
 import AdminPanel from './admin_panel';
 
 type Props = {
     children?: React.ReactNode;
-    className: string;
+    className?: string;
     id?: string;
-    titleId: string;
-    titleDefault: string;
-    subtitleId: string;
-    subtitleDefault: string;
+    title: MessageDescriptor;
+    subtitle: MessageDescriptor;
     subtitleValues?: any;
     url: string;
     disabled?: boolean;
-    linkTextId: string;
-    linkTextDefault: string;
+    linkText: MessageDescriptor;
 }
 
-const AdminPanelWithLink = (props: Props) => {
+const AdminPanelWithLink = ({
+    className = '',
+    linkText,
+    subtitle,
+    title,
+    url,
+    children,
+    disabled,
+    id,
+    subtitleValues,
+}: Props) => {
     const button = (
         <Link
-            data-testid={`${props.id}-link`}
-            className={classNames(['btn', 'btn-primary', {disabled: props.disabled}])}
-            to={props.url}
-            onClick={props.disabled ? (e) => e.preventDefault() : () => null}
+            data-testid={`${id}-link`}
+            className={classNames(['btn', 'btn-primary', {disabled}])}
+            to={url}
+            onClick={disabled ? (e) => e.preventDefault() : () => null}
         >
             <FormattedMessage
-                id={props.linkTextId}
-                defaultMessage={props.linkTextDefault}
+                {...linkText}
             />
         </Link>
     );
 
     return (
         <AdminPanel
-            className={'AdminPanelWithLink ' + props.className}
-            id={props.id}
-            data-testid={props.id}
-            titleId={props.titleId}
-            titleDefault={props.titleDefault}
-            subtitleId={props.subtitleId}
-            subtitleDefault={props.subtitleDefault}
-            subtitleValues={props.subtitleValues}
+            className={'AdminPanelWithLink ' + className}
+            id={id}
+            data-testid={id}
+            title={title}
+            subtitle={subtitle}
+            subtitleValues={subtitleValues}
             button={button}
         >
-            {props.children}
+            {children}
         </AdminPanel>
     );
-};
-
-AdminPanelWithLink.defaultProps = {
-    className: '',
 };
 
 export default AdminPanelWithLink;

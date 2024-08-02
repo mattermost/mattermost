@@ -16,13 +16,6 @@ describe('Messaging', () => {
     const sysadmin = getAdminAccount();
 
     before(() => {
-        // # Enable Timezone
-        cy.apiUpdateConfig({
-            DisplaySettings: {
-                ExperimentalTimezone: true,
-            },
-        });
-
         // # Create and visit new channel
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);

@@ -50,7 +50,7 @@ func TestGetPreferences(t *testing.T) {
 	prefs, _, err := client.GetPreferences(context.Background(), user1.Id)
 	require.NoError(t, err)
 
-	// 6 because we have 3 initial preferences insights, tutorial_step and recommended_next_steps added when creating a new user
+	// 6 because we have 3 initial preferences tutorial_step, recommended_next_steps and system_notification are added when creating a new user
 	require.Equal(t, len(prefs), 6, "received the wrong number of preferences")
 
 	for _, preference := range prefs {
@@ -192,7 +192,6 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-
 }
 
 func TestUpdatePreferences(t *testing.T) {
@@ -256,6 +255,42 @@ func TestUpdatePreferences(t *testing.T) {
 	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestUpdatePreferencesOverload(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.LoginBasic()
+	user1 := th.BasicUser
+
+	t.Run("No preferences", func(t *testing.T) {
+		preferences1 := model.Preferences{}
+		// should error if no preferences
+		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Too many preferences", func(t *testing.T) {
+		preferences1 := model.Preferences{}
+		category := model.NewId()
+		// should error if too many preferences
+		for i := 0; i <= 100; i++ {
+			preferences1 = append(preferences1, model.Preference{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    model.NewId(),
+			})
+		}
+		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
@@ -590,6 +625,42 @@ func TestDeletePreferences(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestDeletePreferencesOverload(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.LoginBasic()
+	user1 := th.BasicUser
+
+	t.Run("No preferences", func(t *testing.T) {
+		preferences1 := model.Preferences{}
+		// should error if no preferences
+		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Too many preferences", func(t *testing.T) {
+		category := model.NewId()
+		preferences1 := model.Preferences{}
+		// should error if too many preferences
+		for i := 0; i <= 100; i++ {
+			preferences1 = append(preferences1, model.Preference{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    model.NewId(),
+			})
+		}
+		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestDeletePreferencesWebsocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -860,5 +931,91 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.Contains(t, categories.Categories[0].Channels, channel.Id)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
+	})
+}
+
+func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
+	t.Run("Update limit_visible_dms_gms to a valid value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		_, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "40",
+			},
+		})
+		require.NoError(t, err)
+
+		pref, _, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms)
+		require.NoError(t, err)
+
+		require.Equal(t, "40", pref.Value, "Value was not updated")
+	})
+
+	t.Run("Update limit_visible_dms_gms to a value greater PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "10000",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Update limit_visible_dms_gms to an invalid value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "one thousand",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Update limit_visible_dms_gms to a negative number", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "-20",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }

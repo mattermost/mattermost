@@ -1,39 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import classNames from 'classnames';
-import {FormattedMessage, useIntl} from 'react-intl';
-import moment, {Moment} from 'moment-timezone';
+import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
 
-import {setCustomStatus, unsetCustomStatus, removeRecentCustomStatus} from 'mattermost-redux/actions/users';
+import {GenericModal} from '@mattermost/components';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {UserCustomStatus} from '@mattermost/types/users';
+import {CustomStatusDuration} from '@mattermost/types/users';
+
 import {setCustomStatusInitialisationState} from 'mattermost-redux/actions/preferences';
+import {setCustomStatus, unsetCustomStatus, removeRecentCustomStatus} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {loadCustomEmojisForRecentCustomStatuses} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
-import {GenericModal} from '@mattermost/components';
-import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import RenderEmoji from 'components/emoji/render_emoji';
-import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
-import {GlobalState} from 'types/store';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
-import {A11yCustomEventTypes, A11yFocusEventDetail, Constants, ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {isKeyPressed} from 'utils/keyboard';
-import {localizeMessage} from 'utils/utils';
 
 import CustomStatusSuggestion from 'components/custom_status/custom_status_suggestion';
-import ExpiryMenu from 'components/custom_status/expiry_menu';
 import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
+import ExpiryMenu from 'components/custom_status/expiry_menu';
+import RenderEmoji from 'components/emoji/render_emoji';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import QuickInput, {MaxLengthInput} from 'components/quick_input';
+import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
-import {Emoji} from '@mattermost/types/emojis';
-import {UserCustomStatus, CustomStatusDuration} from '@mattermost/types/users';
+import {A11yCustomEventTypes, Constants, ModalIdentifiers} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import {getCurrentMomentForTimezone} from 'utils/timezone';
+
+import type {GlobalState} from 'types/store';
 
 import 'components/category_modal.scss';
 import './custom_status.scss';
@@ -49,8 +53,7 @@ const EMOJI_PICKER_WIDTH_OFFSET = 308;
 
 type DefaultUserCustomStatus = {
     emoji: string;
-    message: string;
-    messageDefault: string;
+    message: MessageDescriptor;
     duration: CustomStatusDuration;
 };
 
@@ -68,32 +71,42 @@ const {
 const defaultCustomStatusSuggestions: DefaultUserCustomStatus[] = [
     {
         emoji: 'calendar',
-        message: t('custom_status.suggestions.in_a_meeting'),
-        messageDefault: 'In a meeting',
+        message: defineMessage({
+            id: 'custom_status.suggestions.in_a_meeting',
+            defaultMessage: 'In a meeting',
+        }),
         duration: ONE_HOUR,
     },
     {
         emoji: 'hamburger',
-        message: t('custom_status.suggestions.out_for_lunch'),
-        messageDefault: 'Out for lunch',
+        message: defineMessage({
+            id: 'custom_status.suggestions.out_for_lunch',
+            defaultMessage: 'Out for lunch',
+        }),
         duration: THIRTY_MINUTES,
     },
     {
         emoji: 'sneezing_face',
-        message: t('custom_status.suggestions.out_sick'),
-        messageDefault: 'Out sick',
+        message: defineMessage({
+            id: 'custom_status.suggestions.out_sick',
+            defaultMessage: 'Out sick',
+        }),
         duration: TODAY,
     },
     {
         emoji: 'house',
-        message: t('custom_status.suggestions.working_from_home'),
-        messageDefault: 'Working from home',
+        message: defineMessage({
+            id: 'custom_status.suggestions.working_from_home',
+            defaultMessage: 'Working from home',
+        }),
         duration: TODAY,
     },
     {
         emoji: 'palm_tree',
-        message: t('custom_status.suggestions.on_a_vacation'),
-        messageDefault: 'On a vacation',
+        message: defineMessage({
+            id: 'custom_status.suggestions.on_a_vacation',
+            defaultMessage: 'On a vacation',
+        }),
         duration: THIS_WEEK,
     },
 ];
@@ -148,9 +161,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     };
 
     const loadCustomEmojisForRecentStatuses = () => {
-        const emojisToLoad = new Set<string>();
-        recentCustomStatuses.forEach((customStatus: UserCustomStatus) => emojisToLoad.add(customStatus.emoji));
-        dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
+        dispatch(loadCustomEmojisForRecentCustomStatuses());
     };
 
     const handleStatusExpired = () => {
@@ -195,7 +206,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         case FOUR_HOURS:
             return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
         case TODAY:
-            return moment().endOf('day').toISOString();
+            return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
         case THIS_WEEK:
             return moment().endOf('week').toISOString();
         case DATE_AND_TIME:
@@ -317,7 +328,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         const customStatusSuggestions = defaultCustomStatusSuggestions.
             map((status) => ({
                 emoji: status.emoji,
-                text: formatMessage({id: status.message, defaultMessage: status.messageDefault}),
+                text: formatMessage(status.message),
                 duration: status.duration,
             })).
             filter((status: UserCustomStatus) => !recentCustomStatusTexts.includes(status.text)).
@@ -370,6 +381,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         <GenericModal
             enforceFocus={false}
             onExited={props.onExited}
+            compassDesign={true}
             modalHeaderText={
                 <FormattedMessage
                     id='custom_status.set_status'
@@ -395,7 +407,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             handleEnterKeyPress={handleSetStatus}
             handleCancel={handleClearStatus}
             confirmButtonClassName='btn btn-primary'
-            ariaLabel={localizeMessage('custom_status.set_status', 'Set a status')}
+            ariaLabel={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
             keyboardEscape={false}
             tabIndex={-1}
         >
@@ -422,6 +434,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                             type='button'
                             onClick={toggleEmojiPicker}
                             ref={emojiButtonRef}
+                            aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                             className={classNames('emoji-picker__container', 'StatusModal__emoji-button', {
                                 'StatusModal__emoji-button--active': showEmojiPicker,
                             })}

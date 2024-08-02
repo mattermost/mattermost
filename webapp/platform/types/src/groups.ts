@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from './users';
-
-import {RelationOneToOne} from './utilities';
+import type {UserProfile} from './users';
+import type {RelationOneToOne} from './utilities';
 
 export enum SyncableType {
     Team = 'team',
@@ -41,6 +40,7 @@ export type Group = {
     allow_reference: boolean;
     channel_member_count?: number;
     channel_member_timezones_count?: number;
+    member_ids?: string[];
 };
 
 export enum GroupSource {
@@ -150,13 +150,23 @@ export type GroupCreateWithUserIds = {
     description?: string;
 }
 
-export type GroupSearachParams = {
+export type GetGroupsParams = {
+    filter_allow_reference?: boolean;
+    page?: number;
+    per_page?: number;
+    include_member_count?: boolean;
+    include_archived?: boolean;
+    filter_archived?: boolean;
+    include_member_ids?: boolean;
+}
+
+export type GetGroupsForUserParams = GetGroupsParams & {
+    filter_has_member: string;
+}
+
+export type GroupSearchParams = GetGroupsParams & {
     q: string;
-    filter_allow_reference: boolean;
-    page: number;
-    per_page: number;
-    include_member_count: boolean;
-    user_id?: string;
+    filter_has_member?: string;
     include_timezones?: string;
     include_channel_member_count?: string;
 }
@@ -169,4 +179,5 @@ export type GroupMembership = {
 export type GroupPermissions = {
     can_delete: boolean;
     can_manage_members: boolean;
+    can_restore: boolean;
 }

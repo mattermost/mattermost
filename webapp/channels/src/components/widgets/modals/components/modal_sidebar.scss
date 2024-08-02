@@ -1,0 +1,35 @@
+.mm-modal-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    gap: 8px;
+
+    li {
+        list-style: none;
+    }
+
+    &__item {
+        display: flex;
+        width: 184px;
+        height: 32px;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 12px;
+        border: none;
+        border-radius: var(--radius-s);
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        gap: 8px;
+
+        &:hover {
+            background: rgba(var(--denim-button-bg-rgb), 0.08);
+        }
+    }
+
+    &__item--active {
+        background: rgba(var(--denim-button-bg-rgb), 0.08);
+        color: var(--denim-button-bg);
+    }
+}

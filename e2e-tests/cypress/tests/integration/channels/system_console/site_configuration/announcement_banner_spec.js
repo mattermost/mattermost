@@ -34,7 +34,7 @@ describe('Announcement Banner', () => {
         cy.findByTestId('AnnouncementSettings.EnableBanner').
             should('be.visible').
             within(() => {
-                cy.findByText('true').
+                cy.findByTestId('AnnouncementSettings.EnableBannertrue').
                     should('be.visible').
                     click({force: true});
             });
@@ -75,7 +75,7 @@ describe('Announcement Banner', () => {
         cy.findByTestId('AnnouncementSettings.AllowBannerDismissal').
             should('be.visible').
             within(() => {
-                cy.findByText('true').
+                cy.findByTestId('AnnouncementSettings.AllowBannerDismissaltrue').
                     should('be.visible').
                     click({force: true});
             });
@@ -112,6 +112,9 @@ describe('Announcement Banner', () => {
                 cy.get(`a[href="${bannerEmbedLink}"]`).should('be.visible');
                 cy.get(`a[href="${bannerEndLink}"]`).should('not.be.visible');
             });
+
+        // Go back to Channels
+        cy.get('a.backstage-navbar__back').click();
 
         // # Hover over the banner
         cy.get('@announcementBanner').trigger('mouseover');

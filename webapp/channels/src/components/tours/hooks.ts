@@ -2,27 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {useCallback} from 'react';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
+
 import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
+import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
 import {switchToChannels} from 'actions/views/onboarding_tasks';
-import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
+
+import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
 
 import {getHistory} from 'utils/browser_history';
-import {GlobalState} from 'types/store';
-import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
 
-import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from '../onboarding_tasks';
+import type {GlobalState} from 'types/store';
 
 import {
     CrtTutorialSteps,
-    ExploreOtherToolsTourSteps,
     FINISHED,
     OnboardingTourSteps,
     TTNameMapToTourSteps,
@@ -34,24 +31,13 @@ export const useGetTourSteps = (tourCategory: string) => {
 
     let tourSteps: Record<string, number> = TTNameMapToTourSteps[tourCategory];
 
-    const {playbooksPlugin, playbooksProductEnabled, boardsPlugin, boardsProductEnabled} = useGetPluginsActivationState();
-
-    if (tourCategory === TutorialTourName.EXPLORE_OTHER_TOOLS) {
-        const steps: Record<string, number> = tourSteps as typeof ExploreOtherToolsTourSteps;
-        if (!playbooksPlugin && !playbooksProductEnabled) {
-            delete steps.PLAYBOOKS_TOUR;
-        }
-
-        if (!boardsPlugin && !boardsProductEnabled) {
-            delete steps.BOARDS_TOUR;
-        }
-        tourSteps = steps;
-    } else if (tourCategory === TutorialTourName.ONBOARDING_TUTORIAL_STEP && isGuestUser) {
+    if (tourCategory === TutorialTourName.ONBOARDING_TUTORIAL_STEP && isGuestUser) {
         // restrict the 'learn more about messaging' tour when user is guest (townSquare, channel creation and user invite are restricted to guests)
         tourSteps = TTNameMapToTourSteps[TutorialTourName.ONBOARDING_TUTORIAL_STEP_FOR_GUESTS];
     }
     return tourSteps;
 };
+
 export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
@@ -110,31 +96,6 @@ export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
                 break;
             }
             case CrtTutorialSteps.UNREAD_POPOVER : {
-                break;
-            }
-            default:
-            }
-        } else if (tourCategory === TutorialTourName.EXPLORE_OTHER_TOOLS) {
-            switch (step) {
-            case ExploreOtherToolsTourSteps.FINISHED : {
-                dispatch(setProductMenuSwitcherOpen(false));
-                let preferences = [
-                    {
-                        user_id: currentUserId,
-                        category: OnboardingTaskCategory,
-                        name: OnboardingTasksName.EXPLORE_OTHER_TOOLS,
-                        value: FINISHED.toString(),
-                    },
-                ];
-                preferences = [...preferences,
-                    {
-                        user_id: currentUserId,
-                        category: OnboardingTaskCategory,
-                        name: OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN,
-                        value: 'true',
-                    },
-                ];
-                dispatch(savePreferences(currentUserId, preferences));
                 break;
             }
             default:

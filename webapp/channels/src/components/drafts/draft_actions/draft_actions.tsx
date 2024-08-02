@@ -6,11 +6,12 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {openModal} from 'actions/views/modals';
+
 import {ModalIdentifiers} from 'utils/constants';
 
 import Action from './action';
-import SendDraftModal from './send_draft_modal';
 import DeleteDraftModal from './delete_draft_modal';
+import SendDraftModal from './send_draft_modal';
 
 type Props = {
     displayName: string;

@@ -3,7 +3,7 @@
 
 import {TestHelper} from 'utils/test_helper';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import {makeGetMentionKeysForPost} from './index';
 

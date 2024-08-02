@@ -2,27 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getTermsOfService, updateMyTermsOfServiceStatus} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {GlobalState} from '@mattermost/types/store';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
-
 import {getEmojiMap} from 'selectors/emojis';
 
-import TermsOfService, {UpdateMyTermsOfServiceStatusResponse} from './terms_of_service';
-
-type Actions = {
-    getTermsOfService: () => Promise<{data: ReduxTermsOfService}>;
-    updateMyTermsOfServiceStatus: (
-        termsOfServiceId: string,
-        accepted: boolean
-    ) => {data: UpdateMyTermsOfServiceStatusResponse};
-};
+import TermsOfService from './terms_of_service';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -34,9 +25,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getTermsOfService,
             updateMyTermsOfServiceStatus,
         }, dispatch),

@@ -1,30 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject, useEffect, useState} from 'react';
 import classNames from 'classnames';
-import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import type {RefObject} from 'react';
+import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessages, useIntl} from 'react-intl';
 
-import Tag from 'components/widgets/tag/tag';
-
-import {ClientLicense} from '@mattermost/types/config';
+import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
-import {FileTypes, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {getSkuDisplayName} from 'utils/subscription';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import Tag from 'components/widgets/tag/tag';
+
+import {FileTypes} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getSkuDisplayName} from 'utils/subscription';
+import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
 
 import './enterprise_edition.scss';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
-import {getExpandSeatsLink} from 'selectors/cloud';
-import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
-import {useQuery} from 'utils/http_utils';
-import {trackEvent} from 'actions/telemetry_actions';
 
 const DAYS_UNTIL_EXPIRY_WARNING_DISPLAY_THRESHOLD = 30;
 const DAYS_UNTIL_EXPIRY_DANGER_DISPLAY_THRESHOLD = 5;
@@ -42,6 +37,10 @@ export interface EnterpriseEditionProps {
     statsActiveUsers: number;
 }
 
+export const messages = defineMessages({
+    keyRemove: {id: 'admin.license.keyRemove', defaultMessage: 'Remove license and downgrade to Mattermost Free'},
+});
+
 const EnterpriseEditionLeftPanel = ({
     openEELicenseModal,
     upgradedFromTE,
@@ -57,20 +56,7 @@ const EnterpriseEditionLeftPanel = ({
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
     const openPricingModal = useOpenPricingModal();
-    const canExpand = useCanSelfHostedExpand();
-    const selfHostedExpansionModal = useControlSelfHostedExpansionModal({trackingLocation: 'license_settings_add_seats'});
-    const expandableLink = useSelector(getExpandSeatsLink);
-    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
-
-    const query = useQuery();
-    const actionQueryParam = query.get('action');
-
-    useEffect(() => {
-        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedPurchaseEnabled) {
-            selfHostedExpansionModal.open();
-            query.set('action', '');
-        }
-    }, []);
+    const [openContactSales] = useOpenSalesLink();
 
     useEffect(() => {
         async function fetchUnSanitizedLicense() {
@@ -99,15 +85,6 @@ const EnterpriseEditionLeftPanel = ({
             })}
         </button>
     );
-
-    const handleClickAddSeats = () => {
-        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'add_seats_clicked');
-        if (!isSelfHostedPurchaseEnabled || !canExpand) {
-            window.open(expandableLink(unsanitizedLicense.Id), '_blank');
-        } else {
-            selfHostedExpansionModal.open();
-        }
-    };
 
     return (
         <div
@@ -149,17 +126,15 @@ const EnterpriseEditionLeftPanel = ({
             <div className='licenseInformation'>
                 <div className='license-details-top'>
                     <span className='title'>{'License details'}</span>
-                    {canExpand &&
-                        <button
-                            className='add-seats-button btn btn-primary'
-                            onClick={handleClickAddSeats}
-                        >
-                            <FormattedMessage
-                                id={'admin.license.enterpriseEdition.add.seats'}
-                                defaultMessage='+ Add seats'
-                            />
-                        </button>
-                    }
+                    <button
+                        className='add-seats-button btn btn-primary'
+                        onClick={openContactSales}
+                    >
+                        <FormattedMessage
+                            id={'admin.license.enterpriseEdition.add.seats'}
+                            defaultMessage='+ Add seats'
+                        />
+                    </button>
                 </div>
                 {
                     renderLicenseContent(
@@ -177,6 +152,7 @@ const EnterpriseEditionLeftPanel = ({
                 }
             </div>
             <div className='license-notices'>
+                {/* This notice should not be translated */}
                 {upgradedFromTE ? <>
                     <p>
                         {'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See '}
@@ -345,12 +321,7 @@ const renderRemoveButton = (
     isDisabled: boolean,
     removing: boolean,
 ) => {
-    let removeButtonText = (
-        <FormattedMessage
-            id='admin.license.keyRemove'
-            defaultMessage='Remove license and downgrade to Mattermost Free'
-        />
-    );
+    let removeButtonText = (<FormattedMessage {...messages.keyRemove}/>);
     if (removing) {
         removeButtonText = (
             <FormattedMessage

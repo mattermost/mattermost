@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"html/template"
 	"io"
-	"os"
 	"path/filepath"
 	"sync"
 
@@ -33,12 +32,7 @@ type Data struct {
 }
 
 func GetTemplateDirectory() (string, bool) {
-	templatesDir := "templates"
-	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
-		templatesDir = filepath.Join(mattermostPath, templatesDir)
-	}
-
-	return fileutils.FindDir(templatesDir)
+	return fileutils.FindDir("templates")
 }
 
 // NewFromTemplates creates a new templates container using a

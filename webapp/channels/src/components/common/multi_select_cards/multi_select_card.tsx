@@ -3,17 +3,15 @@
 
 import React from 'react';
 
-import {FormattedMessage} from 'react-intl';
+import WithTooltip from 'components/with_tooltip';
 
 import './multi_select_card.scss';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 
 export type Props = {
     onClick: () => void;
     icon: JSX.Element;
     id: string;
-    defaultMessage: string;
+    buttonText: string;
     checked: boolean;
     tooltip?: string;
     size?: 'regular' | 'small';
@@ -39,10 +37,7 @@ const MultiSelectCard = (props: Props) => {
         >
             {props.icon}
             <span className='MultiSelectCard__label'>
-                <FormattedMessage
-                    id={props.id}
-                    defaultMessage={props.defaultMessage}
-                />
+                {props.buttonText}
             </span>
             {props.checked && <i className='MultiSelectCard__checkmark icon icon-check-circle'/>}
         </button>
@@ -50,21 +45,13 @@ const MultiSelectCard = (props: Props) => {
 
     if (props.tooltip) {
         button = (
-            <OverlayTrigger
-                className='hidden-xs'
-                delayShow={500}
+            <WithTooltip
+                id={props.id}
                 placement='top'
-                overlay={
-                    <Tooltip
-                        id={props.tooltip}
-                        className='hidden-xs'
-                    >
-                        {props.tooltip}
-                    </Tooltip>
-                }
+                title={props.tooltip}
             >
                 {button}
-            </OverlayTrigger>
+            </WithTooltip>
         );
     }
 
