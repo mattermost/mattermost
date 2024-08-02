@@ -1979,7 +1979,7 @@ func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {
 		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message to delete", "", model.PostTypeDefault, 0, false)
 		require.NoError(t, err)
 
-		err = th.Store.Post().PermanentDeletePost(th.Context, p2.Id)
+		err = th.Store.Post().PermanentDelete(th.Context, p2.Id)
 		require.NoError(t, err)
 
 		params := &model.SearchParams{Terms: "message to delete"}

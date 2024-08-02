@@ -955,7 +955,7 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 	return nil
 }
 
-func (s *SqlPostStore) PermanentDeletePost(rctx request.CTX, postID string) (err error) {
+func (s *SqlPostStore) PermanentDelete(rctx request.CTX, postID string) (err error) {
 	return s.permanentDelete([]string{postID})
 }
 

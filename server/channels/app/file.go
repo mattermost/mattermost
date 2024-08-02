@@ -1602,7 +1602,7 @@ func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.Ap
 	}
 	if len(fileInfos) == 0 {
 		c.Logger().Debug("No files found for post", mlog.String("post_id", postID))
-		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusNotFound)
+		return nil
 	}
 
 	a.RemoveFilesFromFileStore(c, fileInfos)

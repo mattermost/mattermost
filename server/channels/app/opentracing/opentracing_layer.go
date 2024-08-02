@@ -675,28 +675,6 @@ func (a *OpenTracingAppLayer) AdjustTeamsFromProductLimits(teamLimits *model.Tea
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AfterPostDeletionCleanUp(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AfterPostDeletionCleanUp")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.AfterPostDeletionCleanUp(c, post, deleteByID)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) AllowOAuthAppAccessToUser(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AllowOAuthAppAccessToUser")
@@ -1473,6 +1451,28 @@ func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *
 
 	defer span.Finish()
 	resultVar0 := a.app.CheckWebConn(userID, connectionID)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CleanUpAfterPostDeletion")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CleanUpAfterPostDeletion(c, post, deleteByID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0
 }

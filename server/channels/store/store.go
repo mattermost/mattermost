@@ -355,7 +355,7 @@ type PostStore interface {
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error)
 	Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error
-	PermanentDeletePost(rctx request.CTX, postID string) error
+	PermanentDelete(rctx request.CTX, postID string) error
 	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)

@@ -268,13 +268,14 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", false, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{id})
 		s.Require().Nil(err)
 		s.Require().Equal("Invalid postID: invalid-id", printer.GetErrorLines()[0])
 	})
 
-	s.Run("successfully delete one post", func() {
+	s.Run("successfully permanently delete one post", func() {
 		printer.Clean()
 		s.client.
 			EXPECT().
@@ -283,6 +284,23 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Times(1)
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		s.Require().Nil(err)
+		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
+	})
+
+	s.Run("successfully soft delete one post", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			DeletePost(context.TODO(), postID1).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", false, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{postID1})
 		s.Require().Nil(err)
@@ -303,6 +321,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Times(1)
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
 		s.Require().Nil(err)
@@ -323,6 +342,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{postID1})
 		s.Require().Nil(err)
@@ -346,6 +366,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Times(1)
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
 		s.Require().Nil(err)

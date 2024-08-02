@@ -116,13 +116,13 @@ func (s SearchPostStore) Delete(rctx request.CTX, postId string, date int64, del
 	return nil
 }
 
-func (s SearchPostStore) PermanentDeletePost(rctx request.CTX, postID string) error {
+func (s SearchPostStore) PermanentDelete(rctx request.CTX, postID string) error {
 	// Get full post struct for later
 	post, err := s.PostStore.GetSingle(rctx, postID, true)
 	if err != nil {
 		return err
 	}
-	err = s.PostStore.PermanentDeletePost(rctx, postID)
+	err = s.PostStore.PermanentDelete(rctx, postID)
 	if err != nil {
 		return err
 	}

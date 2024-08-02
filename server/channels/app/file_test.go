@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -744,10 +743,6 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 
 		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 		require.Nil(t, err)
-		defer func() {
-			th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-			th.App.RemoveFile(info1.Path)
-		}()
 
 		post := &model.Post{
 			Message:       "asd",
@@ -787,6 +782,5 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
 		require.NotNil(t, err)
-		assert.Equal(t, http.StatusNotFound, err.StatusCode)
 	})
 }

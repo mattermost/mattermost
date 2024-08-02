@@ -269,6 +269,7 @@ func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 		if _, err := deleteFunc(context.TODO(), postID); err != nil {
 			printer.PrintError(fmt.Sprintf("Error deleting post: %s. Error: %s", postID, err.Error()))
+			result = multierror.Append(result, err)
 			continue
 		}
 		printer.Print(fmt.Sprintf("%s successfully deleted", postID))

@@ -453,7 +453,6 @@ type AppIface interface {
 	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError
 	AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError
-	AfterPostDeletionCleanUp(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	AllowOAuthAppAccessToUser(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
@@ -489,6 +488,7 @@ type AppIface interface {
 	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
+	CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 	ClearChannelMembersCache(c request.CTX, channelID string) error
 	ClearLatestVersionCache(rctx request.CTX)

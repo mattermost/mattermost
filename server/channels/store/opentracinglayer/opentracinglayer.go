@@ -6892,6 +6892,24 @@ func (s *OpenTracingLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*m
 	return result, resultVar1, err
 }
 
+func (s *OpenTracingLayerPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDelete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.PermanentDelete(rctx, postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteBatch")
@@ -6956,24 +6974,6 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(rctx request.CTX, user
 
 	defer span.Finish()
 	err := s.PostStore.PermanentDeleteByUser(rctx, userID)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
-func (s *OpenTracingLayerPostStore) PermanentDeletePost(rctx request.CTX, postID string) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeletePost")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.PostStore.PermanentDeletePost(rctx, postID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

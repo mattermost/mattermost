@@ -1395,7 +1395,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 
-	appErr = a.AfterPostDeletionCleanUp(c, post, deleteByID)
+	appErr = a.CleanUpAfterPostDeletion(c, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2610,17 +2610,17 @@ func (a *App) PermanentDeletePost(c request.CTX, postID, deleteByID string) *mod
 
 	if len(post.FileIds) > 0 {
 		appErr := a.PermanentDeleteFilesByPost(c, post.Id)
-		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		if appErr != nil {
 			return appErr
 		}
 	}
 
-	err = a.Srv().Store().Post().PermanentDeletePost(c, post.Id)
+	err = a.Srv().Store().Post().PermanentDelete(c, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appErr := a.AfterPostDeletionCleanUp(c, post, deleteByID)
+	appErr := a.CleanUpAfterPostDeletion(c, post, deleteByID)
 	if appErr != nil {
 		return appErr
 	}
@@ -2628,7 +2628,7 @@ func (a *App) PermanentDeletePost(c request.CTX, postID, deleteByID string) *mod
 	return nil
 }
 
-func (a *App) AfterPostDeletionCleanUp(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
+func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
 	channel, appErr := a.GetChannel(c, post.ChannelId)
 	if appErr != nil {
 		return appErr
