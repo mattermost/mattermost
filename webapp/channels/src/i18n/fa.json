@@ -3753,7 +3753,6 @@
   "shortcuts.team_nav.prev.mac": "تیم قبلی: ⌘|⌥|بالا",
   "shortcuts.team_nav.switcher": "به یک تیم خاص بروید: Ctrl|Alt|[1-9]",
   "shortcuts.team_nav.switcher.mac": "به یک تیم خاص پیمایش کنید: ⌘|⌥|[1-9]",
-  "sidebar.allDirectMessages": "همه‌ی پیام‌های شخصی",
   "sidebar.createDirectMessage": "پیام مستقیم بنویسید",
   "sidebar.directchannel.you": "{displayname} (شما)",
   "sidebar.menu.item.notSelected": "انتخاب‌نشده",
