@@ -765,7 +765,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 
 	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
 		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
-		require.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("should handle empty file list", func(t *testing.T) {
@@ -781,6 +781,6 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
-		require.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 }

@@ -246,7 +246,7 @@ func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag && permanent {
-		if err := getConfirmation("Are you sure you want to delete the posts specified?", true); err != nil {
+		if err = getConfirmation("Are you sure you want to delete the posts specified?", true); err != nil {
 			return err
 		}
 	}

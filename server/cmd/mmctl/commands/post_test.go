@@ -345,7 +345,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		cmd.Flags().Bool("permanent", true, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{postID1})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "an error occurred on deleting a post")
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Error deleting post: "+postID1+". Error: an error occurred on deleting a post",
 			printer.GetErrorLines()[0])
@@ -369,7 +369,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		cmd.Flags().Bool("permanent", true, "")
 
 		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "an error occurred on deleting a post")
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
