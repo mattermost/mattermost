@@ -24,54 +24,10 @@
 
     <!-- We need this as soon as possible to show the loading screen -->
     <link id="initialLoadingScreenCSS" rel='stylesheet' href='/static/css/initial_loading_screen.css'>
-    <style>
-        .error-screen {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            padding-top: 50px;
-            max-width: 750px;
-            font-size: 14px;
-            color: #333333;
-            margin: auto;
-            display: none;
-            line-height: 1.5;
-        }
-
-        .error-screen h2 {
-            font-size: 30px;
-            font-weight: normal;
-            line-height: 1.2;
-        }
-
-        .error-screen ul {
-            padding-left: 15px;
-            line-height: 1.7;
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-
-        .error-screen hr {
-            color: #ddd;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            border: 0;
-            border-top: 1px solid #eee;
-        }
-
-        .error-screen-visible {
-            display: block;
-        }
-    </style>
 </head>
 <body class='font--open_sans enable-animations'>
     <%= require('html-loader!./components/initial_loading_screen/initial_loading_screen_template.html').default %>
-    <div id='root'>
-        <div class='error-screen'>
-            <h2>Cannot connect to Mattermost</h2>
-            <hr/>
-            <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p>
-            <br/>
-        </div>
-    </div>
+    <div id='root'></div>
     <div id='root-portal'></div>
     <%= require('html-loader!./components/no_script/no_script_template.html').default %>
 </body>
