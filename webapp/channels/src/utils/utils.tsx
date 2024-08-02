@@ -1370,10 +1370,8 @@ export function copyToClipboard(data: string) {
             () => {
                 /* clipboard successfully set */
                 return;
-            },
-            () => {
-                /* clipboard write failed, falls back to workaround below */
-            },   
+            }
+            /* clipboard write failed, falls back to workaround below */
         );
     }
 
