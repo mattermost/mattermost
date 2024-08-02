@@ -233,9 +233,7 @@ export default class SettingPicture extends Component<Props, State> {
                     </div>
                     <WithTooltip
                         id='removeIcon'
-                        title={<div aria-hidden={true}>
-                            {title}
-                        </div>}
+                        title={title ?? ''}
                         placement='right'
                     >
                         <button
