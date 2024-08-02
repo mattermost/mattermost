@@ -693,7 +693,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	}
 
 	if receivedUpdatedPost.IsRemote() {
-		oldPost.RemoteId = model.NewString(*receivedUpdatedPost.RemoteId)
+		oldPost.RemoteId = model.NewPointer(*receivedUpdatedPost.RemoteId)
 	}
 
 	var rejectionReason string
