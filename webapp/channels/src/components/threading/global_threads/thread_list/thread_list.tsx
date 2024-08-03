@@ -38,6 +38,7 @@ import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
 import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
 
 import './thread_list.scss';
+import WithTooltip from 'components/with_tooltip';
 
 export enum ThreadFilter {
     none = '',
@@ -231,12 +232,13 @@ const ThreadList = ({
                 )}
                 right={(
                     <div className='right-anchor'>
-                        <SimpleTooltip
+                        <WithTooltip
                             id='threadListMarkRead'
-                            content={formatMessage({
+                            title={formatMessage({
                                 id: 'threading.threadList.markRead',
                                 defaultMessage: 'Mark all as read',
                             })}
+                            placement={'top'}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
@@ -248,7 +250,7 @@ const ThreadList = ({
                                     <PlaylistCheckIcon size={18}/>
                                 </span>
                             </Button>
-                        </SimpleTooltip>
+                        </WithTooltip>
                     </div>
                 )}
             />
