@@ -484,14 +484,12 @@ func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, val
 
 func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, values []any) []error {
 	errs := cache.GetMulti(keys, values)
-	for _, err := range errs {
-		if err == nil {
-			if s.metrics != nil {
+	if s.metrics != nil {
+		for _, err := range errs {
+			if err == nil {
 				s.metrics.IncrementMemCacheHitCounter(cache.Name())
+				continue
 			}
-			continue
-		}
-		if s.metrics != nil {
 			s.metrics.IncrementMemCacheMissCounter(cache.Name())
 		}
 	}

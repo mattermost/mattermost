@@ -262,6 +262,8 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 				gotChannel := *(toPass[i].(**model.Channel))
 				if gotChannel != nil {
 					foundChannels = append(foundChannels, gotChannel)
+				} else {
+					s.rootStore.logger.Warn("Found nil channel in GetMany. This is not expected")
 				}
 			}
 		}
@@ -367,6 +369,8 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 				gotChannel := *(toPass[i].(**model.Channel))
 				if (gotChannel != nil) && (includeArchivedChannels || gotChannel.DeleteAt == 0) {
 					channels = append(channels, gotChannel)
+				} else if gotChannel == nil {
+					s.rootStore.logger.Warn("Found nil channel in getByNames. This is not expected")
 				}
 			}
 		}

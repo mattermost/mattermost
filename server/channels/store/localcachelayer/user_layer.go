@@ -182,6 +182,8 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 			gotUser := *(toPass[i].(**model.User))
 			if (gotUser != nil) && (options.Since == 0 || gotUser.UpdateAt > options.Since) {
 				users = append(users, gotUser)
+			} else if gotUser == nil {
+				s.rootStore.logger.Warn("Found nil user in GetProfileByIds. This is not expected")
 			}
 		}
 	}
@@ -267,6 +269,8 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 			gotUser := *(toPass[i].(**model.User))
 			if gotUser != nil {
 				cachedUsers = append(cachedUsers, gotUser)
+			} else {
+				s.rootStore.logger.Warn("Found nil user in GetMany. This is not expected")
 			}
 		}
 	}
