@@ -411,3 +411,630 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
   />
 </div>
 `;
+
+exports[`SystemUserDetail should not show manage user settings button when user doesnt have permission 1`] = `
+<div
+  className="SystemUserDetail wrapper--fixed"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(Component)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/users"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="User Configuration"
+        id="admin.systemUserDetail.title"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <AdminUserCard
+        body={
+          <React.Fragment>
+            <span>
+              
+            </span>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Email"
+                id="admin.userManagement.userDetail.email"
+              />
+              <Memo(EmailIcon) />
+              <input
+                className="form-control"
+                disabled={false}
+                onChange={[Function]}
+                type="text"
+                value=""
+              />
+            </label>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Username"
+                id="admin.userManagement.userDetail.username"
+              />
+              <AtIcon />
+              <span />
+            </label>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Authentication Method"
+                id="admin.userManagement.userDetail.authenticationMethod"
+              />
+              <Memo(ShieldOutlineIcon) />
+              <span>
+                
+              </span>
+            </label>
+          </React.Fragment>
+        }
+        footer={
+          <React.Fragment>
+            <button
+              className="btn btn-secondary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Reset Password"
+                id="admin.user_item.resetPwd"
+              />
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Activate"
+                id="admin.user_item.makeActive"
+              />
+            </button>
+          </React.Fragment>
+        }
+        isLoading={true}
+      />
+      <AdminPanel
+        button={
+          <div
+            className="add-team-button"
+          >
+            <button
+              className="btn btn-primary"
+              disabled={true}
+              onClick={[Function]}
+              type="button"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add Team"
+                id="admin.userManagement.userDetail.addTeam"
+              />
+            </button>
+          </div>
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
+      >
+        <div
+          className="teamlistLoading"
+        >
+          <Memo(LoadingSpinner) />
+        </div>
+      </AdminPanel>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass=""
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving"
+          id="save_button.saving"
+        />
+      }
+    />
+    <div
+      className="error-message"
+    >
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+  </div>
+  <ConfirmModal
+    confirmButtonClass="btn btn-danger"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Deactivate"
+        id="deactivate_member_modal.deactivate"
+      />
+    }
+    message={
+      <div>
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?"
+          id="deactivate_member_modal.desc"
+          values={
+            Object {
+              "username": "",
+            }
+          }
+        />
+        <strong>
+          <br />
+          <br />
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync."
+            id="deactivate_member_modal.sso_warning"
+          />
+        </strong>
+      </div>
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Deactivate {username}"
+        id="deactivate_member_modal.title"
+        values={
+          Object {
+            "username": "",
+          }
+        }
+      />
+    }
+  />
+</div>
+`;
+
+exports[`SystemUserDetail should show manage user settings button as activated 1`] = `
+<div
+  className="SystemUserDetail wrapper--fixed"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(Component)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/users"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="User Configuration"
+        id="admin.systemUserDetail.title"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <AdminUserCard
+        body={
+          <React.Fragment>
+            <span>
+              
+            </span>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Email"
+                id="admin.userManagement.userDetail.email"
+              />
+              <Memo(EmailIcon) />
+              <input
+                className="form-control"
+                disabled={false}
+                onChange={[Function]}
+                type="text"
+                value=""
+              />
+            </label>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Username"
+                id="admin.userManagement.userDetail.username"
+              />
+              <AtIcon />
+              <span />
+            </label>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Authentication Method"
+                id="admin.userManagement.userDetail.authenticationMethod"
+              />
+              <Memo(ShieldOutlineIcon) />
+              <span>
+                
+              </span>
+            </label>
+          </React.Fragment>
+        }
+        footer={
+          <React.Fragment>
+            <button
+              className="btn btn-secondary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Reset Password"
+                id="admin.user_item.resetPwd"
+              />
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Activate"
+                id="admin.user_item.makeActive"
+              />
+            </button>
+            <button
+              className="manageUserSettingsBtn btn btn-tertiary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manage User Settings"
+                id="admin.user_item.manageSettings"
+              />
+            </button>
+          </React.Fragment>
+        }
+        isLoading={true}
+      />
+      <AdminPanel
+        button={
+          <div
+            className="add-team-button"
+          >
+            <button
+              className="btn btn-primary"
+              disabled={true}
+              onClick={[Function]}
+              type="button"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add Team"
+                id="admin.userManagement.userDetail.addTeam"
+              />
+            </button>
+          </div>
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
+      >
+        <div
+          className="teamlistLoading"
+        >
+          <Memo(LoadingSpinner) />
+        </div>
+      </AdminPanel>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass=""
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving"
+          id="save_button.saving"
+        />
+      }
+    />
+    <div
+      className="error-message"
+    >
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+  </div>
+  <ConfirmModal
+    confirmButtonClass="btn btn-danger"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Deactivate"
+        id="deactivate_member_modal.deactivate"
+      />
+    }
+    message={
+      <div>
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?"
+          id="deactivate_member_modal.desc"
+          values={
+            Object {
+              "username": "",
+            }
+          }
+        />
+        <strong>
+          <br />
+          <br />
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync."
+            id="deactivate_member_modal.sso_warning"
+          />
+        </strong>
+      </div>
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Deactivate {username}"
+        id="deactivate_member_modal.title"
+        values={
+          Object {
+            "username": "",
+          }
+        }
+      />
+    }
+  />
+</div>
+`;
+
+exports[`SystemUserDetail should show manage user settings button as disabled when no license 1`] = `
+<div
+  className="SystemUserDetail wrapper--fixed"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(Component)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/users"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="User Configuration"
+        id="admin.systemUserDetail.title"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <AdminUserCard
+        body={
+          <React.Fragment>
+            <span>
+              
+            </span>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Email"
+                id="admin.userManagement.userDetail.email"
+              />
+              <Memo(EmailIcon) />
+              <input
+                className="form-control"
+                disabled={false}
+                onChange={[Function]}
+                type="text"
+                value=""
+              />
+            </label>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Username"
+                id="admin.userManagement.userDetail.username"
+              />
+              <AtIcon />
+              <span />
+            </label>
+            <label>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Authentication Method"
+                id="admin.userManagement.userDetail.authenticationMethod"
+              />
+              <Memo(ShieldOutlineIcon) />
+              <span>
+                
+              </span>
+            </label>
+          </React.Fragment>
+        }
+        footer={
+          <React.Fragment>
+            <button
+              className="btn btn-secondary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Reset Password"
+                id="admin.user_item.resetPwd"
+              />
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={[Function]}
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Activate"
+                id="admin.user_item.makeActive"
+              />
+            </button>
+          </React.Fragment>
+        }
+        isLoading={true}
+      />
+      <AdminPanel
+        button={
+          <div
+            className="add-team-button"
+          >
+            <button
+              className="btn btn-primary"
+              disabled={true}
+              onClick={[Function]}
+              type="button"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add Team"
+                id="admin.userManagement.userDetail.addTeam"
+              />
+            </button>
+          </div>
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
+      >
+        <div
+          className="teamlistLoading"
+        >
+          <Memo(LoadingSpinner) />
+        </div>
+      </AdminPanel>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass=""
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving"
+          id="save_button.saving"
+        />
+      }
+    />
+    <div
+      className="error-message"
+    >
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+  </div>
+  <ConfirmModal
+    confirmButtonClass="btn btn-danger"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Deactivate"
+        id="deactivate_member_modal.deactivate"
+      />
+    }
+    message={
+      <div>
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?"
+          id="deactivate_member_modal.desc"
+          values={
+            Object {
+              "username": "",
+            }
+          }
+        />
+        <strong>
+          <br />
+          <br />
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync."
+            id="deactivate_member_modal.sso_warning"
+          />
+        </strong>
+      </div>
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Deactivate {username}"
+        id="deactivate_member_modal.title"
+        values={
+          Object {
+            "username": "",
+          }
+        }
+      />
+    }
+  />
+</div>
+`;

@@ -88,6 +88,7 @@ type AppIface interface {
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, *model.AppError)
 	// Create/ Update a subscription history event
+	// This function is run daily to record the number of activated users in the system for Cloud workspaces
 	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
@@ -1105,6 +1106,7 @@ type AppIface interface {
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
 	SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission)
+	SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool
 	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(session model.Session, userID string) bool
