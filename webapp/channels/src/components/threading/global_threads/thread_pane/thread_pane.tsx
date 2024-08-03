@@ -14,7 +14,6 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
 import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -24,6 +23,7 @@ import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
 import './thread_pane.scss';
+import WithTooltip from 'components/with_tooltip';
 
 const getChannel = makeGetChannel();
 const getPostsForThread = makeGetPostsForThread();
@@ -119,17 +119,18 @@ const ThreadPane = ({
                             hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
                         >
-                            <SimpleTooltip
+                            <WithTooltip
                                 id='threadActionMenu'
-                                content={formatMessage({
+                                title={formatMessage({
                                     id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
+                                placement={'top'}
                             >
                                 <Button className='Button___icon Button___large'>
                                     <DotsVerticalIcon size={18}/>
                                 </Button>
-                            </SimpleTooltip>
+                            </WithTooltip>
                         </ThreadMenu>
                     </>
                 )}
