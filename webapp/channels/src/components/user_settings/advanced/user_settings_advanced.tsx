@@ -108,7 +108,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 user_id: userId,
                 category: Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 name: setting,
-                value: this.state.settings[setting],
+                value: this.state.settings[setting]!,
             });
         });
 

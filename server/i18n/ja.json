@@ -4715,11 +4715,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10076,5 +10076,9 @@
   {
     "id": "app.import.custom_status.error",
     "translation": "カスタムステータスを設定できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "検索バックエンドが不正です。elasticsearch または opensearch のいずれかでなければなりません。"
   }
 ]

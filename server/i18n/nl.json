@@ -4744,11 +4744,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 122+"
+    "translation": "Versie 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 122+"
+    "translation": "Versie 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10096,5 +10096,9 @@
   {
     "id": "app.import.custom_status.error",
     "translation": "Kan aangepaste status niet instellen."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ongeldig zoekbackend. Moet elasticsearch of opensearch zijn."
   }
 ]
