@@ -56,7 +56,7 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+export function submitPost(channelId: string, rootId: string, draft: PostDraft, afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -103,7 +103,7 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft):
 
         post = hookResult.data;
 
-        return dispatch(PostActions.createPost(post, draft.fileInfos));
+        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit));
     };
 }
 
@@ -179,7 +179,7 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
 
 export type SubmitPostReturnType = CreatePostReturnType & SubmitCommandRerturnType & SubmitReactionReturnType;
 
-export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean}): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
+export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean; afterSubmit?: (response: SubmitPostReturnType) => void}): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const {message, channelId, rootId} = draft;
         const state = getState();
@@ -203,7 +203,7 @@ export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean}): Ac
             return dispatch(submitCommand(channelId, rootId, draft));
         }
 
-        return dispatch(submitPost(channelId, rootId, draft));
+        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit));
     };
 }
 

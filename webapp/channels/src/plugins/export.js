@@ -1,15 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers} from 'utils/constants';
-import DesktopApp from 'utils/desktop_api';
-import messageHtmlToComponent from 'utils/message_html_to_component';
-import * as NotificationSounds from 'utils/notification_sounds';
-import {formatText} from 'utils/text_formatting';
-import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
-import {imageURLForUser} from 'utils/utils';
-
 import {notifyMe} from 'actions/notification_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
@@ -26,6 +17,15 @@ import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
+
+import {getHistory} from 'utils/browser_history';
+import {ModalIdentifiers} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import messageHtmlToComponent from 'utils/message_html_to_component';
+import * as NotificationSounds from 'utils/notification_sounds';
+import {formatText} from 'utils/text_formatting';
+import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
+import {imageURLForUser} from 'utils/utils';
 
 import CreatePost from './exported_create_post';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.

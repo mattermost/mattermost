@@ -45,6 +45,7 @@ import type {GlobalState} from 'types/store';
 
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
+import type {SubmitPostReturnType} from './views/create_comment';
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
@@ -105,7 +106,7 @@ export function unflagPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[]): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+export function createPost(post: Post, files: FileInfo[], afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         // parse message and emit emoji event
         const emojis = matchEmoticons(post.message);
@@ -114,7 +115,7 @@ export function createPost(post: Post, files: FileInfo[]): ActionFuncAsync<PostA
             dispatch(addRecentEmojis(trimmedEmojis));
         }
 
-        const result = await dispatch(PostActions.createPost(post, files));
+        const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
         if (post.root_id) {
             dispatch(storeCommentDraft(post.root_id, null));

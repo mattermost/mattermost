@@ -155,14 +155,11 @@ const useSubmit = (
         setServerError(null);
 
         const ignoreSlash = isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message;
-        const options = {ignoreSlash};
+        const options = {ignoreSlash, afterSubmit};
 
         try {
-            const result = await dispatch(onSubmit(submittingDraft, options));
+            await dispatch(onSubmit(submittingDraft, options));
 
-            if (result.data) {
-                afterSubmit?.(result.data);
-            }
             setPostError(null);
             setServerError(null);
             handleDraftChange({
