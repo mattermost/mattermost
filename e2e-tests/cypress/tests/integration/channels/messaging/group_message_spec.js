@@ -137,8 +137,8 @@ describe('Group Message', () => {
         });
 
         // * Assert that intro message includes the right copy
-        const expectedChannelInfo = `This is the start of your group message history with ${sortedParticipants[0].username}, ${sortedParticipants[1].username}.Messages and files shared here are not shown to people outside this area.`;
-        cy.get('#channelIntro p.channel-intro-text').first().should('contain', expectedChannelInfo);
+        const expectedChannelInfo = 'This is the start of your group message history with these teammates.';
+        cy.get('#channelIntro p.channel-intro__text').first().should('contain', expectedChannelInfo);
         cy.get('#channelIntro .profile-icon').should('have.length', '2');
 
         cy.location().then((loc) => {

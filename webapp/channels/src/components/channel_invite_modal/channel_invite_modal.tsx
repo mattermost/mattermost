@@ -47,7 +47,7 @@ export type Props = {
     profilesNotInCurrentTeam: UserProfile[];
     profilesFromRecentDMs: UserProfile[];
     intl: IntlShape;
-    membersInTeam: RelationOneToOne<UserProfile, TeamMembership>;
+    membersInTeam?: RelationOneToOne<UserProfile, TeamMembership>;
     userStatuses: RelationOneToOne<UserProfile, string>;
     onExited: () => void;
     channel: Channel;

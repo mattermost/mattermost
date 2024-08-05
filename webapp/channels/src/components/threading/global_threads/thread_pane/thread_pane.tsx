@@ -16,8 +16,6 @@ import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entitie
 import Header from 'components/widgets/header';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import {t} from 'utils/i18n';
-
 import type {GlobalState} from 'types/store';
 
 import Button from '../../common/button';
@@ -124,7 +122,7 @@ const ThreadPane = ({
                             <SimpleTooltip
                                 id='threadActionMenu'
                                 content={formatMessage({
-                                    id: t('threading.threadHeader.menu'),
+                                    id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
                             >

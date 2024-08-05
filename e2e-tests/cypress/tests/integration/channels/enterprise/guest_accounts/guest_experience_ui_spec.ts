@@ -87,7 +87,7 @@ describe('Guest Account - Guest User Experience', () => {
 
         // * Verify Guest Badge in Channel Header
         cy.get('#channelHeaderDescription').within(($el) => {
-            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'This channel has guests');
+            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'Channel has guests');
         });
 
         // * Verify list of Users in Direct Messages Dialog
@@ -108,9 +108,10 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         // * Verify Guest Badge in Guest User's Profile Popover
-        cy.get('#user-profile-popover').should('be.visible').within(($el) => {
+        cy.get('div.user-profile-popover').should('be.visible').within(($el) => {
             cy.wrap($el).find('.GuestTag').should('be.visible').and('have.text', 'GUEST');
         });
+        cy.get('button.closeButtonRelativePosition').click();
 
         // # Close the profile popover
         cy.get('#channel-header').click();
@@ -168,9 +169,10 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         // * Verify Guest Badge is not displayed in User's Profile Popover
-        cy.get('#user-profile-popover').should('be.visible').within(($el) => {
+        cy.get('div.user-profile-popover').should('be.visible').within(($el) => {
             cy.wrap($el).find('.user-popover__role').should('not.exist');
         });
+        cy.get('button.closeButtonRelativePosition').click();
 
         // # Close the profile popover
         cy.get('#channel-header').click();

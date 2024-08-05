@@ -17,6 +17,9 @@ type WithTooltipProps = {
     children: OverlayTriggerProps['children'];
     placement: OverlayTriggerProps['placement'];
     onShow?: () => void;
+    delayHide?: number;
+    onExit?: () => void;
+    disabled?: boolean;
 } & CommonTooltipProps;
 const WithTooltip = ({
     id,
@@ -27,7 +30,11 @@ const WithTooltip = ({
     shortcut,
     placement,
     onShow,
+    delayHide,
     children,
+    onExit,
+    shouldUpdatePosition,
+    disabled = false,
 }: WithTooltipProps) => {
     const ThisTooltip = useMemo(() => createTooltip({
         id,
@@ -44,6 +51,10 @@ const WithTooltip = ({
             overlay={<ThisTooltip/>}
             placement={placement}
             onEnter={onShow}
+            delayHide={delayHide}
+            onExit={onExit}
+            shouldUpdatePosition={shouldUpdatePosition}
+            disabled={disabled}
         >
             {children}
         </OverlayTrigger>

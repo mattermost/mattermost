@@ -33,34 +33,37 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 		return "", errors.New("passed a bot with no username")
 	}
 
-	botIDBytes, err := a.GetPluginKey(pluginID, botUserKey)
-	if err != nil {
-		return "", err
+	botIDBytes, appErr := a.GetPluginKey(pluginID, botUserKey)
+	if appErr != nil {
+		return "", appErr
 	}
 
-	// If the bot has already been created, use it
+	// If the bot has already been created, check whether it still exists and use it
 	if botIDBytes != nil {
 		botID := string(botIDBytes)
+		if _, appErr = a.GetBot(rctx, botID, true); appErr != nil {
+			rctx.Logger().Debug("Unable to get bot.", mlog.String("bot_id", botID), mlog.Err(appErr))
+		} else {
+			// ensure existing bot is synced with what is being created
+			botPatch := &model.BotPatch{
+				Username:    &bot.Username,
+				DisplayName: &bot.DisplayName,
+				Description: &bot.Description,
+			}
 
-		// ensure existing bot is synced with what is being created
-		botPatch := &model.BotPatch{
-			Username:    &bot.Username,
-			DisplayName: &bot.DisplayName,
-			Description: &bot.Description,
+			if _, appErr = a.PatchBot(rctx, botID, botPatch); appErr != nil {
+				return "", fmt.Errorf("failed to patch bot: %w", appErr)
+			}
+
+			return botID, nil
 		}
-
-		if _, err = a.PatchBot(rctx, botID, botPatch); err != nil {
-			return "", fmt.Errorf("failed to patch bot: %w", err)
-		}
-
-		return botID, nil
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
 			if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(user.Id)); appErr != nil {
-				return "", fmt.Errorf("failed to set plugin key: %w", err)
+				return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 			}
 		} else {
 			rctx.Logger().Error("Plugin attempted to use an account that already exists. Convert user to a bot "+
@@ -82,7 +85,7 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 	}
 
 	if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
-		return "", fmt.Errorf("failed to set plugin key: %w", err)
+		return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 	}
 
 	return createdBot.UserId, nil
@@ -121,7 +124,7 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 
 	savedBot, nErr := a.Srv().Store().Bot().Save(bot)
 	if nErr != nil {
-		a.Srv().Store().User().PermanentDelete(bot.UserId)
+		a.Srv().Store().User().PermanentDelete(rctx, bot.UserId)
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
@@ -224,7 +227,7 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 		//save the bot
 		savedBot, nErr := a.Srv().Store().Bot().Save(botDef)
 		if nErr != nil {
-			a.Srv().Store().User().PermanentDelete(savedBot.UserId)
+			a.Srv().Store().User().PermanentDelete(rctx, savedBot.UserId)
 			var nAppErr *model.AppError
 			switch {
 			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
@@ -411,7 +414,7 @@ func (a *App) PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppE
 		}
 	}
 
-	if err := a.Srv().Store().User().PermanentDelete(botUserId); err != nil {
+	if err := a.Srv().Store().User().PermanentDelete(rctx, botUserId); err != nil {
 		return model.NewAppError("PermanentDeleteBot", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

@@ -20,7 +20,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -46,7 +46,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -200,7 +200,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -226,7 +226,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -494,7 +494,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -520,7 +520,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -674,7 +674,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -700,7 +700,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }

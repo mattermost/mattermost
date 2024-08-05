@@ -81,7 +81,9 @@ describe('channel view actions', () => {
                 },
             },
             general: {
-                config: {},
+                config: {
+                    EnableJoinLeaveMessageByDefault: 'true',
+                },
                 serverVersion: '5.12.0',
             },
             roles: {
@@ -589,7 +591,7 @@ describe('channel view actions', () => {
 
     describe('markChannelAsReadOnFocus', () => {
         test('should mark channel as read when channel is not manually unread', async () => {
-            test = mockStore(initialState);
+            store = mockStore(initialState);
 
             await store.dispatch(Actions.markChannelAsReadOnFocus(channel1.id));
 

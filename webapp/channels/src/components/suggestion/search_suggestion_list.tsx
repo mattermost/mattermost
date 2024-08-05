@@ -10,40 +10,13 @@ import Popover from 'components/widgets/popover';
 import Constants from 'utils/constants';
 
 import type {UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies';
+import type {Props} from './suggestion_list';
 import SuggestionList from './suggestion_list';
 
 interface Item extends UserProfile {
     type: string;
     display_name: string;
     name: string;
-}
-
-interface Props {
-    ariaLiveRef?: React.RefObject<HTMLDivElement>;
-    inputRef?: React.RefObject<HTMLInputElement>;
-    open: boolean;
-    position?: 'top' | 'bottom';
-    renderDividers?: string[];
-    renderNoResults?: boolean;
-    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
-    preventClose?: () => void;
-    onItemHover: (term: string) => void;
-    pretext: string;
-    cleared: boolean;
-    matchedPretext: string[];
-    items: any[];
-    terms: string[];
-    selection: string;
-    components: Array<React.FunctionComponent<any>>;
-    wrapperHeight?: number;
-
-    // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
-    // as the user is typing.
-    suggestionBoxAlgn?: {
-        lineHeight: number;
-        pixelsToMoveX: number;
-        pixelsToMoveY: number;
-    };
 }
 
 export default class SearchSuggestionList extends SuggestionList {

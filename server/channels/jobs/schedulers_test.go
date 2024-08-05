@@ -69,7 +69,7 @@ func TestScheduler(t *testing.T) {
 
 	t.Run("Base", func(t *testing.T) {
 		jobServer.StartSchedulers()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 
 		jobServer.StopSchedulers()
 		// They should be all on here
@@ -81,7 +81,7 @@ func TestScheduler(t *testing.T) {
 	t.Run("ClusterLeaderChanged", func(t *testing.T) {
 		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.StopSchedulers()
 		// They should be turned off
@@ -94,7 +94,7 @@ func TestScheduler(t *testing.T) {
 		jobServer.initSchedulers()
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.StartSchedulers()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		jobServer.StopSchedulers()
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
@@ -106,7 +106,7 @@ func TestScheduler(t *testing.T) {
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.HandleClusterLeaderChange(true)
 		jobServer.StartSchedulers()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		jobServer.StopSchedulers()
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.NotNil(t, element)
@@ -116,7 +116,7 @@ func TestScheduler(t *testing.T) {
 	t.Run("ConfigChanged", func(t *testing.T) {
 		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		jobServer.HandleClusterLeaderChange(false)
 		// After running a config change, they should stay off
 		jobServer.schedulers.handleConfigChange(nil, nil)
@@ -129,7 +129,7 @@ func TestScheduler(t *testing.T) {
 	t.Run("ConfigChangedDeadlock", func(t *testing.T) {
 		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 
 		var wg sync.WaitGroup
 		wg.Add(2)

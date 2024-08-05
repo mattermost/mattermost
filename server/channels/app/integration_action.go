@@ -67,7 +67,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(c, postID, false)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -232,7 +232,10 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	resp, appErr := a.DoActionRequest(c, upstreamURL, requestJSON)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -307,10 +310,7 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 		return a.DoLocalRequest(c, rawURLPath, body)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "POST", rawURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(c.Context(), "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			c.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
@@ -453,11 +453,15 @@ func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.R
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
-func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
+	}
+
+	if dialogErr := request.IsValid(); dialogErr != nil {
+		c.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId
@@ -484,7 +488,9 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	resp, appErr := a.DoActionRequest(c, url, b)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
 	if appErr != nil {
 		return nil, appErr
 	}

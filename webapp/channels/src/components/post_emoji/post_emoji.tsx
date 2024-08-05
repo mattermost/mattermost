@@ -3,7 +3,10 @@
 
 import React from 'react';
 
-interface Props {
+import WithTooltip from 'components/with_tooltip';
+
+export interface Props {
+    children: React.ReactNode;
     name: string;
     imageUrl: string;
 }
@@ -13,23 +16,31 @@ declare module 'react' {
     }
 }
 
-const PostEmoji = ({name, imageUrl}: Props) => {
+const PostEmoji = ({children, name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
     const backgroundImageUrl = `url(${imageUrl})`;
 
     if (!imageUrl) {
-        return <>{emojiText}</>;
+        return <>{children}</>;
     }
 
     return (
-        <span
-            alt={emojiText}
-            className='emoticon'
+        <WithTooltip
+            id='postEmoji__tooltip'
             title={emojiText}
-            style={{backgroundImage: backgroundImageUrl}}
+            emoji={name}
+            emojiStyle='large'
+            placement='top'
         >
-            {emojiText}
-        </span>
+            <span
+                alt={emojiText}
+                className='emoticon'
+                data-testid={`postEmoji.${emojiText}`}
+                style={{backgroundImage: backgroundImageUrl}}
+            >
+                {children}
+            </span>
+        </WithTooltip>
     );
 };
 

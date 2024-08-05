@@ -11,8 +11,8 @@ import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, Use
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {bindClientFunc, forceLogoutIfNecessary, debounce} from 'mattermost-redux/actions/helpers';
-import {getUsersLimits} from 'mattermost-redux/actions/limits';
+import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
@@ -22,7 +22,7 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 export function generateMfaSecret(userId: string) {
@@ -76,7 +76,7 @@ export function loadMe(): ActionFuncAsync<boolean> {
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
 
-            await dispatch(getUsersLimits());
+            await dispatch(getServerLimits());
         } catch (error) {
             dispatch(logError(error as ServerError));
             return {error: error as ServerError};
@@ -589,59 +589,94 @@ export function getUserByEmail(email: string) {
     });
 }
 
-// We create an array to hold the id's that we want to get a status for. We build our
-// debounced function that will get called after a set period of idle time in which
-// the array of id's will be passed to the getStatusesByIds with a cb that clears out
-// the array. Helps with performance because instead of making 75 different calls for
-// statuses, we are only making one call for 75 ids.
-// We could maybe clean it up somewhat by storing the array of ids in redux state possbily?
-let ids: string[] = [];
-const debouncedGetStatusesByIds = debounce(async (dispatch: DispatchFunc) => {
-    dispatch(getStatusesByIds([...new Set(ids)]));
-}, 20, false, () => {
-    ids = [];
-});
-export function getStatusesByIdsBatchedDebounced(id: string) {
-    ids = [...ids, id];
-    return debouncedGetStatusesByIds;
-}
-
-export function getStatusesByIds(userIds: string[]) {
-    return bindClientFunc({
-        clientFunc: Client4.getStatusesByIds,
-        onSuccess: UserTypes.RECEIVED_STATUSES,
-        params: [
-            userIds,
-        ],
-    });
-}
-
-export function getStatus(userId: string) {
-    return bindClientFunc({
-        clientFunc: Client4.getStatus,
-        onSuccess: UserTypes.RECEIVED_STATUS,
-        params: [
-            userId,
-        ],
-    });
-}
-
-export function setStatus(status: UserStatus): ActionFuncAsync {
+export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<UserStatus[]> {
     return async (dispatch, getState) => {
+        if (!userIds || userIds.length === 0) {
+            return {data: []};
+        }
+
+        let receivedStatuses: UserStatus[];
         try {
-            await Client4.updateStatus(status);
+            receivedStatuses = await Client4.getStatusesByIds(userIds);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
-        dispatch({
-            type: UserTypes.RECEIVED_STATUS,
-            data: status,
-        });
+        const statuses: Record<UserProfile['id'], UserStatus['status']> = {};
+        const dndEndTimes: Record<UserProfile['id'], UserStatus['dnd_end_time']> = {};
+        const isManualStatuses: Record<UserProfile['id'], UserStatus['manual']> = {};
+        const lastActivity: Record<UserProfile['id'], UserStatus['last_activity_at']> = {};
 
-        return {data: status};
+        for (const receivedStatus of receivedStatuses) {
+            statuses[receivedStatus.user_id] = receivedStatus?.status ?? '';
+            dndEndTimes[receivedStatus.user_id] = receivedStatus?.dnd_end_time ?? 0;
+            isManualStatuses[receivedStatus.user_id] = receivedStatus?.manual ?? false;
+            lastActivity[receivedStatus.user_id] = receivedStatus?.last_activity_at ?? 0;
+        }
+
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_STATUSES,
+                data: statuses,
+            },
+            {
+                type: UserTypes.RECEIVED_DND_END_TIMES,
+                data: dndEndTimes,
+            },
+            {
+                type: UserTypes.RECEIVED_STATUSES_IS_MANUAL,
+                data: isManualStatuses,
+            },
+            {
+                type: UserTypes.RECEIVED_LAST_ACTIVITIES,
+                data: lastActivity,
+            },
+        ],
+        'BATCHING_STATUSES',
+        ));
+
+        return {data: receivedStatuses};
+    };
+}
+
+export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
+    return async (dispatch, getState) => {
+        let recievedStatus: UserStatus;
+        try {
+            recievedStatus = await Client4.updateStatus(status);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const updatedStatus = {[recievedStatus.user_id]: recievedStatus.status};
+        const dndEndTimes = {[recievedStatus.user_id]: recievedStatus?.dnd_end_time ?? 0};
+        const isManualStatus = {[recievedStatus.user_id]: recievedStatus?.manual ?? false};
+        const lastActivity = {[recievedStatus.user_id]: recievedStatus?.last_activity_at ?? 0};
+
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_STATUSES,
+                data: updatedStatus,
+            },
+            {
+                type: UserTypes.RECEIVED_DND_END_TIMES,
+                data: dndEndTimes,
+            },
+            {
+                type: UserTypes.RECEIVED_STATUSES_IS_MANUAL,
+                data: isManualStatus,
+            },
+            {
+                type: UserTypes.RECEIVED_LAST_ACTIVITIES,
+                data: lastActivity,
+            },
+        ], 'BATCHING_STATUS'));
+
+        return {data: recievedStatus};
     };
 }
 
@@ -1305,7 +1340,6 @@ export default {
     getUser,
     getMe,
     getUserByUsername,
-    getStatus,
     getStatusesByIds,
     getSessions,
     getTotalUsersStats,

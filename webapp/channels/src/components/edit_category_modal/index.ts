@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {renameCategory} from 'mattermost-redux/actions/channel_categories';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {createCategory} from 'actions/views/channel_sidebar';
 
@@ -15,10 +15,8 @@ import type {GlobalState} from 'types/store';
 import EditCategoryModal from './edit_category_modal';
 
 function mapStateToProps(state: GlobalState) {
-    const currentTeam = getCurrentTeam(state);
-
     return {
-        currentTeamId: currentTeam.id,
+        currentTeamId: getCurrentTeamId(state),
     };
 }
 

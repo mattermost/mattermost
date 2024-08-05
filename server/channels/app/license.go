@@ -5,17 +5,12 @@ package app
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-)
-
-const (
-	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
 
 func (ch *Channels) License() *model.License {
@@ -129,7 +124,7 @@ func (s *Server) SetLicense(license *model.License) bool {
 	return s.platform.SetLicense(license)
 }
 
-func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
+func (s *Server) ValidateAndSetLicenseBytes(b []byte) error {
 	return s.platform.ValidateAndSetLicenseBytes(b)
 }
 
@@ -155,14 +150,4 @@ func (s *Server) RemoveLicenseListener(id string) {
 
 func (s *Server) GetSanitizedClientLicense() map[string]string {
 	return s.platform.GetSanitizedClientLicense()
-}
-
-// GenerateRenewalToken returns a renewal token that expires after duration expiration
-func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
-	return s.platform.GenerateRenewalToken(expiration)
-}
-
-// GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
-func (s *Server) GenerateLicenseRenewalLink() (string, string, *model.AppError) {
-	return s.platform.GenerateLicenseRenewalLink()
 }

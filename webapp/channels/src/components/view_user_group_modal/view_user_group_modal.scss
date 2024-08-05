@@ -1,10 +1,11 @@
 .view-user-groups-modal {
     .modal-content .modal-header {
         overflow: visible;
+        padding-top: 0;
         padding-bottom: 0;
 
         .modal-title {
-            margin-left: 46px;
+            margin-left: 16px;
 
             i {
                 margin-left: 5px;
@@ -13,8 +14,6 @@
         }
 
         .details-action {
-            margin-right: 42px;
-
             .MenuWrapper {
                 margin-left: auto;
             }
@@ -22,12 +21,14 @@
     }
 
     .modal-body {
+        overflow: visible;
+
         .no-results__wrapper {
             padding-bottom: 60px;
         }
 
         .group-mention-name {
-            margin-bottom: 25px;
+            margin: -24px 0 24px 6px;
 
             span.group-name {
                 margin-left: 70px;
@@ -90,7 +91,7 @@
                     }
 
                     .group-member-username {
-                        padding-left: 8px;
+                        padding-left: 6px;
                         color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 18px;

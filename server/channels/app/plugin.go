@@ -522,7 +522,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
-func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) GetMarketplacePlugins(rctx request.CTX, filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
@@ -539,7 +539,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 			return nil, appErr
 		}
 
-		appErr = a.mergeLocalPlugins(plugins)
+		appErr = a.mergeLocalPlugins(rctx, plugins)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -692,7 +692,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 }
 
 // mergeLocalPlugins merges locally installed plugins to remote marketplace plugins list.
-func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
+func (a *App) mergeLocalPlugins(rctx request.CTX, remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
@@ -718,7 +718,7 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 		if plugin.Manifest.IconPath != "" {
 			iconData, err = getIcon(filepath.Join(plugin.Path, plugin.Manifest.IconPath))
 			if err != nil {
-				a.Log().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
+				rctx.Logger().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 			}
 		}
 
@@ -964,6 +964,8 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	return nil
 }
 
+var SemVerV2 = semver.MustParse("2.0.0")
+
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
@@ -989,6 +991,21 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	logger = logger.With(mlog.String("plugin_id", plugin.Manifest.Id))
+
+	if plugin.Manifest.Id == model.PluginIdPlaybooks {
+		version, err := semver.Parse(plugin.Manifest.Version)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Unable to verify prepackaged playbooks version")
+		}
+		if version.GTE(SemVerV2) {
+			license := ch.License()
+			canUsePlaybookv2 := license != nil && license.IsE20OrEnterprise()
+			if !canUsePlaybookv2 {
+				logger.Info("Skip installing prepackaged playbooks because the license does not allow it")
+				return plugin, nil
+			}
+		}
+	}
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
@@ -1207,10 +1224,6 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
-			return true, false
-		}
-	case model.PluginIdCalls:
-		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
 			return true, false
 		}
 	}

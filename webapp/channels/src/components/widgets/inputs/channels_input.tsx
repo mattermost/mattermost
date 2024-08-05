@@ -4,7 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {components} from 'react-select';
 import type {ValueType, ActionMeta, InputActionMeta} from 'react-select';
 import type {Async} from 'react-select/async';
@@ -19,7 +20,6 @@ import PrivateChannelIcon from 'components/widgets/icons/lock_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import './channels_input.scss';
 
@@ -31,22 +31,29 @@ type Props = {
     value: Channel[];
     onInputChange: (change: string) => void;
     inputValue: string;
-    loadingMessageId?: string;
-    loadingMessageDefault?: string;
-    noOptionsMessageId?: string;
-    noOptionsMessageDefault?: string;
+    loadingMessage?: MessageDescriptor;
+    noOptionsMessage?: MessageDescriptor;
 }
 
 type State = {
     options: Channel[];
 };
 
+const messages = defineMessages({
+    loading: {
+        id: 'widgets.channels_input.loading',
+        defaultMessage: 'Loading',
+    },
+    noOptions: {
+        id: 'widgets.channels_input.empty',
+        defaultMessage: 'No channels found',
+    },
+});
+
 export default class ChannelsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
-        loadingMessageId: t('widgets.channels_input.loading'),
-        loadingMessageDefault: 'Loading',
-        noOptionsMessageId: t('widgets.channels_input.empty'),
-        noOptionsMessageDefault: 'No channels found',
+        loadingMessage: messages.loading,
+        noOptionsMessage: messages.noOptions,
     };
     private selectRef: RefObject<Async<Channel> & {handleInputChange: (newValue: string, actionMeta: InputActionMeta | {action: 'custom'}) => string}>;
 
@@ -89,8 +96,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
     loadingMessage = () => {
         const text = (
             <FormattedMessage
-                id={this.props.loadingMessageId}
-                defaultMessage={this.props.loadingMessageDefault}
+                {...this.props.loadingMessage}
             />
         );
 
@@ -108,8 +114,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
             <div className='channels-input__option channels-input__option--no-matches'>
                 <Msg {...props}>
                     <FormattedMarkdownMessage
-                        id={this.props.noOptionsMessageId}
-                        defaultMessage={this.props.noOptionsMessageDefault}
+                        {...this.props.noOptionsMessage}
                         values={{text: inputValue}}
                     />
                 </Msg>

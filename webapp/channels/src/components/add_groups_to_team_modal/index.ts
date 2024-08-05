@@ -10,7 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getGroupsNotAssociatedToTeam, linkGroupSyncable, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getGroupsNotAssociatedToTeam as selectGroupsNotAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
@@ -28,17 +28,17 @@ type Props = {
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const searchTerm = state.views.search.modalSearch;
 
-    const team = ownProps.team || getCurrentTeam(state) || {};
+    const team = ownProps.team || getCurrentTeam(state);
 
-    let groups = selectGroupsNotAssociatedToTeam(state, team.id);
+    let groups = selectGroupsNotAssociatedToTeam(state, team?.id || '');
     if (searchTerm) {
         const regex = RegExp(searchTerm, 'i');
         groups = groups.filter((group) => regex.test(group.display_name) || regex.test(group.name));
     }
 
     return {
-        currentTeamName: team.display_name,
-        currentTeamId: team.id,
+        currentTeamName: team?.display_name,
+        currentTeamId: team?.id ?? getCurrentTeamId(state),
         skipCommit: ownProps.skipCommit,
         onAddCallback: ownProps.onAddCallback,
         excludeGroups: ownProps.excludeGroups,

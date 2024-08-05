@@ -95,23 +95,30 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 }
 
 func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
-	var body io.Reader
-	var contentType string
+	var jsonBytes []byte
+	var err error
+
+	contentType := "application/x-www-form-urlencoded"
 	if hook.ContentType == "application/json" {
-		js, err := json.Marshal(payload)
+		contentType = "application/json"
+		jsonBytes, err = json.Marshal(payload)
 		if err != nil {
 			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			return
 		}
-		body = bytes.NewReader(js)
-		contentType = "application/json"
-	} else {
-		body = strings.NewReader(payload.ToFormValues())
-		contentType = "application/x-www-form-urlencoded"
 	}
 
 	var wg sync.WaitGroup
+
 	for i := range hook.CallbackURLs {
+		var body io.Reader
+		if hook.ContentType == "application/json" {
+			body = bytes.NewReader(jsonBytes)
+		} else {
+			body = strings.NewReader(payload.ToFormValues())
+		}
 		wg.Add(1)
+
 		// Get the callback URL by index to properly capture it for the go func
 		url := hook.CallbackURLs[i]
 
@@ -173,7 +180,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 					webhookResp.IconURL = hook.IconURL
 				}
-				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId); err != nil {
+				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
 					c.Logger().Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
@@ -297,12 +304,22 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
 	post.AddProp("from_webhook", "true")
+
+	if priority != nil {
+		if priority.Priority == nil {
+			err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "webhook.priority.priority"}, "Setting the priority of a post is required to use priority.", http.StatusBadRequest)
+			return nil, err
+		}
+		post.Metadata = &model.PostMetadata{
+			Priority: priority,
+		}
+	}
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
@@ -823,7 +840,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
+	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
 	return err
 }
 

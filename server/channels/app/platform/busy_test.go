@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -24,11 +25,11 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 500)
+	busy.Set(5 * time.Second)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
 
-	// should automatically expire after 500ms.
+	// should automatically expire after 5s.
 	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
@@ -144,8 +145,14 @@ func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError)    
 func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
+func (c *ClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
+	return nil, nil
+}
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
 func (c *ClusterMock) HealthScore() int { return 0 }
+func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
+}

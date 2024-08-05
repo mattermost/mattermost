@@ -204,7 +204,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                     label={displayNameContent}
                     value={boolValue || false}
                     helpText={helpTextContent}
-                    placeholder={placeholder}
+                    placeholder={placeholder || ''}
                     onChange={onChange}
                 />
             );

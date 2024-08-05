@@ -46,15 +46,15 @@ describe('Verify Accessibility Support in Popovers', () => {
             cy.get('#emojiPickerCategories').children().eq(0).focus().tab({shift: true}).tab();
 
             const categories = [
-                {ariaLabel: 'emoji_picker.smileys-emotion', header: 'Smileys & Emotion'},
-                {ariaLabel: 'emoji_picker.people-body', header: 'People & Body'},
-                {ariaLabel: 'emoji_picker.animals-nature', header: 'Animals & Nature'},
-                {ariaLabel: 'emoji_picker.food-drink', header: 'Food & Drink'},
-                {ariaLabel: 'emoji_picker.travel-places', header: 'Travel Places'},
-                {ariaLabel: 'emoji_picker.activities', header: 'Activities'},
-                {ariaLabel: 'emoji_picker.objects', header: 'Objects'},
-                {ariaLabel: 'emoji_picker.symbols', header: 'Symbols'},
-                {ariaLabel: 'emoji_picker.flags', header: 'Flags'},
+                {ariaLabel: 'Smileys & Emotion', header: 'Smileys & Emotion'},
+                {ariaLabel: 'People & Body', header: 'People & Body'},
+                {ariaLabel: 'Animals & Nature', header: 'Animals & Nature'},
+                {ariaLabel: 'Food & Drink', header: 'Food & Drink'},
+                {ariaLabel: 'Travel Places', header: 'Travel Places'},
+                {ariaLabel: 'Activities', header: 'Activities'},
+                {ariaLabel: 'Objects', header: 'Objects'},
+                {ariaLabel: 'Symbols', header: 'Symbols'},
+                {ariaLabel: 'Flags', header: 'Flags'},
             ];
 
             // * Verify if emoji Categories gets the focus when tab is pressed

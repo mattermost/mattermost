@@ -42,6 +42,7 @@ SEE ALSO
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
+* `mmctl job <mmctl_job.rst>`_ 	 - Management of jobs
 * `mmctl ldap <mmctl_ldap.rst>`_ 	 - LDAP related utilities
 * `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
 * `mmctl logs <mmctl_logs.rst>`_ 	 - Display logs in a human-readable format

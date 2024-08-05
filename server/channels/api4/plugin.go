@@ -24,22 +24,22 @@ const (
 )
 
 func (api *API) InitPlugin() {
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods("DELETE")
-	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(installMarketplacePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods(http.MethodDelete)
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(installMarketplacePlugin)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses)).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods(http.MethodGet)
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -114,7 +114,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromURL", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("installPluginFromURL", "api.plugin.install.download_failed.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -143,7 +143,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 
 	pluginRequest, err := model.PluginRequestFromReader(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 		return
 	}
 	audit.AddEventParameter(auditRec, "plugin_id", pluginRequest.Id)
@@ -297,7 +297,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plugins, appErr := c.App.GetMarketplacePlugins(filter)
+	plugins, appErr := c.App.GetMarketplacePlugins(c.AppContext, filter)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -428,7 +428,7 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if err := c.App.Srv().Store().System().SaveOrUpdate(&firstAdminVisitMarketplaceObj); err != nil {
-		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -460,7 +460,7 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 				Value: "false",
 			}
 		default:
-			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, "", http.StatusInternalServerError).Wrap(err)
 
 			return
 		}

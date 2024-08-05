@@ -780,10 +780,6 @@
     "translation": "Nem sikerült minden felhasználót lekérni az AD/LDAP használatával."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "hiba történt a csapat vagy csatornatagság törlésekor"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "Ezzel a felhasználónévvel már létezik fiók. Kérjük, lépjen kapcsolatba rendszergazdájával."
   },
@@ -870,10 +866,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "Hiba lépett fel az állapot lekérésekor."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Hiba történt közvetlen megosztott csatorna létrehozása közben."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -2096,18 +2088,6 @@
     "translation": "[{{.SiteName}}] Új közvetlen üzenet {{.SenderDisplayName}} felhasználótól {{.Year}}-{{.Month}}-{{.Day}} napon"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Nincs jelen licenc"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Ez a típusú licenc nem támogatja a megújítási token generálást"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nem sikerült generálni egy új megújítási tokent."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Nem sikerült frissíteni a munkát."
   },
@@ -2510,10 +2490,6 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Hiba történt az import adatfájl olvasása közben."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nem sikerült olvasni a fájl mellékletet import közben."
   },
   {
     "id": "app.import.attachment.file_upload.error",
@@ -3196,10 +3172,6 @@
     "translation": "A jelszónak legalább {{.Min}} karakterből kell állnia, amely legalább egy kisbetűt tartalmaz."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "A jelszónak legalább {{.Min}} karaktert kell tartalmaznia."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Érvénytelen pozíció: nem lehet hosszabb 128 karakternél."
   },
@@ -3292,20 +3264,12 @@
     "translation": "Az Elasticsearch már leállt."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nem sikerült elindítani az Elasticsearch tömeges feldolgozót."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nem sikerült értelmezni az Elasticsearch szerver verzióját."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Nem sikerült lekérni az Elasticsearch szerver verzióját."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nem sikerült létrehozni az Elasticsearch tömeges feldolgozót."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3918,10 +3882,6 @@
   {
     "id": "app.user.update.find.app_error",
     "translation": "Nem sikerült megtalálni a frissítendő létező fiókot."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Egyetlen e-mailt sem sikerült elküldeni"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -5116,10 +5076,6 @@
     "translation": "A fürt konfigurációja megváltozott az id={{ .id }} elemnél. A fürt instabillá válhat, és újra kell indítani. A fürt helyes beállításának biztosítása érdekében azonnal végezzen gördülő újraindítást."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "A fürt API végpont nem található."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " mellékelt egy fájlt."
   },
@@ -5356,10 +5312,6 @@
     "translation": "Az Enterprise Edition licencje lejárt, és egyes funkciók le vannak tiltva. Kérjük, újítsa meg a licencét most."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Újítsa meg licencét most"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Kérdése van?"
   },
@@ -5370,46 +5322,6 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "Válasz a Mattermostban"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Az Ön Mattermost Cloud számlája lejárt"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Fizetés esedékes a Mattermost Cloud előfizetéséhez"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "A számla áttekintéséhez és fizetési mód hozzáadásához válassza a Fizetés most lehetőséget."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "A legutóbbi számlázási időszakra vonatkozó Mattermost Cloud számlája feldolgozásra került. A fizetési adataink azonban nincsenek nyilvántartva."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Fizetés most"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "A fizetési művelet nem sikerült"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost {{.Plan}} csomagra"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "A Mattermost {{.Plan}} zavartalan elérésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "A következő okkal:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Pénzintézete elutasította a Mattermost Cloud munkaterületéhez társított {{.CardBrand}} **** {{.LastFour}} kártyáról a fizetést."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -6555,10 +6467,6 @@
     "translation": "Deaktiválta a fiókját a {{ .SiteURL }} oldalon."
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "A munkaterülete készen áll a használatra!"
   },
@@ -6789,10 +6697,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Meghívás biztonságos kapcsolatból"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nem sikerült visszafejteni a meghívót. Helytelen jelszó vagy sérült meghívó: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -7627,10 +7531,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Nem sikerült megszerezni a próba licencet, kérjük próbálkozzon újra, vagy írjon a support@mattermost.com címre."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Hiba történt a licenc megújítási link lekérése közben"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -8471,20 +8371,8 @@
     "translation": "A Mattermost előfizetése megújításra szorul"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "A megújításhoz jelentkezzen be az Ügyfél fiókjába"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "A licence megújításra szorul"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Megújítás most"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Hiba történt a licenc megújító link elkészítése közben"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8635,10 +8523,6 @@
     "translation": "A kapott Bejegyzés Azonosítók száma meghaladja a maximális mennyiséget ({{.MaxLength}})"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML válasz túl hosszú"
   },
@@ -8787,14 +8671,6 @@
     "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Ön mostantól a megemelt verziót használja!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost frissítés megerősítés"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Az Elasticsearch beállításában nem mentett értékek vannak."
   },
@@ -8875,62 +8751,6 @@
     "translation": "marketplace"
   },
   {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Csomagok és árak megtekintése"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "A fizetési művelete nincs befejezve"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Nem tudtuk feldolgozni a legutóbbi fizetési műveletét."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "A munkaterülete hamarosan le lesz minősítve"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Üzenet előzmény"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Fájl"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Fizetés nem érkezett meg"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Nem sikerült elküldeni az értesítési bejegyzést."
   },
@@ -8941,18 +8761,6 @@
   {
     "id": "app.job.error",
     "translation": "Hiba a művelet végrehajtása közben."
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Nem sikerült lekérni a jelenlegi előfizetési csomag nevét"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Hiányzó kötelező mezők a késedelmes e-mail küldéséhez."
   },
   {
     "id": "app.file.cloud.get.app_error",
@@ -9031,20 +8839,8 @@
     "translation": "Nincs elég jogosultsága a parancs futtatásához."
   },
   {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Nem sikerült lekérni az összes bejövő webhook számát"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Nem sikerült lekérni az összes aktív felhasználó számát"
-  },
-  {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
     "translation": "A tartós értesítést tartalmazó üzenetnek legfeljebb {{.MaxRecipients}} címzettje lehet."
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Nem sikerült lekérni az összes kimenő webhook számát"
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
@@ -9061,10 +8857,6 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Érvénytelen üzleti e-mail a próbaidőszakhoz"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Nem sikerült elküldeni a CWS-nek a true up profilt."
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
@@ -9089,10 +8881,6 @@
   {
     "id": "api.context.ip_filtering.not_available.app_error",
     "translation": "Az IP-szűrés nem érhető el ezen a kiszolgálón"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Nem sikerült létrehozni a true up állapotrekordot"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",

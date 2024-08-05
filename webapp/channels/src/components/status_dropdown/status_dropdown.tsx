@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import moment from 'moment-timezone';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {injectIntl, FormattedDate, FormattedMessage, FormattedTime, defineMessage, defineMessages} from 'react-intl';
@@ -24,18 +25,17 @@ import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import DndCustomTimePicker from 'components/dnd_custom_time_picker_modal';
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
-import OverlayTrigger from 'components/overlay_trigger';
 import ResetStatusModal from 'components/reset_status_modal';
-import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar from 'components/widgets/users/avatar/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
+import {ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {getBrowserTimezone, getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {ModalData} from 'types/actions';
 import type {Menu as MenuType} from 'types/store/plugins';
@@ -64,6 +64,7 @@ type Props = {
     showCompleteYourProfileTour: boolean;
     showCustomStatusPulsatingDot: boolean;
     timezone?: string;
+    dndEndTime?: number;
 }
 
 type State = {
@@ -100,10 +101,6 @@ export const statusDropdownMessages: Record<string, Record<string, MessageDescri
             id: 'status_dropdown.set_dnd',
             defaultMessage: 'Do not disturb',
         },
-        extra: {
-            id: 'status_dropdown.set_dnd.extra',
-            defaultMessage: 'Disables all notifications',
-        },
     }),
     offline: defineMessages({
         name: {
@@ -115,11 +112,12 @@ export const statusDropdownMessages: Record<string, Record<string, MessageDescri
 
 export class StatusDropdown extends React.PureComponent<Props, State> {
     dndTimes = [
+        {id: 'dont_clear', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.dont_clear', defaultMessage: 'Don\'t clear'})},
         {id: 'thirty_minutes', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.thirty_minutes', defaultMessage: '30 mins'})},
         {id: 'one_hour', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.one_hour', defaultMessage: '1 hour'})},
         {id: 'two_hours', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.two_hours', defaultMessage: '2 hours'})},
         {id: 'tomorrow', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.tomorrow', defaultMessage: 'Tomorrow'})},
-        {id: 'custom', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.custom', defaultMessage: 'Custom'})},
+        {id: 'custom', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.custom', defaultMessage: 'Choose date and time'})},
     ];
     static defaultProps = {
         userId: '',
@@ -176,18 +174,21 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         let endTime = currentDate;
         switch (index) {
         case 0:
+            endTime = moment(0);
+            break;
+        case 1:
             // add 30 minutes in current time
             endTime = currentDate.add(30, 'minutes');
             break;
-        case 1:
+        case 2:
             // add 1 hour in current time
             endTime = currentDate.add(1, 'hour');
             break;
-        case 2:
+        case 3:
             // add 2 hours in current time
             endTime = currentDate.add(2, 'hours');
             break;
-        case 3:
+        case 4:
             // set to next day 9 in the morning
             endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             break;
@@ -306,13 +307,11 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             <PulsatingDot/>
         );
 
-        const clearableTooltip = (
-            <Tooltip id={'InputClearTooltip'}>
-                <FormattedMessage
-                    id={'input.clear'}
-                    defaultMessage='Clear'
-                />
-            </Tooltip>
+        const clearableTooltipText = (
+            <FormattedMessage
+                id={'input.clear'}
+                defaultMessage='Clear'
+            />
         );
 
         const clearButton = isStatusSet && !pulsatingDot && (
@@ -321,10 +320,10 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 onClick={this.handleClearStatus}
                 onTouchEnd={this.handleClearStatus}
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement={'left'}
-                    overlay={clearableTooltip}
+                <WithTooltip
+                    id='InputClearTooltip'
+                    placement='left'
+                    title={clearableTooltipText}
                 >
                     <span
                         className='input-clear-x'
@@ -332,7 +331,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     >
                         <i className='icon icon-close-circle'/>
                     </span>
-                </OverlayTrigger>
+                </WithTooltip>
             </div>
         );
 
@@ -381,10 +380,55 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         );
     };
 
+    renderDndExtraText = (dndEndTime?: number, timezone?: string) => {
+        if (!(dndEndTime && dndEndTime > 0)) {
+            return this.props.intl.formatMessage({id: 'status_dropdown.set_dnd.extra', defaultMessage: 'Disables all notifications'});
+        }
+
+        const tz = timezone || getBrowserTimezone();
+        const currentTime = moment().tz(tz);
+        const endTime = moment.unix(dndEndTime).tz(tz);
+
+        let formattedEndTime;
+
+        const diffDays = endTime.clone().startOf('day').diff(currentTime.clone().startOf('day'), 'days');
+
+        switch (diffDays) {
+        case 0:
+            formattedEndTime = (
+                <FormattedMessage
+                    id='custom_status.expiry.until'
+                    defaultMessage='Until {time}'
+                    values={{time: endTime.format('h:mm A')}}
+                />
+            );
+            break;
+        case 1:
+            formattedEndTime = (
+                <FormattedMessage
+                    id='custom_status.expiry.until_tomorrow'
+                    defaultMessage='Until Tomorrow {time}'
+                    values={{time: endTime.format('h:mm A')}}
+                />
+            );
+            break;
+        default:
+            formattedEndTime = (
+                <FormattedMessage
+                    id='custom_status.expiry.until'
+                    defaultMessage='Until {time}'
+                    values={{time: endTime.format('lll')}}
+                />
+            );
+        }
+
+        return formattedEndTime;
+    };
+
     render = (): JSX.Element => {
         const {intl} = this.props;
         const needsConfirm = this.isUserOutOfOffice() && this.props.autoResetPref === '';
-        const {status, customStatus, isCustomStatusExpired, currentUser} = this.props;
+        const {status, customStatus, isCustomStatusExpired, currentUser, timezone, dndEndTime} = this.props;
         const isStatusSet = customStatus && !isCustomStatusExpired && (customStatus.text?.length > 0 || customStatus.emoji?.length > 0);
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;
@@ -404,13 +448,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             {
                 id: 'dndSubMenu-header',
                 direction: 'right',
-                text: this.props.intl.formatMessage({id: 'status_dropdown.dnd_sub_menu_header', defaultMessage: 'Disable notifications until:'}),
+                text: this.props.intl.formatMessage({id: 'status_dropdown.dnd_sub_menu_header', defaultMessage: 'Clear after:'}),
                 isHeader: true,
             },
         ] as MenuType[])?.concat(
             this.dndTimes.map<MenuType>(({id, label}, index) => {
                 let text: MenuType['text'] = this.props.intl.formatMessage(label);
-                if (index === 3) {
+                if (index === 4) {
                     const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
                     text = (
                         <>
@@ -437,7 +481,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     direction: 'right',
                     text,
                     action:
-                        index === 4 ? () => setCustomTimedDnd() : () => setDnd(index),
+                        index === 5 ? () => setCustomTimedDnd() : () => setDnd(index),
                 };
             }),
         );
@@ -482,6 +526,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 defaultMessage: 'Select to open profile and status menu.',
             });
         }
+
+        const dndExtraText = this.renderDndExtraText(dndEndTime, timezone);
 
         return (
             <MenuWrapper
@@ -575,9 +621,9 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         />
                         <Menu.ItemSubMenu
                             subMenu={dndSubMenuItems}
-                            ariaLabel={`${this.props.intl.formatMessage(statusDropdownMessages.dnd.name)}. ${this.props.intl.formatMessage(statusDropdownMessages.dnd.extra)}`}
+                            ariaLabel={`${this.props.intl.formatMessage(statusDropdownMessages.dnd.name)}. ${dndExtraText}`}
                             text={this.props.intl.formatMessage(statusDropdownMessages.dnd.name)}
-                            extraText={this.props.intl.formatMessage(statusDropdownMessages.dnd.extra)}
+                            extraText={dndExtraText}
                             icon={(
                                 <StatusIcon
                                     status={'dnd'}
@@ -588,6 +634,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             direction={'left'}
                             openUp={this.state.openUp}
                             id={'status-menu-dnd'}
+                            action={() => setDnd(0)}
                         />
                         <Menu.ItemAction
                             onClick={setOffline}
@@ -615,7 +662,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 <AccountOutlineIcon
                                     size={16}
                                     color={'rgba(var(--center-channel-color-rgb), 0.56)'}
-                                    className={'profile__icon'}
                                 />
                             }
                         >

@@ -48,7 +48,7 @@ describe('Auto Response In DMs', () => {
         // # Open 'Settings' modal and view 'Notifications'
         cy.uiOpenSettingsModal().within(() => {
             // # Click on 'Edit' for 'Automatic Direct Message Replies
-            cy.get('#auto-responderEdit').should('exist').scrollIntoView().and('be.visible').click();
+            cy.get('#autoResponderEdit').should('exist').scrollIntoView().and('be.visible').click();
 
             // # Click on 'Enabled' checkbox
             cy.get('#autoResponderActive').should('be.visible').click();

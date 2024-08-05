@@ -39,15 +39,6 @@ var (
 	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 696 hours (29 days) + 23 hours, 59 mins and 59 seconds
 )
 
-const (
-	TrueUpReviewTelemetryName          = "true_up_review_sent"
-	TrueUpReviewAuthFeaturesMfa        = "multi_factor_authentication"
-	TrueUpReviewAuthFeaturesADLdap     = "ad_ldap_sign_in"
-	TrueUpReviewAuthFeaturesSaml       = "saml_sign_in"
-	TrueUpReviewAuthFeatureOpenId      = "openid_connect"
-	TrueUpReviewAuthFeatureGuestAccess = "guest_access"
-)
-
 type LicenseRecord struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
@@ -394,12 +385,22 @@ func (l *License) HasSharedChannels() bool {
 		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
+// IsE20OrEnterprise returns true when the license is for E20 or Enterprise.
+func (l *License) IsE20OrEnterprise() bool {
+	return l.SkuShortName == LicenseShortSkuE20 || l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
 		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
-		Customer:  &Customer{},
-		Features:  &Features{},
+		Customer: &Customer{
+			Id:      "some ID",
+			Email:   "admin@example.com",
+			Name:    "Main Contact Person",
+			Company: "My awesome Company",
+		},
+		Features: &Features{},
 	}
 	ret.Features.SetDefaults()
 

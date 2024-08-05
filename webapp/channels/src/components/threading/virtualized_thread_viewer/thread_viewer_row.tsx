@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -12,6 +11,7 @@ import PostComponent from 'components/post';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+import RootPostDivider from 'components/root_post_divider/root_post_divider';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
@@ -23,7 +23,6 @@ import Reply from './reply';
 type Props = {
     a11yIndex: number;
     currentUserId: string;
-    replyCount: number;
     isRootPost: boolean;
     isLastPost: boolean;
     listId: string;
@@ -41,7 +40,6 @@ function ThreadViewerRow({
     isRootPost,
     isLastPost,
     listId,
-    replyCount,
     onCardClick,
     previousPostId,
     timestampProps,
@@ -78,19 +76,7 @@ function ThreadViewerRow({
                     timestampProps={timestampProps}
                     location={Locations.RHS_ROOT}
                 />
-                {replyCount > 0 && (
-                    <div className='root-post__divider'>
-                        <div>
-                            <FormattedMessage
-                                id='threading.numReplies'
-                                defaultMessage='{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}'
-                                values={{
-                                    totalReplies: replyCount,
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
+                <RootPostDivider postId={listId}/>
             </>
         );
     case PostListUtils.isCombinedUserActivityPost(listId): {

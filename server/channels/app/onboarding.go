@@ -41,7 +41,7 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 			Value: request.Organization,
 		})
 		if err != nil {
-			a.Log().Error("failed to save organization name", mlog.Err(err))
+			c.Logger().Error("failed to save organization name", mlog.Err(err))
 		}
 	}
 

@@ -13,13 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestComparePassword(t *testing.T) {
-	hash := HashPassword("Test")
-
-	assert.NoError(t, ComparePassword(hash, "Test"), "Passwords don't match")
-	assert.Error(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
-}
-
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Password      string
@@ -54,7 +47,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 				Number:        model.NewBool(false),
 				Symbol:        model.NewBool(false),
 			},
-			ExpectedError: "model.user.is_valid.pwd.app_error",
+			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
 		},
 		"TooLong": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
@@ -64,7 +57,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 				Number:    model.NewBool(false),
 				Symbol:    model.NewBool(false),
 			},
-			ExpectedError: "model.user.is_valid.pwd.app_error",
+			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
 		},
 		"MissingLower": {
 			Password: "AAAAAAAAAAASD123!@#",

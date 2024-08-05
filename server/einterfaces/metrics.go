@@ -50,6 +50,9 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	IncrementWebsocketReconnectEvent(eventType string)
 
+	IncrementHTTPWebSockets(originClient string)
+	DecrementHTTPWebSockets(originClient string)
+
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
 
@@ -92,4 +95,26 @@ type MetricsInterface interface {
 
 	SetReplicaLagAbsolute(node string, value float64)
 	SetReplicaLagTime(node string, value float64)
+
+	IncrementNotificationCounter(notificationType model.NotificationType, platform string)
+	IncrementNotificationAckCounter(notificationType model.NotificationType, platform string)
+	IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string)
+	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string)
+	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
+	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
+
+	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
+	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
+	ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64)
+	ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64)
+	ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64)
+	IncrementClientLongTasks(platform, agent string, inc float64)
+	ObserveClientPageLoadDuration(platform, agent string, elapsed float64)
+	ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64)
+	ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64)
+	ObserveClientRHSLoadDuration(platform, agent string, elapsed float64)
+	ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64)
+	ObserveMobileClientLoadDuration(platform string, elapsed float64)
+	ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64)
+	ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64)
 }

@@ -1387,6 +1387,11 @@ func TestConfigSanitize(t *testing.T) {
 	*c.OpenIdSettings.Secret = "secret"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
+	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
+		DataSource:       NewString("DataSource"),
+		QueryAbsoluteLag: NewString("QueryAbsoluteLag"),
+		QueryTimeLag:     NewString("QueryTimeLag"),
+	}}
 
 	c.Sanitize()
 
@@ -1401,6 +1406,19 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceSearchReplicas[0])
+
+	require.Len(t, c.SqlSettings.ReplicaLagSettings, 1)
+	assert.Equal(t, FakeSetting, *c.SqlSettings.ReplicaLagSettings[0].DataSource)
+	assert.Equal(t, "QueryAbsoluteLag", *c.SqlSettings.ReplicaLagSettings[0].QueryAbsoluteLag)
+	assert.Equal(t, "QueryTimeLag", *c.SqlSettings.ReplicaLagSettings[0].QueryTimeLag)
+
+	t.Run("with default config", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		c.Sanitize()
+
+		assert.Len(t, c.SqlSettings.ReplicaLagSettings, 0)
+	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {

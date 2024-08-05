@@ -1,35 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
 export type FieldsetCheckbox = {
     dataTestId?: string;
-    title: MessageDescriptor;
     name: string;
 }
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetCheckbox;
     inputFieldValue: boolean;
+
+    /**
+     * The title of the checkbox input field, pass in FormattedMessage component for styling compatibility
+     */
+    inputFieldTitle: ReactNode;
     handleChange: (e: boolean) => void;
     className?: string;
     descriptionAboveContent?: boolean;
 }
-function CheckboxSettingItem({
+
+export default function CheckboxSettingItem({
     title,
     description,
     inputFieldData,
     inputFieldValue,
+    inputFieldTitle,
     handleChange,
     className,
     descriptionAboveContent = false,
-}: Props): JSX.Element {
+}: Props) {
     const content = (
         <fieldset
             key={inputFieldData.name}
@@ -44,14 +49,11 @@ function CheckboxSettingItem({
                     checked={inputFieldValue}
                     onChange={(e) => handleChange(e.target.checked)}
                 />
-                <FormattedMessage
-                    id={inputFieldData.title.id}
-                    defaultMessage={inputFieldData.title.defaultMessage}
-                />
+                {inputFieldTitle}
             </label>
-            <br/>
         </fieldset>
     );
+
     return (
         <BaseSettingItem
             content={content}
@@ -62,5 +64,3 @@ function CheckboxSettingItem({
         />
     );
 }
-
-export default CheckboxSettingItem;

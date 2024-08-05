@@ -10,7 +10,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -125,7 +125,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -230,7 +230,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -345,7 +345,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -472,7 +472,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -587,7 +587,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -714,7 +714,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -883,7 +883,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"

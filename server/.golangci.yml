@@ -1,13 +1,10 @@
 run:
   timeout: 10m
-  skip-dirs:
-    - channels/store/storetest/mocks
 
 linters-settings:
   gofmt:
     simplify: true
   govet:
-    check-shadowing: true
     enable-all: true
     disable:
       - fieldalignment
@@ -29,10 +26,11 @@ linters:
     - goimports
     - makezero
     - whitespace
-    # TODO: enable this later
-    # - errcheck
+    - errcheck
 
 issues:
+  exclude-dirs:
+    - channels/store/storetest/mocks
   exclude-rules:
     - linters:
       # ignore unused warnings from enterprise code
@@ -58,3 +56,7 @@ issues:
     - linters:
       - staticcheck
       text: SA1019
+
+    - linters:
+        - errcheck
+      path: "channels|platform|cmd/mattermost|public/model|public/plugin|public/shared/mlog|enterprise/ldap"

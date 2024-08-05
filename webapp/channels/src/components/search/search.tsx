@@ -22,6 +22,7 @@ import FlagIcon from 'components/widgets/icons/flag_icon';
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 import Popover from 'components/widgets/popover';
+import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
 import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -31,6 +32,11 @@ import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 import type {SearchType} from 'types/store/rhs';
 
 import type {Props, SearchFilterType} from './types';
+
+const mentionsShortcut = {
+    default: [ShortcutKeys.ctrl, ShortcutKeys.shift, 'M'],
+    mac: [ShortcutKeys.cmd, ShortcutKeys.shift, 'M'],
+};
 
 interface SearchHintOption {
     searchTerm: string;
@@ -382,14 +388,14 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     aria-hidden='true'
                 />
             }
-            ariaLabel={true}
             buttonClass={classNames(
                 'channel-header__icon',
                 {'channel-header__icon--active': props.isMentionSearch},
             )}
             buttonId={props.isSideBarRight ? 'sbrChannelHeaderMentionButton' : 'channelHeaderMentionButton'}
             onClick={searchMentions}
-            tooltipKey={'recentMentions'}
+            tooltip={intl.formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}
+            tooltipShortcut={mentionsShortcut}
             isRhsOpen={props.isRhsOpen}
         />
     );
@@ -399,14 +405,13 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             iconComponent={
                 <FlagIcon className='icon icon--standard'/>
             }
-            ariaLabel={true}
             buttonClass={classNames(
                 'channel-header__icon ',
                 {'channel-header__icon--active': props.isFlaggedPosts},
             )}
             buttonId={props.isSideBarRight ? 'sbrChannelHeaderFlagButton' : 'channelHeaderFlagButton'}
             onClick={getFlagged}
-            tooltipKey={'flaggedPosts'}
+            tooltip={intl.formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             isRhsOpen={props.isRhsOpen}
         />
     );
@@ -501,10 +506,9 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                             aria-hidden='true'
                         />
                     }
-                    ariaLabel={true}
                     buttonId={'channelHeaderSearchButton'}
                     onClick={searchButtonClick}
-                    tooltipKey={'search'}
+                    tooltip={intl.formatMessage({id: 'channel_header.search', defaultMessage: 'Search'})}
                 />
             );
         }

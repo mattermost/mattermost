@@ -19,7 +19,7 @@ import {
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
@@ -31,23 +31,17 @@ import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, ge
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
-    return async (dispatch, getState) => {
-        const postRootId = post.root_id || post.id;
+function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
 
-        dispatch({
-            type: ActionTypes.SELECT_POST,
-            postId: postRootId,
-            channelId: post.channel_id,
-            previousRhsState: previousRhsState || getRhsState(state),
-            timestamp: Date.now(),
-        });
+        dispatch(selectPost(post, previousRhsState || getRhsState(state)));
 
         return {data: true};
     };
@@ -118,13 +112,21 @@ export function goBack(): ActionFuncAsync<boolean, GlobalState> {
 }
 
 export function selectPostFromRightHandSideSearch(post: Post) {
-    return selectPostFromRightHandSideSearchWithPreviousState(post);
+    return selectPostWithPreviousState(post);
 }
 
 export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
         return dispatch(selectPostFromRightHandSideSearch(post));
+    };
+}
+
+export function replyToLatestPostInChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const postId = getLatestInteractablePostId(state, channelId);
+        return dispatch(selectPostFromRightHandSideSearchByPostId(postId));
     };
 }
 
@@ -520,11 +522,14 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPost(post: Post) {
+export function selectPost(post: Post, previousRhsState?: RhsState) {
+    performance.mark(Mark.PostSelected);
+
     return {
         type: ActionTypes.SELECT_POST,
         postId: post.root_id || post.id,
         channelId: post.channel_id,
+        previousRhsState,
         timestamp: Date.now(),
     };
 }
@@ -614,7 +619,7 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown, GlobalSt
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+            return post ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
@@ -636,9 +641,23 @@ export const unsuppressRHS = {
     type: ActionTypes.UNSUPPRESS_RHS,
 };
 
+export function focusedRHS() {
+    return {
+        type: ActionTypes.RHS_FOCUSED,
+    };
+}
+
 export function setEditChannelMembers(active: boolean) {
     return {
         type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
         active,
+    };
+}
+
+export function measureRhsOpened() {
+    return () => {
+        measureAndReport(Measure.RhsLoad, Mark.PostSelected, undefined, true);
+
+        performance.clearMarks(Mark.PostSelected);
     };
 }

@@ -111,7 +111,7 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 	return nil
 }
 
-func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(c request.CTX, dryRun, extractContent bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
@@ -131,7 +131,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultiplePostLines(c, postLines, dryRun); err != nil {
+				if errLine, err := a.importMultiplePostLines(c, postLines, dryRun, extractContent); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				postLines = []imports.LineImportWorkerData{}
@@ -142,7 +142,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
+				if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun, extractContent); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				directPostLines = []imports.LineImportWorkerData{}
@@ -160,30 +160,30 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	}
 
 	if len(postLines) > 0 {
-		if errLine, err := a.importMultiplePostLines(c, postLines, dryRun); err != nil {
+		if errLine, err := a.importMultiplePostLines(c, postLines, dryRun, extractContent); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
-		if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
+		if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun, extractContent); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 }
 
 func (a *App) BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
-	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
+	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, true, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
-	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
+func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int) {
+	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath)
 }
 
 // bulkImport will extract attachments from attachmentsReader if it is
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -268,7 +268,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for i := 0; i < workers; i++ {
 				wg.Add(1)
-				go a.bulkImportWorker(c, dryRun, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(c, dryRun, extractContent, &wg, linesChan, errorsChan)
 			}
 		}
 
@@ -314,6 +314,11 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 
 func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool) *model.AppError {
 	switch {
+	case line.Type == "role":
+		if line.Role == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_role.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importRole(c, line.Role, dryRun)
 	case line.Type == "scheme":
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)

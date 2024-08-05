@@ -364,10 +364,9 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// Make sure that the error correctly reports the wrong field to be Name
 	// See https://mattermost.atlassian.net/browse/MM-53756
-	var invalidInputErr *store.ErrInvalidInput
-	require.ErrorAs(t, err, &invalidInputErr)
-	require.Equal(t, invalidInputErr.Entity, "Channel")
-	require.Equal(t, invalidInputErr.Field, "Name")
+	var uniqueConstraintErr *store.ErrUniqueConstraint
+	require.ErrorAs(t, err, &uniqueConstraintErr)
+	require.Contains(t, uniqueConstraintErr.Columns, "Name")
 }
 
 func testGetChannelUnread(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1138,7 +1137,7 @@ func testChannelMemberStore(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testChannelSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -1645,9 +1644,9 @@ func testChannelSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testChannelSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -2194,7 +2193,7 @@ func testChannelSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testChannelUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -2699,9 +2698,9 @@ func testChannelUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testChannelUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -3235,7 +3234,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.S
 }
 
 func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 
@@ -3302,9 +3301,9 @@ func testChannelPatchMultipleMembersNotifyProps(t *testing.T, rctx request.CTX, 
 		}, -1)
 		require.NoError(t, err)
 
-		user1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+		user1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 		require.NoError(t, err)
-		user2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+		user2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 		require.NoError(t, err)
 		original1, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
@@ -3390,7 +3389,7 @@ func testChannelPatchMultipleMembersNotifyProps(t *testing.T, rctx request.CTX, 
 		}, -1)
 		require.NoError(t, err)
 
-		user, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+		user, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 		require.NoError(t, err)
 		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel.Id,
@@ -3417,13 +3416,13 @@ func testChannelPatchMultipleMembersNotifyProps(t *testing.T, rctx request.CTX, 
 }
 
 func testChannelRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	channelID := model.NewId()
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -3464,13 +3463,13 @@ func testChannelRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testChannelRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	channelID := model.NewId()
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -3647,27 +3646,27 @@ func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	require.Equal(t, o2.Id, list[1].Id, "missing channel")
 	require.Equal(t, o3.Id, list[2].Id, "missing channel")
 
-	ids, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
+	ids, err := ss.Channel().GetAllChannelMembersForUser(rctx, m1.UserId, false, false)
 	require.NoError(t, err)
 	_, ok := ids[o1.Id]
 	require.True(t, ok, "missing channel")
 
-	ids2, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
+	ids2, err := ss.Channel().GetAllChannelMembersForUser(rctx, m1.UserId, true, false)
 	require.NoError(t, err)
 	_, ok = ids2[o1.Id]
 	require.True(t, ok, "missing channel")
 
-	ids3, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
+	ids3, err := ss.Channel().GetAllChannelMembersForUser(rctx, m1.UserId, true, false)
 	require.NoError(t, err)
 	_, ok = ids3[o1.Id]
 	require.True(t, ok, "missing channel")
 
-	ids4, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, true)
+	ids4, err := ss.Channel().GetAllChannelMembersForUser(rctx, m1.UserId, true, true)
 	require.NoError(t, err)
 	_, ok = ids4[o1.Id]
 	require.True(t, ok, "missing channel")
 
-	ids5, err := ss.Channel().GetAllChannelMembersForUser(model.NewId(), true, true)
+	ids5, err := ss.Channel().GetAllChannelMembersForUser(rctx, model.NewId(), true, true)
 	require.NoError(t, err)
 	require.True(t, len(ids5) == 0)
 

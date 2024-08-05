@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -42,6 +43,7 @@ type S3FileBackend struct {
 	timeout        time.Duration
 	presignExpires time.Duration
 	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
+	uploadPartSize int64
 }
 
 type S3FileBackendAuthError struct {
@@ -54,6 +56,7 @@ type S3FileBackendNoBucketError struct{}
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
 	bucketNotFound = "NoSuchBucket"
+	invalidBucket  = "InvalidBucketName"
 )
 
 var (
@@ -114,6 +117,7 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 		skipVerify:     settings.SkipVerify,
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
+		uploadPartSize: settings.AmazonS3UploadPartSizeBytes,
 	}
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
@@ -208,7 +212,7 @@ func (b *S3FileBackend) TestConnection() error {
 		obj := <-b.client.ListObjects(ctx, b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
-			if typedErr.Code != bucketNotFound {
+			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
 				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
 			}
 			exists = false
@@ -216,7 +220,10 @@ func (b *S3FileBackend) TestConnection() error {
 	} else {
 		exists, err = b.client.BucketExists(ctx, b.bucket)
 		if err != nil {
-			return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+			typedErr := s3.ToErrorResponse(err)
+			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
+				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+			}
 		}
 	}
 
@@ -497,7 +504,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -541,7 +548,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
@@ -639,6 +646,7 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 	var paths []string
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
+	var count int
 	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
 		if object.Err != nil {
 			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
@@ -650,6 +658,12 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 		if trimmed != "" {
 			paths = append(paths, trimmed)
 		}
+		count++
+	}
+	// Check if only one item was returned and it matches the path prefix
+	if count == 1 && len(paths) > 0 && strings.TrimRight(path, "/") == paths[0] {
+		// Return a fs.PathError to maintain consistency
+		return nil, &fs.PathError{Op: "readdir", Path: path, Err: fs.ErrNotExist}
 	}
 
 	return paths, nil
@@ -745,15 +759,13 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 	return filepath.Join(b.pathPrefix, s), nil
 }
 
-func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
 	if encrypted {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
-	// We set the part size to the minimum allowed value of 5MBs
-	// to avoid an excessive allocation in minio.PutObject implementation.
-	options.PartSize = 1024 * 1024 * 5
+	options.PartSize = uint64(uploadPartSize)
 
 	return options
 }

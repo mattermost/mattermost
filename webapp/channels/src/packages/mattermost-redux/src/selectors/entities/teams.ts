@@ -4,7 +4,7 @@
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -27,7 +27,7 @@ export function getTeamByName(state: GlobalState, name: string) {
     return Object.values(teams).find((team) => team.name === name);
 }
 
-export function getTeams(state: GlobalState): IDMappedObjects<Team> {
+export function getTeams(state: GlobalState) {
     return state.entities.teams.teams;
 }
 
@@ -84,7 +84,7 @@ export const getActiveTeamsList: (state: GlobalState) => Team[] = createSelector
     },
 );
 
-export const getCurrentTeam: (state: GlobalState) => Team = createSelector(
+export const getCurrentTeam: (state: GlobalState) => Team | undefined = createSelector(
     'getCurrentTeam',
     getTeams,
     getCurrentTeamId,
@@ -93,12 +93,12 @@ export const getCurrentTeam: (state: GlobalState) => Team = createSelector(
     },
 );
 
-export function getTeam(state: GlobalState, id: string): Team {
+export function getTeam(state: GlobalState, id: string): Team | undefined {
     const teams = getTeams(state);
     return teams[id];
 }
 
-export const getCurrentTeamMembership: (state: GlobalState) => TeamMembership = createSelector(
+export const getCurrentTeamMembership: (state: GlobalState) => TeamMembership | undefined = createSelector(
     'getCurrentTeamMembership',
     getCurrentTeamId,
     getTeamMemberships,
@@ -145,10 +145,13 @@ export const getCurrentRelativeTeamUrl: (state: GlobalState) => string = createS
 
 export function getRelativeTeamUrl(state: GlobalState, teamId: string): string {
     const team = getTeam(state, teamId);
+    if (!team) {
+        return '/';
+    }
     return `/${team.name}`;
 }
 
-export const getCurrentTeamStats: (state: GlobalState) => TeamStats = createSelector(
+export const getCurrentTeamStats: (state: GlobalState) => TeamStats | undefined = createSelector(
     'getCurrentTeamStats',
     getCurrentTeamId,
     getTeamStats,
@@ -175,16 +178,16 @@ export const getMyDeletedTeams: (state: GlobalState) => Team[] = createSelector(
     },
 );
 
-export const getMyTeamMember: (state: GlobalState, teamId: string) => TeamMembership = createSelector(
+export const getMyTeamMember: (state: GlobalState, teamId: string) => TeamMembership | undefined = createSelector(
     'getMyTeamMember',
     getTeamMemberships,
     (state: GlobalState, teamId: string) => teamId,
     (teamMemberships, teamId) => {
-        return teamMemberships[teamId] || {};
+        return teamMemberships[teamId];
     },
 );
 
-export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<UserProfile, TeamMembership> | undefined = createSelector(
     'getMembersInCurrentTeam',
     getCurrentTeamId,
     getMembersInTeams,
@@ -193,7 +196,7 @@ export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<U
     },
 );
 
-export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationOneToOne<UserProfile, TeamMembership> | undefined = createSelector(
     'getMembersInTeam',
     (state: GlobalState, teamId: string) => teamId,
     getMembersInTeams,
@@ -334,7 +337,7 @@ export const isTeamSameWithCurrentTeam = (state: GlobalState, teamName: string):
     const targetTeam = getTeamByName(state, teamName);
     const currentTeam = getCurrentTeam(state);
 
-    return Boolean(targetTeam && targetTeam.id === currentTeam.id);
+    return Boolean(targetTeam && targetTeam.id === currentTeam?.id);
 };
 
 // returns the badge for a team

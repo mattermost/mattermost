@@ -43,7 +43,7 @@ describe('unread_with_bottom_start_toast', () => {
 
                 // # Add enough messages
                 for (let index = 0; index < 30; index++) {
-                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id});
+                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
 
                 cy.postMessage('hello');
@@ -78,7 +78,7 @@ describe('unread_with_bottom_start_toast', () => {
 
                 // # Add enough messages
                 for (let index = 0; index < 30; index++) {
-                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id});
+                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
 
                 cy.postMessage('hello');
@@ -111,7 +111,7 @@ describe('unread_with_bottom_start_toast', () => {
 
                 // # Add enough messages
                 for (let index = 0; index < 30; index++) {
-                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id});
+                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
 
                 cy.wait(TIMEOUTS.ONE_SEC);

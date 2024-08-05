@@ -20,16 +20,6 @@ func CheckUserPassword(user *model.User, password string) error {
 	return nil
 }
 
-// HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(hash)
-}
-
 func ComparePassword(hash string, password string) error {
 	if password == "" || hash == "" {
 		return errors.New("empty password or hash")
@@ -48,8 +38,14 @@ func IsPasswordValidWithSettings(password string, settings *model.PasswordSettin
 	id := "model.user.is_valid.pwd"
 	isError := false
 
-	if len(password) < *settings.MinimumLength || len(password) > model.PasswordMaximumLength {
+	if len(password) < *settings.MinimumLength {
 		isError = true
+		id = id + "_min_length"
+	}
+
+	if len(password) > model.PasswordMaximumLength {
+		isError = true
+		id = id + "_max_length"
 	}
 
 	if *settings.Lowercase {

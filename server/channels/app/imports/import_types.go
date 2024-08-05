@@ -14,6 +14,7 @@ import (
 
 type LineImportData struct {
 	Type          string                   `json:"type"`
+	Role          *RoleImportData          `json:"role,omitempty"`
 	Scheme        *SchemeImportData        `json:"scheme,omitempty"`
 	Team          *TeamImportData          `json:"team,omitempty"`
 	Channel       *ChannelImportData       `json:"channel,omitempty"`
@@ -84,7 +85,8 @@ type UserImportData struct {
 	TutorialStep        *string `json:"tutorial_step,omitempty"`
 	EmailInterval       *string `json:"email_interval,omitempty"`
 
-	NotifyProps *UserNotifyPropsImportData `json:"notify_props,omitempty"`
+	NotifyProps  *UserNotifyPropsImportData `json:"notify_props,omitempty"`
+	CustomStatus *model.CustomStatus        `json:"custom_status,omitempty"`
 }
 
 type UserNotifyPropsImportData struct {
@@ -208,10 +210,11 @@ type SchemeImportData struct {
 }
 
 type RoleImportData struct {
-	Name        *string   `json:"name"`
-	DisplayName *string   `json:"display_name"`
-	Description *string   `json:"description"`
-	Permissions *[]string `json:"permissions"`
+	Name          *string   `json:"name"`
+	DisplayName   *string   `json:"display_name"`
+	Description   *string   `json:"description"`
+	Permissions   *[]string `json:"permissions"`
+	SchemeManaged *bool     `json:"scheme_managed"`
 }
 
 type LineImportWorkerData struct {

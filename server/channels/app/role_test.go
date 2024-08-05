@@ -8,6 +8,7 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -15,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 type permissionInheritanceTestData struct {
@@ -37,7 +37,7 @@ func TestGetRolesByNames(t *testing.T) {
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
 
-		require.Equal(t, testData.shouldHavePermission, pUtils.Contains(actualRole.Permissions, testData.permission.Id))
+		require.Equal(t, testData.shouldHavePermission, slices.Contains(actualRole.Permissions, testData.permission.Id))
 	})
 }
 
@@ -47,7 +47,7 @@ func TestGetRoleByName(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
-		require.Equal(t, testData.shouldHavePermission, pUtils.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
+		require.Equal(t, testData.shouldHavePermission, slices.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
 	})
 }
 
@@ -57,7 +57,7 @@ func TestGetRoleByID(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Id, actualRole.Id)
-		require.Equal(t, testData.shouldHavePermission, pUtils.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
+		require.Equal(t, testData.shouldHavePermission, slices.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
 	})
 }
 
@@ -69,7 +69,7 @@ func TestGetAllRoles(t *testing.T) {
 			if actualRole.Id == testData.channelRole.Id {
 				require.NotNil(t, actualRole)
 				require.Equal(t, testData.channelRole.Id, actualRole.Id)
-				require.Equal(t, testData.shouldHavePermission, pUtils.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
+				require.Equal(t, testData.shouldHavePermission, slices.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
 			}
 		}
 	})

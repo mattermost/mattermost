@@ -41,6 +41,10 @@ func (ps *PlatformService) GetSessions(c request.CTX, userID string) ([]*model.S
 	return ps.Store.Session().GetSessions(c, userID)
 }
 
+func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	return ps.Store.Session().GetLRUSessions(c, userID, limit, offset)
+}
+
 func (ps *PlatformService) AddSessionToCache(session *model.Session) {
 	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
@@ -66,7 +70,7 @@ func (ps *PlatformService) ClearAllUsersSessionCacheLocal() {
 }
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
-	ps.ClearUserSessionCacheLocal(userID)
+	ps.ClearSessionCacheForUserSkipClusterSend(userID)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -231,7 +235,7 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User
 		session.AddProp(model.SessionPropIsGuest, strconv.FormatBool(isGuest))
 		err := ps.Store.Session().UpdateProps(session)
 		if err != nil {
-			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
+			c.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
 		ps.AddSessionToCache(session)

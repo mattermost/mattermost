@@ -20,7 +20,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -46,11 +46,35 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
         value={false}
+      />
+      <AdminTextSetting
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="The type of the search backend."
+            id="admin.elasticsearch.backendDescription"
+          />
+        }
+        id="backend"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Backend type:"
+            id="admin.elasticsearch.backendTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elasticsearch\\"",
+            "id": "admin.elasticsearch.backendExample",
+          }
+        }
+        setByEnv={false}
       />
       <AdminTextSetting
         disabled={true}
@@ -161,7 +185,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -182,7 +206,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -242,7 +266,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -263,7 +287,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -448,7 +472,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -469,7 +493,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -479,7 +503,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -500,7 +524,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -570,7 +594,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -596,11 +620,35 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
         value={true}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="The type of the search backend."
+            id="admin.elasticsearch.backendDescription"
+          />
+        }
+        id="backend"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Backend type:"
+            id="admin.elasticsearch.backendTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elasticsearch\\"",
+            "id": "admin.elasticsearch.backendExample",
+          }
+        }
+        setByEnv={false}
       />
       <AdminTextSetting
         disabled={false}
@@ -711,7 +759,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -732,7 +780,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -792,7 +840,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -813,7 +861,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -997,7 +1045,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -1018,7 +1066,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -1028,7 +1076,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -1049,7 +1097,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }

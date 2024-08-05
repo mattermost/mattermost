@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type ChangeEvent, useRef, useState, useEffect, useCallback} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
@@ -14,19 +14,8 @@ import type {BaseSettingItemProps} from 'components/widgets/modals/components/ba
 import Constants from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {imageURLForTeam} from 'utils/utils';
-import './team_picture_section.scss';
 
-const translations = defineMessages({
-    Title: {
-        id: 'setting_picture.title',
-        defaultMessage: 'Team Icon',
-    },
-    Profile: {
-        id: 'setting_picture.help.profile',
-        defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}',
-        values: {max: '50MB'},
-    },
-});
+import './team_picture_section.scss';
 
 type Props = {
     team: Team;
@@ -168,8 +157,19 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
 
     return (
         <BaseSettingItem
-            title={translations.Title}
-            description={teamImageSource ? undefined : translations.Profile}
+            title={formatMessage({
+                id: 'setting_picture.title',
+                defaultMessage: 'Team Icon',
+            })}
+            description={teamImageSource ? undefined : formatMessage(
+                {
+                    id: 'setting_picture.help.profile',
+                    defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}',
+                },
+                {
+                    max: '50MB',
+                },
+            )}
             content={teamPictureSection}
             className='picture-setting-item'
             error={clientError}

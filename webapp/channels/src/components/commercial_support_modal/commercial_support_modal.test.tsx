@@ -17,6 +17,7 @@ describe('components/CommercialSupportModal', () => {
                 showBannerWarning={true}
                 isCloud={false}
                 currentUser={mockUser}
+                packetContents={[]}
             />,
         );
         expect(wrapper).toMatchSnapshot();

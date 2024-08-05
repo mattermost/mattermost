@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,6 +37,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, rctx, ss) })
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, rctx, ss) })
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
+	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -403,4 +405,54 @@ func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {
 	session, err = ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.False(t, session.ExpiredNotify)
+}
+
+func testGetLRUSessions(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+
+	// Clear existing sessions.
+	err := ss.Session().RemoveAllSessions()
+	require.NoError(t, err)
+
+	s1 := &model.Session{}
+	s1.UserId = userId
+	s1.DeviceId = model.NewId()
+	_, err = ss.Session().Save(rctx, s1)
+	require.NoError(t, err)
+	time.Sleep(1 * time.Millisecond)
+
+	s2 := &model.Session{}
+	s2.UserId = userId
+	s2.DeviceId = model.NewId()
+	s2, err = ss.Session().Save(rctx, s2)
+	require.NoError(t, err)
+	time.Sleep(1 * time.Millisecond)
+
+	s3 := &model.Session{}
+	s3.UserId = userId
+	s3.DeviceId = model.NewId()
+	s3, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	sessions, err := ss.Session().GetLRUSessions(rctx, userId, 3, 3)
+	require.NoError(t, err)
+	require.Len(t, sessions, 0)
+
+	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 3, 2)
+	require.NoError(t, err)
+	require.Len(t, sessions, 1)
+	require.Equal(t, s1.Id, sessions[0].Id)
+
+	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 3, 1)
+	require.NoError(t, err)
+	require.Len(t, sessions, 2)
+	require.Equal(t, s2.Id, sessions[0].Id)
+	require.Equal(t, s1.Id, sessions[1].Id)
+
+	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 3, 0)
+	require.NoError(t, err)
+	require.Len(t, sessions, 3)
+	require.Equal(t, s3.Id, sessions[0].Id)
+	require.Equal(t, s2.Id, sessions[1].Id)
+	require.Equal(t, s1.Id, sessions[2].Id)
 }

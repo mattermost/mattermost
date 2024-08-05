@@ -1,3 +1,8 @@
 #user-group-popover .popover-content {
     padding: 0;
 }
+
+.user-group-popover-floating-overlay {
+    // 99 being the z-index of the global header
+    z-index: 1060;
+}

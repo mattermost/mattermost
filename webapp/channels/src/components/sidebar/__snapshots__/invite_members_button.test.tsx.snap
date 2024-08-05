@@ -16,7 +16,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
   <InviteMembersButton
     isAdmin={false}
   >
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "add_user_to_team",
@@ -25,17 +25,9 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
       }
       teamId="team_id2sss"
     >
-      <TeamPermissionGate
-        dispatch={[Function]}
+      <Gate
         hasPermission={true}
         invert={false}
-        permissions={
-          Array [
-            "add_user_to_team",
-            "invite_guest",
-          ]
-        }
-        teamId="team_id2sss"
       >
         <ToggleModalButton
           ariaLabel="Invite Members"
@@ -76,8 +68,8 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
             </div>
           </button>
         </ToggleModalButton>
-      </TeamPermissionGate>
-    </Connect(TeamPermissionGate)>
+      </Gate>
+    </Memo(TeamPermissionGate)>
   </InviteMembersButton>
 </Provider>
 `;
