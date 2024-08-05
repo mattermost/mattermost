@@ -15,6 +15,8 @@ import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entitie
 
 import Header from 'components/widgets/header';
 
+import WithTooltip from 'components/with_tooltip';
+
 import type {GlobalState} from 'types/store';
 
 import Button from '../../common/button';
@@ -23,7 +25,6 @@ import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
 import './thread_pane.scss';
-import WithTooltip from 'components/with_tooltip';
 
 const getChannel = makeGetChannel();
 const getPostsForThread = makeGetPostsForThread();
