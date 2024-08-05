@@ -743,14 +743,10 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             id="removeIcon"
             placement="right"
             title={
-              <div
-                aria-hidden={true}
-              >
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Remove This Icon"
-                  id="setting_picture.remove"
-                />
-              </div>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove This Icon"
+                id="setting_picture.remove"
+              />
             }
           >
             <button
@@ -901,14 +897,10 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             id="removeIcon"
             placement="right"
             title={
-              <div
-                aria-hidden={true}
-              >
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Remove Profile Picture"
-                  id="setting_picture.remove_profile_picture"
-                />
-              </div>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove Profile Picture"
+                id="setting_picture.remove_profile_picture"
+              />
             }
           >
             <button
