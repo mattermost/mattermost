@@ -170,11 +170,11 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
 }
 
 export type CreatePostReturnType = {
-    created?: Post;
+    created?: boolean;
     pending?: string;
 }
 
-export function createPost(post: Post, files: any[] = [], afterSubmit?: (response: any) => void): ActionFuncAsync {
+export function createPost(post: Post, files: any[] = [], afterSubmit?: (response: any) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -184,7 +184,7 @@ export function createPost(post: Post, files: any[] = [], afterSubmit?: (respons
         let actions: AnyAction[] = [];
 
         if (PostSelectors.isPostIdSending(state, pendingPostId)) {
-            return {data: true};
+            return {data: {pending: pendingPostId}};
         }
 
         let newPost = {
@@ -300,7 +300,7 @@ export function createPost(post: Post, files: any[] = [], afterSubmit?: (respons
             }
         }());
 
-        return {data: true};
+        return {data: {created: true}};
     };
 }
 
