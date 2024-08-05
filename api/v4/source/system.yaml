@@ -1138,7 +1138,7 @@
         - name: plugin_packets
           in: query
           description: |
-            Specifies plugin identifiers whose content should be included in the support packet.
+            Specifies plugin identifiers whose content should be included in the Support Packet.
 
             __Minimum server version__: 9.8.0
           required: false
