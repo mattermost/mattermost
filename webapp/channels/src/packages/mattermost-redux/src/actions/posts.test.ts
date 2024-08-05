@@ -4,7 +4,6 @@
 import fs from 'fs';
 
 import nock from 'nock';
-import mockStore from 'tests/test_store';
 
 import type {Post, PostList} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
@@ -17,6 +16,8 @@ import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import type {GetStateFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
+import mockStore from 'tests/test_store';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
