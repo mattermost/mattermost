@@ -25,7 +25,7 @@ export type OwnProps = {
 type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    joinLeave?: string;
+    joinLeave: string;
     onUpdateSection: (section?: string) => void;
     renderOnOffLabel: (label: string) => ReactNode;
     actions: {
@@ -34,7 +34,7 @@ type Props = OwnProps & {
 }
 
 type State = {
-    joinLeaveState?: string;
+    joinLeaveState: string;
     isSaving?: boolean;
     serverError?: string;
 }
