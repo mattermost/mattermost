@@ -22,7 +22,7 @@ import NoResultsIndicator from 'components/no_results_indicator';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
 import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_tip';
 import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -38,7 +38,6 @@ import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
 import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
 
 import './thread_list.scss';
-import WithTooltip from 'components/with_tooltip';
 
 export enum ThreadFilter {
     none = '',
