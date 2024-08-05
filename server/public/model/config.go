@@ -206,7 +206,7 @@ const (
 	ElasticsearchSettingsDefaultAggregatePostsAfterDays     = 365
 	ElasticsearchSettingsDefaultPostsAggregatorJobStartTime = "03:00"
 	ElasticsearchSettingsDefaultIndexPrefix                 = ""
-	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 1
+	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 10
 	ElasticsearchSettingsDefaultRequestTimeoutSeconds       = 30
 	ElasticsearchSettingsDefaultBatchSize                   = 10000
 	ElasticsearchSettingsESBackend                          = "elasticsearch"

@@ -5779,11 +5779,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 122+"
+    "translation": "版本 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 122+"
+    "translation": "版本 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
