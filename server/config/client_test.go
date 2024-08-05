@@ -189,7 +189,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels other license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ServerFederationSettings: model.ServerFederationSettings{
 					EnableSharedChannels: model.NewBool(true),
 				},
 			},
@@ -207,7 +207,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"licensed for shared channels",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ServerFederationSettings: model.ServerFederationSettings{
 					EnableSharedChannels: model.NewBool(true),
 				},
 			},
@@ -225,7 +225,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels professional license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ServerFederationSettings: model.ServerFederationSettings{
 					EnableSharedChannels: model.NewBool(true),
 				},
 			},
@@ -256,7 +256,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels enterprise license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ServerFederationSettings: model.ServerFederationSettings{
 					EnableSharedChannels: model.NewBool(true),
 				},
 			},
