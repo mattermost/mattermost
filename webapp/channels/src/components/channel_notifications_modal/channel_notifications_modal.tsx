@@ -68,7 +68,7 @@ function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channe
     const push = channelMemberNotifyProps?.push === NotificationLevels.DEFAULT ? currentUserNotifyProps.desktop : (channelMemberNotifyProps?.push || currentUserNotifyProps.push);
 
     const desktopSound: ChannelNotifyProps['desktop_sound'] = channelMemberNotifyProps?.desktop_sound ?? convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps?.desktop_sound);
-    const desktopNotificationSound = channelMemberNotifyProps?.desktop_notification_sound ?? currentUserNotifyProps.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'];
+    const desktopNotificationSound = channelMemberNotifyProps?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'];
 
     return {
         desktop,
