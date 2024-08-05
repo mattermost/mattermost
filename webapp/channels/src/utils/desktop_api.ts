@@ -167,7 +167,7 @@ class DesktopAppAPI {
     ) => {
         if (window.desktopAPI?.sendNotification) {
             const result = await window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
-            return result ?? {result: 'unsupported', reason: 'desktop_app_unsupported'};
+            return result ?? {status: 'unsupported', reason: 'desktop_app_unsupported'};
         }
 
         // get the desktop app to trigger the notification
@@ -186,7 +186,7 @@ class DesktopAppAPI {
             },
             window.location.origin,
         );
-        return {result: 'unsupported', reason: 'desktop_app_unsupported'};
+        return {status: 'unsupported', reason: 'desktop_app_unsupported'};
     };
 
     doBrowserHistoryPush = (path: string) => {

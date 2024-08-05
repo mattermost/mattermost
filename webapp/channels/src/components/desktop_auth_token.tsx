@@ -8,8 +8,6 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
-import type {UserProfile} from '@mattermost/types/users';
-
 import {loginWithDesktopToken} from 'actions/views/login';
 
 import DesktopApp from 'utils/desktop_api';
@@ -29,7 +27,7 @@ enum DesktopAuthStatus {
 
 type Props = {
     href: string;
-    onLogin: (userProfile: UserProfile) => void;
+    onLogin: () => void;
 }
 
 const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
@@ -51,7 +49,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         }
 
         sessionStorage.removeItem(DESKTOP_AUTH_PREFIX);
-        const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(serverToken));
+        const {error: loginError} = await dispatch(loginWithDesktopToken(serverToken));
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
             setStatus(DesktopAuthStatus.Error);
@@ -59,7 +57,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         }
 
         setStatus(DesktopAuthStatus.LoggedIn);
-        await onLogin(userProfile as UserProfile);
+        await onLogin();
     };
 
     const openExternalLoginURL = async () => {

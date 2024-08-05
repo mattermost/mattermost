@@ -10,7 +10,7 @@ import (
 
 func (api *API) InitSystem() {
 	api.Router.Handle("ping", api.APIWebSocketHandler(ping))
-	api.Router.Handle(model.WebsocketPostedNotifyAck, api.APIWebSocketHandler(api.websocketNotificationAck))
+	api.Router.Handle(string(model.WebsocketPostedNotifyAck), api.APIWebSocketHandler(api.websocketNotificationAck))
 }
 
 func ping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
@@ -26,13 +26,38 @@ func ping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 	// Log the ACKs if necessary
 	api.App.NotificationsLog().Debug("Websocket notification acknowledgment",
-		mlog.String("type", model.TypeWebsocket),
+		mlog.String("type", model.NotificationTypeWebsocket),
 		mlog.String("user_id", req.Session.UserId),
 		mlog.Any("user_agent", req.Data["user_agent"]),
 		mlog.Any("post_id", req.Data["post_id"]),
-		mlog.Any("result", req.Data["result"]),
+		mlog.Any("status", req.Data["status"]),
 		mlog.Any("reason", req.Data["reason"]),
 		mlog.Any("data", req.Data["data"]),
+	)
+
+	// Count metrics for websocket acks
+	api.App.CountNotificationAck(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
+
+	status := req.Data["status"]
+	reason := req.Data["reason"]
+	if status == nil {
+		return nil, nil
+	}
+
+	notificationStatus := model.NotificationStatus(status.(string))
+	if reason == nil && notificationStatus != model.NotificationStatusSuccess {
+		return nil, nil
+	}
+	var notificationReason model.NotificationReason
+	if reason != nil {
+		notificationReason = model.NotificationReason(reason.(string))
+	}
+
+	api.App.CountNotificationReason(
+		notificationStatus,
+		model.NotificationTypeWebsocket,
+		notificationReason,
+		model.NotificationNoPlatform,
 	)
 
 	return nil, nil

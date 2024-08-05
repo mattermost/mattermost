@@ -1471,7 +1471,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1496,7 +1496,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
@@ -1525,7 +1525,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1550,7 +1550,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1583,7 +1583,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
 		}, th.BasicUser.Id)
@@ -1610,7 +1610,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
 		}, th.BasicUser.Id)

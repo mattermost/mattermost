@@ -1,29 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import * as fileActions from 'mattermost-redux/actions/files';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
-
 import FilePreviewModalMainActions from './file_preview_modal_main_actions';
-
-const mockDispatch = jest.fn();
-let mockState: GlobalState;
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: () => mockDispatch,
-}));
 
 describe('components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions', () => {
     let defaultProps: ComponentProps<typeof FilePreviewModalMainActions>;
@@ -39,22 +26,6 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             content: 'test content',
             canCopyContent: false,
         };
-
-        mockState = {
-            entities: {
-                general: {config: {}},
-                users: {profiles: {}},
-                channels: {channels: {}},
-                preferences: {
-                    myPreferences: {
-
-                    },
-                },
-                files: {
-                    filePublicLink: {link: 'http://example.com/img.png'},
-                },
-            },
-        } as GlobalState;
     });
 
     test('should match snapshot with public links disabled', () => {
@@ -63,8 +34,11 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             enablePublicLink: false,
         };
 
-        const wrapper = shallow(<FilePreviewModalMainActions {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
+
+        expect(screen.queryByLabelText('Get a public link')).not.toBeInTheDocument();
     });
 
     test('should match snapshot with public links enabled', () => {
@@ -73,32 +47,38 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             enablePublicLink: true,
         };
 
-        const wrapper = shallow(<FilePreviewModalMainActions {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-        const overlayWrapper = wrapper.find(OverlayTrigger).first();
-        expect(overlayWrapper.prop('overlay').type).toEqual(Tooltip);
-        expect(overlayWrapper.prop('children')).toMatchSnapshot();
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
+
+        expect(screen.queryByLabelText('Get a public link')).toBeInTheDocument();
     });
 
-    test('should match snapshot for external image with public links enabled', () => {
+    test('should not show public link button for external image with public links enabled', () => {
         const props = {
             ...defaultProps,
             enablePublicLink: true,
             showPublicLink: false,
         };
 
-        const wrapper = shallow(<FilePreviewModalMainActions {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
+
+        expect(screen.queryByLabelText('Get a public link')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot when copy content is enabled', () => {
+    test('should show copy button when copy content is enabled', () => {
         const props = {
             ...defaultProps,
             canCopyContent: true,
         };
 
-        const wrapper = shallow(<FilePreviewModalMainActions {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
+
+        expect(screen.getByLabelText('Copy code')).toBeInTheDocument();
     });
 
     test('should call public link callback', () => {
@@ -107,17 +87,22 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             ...defaultProps,
             enablePublicLink: true,
         };
-        const wrapper = shallow(<FilePreviewModalMainActions {...props}/>);
-        expect(wrapper.find(OverlayTrigger)).toHaveLength(3);
-        const overlayWrapper = wrapper.find(OverlayTrigger).first().children('a');
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
+
         expect(spy).toHaveBeenCalledTimes(0);
-        overlayWrapper.simulate('click');
+
+        screen.getByLabelText('Get a public link').click();
+
         expect(spy).toHaveBeenCalledTimes(1);
     });
 
     test('should not get public api when public links is disabled', async () => {
         const spy = jest.spyOn(fileActions, 'getFilePublicLink');
-        mount(<FilePreviewModalMainActions {...defaultProps}/>);
+        renderWithContext(
+            <FilePreviewModalMainActions {...defaultProps}/>,
+        );
         expect(spy).toHaveBeenCalledTimes(0);
     });
 
@@ -127,7 +112,9 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             ...defaultProps,
             enablePublicLink: true,
         };
-        mount(<FilePreviewModalMainActions {...props}/>);
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
         expect(spy).toHaveBeenCalledTimes(1);
     });
 
@@ -137,9 +124,11 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             ...defaultProps,
             canCopyContent: true,
         };
-        const wrapper = mount(<FilePreviewModalMainActions {...props}/>);
+        renderWithContext(
+            <FilePreviewModalMainActions {...props}/>,
+        );
         expect(spy).toHaveBeenCalledTimes(0);
-        wrapper.find('.icon-content-copy').simulate('click');
+        screen.getByLabelText('Copy code').click();
         expect(spy).toHaveBeenCalledTimes(1);
     });
 });

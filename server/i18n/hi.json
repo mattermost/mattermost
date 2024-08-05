@@ -528,10 +528,6 @@
     "translation": "आपके पासवर्ड में कम से कम एक लोअरकेस अक्षर से बने कम से कम {{.Min}} वर्ण होने चाहिए।"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "आपके पासवर्ड में कम से कम {{.Min}} वर्ण होने चाहिए।"
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "अमान्य स्थिति: 128 वर्णों से अधिक नहीं होनी चाहिए।"
   },
@@ -884,10 +880,6 @@
     "translation": "आपका एंटरप्राइज़ संस्करण लाइसेंस समाप्त हो गया है और कुछ सुविधाएं अक्षम हो सकती हैं। कृपया अपना लाइसेंस अभी रीन्यू करें।"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "लाइसेंस अभी रीन्यू करें"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "मैसेज देखें"
   },
@@ -912,16 +904,8 @@
     "translation": "आपकी मैटरमोस्ट सदस्यता रीन्यूअल के लिए तैयार है"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "रीन्यू करने के लिए अपने ग्राहक खाते में लॉग इन करें"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, आपकी सदस्यता {{.Days}} दिनों में समाप्त होने वाली है। हम आशा करते हैं कि आप मैटरमोस्ट द्वारा सक्षम लचीले, सुरक्षित टीम सहयोग का अनुभव कर रहे हैं। यह सुनिश्चित करने के लिए जल्द ही रीन्यू करें कि आपकी टीम इन लाभों का आनंद लेती रहे।"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "अब रीन्यू करें"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -2074,10 +2058,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "सुरक्षित कनेक्शन से आमंत्रण"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "आमंत्रण को डिक्रिप्ट नहीं किया जा सका. गलत पासवर्ड या करप्ट आमंत्रण: {{.Error}}"
   },
   {
     "id": "api.command_remote.fetch_status.error",
@@ -4565,10 +4545,6 @@
     "translation": "यदि आप स्वचालित रूप से पुनर्निर्देशित नहीं होते हैं, तो कृपया क्लिक करें<a href='{{.Link}}'>link</a>"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "पोर्टल पर इस लाइसेंस का नवीनीकरण संभव नहीं है"
-  },
-  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "अनुरोध में 'लाइसेंस' के तहत कोई फ़ाइल नहीं।"
   },
@@ -4931,10 +4907,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "नवीनीकरण ईमेल के लिए लाइसेंस भेजने में विफल"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "लाइसेंस नवीनीकरण लिंक उत्पन्न करने में विफल"
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -6633,10 +6605,6 @@
     "translation": "AD/LDAP का उपयोग करने वाले सभी उपयोगकर्ताओं को प्राप्त करने में असमर्थ।"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "टीम या चैनल सदस्यता हटाने में त्रुटि"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "उस उपयोगकर्ता नाम वाला एक खाता पहले से मौजूद है। कृपया अपने व्यवस्थापक से संपर्क करें।"
   },
@@ -6733,20 +6701,12 @@
     "translation": "इलास्टिक्स खोज पहले ही रोक दी गई है।"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch बल्क प्रोसेसर प्रारंभ करने में विफल।"
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Elasticsearch सर्वर संस्करण को पार्स करने में विफल।"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Elasticsearch सर्वर संस्करण प्राप्त करने में विफल।"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch बल्क प्रोसेसर बनाने में विफल।"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -6923,10 +6883,6 @@
   {
     "id": "ent.compliance.csv.file.creation.appError",
     "translation": "अस्थायी CSV निर्यात फ़ाइल बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "क्लस्टर API समापन बिंदु नहीं मिला।"
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -7676,10 +7632,6 @@
     "translation": "स्थिति प्राप्त करने में त्रुटि आई।"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "एक सीधा साझा चैनल बनाते समय एक त्रुटि का सामना करना पड़ा।"
-  },
-  {
     "id": "app.session.update_device_id.app_error",
     "translation": "डिवाइस आईडी अपडेट करने में असमर्थ।"
   },
@@ -8032,10 +7984,6 @@
     "translation": "इस समापन बिंदु का उपयोग करने के लिए E10 या E20 लाइसेंस की आवश्यकता है।"
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "लाइसेंस नवीनीकरण लिंक प्राप्त करने में त्रुटि"
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "आप जिस कार्य प्रकार को डाउनलोड करने का प्रयास कर रहे हैं वह इस समय समर्थित नहीं है"
   },
@@ -8260,18 +8208,6 @@
     "translation": "हमें किसी भी समय ईमेल करें "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "आपका सबसे महत्वपूर्ण क्लाउड चालान देय है"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "आपकी मैटरमोस्ट क्लाउड सदस्यता के लिए भुगतान देय है"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "पोस्ट करते समय इस एकीकरण के प्रोफ़ाइल चित्र के लिए .png या .jpg फ़ाइल का URL दर्ज करें। फ़ाइल कम से कम 128 पिक्सेल गुणा 128 पिक्सेल की होनी चाहिए. यदि खाली छोड़ दिया जाता है, तो वेबहुक निर्माता द्वारा निर्दिष्ट प्रोफ़ाइल चित्र का उपयोग किया जाता है।"
-  },
-  {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
     "translation": "अमान्य_अनुरोध: आपूर्ति की गई रीडायरेक्ट_यूरी प्राधिकरण कोड रीडायरेक्ट_यूरी से मेल नहीं खाती।"
   },
@@ -8302,10 +8238,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "व्यवस्थापक को पहले ही सूचित कर दिया गया है"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "चूक ईमेल भेजने के लिए आवश्यक फ़ील्ड गुम हैं।"
   },
   {
     "id": "api.admin.syncables_error",

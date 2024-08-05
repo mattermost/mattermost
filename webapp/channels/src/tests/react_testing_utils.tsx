@@ -3,6 +3,7 @@
 
 import {render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type {History} from 'history';
 import {createBrowserHistory} from 'history';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
@@ -13,6 +14,7 @@ import type {Reducer} from 'redux';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import configureStore from 'store';
+import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
@@ -28,6 +30,7 @@ export type FullContextOptions = {
     locale?: string;
     useMockedStore?: boolean;
     pluginReducers?: string[];
+    history?: History<unknown>;
 }
 
 export const renderWithContext = (
@@ -46,7 +49,7 @@ export const renderWithContext = (
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
         component,
-        history: createBrowserHistory(),
+        history: partialOptions?.history ?? createBrowserHistory(),
         options,
         store: testStore,
     };
@@ -69,6 +72,8 @@ export const renderWithContext = (
             </Provider>
         );
     }
+
+    replaceGlobalStore(() => renderState.store);
 
     const results = render(component, {wrapper: WrapComponent});
 
@@ -117,4 +122,14 @@ function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: b
         testStore = mockStore(testStore.getState());
     }
     return testStore;
+}
+
+function replaceGlobalStore(getStore: () => any) {
+    jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
+    jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
+    jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
+    jest.spyOn(globalStore, '@@observable').mockImplementation((...args) => getStore()['@@observable'](...args));
+
+    // This may stop working if getStore starts to return new results
+    jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
 }

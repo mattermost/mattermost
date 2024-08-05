@@ -1310,8 +1310,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 		var b *model.ChannelBookmarkWithFileInfo
 		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
+			if event, ok := <-webSocketClient.EventChannel; ok && event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
 				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
 				require.NoError(t, err)
 				return true
@@ -1376,7 +1375,7 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 
 	// an open channel for which the guest is a member but the basic
 	// user is not
-	onlyGuestChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypeOpen)
+	onlyGuestChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 	th.AddUserToChannel(guest, onlyGuestChannel)
 	guestBookmark := createBookmark("guest", onlyGuestChannel.Id)
 

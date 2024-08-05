@@ -7,9 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getSelfHostedErrors, getSelfHostedInvoices} from 'mattermost-redux/selectors/entities/hosted_customer';
 
-import {getSelfHostedInvoices as getSelfHostedInvoicesAction} from 'actions/hosted_customer';
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import CloudFetchError from 'components/cloud_fetch_error';
@@ -65,14 +63,14 @@ export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => 
 const BillingHistory = () => {
     const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const invoices = useSelector(isCloud ? getCloudInvoices : getSelfHostedInvoices);
-    const {invoices: invoicesError} = useSelector(isCloud ? getCloudErrors : getSelfHostedErrors);
+    const invoices = useSelector(getCloudInvoices);
+    const {invoices: invoicesError} = useSelector(getCloudErrors);
 
     useEffect(() => {
         pageVisited('cloud_admin', 'pageview_billing_history');
     }, []);
     useEffect(() => {
-        dispatch(isCloud ? getInvoices() : getSelfHostedInvoicesAction());
+        dispatch(getInvoices());
     }, [isCloud]);
     const billingHistoryTable = invoices && <BillingHistoryTable invoices={invoices}/>;
     const areInvoicesEmpty = Object.keys(invoices || {}).length === 0;

@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -734,7 +736,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in dry-run mode.
 	data := imports.UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr(model.NewUsername()),
 	}
 	err = th.App.importUser(th.Context, &data, true)
 	require.Error(t, err, "Should have failed to import invalid user.")
@@ -749,7 +751,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in dry-run mode.
 	data = imports.UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr(model.NewUsername()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
 	appErr := th.App.importUser(th.Context, &data, true)
@@ -765,7 +767,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in apply mode.
 	data = imports.UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr(model.NewUsername()),
 	}
 	err = th.App.importUser(th.Context, &data, false)
 	require.Error(t, err, "Should have failed to import invalid user.")
@@ -779,7 +781,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, userCount, userCount4, "Unexpected number of users")
 
 	// Do a valid user in apply mode.
-	username := model.NewId()
+	username := model.NewUsername()
 	testsDir, _ := fileutils.FindDir("tests")
 	data = imports.UserImportData{
 		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
@@ -904,7 +906,7 @@ func TestImportImportUser(t *testing.T) {
 	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
-	username = model.NewId()
+	username = model.NewUsername()
 	data = imports.UserImportData{
 		Username:  &username,
 		Email:     ptrStr(model.NewId() + "@example.com"),
@@ -1161,7 +1163,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Add a user with some preferences.
-	username = model.NewId()
+	username = model.NewUsername()
 	data = imports.UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
@@ -1325,7 +1327,7 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
 
 	// Check Notify Props get set on *create* user.
-	username = model.NewId()
+	username = model.NewUsername()
 	data = imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -1470,7 +1472,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
 	// Test importing deleted user with a valid team & valid channel name in apply mode.
-	username = model.NewId()
+	username = model.NewUsername()
 	deleteAt := model.GetMillis()
 	deletedUserData := &imports.UserImportData{
 		Username: &username,
@@ -1513,7 +1515,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// see https://mattermost.atlassian.net/browse/MM-56986
 	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	// username = model.NewId()
+	// username = model.NewUsername()
 	// deleteAt = model.GetMillis()
 	// deletedGuestData := &imports.UserImportData{
 	// 	Username: &username,
@@ -1916,7 +1918,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a valid new user with some, but not all, notify props populated.
-	username := model.NewId()
+	username := model.NewUsername()
 	data := imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -1977,7 +1979,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Create a user.
-	username := model.NewId()
+	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -2225,7 +2227,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Equal(t, "#hashtagmashupcity", post.Hashtags, "Hashtags not as expected: %s", post.Hashtags)
 
 	// Post with flags.
-	username2 := model.NewId()
+	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -2581,7 +2583,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user.
-	username := model.NewId()
+	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -2589,7 +2591,7 @@ func TestImportImportPost(t *testing.T) {
 	user, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	username2 := model.NewId()
+	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4256,7 +4258,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user3.
-	username := model.NewId()
+	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4265,16 +4267,16 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 	require.NotNil(t, user3)
 
-	username2 := model.NewId()
+	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 	user2, appErr := th.App.GetUserByUsername(username2)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.Nil(t, appErr, "Failed to get user2 from database.")
 
 	// Create direct post users.
-	username3 := model.NewId()
+	username3 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4282,14 +4284,14 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	user3, appErr = th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
-	username4 := model.NewId()
+	username4 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 
 	user4, appErr := th.App.GetUserByUsername(username4)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.Nil(t, appErr, "Failed to get user4 from database.")
 
 	// Post with attachments
 	time := model.GetMillis()
@@ -4383,6 +4385,85 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
 	})
+
+	t.Run("import existing post with different attachment's content", func(t *testing.T) {
+		tmpDir := os.TempDir()
+		filePath := filepath.Join(tmpDir, "test_diff.png")
+
+		t.Run("different size", func(t *testing.T) {
+			testImage := filepath.Join(testsDir, "test.png")
+			imageData, err := os.ReadFile(testImage)
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			data.Post.Message = model.NewString("new post")
+			errLine, appErr := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments := GetAttachments(user3.Id, th, t)
+			require.Len(t, attachments, 2)
+			assert.Contains(t, attachments[1].Path, team.Id)
+			AssertFileIdsInPost(attachments[1:], th, t)
+
+			testImage = filepath.Join(testsDir, "test-data-graph.png")
+			imageData, err = os.ReadFile(testImage)
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			errLine, appErr = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments2 := GetAttachments(user3.Id, th, t)
+			require.NotEqual(t, attachments, attachments2)
+			require.Len(t, attachments2, 2)
+			assert.Contains(t, attachments2[1].Path, team.Id)
+			AssertFileIdsInPost(attachments2[1:], th, t)
+		})
+
+		t.Run("same size", func(t *testing.T) {
+			imageData, err := os.ReadFile(filepath.Join(testsDir, "test_img_diff_A.png"))
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			data.Post.Message = model.NewString("new post2")
+			errLine, appErr := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments := GetAttachments(user3.Id, th, t)
+			require.Len(t, attachments, 3)
+			assert.Contains(t, attachments[2].Path, team.Id)
+			AssertFileIdsInPost(attachments[2:], th, t)
+
+			imageData, err = os.ReadFile(filepath.Join(testsDir, "test_img_diff_B.png"))
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			errLine, appErr = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments2 := GetAttachments(user3.Id, th, t)
+			require.NotEqual(t, attachments, attachments2)
+			require.Len(t, attachments2, 3)
+			assert.Contains(t, attachments2[2].Path, team.Id)
+			AssertFileIdsInPost(attachments2[2:], th, t)
+		})
+	})
 }
 
 func TestImportDirectPostWithAttachments(t *testing.T) {
@@ -4401,7 +4482,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.
-	username := model.NewId()
+	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4409,7 +4490,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	user1, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user1 from database.")
 
-	username2 := model.NewId()
+	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4532,16 +4613,16 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create users
-	username2 := model.NewId()
+	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 	user2, appErr := th.App.GetUserByUsername(username2)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.Nil(t, appErr, "Failed to get user2 from database.")
 
 	// Create direct post users.
-	username3 := model.NewId()
+	username3 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -4549,14 +4630,14 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	user3, appErr := th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
-	username4 := model.NewId()
+	username4 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 
 	user4, appErr := th.App.GetUserByUsername(username4)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.Nil(t, appErr, "Failed to get user4 from database.")
 
 	// Post with attachments
 	time := model.GetMillis()
@@ -4574,7 +4655,6 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	require.NotEmpty(t, testZipReader.File)
 	imageData := testZipReader.File[0]
-	require.NoError(t, err, "failed to copy test Image file into zip")
 
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
 	data := imports.LineImportWorkerData{
@@ -4661,5 +4741,328 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("import existing post with different attachment's content", func(t *testing.T) {
+		var fileA, fileB *zip.File
+		for _, f := range testZipReader.File {
+			if f.Name == "data/test_img_diff_A.png" {
+				fileA = f
+			} else if f.Name == "data/test_img_diff_B.png" {
+				fileB = f
+			}
+		}
+
+		require.NotNil(t, fileA)
+		require.NotNil(t, fileB)
+
+		data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &fileA.Name, Data: fileA}}
+		data.Post.Message = model.NewString("new post")
+		data.Post.Replies = nil
+		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments[1:], th, t)
+
+		fileB.Name = fileA.Name
+		data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &fileA.Name, Data: fileB}}
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments = GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments[1:], th, t)
+	})
+}
+
+func TestCompareFilesContent(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		ok, err := compareFilesContent(strings.NewReader(""), strings.NewReader(""), 0)
+		require.NoError(t, err)
+		require.True(t, ok)
+	})
+
+	t.Run("no match", func(t *testing.T) {
+		ok, err := compareFilesContent(strings.NewReader("fileA"), strings.NewReader("fileB"), 0)
+		require.NoError(t, err)
+		require.False(t, ok)
+	})
+
+	t.Run("match", func(t *testing.T) {
+		ok, err := compareFilesContent(strings.NewReader("fileA"), strings.NewReader("fileA"), 0)
+		require.NoError(t, err)
+		require.True(t, ok)
+	})
+}
+
+func BenchmarkCompareFilesContent(b *testing.B) {
+	tmpDir := os.TempDir()
+	fileAPath := filepath.Join(tmpDir, "fileA")
+	fileBPath := filepath.Join(tmpDir, "fileB")
+
+	fileA, err := os.Create(fileAPath)
+	require.NoError(b, err)
+	defer fileA.Close()
+	defer os.Remove(fileAPath)
+
+	fileB, err := os.Create(fileBPath)
+	require.NoError(b, err)
+	defer fileB.Close()
+	defer os.Remove(fileBPath)
+
+	fileSize := int64(1024 * 1024 * 1024) // 1GB
+
+	err = fileA.Truncate(fileSize)
+	require.NoError(b, err)
+	err = fileB.Truncate(fileSize)
+	require.NoError(b, err)
+
+	bufSizesMap := map[string]int64{
+		"32KB":  1024 * 32, // current default of io.Copy
+		"128KB": 1024 * 128,
+		"1MB":   1024 * 1024,
+		"2MB":   1024 * 1024 * 2,
+		"4MB":   1024 * 1024 * 4,
+		"8MB":   1024 * 1024 * 8,
+	}
+
+	fileSizesMap := map[string]int64{
+		"512KB": 1024 * 512,
+		"1MB":   1024 * 1024,
+		"10MB":  1024 * 1024 * 10,
+		"100MB": 1024 * 1024 * 100,
+		"1GB":   1024 * 1024 * 1000,
+	}
+
+	// To force order
+	bufSizeLabels := []string{"32KB", "128KB", "1MB", "2MB", "4MB", "8MB"}
+	fileSizeLabels := []string{"512KB", "1MB", "10MB", "100MB", "1GB"}
+
+	b.Run("plain", func(b *testing.B) {
+		b.Run("local", func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			b.StopTimer()
+
+			for i := 0; i < b.N; i++ {
+				_, err := fileA.Seek(0, io.SeekStart)
+				require.NoError(b, err)
+				_, err = fileB.Seek(0, io.SeekStart)
+				require.NoError(b, err)
+
+				b.StartTimer()
+				ok, err := compareFilesContent(fileA, fileB, 0)
+				b.StopTimer()
+				require.NoError(b, err)
+				require.True(b, ok)
+			}
+		})
+
+		b.Run("s3", func(b *testing.B) {
+			th := SetupConfig(b, func(cfg *model.Config) {
+				cfg.FileSettings = model.FileSettings{
+					DriverName:                         model.NewString(model.ImageDriverS3),
+					AmazonS3AccessKeyId:                model.NewString(model.MinioAccessKey),
+					AmazonS3SecretAccessKey:            model.NewString(model.MinioSecretKey),
+					AmazonS3Bucket:                     model.NewString("comparefilescontentbucket"),
+					AmazonS3Endpoint:                   model.NewString("localhost:9000"),
+					AmazonS3Region:                     model.NewString(""),
+					AmazonS3PathPrefix:                 model.NewString(""),
+					AmazonS3SSL:                        model.NewBool(false),
+					AmazonS3RequestTimeoutMilliseconds: model.NewInt64(300 * 1000),
+				}
+			})
+			defer th.TearDown()
+
+			err := th.App.Srv().FileBackend().(*filestore.S3FileBackend).TestConnection()
+			require.NoError(b, err)
+
+			_, err = fileA.Seek(0, io.SeekStart)
+			require.NoError(b, err)
+			_, err = fileB.Seek(0, io.SeekStart)
+			require.NoError(b, err)
+
+			_, appErr := th.App.WriteFile(fileA, "compareFileA")
+			require.Nil(b, appErr)
+			defer th.App.RemoveFile("compareFileA")
+
+			_, appErr = th.App.WriteFile(fileB, "compareFileB")
+			require.Nil(b, appErr)
+			defer th.App.RemoveFile("compareFileB")
+
+			rdA, appErr := th.App.FileReader("compareFileA")
+			require.Nil(b, appErr)
+			defer rdA.Close()
+
+			rdB, appErr := th.App.FileReader("compareFileB")
+			require.Nil(b, appErr)
+			defer rdB.Close()
+
+			b.ResetTimer()
+
+			for _, fileSizeLabel := range fileSizeLabels {
+				fileSize := fileSizesMap[fileSizeLabel]
+				for _, bufSizeLabel := range bufSizeLabels {
+					bufSize := bufSizesMap[bufSizeLabel]
+					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
+						b.ReportAllocs()
+						b.StopTimer()
+						for i := 0; i < b.N; i++ {
+							_, err := rdA.Seek(0, io.SeekStart)
+							require.NoError(b, err)
+							_, err = rdB.Seek(0, io.SeekStart)
+							require.NoError(b, err)
+
+							b.StartTimer()
+							ok, err := compareFilesContent(&io.LimitedReader{
+								R: rdA,
+								N: fileSize,
+							}, &io.LimitedReader{
+								R: rdB,
+								N: fileSize,
+							}, bufSize)
+							b.StopTimer()
+							require.NoError(b, err)
+							require.True(b, ok)
+						}
+					})
+				}
+			}
+		})
+	})
+
+	b.Run("zip", func(b *testing.B) {
+		zipFilePath := filepath.Join(tmpDir, "compareFiles.zip")
+		zipFile, err := os.Create(zipFilePath)
+		require.NoError(b, err)
+		defer zipFile.Close()
+		defer os.Remove(zipFilePath)
+
+		zipWr := zip.NewWriter(zipFile)
+
+		fileAZipWr, err := zipWr.CreateHeader(&zip.FileHeader{
+			Name:   "compareFileA",
+			Method: zip.Store,
+		})
+		require.NoError(b, err)
+		_, err = io.Copy(fileAZipWr, fileA)
+		require.NoError(b, err)
+
+		fileBZipWr, err := zipWr.CreateHeader(&zip.FileHeader{
+			Name:   "compareFileB",
+			Method: zip.Store,
+		})
+		require.NoError(b, err)
+		_, err = io.Copy(fileBZipWr, fileB)
+		require.NoError(b, err)
+
+		err = zipWr.Close()
+		require.NoError(b, err)
+
+		info, err := zipFile.Stat()
+		require.NoError(b, err)
+
+		zipFileSize := info.Size()
+
+		b.Run("local", func(b *testing.B) {
+			b.ResetTimer()
+
+			for _, label := range bufSizeLabels {
+				bufSize := bufSizesMap[label]
+				b.Run("bufSize-"+label, func(b *testing.B) {
+					b.ReportAllocs()
+					b.StopTimer()
+					for i := 0; i < b.N; i++ {
+						_, err := zipFile.Seek(0, io.SeekStart)
+						require.NoError(b, err)
+						zipRd, err := zip.NewReader(zipFile, zipFileSize)
+						require.NoError(b, err)
+
+						zipFileA, err := zipRd.Open("compareFileA")
+						require.NoError(b, err)
+
+						zipFileB, err := zipRd.Open("compareFileB")
+						require.NoError(b, err)
+
+						b.StartTimer()
+						ok, err := compareFilesContent(zipFileA, zipFileB, bufSize)
+						b.StopTimer()
+						require.NoError(b, err)
+						require.True(b, ok)
+					}
+				})
+			}
+		})
+
+		b.Run("s3", func(b *testing.B) {
+			th := SetupConfig(b, func(cfg *model.Config) {
+				cfg.FileSettings = model.FileSettings{
+					DriverName:                         model.NewString(model.ImageDriverS3),
+					AmazonS3AccessKeyId:                model.NewString(model.MinioAccessKey),
+					AmazonS3SecretAccessKey:            model.NewString(model.MinioSecretKey),
+					AmazonS3Bucket:                     model.NewString("comparefilescontentbucket"),
+					AmazonS3Endpoint:                   model.NewString("localhost:9000"),
+					AmazonS3Region:                     model.NewString(""),
+					AmazonS3PathPrefix:                 model.NewString(""),
+					AmazonS3SSL:                        model.NewBool(false),
+					AmazonS3RequestTimeoutMilliseconds: model.NewInt64(300 * 1000),
+				}
+			})
+			defer th.TearDown()
+
+			err := th.App.Srv().FileBackend().(*filestore.S3FileBackend).TestConnection()
+			require.NoError(b, err)
+
+			_, appErr := th.App.WriteFile(zipFile, "compareFiles.zip")
+			require.Nil(b, appErr)
+			defer th.App.RemoveFile("compareFiles.zip")
+
+			zipFileRd, appErr := th.App.FileReader("compareFiles.zip")
+			require.Nil(b, appErr)
+			defer zipFileRd.Close()
+
+			b.ResetTimer()
+
+			for _, fileSizeLabel := range fileSizeLabels {
+				fileSize := fileSizesMap[fileSizeLabel]
+				for _, bufSizeLabel := range bufSizeLabels {
+					bufSize := bufSizesMap[bufSizeLabel]
+					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
+						b.ReportAllocs()
+						b.StopTimer()
+						for i := 0; i < b.N; i++ {
+							_, err := zipFileRd.Seek(0, io.SeekStart)
+							require.NoError(b, err)
+							zipRd, err := zip.NewReader(zipFileRd.(io.ReaderAt), zipFileSize)
+							require.NoError(b, err)
+
+							zipFileA, err := zipRd.Open("compareFileA")
+							require.NoError(b, err)
+
+							zipFileB, err := zipRd.Open("compareFileB")
+							require.NoError(b, err)
+
+							b.StartTimer()
+							ok, err := compareFilesContent(&io.LimitedReader{
+								R: zipFileA,
+								N: fileSize,
+							}, &io.LimitedReader{
+								R: zipFileB,
+								N: fileSize,
+							}, bufSize)
+							b.StopTimer()
+							require.NoError(b, err)
+							require.True(b, ok)
+						}
+					})
+				}
+			}
+		})
 	})
 }

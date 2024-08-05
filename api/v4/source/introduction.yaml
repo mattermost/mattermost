@@ -49,6 +49,9 @@ tags:
 
 
       When using endpoints that require a user id, the string `me` can be used in place of the user id to indicate the action is to be taken for the logged in user.
+
+
+      For all endpoints that implement pagination via the `per_page` parameter, the maximum number of items returned per request is capped at 200. If `per_page` exceeds 200, the list will be silently truncated to 200 items.
   - name: drivers
     description: >
       The easiest way to interact with the Mattermost Web Service API is through
@@ -595,6 +598,7 @@ x-tagGroups:
       - roles
       - schemes
       - integration_actions
+      - remote clusters
       - shared channels
       - terms of service
       - imports

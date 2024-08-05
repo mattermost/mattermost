@@ -86,7 +86,10 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                 dispatch(GlobalActions.sendEphemeralPost('/leave is not supported in reply threads. Use it in the center channel instead.', args.channel_id, args.root_id));
                 return {data: true};
             }
-            const channel = getCurrentChannel(state) || {};
+            const channel = getCurrentChannel(state);
+            if (!channel) {
+                return {data: false};
+            }
             if (channel.type === Constants.PRIVATE_CHANNEL) {
                 dispatch(openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}}));
                 return {data: true};

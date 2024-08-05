@@ -68,6 +68,7 @@ export default class WebSocketClient {
     private closeListeners = new Set<CloseListener>();
 
     private connectionId: string | null;
+    private postedAck: boolean;
 
     constructor() {
         this.conn = null;
@@ -77,12 +78,13 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseCallbacks = {};
         this.connectionId = '';
+        this.postedAck = false;
     }
 
     // on connect, only send auth cookie and blank state.
     // on hello, get the connectionID and store it.
     // on reconnect, send cookie, connectionID, sequence number.
-    initialize(connectionUrl = this.connectionUrl, token?: string) {
+    initialize(connectionUrl = this.connectionUrl, token?: string, postedAck?: boolean) {
         if (this.conn) {
             return;
         }
@@ -96,10 +98,14 @@ export default class WebSocketClient {
             console.log('websocket connecting to ' + connectionUrl); //eslint-disable-line no-console
         }
 
+        if (typeof postedAck != 'undefined') {
+            this.postedAck = postedAck;
+        }
+
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`);
+        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`);
         this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
@@ -148,7 +154,7 @@ export default class WebSocketClient {
 
             setTimeout(
                 () => {
-                    this.initialize(connectionUrl, token);
+                    this.initialize(connectionUrl, token, postedAck);
                 },
                 retryTime,
             );
@@ -412,11 +418,11 @@ export default class WebSocketClient {
         this.sendMessage('user_update_active_status', data, callback);
     }
 
-    acknowledgePostedNotification(postId: string, result: 'error' | 'not_sent' | 'unsupported' | 'success', reason?: string, postedData?: string) {
+    acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
         const data = {
             post_id: postId,
             user_agent: window.navigator.userAgent,
-            result,
+            status,
             reason,
             data: postedData,
         };

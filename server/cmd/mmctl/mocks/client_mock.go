@@ -863,9 +863,9 @@ func (mr *MockClientMockRecorder) GetJob(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetJobs mocks base method.
-func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 int) ([]*model.Job, *model.Response, error) {
+func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 string, arg3, arg4 int) ([]*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*model.Job)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
@@ -873,9 +873,9 @@ func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 int) ([]*model.Job
 }
 
 // GetJobs indicates an expected call of GetJobs.
-func (mr *MockClientMockRecorder) GetJobs(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetJobs(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobs", reflect.TypeOf((*MockClient)(nil).GetJobs), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobs", reflect.TypeOf((*MockClient)(nil).GetJobs), arg0, arg1, arg2, arg3, arg4)
 }
 
 // GetJobsByType mocks base method.
@@ -956,6 +956,22 @@ func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*mode
 func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
+}
+
+// GetOldClientConfig mocks base method.
+func (m *MockClient) GetOldClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOldClientConfig", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOldClientConfig indicates an expected call of GetOldClientConfig.
+func (mr *MockClientMockRecorder) GetOldClientConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOldClientConfig", reflect.TypeOf((*MockClient)(nil).GetOldClientConfig), arg0, arg1)
 }
 
 // GetOutgoingWebhook mocks base method.
@@ -1420,6 +1436,22 @@ func (m *MockClient) GetUsersInTeam(arg0 context.Context, arg1 string, arg2, arg
 func (mr *MockClientMockRecorder) GetUsersInTeam(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInTeam", reflect.TypeOf((*MockClient)(nil).GetUsersInTeam), arg0, arg1, arg2, arg3, arg4)
+}
+
+// GetUsersWithCustomQueryParameters mocks base method.
+func (m *MockClient) GetUsersWithCustomQueryParameters(arg0 context.Context, arg1, arg2 int, arg3, arg4 string) ([]*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersWithCustomQueryParameters", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetUsersWithCustomQueryParameters indicates an expected call of GetUsersWithCustomQueryParameters.
+func (mr *MockClientMockRecorder) GetUsersWithCustomQueryParameters(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersWithCustomQueryParameters", reflect.TypeOf((*MockClient)(nil).GetUsersWithCustomQueryParameters), arg0, arg1, arg2, arg3, arg4)
 }
 
 // InstallMarketplacePlugin mocks base method.
@@ -2071,6 +2103,21 @@ func (m *MockClient) UpdateIncomingWebhook(arg0 context.Context, arg1 *model.Inc
 func (mr *MockClientMockRecorder) UpdateIncomingWebhook(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIncomingWebhook", reflect.TypeOf((*MockClient)(nil).UpdateIncomingWebhook), arg0, arg1)
+}
+
+// UpdateJobStatus mocks base method.
+func (m *MockClient) UpdateJobStatus(arg0 context.Context, arg1, arg2 string, arg3 bool) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateJobStatus", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateJobStatus indicates an expected call of UpdateJobStatus.
+func (mr *MockClientMockRecorder) UpdateJobStatus(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJobStatus", reflect.TypeOf((*MockClient)(nil).UpdateJobStatus), arg0, arg1, arg2, arg3)
 }
 
 // UpdateOutgoingWebhook mocks base method.

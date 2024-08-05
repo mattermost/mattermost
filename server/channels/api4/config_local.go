@@ -16,11 +16,12 @@ import (
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods(http.MethodGet)
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -71,7 +72,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	diffs, diffErr := config.Diff(oldCfg, newCfg)
 	if diffErr != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(diffErr)
 		return
 	}
 	auditRec.AddEventPriorState(&diffs)
@@ -112,7 +113,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	if mergeErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(mergeErr)
 		return
 	}
 
@@ -166,10 +167,31 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err := config.Migrate(from, to)
 	if err != nil {
-		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localGetClientConfig", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	format := r.URL.Query().Get("format")
+
+	if format == "" {
+		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if format != "old" {
+		c.SetInvalidParam("format")
+		return
+	}
+
+	auditRec.Success()
+
+	w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
 }

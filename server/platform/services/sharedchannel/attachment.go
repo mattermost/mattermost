@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -170,6 +171,20 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	// make sure channel is shared for the remote sender
 	if _, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(us.ChannelId, rc.RemoteId); err != nil {
 		return fmt.Errorf("could not validate upload session for remote: %w", err)
+	}
+
+	// make sure file attachments are enabled
+	if scs.server.Config().FileSettings.EnableFileAttachments == nil || !*scs.server.Config().FileSettings.EnableFileAttachments {
+		return model.NewAppError("ReceiveUploadCreate",
+			"api.file.attachments.disabled.app_error",
+			nil, "", http.StatusNotImplemented)
+	}
+
+	// make sure the file size requested does not exceed local server config - MM server's regular
+	// upload code will ensure the actual bytes sent are within the upload session limit.
+	if scs.server.Config().FileSettings.MaxFileSize == nil || us.FileSize > *scs.server.Config().FileSettings.MaxFileSize {
+		return model.NewAppError("createUpload", "api.upload.create.upload_too_large.app_error",
+			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
 	}
 
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other

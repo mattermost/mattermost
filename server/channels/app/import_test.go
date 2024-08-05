@@ -166,9 +166,9 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
-	username := model.NewId()
-	username2 := model.NewId()
-	username3 := model.NewId()
+	username := model.NewUsername()
+	username2 := model.NewUsername()
+	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
@@ -267,12 +267,16 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
+	t.Helper()
+
 	fileInfos, err := th.App.Srv().Store().FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	return fileInfos
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+	t.Helper()
+
 	postID := files[0].PostId
 	require.NotNil(t, postID)
 

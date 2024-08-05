@@ -525,16 +525,27 @@ describe('Actions.Users', () => {
     it('getStatusesByIds', async () => {
         nock(Client4.getBaseRoute()).
             post('/users/status/ids').
-            reply(200, [{user_id: TestHelper.basicUser!.id, status: 'online', manual: false, last_activity_at: 1507662212199}]);
+            reply(200, [{
+                user_id: TestHelper.basicUser!.id,
+                status: 'online',
+                manual: false,
+                last_activity_at: 1507662212199,
+                dnd_end_time: 0,
+            }]);
 
         await store.dispatch(Actions.getStatusesByIds(
             [TestHelper.basicUser!.id],
         ));
 
         const statuses = store.getState().entities.users.statuses;
+        const dndEndTimes = store.getState().entities.users.dndEndTimes;
+        const lastActivity = store.getState().entities.users.lastActivity;
+        const isManualStatus = store.getState().entities.users.isManualStatus;
 
-        expect(statuses[TestHelper.basicUser!.id]).toBeTruthy();
-        expect(Object.keys(statuses).length).toEqual(1);
+        expect(statuses[TestHelper.basicUser!.id]).toBe('online');
+        expect(dndEndTimes[TestHelper.basicUser!.id]).toBe(0);
+        expect(lastActivity[TestHelper.basicUser!.id]).toBe(1507662212199);
+        expect(isManualStatus[TestHelper.basicUser!.id]).toBe(false);
     });
 
     it('getTotalUsersStats', async () => {
@@ -548,25 +559,10 @@ describe('Actions.Users', () => {
         expect(stats.total_users_count).toEqual(2605);
     });
 
-    it('getStatus', async () => {
-        const user = TestHelper.basicUser;
-
-        nock(Client4.getBaseRoute()).
-            get(`/users/${user!.id}/status`).
-            reply(200, {user_id: user!.id, status: 'online', manual: false, last_activity_at: 1507662212199});
-
-        await store.dispatch(Actions.getStatus(
-            user!.id,
-        ));
-
-        const statuses = store.getState().entities.users.statuses;
-        expect(statuses[user!.id]).toBeTruthy();
-    });
-
     it('setStatus', async () => {
         nock(Client4.getBaseRoute()).
             put(`/users/${TestHelper.basicUser!.id}/status`).
-            reply(200, OK_RESPONSE);
+            reply(200, {user_id: TestHelper.basicUser!.id, status: 'away'});
 
         await store.dispatch(Actions.setStatus(
             {user_id: TestHelper.basicUser!.id, status: 'away'},

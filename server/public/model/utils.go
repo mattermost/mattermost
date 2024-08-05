@@ -383,6 +383,11 @@ func NewId() string {
 	return encoding.EncodeToString(uuid.NewRandom())
 }
 
+// NewUsername is a NewId prefixed with a letter to make valid username
+func NewUsername() string {
+	return "a" + NewId()
+}
+
 // NewRandomTeamName is a NewId that will be a valid team name.
 func NewRandomTeamName() string {
 	teamName := NewId()
@@ -843,4 +848,17 @@ func filterBlocklist(r rune) rune {
 
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+}
+
+func sliceToMapKey(s ...string) map[string]any {
+	m := make(map[string]any)
+	for i := range s {
+		m[s[i]] = struct{}{}
+	}
+
+	if len(s) != len(m) {
+		panic("duplicate keys")
+	}
+
+	return m
 }

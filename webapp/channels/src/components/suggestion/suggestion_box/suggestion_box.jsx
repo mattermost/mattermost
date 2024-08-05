@@ -248,6 +248,10 @@ export default class SuggestionBox extends React.PureComponent {
         }
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.timeoutId);
+    }
+
     getTextbox = () => {
         if (!this.inputRef.current) {
             return null;
@@ -292,7 +296,7 @@ export default class SuggestionBox extends React.PureComponent {
         this.setState({focused: false});
 
         if (this.props.onBlur) {
-            this.props.onBlur();
+            this.props.onBlur(e);
         }
     };
 
@@ -387,15 +391,14 @@ export default class SuggestionBox extends React.PureComponent {
             prefix = pretext.substring(0, pretext.length - overlap.length - matchedPretext.length);
         }
 
-        const suffix = text.substring(caret);
-
-        let newValue;
         if (keepPretext) {
-            newValue = pretext;
-        } else {
-            newValue = prefix + term + ' ' + suffix;
+            // The term no longer fits the pretext, so don't change anything or else we might erase something
+            return;
         }
 
+        const suffix = text.substring(caret);
+
+        const newValue = prefix + term + ' ' + suffix;
         textbox.value = newValue;
 
         if (this.props.onChange) {
@@ -565,29 +568,6 @@ export default class SuggestionBox extends React.PureComponent {
         return this.state.items.some((item) => !item.loading);
     };
 
-    confirmPretext = () => {
-        const textbox = this.getTextbox();
-        const pretext = textbox.value.substring(0, textbox.selectionEnd).toLowerCase();
-
-        if (this.pretext !== pretext) {
-            this.handlePretextChanged(pretext);
-        }
-    };
-
-    handleKeyUp = (e) => {
-        this.confirmPretext();
-        if (this.props.onKeyUp) {
-            this.props.onKeyUp(e);
-        }
-    };
-
-    handleMouseUp = (e) => {
-        this.confirmPretext();
-        if (this.props.onMouseUp) {
-            this.props.onMouseUp(e);
-        }
-    };
-
     handleKeyDown = (e) => {
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -685,11 +665,16 @@ export default class SuggestionBox extends React.PureComponent {
         return {selection, matchedPretext: suggestions.matchedPretext};
     };
 
-    handleReceivedSuggestionsAndComplete = (suggestions) => {
-        const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
-        if (selection) {
-            this.handleCompleteWord(selection, matchedPretext);
-        }
+    makeHandleReceivedSuggestionsAndComplete = () => {
+        let firstComplete = true;
+        return (suggestions) => {
+            const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
+
+            if (selection && firstComplete) {
+                this.handleCompleteWord(selection, matchedPretext);
+                firstComplete = false;
+            }
+        };
     };
 
     nonDebouncedPretextChanged = (pretext, complete = false) => {
@@ -698,7 +683,7 @@ export default class SuggestionBox extends React.PureComponent {
         let handled = false;
         let callback = this.handleReceivedSuggestions;
         if (complete) {
-            callback = this.handleReceivedSuggestionsAndComplete;
+            callback = this.makeHandleReceivedSuggestionsAndComplete();
         }
         for (const provider of this.props.providers) {
             handled = provider.handlePretextChanged(pretext, callback) || handled;
@@ -840,8 +825,6 @@ export default class SuggestionBox extends React.PureComponent {
                     onCompositionUpdate={this.handleCompositionUpdate}
                     onCompositionEnd={this.handleCompositionEnd}
                     onKeyDown={this.handleKeyDown}
-                    onKeyUp={this.handleKeyUp}
-                    onMouseUp={this.handleMouseUp}
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (
                     <SuggestionListComponent

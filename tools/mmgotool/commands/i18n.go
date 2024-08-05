@@ -113,8 +113,8 @@ func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
 		return nil, err
 	}
 	var translations []Translation
-	_ = json.Unmarshal(jsonFile, &translations)
-	return translations, nil
+	err = json.Unmarshal(jsonFile, &translations)
+	return translations, err
 }
 
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {

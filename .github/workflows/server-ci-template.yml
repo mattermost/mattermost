@@ -333,15 +333,15 @@ jobs:
           make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
           make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
       - name: Persist dist artifacts
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: server-dist-artifact
           path: server/dist/
           if-no-files-found: error
           compression-level: 0
-          retention-days: 14
+          retention-days: 2
       - name: Persist build artifacts
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: server-build-artifact
           path: server/build/

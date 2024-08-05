@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import ConfirmModalRedux from 'components/confirm_modal_redux';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {t} from 'utils/i18n';
 
 type Props = {
     mentions: string[];
@@ -31,14 +29,10 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                 />
             );
             if (channelTimezoneCount > 0) {
-                const atHereMsg = 'By using **@here** you are about to send notifications to up to **{totalMembers} other people** in **{timezones, number} {timezones, plural, one {timezone} other {timezones}}**. Are you sure you want to do this?';
-                const atAllChannelMsg = 'By using **@all** or **@channel** you are about to send notifications to **{totalMembers} people** in **{timezones, number} {timezones, plural, one {timezone} other {timezones}}**. Are you sure you want to do this?';
-                const msg = mentions.length === 1 && mentions[0] === '@here' ? atHereMsg : atAllChannelMsg;
-                const msgID = mentions.length === 1 && mentions[0] === '@here' ? t('notify_here.question_timezone') : t('notify_all.question_timezone');
+                const message = mentions.length === 1 && mentions[0] === '@here' ? messages.atHereTimezones : messages.atAllTimezones;
                 notifyAllMessage = (
                     <FormattedMarkdownMessage
-                        id={msgID}
-                        defaultMessage={msg}
+                        {...message}
                         values={{
                             totalMembers: memberNotifyCount,
                             timezones: channelTimezoneCount,
@@ -46,14 +40,10 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                     />
                 );
             } else {
-                const atHereMsg = 'By using **@here** you are about to send notifications to up to **{totalMembers} other people**. Are you sure you want to do this?';
-                const atAllChannelMsg = 'By using **@all** or **@channel** you are about to send notifications to **{totalMembers} people**. Are you sure you want to do this?';
-                const msg = mentions.length === 1 && mentions[0] === '@here' ? atHereMsg : atAllChannelMsg;
-                const msgID = mentions.length === 1 && mentions[0] === '@here' ? t('notify_here.question') : t('notify_all.question');
+                const message = mentions.length === 1 && mentions[0] === '@here' ? messages.atHere : messages.atAll;
                 notifyAllMessage = (
                     <FormattedMarkdownMessage
-                        id={msgID}
-                        defaultMessage={msg}
+                        {...message}
                         values={{
                             totalMembers: memberNotifyCount,
                         }}
@@ -139,3 +129,22 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
         );
     }
 }
+
+const messages = defineMessages({
+    atAll: {
+        id: 'notify_all.question',
+        defaultMessage: 'By using **@all** or **@channel** you are about to send notifications to **{totalMembers} people**. Are you sure you want to do this?',
+    },
+    atAllTimezones: {
+        id: 'notify_all.question_timezone',
+        defaultMessage: 'By using **@all** or **@channel** you are about to send notifications to **{totalMembers} people** in **{timezones, number} {timezones, plural, one {timezone} other {timezones}}**. Are you sure you want to do this?',
+    },
+    atHere: {
+        id: 'notify_here.question',
+        defaultMessage: 'By using **@here** you are about to send notifications to up to **{totalMembers} other people**. Are you sure you want to do this?',
+    },
+    atHereTimezones: {
+        id: 'notify_here.question_timezone',
+        defaultMessage: 'By using **@here** you are about to send notifications to up to **{totalMembers} other people** in **{timezones, number} {timezones, plural, one {timezone} other {timezones}}**. Are you sure you want to do this?',
+    },
+});

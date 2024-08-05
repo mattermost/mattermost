@@ -50,7 +50,7 @@ function makeMapStateToProps() {
 
         let postIds: string[] = [];
         let userThread: UserThread | null = null;
-        let channel: Channel | null = null;
+        let channel: Channel | undefined;
 
         if (selected) {
             postIds = getPostIdsForThread(state, selected.id);

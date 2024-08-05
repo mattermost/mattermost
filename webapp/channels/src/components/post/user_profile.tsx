@@ -12,7 +12,6 @@ import UserProfile from 'components/user_profile';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Tag from 'components/widgets/tag/tag';
 
-import {Locations} from 'utils/constants';
 import {fromAutoResponder, isFromWebhook} from 'utils/post_utils';
 
 type Props = {
@@ -24,7 +23,6 @@ type Props = {
     isBot: boolean;
     isSystemMessage: boolean;
     isMobileView: boolean;
-    location: keyof typeof Locations;
 };
 
 const PostUserProfile = (props: Props): JSX.Element | null => {
@@ -32,7 +30,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
     const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
-    const isRHS = props.location === Locations.RHS_COMMENT || props.location === Locations.RHS_ROOT || props.location === Locations.SEARCH;
 
     let userProfile: ReactNode = null;
     let botIndicator = null;
@@ -55,7 +52,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
             <UserProfile
                 userId={post.user_id}
                 channelId={post.channel_id}
-                isRHS={isRHS}
                 colorize={colorize}
             />
         );
@@ -66,7 +62,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
             <UserProfile
                 userId={post.user_id}
                 channelId={post.channel_id}
-                isRHS={isRHS}
                 colorize={colorize}
             />
         );
@@ -75,7 +70,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
             <UserProfile
                 userId={post.user_id}
                 channelId={post.channel_id}
-                isRHS={isRHS}
                 colorize={colorize}
             />
         );
@@ -105,7 +99,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                         userId={post.user_id}
                         channelId={post.channel_id}
                         hideStatus={true}
-                        isRHS={isRHS}
                         colorize={colorize}
                     />
                 </span>

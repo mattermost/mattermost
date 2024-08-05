@@ -868,10 +868,6 @@
     "translation": "Ei voitu hakea kaikkia käyttäjiä AD/LDAP:ia käyttäen"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "virhe poistettaessa tiimiä tai kanavan jäsenyyksiä"
-  },
-  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Käyttäjä ei ole rekisteröity AD/LDAP palveluun"
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi on pieni kirjain."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -2790,14 +2782,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch on jo lopetettu"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Virhe käynnistettäessä Elasticsearch bulkkiprosessori"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Virhe luotaessa Elasticsearch bulkkiprosessoria"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",

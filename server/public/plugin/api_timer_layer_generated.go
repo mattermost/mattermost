@@ -160,6 +160,13 @@ func (api *apiTimerLayer) GetUsers(options *model.UserGetOptions) ([]*model.User
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetUsersByIds(userIDs)
+	api.recordTime(startTime, "GetUsersByIds", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetUser(userID string) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetUser(userID)

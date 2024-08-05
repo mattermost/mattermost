@@ -25,13 +25,19 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
       }
     }
     data={Array []}
-    emptyListTextDefaultMessage="No teams found"
-    emptyListTextId="emptyListTextId"
+    emptyList={
+      Object {
+        "defaultMessage": "No teams found",
+        "id": "admin.team_settings.team_list.no_teams_found",
+      }
+    }
     headerLabels={
       Array [
         Object {
-          "default": "Name",
-          "id": "admin.systemUserDetail.teamList.header.name",
+          "label": Object {
+            "defaultMessage": "Name",
+            "id": "admin.systemUserDetail.teamList.header.name",
+          },
           "style": Object {
             "flexGrow": 1,
             "marginLeft": "16px",
@@ -39,15 +45,19 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
           },
         },
         Object {
-          "default": "Type",
-          "id": "admin.systemUserDetail.teamList.header.type",
+          "label": Object {
+            "defaultMessage": "Type",
+            "id": "admin.systemUserDetail.teamList.header.type",
+          },
           "style": Object {
             "width": "150px",
           },
         },
         Object {
-          "default": "Role",
-          "id": "admin.systemUserDetail.teamList.header.role",
+          "label": Object {
+            "defaultMessage": "Role",
+            "id": "admin.systemUserDetail.teamList.header.role",
+          },
           "style": Object {
             "width": "150px",
           },
@@ -104,13 +114,19 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
         },
       ]
     }
-    emptyListTextDefaultMessage="No teams found"
-    emptyListTextId="emptyListTextId"
+    emptyList={
+      Object {
+        "defaultMessage": "No teams found",
+        "id": "admin.team_settings.team_list.no_teams_found",
+      }
+    }
     headerLabels={
       Array [
         Object {
-          "default": "Name",
-          "id": "admin.systemUserDetail.teamList.header.name",
+          "label": Object {
+            "defaultMessage": "Name",
+            "id": "admin.systemUserDetail.teamList.header.name",
+          },
           "style": Object {
             "flexGrow": 1,
             "marginLeft": "16px",
@@ -118,15 +134,19 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
           },
         },
         Object {
-          "default": "Type",
-          "id": "admin.systemUserDetail.teamList.header.type",
+          "label": Object {
+            "defaultMessage": "Type",
+            "id": "admin.systemUserDetail.teamList.header.type",
+          },
           "style": Object {
             "width": "150px",
           },
         },
         Object {
-          "default": "Role",
-          "id": "admin.systemUserDetail.teamList.header.role",
+          "label": Object {
+            "defaultMessage": "Role",
+            "id": "admin.systemUserDetail.teamList.header.role",
+          },
           "style": Object {
             "width": "150px",
           },

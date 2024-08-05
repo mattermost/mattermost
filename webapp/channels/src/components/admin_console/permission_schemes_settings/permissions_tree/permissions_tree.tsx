@@ -249,8 +249,14 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
         }
-        postsGroup.permissions.push(Permissions.CREATE_POST);
-
+        postsGroup.permissions.push({
+            id: Permissions.CREATE_POST,
+            combined: true,
+            permissions: [
+                Permissions.CREATE_POST,
+                Permissions.UPLOAD_FILE,
+            ],
+        });
         if (config.ExperimentalSharedChannels === 'true') {
             sharedChannelsGroup.permissions.push(Permissions.MANAGE_SHARED_CHANNELS);
             sharedChannelsGroup.permissions.push(Permissions.MANAGE_SECURE_CONNECTIONS);

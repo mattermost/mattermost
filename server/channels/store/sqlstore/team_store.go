@@ -945,7 +945,7 @@ func (s SqlTeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (
 }
 
 // GetMember returns a single member of the team that matches the teamId and userId provided as parameters.
-func (s SqlTeamStore) GetMember(ctx request.CTX, teamId string, userId string) (*model.TeamMember, error) {
+func (s SqlTeamStore) GetMember(rctx request.CTX, teamId string, userId string) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.UserId": userId})
@@ -956,7 +956,7 @@ func (s SqlTeamStore) GetMember(ctx request.CTX, teamId string, userId string) (
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.DBXFromContext(ctx.Context()).Get(&dbMember, queryString, args...)
+	err = s.DBXFromContext(rctx.Context()).Get(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))

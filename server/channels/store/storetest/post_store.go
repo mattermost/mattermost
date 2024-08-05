@@ -180,7 +180,7 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Save(rctx, &replyPost)
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Greater(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 	})
@@ -293,7 +293,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
-			storedPost, err := ss.Post().GetSingle(post.Id, false)
+			storedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
 			assert.NoError(t, err)
 			assert.Equal(t, post.ChannelId, storedPost.ChannelId)
 			assert.Equal(t, post.Message, storedPost.Message)
@@ -372,13 +372,13 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
-		storedPost, err := ss.Post().GetSingle(p3.Id, false)
+		storedPost, err := ss.Post().GetSingle(rctx, p3.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, p3.ChannelId, storedPost.ChannelId)
 		assert.Equal(t, p3.Message, storedPost.Message)
 		assert.Equal(t, p3.UserId, storedPost.UserId)
 
-		storedPost, err = ss.Post().GetSingle(p4.Id, false)
+		storedPost, err = ss.Post().GetSingle(rctx, p4.Id, false)
 		assert.Error(t, err)
 		assert.Nil(t, storedPost)
 	})
@@ -407,7 +407,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 
@@ -429,7 +429,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
-		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 	})
@@ -947,21 +947,21 @@ func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 	err = ss.Post().Delete(rctx, o4.Id, model.GetMillis(), o4.UserId)
 	require.NoError(t, err)
 
-	post, err := ss.Post().GetSingle(o1.Id, false)
+	post, err := ss.Post().GetSingle(rctx, o1.Id, false)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 	require.Equal(t, int64(1), post.ReplyCount, "wrong replyCount computed")
 
-	_, err = ss.Post().GetSingle(o2.Id, false)
+	_, err = ss.Post().GetSingle(rctx, o2.Id, false)
 	require.Error(t, err, "should not return deleted post")
 
-	post, err = ss.Post().GetSingle(o2.Id, true)
+	post, err = ss.Post().GetSingle(rctx, o2.Id, true)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, o2.CreateAt, "invalid returned post")
 	require.NotZero(t, post.DeleteAt, "DeleteAt should be non-zero")
 	require.Zero(t, post.ReplyCount, "Post without replies should return zero ReplyCount")
 
-	_, err = ss.Post().GetSingle("123", false)
+	_, err = ss.Post().GetSingle(rctx, "123", false)
 	require.Error(t, err, "Missing id should have failed")
 }
 
@@ -4280,7 +4280,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err = ss.User().Save(rctx, &u1)
@@ -4978,7 +4978,7 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 
 	u1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Locale:   "es",
 	}
 

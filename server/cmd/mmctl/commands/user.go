@@ -8,10 +8,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
+	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -32,8 +35,9 @@ var UserActivateCmd = &cobra.Command{
 	Long:  "Activate users that have been deactivated.",
 	Example: `  user activate user@example.com
   user activate username`,
-	RunE: withClient(userActivateCmdF),
-	Args: cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(userActivateCompletionF),
+	Args:              cobra.MinimumNArgs(1),
+	RunE:              withClient(userActivateCmdF),
 }
 
 var UserDeactivateCmd = &cobra.Command{
@@ -42,8 +46,9 @@ var UserDeactivateCmd = &cobra.Command{
 	Long:  "Deactivate users. Deactivated users are immediately logged out of all sessions and are unable to log back in.",
 	Example: `  user deactivate user@example.com
   user deactivate username`,
-	RunE: withClient(userDeactivateCmdF),
-	Args: cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(userDeactivateCompletionF),
+	Args:              cobra.MinimumNArgs(1),
+	RunE:              withClient(userDeactivateCmdF),
 }
 
 var UserCreateCmd = &cobra.Command{
@@ -318,6 +323,7 @@ func init() {
 	ListUsersCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
+	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetch")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -427,6 +433,15 @@ func userActivateCmdF(c client.Client, command *cobra.Command, args []string) er
 	return changeUsersActiveStatus(c, args, true)
 }
 
+func userActivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsersWithCustomQueryParameters(ctx, page, perPage, "inactive=true", "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
+}
+
 func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
 	var multiErr *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
@@ -456,6 +471,15 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return changeUsersActiveStatus(c, args, false)
+}
+
+func userDeactivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsersWithCustomQueryParameters(ctx, page, perPage, "active=true", "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
 }
 
 func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -778,6 +802,16 @@ auth_service: {{.AuthService}}`
 	return nil
 }
 
+func ResetListUsersCmd(t *testing.T) *cobra.Command {
+	require.NoError(t, ListUsersCmd.Flags().Set("page", "0"))
+	require.NoError(t, ListUsersCmd.Flags().Set("per-page", "200"))
+	require.NoError(t, ListUsersCmd.Flags().Set("all", "false"))
+	require.NoError(t, ListUsersCmd.Flags().Set("team", ""))
+	require.NoError(t, ListUsersCmd.Flags().Set("inactive", "false"))
+
+	return ListUsersCmd
+}
+
 func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
 	page, err := command.Flags().GetInt("page")
 	if err != nil {
@@ -795,6 +829,11 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
+	// if inactive, DeletedAt != 0
+	inactive, err := command.Flags().GetBool("inactive")
+	if err != nil {
+		return err
+	}
 
 	if showAll {
 		page = 0
@@ -809,21 +848,21 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		}
 	}
 
+	params := url.Values{}
+	if inactive {
+		params.Add("inactive", "true")
+	}
+	if team != nil {
+		params.Add("in_team", team.Id)
+	}
+
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 	for {
-		var users []*model.User
-		var err error
-		if team != nil {
-			users, _, err = c.GetUsersInTeam(context.TODO(), team.Id, page, perPage, "")
-			if err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
-			}
-		} else {
-			users, _, err = c.GetUsers(context.TODO(), page, perPage, "")
-			if err != nil {
-				return errors.Wrap(err, "Failed to fetch users")
-			}
+		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
+		if err != nil {
+			return errors.Wrap(err, "Failed to fetch users")
 		}
+
 		if len(users) == 0 {
 			break
 		}

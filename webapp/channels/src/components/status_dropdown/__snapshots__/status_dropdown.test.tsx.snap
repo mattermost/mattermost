@@ -215,7 +215,6 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -356,25 +355,14 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              delayShow={400}
-              overlay={
-                <Tooltip
-                  id="InputClearTooltip"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Clear"
-                    id="input.clear"
-                  />
-                </Tooltip>
-              }
+            <WithTooltip
+              id="InputClearTooltip"
               placement="left"
-              trigger={
-                Array [
-                  "hover",
-                  "focus",
-                ]
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Clear"
+                  id="input.clear"
+                />
               }
             >
               <span
@@ -385,7 +373,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
                   className="icon icon-close-circle"
                 />
               </span>
-            </OverlayTrigger>
+            </WithTooltip>
           </div>
         </span>
         <Memo(ExpiryTime)
@@ -543,7 +531,6 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -823,7 +810,6 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -1103,7 +1089,6 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -1384,7 +1369,6 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -1640,7 +1624,6 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -1888,7 +1871,6 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -2168,7 +2150,6 @@ exports[`components/StatusDropdown should not show clear status button when cust
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
@@ -2309,25 +2290,14 @@ exports[`components/StatusDropdown should show clear status button when custom s
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              delayShow={400}
-              overlay={
-                <Tooltip
-                  id="InputClearTooltip"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Clear"
-                    id="input.clear"
-                  />
-                </Tooltip>
-              }
+            <WithTooltip
+              id="InputClearTooltip"
               placement="left"
-              trigger={
-                Array [
-                  "hover",
-                  "focus",
-                ]
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Clear"
+                  id="input.clear"
+                />
               }
             >
               <span
@@ -2338,7 +2308,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
                   className="icon icon-close-circle"
                 />
               </span>
-            </OverlayTrigger>
+            </WithTooltip>
           </div>
         </span>
         <Memo(ExpiryTime)
@@ -2496,7 +2466,6 @@ exports[`components/StatusDropdown should show clear status button when custom s
         }
         icon={
           <AccountOutlineIcon
-            className="profile__icon"
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
