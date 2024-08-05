@@ -87,7 +87,10 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, getCaretPos
         return label;
     };
 
-    if ((searchType === '' || searchType === 'messages' || searchType === 'files') && providerResults) {
+    if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+        if (!providerResults) {
+            return null;
+        }
         return (
             <SuggestionsBody>
                 <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
