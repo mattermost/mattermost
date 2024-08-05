@@ -119,8 +119,6 @@ interface State {
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    // private mounted: boolean;
-
     // The constructor adds a bunch of event listeners,
     // so we do need this.
     private a11yController: A11yController;
@@ -128,9 +126,6 @@ export default class Root extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        // this.mounted = false;
-
-        // Redux
         setUrl(getSiteURL());
 
         // Disable auth header to enable CSRF check
