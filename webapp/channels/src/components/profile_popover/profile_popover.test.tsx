@@ -330,7 +330,7 @@ describe('components/ProfilePopover', () => {
         expect(await screen.queryByLabelText('Call with user is ongoing')).not.toBeInTheDocument();
     });
 
-    test('should not show start call button for users when calls mode is on', async () => {
+    test('should not show start call button for users when calls test mode is on', async () => {
         const [props, initialState] = getBasePropsAndState();
         (initialState as any)['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
 
@@ -338,7 +338,7 @@ describe('components/ProfilePopover', () => {
         expect(await screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
     });
 
-    test('should show start call button for users when calls mode is on if calls in channel have been explicitly enabled', async () => {
+    test('should show start call button for users when calls test mode is on if calls in channel have been explicitly enabled', async () => {
         const [props, initialState] = getBasePropsAndState();
         (initialState as any)['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
         (initialState as any)['plugins-com.mattermost.calls'].channels = {dmChannelId: {enabled: true}};
@@ -347,7 +347,7 @@ describe('components/ProfilePopover', () => {
         expect(await screen.queryByLabelText('Start Call')).toBeInTheDocument();
     });
 
-    test('should show start call button for admin when calls mode is on', async () => {
+    test('should show start call button for admin when calls test mode is on', async () => {
         const [props, initialState] = getBasePropsAndState();
         (initialState as any)['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
         initialState.entities = {
