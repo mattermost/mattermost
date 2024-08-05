@@ -22,14 +22,12 @@ import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, tra
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent} from 'components/async_load';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
-import MobileViewWatcher from 'components/mobile_view_watcher';
-import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
+import LoggedInRoute from 'components/logged_in_route';
+import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
-import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
@@ -50,6 +48,8 @@ import RootRedirect from './root_redirect';
 
 import 'plugins/export.js';
 
+const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => import('components/mobile_view_watcher')));
+const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
 const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
 const AccessProblem = makeAsyncComponent('AccessProblem', lazy(() => import('components/access_problem')));
@@ -69,8 +69,9 @@ const Mfa = makeAsyncComponent('Mfa', lazy(() => import('components/mfa/mfa_cont
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', lazy(() => import('components/preparing_workspace')));
 const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
 const LoggedIn = makeAsyncComponent('LoggedIn', lazy(() => import('components/logged_in')));
+const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => import('components/preparing_workspace/launching_workspace')));
+const CompassThemeProvider = makeAsyncComponent('CompassThemeProvider', lazy(() => import('components/compass_theme_provider/compass_theme_provider')));
 const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
-const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', lazy(() => import('components/onboarding_tasklist')));
 const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController', lazy(() => import('components/announcement_bar')));
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
 const GlobalHeader = makeAsyncComponent('GlobalHeader', lazy(() => import('components/global_header/global_header')));
@@ -79,29 +80,6 @@ const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('compone
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
-
-type LoggedInRouteProps = {
-    component: React.ComponentType<RouteComponentProps<any>>;
-    path: string | string[];
-    theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
-};
-
-function LoggedInRoute(props: LoggedInRouteProps) {
-    const {component: Component, theme, ...rest} = props;
-    return (
-        <Route
-            {...rest}
-            render={(routeProps) => (
-                <LoggedIn {...routeProps}>
-                    {theme && <CompassThemeProvider theme={theme}>
-                        <OnBoardingTaskList/>
-                    </CompassThemeProvider>}
-                    <Component {...(routeProps)}/>
-                </LoggedIn>
-            )}
-        />
-    );
-}
 
 const noop = () => {};
 
@@ -141,7 +119,7 @@ interface State {
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    private mounted: boolean;
+    // private mounted: boolean;
 
     // The constructor adds a bunch of event listeners,
     // so we do need this.
@@ -149,7 +127,8 @@ export default class Root extends React.PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
-        this.mounted = false;
+
+        // this.mounted = false;
 
         // Redux
         setUrl(getSiteURL());
@@ -159,24 +138,6 @@ export default class Root extends React.PureComponent<Props, State> {
 
         setSystemEmojis(new Set(EmojiIndicesByAlias.keys()));
 
-        // Force logout of all tabs if one tab is logged out
-        window.addEventListener('storage', this.handleLogoutLoginSignal);
-
-        // Prevent drag and drop files from navigating away from the app
-        document.addEventListener('drop', (e) => {
-            if (e.dataTransfer && e.dataTransfer.items.length > 0 && e.dataTransfer.items[0].kind === 'file') {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-
-        document.addEventListener('dragover', (e) => {
-            if (!isTextDroppableEvent(e) && !document.body.classList.contains('focalboard-body')) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-
         this.state = {
             configLoaded: false,
         };
@@ -184,7 +145,7 @@ export default class Root extends React.PureComponent<Props, State> {
         this.a11yController = new A11yController();
     }
 
-    onConfigLoaded = (config: Partial<ClientConfig>) => {
+    onConfigLoaded = async (config: Partial<ClientConfig>) => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
@@ -252,16 +213,8 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.history.push('/signup_user_complete');
         }
 
-        Promise.all([
-            this.props.actions.initializeProducts(),
-            initializePlugins(),
-        ]).then(() => {
-            if (this.mounted) {
-                // supports enzyme tests, set state if and only if
-                // the component is still mounted on screen
-                this.setState({configLoaded: true});
-            }
-        });
+        await Promise.all([this.props.actions.initializeProducts(), initializePlugins()]);
+        this.setState({configLoaded: true});
 
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
@@ -383,10 +336,22 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     };
 
+    handleDropEvent = (e: DragEvent) => {
+        if (e.dataTransfer && e.dataTransfer.items.length > 0 && e.dataTransfer.items[0].kind === 'file') {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+
+    handleDragOverEvent = (e: DragEvent) => {
+        if (!isTextDroppableEvent(e) && !document.body.classList.contains('focalboard-body')) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
-
-        this.mounted = true;
 
         this.initiateMeRequests();
 
@@ -395,11 +360,20 @@ export default class Root extends React.PureComponent<Props, State> {
 
         measurePageLoadTelemetry();
         trackSelectorMetrics();
+
+        // Force logout of all tabs if one tab is logged out
+        window.addEventListener('storage', this.handleLogoutLoginSignal);
+
+        // Prevent drag and drop files from navigating away from the app
+        document.addEventListener('drop', this.handleDropEvent);
+
+        document.addEventListener('dragover', this.handleDragOverEvent);
     }
 
     componentWillUnmount() {
-        this.mounted = false;
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
+        document.removeEventListener('drop', this.handleDropEvent);
+        document.removeEventListener('dragover', this.handleDragOverEvent);
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
