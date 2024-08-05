@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -11,6 +12,7 @@ import (
 	"net/http/pprof"
 	"path"
 	"runtime"
+	rpprof "runtime/pprof"
 	"strings"
 	"sync"
 	"text/template"
@@ -23,11 +25,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
-const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+const (
+	TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+	cpuProfileDuration                              = 5 * time.Second
+)
 
 type platformMetrics struct {
 	server *http.Server
@@ -246,4 +252,53 @@ func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 	}
 
 	return ps.metricsIFace
+}
+
+func (ps *PlatformService) CreateCPUProfile(_ request.CTX) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := rpprof.StartCPUProfile(&b)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start CPU profile")
+	}
+
+	time.Sleep(cpuProfileDuration)
+
+	rpprof.StopCPUProfile()
+
+	fileData := &model.FileData{
+		Filename: "cpu.prof",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
+func (ps *PlatformService) CreateHeapProfile(_ request.CTX) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := rpprof.Lookup("heap").WriteTo(&b, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to lookup heap profile")
+	}
+
+	fileData := &model.FileData{
+		Filename: "heap.prof",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
+}
+
+func (ps *PlatformService) CreateGoroutineProfile(_ request.CTX) (*model.FileData, error) {
+	var b bytes.Buffer
+
+	err := rpprof.Lookup("goroutine").WriteTo(&b, 2)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
+	}
+
+	fileData := &model.FileData{
+		Filename: "goroutines",
+		Body:     b.Bytes(),
+	}
+	return fileData, nil
 }

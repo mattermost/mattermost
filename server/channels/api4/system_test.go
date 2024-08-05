@@ -211,7 +211,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	th.LoginSystemManager()
 	defer th.TearDown()
 
-	t.Run("system admin and local client can generate support packet", func(t *testing.T) {
+	t.Run("system admin and local client can generate Support Packet", func(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
