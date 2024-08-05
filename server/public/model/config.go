@@ -933,10 +933,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type CacheSettings struct {
-	CacheType     *string `access:"cache,write_restrictable,cloud_restrictable"`
-	RedisAddress  *string `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisPassword *string `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisDB       *int    `access:"cache,write_restrictable,cloud_restrictable"` // telemetry: none
+	CacheType     *string `access:",write_restrictable,cloud_restrictable"`
+	RedisAddress  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisPassword *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisDB       *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *CacheSettings) SetDefaults() {
