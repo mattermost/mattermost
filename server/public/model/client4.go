@@ -4636,7 +4636,7 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 
 // General/System Section
 
-// GenerateSupportPacket downloads the generated support packet
+// GenerateSupportPacket generates and downloads a Support Packet.
 func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/support_packet", "")
 	if err != nil {
