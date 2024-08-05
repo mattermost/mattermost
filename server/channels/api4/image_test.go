@@ -37,10 +37,10 @@ func TestGetImage(t *testing.T) {
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
+		// External images should not be allowed through this endpoint when proxy is disabled.
 		resp, err := th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusFound, resp.StatusCode)
-		assert.Equal(t, imageURL, resp.Header.Get("Location"))
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
 	t.Run("atmos/camo", func(t *testing.T) {
