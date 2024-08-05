@@ -2626,7 +2626,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		}
 
 		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Equal(t, 1, errLine)
 	})
 
@@ -2657,7 +2657,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		}
 
 		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Equal(t, 1, errLine)
 	})
 
