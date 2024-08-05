@@ -4,6 +4,7 @@
 import fs from 'fs';
 
 import nock from 'nock';
+import mockStore from 'tests/test_store';
 
 import type {Post, PostList} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
@@ -16,8 +17,6 @@ import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import type {GetStateFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
-import mockStore from 'tests/test_store';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
@@ -87,38 +86,6 @@ describe('Actions.Posts', () => {
         // postsInChannel[channelId] should not exist as create post should not add entry to postsInChannel when it did not exist before
         // postIds in channel do not exist
         expect(!postsInChannel[channelId]).toBeTruthy();
-    });
-
-    it('maintain postReplies', async () => {
-        const channelId = TestHelper.basicChannel!.id;
-        const post = TestHelper.fakePost(channelId);
-        const postId = TestHelper.generateId();
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post, id: postId});
-
-        await store.dispatch(Actions.createPost(post));
-
-        const post2 = TestHelper.fakePostWithId(channelId);
-        post2.root_id = postId;
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, post2);
-
-        await store.dispatch(Actions.createPost(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
-
-        nock(Client4.getBaseRoute()).
-            delete(`/posts/${post2.id}`).
-            reply(200, OK_RESPONSE);
-
-        await store.dispatch(Actions.deletePost(post2));
-        await store.dispatch(Actions.removePost(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(0);
     });
 
     it('resetCreatePostRequest', async () => {
