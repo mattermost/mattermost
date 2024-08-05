@@ -87,7 +87,7 @@ type Props = {
     afterSubmit?: (response: SubmitPostReturnType) => void;
 }
 
-const AdvanceTextEditor = ({
+const AdvancedTextEditor = ({
     location,
     channelId,
     postId,
@@ -667,4 +667,4 @@ const AdvanceTextEditor = ({
     );
 };
 
-export default AdvanceTextEditor;
+export default AdvancedTextEditor;
