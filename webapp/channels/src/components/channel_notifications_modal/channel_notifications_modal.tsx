@@ -291,11 +291,14 @@ export default function ChannelNotificationsModal(props: Props) {
         });
     }
 
-    const resetToDefaultBtn = useCallback((settingName: string) => {
-        const userNotifyProps = props.currentUser.notify_props;
+    const resetToDefaultBtn = useCallback((sectionName: string) => {
+        const userNotifyProps = {
+            ...props.currentUser.notify_props,
+            desktop_notification_sound: props.currentUser.notify_props?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'],
+        };
 
-        const resetToDefault = (settingName: string) => {
-            if (settingName === 'desktop') {
+        function resetToDefault(sectionName: string) {
+            if (sectionName === 'desktop') {
                 setSettings({
                     ...settings,
                     desktop: userNotifyProps.desktop,
@@ -304,10 +307,11 @@ export default function ChannelNotificationsModal(props: Props) {
                     desktop_notification_sound: userNotifyProps?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'],
                 });
             }
-            if (settingName === 'push') {
+
+            if (sectionName === 'push') {
                 setSettings({...settings, push: userNotifyProps.desktop, push_threads: userNotifyProps.push_threads || settings.push_threads});
             }
-        };
+        }
 
         const isDesktopSameAsDefault =
             userNotifyProps.desktop === settings.desktop &&
@@ -317,26 +321,27 @@ export default function ChannelNotificationsModal(props: Props) {
 
         const isPushSameAsDefault = (userNotifyProps.push === settings.push && userNotifyProps.push_threads === settings.push_threads);
 
-        if ((settingName === 'desktop' && isDesktopSameAsDefault) || (settingName === 'push' && isPushSameAsDefault)) {
-            return <></>;
+        if ((sectionName === 'desktop' && isDesktopSameAsDefault) || (sectionName === 'push' && isPushSameAsDefault)) {
+            return undefined;
         }
+
         return (
             <button
                 className='channel-notifications-settings-modal__reset-btn'
-                onClick={() => resetToDefault(settingName)}
-                data-testid={`resetToDefaultButton-${settingName}`}
+                onClick={() => resetToDefault(sectionName)}
+                data-testid={`resetToDefaultButton-${sectionName}`}
             >
                 <RefreshIcon
                     size={14}
                     color={'currentColor'}
                 />
-                {formatMessage({
-                    id: 'channel_notifications.resetToDefault',
-                    defaultMessage: 'Reset to default',
-                })}
+                <FormattedMessage
+                    id='channel_notifications.resetToDefault'
+                    defaultMessage='Reset to default'
+                />
             </button>
         );
-    }, [props.currentUser, settings]);
+    }, [props.currentUser.notify_props, settings]);
 
     const desktopAndMobileNotificationSectionContent = settings.mark_unread === 'all' ? (
         <>
