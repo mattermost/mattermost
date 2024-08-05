@@ -52,7 +52,7 @@ for SERVICE in $ENABLED_DOCKER_SERVICES; do
       continue
     fi
     mme2e_log "Configuring the $SERVICE container"
-    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -v -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
+    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
     ;;
   minio)
     mme2e_log "Configuring the $SERVICE container"

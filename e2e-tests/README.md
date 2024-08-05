@@ -37,7 +37,7 @@ Instructions, detailed:
   * Only Cypress is currently using the dashboard; Playwright is not.
 3. `make`: start and prepare the server, then run the Cypress smoke tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard if you launched it locally
-  * When running with `SERVER=cloud`, this will automatically create a cloud customer against the specified `CWS_URL` service, and delete that user after the run is complete.
+  * For `SERVER=cloud` runs, you'll need to first create a cloud customer against the specified `CWS_URL` service by running `make cloud-init`. The user isn't automatically removed, and may be reused across multiple runs until you run `make cloud-teardown` to delete it.
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
   * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machines (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.

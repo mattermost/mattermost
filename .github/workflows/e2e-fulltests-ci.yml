@@ -13,9 +13,9 @@ on:
         type: string
         description: If testing a PR, this must be specified as well.
         required: false
-      SERVER_IMAGE_UPGRADEFROM:
+      ROLLINGRELEASE_FROM_TAG:
         type: string
-        description: If specified, the server starts with this image, is smoketested, and then proceeds to upgrade to the image determined by ref.
+        description: If specified, the server will be initialized with the given release tag, perform a rolling upgrade, then run the full E2E test.
         required: false
       MM_ENV:
         type: string
@@ -60,11 +60,14 @@ jobs:
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
+      ROLLINGRELEASE_commit_sha: "${{ steps.generate.outputs.ROLLINGRELEASE_commit_sha }}"
+      ROLLINGRELEASE_SERVER_IMAGE: "${{ steps.generate.outputs.ROLLINGRELEASE_SERVER_IMAGE }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
+      ROLLINGRELEASE_FROM_TAG: "${{ inputs.ROLLINGRELEASE_FROM_TAG }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_PR: >-
         --stage="@prod"
@@ -153,6 +156,13 @@ jobs:
               echo "Fatal: unimplemented test type. Aborting."
               exit 1
           esac
+          if [ -n "$ROLLINGRELEASE_FROM_TAG" ]; then
+            ROLLINGRELEASE_COMMIT_SHA="$(git rev-parse --verify $ROLLINGRELEASE_FROM_TAG)"
+            ROLLINGRELEASE_SERVER_IMAGE_TAG="$(cut -c2- <<<$ROLLINGRELEASE_FROM_TAG)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
+            ROLLINGRELEASE_SERVER_IMAGE="mattermost/mattermost-enterprise-edition:${ROLLINGRELEASE_SERVER_IMAGE_TAG}"
+            ### Run sanity assertions after variable generations
+            git show-ref --verify "refs/tags/${ROLLINGRELEASE_FROM_TAG}" # 'inputs.ROLLINGRELEASE_FROM_TAG' must be a tag, for release report types
+          fi
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
           echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -164,6 +174,8 @@ jobs:
           echo "TEST_FILTER=${TEST_FILTER}" >> $GITHUB_OUTPUT
           echo "TM4J_ENABLE=${TM4J_ENABLE:-}" >> $GITHUB_OUTPUT
           echo "REPORT_TYPE=${COMPUTED_REPORT_TYPE}" >> $GITHUB_OUTPUT
+          echo "ROLLINGRELEASE_commit_sha=${ROLLINGRELEASE_COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "ROLLINGRELEASE_SERVER_IMAGE=${ROLLINGRELEASE_SERVER_IMAGE}" >> $GITHUB_OUTPUT
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
           echo "BUILD_ID=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
@@ -198,13 +210,14 @@ jobs:
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      SERVER_IMAGE_UPGRADEFROM: "${{ inputs.SERVER_IMAGE_UPGRADEFROM }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
+      ROLLINGRELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLINGRELEASE_commit_sha }}"
+      ROLLINGRELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLINGRELEASE_SERVER_IMAGE }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
