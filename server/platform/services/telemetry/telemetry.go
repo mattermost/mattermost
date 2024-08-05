@@ -552,18 +552,16 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 		"advanced_logging_json":    len(cfg.LogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config":  cfg.LogSettings.AdvancedLoggingConfig != nil && *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigAudit, map[string]any{
-		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
-		"advanced_logging_json":   len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != nil && *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_json": len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
 	})
 
 	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
@@ -575,7 +573,6 @@ func (ts *TelemetryService) trackConfig() {
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.NotificationLogSettings.AdvancedLoggingConfig != nil && *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigPassword, map[string]any{
