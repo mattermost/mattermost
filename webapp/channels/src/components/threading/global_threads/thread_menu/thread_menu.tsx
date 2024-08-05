@@ -4,13 +4,12 @@
 import React, {memo, useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector, shallowEqual} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-import {Preferences} from 'mattermost-redux/constants';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 
 import {
     flagPost as savePost,
@@ -56,7 +55,7 @@ function ThreadMenu({
         goToInChannel,
     } = useThreadRouting();
 
-    const isSaved = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_FLAGGED_POST, threadId, null) != null, shallowEqual);
+    const isSaved = useSelector((state: GlobalState) => isPostFlagged(state, threadId));
 
     const handleReadUnread = useCallback(() => {
         const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;

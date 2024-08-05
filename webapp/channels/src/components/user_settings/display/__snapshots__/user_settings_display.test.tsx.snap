@@ -37,7 +37,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -390,7 +390,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -743,7 +743,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1096,7 +1096,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1449,7 +1449,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1729,7 +1729,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1991,7 +1991,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2344,7 +2344,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2715,7 +2715,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2995,7 +2995,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3275,7 +3275,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3568,7 +3568,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3848,7 +3848,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -4128,7 +4128,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
