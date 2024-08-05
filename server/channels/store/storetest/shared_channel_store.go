@@ -579,21 +579,29 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 
 	creator := model.NewId()
 	remoteId := model.NewId()
+	remoteId2 := model.NewId()
 
 	data := []model.SharedChannelRemote{
 		{ChannelId: channel.Id, CreatorId: creator, RemoteId: model.NewId(), IsInviteConfirmed: true},
 		{ChannelId: channel.Id, CreatorId: creator, RemoteId: model.NewId(), IsInviteConfirmed: true},
-		{ChannelId: channel.Id, CreatorId: creator, RemoteId: model.NewId(), IsInviteConfirmed: true},
+		{ChannelId: channel.Id, CreatorId: creator, RemoteId: remoteId2, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId},
 	}
+
+	// first three remotes are homed locally
+	_, scErr := shareChannel(ss, channel, true, "")
+	require.NoError(t, scErr)
 
 	for i, r := range data {
 		if r.ChannelId == "" {
 			c, err := createTestChannel(ss, rctx, "test_remotes_get2_"+strconv.Itoa(i))
 			require.NoError(t, err)
 			r.ChannelId = c.Id
+
+			// next three remotes are homed outside
+			shareChannel(ss, c, false, r.RemoteId)
 		}
 		_, err := ss.SharedChannel().SaveRemote(&r)
 		require.NoError(t, err, "error saving shared channel remote")
@@ -653,6 +661,54 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		for _, r := range remotes {
 			require.Equal(t, remoteId, r.RemoteId)
 		}
+	})
+
+	t.Run("Get shared channel remotes with bad options", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeHome:   true,
+			ExcludeRemote: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.Error(t, err, "error expected")
+		require.Empty(t, remotes)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from outside", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeRemote: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 3)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from home", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeHome: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 2)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from outside and by remote_id", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeRemote: true,
+			RemoteId:      remoteId2,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 1)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from home including unconfirmed", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeHome:     true,
+			InclUnconfirmed: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 3)
 	})
 }
 
@@ -893,19 +949,24 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 	}
 
 	if shared {
-		sc := &model.SharedChannel{
-			ChannelId: channel.Id,
-			TeamId:    channel.TeamId,
-			CreatorId: channel.CreatorId,
-			ShareName: channel.Name,
-			Home:      true,
-		}
-		_, err = ss.SharedChannel().Save(sc)
-		if err != nil {
+		if _, err := shareChannel(ss, channel, true, ""); err != nil {
 			return nil, err
 		}
 	}
 	return channel, nil
+}
+
+func shareChannel(ss store.Store, channel *model.Channel, home bool, remoteId string) (*model.SharedChannel, error) {
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		CreatorId: channel.CreatorId,
+		ShareName: channel.Name,
+		Home:      home,
+		RemoteId:  remoteId,
+	}
+
+	return ss.SharedChannel().Save(sc)
 }
 
 func clearSharedChannels(ss store.Store) error {

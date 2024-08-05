@@ -65,6 +65,16 @@
           required: true
           schema:
             type: string
+        - name: exclude_home
+          in: query
+          description: Show only those Shared channel remotes that were shared with this server
+          schema:
+            type: boolean
+        - name: exclude_remote
+          in: query
+          description: Show only those Shared channel remotes that were shared from this server
+          schema:
+            type: boolean
         - name: page
           in: query
           description: The page to select

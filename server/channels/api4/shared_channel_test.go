@@ -269,6 +269,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 		ShareDisplayName: "Shared Channel 1", // for sorting purposes
 		CreatorId:        th.BasicUser.Id,
 		RemoteId:         rc1.RemoteId,
+		Home:             true,
 	}
 	_, err := th.App.ShareChannel(th.Context, sc1)
 	require.NoError(t, err)
@@ -281,6 +282,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 		ShareDisplayName: "Shared Channel 2",
 		CreatorId:        th.BasicUser.Id,
 		RemoteId:         rc1.RemoteId,
+		Home:             false,
 	}
 
 	_, err = th.App.ShareChannel(th.Context, sc2)
@@ -331,6 +333,8 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 			Name               string
 			Client             *model.Client4
 			RemoteId           string
+			ExcludeHome        bool
+			ExcludeRemote      bool
 			Page               int
 			PerPage            int
 			ExpectedStatusCode int
@@ -356,7 +360,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				ExpectedError:      true,
 			},
 			{
-				Name:               "should return the complete list of shared channels for a remote cluster",
+				Name:               "should return the complete list of shared channel remotes for a remote cluster",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
 				Page:               0,
@@ -364,6 +368,28 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				ExpectedStatusCode: http.StatusOK,
 				ExpectedError:      false,
 				ExpectedIds:        []string{sc1.ChannelId, sc2.ChannelId},
+			},
+			{
+				Name:               "should return only the shared channel remotes homed localy",
+				Client:             th.SystemAdminClient,
+				RemoteId:           rc1.RemoteId,
+				ExcludeRemote:      true,
+				Page:               0,
+				PerPage:            100,
+				ExpectedStatusCode: http.StatusOK,
+				ExpectedError:      false,
+				ExpectedIds:        []string{sc1.ChannelId},
+			},
+			{
+				Name:               "should return only the shared channel remotes homed remotely",
+				Client:             th.SystemAdminClient,
+				RemoteId:           rc1.RemoteId,
+				ExcludeHome:        true,
+				Page:               0,
+				PerPage:            100,
+				ExpectedStatusCode: http.StatusOK,
+				ExpectedError:      false,
+				ExpectedIds:        []string{sc2.ChannelId},
 			},
 			{
 				Name:               "should correctly paginate the results",
@@ -379,7 +405,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.Page, tc.PerPage)
+				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.ExcludeHome, tc.ExcludeRemote, tc.Page, tc.PerPage)
 				checkHTTPStatus(t, resp, tc.ExpectedStatusCode)
 				if tc.ExpectedError {
 					require.Error(t, err)

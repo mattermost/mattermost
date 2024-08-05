@@ -462,6 +462,10 @@ func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string)
 
 // GetRemotes fetches all shared channel remotes associated with channel_id.
 func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	if opts.ExcludeHome && opts.ExcludeRemote {
+		return nil, errors.New("cannot exclude home and remote shared channel remotes")
+	}
+
 	if offset < 0 {
 		return nil, errors.New("offset must be a positive integer")
 	}
@@ -472,20 +476,30 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 	remotes := []*model.SharedChannelRemote{}
 
 	query := s.getQueryBuilder().
-		Select(sharedChannelRemoteFields("")...).
-		From("SharedChannelRemotes").
-		OrderBy("Id")
+		Select(sharedChannelRemoteFields("scr")...).
+		From("SharedChannelRemotes scr").
+		OrderBy("scr.Id")
 
 	if opts.ChannelId != "" {
-		query = query.Where(sq.Eq{"ChannelId": opts.ChannelId})
+		query = query.Where(sq.Eq{"scr.ChannelId": opts.ChannelId})
 	}
 
 	if opts.RemoteId != "" {
-		query = query.Where(sq.Eq{"RemoteId": opts.RemoteId})
+		query = query.Where(sq.Eq{"scr.RemoteId": opts.RemoteId})
 	}
 
 	if !opts.InclUnconfirmed {
-		query = query.Where(sq.Eq{"IsInviteConfirmed": true})
+		query = query.Where(sq.Eq{"scr.IsInviteConfirmed": true})
+	}
+
+	if opts.ExcludeHome {
+		query = query.Join("SharedChannels sc ON (scr.ChannelId = sc.ChannelId)").
+			Where(sq.Eq{"sc.Home": false})
+	}
+
+	if opts.ExcludeRemote {
+		query = query.Join("SharedChannels sc ON (scr.ChannelId = sc.ChannelId)").
+			Where(sq.Eq{"sc.Home": true})
 	}
 
 	query = query.Offset(uint64(offset)).Limit(uint64(limit))

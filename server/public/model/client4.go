@@ -8858,8 +8858,14 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
 	v := url.Values{}
+	if excludeHome {
+		v.Set("exclude_home", "true")
+	}
+	if excludeRemote {
+		v.Set("exclude_remote", "true")
+	}
 	if page != 0 {
 		v.Set("page", fmt.Sprintf("%d", page))
 	}
