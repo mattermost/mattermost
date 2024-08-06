@@ -84,6 +84,34 @@ class RhsCardHeader extends React.PureComponent<Props> {
             break;
         }
 
+        const expandSidebarTooltip = (
+            <>
+                <FormattedMessage
+                    id='rhs_header.expandSidebarTooltip'
+                    defaultMessage='Expand the right sidebar'
+                />
+                <KeyboardShortcutSequence
+                    shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
+                    hideDescription={true}
+                    isInsideTooltip={true}
+                />
+            </>
+        );
+
+        const shrinkSidebarTooltip = (
+            <>
+                <FormattedMessage
+                    id='rhs_header.collapseSidebarTooltip'
+                    defaultMessage='Collapse the right sidebar'
+                />
+                <KeyboardShortcutSequence
+                    shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
+                    hideDescription={true}
+                    isInsideTooltip={true}
+                />
+            </>
+        );
+
         if (title) {
             back = (
                 <WithTooltip
@@ -116,30 +144,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                 <div className='pull-right'>
                     <WithTooltip
                         id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
-                        title={this.props.isExpanded ?
-                            <>
-                                <FormattedMessage
-                                    id='rhs_header.collapseSidebarTooltip'
-                                    defaultMessage='Collapse the right sidebar'
-                                />
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
-                                    hideDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            </> :
-                            <>
-                                <FormattedMessage
-                                    id='rhs_header.expandSidebarTooltip'
-                                    defaultMessage='Expand the right sidebar'
-                                />
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
-                                    hideDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            </>
-                        }
+                        title={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
                         placement='bottom'
                     >
                         <button
