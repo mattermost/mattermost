@@ -14,7 +14,6 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
 import Header from 'components/widgets/header';
-
 import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
