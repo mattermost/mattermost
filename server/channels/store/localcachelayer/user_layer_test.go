@@ -25,7 +25,7 @@ func TestUserStoreCache(t *testing.T) {
 	fakeUserIds := []string{"123"}
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewString("authData"),
+		AuthData:    model.NewPointer("authData"),
 		AuthService: "authService",
 	}}
 
@@ -231,7 +231,7 @@ func TestUserStoreGetCache(t *testing.T) {
 	fakeUserId := "123"
 	fakeUser := &model.User{
 		Id:          "123",
-		AuthData:    model.NewString("authData"),
+		AuthData:    model.NewPointer("authData"),
 		AuthService: "authService",
 	}
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
@@ -301,12 +301,12 @@ func TestUserStoreGetCache(t *testing.T) {
 func TestUserStoreGetManyCache(t *testing.T) {
 	fakeUser := &model.User{
 		Id:          "123",
-		AuthData:    model.NewString("authData"),
+		AuthData:    model.NewPointer("authData"),
 		AuthService: "authService",
 	}
 	otherFakeUser := &model.User{
 		Id:          "456",
-		AuthData:    model.NewString("authData"),
+		AuthData:    model.NewPointer("authData"),
 		AuthService: "authService",
 	}
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {

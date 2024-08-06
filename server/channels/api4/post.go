@@ -1074,7 +1074,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 
 	patch := &model.PostPatch{}
-	patch.IsPinned = model.NewBool(isPinned)
+	patch.IsPinned = model.NewPointer(isPinned)
 
 	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch)
 	if err != nil {

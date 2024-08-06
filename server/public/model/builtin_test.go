@@ -24,7 +24,7 @@ func TestSafeDereference(t *testing.T) {
 		s := SafeDereference[string](nil)
 		assert.Equal(t, "", s)
 
-		s = SafeDereference(NewString("foo"))
+		s = SafeDereference(NewPointer("foo"))
 		assert.Equal(t, "foo", s)
 	})
 
@@ -32,7 +32,7 @@ func TestSafeDereference(t *testing.T) {
 		s := SafeDereference[*string](nil)
 		assert.Nil(t, s)
 
-		f := NewString("foo")
+		f := NewPointer("foo")
 		s = SafeDereference(&f)
 		assert.Equal(t, f, s)
 	})
