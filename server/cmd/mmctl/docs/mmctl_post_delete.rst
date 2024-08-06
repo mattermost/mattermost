@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-This command will mark the post as deleted and remove it from user's clients but it does not permanently delete the post from the database. Please use the --permanent flag to permanently delete a post and it's attachments from your database.
+This command will mark the post as deleted and remove it from the user's clients, but it does not permanently delete the post from the database. Please use the --permanent flag to permanently delete a post and its attachments from your database.
 
 ::
 
@@ -24,10 +24,10 @@ Examples
     $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw
 
     # Permanently delete a post and it's file contents from the database and filestore
-    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw --permanent true
+    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw --permanent
 
     # Permanently delete multiple posts and their file contents from the database and filestore
-    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw 7jgcjt7tyjyyu83qz81wo84w6o --permanent true
+    $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw 7jgcjt7tyjyyu83qz81wo84w6o --permanent
 
 Options
 ~~~~~~~

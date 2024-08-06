@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { getAdminAccount } from "tests/support/env";
+import {getAdminAccount} from 'tests/support/env';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)

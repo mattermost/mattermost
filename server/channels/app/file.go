@@ -1613,6 +1613,7 @@ func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.Ap
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
+	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 
 	return nil
 }
