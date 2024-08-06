@@ -1619,7 +1619,7 @@
   "admin.permissions.group.teams_team_scope.name": "Teams",
   "admin.permissions.group.teams.description": "Create teams and manage members.",
   "admin.permissions.group.teams.name": "Teams",
-  "admin.permissions.inherited_from": "Inherited from [{name}]().",
+  "admin.permissions.inherited_from": "Inherited from <link>{name}</link>.",
   "admin.permissions.introBanner": "Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our <link>documentation</link>.",
   "admin.permissions.loadingMoreSchemes": "Loading...",
   "admin.permissions.loadMoreSchemes": "Load more schemes",
