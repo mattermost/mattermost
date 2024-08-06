@@ -328,7 +328,7 @@ func (u UserSlice) FilterWithoutID(ids []string) UserSlice {
 func (u *User) DeepCopy() *User {
 	copyUser := *u
 	if u.AuthData != nil {
-		copyUser.AuthData = NewString(*u.AuthData)
+		copyUser.AuthData = NewPointer(*u.AuthData)
 	}
 	if u.Props != nil {
 		copyUser.Props = CopyStringMap(u.Props)
@@ -658,7 +658,7 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = NewString("")
+	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.LastLogin = 0
 
@@ -681,11 +681,11 @@ func (u *User) Sanitize(options map[string]bool) {
 // Remove any input data from the user object that is not user controlled
 func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
-		u.AuthData = NewString("")
+		u.AuthData = NewPointer("")
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
-	u.RemoteId = NewString("")
+	u.RemoteId = NewPointer("")
 	u.CreateAt = 0
 	u.UpdateAt = 0
 	u.DeleteAt = 0
@@ -700,7 +700,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 
 func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
-	u.AuthData = NewString("")
+	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
