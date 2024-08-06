@@ -572,9 +572,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
-				continue
-			}
+			continue
 		}
 
 		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
