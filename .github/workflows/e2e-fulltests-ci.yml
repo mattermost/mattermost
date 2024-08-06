@@ -157,8 +157,8 @@ jobs:
               exit 1
           esac
           if [ -n "$ROLLINGRELEASE_FROM_TAG" ]; then
-            ROLLINGRELEASE_COMMIT_SHA="$(git rev-parse --verify $ROLLINGRELEASE_FROM_TAG)"
-            ROLLINGRELEASE_SERVER_IMAGE_TAG="$(cut -c2- <<<$ROLLINGRELEASE_FROM_TAG)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
+            ROLLINGRELEASE_COMMIT_SHA=$(git rev-parse --verify "$ROLLINGRELEASE_FROM_TAG")
+            ROLLINGRELEASE_SERVER_IMAGE_TAG=$(echo "$ROLLINGRELEASE_FROM_TAG" | sed 's/^v//') # Remove the leading 'v' from the given tag name, to generate the docker image tag
             ROLLINGRELEASE_SERVER_IMAGE="mattermost/mattermost-enterprise-edition:${ROLLINGRELEASE_SERVER_IMAGE_TAG}"
             ### Run sanity assertions after variable generations
             git show-ref --verify "refs/tags/${ROLLINGRELEASE_FROM_TAG}" # 'inputs.ROLLINGRELEASE_FROM_TAG' must be a tag, for release report types
