@@ -970,7 +970,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewInt(10)
+			config.ServiceSettings.MaximumURLLength = model.NewPointer(10)
 		})
 
 		web := New(th.Server)
@@ -1002,7 +1002,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewInt(20)
+			config.ServiceSettings.MaximumURLLength = model.NewPointer(20)
 		})
 
 		web := New(th.Server)
@@ -1066,7 +1066,7 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumPayloadSizeBytes = model.NewInt64(1)
+			config.ServiceSettings.MaximumPayloadSizeBytes = model.NewPointer(int64(1))
 		})
 
 		web := New(th.Server)
