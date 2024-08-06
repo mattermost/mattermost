@@ -98,6 +98,9 @@ const (
 	EmailSMTPDefaultServer = "localhost"
 	EmailSMTPDefaultPort   = "10025"
 
+	CacheTypeLRU   = "lru"
+	CacheTypeRedis = "redis"
+
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteURL                = "http://localhost:8065"
@@ -927,6 +930,47 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.MaximumURLLength == nil {
 		s.MaximumURLLength = NewPointer(ServiceSettingsDefaultMaxURLLength)
 	}
+}
+
+type CacheSettings struct {
+	CacheType     *string `access:",write_restrictable,cloud_restrictable"`
+	RedisAddress  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisPassword *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisDB       *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+}
+
+func (s *CacheSettings) SetDefaults() {
+	if s.CacheType == nil {
+		s.CacheType = NewString(CacheTypeLRU)
+	}
+
+	if s.RedisAddress == nil {
+		s.RedisAddress = NewString("")
+	}
+
+	if s.RedisPassword == nil {
+		s.RedisPassword = NewString("")
+	}
+
+	if s.RedisDB == nil {
+		s.RedisDB = NewInt(-1)
+	}
+}
+
+func (s *CacheSettings) isValid() *AppError {
+	if *s.CacheType != CacheTypeLRU && *s.CacheType != CacheTypeRedis {
+		return NewAppError("Config.IsValid", "model.config.is_valid.cache_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CacheType == CacheTypeRedis && *s.RedisAddress == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.empty_redis_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CacheType == CacheTypeRedis && *s.RedisDB < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_db.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ClusterSettings struct {
@@ -3496,6 +3540,7 @@ type Config struct {
 	LocalizationSettings      LocalizationSettings
 	SamlSettings              SamlSettings
 	NativeAppSettings         NativeAppSettings
+	CacheSettings             CacheSettings
 	ClusterSettings           ClusterSettings
 	MetricsSettings           MetricsSettings
 	ExperimentalSettings      ExperimentalSettings
@@ -3603,6 +3648,7 @@ func (o *Config) SetDefaults() {
 	o.SupportSettings.SetDefaults()
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
+	o.CacheSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
 	o.AnalyticsSettings.SetDefaults()
@@ -3638,6 +3684,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := o.CacheSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
