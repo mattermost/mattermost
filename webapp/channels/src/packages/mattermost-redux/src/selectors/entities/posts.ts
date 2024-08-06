@@ -24,11 +24,10 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentChannelId, getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
 import {
     isPostEphemeral,
     isSystemMessage,
@@ -37,7 +36,6 @@ import {
     isPostPendingOrFailed,
     isPostCommentMention,
 } from 'mattermost-redux/utils/post_utils';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 export function getAllPosts(state: GlobalState) {
@@ -51,6 +49,10 @@ export type UserActivityPost = Post & {
 
 export function getPost(state: GlobalState, postId: Post['id']): Post {
     return getAllPosts(state)[postId];
+}
+
+export function isPostFlagged(state: GlobalState, postId: Post['id']): boolean {
+    return getBool(state, Preferences.CATEGORY_FLAGGED_POST, postId);
 }
 
 export function getPostRepliesCount(state: GlobalState, postId: Post['id']): number {
@@ -344,17 +346,14 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
         getPostsInThread,
         (state: GlobalState, channelId: Channel['id']) => getPostIdsInChannel(state, channelId),
         getCurrentUser,
-        getMyPreferences,
+        shouldShowJoinLeaveMessages,
         (state: GlobalState, channelId: Channel['id'], numPosts: number) => numPosts || Posts.POST_CHUNK_SIZE,
-        (allPosts, postsInThread, allPostIds, currentUser, myPreferences, numPosts) => {
+        (allPosts, postsInThread, allPostIds, currentUser, showJoinLeave, numPosts) => {
             if (!allPostIds) {
                 return null;
             }
 
             const posts: PostWithFormatData[] = [];
-
-            const joinLeavePref = myPreferences[getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)];
-            const showJoinLeave = joinLeavePref ? joinLeavePref.value !== 'false' : true;
 
             const postIds = numPosts === -1 ? allPostIds : allPostIds.slice(0, numPosts);
 
@@ -388,15 +387,13 @@ export function makeGetPostsAroundPost(): (state: GlobalState, postId: Post['id'
         getPostsInThread,
         (state: GlobalState, focusedPostId) => focusedPostId,
         getCurrentUser,
-        getMyPreferences,
-        (postIds, allPosts, postsInThread, focusedPostId, currentUser, myPreferences) => {
+        shouldShowJoinLeaveMessages,
+        (postIds, allPosts, postsInThread, focusedPostId, currentUser, showJoinLeave) => {
             if (!postIds || !currentUser) {
                 return null;
             }
 
             const posts: PostWithFormatData[] = [];
-            const joinLeavePref = myPreferences[getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)];
-            const showJoinLeave = joinLeavePref ? joinLeavePref.value !== 'false' : true;
 
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
@@ -565,13 +562,11 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
     'getMostRecentPostIdInChannel',
     getAllPosts,
     (state: GlobalState, channelId: string) => getPostIdsInChannel(state, channelId),
-    getMyPreferences,
-    (posts, postIdsInChannel, preferences) => {
+    shouldShowJoinLeaveMessages,
+    (posts, postIdsInChannel, allowSystemMessages) => {
         if (!postIdsInChannel) {
             return '';
         }
-        const key = getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE);
-        const allowSystemMessages = preferences[key] ? preferences[key].value === 'true' : true;
 
         if (!allowSystemMessages) {
             // return the most recent non-system message in the channel

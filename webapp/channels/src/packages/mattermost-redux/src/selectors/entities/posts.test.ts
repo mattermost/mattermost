@@ -253,6 +253,11 @@ describe('Selectors.Posts', () => {
 
         const testStateAny = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userAny.id,
                     profiles: profilesAny,
@@ -372,6 +377,11 @@ describe('Selectors.Posts', () => {
 
         const testStateRoot = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userRoot.id,
                     profiles: profilesRoot,
@@ -485,6 +495,11 @@ describe('Selectors.Posts', () => {
 
         const testStateNever = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userNever.id,
                     profiles: profilesNever,
@@ -601,6 +616,11 @@ describe('Selectors.Posts', () => {
 
         const testStateAny = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userAny.id,
                     profiles: profilesAny,
@@ -678,6 +698,11 @@ describe('Selectors.Posts', () => {
 
         const testStateAny = deepFreezeAndThrowOnMutation({
             entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 users: {
                     currentUserId: userAny.id,
                     profiles: profilesAny,
@@ -1823,6 +1848,11 @@ describe('Selectors.Posts', () => {
             };
             const state = {
                 entities: {
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: testPosts,
                         postsInChannel: {
@@ -1852,6 +1882,11 @@ describe('Selectors.Posts', () => {
             };
             const state = {
                 entities: {
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: testPosts,
                         postsInChannel: {
@@ -1879,6 +1914,11 @@ describe('Selectors.Posts', () => {
                 entities: {
                     channels: {
                         currentChannelId: 'abcd',
+                    },
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
                     },
                     posts: {
                         posts: {},
@@ -1909,6 +1949,11 @@ describe('Selectors.Posts', () => {
                 entities: {
                     channels: {
                         currentChannelId: 'abcd',
+                    },
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
                     },
                     posts: {
                         posts: postsAny,
@@ -2147,6 +2192,11 @@ describe('getPostsInCurrentChannel', () => {
                 channels: {
                     currentChannelId: 'channel1',
                 },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {},
                     postsInChannel: {},
@@ -2176,6 +2226,11 @@ describe('getPostsInCurrentChannel', () => {
             entities: {
                 channels: {
                     currentChannelId: 'channel1',
+                },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
                 },
                 posts: {
                     posts: {
@@ -2213,6 +2268,11 @@ describe('getPostsInCurrentChannel', () => {
             entities: {
                 channels: {
                     currentChannelId: 'channel1',
+                },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
                 },
                 posts: {
                     posts: {
