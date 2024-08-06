@@ -276,7 +276,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 		Header:      invite.Header,
 		Purpose:     invite.Purpose,
 		CreatorId:   rc.CreatorId,
-		Shared:      model.NewBool(true),
+		Shared:      model.NewPointer(true),
 	}
 
 	// check user perms?

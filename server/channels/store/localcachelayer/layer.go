@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -74,8 +75,10 @@ var clearCacheMessageData = []byte("")
 
 type LocalCacheStore struct {
 	store.Store
-	metrics einterfaces.MetricsInterface
-	cluster einterfaces.ClusterInterface
+	cacheType string
+	metrics   einterfaces.MetricsInterface
+	cluster   einterfaces.ClusterInterface
+	logger    mlog.LoggerIFace
 
 	reaction      LocalCacheReactionStore
 	reactionCache cache.Cache
@@ -123,11 +126,13 @@ type LocalCacheStore struct {
 	termsOfServiceCache cache.Cache
 }
 
-func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider) (localCacheStore LocalCacheStore, err error) {
+func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
 	localCacheStore = LocalCacheStore{
-		Store:   baseStore,
-		cluster: cluster,
-		metrics: metrics,
+		Store:     baseStore,
+		cluster:   cluster,
+		metrics:   metrics,
+		cacheType: cacheProvider.Type(),
+		logger:    logger,
 	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
@@ -251,9 +256,10 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+
 	if localCacheStore.channelMembersForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   AllChannelMembersForUserCacheSize,
-		Name:                   "ChannnelMembersForUser",
+		Name:                   "ChannelMembersForUser",
 		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
 	}); err != nil {
@@ -334,7 +340,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+	if localCacheStore.profilesInChannelCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
 		DefaultExpiry:          ProfilesInChannelCacheSec * time.Second,
@@ -445,7 +451,7 @@ func (s LocalCacheStore) DropAllTables() {
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string, props map[string]string) {
 	cache.Remove(key)
-	if s.cluster != nil {
+	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
@@ -476,9 +482,23 @@ func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, val
 	return err
 }
 
+func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, values []any) []error {
+	errs := cache.GetMulti(keys, values)
+	if s.metrics != nil {
+		for _, err := range errs {
+			if err == nil {
+				s.metrics.IncrementMemCacheHitCounter(cache.Name())
+				continue
+			}
+			s.metrics.IncrementMemCacheMissCounter(cache.Name())
+		}
+	}
+	return errs
+}
+
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 	cache.Purge()
-	if s.cluster != nil {
+	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,

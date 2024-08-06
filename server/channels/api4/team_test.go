@@ -62,7 +62,7 @@ func TestCreateTeam(t *testing.T) {
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 		// Test GroupConstrained flag
-		groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen, GroupConstrained: model.NewBool(true)}
+		groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen, GroupConstrained: model.NewPointer(true)}
 		rteam, resp, err = client.CreateTeam(context.Background(), groupConstrainedTeam)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -163,7 +163,7 @@ func TestCreateTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewInt(1),
+				Active: model.NewPointer(1),
 			},
 		}, nil).Once()
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
@@ -184,7 +184,7 @@ func TestCreateTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewInt(200),
+				Active: model.NewPointer(200),
 			},
 		}, nil).Once()
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
@@ -412,7 +412,7 @@ func TestUpdateTeam(t *testing.T) {
 		require.Equal(t, uteam.DisplayName, "Updated Name", "Update failed")
 
 		// Test GroupConstrained flag
-		team.GroupConstrained = model.NewBool(true)
+		team.GroupConstrained = model.NewPointer(true)
 		rteam, resp, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -531,10 +531,10 @@ func TestPatchTeam(t *testing.T) {
 	team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
 	patch := &model.TeamPatch{}
-	patch.DisplayName = model.NewString("Other name")
-	patch.Description = model.NewString("Other description")
-	patch.CompanyName = model.NewString("Other company name")
-	patch.AllowOpenInvite = model.NewBool(true)
+	patch.DisplayName = model.NewPointer("Other name")
+	patch.Description = model.NewPointer("Other description")
+	patch.CompanyName = model.NewPointer("Other company name")
+	patch.AllowOpenInvite = model.NewPointer(true)
 
 	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestID(), patch)
 	require.Error(t, err)
@@ -566,7 +566,7 @@ func TestPatchTeam(t *testing.T) {
 			team2, _, _ = client.CreateTeam(context.Background(), team2)
 
 			patch2 := &model.TeamPatch{
-				AllowOpenInvite: model.NewBool(false),
+				AllowOpenInvite: model.NewPointer(false),
 			}
 
 			rteam2, _, err3 := client.PatchTeam(context.Background(), team2.Id, patch2)
@@ -581,7 +581,7 @@ func TestPatchTeam(t *testing.T) {
 			team2, _, _ = client.CreateTeam(context.Background(), team2)
 
 			patch2 := &model.TeamPatch{
-				AllowOpenInvite: model.NewBool(true),
+				AllowOpenInvite: model.NewPointer(true),
 			}
 
 			rteam2, _, err3 := client.PatchTeam(context.Background(), team2.Id, patch2)
@@ -592,7 +592,7 @@ func TestPatchTeam(t *testing.T) {
 		})
 
 		// Test GroupConstrained flag
-		patch.GroupConstrained = model.NewBool(true)
+		patch.GroupConstrained = model.NewPointer(true)
 		rteam, resp, err2 := client.PatchTeam(context.Background(), team.Id, patch)
 		require.NoError(t, err2)
 		CheckOKStatus(t, resp)
@@ -709,7 +709,7 @@ func TestRestoreTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewInt(1),
+				Active: model.NewPointer(1),
 			},
 		}, nil).Once()
 
@@ -730,7 +730,7 @@ func TestRestoreTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewInt(200),
+				Active: model.NewPointer(200),
 			},
 		}, nil).Twice()
 		team := createTeam(t, true, model.TeamOpen)
@@ -917,9 +917,9 @@ func TestTeamUnicodeNames(t *testing.T) {
 
 		patch := &model.TeamPatch{}
 
-		patch.DisplayName = model.NewString("Goat\u206e Team")
-		patch.Description = model.NewString("\ufffaGreat team.")
-		patch.CompanyName = model.NewString("\u202bAcme Inc\u202c")
+		patch.DisplayName = model.NewPointer("Goat\u206e Team")
+		patch.Description = model.NewPointer("\ufffaGreat team.")
+		patch.CompanyName = model.NewPointer("\u202bAcme Inc\u202c")
 
 		rteam, _, err := client.PatchTeam(context.Background(), team.Id, patch)
 		require.NoError(t, err)
@@ -1243,7 +1243,7 @@ func TestGetAllTeams(t *testing.T) {
 	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1568,7 +1568,7 @@ func TestSearchAllTeams(t *testing.T) {
 	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1637,37 +1637,37 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}{
 		{
 			Name:               "Retrieve foobar team using partial term search",
-			Search:             &model.TeamSearch{Term: "oobardisplay", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "oobardisplay", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using the beginning of the display name as search text",
-			Search:             &model.TeamSearch{Term: "foobar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "foobar", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using the ending of the term of the display name",
-			Search:             &model.TeamSearch{Term: "bardisplayname", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "bardisplayname", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using partial term search on the name property of team",
-			Search:             &model.TeamSearch{Term: "what", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "what", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using partial term search on the name property of team #2",
-			Search:             &model.TeamSearch{Term: "ever", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "ever", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Get all teams on one page",
-			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
@@ -1691,13 +1691,13 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		},
 		{
 			Name:               "Get 2 teams on the first page",
-			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(2)},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewPointer(0), PerPage: model.NewPointer(2)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id},
 			ExpectedTotalCount: 3,
 		},
 		{
 			Name:               "Get 1 team on the second page",
-			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(1), PerPage: model.NewInt(2)},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewPointer(1), PerPage: model.NewPointer(2)},
 			ExpectedTeams:      []string{teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
@@ -1727,7 +1727,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		})
 	}
 
-	_, _, resp, err := th.Client.SearchTeamsPaged(context.Background(), &model.TeamSearch{Term: commonRandom, PerPage: model.NewInt(100)})
+	_, _, resp, err := th.Client.SearchTeamsPaged(context.Background(), &model.TeamSearch{Term: commonRandom, PerPage: model.NewPointer(100)})
 	CheckErrorID(t, err, "api.team.search_teams.pagination_not_implemented.public_team_search")
 	require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 }
@@ -2329,7 +2329,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// Set a team to group-constrained
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	_, appErr = th.App.UpdateTeam(team)
 	require.Nil(t, appErr)
 
@@ -2648,7 +2648,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Set a team to group-constrained
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	_, appErr = th.App.UpdateTeam(team)
 	require.Nil(t, appErr)
 
@@ -2721,7 +2721,7 @@ func TestRemoveTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	// If the team is group-constrained the user cannot be removed
-	th.BasicTeam.GroupConstrained = model.NewBool(true)
+	th.BasicTeam.GroupConstrained = model.NewPointer(true)
 	_, appErr := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, appErr)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -3860,7 +3860,7 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	user2 := th.BasicUser2
 
 	team := th.CreateTeam()
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, appErr := th.App.UpdateTeam(team)
 	require.Nil(t, appErr)
 

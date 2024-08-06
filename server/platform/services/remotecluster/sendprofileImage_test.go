@@ -95,7 +95,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	user := &model.User{
 		Id:       model.NewId(),
-		RemoteId: model.NewString(rc.RemoteId),
+		RemoteId: model.NewPointer(rc.RemoteId),
 	}
 
 	provider := testImageProvider{}

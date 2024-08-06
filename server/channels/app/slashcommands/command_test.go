@@ -354,8 +354,8 @@ func TestDoCommandRequest(t *testing.T) {
 	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
-		cfg.ServiceSettings.EnableCommands = model.NewBool(true)
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
+		cfg.ServiceSettings.EnableCommands = model.NewPointer(true)
 	})
 
 	t.Run("with a valid text response", func(t *testing.T) {
@@ -434,7 +434,7 @@ func TestDoCommandRequest(t *testing.T) {
 		defer server.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -452,7 +452,7 @@ func TestDoCommandRequest(t *testing.T) {
 		defer server.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
 		})
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -466,7 +466,7 @@ func TestDoCommandRequest(t *testing.T) {
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
-		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
 		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
 			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
