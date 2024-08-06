@@ -218,11 +218,11 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         testCycleLink = testCycleKey ? `| [Recorded test executions](${TEST_CYCLE_LINK_PREFIX}${testCycleKey})` : '';
     }
 
-    let automationDashboardField = AUTOMATION_DASHBOARD_URL ? `| [Automation Dashboard Cycle](${AUTOMATION_DASHBOARD_URL}/cycle/${BUILD_ID})` : '';
+    const automationDashboardField = AUTOMATION_DASHBOARD_URL ? `| [Automation Dashboard Cycle](${AUTOMATION_DASHBOARD_URL}/cycle/${BUILD_ID})` : '';
 
-    let rollingReleaseMatchRegex = BUILD_ID.match(/-rolling(?<version>[^-]+)-/);
-    let rollingReleaseFrom = rollingReleaseMatchRegex?.groups?.version;
-    let rollingReleaseFromField = rollingReleaseFrom ? `\nRolling release upgrade from: ${rollingReleaseFrom}` : '';
+    const rollingReleaseMatchRegex = BUILD_ID.match(/-rolling(?<version>[^-]+)-/);
+    const rollingReleaseFrom = rollingReleaseMatchRegex?.groups?.version;
+    const rollingReleaseFromField = rollingReleaseFrom ? `\nRolling release upgrade from: ${rollingReleaseFrom}` : '';
 
     const startAt = dayjs(stats.start);
     const endAt = dayjs(stats.end);
