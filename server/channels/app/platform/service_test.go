@@ -98,7 +98,7 @@ func TestMetrics(t *testing.T) {
 		// there is no config listener for the metrics
 		// we handle it on config save step
 		cfg := th.Service.Config().Clone()
-		cfg.MetricsSettings.Enable = model.NewBool(true)
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 		th.Service.SaveConfig(cfg, false)
 
 		require.NotNil(t, th.Service.metrics)
@@ -109,7 +109,7 @@ func TestMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		cfg.MetricsSettings.Enable = model.NewBool(false)
+		cfg.MetricsSettings.Enable = model.NewPointer(false)
 		th.Service.SaveConfig(cfg, false)
 
 		_, err = http.Get(metricsAddr)
