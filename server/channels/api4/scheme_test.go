@@ -153,7 +153,7 @@ func TestCreateScheme(t *testing.T) {
 	// Create scheme with a Professional SKU license but no explicit 'custom_permissions_schemes' license feature.
 	lic := &model.License{
 		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewBool(false),
+			CustomPermissionsSchemes: model.NewPointer(false),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",
@@ -607,7 +607,7 @@ func TestPatchScheme(t *testing.T) {
 	// Patch scheme with a Professional SKU license but no explicit 'custom_permissions_schemes' license feature.
 	lic := &model.License{
 		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewBool(false),
+			CustomPermissionsSchemes: model.NewPointer(false),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",
@@ -821,7 +821,7 @@ func TestDeleteScheme(t *testing.T) {
 		// Delete scheme with a Professional SKU license but no explicit 'custom_permissions_schemes' license feature.
 		lic := &model.License{
 			Features: &model.Features{
-				CustomPermissionsSchemes: model.NewBool(false),
+				CustomPermissionsSchemes: model.NewPointer(false),
 			},
 			Customer: &model.Customer{
 				Name:  "TestName",

@@ -138,7 +138,7 @@ func TestCreateUser(t *testing.T) {
 		email := th.GenerateTestEmail()
 		newUser := &model.User{
 			Id:            model.NewId(),
-			RemoteId:      model.NewString(model.NewId()),
+			RemoteId:      model.NewPointer(model.NewId()),
 			Email:         email,
 			Password:      "Password1",
 			Username:      GenerateTestUsername(),
@@ -281,7 +281,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestriction@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewString("999099"),
+					AuthData:    model.NewPointer("999099"),
 				}
 				u, _, err := th.SystemAdminClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -293,7 +293,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestrictionlocalclient@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewString("999100"),
+					AuthData:    model.NewPointer("999100"),
 				}
 				u, _, err := th.LocalClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -698,12 +698,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("GroupConstrainedTeam", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			th.BasicTeam.GroupConstrained = model.NewPointer(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -717,12 +717,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			th.BasicTeam.GroupConstrained = model.NewPointer(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -1381,10 +1381,10 @@ func TestSearchUsers(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1421,10 +1421,10 @@ func TestSearchUsers(t *testing.T) {
 	id = model.NewId()
 	group, appErr = th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -2061,10 +2061,10 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	patch := &model.UserPatch{}
-	patch.Password = model.NewString("testpassword")
-	patch.Nickname = model.NewString("Joram Wilander")
-	patch.FirstName = model.NewString("Joram")
-	patch.LastName = model.NewString("Wilander")
+	patch.Password = model.NewPointer("testpassword")
+	patch.Nickname = model.NewPointer("Joram Wilander")
+	patch.FirstName = model.NewPointer("Joram")
+	patch.LastName = model.NewPointer("Wilander")
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
@@ -2099,19 +2099,19 @@ func TestPatchUser(t *testing.T) {
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
 	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	patch.Password = model.NewString(currentPassword)
+	patch.Password = model.NewPointer(currentPassword)
 	ruser, _, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
 
 	require.Equal(t, *patch.Email, ruser.Email, "Email should update properly")
 
-	patch.Username = model.NewString(th.BasicUser2.Username)
+	patch.Username = model.NewPointer(th.BasicUser2.Username)
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -2135,7 +2135,7 @@ func TestPatchUser(t *testing.T) {
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2164,7 +2164,7 @@ func TestPatchBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient()
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString("newemail@test.com")
+	patch.Email = model.NewPointer("newemail@test.com")
 
 	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
 	require.NoError(t, err)
@@ -2183,7 +2183,7 @@ func TestPatchAdminUser(t *testing.T) {
 	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
 	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -2244,9 +2244,9 @@ func TestUserUnicodeNames(t *testing.T) {
 		client.Login(context.Background(), user.Email, user.Password)
 
 		patch := &model.UserPatch{}
-		patch.Nickname = model.NewString("\U000E0000Ender\u206d Wiggin\U000E007F")
-		patch.FirstName = model.NewString("\U0001d173Andrew\U0001d17a")
-		patch.LastName = model.NewString("\u2028Wiggin\u2029")
+		patch.Nickname = model.NewPointer("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = model.NewPointer("\U0001d173Andrew\U0001d17a")
+		patch.LastName = model.NewPointer("\u2028Wiggin\u2029")
 
 		ruser, _, err := client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2279,7 +2279,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = model.NewString("test@test.com")
+	userAuth.AuthData = model.NewPointer("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -3068,20 +3068,20 @@ func TestGetUsersInGroup(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
 	cid := model.NewId()
 	customGroup, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + cid,
-		Name:        model.NewString("name" + cid),
+		Name:        model.NewPointer("name" + cid),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + cid,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3145,10 +3145,10 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3930,7 +3930,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewPointer("remote-id")}
 		ruser, appErr := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, appErr)
 
@@ -4702,7 +4702,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		// make a remote user
 		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
 			Username: "remoteuser",
-			RemoteId: model.NewString(model.NewId()),
+			RemoteId: model.NewPointer(model.NewId()),
 			Password: model.NewId(),
 			Email:    "remoteuser@example.com",
 		})
@@ -6415,7 +6415,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testMsg",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6442,7 +6442,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testReply",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6462,7 +6462,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testMsg",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -7235,7 +7235,7 @@ func TestSingleThreadGet(t *testing.T) {
 			Message:   "testMsg2",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -7588,7 +7588,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			model.ServiceOpenid,
 		} {
 			user := th.CreateUserWithAuth(authService)
-			patch := &model.UserPatch{Username: model.NewString("something new")}
+			patch := &model.UserPatch{Username: model.NewPointer("something new")}
 			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}

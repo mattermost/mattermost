@@ -2317,10 +2317,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewInt(0)
+		search.Page = NewPointer(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewInt(100)
+		search.PerPage = NewPointer(100)
 	}
 	buf, err := json.Marshal(search)
 	if err != nil {
