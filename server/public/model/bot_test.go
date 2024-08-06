@@ -496,7 +496,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewString("BotName"),
+			DisplayName: NewPointer("BotName"),
 		}
 		ok := b.WouldPatch(patch)
 		require.True(t, ok)
@@ -504,7 +504,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("no patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewString("BotName"),
+			DisplayName: NewPointer("BotName"),
 		}
 		b.Patch(patch)
 		ok := b.WouldPatch(patch)
