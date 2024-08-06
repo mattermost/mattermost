@@ -298,7 +298,7 @@ jobs:
           make cloud-init
           if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
             echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
-            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/ && git status
             (
             echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
             export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
@@ -314,7 +314,8 @@ jobs:
             fi
             rm -rfv cypress/results
             echo "RollingRelease: reset the E2E test cases to the revision to test"
-            git reset --hard HEAD
+            git reset --hard HEAD && git status
+            echo "RollingRelease: smoketest completed. Starting full E2E tests."
           fi
           make
           make cloud-teardown

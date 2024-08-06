@@ -159,7 +159,8 @@ jobs:
             ROLLING_RELEASE_COMMIT_SHA=$(git rev-parse --verify "$ROLLING_RELEASE_FROM_TAG")
             ROLLING_RELEASE_SERVER_IMAGE_TAG=$(echo "$ROLLING_RELEASE_FROM_TAG" | sed 's/^v//') # Remove the leading 'v' from the given tag name, to generate the docker image tag
             ROLLING_RELEASE_SERVER_IMAGE="mattermost/mattermost-enterprise-edition:${ROLLING_RELEASE_SERVER_IMAGE_TAG}"
-            BUILD_ID_SUFFIX="rolling${ROLLING_RELEASE_FROM_TAG/-/_}-$BULD_ID_SUFFIX"
+            BUILD_ID_SUFFIX="rolling${ROLLING_RELEASE_FROM_TAG/-/_}-$BUILD_ID_SUFFIX"
+            BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
             ### Run sanity assertions after variable generations
             git show-ref --verify "refs/tags/${ROLLING_RELEASE_FROM_TAG}" # 'inputs.ROLLING_RELEASE_FROM_TAG' must be a tag, for release report types
           fi
