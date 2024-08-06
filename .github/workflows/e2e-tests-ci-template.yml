@@ -244,7 +244,7 @@ jobs:
         os: [ubuntu-latest-8-cores]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 60
+    timeout-minutes: 90
     needs:
       - cypress-check
       - playwright-check
@@ -368,6 +368,7 @@ jobs:
           TYPE: "${{ inputs.REPORT_TYPE }}"
           SERVER: "${{ inputs.SERVER }}"
           SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
