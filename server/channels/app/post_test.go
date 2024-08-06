@@ -700,10 +700,10 @@ func TestImageProxy(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ImageProxySettings.Enable = model.NewBool(true)
-				cfg.ImageProxySettings.ImageProxyType = model.NewString(tc.ProxyType)
-				cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewString(tc.ProxyOptions)
-				cfg.ImageProxySettings.RemoteImageProxyURL = model.NewString(tc.ProxyURL)
+				cfg.ImageProxySettings.Enable = model.NewPointer(true)
+				cfg.ImageProxySettings.ImageProxyType = model.NewPointer(tc.ProxyType)
+				cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer(tc.ProxyOptions)
+				cfg.ImageProxySettings.RemoteImageProxyURL = model.NewPointer(tc.ProxyURL)
 			})
 
 			post := &model.Post{
@@ -1131,7 +1131,7 @@ func TestPatchPost(t *testing.T) {
 		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
 
 		patch := &model.PostPatch{
-			Message: model.NewString("![image](" + imageURL + ")"),
+			Message: model.NewPointer("![image](" + imageURL + ")"),
 		}
 
 		rpost, err = th.App.PatchPost(th.Context, rpost.Id, patch)
@@ -1155,13 +1155,13 @@ func TestPatchPost(t *testing.T) {
 		require.Nil(t, err)
 
 		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
-			patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch has no channel mention")}
+			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch has no channel mention")}
 
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
-			patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
+			patchWithMention := &model.PostPatch{Message: model.NewPointer("This patch has a mention now @here")}
 
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention)
 			require.Nil(t, err)
@@ -1172,12 +1172,12 @@ func TestPatchPost(t *testing.T) {
 			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
-			patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch still does not have a mention")}
+			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch still does not have a mention")}
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
-			patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
+			patchWithMention := &model.PostPatch{Message: model.NewPointer("This patch has a mention now @here")}
 
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention)
 			require.Nil(t, err)
@@ -1373,7 +1373,7 @@ func TestPatchPostInArchivedChannel(t *testing.T) {
 	post := th.CreatePost(archivedChannel)
 	th.App.DeleteChannel(th.Context, archivedChannel, "")
 
-	_, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewBool(true)})
+	_, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewPointer(true)})
 	require.NotNil(t, err)
 	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
 }
@@ -2471,7 +2471,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   fmt.Sprintf("@%s", user2.Username),
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		}, channel, false, true)
@@ -2490,7 +2490,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   "apple",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		}, channel, false, true)
@@ -3263,7 +3263,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 		// cloud-starter, limit is applicable
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Messages: &model.MessagesLimits{
-				History: model.NewInt(1),
+				History: model.NewPointer(1),
 			},
 		}, nil)
 
@@ -3323,14 +3323,14 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message
 	patch := &model.PostPatch{
-		Message: model.NewString("new message edited"),
+		Message: model.NewPointer("new message edited"),
 	}
 	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch)
 	require.Nil(t, err1)
 
 	// update the post message again
 	patch = &model.PostPatch{
-		Message: model.NewString("new message edited again"),
+		Message: model.NewPointer("new message edited again"),
 	}
 
 	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch)
@@ -3410,11 +3410,11 @@ func TestValidateMoveOrCopy(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewBool(true)
-		cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewBool(true)
-		cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable = model.NewBool(true)
-		cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = model.NewBool(true)
-		cfg.WranglerSettings.MoveThreadMaxCount = model.NewInt64(100)
+		cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewPointer(true)
+		cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewPointer(true)
+		cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable = model.NewPointer(true)
+		cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = model.NewPointer(true)
+		cfg.WranglerSettings.MoveThreadMaxCount = model.NewPointer(int64(100))
 	})
 
 	t.Run("empty post list", func(t *testing.T) {
@@ -3433,7 +3433,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewBool(false)
+			cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewPointer(false)
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: privateChannel.Id}}}, privateChannel, th.BasicChannel, th.BasicUser)
@@ -3446,7 +3446,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, directChannel)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewBool(false)
+			cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewPointer(false)
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: directChannel.Id}}}, directChannel, th.BasicChannel, th.BasicUser)
@@ -3464,7 +3464,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable = model.NewBool(false)
+			cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable = model.NewPointer(false)
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: groupChannel.Id}}}, groupChannel, th.BasicChannel, th.BasicUser)
@@ -3493,7 +3493,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = model.NewBool(false)
+			cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = model.NewPointer(false)
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, targetChannel, th.BasicUser)

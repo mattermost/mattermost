@@ -305,11 +305,13 @@ func NewServer(options ...Option) (*Server, error) {
 	model.AppErrorInit(i18n.T)
 
 	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "seen_pending_post_ids",
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -498,6 +500,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 func (s *Server) runJobs() {
 	s.runLicenseExpirationCheckJob()
+
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
@@ -529,6 +532,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runConfigCleanupJob(s)
+	})
+	s.Go(func() {
+		runCloudUserCountReportJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -1234,6 +1240,13 @@ func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
 
+// Reports activated user count to the CWS every 24 hours
+func runCloudUserCountReportJob(s *Server) {
+	model.CreateRecurringTask("Report user count for cloud subscription", func() {
+		s.doReportUserCountForCloudSubscriptionJob()
+	}, time.Hour*24)
+}
+
 func doTokenCleanup(s *Server) {
 	expiry := model.GetMillis() - model.MaxTokenExipryTime
 
@@ -1332,6 +1345,26 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	}
 
 	return nil
+}
+
+func (s *Server) doReportUserCountForCloudSubscriptionJob() {
+	s.LoadLicense()
+
+	if !s.License().IsCloud() {
+		return
+	}
+
+	mlog.Debug("Reporting daily user count for cloud subscription.")
+
+	appInstance := New(ServerConnector(s.Channels()))
+
+	_, err := appInstance.SendSubscriptionHistoryEvent("")
+
+	if err != nil {
+		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
+	}
+
+	mlog.Debug("Daily user count reported for cloud subscription.")
 }
 
 func (s *Server) doLicenseExpirationCheck() {
