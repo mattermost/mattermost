@@ -28,9 +28,9 @@ func testPostPriorityStoreGetForPost(t *testing.T, rctx request.CTX, ss store.St
 		p1.Message = NewTestId()
 		p1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("important"),
-				RequestedAck:            model.NewBool(true),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer("important"),
+				RequestedAck:            model.NewPointer(true),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		}
 
@@ -40,9 +40,9 @@ func testPostPriorityStoreGetForPost(t *testing.T, rctx request.CTX, ss store.St
 		p2.Message = NewTestId()
 		p2.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}
 

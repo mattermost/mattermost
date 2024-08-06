@@ -64,9 +64,9 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		if urgent {
 			o.Metadata = &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority:                model.NewString(model.PostPriorityUrgent),
-					RequestedAck:            model.NewBool(false),
-					PersistentNotifications: model.NewBool(false),
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck:            model.NewPointer(false),
+					PersistentNotifications: model.NewPointer(false),
 				},
 			}
 		}
@@ -520,7 +520,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -542,7 +542,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -607,7 +607,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -626,7 +626,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -739,9 +739,9 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		},
 	})
@@ -881,9 +881,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		},
 	})

@@ -145,7 +145,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewString("authData"),
+		AuthData:    model.NewPointer("authData"),
 		AuthService: "authService",
 	}}
 	mockUserStore := mocks.UserStore{}
@@ -164,7 +164,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 		fakeUser[0],
 		{
 			Id:          "456",
-			AuthData:    model.NewString("authData"),
+			AuthData:    model.NewPointer("authData"),
 			AuthService: "authService",
 		},
 	}
