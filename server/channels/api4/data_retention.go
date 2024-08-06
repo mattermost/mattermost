@@ -243,8 +243,8 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props.PolicyID = model.NewString(c.Params.PolicyId)
-	props.IncludePolicyID = model.NewBool(true)
+	props.PolicyID = model.NewPointer(c.Params.PolicyId)
+	props.IncludePolicyID = model.NewPointer(true)
 
 	teams, _, appErr := c.App.SearchAllTeams(&props)
 	if appErr != nil {
