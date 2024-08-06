@@ -144,7 +144,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.29.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.29.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
@@ -154,6 +154,7 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
 PLUGIN_PACKAGES += focalboard-v8.0.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.2
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -314,6 +315,10 @@ store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir channels/store --name ".*Store" --output channels/store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
 
+cache-mocks:
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+	$(GOBIN)/mockery --dir platform/services/cache --all --output platform/services/cache/mocks --note 'Regenerate this file using `make cache-mocks`.'
+
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir platform/services/telemetry --all --output platform/services/telemetry/mocks --note 'Regenerate this file using `make telemetry-mocks`.'
@@ -375,7 +380,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
 layers: app-layers store-layers pluginapi
 
@@ -400,7 +405,6 @@ endif
 endif
 
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
-
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0
@@ -653,7 +657,7 @@ config-ldap: ## Configures LDAP.
 	# Check if jq is installed
 	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
 
-	TMPDIR=$(mktemp -d)
+	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/ldap.mmsettings.json > ${TMPDIR}/config.json
 	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
 	rm ${TMPDIR}/config.json
@@ -666,7 +670,7 @@ config-saml: ## Configures SAML.
 
 	@cp build/docker/keycloak/keycloak.crt ./config/saml-idp.crt
 
-	TMPDIR=$(mktemp -d)
+	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/saml.mmsettings.json > ${TMPDIR}/config.json
 	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
 	rm ${TMPDIR}/config.json
@@ -677,7 +681,7 @@ config-openid: ## Configures OpenID.
 	# Check if jq is installed
 	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
 
-	TMPDIR=$(mktemp -d)
+	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/openid.mmsettings.json > ${TMPDIR}/config.json
 	cp ${TMPDIR}/config.json ${CONFIG_FILE_PATH}
 	rm ${TMPDIR}/config.json
@@ -746,7 +750,7 @@ vet: ## Run mattermost go vet specific checks
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 

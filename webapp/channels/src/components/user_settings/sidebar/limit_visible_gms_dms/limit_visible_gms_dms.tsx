@@ -16,8 +16,6 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {localizeMessage} from 'utils/utils';
-
 type Limit = {
     value: number;
     label: string;
@@ -25,7 +23,7 @@ type Limit = {
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    userId: string;
     userPreferences?: PreferencesType;
 }
 
@@ -44,7 +42,6 @@ type State = {
 }
 
 const limits: Limit[] = [
-    {value: 10000, label: localizeMessage('user.settings.sidebar.limitVisibleGMsDMs.allDirectMessages', 'All Direct Messages')},
     {value: 10, label: '10'},
     {value: 15, label: '15'},
     {value: 20, label: '20'},
@@ -104,14 +101,14 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
     };
 
     handleSubmit = async () => {
-        if (!this.props.currentUserId) {
+        if (!this.props.userId) {
             return;
         }
 
         this.setState({isSaving: true});
 
-        await this.props.savePreferences(this.props.currentUserId, [{
-            user_id: this.props.currentUserId,
+        await this.props.savePreferences(this.props.userId, [{
+            user_id: this.props.userId,
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.LIMIT_VISIBLE_DMS_GMS,
             value: this.state.limit.value.toString(),

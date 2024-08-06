@@ -1,25 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 type Props = {
     value: string;
-    defaultMessage?: string;
-    idMessage?: string;
+    tooltip?: ReactNode;
 };
 
 const CopyText = ({
     value,
-    defaultMessage = 'Copy',
-    idMessage = 'integrations.copy',
+    tooltip,
 }: Props) => {
     const copyText = useCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
@@ -30,20 +27,18 @@ const CopyText = ({
         return null;
     }
 
-    const tooltip = (
-        <Tooltip id='copy'>
-            <FormattedMessage
-                id={idMessage}
-                defaultMessage={defaultMessage}
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='copyTextTooltip'
             placement='top'
-            overlay={tooltip}
+            title={
+                tooltip || (
+                    <FormattedMessage
+                        id='copyTextTooltip.copy'
+                        defaultMessage='Copy'
+                    />
+                )
+            }
         >
             <a
                 href='#'
@@ -51,7 +46,7 @@ const CopyText = ({
                 className='fa fa-copy ml-2'
                 onClick={copyText}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

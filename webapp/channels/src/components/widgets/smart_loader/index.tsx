@@ -3,7 +3,7 @@
 
 import React, {type ReactNode, useEffect, useState} from 'react';
 
-const DEFAULT_MIN_LOADER_DURATION = 1500;
+const DEFAULT_MIN_LOADER_DURATION = 1000;
 
 type Props = {
     loading: boolean;

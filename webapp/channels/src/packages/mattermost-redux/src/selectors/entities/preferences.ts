@@ -8,7 +8,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {General, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {createShallowSelector} from 'mattermost-redux/utils/helpers';
+import {createIdsSelector, createShallowSelector} from 'mattermost-redux/utils/helpers';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
@@ -16,19 +16,22 @@ export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceT
     return state.entities.preferences.myPreferences;
 }
 
-export function getUserPreferences(state: GlobalState, userID: string): { [x: string]: PreferenceType } {
+export function getUserPreferences(state: GlobalState, userID: string): PreferencesType {
     return state.entities.preferences.userPreferences[userID];
 }
 
-export function get(state: GlobalState, category: string, name: string, defaultValue: any = '') {
-    const key = getPreferenceKey(category, name);
-    const prefs = getMyPreferences(state);
+function getPreferenceObject(state: GlobalState, category: string, name: string): PreferenceType | undefined {
+    return getMyPreferences(state)[getPreferenceKey(category, name)];
+}
 
-    if (!(key in prefs)) {
-        return defaultValue;
+export function get(state: GlobalState, category: string, name: string, defaultValue = '', preferences?: PreferencesType): string {
+    if (preferences) {
+        return getFromPreferences(preferences, category, name, defaultValue);
     }
 
-    return prefs[key].value;
+    const pref = getPreferenceObject(state, category, name);
+
+    return pref ? pref.value : defaultValue;
 }
 
 export function getFromPreferences(preferences: PreferencesType, category: string, name: string, defaultValue: any = '') {
@@ -41,27 +44,21 @@ export function getFromPreferences(preferences: PreferencesType, category: strin
     return preferences[key].value;
 }
 
-export function getBool(state: GlobalState, category: string, name: string, defaultValue = false): boolean {
-    const value = get(state, category, name, String(defaultValue));
+export function getBool(state: GlobalState, category: string, name: string, defaultValue = false, userPreferences?: PreferencesType): boolean {
+    const value = get(state, category, name, String(defaultValue), userPreferences);
     return value !== 'false';
 }
 
-export function getBoolFromPreferences(userPreferences: PreferencesType, category: string, name: string, defaultValue = false): boolean {
-    const value = getFromPreferences(userPreferences, category, name, String(defaultValue));
-    return value !== 'false';
-}
-
-export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0): number {
-    const value = get(state, category, name, defaultValue);
+export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0, userPreferences?: PreferencesType): number {
+    const value = get(state, category, name, String(defaultValue), userPreferences);
     return parseInt(value, 10);
 }
 
-export function makeGetCategory(): (state: GlobalState, category: string) => PreferenceType[] {
-    return createSelector(
-        'makeGetCategory',
+export function makeGetCategory(selectorName: string, category: string): (state: GlobalState) => PreferenceType[] {
+    return createIdsSelector(
+        selectorName,
         getMyPreferences,
-        (state: GlobalState, category: string) => category,
-        (preferences, category) => {
+        (preferences) => {
             const prefix = category + '--';
             const prefsInCategory: PreferenceType[] = [];
 
@@ -76,12 +73,11 @@ export function makeGetCategory(): (state: GlobalState, category: string) => Pre
     );
 }
 
-export function makeGetUserCategory(userID: string): (state: GlobalState, category: string) => PreferenceType[] {
-    return createSelector(
-        'makeGetCategory',
-        (state) => getUserPreferences(state, userID),
-        (state: GlobalState, category: string) => category,
-        (preferences, category) => {
+export function makeGetUserCategory(selectorName: string, category: string): (state: GlobalState, userID: string) => PreferenceType[] {
+    return createIdsSelector(
+        selectorName,
+        (state: GlobalState, userID: string) => getUserPreferences(state, userID),
+        (preferences) => {
             const prefix = category + '--';
             const prefsInCategory: PreferenceType[] = [];
 
@@ -96,34 +92,26 @@ export function makeGetUserCategory(userID: string): (state: GlobalState, catego
     );
 }
 
-const getDirectShowCategory = makeGetCategory();
-
-export function getDirectShowPreferences(state: GlobalState) {
-    return getDirectShowCategory(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
-}
-
-const getGroupShowCategory = makeGetCategory();
-
-export function getGroupShowPreferences(state: GlobalState) {
-    return getGroupShowCategory(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW);
-}
+export const getDirectShowPreferences = makeGetCategory('getDirectShowPreferences', Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+export const getGroupShowPreferences = makeGetCategory('getGroupShowPreferences', Preferences.CATEGORY_GROUP_CHANNEL_SHOW);
 
 export const getTeammateNameDisplaySetting: (state: GlobalState) => string = createSelector(
     'getTeammateNameDisplaySetting',
     getConfig,
-    getMyPreferences,
+    (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT),
     getLicense,
-    (config, preferences, license) => {
+    (config, teammateNameDisplayPreference, license) => {
         const useAdminTeammateNameDisplaySetting = (license && license.LockTeammateNameDisplay === 'true') && config.LockTeammateNameDisplay === 'true';
-        const key = getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT);
-        if (preferences[key] && !useAdminTeammateNameDisplaySetting) {
-            return preferences[key].value || '';
+        if (teammateNameDisplayPreference && !useAdminTeammateNameDisplaySetting) {
+            return teammateNameDisplayPreference.value || '';
         } else if (config.TeammateNameDisplay) {
             return config.TeammateNameDisplay;
         }
         return General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME;
     },
 );
+
+export const getThemePreferences = makeGetCategory('getThemePreferences', Preferences.CATEGORY_THEME);
 
 const getThemePreference = createSelector(
     'getThemePreference',
@@ -219,42 +207,37 @@ export function makeGetStyleFromTheme<Style>(): (state: GlobalState, getStyleFro
     );
 }
 
-export function calculateUserShouldShowUnreadsCategory(userPreferences: PreferencesType, serverDefault?: string): boolean {
-    const userPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION);
-    const oldUserPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, '');
+export function shouldShowJoinLeaveMessages(state: GlobalState) {
+    const config = getConfig(state);
+    const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
-    return calculateShouldShowUnreadsCategory(userPreference, oldUserPreference, serverDefault);
-}
-
-export function calculateShouldShowUnreadsCategory(userPreference: string, oldUserPreference: string, serverDefault?: string): boolean {
-    // Prefer the show_unread_section user preference over the previous version
-    if (userPreference) {
-        return userPreference === 'true';
-    }
-
-    if (oldUserPreference) {
-        return JSON.parse(oldUserPreference).unreads_at_top === 'true';
-    }
-
-    // The user setting is not set, so use the system default
-    return serverDefault === General.DEFAULT_ON;
+    // This setting is true or not set if join/leave messages are to be displayed
+    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.
-export const shouldShowUnreadsCategory: (state: GlobalState) => boolean = createSelector(
+export const shouldShowUnreadsCategory: (state: GlobalState, userPreferences?: PreferencesType) => boolean = createSelector(
     'shouldShowUnreadsCategory',
-    (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION),
-    (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, ''),
+    (state: GlobalState, userPreferences?: PreferencesType) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION, '', userPreferences),
+    (state: GlobalState, userPreferences?: PreferencesType) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, '', '', userPreferences),
     (state: GlobalState) => getConfig(state).ExperimentalGroupUnreadChannels,
-    calculateShouldShowUnreadsCategory,
+    (userPreference: string, oldUserPreference: string, serverDefault?: string): boolean => {
+        // Prefer the show_unread_section user preference over the previous version
+        if (userPreference) {
+            return userPreference === 'true';
+        }
+
+        if (oldUserPreference) {
+            return JSON.parse(oldUserPreference).unreads_at_top === 'true';
+        }
+
+        // The user setting is not set, so use the system default
+        return serverDefault === General.DEFAULT_ON;
+    },
 );
 
-export function getUnreadScrollPositionPreference(state: GlobalState): string {
-    return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
-}
-
-export function getUnreadScrollPositionFromPreference(userPreferences: PreferencesType): string {
-    return getFromPreferences(userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT);
+export function getUnreadScrollPositionPreference(state: GlobalState, userPreferences?: PreferencesType): string {
+    return get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT, userPreferences);
 }
 
 export function getCollapsedThreadsPreference(state: GlobalState): string {
@@ -334,27 +317,13 @@ export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
     return isConfiguredForFeature && isConfiguredForUser;
 }
 
-export function getVisibleDmGmLimit(state: GlobalState) {
+export function getVisibleDmGmLimit(state: GlobalState, userPreferences?: PreferencesType) {
     const defaultLimit = 40;
-    return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-}
-
-export function getUserVisibleDmGmLimit(userPreferences: PreferencesType) {
-    const defaultLimit = 40;
-    const value = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-    return parseInt(value, 10);
+    return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit, userPreferences);
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
-}
-
-export function deprecateCloudFree(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'DeprecateCloudFree') === 'true';
-}
-
-export function cloudReverseTrial(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
 }
 
 export function moveThreadsEnabled(state: GlobalState): boolean {
@@ -364,3 +333,5 @@ export function moveThreadsEnabled(state: GlobalState): boolean {
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
 }
+
+export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);

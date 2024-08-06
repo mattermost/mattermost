@@ -103,7 +103,6 @@ export const Preferences = {
     UNREAD_SCROLL_POSITION_START_FROM_LEFT: 'start_from_left_off',
     UNREAD_SCROLL_POSITION_START_FROM_NEWEST: 'start_from_newest',
     CATEGORY_THEME: 'theme',
-    CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     EMAIL_INTERVAL: 'email_interval',
     INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
@@ -147,7 +146,7 @@ export const Preferences = {
     DELINQUENCY_MODAL_CONFIRMED: 'delinquency_modal_confirmed',
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
-    OVERAGE_USERS_BANNER: 'overage_users_banner',
+    OVERAGE_USERS_BANNER: ReduxPreferences.CATEGORY_OVERAGE_USERS_BANNER,
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
@@ -235,6 +234,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ADMIN_CONSOLE_REDUCER: null,
     REMOVED_ADMIN_CONSOLE_REDUCER: null,
     RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: null,
+    RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: null,
     RECEIVED_PLUGIN_STATS_HANDLER: null,
     RECEIVED_PLUGIN_USER_SETTINGS: null,
 
@@ -679,11 +679,6 @@ export const CrtTutorialSteps = {
     FINISHED: 999,
 };
 
-export const ExploreOtherToolsTourSteps = {
-    PLAYBOOKS_TOUR: 1,
-    FINISHED: 999,
-};
-
 export const CrtTutorialTriggerSteps = {
     START: 0,
     STARTED: 1,
@@ -1024,7 +1019,6 @@ export const AdvancedSections = {
     CONTROL_SEND: 'advancedCtrlSend',
     FORMATTING: 'formatting',
     JOIN_LEAVE: 'joinLeave',
-    PREVIEW_FEATURES: 'advancedPreviewFeatures',
     PERFORMANCE_DEBUGGING: 'performanceDebugging',
     SYNC_DRAFTS: 'syncDrafts',
 };
@@ -1440,7 +1434,6 @@ export const Constants = {
     AdminTutorialSteps,
     CrtTutorialSteps,
     CrtTutorialTriggerSteps,
-    ExploreOtherToolsTourSteps,
     CrtThreadPaneSteps,
     PostTypes,
     ErrorPageTypes,
@@ -1979,8 +1972,6 @@ export const Constants = {
         COMMAND_SUGGESTION_CHANNEL: 'channel',
         COMMAND_SUGGESTION_USER: 'user',
     },
-    FeatureTogglePrefix: 'feature_enabled_',
-    PRE_RELEASE_FEATURES: {},
     OVERLAY_TIME_DELAY_SMALL: 100,
     OVERLAY_TIME_DELAY: 400,
     OVERLAY_DEFAULT_TRIGGER: ['hover', 'focus'],

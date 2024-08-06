@@ -2607,9 +2607,9 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
-			Email:    model.NewString("example@example.com"),
-			Password: model.NewString("password"),
-			Username: model.NewString("example-user"),
+			Email:    model.NewPointer("example@example.com"),
+			Password: model.NewPointer("password"),
+			Username: model.NewPointer("example-user"),
 		}
 
 		cmd := &cobra.Command{}
@@ -2687,9 +2687,9 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
-			Email:    model.NewString("example@example.com"),
-			Password: model.NewString("password"),
-			Username: model.NewString("example-user"),
+			Email:    model.NewPointer("example@example.com"),
+			Password: model.NewPointer("password"),
+			Username: model.NewPointer("example-user"),
 		}
 
 		cmd := &cobra.Command{}

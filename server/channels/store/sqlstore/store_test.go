@@ -537,8 +537,8 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		{
 			store: SqlStore{
 				settings: &model.SqlSettings{
-					DriverName: model.NewString(model.DatabaseDriverPostgres),
-					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
+					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -546,8 +546,8 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		{
 			store: SqlStore{
 				settings: &model.SqlSettings{
-					DriverName: model.NewString(model.DatabaseDriverMysql),
-					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+					DriverName: model.NewPointer(model.DatabaseDriverMysql),
+					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: false,
@@ -555,8 +555,8 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		{
 			store: SqlStore{
 				settings: &model.SqlSettings{
-					DriverName: model.NewString(model.DatabaseDriverPostgres),
-					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
+					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -564,8 +564,8 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		{
 			store: SqlStore{
 				settings: &model.SqlSettings{
-					DriverName: model.NewString(model.DatabaseDriverPostgres),
-					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
+					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
 				},
 			},
 			expected: false,
@@ -760,9 +760,9 @@ func TestReplicaLagQuery(t *testing.T) {
 			}
 
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewString(*settings.DataSource),
-				QueryAbsoluteLag: model.NewString(query),
-				QueryTimeLag:     model.NewString(query),
+				DataSource:       model.NewPointer(*settings.DataSource),
+				QueryAbsoluteLag: model.NewPointer(query),
+				QueryTimeLag:     model.NewPointer(query),
 			}}
 
 			mockMetrics := &mocks.MetricsInterface{}

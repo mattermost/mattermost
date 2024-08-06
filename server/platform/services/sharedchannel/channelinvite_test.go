@@ -93,8 +93,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
-			Guests:  model.NewBool(false),
-			Members: model.NewBool(false),
+			Guests:  model.NewPointer(false),
+			Members: model.NewPointer(false),
 		}
 
 		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
@@ -175,7 +175,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false},
 			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false},
 			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false},
-			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewString("bogus")}, &model.User{Id: model.NewId()}, true, false},
+			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewPointer("bogus")}, &model.User{Id: model.NewId()}, true, false},
 		}
 
 		for _, tc := range testCases {
