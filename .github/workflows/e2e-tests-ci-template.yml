@@ -55,7 +55,7 @@ on:
       REPORT_TYPE:
         type: string
         required: false
-      ROLLING_RELEASE_commit_sha: # Unused for now, can be useful for implementing https://mattermost.atlassian.net/browse/CLD-7983
+      ROLLING_RELEASE_commit_sha:
         type: string
         required: false
       ROLLING_RELEASE_SERVER_IMAGE:
@@ -269,6 +269,7 @@ jobs:
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+      ROLLING_RELEASE_COMMIT_SHA: "${{ inputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
@@ -296,6 +297,8 @@ jobs:
         run: |
           make cloud-init
           if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
+            echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
+            git checkout ${ROLLING_RELEASE_COMMIT_SHA} -- cypress/
             (
             echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
             export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
@@ -310,6 +313,8 @@ jobs:
               exit 1
             fi
             rm -rfv cypress/results
+            echo "RollingRelease: reset the E2E test cases to the revision to test"
+            git reset --hard HEAD
           fi
           make
           make cloud-teardown
