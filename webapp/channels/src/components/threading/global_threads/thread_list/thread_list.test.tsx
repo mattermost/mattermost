@@ -119,7 +119,7 @@ describe('components/threading/global_threads/thread_list', () => {
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find({content: 'Mark all as read'}).find(Button).simulate('click');
+        wrapper.find(Header).shallow().find(Button).find({marginTop: true}).simulate('click');
         expect(openModal).toHaveBeenCalledTimes(1);
     });
 
