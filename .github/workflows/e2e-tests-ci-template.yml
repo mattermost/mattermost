@@ -55,10 +55,10 @@ on:
       REPORT_TYPE:
         type: string
         required: false
-      ROLLINGRELEASE_commit_sha: # Unused for now, can be useful for implementing https://mattermost.atlassian.net/browse/CLD-7983
+      ROLLING_RELEASE_commit_sha: # Unused for now, can be useful for implementing https://mattermost.atlassian.net/browse/CLD-7983
         type: string
         required: false
-      ROLLINGRELEASE_SERVER_IMAGE:
+      ROLLING_RELEASE_SERVER_IMAGE:
         type: string
         required: false
     secrets:
@@ -269,7 +269,7 @@ jobs:
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
-      ROLLINGRELEASE_SERVER_IMAGE: "${{ inputs.ROLLINGRELEASE_SERVER_IMAGE }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -295,10 +295,10 @@ jobs:
       - name: ci/e2e-test
         run: |
           make cloud-init
-          if [ -n "$ROLLINGRELEASE_SERVER_IMAGE" ]; then
+          if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
             (
-            echo "RollingRelease: running initial smoketest against image $ROLLINGRELEASE_SERVER_IMAGE"
-            export SERVER_IMAGE="$ROLLINGRELEASE_SERVER_IMAGE"
+            echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
+            export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
             export TEST_FILTER=""
             export AUTOMATION_DASHBOARD_URL=""
             make

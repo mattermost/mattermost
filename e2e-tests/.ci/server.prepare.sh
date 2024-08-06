@@ -32,7 +32,7 @@ if [ "$TEST" = "cypress" ]; then
     "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.9.0/com.mattermost.demo-plugin-0.9.0.tar.gz" \
     "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz"
   do
-    PLUGIN_NAME=$(echo -n "$PLUGIN_URL" | rev | cut -d/ -f1 | rev)
+    PLUGIN_NAME="${PLUGIN_URL##*/}"
     PLUGIN_PATH="tests/fixtures/$PLUGIN_NAME"
     if ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress test -f "$PLUGIN_PATH"; then
       mme2e_log "Skipping installation of plugin $PLUGIN_NAME: file exists"
