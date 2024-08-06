@@ -131,7 +131,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		license := model.License{
 			Id: model.NewId(),
 			Features: &model.Features{
-				Users: model.NewInt(100),
+				Users: model.NewPointer(100),
 			},
 			Customer: &model.Customer{
 				Name: "Test",
@@ -259,7 +259,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -295,7 +295,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -328,7 +328,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		validTrialRequest.Users = 100
 		defer func() { validTrialRequest.CompanyCountry = "US" }()
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -389,7 +389,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	t.Run("trial license user count less than current users", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -424,7 +424,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {

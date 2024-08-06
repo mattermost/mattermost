@@ -272,7 +272,7 @@ func TestOpenDialog(t *testing.T) {
 
 	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		time.Sleep(2 * time.Second)
