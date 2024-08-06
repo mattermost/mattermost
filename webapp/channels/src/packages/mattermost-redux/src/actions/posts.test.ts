@@ -14,8 +14,8 @@ import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
 import * as Actions from 'mattermost-redux/actions/posts';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {GetStateFunc} from 'mattermost-redux/types/actions';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import mockStore from 'tests/test_store';
 
@@ -1006,10 +1006,8 @@ describe('Actions.Posts', () => {
             reply(200, OK_RESPONSE);
 
         dispatch(Actions.flagPost(post1.id));
-        const state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
     });
 
     it('unflagPost', async () => {
@@ -1037,20 +1035,15 @@ describe('Actions.Posts', () => {
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
         dispatch(Actions.flagPost(post1.id));
-        let state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
 
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
         dispatch(Actions.unflagPost(post1.id));
-        state = getState();
-        const unflagged = state.entities.preferences.myPreferences[prefKey];
-        if (unflagged) {
-            throw new Error('unexpected unflagged');
-        }
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(false);
     });
 
     it('setUnreadPost', async () => {

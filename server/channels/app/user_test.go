@@ -58,14 +58,14 @@ func TestCreateOAuthUser(t *testing.T) {
 		dbUser := th.BasicUser
 
 		// mock oAuth Provider, return data
-		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		mockUser := &model.User{Id: "abcdef", AuthData: model.NewPointer("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
 		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockUser, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
-		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
+		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewPointer("e711000764be43d898404a7e9c26b710"), "", false)
 		assert.NoError(t, er2)
 		assert.Equal(t, dbUser.Id, s)
 
@@ -497,7 +497,7 @@ func TestCreateUserConflict(t *testing.T) {
 
 	user := &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	user, err := th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
@@ -513,7 +513,7 @@ func TestCreateUserConflict(t *testing.T) {
 	// Same email
 	user = &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
@@ -565,7 +565,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
@@ -608,7 +608,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
@@ -1903,7 +1903,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a username already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(th.BasicUser.Username),
+			Username: model.NewPointer(th.BasicUser.Username),
 		}, true)
 
 		require.NotNil(t, err)
@@ -1912,7 +1912,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a email already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Email: model.NewString(th.BasicUser.Email),
+			Email: model.NewPointer(th.BasicUser.Email),
 		}, true)
 
 		require.NotNil(t, err)
@@ -1921,7 +1921,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
 		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(model.NewId()),
+			Username: model.NewPointer(model.NewUsername()),
 		}, true)
 
 		require.Nil(t, err)

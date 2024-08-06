@@ -596,7 +596,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_roles: {
                 url: 'user_management/system_roles',
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -611,14 +611,14 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles_feature_discovery: {
                 url: 'user_management/system_roles',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
-                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'System Roles'}),
+                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                     settings: [
                         {
                             type: 'custom',
@@ -2192,7 +2192,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'ServiceSettings.EnableCustomGroups',
-                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups (Beta): '}),
+                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups: '}),
                             help_text: defineMessage({id: 'admin.team.customUserGroupsDescription', defaultMessage: 'When true, users with appropriate permissions can create custom user groups and enables at-mentions for those groups.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                             isHidden: it.not(it.any(
@@ -2398,19 +2398,19 @@ const AdminDefinition: AdminDefinitionType = {
             },
             announcement_banner: {
                 url: 'site_config/announcement_banner',
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Announcement')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'bool',
                             key: 'AnnouncementSettings.EnableBanner',
-                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable Announcement Banner:'}),
+                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable System-wide Notifications:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.enableBannerDesc', defaultMessage: 'Enable an announcement banner across all teams.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                         },
@@ -2459,14 +2459,14 @@ const AdminDefinition: AdminDefinitionType = {
             announcement_banner_feature_discovery: {
                 url: 'site_config/announcement_banner',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'custom',
@@ -2515,7 +2515,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.ThreadAutoFollow',
                             label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Collapsed Reply Threads. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Collapsed Reply Threads are disabled.'}),
+                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
                             help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                             isHidden: it.licensedForFeature('Cloud'),
@@ -2523,8 +2523,8 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'dropdown',
                             key: 'ServiceSettings.CollapsedThreads',
-                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Collapsed Reply Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable collapsed reply threads in Settings. When disabled, users cannot access Collapsed Reply Threads. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
+                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
                             help_text_values: {
                                 linkKnownIssues: (msg: string) => (
                                     <ExternalLink
@@ -5554,13 +5554,13 @@ const AdminDefinition: AdminDefinitionType = {
             },
             gif: {
                 url: 'integrations/gif',
-                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF'}),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                 ),
                 schema: {
                     id: 'GifSettings',
-                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF (Beta)'}),
+                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF'}),
                     settings: [
                         {
                             type: 'bool',

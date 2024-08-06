@@ -1151,6 +1151,7 @@ export function unflagPost(postId: string): ActionFuncAsync {
             user_id: currentUserId,
             category: Preferences.CATEGORY_FLAGGED_POST,
             name: postId,
+            value: 'true',
         };
 
         Client4.trackEvent('action', 'action_posts_unflag');

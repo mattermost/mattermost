@@ -28,9 +28,9 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 	p1.Message = NewTestId()
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewString("important"),
-			RequestedAck:            model.NewBool(true),
-			PersistentNotifications: model.NewBool(false),
+			Priority:                model.NewPointer("important"),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(false),
 		},
 	}
 	post, err := ss.Post().Save(rctx, &p1)
@@ -73,9 +73,9 @@ func testPostAcknowledgementsStoreGetForPost(t *testing.T, rctx request.CTX, ss 
 	p1.Message = NewTestId()
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewString("important"),
-			RequestedAck:            model.NewBool(true),
-			PersistentNotifications: model.NewBool(false),
+			Priority:                model.NewPointer("important"),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(false),
 		},
 	}
 	_, err := ss.Post().Save(rctx, &p1)
@@ -124,9 +124,9 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 	p1.Message = NewTestId()
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewString("important"),
-			RequestedAck:            model.NewBool(true),
-			PersistentNotifications: model.NewBool(false),
+			Priority:                model.NewPointer("important"),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(false),
 		},
 	}
 	p2 := model.Post{}
@@ -135,9 +135,9 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 	p2.Message = NewTestId()
 	p2.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewString(""),
-			RequestedAck:            model.NewBool(true),
-			PersistentNotifications: model.NewBool(false),
+			Priority:                model.NewPointer(""),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(false),
 		},
 	}
 	_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2})
