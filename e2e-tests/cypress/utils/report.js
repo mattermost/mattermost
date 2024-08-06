@@ -118,7 +118,7 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         MM_ENV,
         SERVER_TYPE,
         BUILD_ID,
-        AUTOMATION_DASHBOARD_URL,
+        AUTOMATION_DASHBOARD_FRONTEND_URL,
     } = process.env;
     const {statsFieldValue, stats} = summary;
     const {
@@ -218,7 +218,7 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         testCycleLink = testCycleKey ? `| [Recorded test executions](${TEST_CYCLE_LINK_PREFIX}${testCycleKey})` : '';
     }
 
-    const automationDashboardField = AUTOMATION_DASHBOARD_URL ? `| [Automation Dashboard Cycle](${AUTOMATION_DASHBOARD_URL}/cycle/${BUILD_ID})` : '';
+    const automationDashboardField = AUTOMATION_DASHBOARD_FRONTEND_URL ? `| [Automation Dashboard](${AUTOMATION_DASHBOARD_FRONTEND_URL}/cycle/${BUILD_ID})` : '';
 
     const rollingReleaseMatchRegex = BUILD_ID.match(/-rolling(?<version>[^-]+)-/);
     const rollingReleaseFrom = rollingReleaseMatchRegex?.groups?.version;
