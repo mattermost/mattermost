@@ -461,7 +461,7 @@ func TestImportImportRole(t *testing.T) {
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"manage_slash_commands"}
-	data.SchemeManaged = model.NewBool(true)
+	data.SchemeManaged = model.NewPointer(true)
 
 	err = th.App.importRole(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded. %v", err)
@@ -1580,7 +1580,7 @@ func TestImportUserTeams(t *testing.T) {
 			name: "Not existing team should fail",
 			data: &[]imports.UserTeamImportData{
 				{
-					Name: model.NewString("not-existing-team-name"),
+					Name: model.NewPointer("not-existing-team-name"),
 				},
 			},
 			expectedError: true,
@@ -1596,7 +1596,7 @@ func TestImportUserTeams(t *testing.T) {
 			data: &[]imports.UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
-					Roles: model.NewString("not-existing-role"),
+					Roles: model.NewPointer("not-existing-role"),
 				},
 			},
 			expectedError:         true,
@@ -1624,7 +1624,7 @@ func TestImportUserTeams(t *testing.T) {
 			data: &[]imports.UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
-					Roles: model.NewString(model.TeamAdminRoleId),
+					Roles: model.NewPointer(model.TeamAdminRoleId),
 				},
 			},
 			expectedError:         false,
@@ -1718,7 +1718,7 @@ func TestImportUserTeams(t *testing.T) {
 							Name: &channel3.Name,
 						},
 						{
-							Name: model.NewString("town-square"),
+							Name: model.NewPointer("town-square"),
 						},
 					},
 				},
@@ -1785,9 +1785,9 @@ func TestImportUserChannels(t *testing.T) {
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	customRole := th.CreateRole("test_custom_role")
 	sampleNotifyProps := imports.UserChannelNotifyPropsImportData{
-		Desktop:    model.NewString("all"),
-		Mobile:     model.NewString("none"),
-		MarkUnread: model.NewString("all"),
+		Desktop:    model.NewPointer("all"),
+		Mobile:     model.NewPointer("none"),
+		MarkUnread: model.NewPointer("all"),
 	}
 
 	tt := []struct {
@@ -1803,7 +1803,7 @@ func TestImportUserChannels(t *testing.T) {
 			name: "Not existing channel should fail",
 			data: &[]imports.UserChannelImportData{
 				{
-					Name: model.NewString("not-existing-channel-name"),
+					Name: model.NewPointer("not-existing-channel-name"),
 				},
 			},
 			expectedError: true,
@@ -1818,7 +1818,7 @@ func TestImportUserChannels(t *testing.T) {
 			data: &[]imports.UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
-					Roles: model.NewString("not-existing-role"),
+					Roles: model.NewPointer("not-existing-role"),
 				},
 			},
 			expectedError:         true,
@@ -1844,7 +1844,7 @@ func TestImportUserChannels(t *testing.T) {
 			data: &[]imports.UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
-					Roles: model.NewString(model.ChannelAdminRoleId),
+					Roles: model.NewPointer(model.ChannelAdminRoleId),
 				},
 			},
 			expectedError:         false,
@@ -4399,7 +4399,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
 			data.Post.Replies = nil
-			data.Post.Message = model.NewString("new post")
+			data.Post.Message = model.NewPointer("new post")
 			errLine, appErr := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
 			require.Nil(t, appErr)
 			require.Equal(t, 0, errLine)
@@ -4436,7 +4436,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
 			data.Post.Replies = nil
-			data.Post.Message = model.NewString("new post2")
+			data.Post.Message = model.NewPointer("new post2")
 			errLine, appErr := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
 			require.Nil(t, appErr)
 			require.Equal(t, 0, errLine)
@@ -4757,7 +4757,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		require.NotNil(t, fileB)
 
 		data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &fileA.Name, Data: fileA}}
-		data.Post.Message = model.NewString("new post")
+		data.Post.Message = model.NewPointer("new post")
 		data.Post.Replies = nil
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
 		require.Nil(t, err)
@@ -4867,15 +4867,15 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 		b.Run("s3", func(b *testing.B) {
 			th := SetupConfig(b, func(cfg *model.Config) {
 				cfg.FileSettings = model.FileSettings{
-					DriverName:                         model.NewString(model.ImageDriverS3),
-					AmazonS3AccessKeyId:                model.NewString(model.MinioAccessKey),
-					AmazonS3SecretAccessKey:            model.NewString(model.MinioSecretKey),
-					AmazonS3Bucket:                     model.NewString("comparefilescontentbucket"),
-					AmazonS3Endpoint:                   model.NewString("localhost:9000"),
-					AmazonS3Region:                     model.NewString(""),
-					AmazonS3PathPrefix:                 model.NewString(""),
-					AmazonS3SSL:                        model.NewBool(false),
-					AmazonS3RequestTimeoutMilliseconds: model.NewInt64(300 * 1000),
+					DriverName:                         model.NewPointer(model.ImageDriverS3),
+					AmazonS3AccessKeyId:                model.NewPointer(model.MinioAccessKey),
+					AmazonS3SecretAccessKey:            model.NewPointer(model.MinioSecretKey),
+					AmazonS3Bucket:                     model.NewPointer("comparefilescontentbucket"),
+					AmazonS3Endpoint:                   model.NewPointer("localhost:9000"),
+					AmazonS3Region:                     model.NewPointer(""),
+					AmazonS3PathPrefix:                 model.NewPointer(""),
+					AmazonS3SSL:                        model.NewPointer(false),
+					AmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(300 * 1000)),
 				}
 			})
 			defer th.TearDown()
@@ -5003,15 +5003,15 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 		b.Run("s3", func(b *testing.B) {
 			th := SetupConfig(b, func(cfg *model.Config) {
 				cfg.FileSettings = model.FileSettings{
-					DriverName:                         model.NewString(model.ImageDriverS3),
-					AmazonS3AccessKeyId:                model.NewString(model.MinioAccessKey),
-					AmazonS3SecretAccessKey:            model.NewString(model.MinioSecretKey),
-					AmazonS3Bucket:                     model.NewString("comparefilescontentbucket"),
-					AmazonS3Endpoint:                   model.NewString("localhost:9000"),
-					AmazonS3Region:                     model.NewString(""),
-					AmazonS3PathPrefix:                 model.NewString(""),
-					AmazonS3SSL:                        model.NewBool(false),
-					AmazonS3RequestTimeoutMilliseconds: model.NewInt64(300 * 1000),
+					DriverName:                         model.NewPointer(model.ImageDriverS3),
+					AmazonS3AccessKeyId:                model.NewPointer(model.MinioAccessKey),
+					AmazonS3SecretAccessKey:            model.NewPointer(model.MinioSecretKey),
+					AmazonS3Bucket:                     model.NewPointer("comparefilescontentbucket"),
+					AmazonS3Endpoint:                   model.NewPointer("localhost:9000"),
+					AmazonS3Region:                     model.NewPointer(""),
+					AmazonS3PathPrefix:                 model.NewPointer(""),
+					AmazonS3SSL:                        model.NewPointer(false),
+					AmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(300 * 1000)),
 				}
 			})
 			defer th.TearDown()

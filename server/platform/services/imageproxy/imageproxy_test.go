@@ -125,14 +125,14 @@ func TestOnConfigChange(t *testing.T) {
 		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
 
 		newConfig := proxy.ConfigService.Config().Clone()
-		newConfig.ImageProxySettings.ImageProxyType = model.NewString(model.ImageProxyTypeLocal)
+		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeLocal)
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
 		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*LocalBackend).baseURL.String())
 
 		newConfig = proxy.ConfigService.Config().Clone()
-		newConfig.ImageProxySettings.ImageProxyType = model.NewString(model.ImageProxyTypeAtmosCamo)
+		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeAtmosCamo)
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
@@ -146,7 +146,7 @@ func TestOnConfigChange(t *testing.T) {
 		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*LocalBackend).baseURL.String())
 
 		newConfig := proxy.ConfigService.Config().Clone()
-		newConfig.ServiceSettings.SiteURL = model.NewString("https://new.example.com")
+		newConfig.ServiceSettings.SiteURL = model.NewPointer("https://new.example.com")
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
@@ -161,7 +161,7 @@ func TestOnConfigChange(t *testing.T) {
 		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
 
 		newConfig := proxy.ConfigService.Config().Clone()
-		newConfig.ServiceSettings.SiteURL = model.NewString("https://new.example.com")
+		newConfig.ServiceSettings.SiteURL = model.NewPointer("https://new.example.com")
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
@@ -176,8 +176,8 @@ func TestOnConfigChange(t *testing.T) {
 		// require.Equal(t, "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac", proxy.backend.(*AtmosCamoBackend).remoteOptions)
 
 		newConfig := proxy.ConfigService.Config().Clone()
-		newConfig.ImageProxySettings.RemoteImageProxyURL = model.NewString("https://new.example.com")
-		newConfig.ImageProxySettings.RemoteImageProxyOptions = model.NewString("some other random hash")
+		newConfig.ImageProxySettings.RemoteImageProxyURL = model.NewPointer("https://new.example.com")
+		newConfig.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("some other random hash")
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 

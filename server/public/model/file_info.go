@@ -88,7 +88,7 @@ func (fi *FileInfo) PreSave() {
 	}
 
 	if fi.RemoteId == nil {
-		fi.RemoteId = NewString("")
+		fi.RemoteId = NewPointer("")
 	}
 }
 
