@@ -982,7 +982,7 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    testUserID,
 			PostId:    post.Id,
 			EmojiName: testEmojiName,
-			RemoteId:  model.NewString(testRemoteID),
+			RemoteId:  model.NewPointer(testRemoteID),
 		}
 
 		_, nErr := ss.Reaction().Save(reaction)
@@ -1007,7 +1007,7 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    testUserID,
 			PostId:    post.Id,
 			EmojiName: testEmojiName,
-			RemoteId:  model.NewString(testRemoteID),
+			RemoteId:  model.NewPointer(testRemoteID),
 		}
 
 		_, nErr := ss.Reaction().Save(reaction)
