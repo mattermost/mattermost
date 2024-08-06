@@ -1060,22 +1060,16 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <SimpleTooltip
-                                          content="Send message"
+                                        <WithTooltip
                                           id="name-id0"
+                                          placement="top"
+                                          title="Send message"
                                         >
                                           <OverlayTrigger
                                             defaultOverlayShown={false}
-                                            delayShow={100}
-                                            overlay={
-                                              <Tooltip
-                                                className="hidden-xs"
-                                                id="name-id0"
-                                                placement="top"
-                                              >
-                                                Send message
-                                              </Tooltip>
-                                            }
+                                            delay={400}
+                                            disabled={false}
+                                            overlay={<Unknown />}
                                             placement="top"
                                             trigger={
                                               Array [
@@ -1086,11 +1080,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           >
                                             <OverlayTrigger
                                               defaultOverlayShown={false}
-                                              delayShow={100}
+                                              delay={400}
                                               overlay={
                                                 <OverlayWrapper
-                                                  className="hidden-xs"
-                                                  id="name-id0"
                                                   intl={
                                                     Object {
                                                       "$t": [Function],
@@ -1130,10 +1122,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                       "wrapRichTextChunksInFragment": undefined,
                                                     }
                                                   }
-                                                  placement="top"
-                                                >
-                                                  Send message
-                                                </OverlayWrapper>
+                                                />
                                               }
                                               placement="top"
                                               trigger={
@@ -1168,7 +1157,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                               </DMButton>
                                             </OverlayTrigger>
                                           </OverlayTrigger>
-                                        </SimpleTooltip>
+                                        </WithTooltip>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1279,22 +1268,16 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <SimpleTooltip
-                                          content="Send message"
+                                        <WithTooltip
                                           id="name-id1"
+                                          placement="top"
+                                          title="Send message"
                                         >
                                           <OverlayTrigger
                                             defaultOverlayShown={false}
-                                            delayShow={100}
-                                            overlay={
-                                              <Tooltip
-                                                className="hidden-xs"
-                                                id="name-id1"
-                                                placement="top"
-                                              >
-                                                Send message
-                                              </Tooltip>
-                                            }
+                                            delay={400}
+                                            disabled={false}
+                                            overlay={<Unknown />}
                                             placement="top"
                                             trigger={
                                               Array [
@@ -1305,11 +1288,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           >
                                             <OverlayTrigger
                                               defaultOverlayShown={false}
-                                              delayShow={100}
+                                              delay={400}
                                               overlay={
                                                 <OverlayWrapper
-                                                  className="hidden-xs"
-                                                  id="name-id1"
                                                   intl={
                                                     Object {
                                                       "$t": [Function],
@@ -1349,10 +1330,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                       "wrapRichTextChunksInFragment": undefined,
                                                     }
                                                   }
-                                                  placement="top"
-                                                >
-                                                  Send message
-                                                </OverlayWrapper>
+                                                />
                                               }
                                               placement="top"
                                               trigger={
@@ -1387,7 +1365,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                               </DMButton>
                                             </OverlayTrigger>
                                           </OverlayTrigger>
-                                        </SimpleTooltip>
+                                        </WithTooltip>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1498,22 +1476,16 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <SimpleTooltip
-                                          content="Send message"
+                                        <WithTooltip
                                           id="name-id10"
+                                          placement="top"
+                                          title="Send message"
                                         >
                                           <OverlayTrigger
                                             defaultOverlayShown={false}
-                                            delayShow={100}
-                                            overlay={
-                                              <Tooltip
-                                                className="hidden-xs"
-                                                id="name-id10"
-                                                placement="top"
-                                              >
-                                                Send message
-                                              </Tooltip>
-                                            }
+                                            delay={400}
+                                            disabled={false}
+                                            overlay={<Unknown />}
                                             placement="top"
                                             trigger={
                                               Array [
@@ -1524,11 +1496,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           >
                                             <OverlayTrigger
                                               defaultOverlayShown={false}
-                                              delayShow={100}
+                                              delay={400}
                                               overlay={
                                                 <OverlayWrapper
-                                                  className="hidden-xs"
-                                                  id="name-id10"
                                                   intl={
                                                     Object {
                                                       "$t": [Function],
@@ -1568,10 +1538,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                       "wrapRichTextChunksInFragment": undefined,
                                                     }
                                                   }
-                                                  placement="top"
-                                                >
-                                                  Send message
-                                                </OverlayWrapper>
+                                                />
                                               }
                                               placement="top"
                                               trigger={
@@ -1606,7 +1573,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                               </DMButton>
                                             </OverlayTrigger>
                                           </OverlayTrigger>
-                                        </SimpleTooltip>
+                                        </WithTooltip>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1717,22 +1684,16 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <SimpleTooltip
-                                          content="Send message"
+                                        <WithTooltip
                                           id="name-id11"
+                                          placement="top"
+                                          title="Send message"
                                         >
                                           <OverlayTrigger
                                             defaultOverlayShown={false}
-                                            delayShow={100}
-                                            overlay={
-                                              <Tooltip
-                                                className="hidden-xs"
-                                                id="name-id11"
-                                                placement="top"
-                                              >
-                                                Send message
-                                              </Tooltip>
-                                            }
+                                            delay={400}
+                                            disabled={false}
+                                            overlay={<Unknown />}
                                             placement="top"
                                             trigger={
                                               Array [
@@ -1743,11 +1704,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           >
                                             <OverlayTrigger
                                               defaultOverlayShown={false}
-                                              delayShow={100}
+                                              delay={400}
                                               overlay={
                                                 <OverlayWrapper
-                                                  className="hidden-xs"
-                                                  id="name-id11"
                                                   intl={
                                                     Object {
                                                       "$t": [Function],
@@ -1787,10 +1746,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                       "wrapRichTextChunksInFragment": undefined,
                                                     }
                                                   }
-                                                  placement="top"
-                                                >
-                                                  Send message
-                                                </OverlayWrapper>
+                                                />
                                               }
                                               placement="top"
                                               trigger={
@@ -1825,7 +1781,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                               </DMButton>
                                             </OverlayTrigger>
                                           </OverlayTrigger>
-                                        </SimpleTooltip>
+                                        </WithTooltip>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1936,22 +1892,16 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <SimpleTooltip
-                                          content="Send message"
+                                        <WithTooltip
                                           id="name-id12"
+                                          placement="top"
+                                          title="Send message"
                                         >
                                           <OverlayTrigger
                                             defaultOverlayShown={false}
-                                            delayShow={100}
-                                            overlay={
-                                              <Tooltip
-                                                className="hidden-xs"
-                                                id="name-id12"
-                                                placement="top"
-                                              >
-                                                Send message
-                                              </Tooltip>
-                                            }
+                                            delay={400}
+                                            disabled={false}
+                                            overlay={<Unknown />}
                                             placement="top"
                                             trigger={
                                               Array [
@@ -1962,11 +1912,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                           >
                                             <OverlayTrigger
                                               defaultOverlayShown={false}
-                                              delayShow={100}
+                                              delay={400}
                                               overlay={
                                                 <OverlayWrapper
-                                                  className="hidden-xs"
-                                                  id="name-id12"
                                                   intl={
                                                     Object {
                                                       "$t": [Function],
@@ -2006,10 +1954,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                       "wrapRichTextChunksInFragment": undefined,
                                                     }
                                                   }
-                                                  placement="top"
-                                                >
-                                                  Send message
-                                                </OverlayWrapper>
+                                                />
                                               }
                                               placement="top"
                                               trigger={
@@ -2044,7 +1989,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                               </DMButton>
                                             </OverlayTrigger>
                                           </OverlayTrigger>
-                                        </SimpleTooltip>
+                                        </WithTooltip>
                                       </div>
                                     </DMContainer>
                                   </div>
