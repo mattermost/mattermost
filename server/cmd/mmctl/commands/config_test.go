@@ -896,8 +896,8 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 func TestCloudRestricted(t *testing.T) {
 	cfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			GoogleDeveloperKey: model.NewString("test"),
-			SiteURL:            model.NewString("test"),
+			GoogleDeveloperKey: model.NewPointer("test"),
+			SiteURL:            model.NewPointer("test"),
 		},
 	}
 
@@ -937,40 +937,40 @@ func TestSetConfigValue(t *testing.T) {
 			path: "LogSettings.EnableConsole",
 			args: []string{"true"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewBool(false),
+				EnableConsole: model.NewPointer(false),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewBool(true),
+				EnableConsole: model.NewPointer(true),
 			}},
 		},
 		"string": {
 			path: "LogSettings.ConsoleLevel",
 			args: []string{"foo"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewString("ConsoleLevel"),
+				ConsoleLevel: model.NewPointer("ConsoleLevel"),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewString("foo"),
+				ConsoleLevel: model.NewPointer("foo"),
 			}},
 		},
 		"int": {
 			path: "LogSettings.MaxFieldSize",
 			args: []string{"123"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewInt(0),
+				MaxFieldSize: model.NewPointer(0),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewInt(123),
+				MaxFieldSize: model.NewPointer(123),
 			}},
 		},
 		"int64": {
 			path: "ServiceSettings.TLSStrictTransportMaxAge",
 			config: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewInt64(0),
+				TLSStrictTransportMaxAge: model.NewPointer(int64(0)),
 			}},
 			args: []string{"123"},
 			expectedConfig: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewInt64(123),
+				TLSStrictTransportMaxAge: model.NewPointer(int64(123)),
 			}},
 		},
 		"string slice": {

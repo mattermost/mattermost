@@ -450,7 +450,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		Token:       model.NewId(),
 	}
 
-	rcp := &model.RemoteClusterPatch{DisplayName: model.NewString("different value")}
+	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)

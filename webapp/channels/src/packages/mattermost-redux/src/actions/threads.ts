@@ -68,7 +68,7 @@ export function getThreadsForCurrentTeam({before = '', after = '', unread = fals
         }
 
         if (userThreadList?.threads?.length) {
-            await dispatch(getMissingProfilesByIds(uniq(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
+            await dispatch(getMissingProfilesByIds(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat()));
 
             dispatch({
                 type: PostTypes.RECEIVED_POSTS,
@@ -138,7 +138,7 @@ export function getCountsAndThreadsSince(userId: string, teamId: string, since?:
         const actions = [];
 
         if (userThreadList?.threads?.length) {
-            await dispatch(getMissingProfilesByIds(uniq(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
+            await dispatch(getMissingProfilesByIds(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat()));
             actions.push({
                 type: PostTypes.RECEIVED_POSTS,
                 data: {posts: userThreadList.threads.map(({post}) => ({...post, update_at: 0}))},

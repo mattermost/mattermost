@@ -523,9 +523,9 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 
 func TestChannelBookmarkPatch(t *testing.T) {
 	p := &ChannelBookmarkPatch{
-		DisplayName: NewString(NewId()),
-		SortOrder:   NewInt64(1),
-		LinkUrl:     NewString(NewId()),
+		DisplayName: NewPointer(NewId()),
+		SortOrder:   NewPointer(int64(1)),
+		LinkUrl:     NewPointer(NewId()),
 	}
 
 	b := ChannelBookmark{
