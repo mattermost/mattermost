@@ -248,7 +248,7 @@ func TestNoticeValidation(t *testing.T) {
 				userCount: 300,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewInt64(400),
+						NumberOfUsers: model.NewPointer(int64(400)),
 					},
 				},
 			},
@@ -262,8 +262,8 @@ func TestNoticeValidation(t *testing.T) {
 				postCount: 2000,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewInt64(400),
-						NumberOfPosts: model.NewInt64(3000),
+						NumberOfUsers: model.NewPointer(int64(400)),
+						NumberOfPosts: model.NewPointer(int64(3000)),
 					},
 				},
 			},
@@ -275,7 +275,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -287,7 +287,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
+						DisplayDate: model.NewPointer(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
 					},
 				},
 			},
@@ -299,7 +299,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -311,7 +311,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -618,7 +618,7 @@ func TestNoticeFetch(t *testing.T) {
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
-			NumberOfPosts: model.NewInt64(99999),
+			NumberOfPosts: model.NewPointer(int64(99999)),
 		},
 		ID: "333",
 		LocalizedMessages: map[string]model.NoticeMessageInternal{

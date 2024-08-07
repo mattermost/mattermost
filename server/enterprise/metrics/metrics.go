@@ -156,6 +156,7 @@ type MetricsInterfaceImpl struct {
 	SearchFileSearchesDuration prometheus.Histogram
 	StoreTimesHistograms       *prometheus.HistogramVec
 	APITimesHistograms         *prometheus.HistogramVec
+	RedisTimesHistograms       *prometheus.HistogramVec
 	SearchPostIndexCounter     prometheus.Counter
 	SearchFileIndexCounter     prometheus.Counter
 	SearchUserIndexCounter     prometheus.Counter
@@ -763,6 +764,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"handler", "method", "status_code", "origin_client", "page_load_context"},
 	)
 	m.Registry.MustRegister(m.APITimesHistograms)
+
+	m.RedisTimesHistograms = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemDB,
+			Name:        "cache_time",
+			Help:        "Time to execute the cache handler",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"cache_name", "operation"},
+	)
+	m.Registry.MustRegister(m.RedisTimesHistograms)
 
 	m.SearchPostIndexCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace:   MetricsNamespace,
@@ -1497,6 +1510,13 @@ func (mi *MetricsInterfaceImpl) ObserveStoreMethodDuration(method string, succes
 
 func (mi *MetricsInterfaceImpl) ObserveAPIEndpointDuration(handler, method, statusCode, originClient, pageLoadContext string, elapsed float64) {
 	mi.APITimesHistograms.With(prometheus.Labels{"handler": handler, "method": method, "status_code": statusCode, "origin_client": originClient, "page_load_context": pageLoadContext}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveRedisEndpointDuration(cacheName, operation string, elapsed float64) {
+	mi.RedisTimesHistograms.With(prometheus.Labels{
+		"cache_name": cacheName,
+		"operation":  operation,
+	}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) IncrementClusterEventType(eventType model.ClusterEvent) {
