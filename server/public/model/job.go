@@ -5,6 +5,8 @@ package model
 
 import (
 	"net/http"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils/timeutils"
 )
 
 const (
@@ -77,15 +79,15 @@ var AllJobTypes = [...]string{
 }
 
 type Job struct {
-	Id             string    `json:"id" yaml:"id"`
-	Type           string    `json:"type" yaml:"type"`
-	Priority       int64     `json:"priority" yaml:"priority"`
-	CreateAt       int64     `json:"create_at" yaml:"create_at"`
-	StartAt        int64     `json:"start_at" yaml:"start_at"`
-	LastActivityAt int64     `json:"last_activity_at" yaml:"last_activity_at"`
-	Status         string    `json:"status" yaml:"status"`
-	Progress       int64     `json:"progress" yaml:"progress"`
-	Data           StringMap `json:"data" yaml:"data"`
+	Id             string    `json:"id"`
+	Type           string    `json:"type"`
+	Priority       int64     `json:"priority"`
+	CreateAt       int64     `json:"create_at"`
+	StartAt        int64     `json:"start_at"`
+	LastActivityAt int64     `json:"last_activity_at"`
+	Status         string    `json:"status"`
+	Progress       int64     `json:"progress"`
+	Data           StringMap `json:"data"`
 }
 
 func (j *Job) Auditable() map[string]interface{} {
@@ -100,6 +102,30 @@ func (j *Job) Auditable() map[string]interface{} {
 		"progress":         j.Progress,
 		"data":             j.Data, // TODO do we want this here
 	}
+}
+
+func (j *Job) MarshalYAML() (any, error) {
+	return struct {
+		Id             string    `yaml:"id"`
+		Type           string    `yaml:"type"`
+		Priority       int64     `yaml:"priority"`
+		CreateAt       string    `yaml:"create_at"`
+		StartAt        string    `yaml:"start_at"`
+		LastActivityAt string    `yaml:"last_activity_at"`
+		Status         string    `yaml:"status"`
+		Progress       int64     `yaml:"progress"`
+		Data           StringMap `yaml:"data"`
+	}{
+		Id:             j.Id,
+		Type:           j.Type,
+		Priority:       j.Priority,
+		CreateAt:       timeutils.FormatMillis(j.CreateAt),
+		StartAt:        timeutils.FormatMillis(j.StartAt),
+		LastActivityAt: timeutils.FormatMillis(j.LastActivityAt),
+		Status:         j.Status,
+		Progress:       j.Progress,
+		Data:           j.Data,
+	}, nil
 }
 
 func (j *Job) IsValid() *AppError {
