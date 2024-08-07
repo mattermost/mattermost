@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -395,7 +396,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	password := rcWithTeamAndPassword.Password
 	if password == "" {
-		password = model.NewId()
+		password = utils.RandCString(16)
 	}
 
 	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
