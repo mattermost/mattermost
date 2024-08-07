@@ -49,7 +49,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
-	license.Features.Users = model.NewInt(licenseUsers)
+	license.Features.Users = model.NewPointer(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
 	generateSupportPacket := func(t *testing.T) *model.SupportPacket {
@@ -126,7 +126,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewInt(1)
+			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
 		})
 
 		for i := 0; i < 5; i++ {
