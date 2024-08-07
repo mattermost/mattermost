@@ -47,7 +47,9 @@ fi
 for SERVICE in $ENABLED_DOCKER_SERVICES; do
   case "$SERVICE" in
   openldap)
-    if ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapsearch -v -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -b "dc=mm,dc=test,dc=com" >/dev/null 2>&1'; then
+    LDIF_FILE=../../server/tests/test-data.ldif
+    LDIF_CANARY=$(sed -n -E 's/^dn:[[:space:]]*(.*)$/\1/p' ${LDIF_FILE} | tail -n1)
+    if ${MME2E_DC_SERVER} exec -T -- openldap bash -c "ldapsearch -x -D \"cn=admin,dc=mm,dc=test,dc=com\" -w mostest -b \"$LDIF_CANARY\" >/dev/null"; then
       mme2e_log "Skipping configuration for the $SERVICE container: already initialized"
       continue
     fi
