@@ -32,25 +32,40 @@ func TestLRU(t *testing.T) {
 	size := lru.len
 	require.Equalf(t, size, 128, "bad len: %v", size)
 
-	keys, err := l.Keys()
-	require.NoError(t, err)
-	for i, k := range keys {
-		var v int
-		err = l.Get(k, &v)
-		require.NoError(t, err, "bad key: %v", k)
-		require.Equalf(t, fmt.Sprintf("%d", v), k, "bad key: %v", k)
-		require.Equalf(t, i+128, v, "bad value: %v", k)
-	}
+	l.Scan(func(keys []string) error {
+		for i, k := range keys {
+			var v int
+			err := l.Get(k, &v)
+			require.NoError(t, err, "bad key: %v", k)
+			require.Equalf(t, fmt.Sprintf("%d", v), k, "bad key: %v", k)
+			require.Equalf(t, i+128, v, "bad value: %v", k)
+		}
+		return nil
+	})
+
 	for i := 0; i < 128; i++ {
 		var v int
-		err = l.Get(fmt.Sprintf("%d", i), &v)
+		err := l.Get(fmt.Sprintf("%d", i), &v)
 		require.Equal(t, ErrKeyNotFound, err, "should be evicted %v: %v", i, err)
 	}
 	for i := 128; i < 256; i++ {
 		var v int
-		err = l.Get(fmt.Sprintf("%d", i), &v)
+		err := l.Get(fmt.Sprintf("%d", i), &v)
 		require.NoError(t, err, "should not be evicted %v: %v", i, err)
 	}
+	var v1, v2 int
+	var values = []any{&v1, &v2}
+	errs := l.GetMulti([]string{"128", "129"}, values)
+	for _, err := range errs {
+		require.NoError(t, err)
+	}
+	err := l.RemoveMulti([]string{"128", "129"})
+	require.NoError(t, err)
+	errs = l.GetMulti([]string{"128", "129"}, values)
+	for i, err := range errs {
+		require.Equal(t, ErrKeyNotFound, err, "should be deleted %v: %v", i, err)
+	}
+
 	for i := 128; i < 192; i++ {
 		l.Remove(fmt.Sprintf("%d", i))
 		var v int
@@ -63,12 +78,13 @@ func TestLRU(t *testing.T) {
 	require.NoError(t, err, "should exist")
 	require.Equalf(t, 192, v, "bad value: %v", v)
 
-	keys, err = l.Keys()
-	require.NoError(t, err)
-	for i, k := range keys {
-		require.Falsef(t, i < 63 && k != fmt.Sprintf("%d", i+193), "out of order key: %v", k)
-		require.Falsef(t, i == 63 && k != "192", "out of order key: %v", k)
-	}
+	l.Scan(func(keys []string) error {
+		for i, k := range keys {
+			require.Falsef(t, i < 63 && k != fmt.Sprintf("%d", i+193), "out of order key: %v", k)
+			require.Falsef(t, i == 63 && k != "192", "out of order key: %v", k)
+		}
+		return nil
+	})
 
 	l.Purge()
 	size = lru.len

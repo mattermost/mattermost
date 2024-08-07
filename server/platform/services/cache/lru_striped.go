@@ -4,6 +4,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -95,16 +96,22 @@ func (L LRUStriped) Remove(key string) error {
 	return L.keyBucket(key).Remove(key)
 }
 
-// Keys does the same as LRU.Keys. However, because this is lock-free, keys might be
-// inserted or removed from a previously scanned LRU cache.
-// This is not as precise as using a single LRU instance.
-func (L LRUStriped) Keys() ([]string, error) {
-	var keys []string
-	for _, lru := range L.buckets {
-		k, _ := lru.Keys() // Keys never returns any error
-		keys = append(keys, k...)
+// RemoveMulti does the same as LRU.RemoveMulti
+func (L LRUStriped) RemoveMulti(keys []string) error {
+	var err error
+	for _, key := range keys {
+		err = errors.Join(err, L.keyBucket(key).Remove(key))
 	}
-	return keys, nil
+	return err
+}
+
+// Scan is basically a copy of Keys in LRU mode.
+// See comment in LRU.Scan.
+func (L LRUStriped) Scan(f func([]string) error) error {
+	for _, lru := range L.buckets {
+		lru.Scan(f)
+	}
+	return nil
 }
 
 // Len does the same as LRU.Len. As for LRUStriped.Keys, this call cannot be precise.
