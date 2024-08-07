@@ -8531,6 +8531,10 @@
     "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache type must be either lru or redis."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -8643,6 +8647,10 @@
     "translation": "Invalid connection security for email settings. Must be '', 'TLS', or 'STARTTLS'."
   },
   {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress must be specified for redis cache type."
+  },
+  {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
   },
@@ -8681,6 +8689,10 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB must have a value greater or equal to zero."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
