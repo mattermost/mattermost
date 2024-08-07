@@ -195,17 +195,34 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	t.Run("Should enforce the presence of the password", func(t *testing.T) {
+	t.Run("Should generate a password if none is given", func(t *testing.T) {
 		// clean the password and check the response
-		rcWithTeamAndPassword.Password = ""
+		rcWithTeamNoPassword := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:    "remotecluster-nopasswd",
+				SiteURL: "http://no-passwd.example.com",
+				Token:   model.NewId(),
+			},
+			Password: "",
+		}
 
-		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithTeamAndPassword)
-		CheckBadRequestStatus(t, resp)
-		require.Error(t, err)
-		require.Empty(t, rcWithInvite)
+		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithTeamNoPassword)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotZero(t, rcWithInvite.Invite)
+		// when the password is not provided, it is returned as part
+		// of the response
+		require.NotZero(t, rcWithInvite.Password)
 
-		// reset password for the next tests
-		rcWithTeamAndPassword.Password = "mysupersecret"
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		require.Nil(t, appErr)
+		require.Equal(t, rcWithTeamNoPassword.Name, rc.Name)
+
+		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithInvite.Password)
+		require.Nil(t, appErr)
+		require.Equal(t, rc.RemoteId, rci.RemoteId)
+		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
 	t.Run("Should return a sanitized remote cluster and its invite", func(t *testing.T) {
@@ -216,6 +233,9 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.NotZero(t, rcWithInvite.Invite)
 		require.Zero(t, rcWithInvite.RemoteCluster.Token)
 		require.Zero(t, rcWithInvite.RemoteCluster.RemoteToken)
+		// when the password is provided as an input, is not returned
+		// by the endpoint
+		require.Zero(t, rcWithInvite.Password)
 
 		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
 		require.Nil(t, appErr)

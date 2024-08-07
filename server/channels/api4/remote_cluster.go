@@ -366,11 +366,6 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rcWithTeamAndPassword.Password == "" {
-		c.SetInvalidParam("password")
-		return
-	}
-
 	url := c.App.GetSiteURL()
 	if url == "" {
 		c.Err = model.NewAppError("createRemoteCluster", "api.get_site_url_error", nil, "", http.StatusUnprocessableEntity)
@@ -398,7 +393,12 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	rcSaved.Sanitize()
 
-	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, rcWithTeamAndPassword.Password)
+	password := rcWithTeamAndPassword.Password
+	if password == "" {
+		password = model.NewId()
+	}
+
+	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
 	if iErr != nil {
 		c.Err = iErr
 		return
@@ -408,7 +408,12 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(rcSaved)
 	auditRec.AddEventObjectType("remotecluster")
 
-	b, err := json.Marshal(model.RemoteClusterWithInvite{RemoteCluster: rcSaved, Invite: inviteCode})
+	resp := model.RemoteClusterWithInvite{RemoteCluster: rcSaved, Invite: inviteCode}
+	if rcWithTeamAndPassword.Password == "" {
+		resp.Password = password
+	}
+
+	b, err := json.Marshal(resp)
 	if err != nil {
 		c.Err = model.NewAppError("createRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

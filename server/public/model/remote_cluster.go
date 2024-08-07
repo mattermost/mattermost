@@ -155,6 +155,7 @@ type RemoteClusterWithPassword struct {
 type RemoteClusterWithInvite struct {
 	RemoteCluster *RemoteCluster `json:"remote_cluster"`
 	Invite        string         `json:"invite"`
+	Password      string         `json:"password,omitempty"`
 }
 
 func newIDFromBytes(b []byte) string {
