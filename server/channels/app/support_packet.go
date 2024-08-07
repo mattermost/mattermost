@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"os"
 	"runtime"
 	"slices"
 	"sync"
@@ -17,6 +18,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+const (
+	EnvVarInstallType = "MM_INSTALL_TYPE"
 )
 
 func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
@@ -123,194 +128,195 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
 	var rErr *multierror.Error
 
-	/* DB */
+	var sp model.SupportPacket
 
-	databaseType, databaseSchemaVersion := a.Srv().DatabaseTypeAndSchemaVersion()
+	sp.Version = model.CurrentSupportPacketVersion
+
+	/* License */
+	if license := a.Srv().License(); license != nil {
+		sp.License.Company = license.Customer.Company
+		sp.License.Users = model.SafeDereference(license.Features.Users)
+		sp.License.IsTrial = license.IsTrial
+		sp.License.IsGovSKU = license.IsGovSku
+	}
+
+	/* Server */
+	sp.Server.OS = runtime.GOOS
+	sp.Server.Architecture = runtime.GOARCH
+	sp.Server.Version = model.CurrentVersion
+	sp.Server.BuildHash = model.BuildHash
+	sp.Server.InstallationType = os.Getenv(EnvVarInstallType)
+
+	/* Config */
+	sp.Config.Source = a.Srv().Platform().DescribeConfig()
+
+	/* DB */
+	sp.Database.Type, sp.Database.SchemaVersion = a.Srv().DatabaseTypeAndSchemaVersion()
 	databaseVersion, err := a.Srv().Store().GetDbVersion(false)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting DB version"))
+	} else {
+		sp.Database.Version = databaseVersion
 	}
+	sp.Database.MasterConnectios = a.Srv().Store().TotalMasterDbConnections()
+	sp.Database.ReplicaConnectios = a.Srv().Store().TotalReadDbConnections()
+	sp.Database.SearchConnections = a.Srv().Store().TotalSearchDbConnections()
+
+	/* File store */
+	sp.FileStore.Driver = a.Srv().Platform().FileBackend().DriverName()
+	sp.FileStore.Status = model.StatusOk
+	err = a.Srv().Platform().FileBackend().TestConnection()
+	if err != nil {
+		sp.FileStore.Status = model.StatusFail + ": " + err.Error()
+	}
+
+	/* Websockets */
+	sp.Websocket.Connections = a.TotalWebsocketConnections()
 
 	/* Cluster */
 
-	var clusterID string
 	if cluster := a.Cluster(); cluster != nil {
-		clusterID = cluster.GetClusterId()
-	}
-
-	/* File store */
-
-	fileDriver := a.Srv().Platform().FileBackend().DriverName()
-	fileStatus := model.StatusOk
-	err = a.Srv().Platform().FileBackend().TestConnection()
-	if err != nil {
-		fileStatus = model.StatusFail + ": " + err.Error()
+		sp.Cluster.ID = cluster.GetClusterId()
+		clusterInfo := cluster.GetClusterInfos()
+		sp.Cluster.NumberOfNodes = len(clusterInfo)
 	}
 
 	/* LDAP */
 
-	var vendorName, vendorVersion string
 	if ldap := a.Ldap(); ldap != nil && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
-		vendorName, vendorVersion, err = ldap.GetVendorNameAndVendorVersion(c)
+		var severName, serverVersion string
+
+		severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(c)
 		if err != nil {
 			rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
 		}
 
-		if vendorName == "" {
-			vendorName = "unknown"
+		if severName == "" {
+			severName = "unknown"
 		}
-		if vendorVersion == "" {
-			vendorVersion = "unknown"
+		if serverVersion == "" {
+			serverVersion = "unknown"
+		}
+
+		sp.LDAP.ServerName = severName
+		sp.LDAP.ServerVersion = serverVersion
+
+		sp.LDAP.Status = model.StatusOk
+		appErr := ldap.RunTest(c)
+		if appErr != nil {
+			sp.LDAP.Status = model.StatusFail + ": " + appErr.Error()
 		}
 	}
 
 	/* Elastic Search */
-
-	var elasticServerVersion string
-	var elasticServerPlugins []string
 	if se := a.Srv().Platform().SearchEngine.ElasticsearchEngine; se != nil {
-		elasticServerVersion = se.GetFullVersion()
-		elasticServerPlugins = se.GetPlugins()
-	}
-
-	/* License */
-
-	var (
-		licenseTo      string
-		supportedUsers int
-		isTrial        bool
-	)
-	if license := a.Srv().License(); license != nil {
-		licenseTo = license.Customer.Company
-		supportedUsers = *license.Features.Users
-		isTrial = license.IsTrial
+		sp.ElasticSearch.ServerVersion = se.GetFullVersion()
+		sp.ElasticSearch.ServerPlugins = se.GetPlugins()
 	}
 
 	/* Server stats */
 
-	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
+	sp.Stats.RegisteredUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting user count"))
+		rErr = multierror.Append(errors.Wrap(err, "failed to get registered user count"))
 	}
 
-	var (
-		totalChannels        int
-		totalPosts           int
-		totalTeams           int
-		websocketConnections int
-		masterDbConnections  int
-		replicaDbConnections int
-		dailyActiveUsers     int
-		monthlyActiveUsers   int
-		inactiveUserCount    int
-	)
-	analytics, appErr := a.GetAnalyticsForSupportPacket(c)
-	if appErr != nil {
-		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
-	} else {
-		if len(analytics) < 11 {
-			rErr = multierror.Append(errors.New("not enough analytics information found"))
-		} else {
-			totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
-			totalPosts = int(analytics[2].Value)
-			totalTeams = int(analytics[4].Value)
-			websocketConnections = int(analytics[5].Value)
-			masterDbConnections = int(analytics[6].Value)
-			replicaDbConnections = int(analytics[7].Value)
-			dailyActiveUsers = int(analytics[8].Value)
-			monthlyActiveUsers = int(analytics[9].Value)
-			inactiveUserCount = int(analytics[10].Value)
-		}
+	sp.Stats.ActiveUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{})
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get active user count"))
+	}
+
+	sp.Stats.DailyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get daily active user count"))
+	}
+
+	sp.Stats.MonthlyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get monthly active user count"))
+	}
+
+	sp.Stats.DeactivatedUsers, err = a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get deactivated user count"))
+	}
+
+	sp.Stats.Guests, err = a.Srv().Store().User().AnalyticsGetGuestCount()
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get guest count"))
+	}
+
+	sp.Stats.BotAccounts, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get bot acount count"))
+	}
+
+	sp.Stats.Posts, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get post count"))
+	}
+
+	openChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get open channels count"))
+	}
+	privateChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypePrivate)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get private channels count"))
+	}
+	sp.Stats.Channels = openChannels + privateChannels
+
+	sp.Stats.Teams, err = a.Srv().Store().Team().AnalyticsTeamCount(nil)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get team count"))
+	}
+
+	sp.Stats.SlashCommands, err = a.Srv().Store().Command().AnalyticsCommandCount("")
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get command count"))
+	}
+
+	sp.Stats.IncomingWebhooks, err = a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get incoming webhook count"))
+	}
+
+	sp.Stats.OutgoingWebhooks, err = a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get  outgoing webhook count"))
 	}
 
 	/* Jobs  */
-
-	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
-	}
-	messageExportJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMessageExport, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
-	}
-	elasticPostIndexingJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostIndexing, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
-	}
-	elasticPostAggregationJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
-	}
-	blevePostIndexingJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
-	}
-	ldapSyncJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeLdapSync, 0, 2)
+	sp.Jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeLdapSync, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
 	}
-	migrationJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMigrations, 0, 2)
+	sp.Jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+	}
+	sp.Jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMessageExport, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
+	}
+	sp.Jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostIndexing, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
+	}
+	sp.Jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
+	}
+	sp.Jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
+	}
+	sp.Jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMigrations, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
 
-	// Creating the struct for Support Packet yaml file
-	supportPacket := model.SupportPacket{
-		/* Build information */
-		ServerOS:           runtime.GOOS,
-		ServerArchitecture: runtime.GOARCH,
-		ServerVersion:      model.CurrentVersion,
-		BuildHash:          model.BuildHash,
-
-		/* DB */
-		DatabaseType:          databaseType,
-		DatabaseVersion:       databaseVersion,
-		DatabaseSchemaVersion: databaseSchemaVersion,
-		WebsocketConnections:  websocketConnections,
-		MasterDbConnections:   masterDbConnections,
-		ReplicaDbConnections:  replicaDbConnections,
-
-		/* Cluster */
-		ClusterID: clusterID,
-
-		/* File store */
-		FileDriver: fileDriver,
-		FileStatus: fileStatus,
-
-		/* LDAP */
-		LdapVendorName:    vendorName,
-		LdapVendorVersion: vendorVersion,
-
-		/* Elastic Search */
-		ElasticServerVersion: elasticServerVersion,
-		ElasticServerPlugins: elasticServerPlugins,
-
-		/* License */
-		LicenseTo:             licenseTo,
-		LicenseSupportedUsers: supportedUsers,
-		LicenseIsTrial:        isTrial,
-
-		/* Server stats */
-		ActiveUsers:        int(uniqueUserCount),
-		DailyActiveUsers:   dailyActiveUsers,
-		MonthlyActiveUsers: monthlyActiveUsers,
-		InactiveUserCount:  inactiveUserCount,
-		TotalPosts:         totalPosts,
-		TotalChannels:      totalChannels,
-		TotalTeams:         totalTeams,
-
-		/* Jobs */
-		DataRetentionJobs:          dataRetentionJobs,
-		MessageExportJobs:          messageExportJobs,
-		ElasticPostIndexingJobs:    elasticPostIndexingJobs,
-		ElasticPostAggregationJobs: elasticPostAggregationJobs,
-		BlevePostIndexingJobs:      blevePostIndexingJobs,
-		LdapSyncJobs:               ldapSyncJobs,
-		MigrationJobs:              migrationJobs,
-	}
-
-	// Marshal to a YAML File
-	supportPacketYaml, err := yaml.Marshal(&supportPacket)
+	supportPacketYaml, err := yaml.Marshal(&sp)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
