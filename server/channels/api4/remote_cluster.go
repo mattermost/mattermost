@@ -396,7 +396,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	password := rcWithTeamAndPassword.Password
 	if password == "" {
-		password = utils.RandCString(16)
+		password = utils.SecureRandString(16)
 	}
 
 	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)

@@ -213,6 +213,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		// when the password is not provided, it is returned as part
 		// of the response
 		require.NotZero(t, rcWithInvite.Password)
+		require.Len(t, rcWithInvite.Password, 16)
 
 		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
 		require.Nil(t, appErr)

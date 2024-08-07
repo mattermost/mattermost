@@ -475,7 +475,7 @@ func RandString(l int, charset string) string {
 	return string(ret)
 }
 
-func RandCString(n int) string {
+func SecureRandString(n int) string {
 	charset := "abcdedfghijklmnopqrstABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*0123456789"
 
 	var str strings.Builder
