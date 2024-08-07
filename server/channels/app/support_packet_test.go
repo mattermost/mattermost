@@ -47,7 +47,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Setenv(EnvVarInstallType, "docker")
+	t.Setenv(envVarInstallType, "docker")
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")

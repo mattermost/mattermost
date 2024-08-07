@@ -54,8 +54,8 @@ type SupportPacket struct {
 	} `yaml:"websocket"`
 
 	Cluster struct {
-		ID            string `yaml:"id,omitempty"`
-		NumberOfNodes int    `yaml:"number_of_nodes,omitempty"`
+		ID            string `yaml:"id"`
+		NumberOfNodes int    `yaml:"number_of_nodes"`
 	} `yaml:"cluster"`
 
 	LDAP struct {
@@ -68,8 +68,6 @@ type SupportPacket struct {
 		ServerVersion string   `yaml:"server_version,omitempty"`
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`
 	} `yaml:"elastic"`
-
-	/* Server stats */
 
 	Stats struct {
 		RegisteredUsers    int64 `yaml:"registered_users"`

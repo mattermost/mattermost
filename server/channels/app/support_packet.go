@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	EnvVarInstallType = "MM_INSTALL_TYPE"
+	envVarInstallType = "MM_INSTALL_TYPE"
+	unknownDataPoint  = "unknown"
 )
 
 func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
@@ -145,7 +146,11 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	sp.Server.Architecture = runtime.GOARCH
 	sp.Server.Version = model.CurrentVersion
 	sp.Server.BuildHash = model.BuildHash
-	sp.Server.InstallationType = os.Getenv(EnvVarInstallType)
+	installationType := os.Getenv(envVarInstallType)
+	if installationType == "" {
+		installationType = unknownDataPoint
+	}
+	sp.Server.InstallationType = installationType
 
 	/* Config */
 	sp.Config.Source = a.Srv().Platform().DescribeConfig()
@@ -192,10 +197,10 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		}
 
 		if severName == "" {
-			severName = "unknown"
+			severName = unknownDataPoint
 		}
 		if serverVersion == "" {
-			serverVersion = "unknown"
+			serverVersion = unknownDataPoint
 		}
 
 		sp.LDAP.ServerName = severName
