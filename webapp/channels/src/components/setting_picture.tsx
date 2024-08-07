@@ -235,6 +235,7 @@ export default class SettingPicture extends Component<Props, State> {
                         id='removeIcon'
                         title={title ?? ''}
                         placement='right'
+                        disabled={!title}
                     >
                         <button
                             data-testid='removeSettingPicture'

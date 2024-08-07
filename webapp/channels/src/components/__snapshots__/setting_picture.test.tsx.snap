@@ -740,6 +740,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             />
           </div>
           <WithTooltip
+            disabled={false}
             id="removeIcon"
             placement="right"
             title={
@@ -894,6 +895,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             />
           </div>
           <WithTooltip
+            disabled={false}
             id="removeIcon"
             placement="right"
             title={
