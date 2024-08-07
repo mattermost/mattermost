@@ -77,15 +77,15 @@ var AllJobTypes = [...]string{
 }
 
 type Job struct {
-	Id             string    `json:"id"`
-	Type           string    `json:"type"`
-	Priority       int64     `json:"priority"`
-	CreateAt       int64     `json:"create_at"`
-	StartAt        int64     `json:"start_at"`
-	LastActivityAt int64     `json:"last_activity_at"`
-	Status         string    `json:"status"`
-	Progress       int64     `json:"progress"`
-	Data           StringMap `json:"data"`
+	Id             string    `json:"id" yaml:"id"`
+	Type           string    `json:"type" yaml:"type"`
+	Priority       int64     `json:"priority" yaml:"priority"`
+	CreateAt       int64     `json:"create_at" yaml:"create_at"`
+	StartAt        int64     `json:"start_at" yaml:"start_at"`
+	LastActivityAt int64     `json:"last_activity_at" yaml:"last_activity_at"`
+	Status         string    `json:"status" yaml:"status"`
+	Progress       int64     `json:"progress" yaml:"progress"`
+	Data           StringMap `json:"data" yaml:"data"`
 }
 
 func (j *Job) Auditable() map[string]interface{} {

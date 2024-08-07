@@ -47,6 +47,8 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	t.Setenv(EnvVarInstallType, "docker")
+
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
 	license.Features.Users = model.NewPointer(licenseUsers)
@@ -69,59 +71,77 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 	t.Run("Happy path", func(t *testing.T) {
 		// Happy path where we have a Support Packet yaml file without any warnings
-		packet := generateSupportPacket(t)
+		sp := generateSupportPacket(t)
 
-		/* Build information */
-		assert.NotEmpty(t, packet.ServerOS)
-		assert.NotEmpty(t, packet.ServerArchitecture)
-		assert.Equal(t, model.CurrentVersion, packet.ServerVersion)
-		// BuildHash is not present in tests
-
-		/* DB */
-		assert.NotEmpty(t, packet.DatabaseType)
-		assert.NotEmpty(t, packet.DatabaseVersion)
-		assert.NotEmpty(t, packet.DatabaseSchemaVersion)
-		assert.Zero(t, packet.WebsocketConnections)
-		assert.NotZero(t, packet.MasterDbConnections)
-		assert.Zero(t, packet.ReplicaDbConnections)
-
-		/* Cluster */
-		assert.Empty(t, packet.ClusterID)
-
-		/* File store */
-		assert.Equal(t, "local", packet.FileDriver)
-		assert.Equal(t, "OK", packet.FileStatus)
-
-		/* LDAP */
-		assert.Empty(t, packet.LdapVendorName)
-		assert.Empty(t, packet.LdapVendorVersion)
-
-		/* Elastic Search */
-		assert.Empty(t, packet.ElasticServerVersion)
-		assert.Empty(t, packet.ElasticServerPlugins)
+		assert.Equal(t, 1, sp.Version)
 
 		/* License */
-		assert.Equal(t, "My awesome Company", packet.LicenseTo)
-		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
-		assert.Equal(t, false, packet.LicenseIsTrial)
+		assert.Equal(t, "My awesome Company", sp.License.Company)
+		assert.Equal(t, licenseUsers, sp.License.Users)
+		assert.Equal(t, false, sp.License.IsTrial)
+		assert.Equal(t, false, sp.License.IsGovSKU)
+
+		/* Server information */
+		assert.NotEmpty(t, sp.Server.OS)
+		assert.NotEmpty(t, sp.Server.Architecture)
+		assert.Equal(t, model.CurrentVersion, sp.Server.Version)
+		// BuildHash is not present in tests
+		assert.Equal(t, "docker", sp.Server.InstallationType)
+
+		/* Config */
+		assert.Equal(t, "memory://", sp.Config.Source)
+
+		/* DB */
+		assert.NotEmpty(t, sp.Database.Type)
+		assert.NotEmpty(t, sp.Database.Version)
+		assert.NotEmpty(t, sp.Database.SchemaVersion)
+		assert.NotZero(t, sp.Database.MasterConnectios)
+		assert.Zero(t, sp.Database.ReplicaConnectios)
+		assert.Zero(t, sp.Database.SearchConnections)
+
+		/* File store */
+		assert.Equal(t, "local", sp.FileStore.Driver)
+		assert.Equal(t, "OK", sp.FileStore.Status)
+
+		/* Websockets */
+		assert.Zero(t, sp.Websocket.Connections)
+
+		/* Cluster */
+		assert.Empty(t, sp.Cluster.ID)
+		assert.Zero(t, sp.Cluster.NumberOfNodes)
+
+		/* LDAP */
+		assert.Empty(t, sp.LDAP.ServerName)
+		assert.Empty(t, sp.LDAP.ServerVersion)
+		assert.Empty(t, sp.LDAP.Status)
+
+		/* Elastic Search */
+		assert.Empty(t, sp.ElasticSearch.ServerVersion)
+		assert.Empty(t, sp.ElasticSearch.ServerPlugins)
 
 		/* Server stats */
-		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic()
-		assert.Equal(t, 0, packet.DailyActiveUsers)
-		assert.Equal(t, 0, packet.MonthlyActiveUsers)
-		assert.Equal(t, 0, packet.InactiveUserCount)
-		assert.Equal(t, 5, packet.TotalPosts)    // from InitBasic()
-		assert.Equal(t, 3, packet.TotalChannels) // from InitBasic()
-		assert.Equal(t, 1, packet.TotalTeams)    // from InitBasic()
+		assert.Equal(t, int64(3), sp.Stats.RegisteredUsers) // from InitBasic()
+		assert.Equal(t, int64(3), sp.Stats.ActiveUsers)     // from InitBasic()
+		assert.Equal(t, int64(0), sp.Stats.DailyActiveUsers)
+		assert.Equal(t, int64(0), sp.Stats.MonthlyActiveUsers)
+		assert.Equal(t, int64(0), sp.Stats.DeactivatedUsers)
+		assert.Equal(t, int64(0), sp.Stats.Guests)
+		assert.Equal(t, int64(0), sp.Stats.BotAccounts)
+		assert.Equal(t, int64(5), sp.Stats.Posts)    // from InitBasic()
+		assert.Equal(t, int64(3), sp.Stats.Channels) // from InitBasic()
+		assert.Equal(t, int64(1), sp.Stats.Teams)    // from InitBasic()
+		assert.Equal(t, int64(0), sp.Stats.SlashCommands)
+		assert.Equal(t, int64(0), sp.Stats.IncomingWebhooks)
+		assert.Equal(t, int64(0), sp.Stats.OutgoingWebhooks)
 
 		/* Jobs */
-		assert.Empty(t, packet.DataRetentionJobs)
-		assert.Empty(t, packet.MessageExportJobs)
-		assert.Empty(t, packet.ElasticPostIndexingJobs)
-		assert.Empty(t, packet.ElasticPostAggregationJobs)
-		assert.Empty(t, packet.BlevePostIndexingJobs)
-		assert.Empty(t, packet.LdapSyncJobs)
-		assert.Empty(t, packet.MigrationJobs)
+		assert.Empty(t, sp.Jobs.LDAPSyncJobs)
+		assert.Empty(t, sp.Jobs.DataRetentionJobs)
+		assert.Empty(t, sp.Jobs.MessageExportJobs)
+		assert.Empty(t, sp.Jobs.ElasticPostIndexingJobs)
+		assert.Empty(t, sp.Jobs.ElasticPostAggregationJobs)
+		assert.Empty(t, sp.Jobs.BlevePostIndexingJobs)
+		assert.Empty(t, sp.Jobs.MigrationJobs)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
@@ -136,7 +156,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		// InitBasic() already creats 5 posts
 		packet := generateSupportPacket(t)
-		assert.Equal(t, 10, packet.TotalPosts)
+		assert.Equal(t, int64(10), packet.Stats.Posts)
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -147,8 +167,8 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		packet := generateSupportPacket(t)
 
-		assert.Equal(t, "mock", packet.FileDriver)
-		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
+		assert.Equal(t, "mock", packet.FileStore.Driver)
+		assert.Equal(t, "FAIL: all broken", packet.FileStore.Status)
 	})
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
@@ -171,12 +191,17 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 			"GetVendorNameAndVendorVersion",
 			mock.AnythingOfType("*request.Context"),
 		).Return("", "", nil)
+		ldapMock.On(
+			"RunTest",
+			mock.AnythingOfType("*request.Context"),
+		).Return(nil)
 		th.App.Channels().Ldap = ldapMock
 
 		packet := generateSupportPacket(t)
 
-		assert.Equal(t, "unknown", packet.LdapVendorName)
-		assert.Equal(t, "unknown", packet.LdapVendorVersion)
+		assert.Equal(t, "unknown", packet.LDAP.ServerName)
+		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
+		assert.Equal(t, "OK", packet.LDAP.Status)
 	})
 
 	t.Run("found LDAP vendor info", func(t *testing.T) {
@@ -185,12 +210,36 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 			"GetVendorNameAndVendorVersion",
 			mock.AnythingOfType("*request.Context"),
 		).Return("some vendor", "v1.0.0", nil)
+		ldapMock.On(
+			"RunTest",
+			mock.AnythingOfType("*request.Context"),
+		).Return(nil)
 		th.App.Channels().Ldap = ldapMock
 
 		packet := generateSupportPacket(t)
 
-		assert.Equal(t, "some vendor", packet.LdapVendorName)
-		assert.Equal(t, "v1.0.0", packet.LdapVendorVersion)
+		assert.Equal(t, "some vendor", packet.LDAP.ServerName)
+		assert.Equal(t, "v1.0.0", packet.LDAP.ServerVersion)
+		assert.Equal(t, "OK", packet.LDAP.Status)
+	})
+
+	t.Run("found LDAP vendor info", func(t *testing.T) {
+		ldapMock := &emocks.LdapInterface{}
+		ldapMock.On(
+			"GetVendorNameAndVendorVersion",
+			mock.AnythingOfType("*request.Context"),
+		).Return("some vendor", "v1.0.0", nil)
+		ldapMock.On(
+			"RunTest",
+			mock.AnythingOfType("*request.Context"),
+		).Return(model.NewAppError("", "some error", nil, "", 0))
+		th.App.Channels().Ldap = ldapMock
+
+		packet := generateSupportPacket(t)
+
+		assert.Equal(t, "some vendor", packet.LDAP.ServerName)
+		assert.Equal(t, "v1.0.0", packet.LDAP.ServerVersion)
+		assert.Equal(t, "FAIL: some error", packet.LDAP.Status)
 	})
 }
 
@@ -320,9 +369,13 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Command").Return(th.App.Srv().Store().Command())
 		mockStore.On("Close").Return(nil)
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)
+		mockStore.On("TotalMasterDbConnections").Return(30)
+		mockStore.On("TotalReadDbConnections").Return(20)
+		mockStore.On("TotalSearchDbConnections").Return(10)
 		th.App.Srv().SetStore(&mockStore)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
