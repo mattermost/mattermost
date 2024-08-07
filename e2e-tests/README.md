@@ -37,11 +37,12 @@ Instructions, detailed:
   * Only Cypress is currently using the dashboard; Playwright is not.
 3. `make`: start and prepare the server, then run the Cypress smoke tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard if you launched it locally
-  * When running with `SERVER=cloud`, this will automatically create a cloud customer against the specified `CWS_URL` service, and delete that user after the run is complete.
+  * For `SERVER=cloud` runs, you'll need to first create a cloud customer against the specified `CWS_URL` service by running `make cloud-init`. The user isn't automatically removed, and may be reused across multiple runs until you run `make cloud-teardown` to delete it.
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
   * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machines (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
 4. `make stop`: tears down the server (and the dashboard, if running)
+  * This will stop and cleanup all of the E2E testing containers, including the database and its persistent volume.
   * This also implicitly runs `make clean`, which also removes any generated environment or docker-compose files.
 
 Notes:
@@ -54,6 +55,7 @@ Notes:
   * If you need to introduce variables that you want to control from `.ci/env`: you need to update the scripts under the `.ci/` dir and configure them to write the new variables' values over to the appropriate `.env.*` file. In particular, avoid defining variables that depend on other variables within the docker-compose override files: this is to ensure uniformity in their availability and simplifies the question of what container has access to which variable considerably.
   * Exceptions are of course accepted wherever it makes sense (e.g. if you need to group variables based on some common functionality)
 - The `publish-report` Make target is meant for internal usage. Usage and variables are documented in the respective scripts.
+- `make start-server` won't cleanup containers that don't change across runs. This means that you can use it to emulate a Mattermost server upgrade while retaining your database data by simply changing the `SERVER_IMAGE` variable on your machine, and then re-runing `make start-server` (and `make prepare-server` if you intend to run cypress again, since its container is also recreated). But this also means that if you want to run a clean local environment, you may have to manually run `make stop` to cleanup any running containers and their volumes, which include e.g. the database.
 
 ##### For code changes:
 * `make fmt-ci` to format and check yaml files and shell scripts.

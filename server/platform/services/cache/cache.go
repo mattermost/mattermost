@@ -34,6 +34,8 @@ type Cache interface {
 	// Return ErrKeyNotFound if the key is missing from the cache
 	Get(key string, value any) error
 
+	GetMulti(keys []string, values []any) []error
+
 	// Remove deletes the value for a given key.
 	Remove(key string) error
 

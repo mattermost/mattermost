@@ -446,7 +446,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		Token:       model.NewId(),
 	}
 
-	rcp := &model.RemoteClusterPatch{DisplayName: model.NewString("different value")}
+	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
@@ -488,7 +488,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 	})
 
 	t.Run("should correctly patch the remote cluster", func(t *testing.T) {
-		rcp := &model.RemoteClusterPatch{DisplayName: model.NewString("patched!")}
+		rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("patched!")}
 
 		patchedRC, resp, err := th.SystemAdminClient.PatchRemoteCluster(context.Background(), rc.RemoteId, rcp)
 		CheckOKStatus(t, resp)
