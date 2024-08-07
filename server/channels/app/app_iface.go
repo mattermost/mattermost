@@ -320,6 +320,8 @@ type AppIface interface {
 	// RevokeSessionsFromAllUsers will go through all the sessions active
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
+	// SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
+	SanitizedConfig(cfg *model.Config)
 	// SaveConfig replaces the active configuration, optionally notifying cluster peers.
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 	// SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
@@ -762,6 +764,7 @@ type AppIface interface {
 	GetPermalinkPost(c request.CTX, postID string, userID string) (*model.PostList, *model.AppError)
 	GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError)
 	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
+	GetPluginManifests() ([]*model.Manifest, error)
 	GetPlugins() (*model.PluginsResponse, *model.AppError)
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)

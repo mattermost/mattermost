@@ -378,6 +378,25 @@ func (ch *Channels) ShutDownPlugins() {
 	}
 }
 
+func (a *App) GetPluginManifests() ([]*model.Manifest, error) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("GetePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, err
+	}
+
+	manifests := make([]*model.Manifest, len(plugins))
+	for i, plugin := range plugins {
+		manifests[i] = plugin.Manifest
+	}
+
+	return manifests, nil
+}
+
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
