@@ -196,11 +196,15 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
+	ps.InvalidateChannelCacheForUser(userID)
+	ps.Store.User().InvalidateProfileCacheForUser(userID)
+}
+
+func (ps *PlatformService) InvalidateChannelCacheForUser(userID string) {
 	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
 	ps.ClearUserSessionCache(userID)
 
 	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
-	ps.Store.User().InvalidateProfileCacheForUser(userID)
 }
 
 func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
