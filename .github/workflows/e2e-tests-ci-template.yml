@@ -55,6 +55,12 @@ on:
       REPORT_TYPE:
         type: string
         required: false
+      ROLLING_RELEASE_commit_sha:
+        type: string
+        required: false
+      ROLLING_RELEASE_SERVER_IMAGE:
+        type: string
+        required: false
     secrets:
       MM_LICENSE:
         required: false
@@ -238,7 +244,7 @@ jobs:
         os: [ubuntu-latest-8-cores]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 60
+    timeout-minutes: 90
     needs:
       - cypress-check
       - playwright-check
@@ -263,6 +269,8 @@ jobs:
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+      ROLLING_RELEASE_COMMIT_SHA: "${{ inputs.ROLLING_RELEASE_commit_sha }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -287,7 +295,30 @@ jobs:
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test
         run: |
+          make cloud-init
+          if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
+            echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/ && git status
+            (
+            echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
+            export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
+            export TEST_FILTER=""
+            export AUTOMATION_DASHBOARD_URL=""
+            make
+            )
+            echo "RollingRelease: asserting smoketest result has zero failures."
+            FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+            if [ "$FAILURES" -ne "0" ]; then
+              echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
+              exit 1
+            fi
+            rm -rfv cypress/results
+            echo "RollingRelease: reset the E2E test cases to the revision to test"
+            git reset --hard HEAD && git status
+            echo "RollingRelease: smoketest completed. Starting full E2E tests."
+          fi
           make
+          make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
@@ -343,6 +374,7 @@ jobs:
           TYPE: "${{ inputs.REPORT_TYPE }}"
           SERVER: "${{ inputs.SERVER }}"
           SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
