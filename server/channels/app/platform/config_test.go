@@ -61,7 +61,7 @@ func TestConfigSave(t *testing.T) {
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
 		oldCfg := th.Service.Config()
 		newCfg := oldCfg.Clone()
-		newCfg.ServiceSettings.SiteURL = model.NewString("http://newhost.me")
+		newCfg.ServiceSettings.SiteURL = model.NewPointer("http://newhost.me")
 
 		sanitizedOldCfg := th.Service.configStore.RemoveEnvironmentOverrides(oldCfg)
 		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
@@ -87,16 +87,16 @@ func TestConfigSave(t *testing.T) {
 
 		// Change a random config setting
 		cfg := th.Service.Config().Clone()
-		cfg.ThemeSettings.EnableThemeSelection = model.NewBool(!*cfg.ThemeSettings.EnableThemeSelection)
+		cfg.ThemeSettings.EnableThemeSelection = model.NewPointer(!*cfg.ThemeSettings.EnableThemeSelection)
 		th.Service.SaveConfig(cfg, false)
 		metricsMock.AssertNumberOfCalls(t, "Register", 0)
 
 		// Disable metrics
-		cfg.MetricsSettings.Enable = model.NewBool(false)
+		cfg.MetricsSettings.Enable = model.NewPointer(false)
 		th.Service.SaveConfig(cfg, false)
 
 		// Change the metrics setting
-		cfg.MetricsSettings.Enable = model.NewBool(true)
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 		th.Service.SaveConfig(cfg, false)
 		metricsMock.AssertNumberOfCalls(t, "Register", 1)
 	})
