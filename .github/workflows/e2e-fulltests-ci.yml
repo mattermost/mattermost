@@ -258,6 +258,7 @@ jobs:
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       COMMIT_SHA: "${{ needs.generate-test-variables.outputs.commit_sha }}"
+      STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.status_check_context }}"
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
     steps:
       - name: ci/notify-user-test-completion
