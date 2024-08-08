@@ -62,7 +62,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{Name: "test"}
+		remoteCluster := &model.RemoteCluster{Name: "test", DefaultTeamId: model.NewId()}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -144,9 +144,15 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		channel := &model.Channel{
 			Id: invitation.ChannelId,
 		}
+		mockTeamStore := mocks.TeamStore{}
+		team := &model.Team{
+			Id: model.NewId(),
+		}
 
 		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
+		mockTeamStore.On("GetAllPage", 0, 1, mock.Anything).Return([]*model.Team{team}, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("Team").Return(&mockTeamStore)
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
