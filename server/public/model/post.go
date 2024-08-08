@@ -507,7 +507,11 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewString("")
+	o.RemoteId = NewPointer("")
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
+	}
 }
 
 func (o *Post) ContainsIntegrationsReservedProps() []string {
