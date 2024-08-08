@@ -6,6 +6,9 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
 
+import type {Group} from '@mattermost/types/src/groups';
+import type {UserProfile} from '@mattermost/types/src/users';
+
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -18,8 +21,6 @@ import GroupMemberList from './group_member_list';
 import type {GroupMember} from './group_member_list';
 
 import {Load} from '../constants';
-import { UserProfile } from '@mattermost/types/src/users';
-import { Group } from '@mattermost/types/src/groups';
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),

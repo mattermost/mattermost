@@ -188,9 +188,7 @@ const GroupMemberList = (props: Props) => {
                                     tabIndex={-1}
                                 />
                                 <StatusIcon
-                                    className='status user-popover-status'
                                     status={status}
-                                    button={true}
                                 />
                             </span>
                             <Username className='overflow--ellipsis text-nowrap'>{name}</Username>
