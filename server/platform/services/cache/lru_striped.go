@@ -82,6 +82,14 @@ func (L LRUStriped) Get(key string, value any) error {
 	return L.keyBucket(key).Get(key, value)
 }
 
+func (L LRUStriped) GetMulti(keys []string, values []any) []error {
+	errs := make([]error, 0, len(values))
+	for i, key := range keys {
+		errs = append(errs, L.keyBucket(key).Get(key, values[i]))
+	}
+	return errs
+}
+
 // Remove does the same as LRU.Remove
 func (L LRUStriped) Remove(key string) error {
 	return L.keyBucket(key).Remove(key)
@@ -119,12 +127,12 @@ func (L LRUStriped) Name() string {
 	return L.name
 }
 
-// NewLRUStriped creates a striped LRU cache using the special LRUOptions.StripedBuckets value.
-// See LRUStriped and LRUOptions for more details.
+// NewLRUStriped creates a striped LRU cache using the special CacheOptions.StripedBuckets value.
+// See LRUStriped and CacheOptions for more details.
 //
 // Not that in order to prevent false eviction, this LRU cache adds 10% (computation is rounded up) of the
 // requested size to the total cache size.
-func NewLRUStriped(opts LRUOptions) (Cache, error) {
+func NewLRUStriped(opts *CacheOptions) (Cache, error) {
 	if opts.StripedBuckets == 0 {
 		return nil, fmt.Errorf("number of buckets is mandatory")
 	}

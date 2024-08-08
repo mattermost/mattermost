@@ -31,7 +31,7 @@ body {
 .sticky {
     background: $white;
 
-    > .channel-view {
+    >.channel-view {
         overflow: auto;
         height: 100vh;
         padding: 0 15px;
@@ -40,7 +40,7 @@ body {
     .inner-wrap {
         width: 100%;
 
-        > .row {
+        >.row {
             &.content {
                 min-height: calc(100vh - 89px);
 
@@ -64,7 +64,7 @@ body {
         overflow: auto;
     }
 
-    > .row {
+    >.row {
         &.main {
             position: relative;
             height: 100%;
@@ -101,7 +101,7 @@ body.admin-onboarding #root {
 
 .app__body {
     #root.channel-view {
-        &:has(.backstage-body){
+        &:has(.backstage-body) {
             background-color: $bg--gray;
         }
     }
@@ -115,11 +115,8 @@ body.app__body #root {
 
     --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
-        "announcement announcement announcement" min-content
-        "admin-announcement admin-announcement admin-announcement" min-content
-        "header header header" min-content
-        "team-sidebar main app-sidebar"
-        "footer footer footer" min-content / var(--columns);
+        "announcement announcement announcement"min-content "admin-announcement admin-announcement admin-announcement"min-content "header header header"min-content "team-sidebar main app-sidebar"
+        "footer footer footer"min-content / var(--columns);
 
     > :only-child {
         grid-area: main;
@@ -131,13 +128,10 @@ body.app__body #root {
         padding-bottom: 0;
         padding-right: 0;
         grid-template:
-            'announcement announcement' min-content
-            'admin-announcement admin-announcement' min-content
-            'header header' min-content
-            'lhs center'
-            'footer footer' min-content
-        ;
-        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
+            'announcement announcement'min-content 'admin-announcement admin-announcement'min-content 'header header'min-content 'lhs center'
+            'footer footer'min-content;
+        grid-template-columns: auto 1fr;
+        /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
@@ -164,7 +158,7 @@ body.app__body #root {
     .main-wrapper {
         position: relative;
         display: grid;
-        overflow:hidden;
+        overflow: hidden;
         background-color: var(--sidebar-bg);
         border: var(--border-light);
         margin: 0 4px 4px 4px;
@@ -175,30 +169,29 @@ body.app__body #root {
         ;
         grid-template-columns: min-content minmax(385px, 1fr) min-content;
 
-        &:has(.backstage-body){
+        &:has(.backstage-body) {
             background: inherit;
             padding: 0;
-            margin:0;
+            margin: 0;
             border-radius: 0;
             grid-template:
-                'header' min-content
-                'main'
+                'header'min-content 'main'
             ;
         }
 
-        &:has(#playbooks-backstageRoot){
-            margin:0;
+        &:has(#playbooks-backstageRoot) {
+            margin: 0;
             border-radius: 0;
         }
     }
 
-    &:has(.app-bar){
+    &:has(.app-bar) {
         .main-wrapper {
-            margin-right:0;
+            margin-right: 0;
         }
     }
 
-    &:has(.team-sidebar){
+    &:has(.team-sidebar) {
         .main-wrapper {
             margin-left: 0;
         }
@@ -212,6 +205,10 @@ body.app__body #root {
     .product-wrapper {
         grid-area: center;
         overflow: visible;
+    }
+
+    .product-wrapper {
+        overflow: auto;
     }
 
     .sidebar--right--width-holder {
@@ -237,16 +234,13 @@ body.app__body #root {
             padding-right: 0;
             z-index: 17;
             grid-template:
-                'announcement' min-content
-                'header' min-content
-                'main' auto
-                'footer' min-content
-                / auto
-            ;
+                'announcement'min-content 'header'min-content 'main'auto 'footer'min-content / auto;
+
             .team-sidebar,
             .app-bar {
                 grid-area: main;
             }
+
             #SidebarContainer.move--right {
                 position: relative;
             }
@@ -256,7 +250,7 @@ body.app__body #root {
                 grid-template:
                     'main'
                 ;
-                padding:0;
+                padding: 0;
                 border-radius: 0;
 
                 #channel_view,
@@ -281,14 +275,17 @@ body.app__body #root {
             .sidebar--right--width-holder {
                 display: none;
             }
+
             #sidebar-right {
                 position: absolute;
                 width: 100%;
                 grid-area: center;
                 transition: width .25s ease-in-out;
             }
+
             --columns: min-content auto min-content;
         }
+
         #sidebar-right {
             transition: none;
         }
