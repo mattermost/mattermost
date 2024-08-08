@@ -18,12 +18,11 @@ import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import Markdown from 'components/markdown';
-import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import Timestamp from 'components/timestamp';
-import Tooltip from 'components/tooltip';
 import Popover from 'components/widgets/popover';
+import WithTooltip from 'components/with_tooltip';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
@@ -547,22 +546,18 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             );
         }
 
-        const channelMutedTooltip = (
-            <Tooltip id='channelMutedTooltip'>
-                <FormattedMessage
-                    id='channelHeader.unmute'
-                    defaultMessage='Unmute'
-                />
-            </Tooltip>
-        );
-
         let muteTrigger;
         if (channelMuted) {
             muteTrigger = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id='channelMutedTooltip'
                     placement='bottom'
-                    overlay={channelMutedTooltip}
+                    title={
+                        <FormattedMessage
+                            id='channelHeader.unmute'
+                            defaultMessage='Unmute'
+                        />
+                    }
                 >
                     <button
                         id='toggleMute'
@@ -572,7 +567,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     >
                         <i className={'icon icon-bell-off-outline'}/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
