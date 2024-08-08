@@ -22,8 +22,8 @@ import {NoResultsVariant} from 'components/no_results_indicator/types';
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
+import WithTooltip from 'components/with_tooltip';
 
 import {UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -196,9 +196,10 @@ const GroupMemberList = (props: Props) => {
                         </UserButton>
                     </ProfilePopover>
                     <DMContainer className='group-member-list_dm-button'>
-                        <SimpleTooltip
+                        <WithTooltip
                             id={`name-${user.id}`}
-                            content={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
+                            title={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
+                            placement='top'
                         >
                             <DMButton
                                 className='btn btn-icon btn-xs'
@@ -211,7 +212,7 @@ const GroupMemberList = (props: Props) => {
                                     className='icon icon-send'
                                 />
                             </DMButton>
-                        </SimpleTooltip>
+                        </WithTooltip>
                     </DMContainer>
                 </UserListItem>
             );

@@ -358,7 +358,7 @@ describe('Actions.Posts', () => {
 
             const immediateExpectedState = [{
                 args: [newPost, files],
-                type: 'MOCK_CREATE_POST_IMMEDIATELY',
+                type: 'MOCK_CREATE_POST',
             }, {
                 args: ['draft_current_channel_id', null],
                 type: 'MOCK_SET_GLOBAL_ITEM',
@@ -453,8 +453,8 @@ describe('Actions.Posts', () => {
                 testStore.dispatch(Actions.submitReaction('post_id_1', '+', 'emoji_name_1'));
 
                 expect(testStore.getActions()).toEqual([
-                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                     {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                 ]);
             });
 
@@ -503,8 +503,8 @@ describe('Actions.Posts', () => {
             testStore.dispatch(Actions.toggleReaction('post_id_1', 'emoji_name_1'));
 
             expect(testStore.getActions()).toEqual([
-                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                 {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
             ]);
         });
 
@@ -529,8 +529,8 @@ describe('Actions.Posts', () => {
 
             await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
             expect(testStore.getActions()).toEqual([
-                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
                 {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
             ]);
         });
         test('should not add reaction if we are over the limit', async () => {

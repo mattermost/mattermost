@@ -51,6 +51,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -188,6 +189,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -325,6 +327,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -436,6 +439,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       <OverlayTrigger
         defaultOverlayShown={false}
         delay={400}
+        disabled={false}
         overlay={<Unknown />}
         placement="top"
         trigger={
@@ -587,6 +591,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -724,6 +729,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -861,6 +867,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -972,6 +979,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       <OverlayTrigger
         defaultOverlayShown={false}
         delay={400}
+        disabled={false}
         overlay={<Unknown />}
         placement="top"
         trigger={
@@ -1121,6 +1129,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -1258,6 +1267,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
@@ -1395,6 +1405,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
             <OverlayTrigger
               defaultOverlayShown={false}
               delay={400}
+              disabled={false}
               overlay={<Unknown />}
               placement="top"
               trigger={
