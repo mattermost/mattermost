@@ -401,7 +401,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
                                     <span
                                       className="status-wrapper"
@@ -423,15 +423,13 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                         />
                                       </Memo(Avatar)>
                                       <Memo(StatusIcon)
-                                        button={true}
-                                        className="status user-popover-status"
                                         status="offline"
                                       >
                                         <StatusOfflineIcon
-                                          className="status user-popover-status"
+                                          className="status "
                                         >
                                           <span
-                                            className="status user-popover-status"
+                                            className="status "
                                           >
                                             <svg
                                               aria-label="Offline Icon"
@@ -658,7 +656,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
                                     <span
                                       className="status-wrapper"
@@ -680,15 +678,13 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                         />
                                       </Memo(Avatar)>
                                       <Memo(StatusIcon)
-                                        button={true}
-                                        className="status user-popover-status"
                                         status="offline"
                                       >
                                         <StatusOfflineIcon
-                                          className="status user-popover-status"
+                                          className="status "
                                         >
                                           <span
-                                            className="status user-popover-status"
+                                            className="status "
                                           >
                                             <svg
                                               aria-label="Offline Icon"
@@ -915,7 +911,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
                                     <span
                                       className="status-wrapper"
@@ -937,15 +933,13 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                         />
                                       </Memo(Avatar)>
                                       <Memo(StatusIcon)
-                                        button={true}
-                                        className="status user-popover-status"
                                         status="offline"
                                       >
                                         <StatusOfflineIcon
-                                          className="status user-popover-status"
+                                          className="status "
                                         >
                                           <span
-                                            className="status user-popover-status"
+                                            className="status "
                                           >
                                             <svg
                                               aria-label="Offline Icon"
@@ -1172,7 +1166,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
                                     <span
                                       className="status-wrapper"
@@ -1194,15 +1188,13 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                         />
                                       </Memo(Avatar)>
                                       <Memo(StatusIcon)
-                                        button={true}
-                                        className="status user-popover-status"
                                         status="offline"
                                       >
                                         <StatusOfflineIcon
-                                          className="status user-popover-status"
+                                          className="status "
                                         >
                                           <span
-                                            className="status user-popover-status"
+                                            className="status "
                                           >
                                             <svg
                                               aria-label="Offline Icon"
@@ -1429,7 +1421,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
                                     <span
                                       className="status-wrapper"
@@ -1451,15 +1443,13 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                         />
                                       </Memo(Avatar)>
                                       <Memo(StatusIcon)
-                                        button={true}
-                                        className="status user-popover-status"
                                         status="offline"
                                       >
                                         <StatusOfflineIcon
-                                          className="status user-popover-status"
+                                          className="status "
                                         >
                                           <span
-                                            className="status user-popover-status"
+                                            className="status "
                                           >
                                             <svg
                                               aria-label="Offline Icon"
