@@ -56,6 +56,7 @@ func TestCache(t *testing.T) {
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
 	clear(rkeys)
+	rkeys = []string{}
 
 	th.Service.ClearAllUsersSessionCache()
 
@@ -64,7 +65,7 @@ func TestCache(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
-	require.Empty(t, rkeys)
+	require.Len(t, rkeys, 0)
 }
 
 func TestSetSessionExpireInHours(t *testing.T) {
