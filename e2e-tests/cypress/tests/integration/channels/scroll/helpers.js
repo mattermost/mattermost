@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 // # Other user posts a few messages so that the first message is hidden
 export function postListOfMessages({sender, channelId, numberOfMessages = 30}) {
     Cypress._.times(numberOfMessages, (postIndex) => {
-        cy.postMessageAs({sender, message: `Other users p-${postIndex}`, channelId});
+        cy.postMessageAs({sender, message: `Other users p-${postIndex}`, channelId}).wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
     });
 }
 

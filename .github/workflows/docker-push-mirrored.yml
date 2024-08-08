@@ -11,7 +11,7 @@ jobs:
   build-docker:
     name: cd/Push mirrored docker images
     if: github.repository_owner == 'mattermost'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
