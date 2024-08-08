@@ -155,7 +155,7 @@ const GroupMemberList = (props: Props) => {
     };
 
     const Item = ({index, style}: ListChildComponentProps) => {
-        const status = useSelector((state: GlobalState) => getStatusForUserId(state, members[index].user.id) || UserStatuses.OFFLINE);
+        const status = useSelector((state: GlobalState) => getStatusForUserId(state, members[index]?.user?.id) || UserStatuses.OFFLINE);
 
         // Remove explicit height provided by VariableSizeList
         style.height = undefined;
@@ -346,10 +346,11 @@ const UserListItem = styled.div<{first?: boolean; last?: boolean}>`
 const UserButton = styled.button`
     display: flex;
     width: 100%;
-    padding: 8px 20px;
+    padding: 5px 20px;
     border: none;
     background: unset;
     text-align: unset;
+    align-items: center;
 `;
 
 // A gap to make space for the DM button to be positioned on
