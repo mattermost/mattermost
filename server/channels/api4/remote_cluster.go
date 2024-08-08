@@ -378,11 +378,12 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	rc := &model.RemoteCluster{
-		Name:        rcWithTeamAndPassword.Name,
-		DisplayName: rcWithTeamAndPassword.DisplayName,
-		SiteURL:     model.SiteURLPending + model.NewId(),
-		Token:       model.NewId(),
-		CreatorId:   c.AppContext.Session().UserId,
+		Name:          rcWithTeamAndPassword.Name,
+		DisplayName:   rcWithTeamAndPassword.DisplayName,
+		SiteURL:       model.SiteURLPending + model.NewId(),
+		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
+		Token:         model.NewId(),
+		CreatorId:     c.AppContext.Session().UserId,
 	}
 
 	audit.AddEventParameterAuditable(auditRec, "remotecluster", rc)
