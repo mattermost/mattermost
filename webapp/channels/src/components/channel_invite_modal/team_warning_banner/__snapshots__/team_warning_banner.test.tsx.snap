@@ -459,9 +459,10 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             mentionName="user-0"
           />,
           " and ",
-          <SimpleTooltip
-            content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+          <WithTooltip
             id="usernames-overflow"
+            placement="top"
+            title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
           >
             <span
               className="add-others-link"
@@ -476,7 +477,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 }
               />
             </span>
-          </SimpleTooltip>,
+          </WithTooltip>,
           " are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
         ]
       }
@@ -560,23 +561,17 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               />
             </Connect(Component)>
              and 
-            <SimpleTooltip
-              content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+            <WithTooltip
               id="usernames-overflow"
               key=".2"
+              placement="top"
+              title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
             >
               <OverlayTrigger
                 defaultOverlayShown={false}
-                delayShow={100}
-                overlay={
-                  <Tooltip
-                    className="hidden-xs"
-                    id="usernames-overflow"
-                    placement="top"
-                  >
-                    @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
-                  </Tooltip>
-                }
+                delay={400}
+                disabled={false}
+                overlay={<Unknown />}
                 placement="top"
                 trigger={
                   Array [
@@ -587,11 +582,9 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               >
                 <OverlayTrigger
                   defaultOverlayShown={false}
-                  delayShow={100}
+                  delay={400}
                   overlay={
                     <OverlayWrapper
-                      className="hidden-xs"
-                      id="usernames-overflow"
                       intl={
                         Object {
                           "$t": [Function],
@@ -631,10 +624,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                           "wrapRichTextChunksInFragment": undefined,
                         }
                       }
-                      placement="top"
-                    >
-                      @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
-                    </OverlayWrapper>
+                    />
                   }
                   placement="top"
                   trigger={
@@ -668,7 +658,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                   </span>
                 </OverlayTrigger>
               </OverlayTrigger>
-            </SimpleTooltip>
+            </WithTooltip>
              are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
           </div>
         </div>
@@ -786,9 +776,10 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             mentionName="user-0"
           />,
           " and ",
-          <SimpleTooltip
-            content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+          <WithTooltip
             id="usernames-overflow"
+            placement="top"
+            title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
           >
             <span
               className="add-others-link"
@@ -803,7 +794,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 }
               />
             </span>
-          </SimpleTooltip>,
+          </WithTooltip>,
           " to this channel once they are members of the ",
           <strong>
             Team Name Display
@@ -890,23 +881,17 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               />
             </Connect(Component)>
              and 
-            <SimpleTooltip
-              content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
+            <WithTooltip
               id="usernames-overflow"
               key=".3"
+              placement="top"
+              title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
             >
               <OverlayTrigger
                 defaultOverlayShown={false}
-                delayShow={100}
-                overlay={
-                  <Tooltip
-                    className="hidden-xs"
-                    id="usernames-overflow"
-                    placement="top"
-                  >
-                    @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
-                  </Tooltip>
-                }
+                delay={400}
+                disabled={false}
+                overlay={<Unknown />}
                 placement="top"
                 trigger={
                   Array [
@@ -917,11 +902,9 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               >
                 <OverlayTrigger
                   defaultOverlayShown={false}
-                  delayShow={100}
+                  delay={400}
                   overlay={
                     <OverlayWrapper
-                      className="hidden-xs"
-                      id="usernames-overflow"
                       intl={
                         Object {
                           "$t": [Function],
@@ -961,10 +944,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                           "wrapRichTextChunksInFragment": undefined,
                         }
                       }
-                      placement="top"
-                    >
-                      @user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10
-                    </OverlayWrapper>
+                    />
                   }
                   placement="top"
                   trigger={
@@ -998,7 +978,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                   </span>
                 </OverlayTrigger>
               </OverlayTrigger>
-            </SimpleTooltip>
+            </WithTooltip>
              to this channel once they are members of the 
             <strong
               key=".5"

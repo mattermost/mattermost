@@ -713,8 +713,8 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName: model.NewString(driverLocal),
-			ExportDirectory:  model.NewString("directory"),
+			ExportDriverName: model.NewPointer(driverLocal),
+			ExportDirectory:  model.NewPointer("directory"),
 		}, enableComplianceFeature, skipVerify)
 
 		require.Equal(t, expected, actual)
@@ -744,20 +744,20 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName:                         model.NewString(driverS3),
-			ExportAmazonS3AccessKeyId:                model.NewString("minioaccesskey"),
-			ExportAmazonS3SecretAccessKey:            model.NewString("miniosecretkey"),
-			ExportAmazonS3Bucket:                     model.NewString("mattermost-test"),
-			ExportAmazonS3Region:                     model.NewString("region"),
-			ExportAmazonS3Endpoint:                   model.NewString("s3.example.com"),
-			ExportAmazonS3PathPrefix:                 model.NewString("prefix"),
-			ExportAmazonS3SSL:                        model.NewBool(true),
-			ExportAmazonS3SignV2:                     model.NewBool(true),
-			ExportAmazonS3SSE:                        model.NewBool(true),
-			ExportAmazonS3Trace:                      model.NewBool(true),
-			ExportAmazonS3RequestTimeoutMilliseconds: model.NewInt64(1000),
-			ExportAmazonS3PresignExpiresSeconds:      model.NewInt64(60000),
-			ExportAmazonS3UploadPartSizeBytes:        model.NewInt64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes),
+			ExportDriverName:                         model.NewPointer(driverS3),
+			ExportAmazonS3AccessKeyId:                model.NewPointer("minioaccesskey"),
+			ExportAmazonS3SecretAccessKey:            model.NewPointer("miniosecretkey"),
+			ExportAmazonS3Bucket:                     model.NewPointer("mattermost-test"),
+			ExportAmazonS3Region:                     model.NewPointer("region"),
+			ExportAmazonS3Endpoint:                   model.NewPointer("s3.example.com"),
+			ExportAmazonS3PathPrefix:                 model.NewPointer("prefix"),
+			ExportAmazonS3SSL:                        model.NewPointer(true),
+			ExportAmazonS3SignV2:                     model.NewPointer(true),
+			ExportAmazonS3SSE:                        model.NewPointer(true),
+			ExportAmazonS3Trace:                      model.NewPointer(true),
+			ExportAmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(1000)),
+			ExportAmazonS3PresignExpiresSeconds:      model.NewPointer(int64(60000)),
+			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
 		}, enableComplianceFeature, skipVerify)
 
 		require.Equal(t, expected, actual)
@@ -787,20 +787,20 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName:                         model.NewString(driverS3),
-			ExportAmazonS3AccessKeyId:                model.NewString("minioaccesskey"),
-			ExportAmazonS3SecretAccessKey:            model.NewString("miniosecretkey"),
-			ExportAmazonS3Bucket:                     model.NewString("mattermost-test"),
-			ExportAmazonS3Region:                     model.NewString("region"),
-			ExportAmazonS3Endpoint:                   model.NewString("s3.example.com"),
-			ExportAmazonS3PathPrefix:                 model.NewString("prefix"),
-			ExportAmazonS3SSL:                        model.NewBool(true),
-			ExportAmazonS3SignV2:                     model.NewBool(true),
-			ExportAmazonS3SSE:                        model.NewBool(true),
-			ExportAmazonS3Trace:                      model.NewBool(true),
-			ExportAmazonS3RequestTimeoutMilliseconds: model.NewInt64(1000),
-			ExportAmazonS3PresignExpiresSeconds:      model.NewInt64(60000),
-			ExportAmazonS3UploadPartSizeBytes:        model.NewInt64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes),
+			ExportDriverName:                         model.NewPointer(driverS3),
+			ExportAmazonS3AccessKeyId:                model.NewPointer("minioaccesskey"),
+			ExportAmazonS3SecretAccessKey:            model.NewPointer("miniosecretkey"),
+			ExportAmazonS3Bucket:                     model.NewPointer("mattermost-test"),
+			ExportAmazonS3Region:                     model.NewPointer("region"),
+			ExportAmazonS3Endpoint:                   model.NewPointer("s3.example.com"),
+			ExportAmazonS3PathPrefix:                 model.NewPointer("prefix"),
+			ExportAmazonS3SSL:                        model.NewPointer(true),
+			ExportAmazonS3SignV2:                     model.NewPointer(true),
+			ExportAmazonS3SSE:                        model.NewPointer(true),
+			ExportAmazonS3Trace:                      model.NewPointer(true),
+			ExportAmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(1000)),
+			ExportAmazonS3PresignExpiresSeconds:      model.NewPointer(int64(60000)),
+			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
 		}, enableComplianceFeature, skipVerify)
 
 		require.Equal(t, expected, actual)

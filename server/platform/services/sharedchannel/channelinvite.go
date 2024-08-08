@@ -255,8 +255,8 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 		return scs.createDirectChannel(invite, rc)
 	}
 
-	teamId := invite.TeamId
-	// if the invite doesn't have a teamId associated and until the
+	teamId := rc.DefaultTeamId
+	// if the remote doesn't have a teamId associated and until the
 	// acceptance of an invite includes selecting a team, we use the
 	// first team of the list
 	if teamId == "" {
@@ -276,7 +276,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 		Header:      invite.Header,
 		Purpose:     invite.Purpose,
 		CreatorId:   rc.CreatorId,
-		Shared:      model.NewBool(true),
+		Shared:      model.NewPointer(true),
 	}
 
 	// check user perms?

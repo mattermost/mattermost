@@ -109,7 +109,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u1 := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 
 	_, err := ss.User().Save(rctx, &u1)
@@ -125,7 +125,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u2 := model.User{
 		Email:    u1.Email,
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	_, err = ss.User().Save(rctx, &u2)
 	require.Error(t, err, "should be unique email")
@@ -141,7 +141,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u3 := model.User{
 		Email:       MakeEmail(),
-		Username:    model.NewId(),
+		Username:    model.NewUsername(),
 		NotifyProps: make(map[string]string, 1),
 	}
 	maxPostSize := ss.Post().GetMaxPostSize()
@@ -152,7 +152,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	for i := 0; i < 49; i++ {
 		u := model.User{
 			Email:    MakeEmail(),
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 		}
 		_, err = ss.User().Save(rctx, &u)
 		require.NoError(t, err, "couldn't save item")
@@ -165,7 +165,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u2.Id = ""
 	u2.Email = MakeEmail()
-	u2.Username = model.NewId()
+	u2.Username = model.NewUsername()
 	_, err = ss.User().Save(rctx, &u2)
 	require.NoError(t, err, "couldn't save item")
 
@@ -254,7 +254,7 @@ func testUserStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u4 := model.User{
 		Email:       MakeEmail(),
-		Username:    model.NewId(),
+		Username:    model.NewUsername(),
 		NotifyProps: make(map[string]string, 1),
 	}
 	maxPostSize := ss.Post().GetMaxPostSize()
@@ -312,7 +312,7 @@ func testUserStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u2, _ := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	})
 	_, nErr := ss.Bot().Save(&model.Bot{
 		UserId:      u2.Id,
@@ -1605,10 +1605,10 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewString("n_" + model.NewId()),
+		Name:        model.NewPointer("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -2357,7 +2357,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, rctx request.CTX, s
 
 	resetAuthDataToID := func() {
 		_, err = ss.User().UpdateAuthData(
-			user.Id, model.UserAuthServiceSaml, model.NewString("some-id"), "", false)
+			user.Id, model.UserAuthServiceSaml, model.NewPointer("some-id"), "", false)
 		require.NoError(t, err)
 	}
 	resetAuthDataToID()
@@ -3694,28 +3694,28 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := model.NewString("")
+	nilAuthData := model.NewPointer("")
 
 	u1.AuthData = nilAuthData
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3837,28 +3837,28 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := model.NewString("")
+	nilAuthData := model.NewPointer("")
 
 	u1.AuthData = nilAuthData
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -4494,12 +4494,12 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, rctx request.CTX, s
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Roles = "system_user system_admin"
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
-	u2.Username = model.NewId()
+	u2.Username = model.NewUsername()
 
 	_, nErr := ss.User().Save(rctx, &u1)
 	require.NoError(t, nErr, "couldn't save user")
@@ -4521,17 +4521,17 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, rctx request.CTX, ss stor
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Roles = "system_user system_admin"
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
-	u2.Username = model.NewId()
+	u2.Username = model.NewUsername()
 	u2.Roles = "system_user"
 
 	u3 := model.User{}
 	u3.Email = MakeEmail()
-	u3.Username = model.NewId()
+	u3.Username = model.NewUsername()
 	u3.Roles = "system_guest"
 
 	_, nErr := ss.User().Save(rctx, &u1)
@@ -4559,17 +4559,17 @@ func testUserStoreAnalyticsGetExternalUsers(t *testing.T, rctx request.CTX, ss s
 
 	u1 := model.User{}
 	u1.Email = "a@mattermost.com"
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Roles = "system_user system_admin"
 
 	u2 := model.User{}
 	u2.Email = "b@example.com"
-	u2.Username = model.NewId()
+	u2.Username = model.NewUsername()
 	u2.Roles = "system_user"
 
 	u3 := model.User{}
 	u3.Email = "c@test.com"
-	u3.Username = model.NewId()
+	u3.Username = model.NewUsername()
 	u3.Roles = "system_guest"
 
 	_, err = ss.User().Save(rctx, &u1)
@@ -4764,10 +4764,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewString("n_" + model.NewId()),
+		Name:        model.NewPointer("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -4798,22 +4798,22 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 func testUserStoreClearAllCustomRoleAssignments(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Roles:    "system_user system_admin system_post_all",
 	}
 	u2 := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Roles:    "system_user custom_role system_admin another_custom_role",
 	}
 	u3 := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Roles:    "system_user",
 	}
 	u4 := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Roles:    "custom_only",
 	}
 
@@ -4852,7 +4852,7 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, rctx request.CTX, 
 func testUserStoreGetAllAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Roles:    "system_user system_admin system_post_all",
 	})
 	require.NoError(t, err)
@@ -4933,7 +4933,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 
 	u1, err := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
@@ -4943,7 +4943,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 
 	u2, err := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
@@ -4970,7 +4970,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 
 	u3, err := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
@@ -5084,10 +5084,10 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewString("n_" + id),
+			Name:        model.NewPointer("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewString("ri_" + id),
+			RemoteId:    model.NewPointer("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5123,7 +5123,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, err = ss.Team().Update(team)
 	require.NoError(t, err)
 
@@ -5205,10 +5205,10 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewString("n_" + id),
+			Name:        model.NewPointer("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewString("ri_" + id),
+			RemoteId:    model.NewPointer("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5244,7 +5244,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	channel.GroupConstrained = model.NewBool(true)
+	channel.GroupConstrained = model.NewPointer(true)
 	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 
@@ -6151,7 +6151,7 @@ func testIsEmpty(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	u := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 
 	u, err = ss.User().Save(rctx, u)
@@ -6168,7 +6168,7 @@ func testIsEmpty(t *testing.T, rctx request.CTX, ss store.Store) {
 	b := &model.Bot{
 		UserId:   u.Id,
 		OwnerId:  model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 
 	_, err = ss.Bot().Save(b)

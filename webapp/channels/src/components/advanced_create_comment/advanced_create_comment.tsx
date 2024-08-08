@@ -5,6 +5,8 @@
 
 import React from 'react';
 
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
+
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
 import {Locations} from 'utils/constants';
@@ -19,6 +21,11 @@ export type Props = {
 
     isThreadView?: boolean;
     placeholder?: string;
+
+    /**
+     * Used by plugins to act after the post is made
+     */
+    afterSubmit?: (response: SubmitPostReturnType) => void;
 }
 
 const AdvancedCreateComment = ({
@@ -26,6 +33,7 @@ const AdvancedCreateComment = ({
     rootId,
     isThreadView,
     placeholder,
+    afterSubmit,
 }: Props) => {
     return (
         <AdvancedTextEditor
@@ -34,6 +42,7 @@ const AdvancedCreateComment = ({
             postId={rootId}
             isThreadView={isThreadView}
             placeholder={placeholder}
+            afterSubmit={afterSubmit}
         />
     );
 };

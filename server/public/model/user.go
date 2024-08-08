@@ -328,7 +328,7 @@ func (u UserSlice) FilterWithoutID(ids []string) UserSlice {
 func (u *User) DeepCopy() *User {
 	copyUser := *u
 	if u.AuthData != nil {
-		copyUser.AuthData = NewString(*u.AuthData)
+		copyUser.AuthData = NewPointer(*u.AuthData)
 	}
 	if u.Props != nil {
 		copyUser.Props = CopyStringMap(u.Props)
@@ -453,7 +453,7 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = NewUsername()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -658,7 +658,7 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = NewString("")
+	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.LastLogin = 0
 
@@ -681,11 +681,11 @@ func (u *User) Sanitize(options map[string]bool) {
 // Remove any input data from the user object that is not user controlled
 func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
-		u.AuthData = NewString("")
+		u.AuthData = NewPointer("")
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
-	u.RemoteId = NewString("")
+	u.RemoteId = NewPointer("")
 	u.CreateAt = 0
 	u.UpdateAt = 0
 	u.DeleteAt = 0
@@ -700,7 +700,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 
 func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
-	u.AuthData = NewString("")
+	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
@@ -972,7 +972,8 @@ func HashPassword(password string) (string, error) {
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
+var validUsername = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]*$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]*$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
@@ -986,7 +987,7 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	if !validUsernameChars.MatchString(s) {
+	if !validUsername.MatchString(s) {
 		return false
 	}
 
@@ -1028,7 +1029,7 @@ func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s = strings.Trim(s, "-")
 
 	if !IsValidUsername(s) {
-		s = "a" + NewId()
+		s = NewUsername()
 		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
