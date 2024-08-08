@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS scheduledposts (
+CREATE TABLE IF NOT EXISTS ScheduledPosts (
 	id VARCHAR(26) PRIMARY KEY,
 	createat bigint(20),
 	updateat bigint(20),
@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS scheduledposts (
 	fileids text,
 	priority text,
 	scheduledat bigint(20) NOT NULL,
-	processedaty bigint(20),
+	processedat bigint(20),
 	errorcode VARCHAR(200)
 );

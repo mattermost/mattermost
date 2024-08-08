@@ -54,6 +54,7 @@ type RetryLayer struct {
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
+	ScheduledPostStore              store.ScheduledPostStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
 	SharedChannelStore              store.SharedChannelStore
@@ -192,6 +193,10 @@ func (s *RetryLayer) RetentionPolicy() store.RetentionPolicyStore {
 
 func (s *RetryLayer) Role() store.RoleStore {
 	return s.RoleStore
+}
+
+func (s *RetryLayer) ScheduledPost() store.ScheduledPostStore {
+	return s.ScheduledPostStore
 }
 
 func (s *RetryLayer) Scheme() store.SchemeStore {
@@ -402,6 +407,11 @@ type RetryLayerRetentionPolicyStore struct {
 
 type RetryLayerRoleStore struct {
 	store.RoleStore
+	Root *RetryLayer
+}
+
+type RetryLayerScheduledPostStore struct {
+	store.ScheduledPostStore
 	Root *RetryLayer
 }
 
@@ -9686,6 +9696,27 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 
 }
 
+func (s *RetryLayerScheduledPostStore) Save(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.Save(scheduledPost)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 
 	tries := 0
@@ -15353,6 +15384,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.RemoteClusterStore = &RetryLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
+	newStore.ScheduledPostStore = &RetryLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &RetryLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &RetryLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}

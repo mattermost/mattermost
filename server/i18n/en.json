@@ -9035,6 +9035,18 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.scheduled_post.is_valid.draft.app_error",
+    "translation": "Invalid base draft."
+  },
+    {
+        "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+        "translation": "Invalid scheduled at time."
+    },
+    {
+        "id": "model.scheduled_post.is_valid.processed_at.app_error",
+        "translation": "Invalid processed at time."
+    },
+  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time."
   },

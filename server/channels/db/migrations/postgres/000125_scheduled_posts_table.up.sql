@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS scheduledposts (
 	fileids VARCHAR(300),
 	priority text,
 	scheduledat bigint NOT NULL,
-	processedaty bigint,
+	processedat bigint,
 	errorcode VARCHAR(200)
 );
