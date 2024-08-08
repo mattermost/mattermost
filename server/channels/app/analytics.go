@@ -33,7 +33,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 	}
 
 	skipIntensiveQueries := false
-	// When generating a Support packet, always run intensive queries.
+	// When generating a Support Packet, always run intensive queries.
 	if !forSupportPacket {
 		if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
 			rctx.Logger().Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))

@@ -4725,11 +4725,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 122+"
+    "translation": "Wersja 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 122+"
+    "translation": "Wersja 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10090,5 +10090,17 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Nieprawidłowy backend wyszukiwania. Musi to być elasticsearch lub opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Nie można przetworzyć żądania. Treść żądania jest zbyt duża."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Nieprawidłowa maksymalna długość URL dla ustawień usługi. Musi być liczbą całkowitą większą od zera."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Nieprawidłowa wartość dla limit_visible_dms_gms."
   }
 ]

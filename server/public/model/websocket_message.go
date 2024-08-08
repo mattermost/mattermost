@@ -72,8 +72,6 @@ const (
 	WebsocketEventSidebarCategoryUpdated              WebsocketEventType = "sidebar_category_updated"
 	WebsocketEventSidebarCategoryDeleted              WebsocketEventType = "sidebar_category_deleted"
 	WebsocketEventSidebarCategoryOrderUpdated         WebsocketEventType = "sidebar_category_order_updated"
-	WebsocketWarnMetricStatusReceived                 WebsocketEventType = "warn_metric_status_received"
-	WebsocketWarnMetricStatusRemoved                  WebsocketEventType = "warn_metric_status_removed"
 	WebsocketEventCloudPaymentStatusUpdated           WebsocketEventType = "cloud_payment_status_updated"
 	WebsocketEventCloudSubscriptionChanged            WebsocketEventType = "cloud_subscription_changed"
 	WebsocketEventThreadUpdated                       WebsocketEventType = "thread_updated"

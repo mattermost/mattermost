@@ -7245,7 +7245,7 @@
   },
   {
     "id": "api.cloud.request_error",
-    "translation": " "
+    "translation": "Errore nell'elaborazione della richiesta a CWS."
   },
   {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
@@ -7365,7 +7365,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": " "
+    "translation": "Il testo immesso supera il limite di caratteri. Lo scopo del canale è limitato a {{.MaxLength}} caratteri."
   },
   {
     "id": "api.command_custom_status.success",
@@ -8173,7 +8173,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": " "
+    "translation": "Il testo immesso supera il limite di caratteri. L'intestazione del canale è limitata a {{.MaxLength}} caratteri."
   },
   {
     "id": "api.templates.welcome_body.info1",

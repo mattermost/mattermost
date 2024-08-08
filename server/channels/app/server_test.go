@@ -102,14 +102,14 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 	cfg := store.Get()
 	cfg.FileSettings = model.FileSettings{
-		DriverName:              model.NewString(model.ImageDriverS3),
-		AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
-		AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
-		AmazonS3Bucket:          model.NewString("nosuchbucket"),
-		AmazonS3Endpoint:        model.NewString(s3Endpoint),
-		AmazonS3Region:          model.NewString(""),
-		AmazonS3PathPrefix:      model.NewString(""),
-		AmazonS3SSL:             model.NewBool(false),
+		DriverName:              model.NewPointer(model.ImageDriverS3),
+		AmazonS3AccessKeyId:     model.NewPointer(model.MinioAccessKey),
+		AmazonS3SecretAccessKey: model.NewPointer(model.MinioSecretKey),
+		AmazonS3Bucket:          model.NewPointer("nosuchbucket"),
+		AmazonS3Endpoint:        model.NewPointer(s3Endpoint),
+		AmazonS3Region:          model.NewPointer(""),
+		AmazonS3PathPrefix:      model.NewPointer(""),
+		AmazonS3SSL:             model.NewPointer(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
@@ -316,9 +316,9 @@ func TestPanicLog(t *testing.T) {
 	logger, _ := mlog.NewLogger()
 
 	logSettings := model.NewLogSettings()
-	logSettings.EnableConsole = model.NewBool(true)
-	logSettings.ConsoleJson = model.NewBool(true)
-	logSettings.EnableFile = model.NewBool(true)
+	logSettings.EnableConsole = model.NewPointer(true)
+	logSettings.ConsoleJson = model.NewPointer(true)
+	logSettings.EnableFile = model.NewPointer(true)
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 
