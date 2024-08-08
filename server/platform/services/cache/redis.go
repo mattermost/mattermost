@@ -254,6 +254,14 @@ func (r *Redis) RemoveMulti(keys []string) error {
 }
 
 func (r *Redis) Scan(f func([]string) error) error {
+	now := time.Now()
+	defer func() {
+		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Scan", elapsed)
+		}
+	}()
+
 	var scan rueidis.ScanEntry
 	var err error
 	for more := true; more; more = scan.Cursor != 0 {
@@ -261,6 +269,7 @@ func (r *Redis) Scan(f func([]string) error) error {
 			r.client.B().Scan().
 				Cursor(scan.Cursor).
 				Match(r.name+":*").
+				Count(200).
 				Build()).AsScanEntry()
 		if err != nil {
 			return err
