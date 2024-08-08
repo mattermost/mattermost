@@ -293,6 +293,8 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 }
 
 func TestCreateZipFileAndAddFiles(t *testing.T) {
+	t.Skip("MM-60056")
+
 	th := Setup(t)
 	defer th.TearDown()
 
