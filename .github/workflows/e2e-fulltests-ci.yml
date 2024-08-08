@@ -241,7 +241,7 @@ jobs:
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
 
-  generate-test-variables:
+  notify-user:
     runs-on: ubuntu-latest
     if: always()
     needs:
