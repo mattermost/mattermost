@@ -127,7 +127,7 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	}
 
 	if rc.DefaultTeamId != "" && !IsValidId(rc.DefaultTeamId) {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid_id.app_error", nil, "default_team_id="+rc.DefaultTeamId, http.StatusBadRequest)
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "default_team_id="+rc.DefaultTeamId, http.StatusBadRequest)
 	}
 
 	return nil
