@@ -60,7 +60,7 @@ const SettingItem = ({
         if (!active && areAllSectionsInactive) {
             minRef.current?.focus();
         }
-    }, [active, areAllSectionsInactive]);
+    }, [active]);
 
     if (active) {
         return <>{max}</>;
