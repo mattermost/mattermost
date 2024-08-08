@@ -521,6 +521,8 @@
   "admin.data_retention.createJob.title": "Avvia il lavoro di cancellazione adesso",
   "admin.data_retention.custom_policy.channel_selector.addChannels": "Aggiungi canali",
   "admin.data_retention.globalPolicy.title": "Politica di conservazione globale",
+  "admin.data_retention.jobTimeAM": "{time} AM (UTC)",
+  "admin.data_retention.jobTimePM": "{time} PM (UTC)",
   "admin.data_retention.title": "Politica Ritenzione dei Dati",
   "admin.database.title": "Database",
   "admin.developer.title": "Impostazioni sviluppatori",
