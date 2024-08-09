@@ -87,6 +87,7 @@ import type {
     CommandResponse,
     DialogSubmission,
     IncomingWebhook,
+    IncomingWebhooksWithCount,
     OAuthApp,
     OutgoingOAuthConnection,
     OutgoingWebhook,
@@ -2625,17 +2626,18 @@ export default class Client4 {
         );
     };
 
-    getIncomingWebhooks = (teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
+    getIncomingWebhooks = (teamId = '', page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false) => {
         const queryParams: any = {
             page,
             per_page: perPage,
+            include_total_count: includeTotalCount,
         };
 
         if (teamId) {
             queryParams.team_id = teamId;
         }
 
-        return this.doFetch<IncomingWebhook[]>(
+        return this.doFetch<IncomingWebhook[] | IncomingWebhooksWithCount>(
             `${this.getIncomingHooksRoute()}${buildQueryString(queryParams)}`,
             {method: 'get'},
         );

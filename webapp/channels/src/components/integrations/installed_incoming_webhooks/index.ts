@@ -11,7 +11,7 @@ import {removeIncomingHook} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getIncomingHooks} from 'mattermost-redux/selectors/entities/integrations';
+import {getFilteredIncomingHooks, getIncomingHooksTotalCount} from 'mattermost-redux/selectors/entities/integrations';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
@@ -21,17 +21,16 @@ import {loadIncomingHooksAndProfilesForTeam} from 'actions/integration_actions';
 import InstalledIncomingWebhooks from './installed_incoming_webhooks';
 
 function mapStateToProps(state: GlobalState) {
-    const config = getConfig(state);
     const teamId = getCurrentTeamId(state);
+    const incomingHooks = getFilteredIncomingHooks(state);
+    const incomingHooksTotalCount = getIncomingHooksTotalCount(state);
+    const config = getConfig(state);
     const canManageOthersWebhooks = haveITeamPermission(state, teamId, Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS);
-    const incomingHooks = getIncomingHooks(state);
-    const incomingWebhooks = Object.keys(incomingHooks).
-        map((key) => incomingHooks[key]).
-        filter((incomingWebhook) => incomingWebhook.team_id === teamId);
     const enableIncomingWebhooks = config.EnableIncomingWebhooks === 'true';
 
     return {
-        incomingWebhooks,
+        incomingHooks,
+        incomingHooksTotalCount,
         channels: getAllChannels(state),
         users: getUsers(state),
         canManageOthersWebhooks,

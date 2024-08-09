@@ -59,6 +59,11 @@ type IncomingWebhookRequest struct {
 	Priority    *PostPriority      `json:"priority"`
 }
 
+type IncomingWebhooksWithCount struct {
+	Webhooks   []*IncomingWebhook `json:"incoming_webhooks"`
+	TotalCount int64              `json:"total_count"`
+}
+
 func (o *IncomingWebhook) IsValid() *AppError {
 	if !IsValidId(o.Id) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", nil, "", http.StatusBadRequest)

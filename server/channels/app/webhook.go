@@ -507,6 +507,19 @@ func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebho
 	return a.GetIncomingWebhooksPageByUser("", page, perPage)
 }
 
+func (a *App) GetIncomingWebhooksCount(teamID string, userID string) (int64, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
+		return 0, model.NewAppError("GetIncomingWebhooksCount", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	totalCount, err := a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID, userID)
+	if err != nil {
+		return 0, model.NewAppError("GetIncomingWebhooksCount", "app.webhooks.get_incoming_count.app_error", map[string]any{"TeamID": teamID, "UserID": userID, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return totalCount, nil
+}
+
 func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("CreateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)

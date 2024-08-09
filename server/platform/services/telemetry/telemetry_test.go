@@ -231,7 +231,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	commandStore.On("AnalyticsCommandCount", "").Return(int64(15), nil)
 
 	webhookStore := storeMocks.WebhookStore{}
-	webhookStore.On("AnalyticsIncomingCount", "").Return(int64(16), nil)
+	webhookStore.On("AnalyticsIncomingCount", "", "").Return(int64(16), nil)
 	webhookStore.On("AnalyticsOutgoingCount", "").Return(int64(17), nil)
 
 	groupStore := storeMocks.GroupStore{}
