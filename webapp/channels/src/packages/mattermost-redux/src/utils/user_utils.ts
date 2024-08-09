@@ -158,7 +158,8 @@ export function nameSuggestionsForUser(user: UserProfile): string[] {
     const full = first + ' ' + last;
     profileSuggestions.push(first, last, full);
     profileSuggestions.push((user.nickname || '').toLowerCase());
-    profileSuggestions.push((user.position || '').toLowerCase());
+    const positionSuggestions = getSuggestionsSplitBy((user.position || '').toLowerCase(), ' ');
+    profileSuggestions.push(...positionSuggestions);
     const email = (user.email || '').toLowerCase();
     profileSuggestions.push(email);
 
