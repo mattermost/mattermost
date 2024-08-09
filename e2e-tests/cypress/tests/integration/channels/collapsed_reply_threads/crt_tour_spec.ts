@@ -11,10 +11,10 @@
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let otherUser;
-    let testChannel;
-    let rootPost;
+    let testTeam: Cypress.Team;
+    let otherUser: Cypress.UserProfile;
+    let testChannel: Cypress.Channel;
+    let rootPost; // PostMessageResp
 
     beforeEach(() => {
         cy.apiUpdateConfig({

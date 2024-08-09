@@ -11,7 +11,7 @@
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
+    let testTeam: Cypress.Team;
 
     before(() => {
         cy.apiUpdateConfig({

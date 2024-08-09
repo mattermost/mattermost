@@ -13,12 +13,12 @@
 import {spyNotificationAs} from '../../../support/notification';
 
 describe('CRT Desktop notifications', () => {
-    let testTeam;
-    let testChannelUrl;
-    let testChannelId;
-    let testChannelName;
-    let receiver;
-    let sender;
+    let testTeam: Cypress.Team;
+    let testChannelUrl: string;
+    let testChannelId: string;
+    let testChannelName: string;
+    let receiver: Cypress.UserProfile;
+    let sender: Cypress.UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -251,6 +251,7 @@ describe('CRT Desktop notifications', () => {
 
             // # Delete the replies
             cy.wrap(['@reply', '@replyMention']).each((reply) => {
+                // @ts-expect-error: reply should be of type PostMessageResp
                 cy.get(reply).then(({id}) => {
                     cy.apiDeletePost(id);
                 });
@@ -273,6 +274,7 @@ describe('CRT Desktop notifications', () => {
             cy.postMessageAs({sender, message: 'a thread', channelId: dmChannel.id, rootId: ''}).as('rootPost');
 
             // # Get post id of message
+            // @ts-expect-error: reply should be of type PostMessageResp
             cy.get('@rootPost').then(({id: rootId}) => {
                 // # Post a reply to the thread, which will trigger a follow
                 cy.postMessageAs({sender: receiver, message: 'following the thread', channelId: dmChannel.id, rootId});
@@ -289,6 +291,7 @@ describe('CRT Desktop notifications', () => {
 
                 // # Delete the replies
                 cy.wrap(['@reply', '@replyMention']).each((reply) => {
+                    // @ts-expect-error: reply should be of type PostMessageResp
                     cy.get(reply).then(({id}) => {
                         cy.apiDeletePost(id);
                     });
