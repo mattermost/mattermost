@@ -32,6 +32,14 @@ var PostCreateCmd = &cobra.Command{
 	RunE:    withClient(postCreateCmdF),
 }
 
+var PostDeleteCmd = &cobra.Command{
+	Use:     "delete [post_id]",
+	Short:   "Delete a post",
+	Example: `  post delete $POST_ID`,
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(postDeleteCmdF),
+}
+
 var PostListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List posts for a channel",
@@ -57,6 +65,7 @@ func init() {
 
 	PostCmd.AddCommand(
 		PostCreateCmd,
+		PostDeleteCmd,
 		PostListCmd,
 	)
 
@@ -100,6 +109,16 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
 		return fmt.Errorf("could not create post: %s", err.Error())
 	}
+	return nil
+}
+
+func postDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	postID := args[0]
+
+	if _, err := c.DeletePost(context.TODO(), postID); err != nil {
+		return fmt.Errorf("could not delete post: %s", err.Error())
+	}
+
 	return nil
 }
 

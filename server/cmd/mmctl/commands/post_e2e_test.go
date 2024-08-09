@@ -192,3 +192,43 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestPostDeleteCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Delete a post for System Admin Client", func() {
+		printer.Clean()
+
+		postID := "some-post-id"
+
+		cmd := &cobra.Command{}
+
+		err := postDeleteCmdF(s.th.SystemAdminClient, cmd, []string{postID})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Delete a post for Client", func() {
+		printer.Clean()
+
+		postID := "some-post-id"
+
+		cmd := &cobra.Command{}
+
+		err := postDeleteCmdF(s.th.Client, cmd, []string{postID})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Delete a post for Local Client should fail", func() {
+		printer.Clean()
+
+		postID := "some-post-id"
+
+		cmd := &cobra.Command{}
+
+		err := postDeleteCmdF(s.th.LocalClient, cmd, []string{postID})
+		s.Require().NotNil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
