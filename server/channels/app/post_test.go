@@ -3528,3 +3528,94 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		require.Equal(t, "the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
 	})
 }
+
+func TestPermanentDeletePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should permanently delete a post and its file attachment", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		assert.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		assert.Nil(t, err)
+
+		// Delete the post.
+		err = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		assert.Nil(t, err)
+
+		// Wait for the cleanup routine to finish.
+		time.Sleep(time.Millisecond * 100)
+
+		// Check that the post can no longer be reached.
+		_, err = th.App.GetSinglePost(th.Context, post.Id, true)
+		assert.NotNil(t, err)
+
+		// Check that the file can no longer be reached.
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("should permanently delete a post that is soft deleted", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		assert.Nil(t, err)
+
+		infos, sErr := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, sErr)
+		assert.Len(t, infos, 1)
+
+		// Soft delete the post.
+		_, err = th.App.DeletePost(th.Context, post.Id, userID)
+		assert.Nil(t, err)
+
+		// Wait for the cleanup routine to finish.
+		time.Sleep(time.Millisecond * 100)
+
+		// Delete the post.
+		err = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		assert.Nil(t, err)
+
+		// Check that the post can no longer be reached.
+		_, err = th.App.GetSinglePost(th.Context, post.Id, true)
+		assert.NotNil(t, err)
+
+		infos, sErr = th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, sErr)
+		assert.Len(t, infos, 0)
+	})
+}

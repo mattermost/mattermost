@@ -1373,8 +1373,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 
 	if channel.DeleteAt != 0 {
-		appErr := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, appErr
+		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
 	err = a.Srv().Store().Post().Delete(c, postID, model.GetMillis(), deleteByID)
@@ -1388,28 +1387,6 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
-			return nil, appErr
-		}
-	}
-
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	userMessage.Add("post", string(postJSON))
-	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(userMessage)
-
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
-	adminMessage.Add("delete_by", deleteByID)
-	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
-
 	if len(post.FileIds) > 0 {
 		a.Srv().Go(func() {
 			a.deletePostFiles(c, post.Id)
@@ -1417,31 +1394,11 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
-	a.Srv().Go(func() {
-		a.deleteFlaggedPosts(c, post.Id)
-	})
 
-	pluginPost := post.ForPlugin()
-	pluginContext := pluginContext(c)
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenDeletedID)
-	})
-
-	a.Srv().Go(func() {
-		if err = a.RemoveNotifications(c, post, channel); err != nil {
-			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
-		}
-	})
-
-	// delete drafts associated with the post when deleting the post
-	a.Srv().Go(func() {
-		a.deleteDraftsAssociatedWithPost(c, channel, post)
-	})
-
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	appErr = a.CleanUpAfterPostDeletion(c, post, deleteByID)
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	return post, nil
 }
@@ -2642,5 +2599,88 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 	}
 
 	c.Logger().Info(msg)
+	return nil
+}
+
+func (a *App) PermanentDeletePost(c request.CTX, postID, deleteByID string) *model.AppError {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(c), postID, true)
+	if err != nil {
+		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if len(post.FileIds) > 0 {
+		appErr := a.PermanentDeleteFilesByPost(c, post.Id)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	err = a.Srv().Store().Post().PermanentDelete(c, post.Id)
+	if err != nil {
+		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	appErr := a.CleanUpAfterPostDeletion(c, post, deleteByID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
+func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
+	channel, appErr := a.GetChannel(c, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
+			return appErr
+		}
+	}
+
+	postJSON, err := json.Marshal(post)
+	if err != nil {
+		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+	userMessage.Add("post", string(postJSON))
+	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.Publish(userMessage)
+
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("delete_by", deleteByID)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(adminMessage)
+
+	a.Srv().Go(func() {
+		a.deleteFlaggedPosts(c, post.Id)
+	})
+
+	pluginPost := post.ForPlugin()
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenDeletedID)
+	})
+
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
+	})
+
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
+	a.invalidateCacheForChannelPosts(post.ChannelId)
+
 	return nil
 }

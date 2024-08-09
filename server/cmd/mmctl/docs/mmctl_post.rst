@@ -38,5 +38,6 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl post create <mmctl_post_create.rst>`_ 	 - Create a post
+* `mmctl post delete <mmctl_post_delete.rst>`_ 	 - Mark posts as deleted or permanently delete posts with the --permanent flag
 * `mmctl post list <mmctl_post_list.rst>`_ 	 - List posts for a channel
 

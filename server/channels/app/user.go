@@ -1828,32 +1828,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		c.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
 	}
 
-	for _, info := range infos {
-		res, err := a.FileExists(info.Path)
-		if err != nil {
-			c.Logger().Warn(
-				"Error checking existence of file",
-				mlog.String("path", info.Path),
-				mlog.Err(err),
-			)
-			continue
-		}
-
-		if !res {
-			c.Logger().Warn("File not found", mlog.String("path", info.Path))
-			continue
-		}
-
-		err = a.RemoveFile(info.Path)
-
-		if err != nil {
-			c.Logger().Warn(
-				"Unable to remove file",
-				mlog.String("path", info.Path),
-				mlog.Err(err),
-			)
-		}
-	}
+	a.RemoveFilesFromFileStore(c, infos)
 
 	// delete directory containing user's profile image
 	profileImageDirectory := getProfileImageDirectory(user.Id)
