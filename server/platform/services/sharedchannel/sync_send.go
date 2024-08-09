@@ -104,7 +104,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	opts := model.SharedChannelRemoteFilterOpts{
 		RemoteId: rc.RemoteId,
 	}
-	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(opts)
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
 			mlog.String("remote", rc.DisplayName),
