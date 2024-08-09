@@ -579,6 +579,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		deletedRC, err := th.App.GetRemoteCluster(rc.RemoteId)
 		require.ErrorIs(t, err, sql.ErrNoRows)
 		require.Empty(t, deletedRC)
+		require.Empty(t, resp.Header.Get("Content-Type"))
 	})
 
 	t.Run("should return not found if the remote cluster is already deleted", func(t *testing.T) {

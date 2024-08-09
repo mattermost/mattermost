@@ -240,7 +240,7 @@
         "201":
           description: Invite code generated
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
         "401":
