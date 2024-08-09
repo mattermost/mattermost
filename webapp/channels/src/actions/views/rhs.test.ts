@@ -220,7 +220,12 @@ describe('rhs view actions', () => {
             store.dispatch(performSearch(terms, false));
 
             // timezone offset in seconds
-            const timeZoneOffset = getBrowserUtcOffset() * 60;
+            let timeZoneOffset = getBrowserUtcOffset() * 60;
+
+            // Avoid problems with negative cero
+            if (timeZoneOffset === 0) {
+                timeZoneOffset = 0;
+            }
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));

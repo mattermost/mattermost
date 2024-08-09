@@ -76,15 +76,18 @@ describe('Verify Accessibility Support in different input fields', () => {
             });
         }
 
+        cy.uiGetSearchContainer().click();
+
         // * Verify Accessibility support in search input
-        cy.get('#searchBox').should('have.attr', 'aria-describedby', 'searchbar-help-popup').and('have.attr', 'aria-label', 'Search').focus();
-        cy.get('#searchbar-help-popup').should('be.visible').and('have.attr', 'role', 'tooltip');
+        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search');
+        cy.uiGetSearchBox().find('input').focus();
+        cy.get('#searchHints').should('be.visible');
 
         // # Ensure User list is cached once in UI
-        cy.get('#searchBox').type('from:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().find('input').type('from:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.get('#searchBox').clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().find('input').clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -98,10 +101,10 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.get('#searchBox').clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.get('#searchBox').clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2, 'channel');
@@ -285,7 +288,7 @@ function getUserMentionAriaLabel(displayName) {
 }
 
 function verifySearchAutocomplete(index, type = 'user') {
-    cy.get('#search-autocomplete__popover').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
+    cy.uiGetSearchBox().find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
         if (type === 'user') {
             cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
                 const usernameLength = 12;
