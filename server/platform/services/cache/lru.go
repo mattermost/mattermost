@@ -5,6 +5,7 @@ package cache
 
 import (
 	"container/list"
+	"errors"
 	"sync"
 	"time"
 
@@ -101,11 +102,20 @@ func (l *LRU) Remove(key string) error {
 	return nil
 }
 
-// Keys returns a slice of the keys in the cache.
-func (l *LRU) Keys() ([]string, error) {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
+func (l *LRU) RemoveMulti(keys []string) error {
+	var err error
+	for _, key := range keys {
+		err = errors.Join(err, l.Remove(key))
+	}
 
+	return err
+}
+
+// Scan returns the whole slice of keys LRU mode. We don't need
+// this callback style for LRU, but since we share the same interface
+// with Redis, we maintain parity.
+func (l *LRU) Scan(f func([]string) error) error {
+	l.lock.RLock()
 	keys := make([]string, l.len)
 	i := 0
 	for ent := l.evictList.Back(); ent != nil; ent = ent.Prev() {
@@ -115,7 +125,9 @@ func (l *LRU) Keys() ([]string, error) {
 			i++
 		}
 	}
-	return keys, nil
+	l.lock.RUnlock()
+
+	return f(keys)
 }
 
 // Len returns the number of items in the cache.

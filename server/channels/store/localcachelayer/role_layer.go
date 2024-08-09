@@ -78,9 +78,9 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 			gotRole := *(toPass[i].(**model.Role))
 			if gotRole != nil {
 				foundRoles = append(foundRoles, gotRole)
-			} else {
-				s.rootStore.logger.Warn("Found nil role in GetByNames. This is not expected")
+				continue
 			}
+			s.rootStore.logger.Warn("Found nil role in GetByNames. This is not expected")
 		}
 	}
 

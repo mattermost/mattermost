@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -38,16 +39,7 @@ func NewRedis(opts *CacheOptions, client rueidis.Client) (*Redis, error) {
 }
 
 func (r *Redis) Purge() error {
-	// TODO: move to scan
-	keys, err := r.Keys()
-	if err != nil {
-		return err
-	}
-	return r.client.Do(context.Background(),
-		r.client.B().Del().
-			Key(keys...).
-			Build(),
-	).Error()
+	return r.Scan(r.RemoveMulti)
 }
 
 func (r *Redis) Set(key string, value any) error {
@@ -156,10 +148,9 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 	}()
 
 	errs := make([]error, len(keys))
-	newKeys := make([]string, len(keys))
-	for i := range keys {
-		newKeys[i] = r.name + ":" + keys[i]
-	}
+	newKeys := sliceMap(keys, func(elem string) string {
+		return r.name + ":" + elem
+	})
 	vals, err := r.client.DoCache(context.Background(),
 		r.client.B().Mget().
 			Key(newKeys...).
@@ -227,7 +218,7 @@ func (r *Redis) Remove(key string) error {
 	defer func() {
 		if r.metrics != nil {
 			elapsed := time.Since(now).Seconds()
-			r.metrics.ObserveRedisEndpointDuration(r.name, "Del", elapsed)
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Remove", elapsed)
 		}
 	}()
 
@@ -238,22 +229,52 @@ func (r *Redis) Remove(key string) error {
 	).Error()
 }
 
-// Keys returns a slice of the keys in the cache.
-func (r *Redis) Keys() ([]string, error) {
+func (r *Redis) RemoveMulti(keys []string) error {
 	now := time.Now()
 	defer func() {
 		if r.metrics != nil {
 			elapsed := time.Since(now).Seconds()
-			r.metrics.ObserveRedisEndpointDuration(r.name, "Keys", elapsed)
+			r.metrics.ObserveRedisEndpointDuration(r.name, "RemoveMulti", elapsed)
 		}
 	}()
 
-	// TODO: migrate to a function that works on a batch of keys.
+	if len(keys) == 0 {
+		return nil
+	}
+
+	newKeys := sliceMap(keys, func(elem string) string {
+		return r.name + ":" + elem
+	})
+
 	return r.client.Do(context.Background(),
-		r.client.B().Keys().
-			Pattern(r.name+":*").
+		r.client.B().Del().
+			Key(newKeys...).
 			Build(),
-	).AsStrSlice()
+	).Error()
+}
+
+func (r *Redis) Scan(f func([]string) error) error {
+	var scan rueidis.ScanEntry
+	var err error
+	for more := true; more; more = scan.Cursor != 0 {
+		scan, err = r.client.Do(context.Background(),
+			r.client.B().Scan().
+				Cursor(scan.Cursor).
+				Match(r.name+":*").
+				Build()).AsScanEntry()
+		if err != nil {
+			return err
+		}
+
+		removed := sliceMap(scan.Elements, func(elem string) string {
+			return strings.TrimPrefix(elem, r.name+":")
+		})
+		err = f(removed)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Len returns the number of items in the cache.
@@ -284,4 +305,12 @@ func (r *Redis) GetInvalidateClusterEvent() model.ClusterEvent {
 
 func (r *Redis) Name() string {
 	return r.name
+}
+
+func sliceMap[S ~[]E, E, R any](slice S, mapper func(E) R) []R {
+	newSlice := make([]R, len(slice))
+	for i, v := range slice {
+		newSlice[i] = mapper(v)
+	}
+	return newSlice
 }

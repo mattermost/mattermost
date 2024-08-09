@@ -340,7 +340,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	if localCacheStore.profilesInChannelCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
+	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
 		DefaultExpiry:          ProfilesInChannelCacheSec * time.Second,
@@ -450,7 +450,10 @@ func (s LocalCacheStore) DropAllTables() {
 }
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string, props map[string]string) {
-	cache.Remove(key)
+	err := cache.Remove(key)
+	if err != nil {
+		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
 	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
@@ -461,6 +464,26 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 			msg.Props = props
 		}
 		s.cluster.SendClusterMessage(msg)
+	}
+}
+
+func (s *LocalCacheStore) doMultiInvalidateCacheCluster(cache cache.Cache, keys []string, props map[string]string) {
+	err := cache.RemoveMulti(keys)
+	if err != nil {
+		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+		for _, key := range keys {
+			msg := &model.ClusterMessage{
+				Event:    cache.GetInvalidateClusterEvent(),
+				SendType: model.ClusterSendBestEffort,
+				Data:     []byte(key),
+			}
+			if props != nil {
+				msg.Props = props
+			}
+			s.cluster.SendClusterMessage(msg)
+		}
 	}
 }
 
