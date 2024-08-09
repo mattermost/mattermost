@@ -43,9 +43,11 @@ describe('Message Reply', () => {
             cy.clickPostCommentIcon(postId);
 
             // # Reply with the attachment
-            cy.postMessageReplyInRHS('A reply to an older post with attachment');
+            const replyText = 'A reply to an older post with attachment';
+            cy.postMessageReplyInRHS(replyText);
 
             // # Get the latest reply post
+            cy.uiWaitUntilMessagePostedIncludes(replyText);
             cy.getLastPostId().then((replyId) => {
                 // * Verify that the reply is in the channel view with matching text
                 cy.get(`#post_${replyId}`).within(() => {

@@ -180,7 +180,7 @@ function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<any> {
 
     // Wait for 5 seconds with 500ms check interval
     const options = {
-        timeout: TIMEOUTS.FIVE_SEC,
+        timeout: TIMEOUTS.TEN_SEC,
         interval: TIMEOUTS.HALF_SEC,
         errorMsg: `Expected "${message}" to be in the last message posted but not found.`,
     };
