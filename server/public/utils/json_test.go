@@ -322,27 +322,27 @@ func TestStringPtrToJSON(t *testing.T) {
 		},
 		{
 			"Zero length string",
-			model.NewString(""),
+			model.NewPointer(""),
 			[]byte("{}"),
 		},
 		{
 			"JSON map",
-			model.NewString("{\"foo\":7}"),
+			model.NewPointer("{\"foo\":7}"),
 			[]byte("{\"foo\":7}"),
 		},
 		{
 			"JSON array",
-			model.NewString("[1,2,3]"),
+			model.NewPointer("[1,2,3]"),
 			[]byte("[1,2,3]"),
 		},
 		{
 			"JSON string",
-			model.NewString("\"hello\""),
+			model.NewPointer("\"hello\""),
 			[]byte("\"hello\""),
 		},
 		{
 			"bare string",
-			model.NewString("hello"),
+			model.NewPointer("hello"),
 			[]byte("\"hello\""),
 		},
 	}

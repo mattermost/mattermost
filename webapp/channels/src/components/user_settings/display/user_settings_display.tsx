@@ -103,7 +103,6 @@ type Props = OwnProps & {
     userLocale: string;
     enableThemeSelection: boolean;
     configTeammateNameDisplay: string;
-    currentUserTimezone: string;
     shouldAutoUpdateTimezone: boolean | string;
     lockTeammateNameDisplay: boolean;
     militaryTime: string;
@@ -969,7 +968,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 defaultDisplay: Preferences.COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT,
                 title: defineMessage({
                     id: 'user.settings.display.collapsedReplyThreadsTitle',
-                    defaultMessage: 'Collapsed Reply Threads',
+                    defaultMessage: 'Threaded Discussions',
                 }),
                 firstOption: {
                     value: Preferences.COLLAPSED_REPLY_THREADS_ON,

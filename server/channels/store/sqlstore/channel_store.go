@@ -593,7 +593,7 @@ func (s SqlChannelStore) CreateDirectChannel(rctx request.CTX, user *model.User,
 
 	channel.Header = ""
 	channel.Type = model.ChannelTypeDirect
-	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
+	channel.Shared = model.NewPointer(user.IsRemote() || otherUser.IsRemote())
 	channel.CreatorId = user.Id
 
 	cm1 := &model.ChannelMember{
@@ -672,19 +672,40 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		}
 	}
 
-	if _, err := transaction.NamedExec(`INSERT INTO Channels
+	var insert string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		insert = `INSERT IGNORE INTO Channels
 		(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, SchemeId, GroupConstrained, Shared, TotalMsgCountRoot, LastRootPostAt)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)`, channel); err != nil {
-		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
-			dupChannel := model.Channel{}
-			if serr := s.GetMasterX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = ? AND Name = ?", channel.TeamId, channel.Name); serr != nil {
-				return nil, errors.Wrapf(serr, "error while retrieving existing channel %s", channel.Name) // do not return this as a *store.ErrConflict as it would be treated as a recoverable error
-			}
-			return &dupChannel, store.NewErrConflict("Channel", err, "id="+channel.Id)
-		}
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)`
+	} else {
+		insert = `INSERT INTO Channels
+		(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, SchemeId, GroupConstrained, Shared, TotalMsgCountRoot, LastRootPostAt)
+		VALUES
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)
+		ON CONFLICT (TeamId, Name) DO NOTHING`
+	}
+
+	insertResult, err := transaction.NamedExec(insert, channel)
+
+	if err != nil {
 		return nil, errors.Wrapf(err, "save_channel: id=%s", channel.Id)
 	}
+
+	rowAffected, err := insertResult.RowsAffected()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "save_channel: id=%s", channel.Id)
+	}
+
+	if rowAffected == 0 {
+		dupChannel := model.Channel{}
+		if serr := s.GetMasterX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = ? AND Name = ?", channel.TeamId, channel.Name); serr != nil {
+			return nil, errors.Wrapf(serr, "error while retrieving existing channel %s", channel.Name) // do not return this as a *store.ErrConflict as it would be treated as a recoverable error
+		}
+		return &dupChannel, store.NewErrConflict("Channel", err, "id="+channel.Id)
+	}
+
 	return channel, nil
 }
 

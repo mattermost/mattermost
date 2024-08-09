@@ -35,7 +35,7 @@ func TestUserAuditable(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewString("some_auth_data"),
+			AuthData:       NewPointer("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -51,7 +51,7 @@ func TestUserAuditable(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewString("some_remote"),
+			RemoteId:  NewPointer("some_remote"),
 		}
 		m := u.Auditable()
 
@@ -115,7 +115,7 @@ func TestUserLogClone(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewString("some_auth_data"),
+			AuthData:       NewPointer("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -131,7 +131,7 @@ func TestUserLogClone(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewString("some_remote"),
+			RemoteId:  NewPointer("some_remote"),
 		}
 
 		l := u.LogClone()
@@ -173,7 +173,7 @@ func TestUserDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "key"
 
-	user := &User{Id: id, AuthData: NewString(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user := &User{Id: id, AuthData: NewPointer(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
 	user.Props[mapKey] = mapValue
 	user.NotifyProps[mapKey] = mapValue
 	user.Timezone[mapKey] = mapValue
@@ -252,11 +252,11 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId() + "^hello#"
+	user.Username = NewUsername() + "^hello#"
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId()
+	user.Username = NewUsername()
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
@@ -281,7 +281,7 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
-	user.RemoteId = NewString(NewId())
+	user.RemoteId = NewPointer(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -309,6 +309,52 @@ func TestUserIsValid(t *testing.T) {
 	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "roles_limit", user.Id, user.Roles), "expected user is valid error: %s", appErr.Error())
+}
+
+func TestUserSanitizeInput(t *testing.T) {
+	user := User{}
+	user.CreateAt = GetMillis()
+	user.UpdateAt = GetMillis()
+	user.DeleteAt = GetMillis()
+	user.LastPasswordUpdate = GetMillis()
+	user.LastPictureUpdate = GetMillis()
+
+	user.Username = "username"
+	user.Email = "  user@example.com "
+	user.Nickname = "nickname"
+	user.FirstName = "firstname"
+	user.LastName = "lastname"
+	user.RemoteId = NewPointer(NewId())
+	user.Position = "position"
+	user.Roles = "system_admin"
+	user.AuthData = NewPointer("authdata")
+	user.AuthService = "saml"
+	user.EmailVerified = true
+	user.FailedAttempts = 10
+	user.LastActivityAt = GetMillis()
+
+	user.SanitizeInput(false)
+
+	// these fields should be reset
+	require.Equal(t, NewPointer(""), user.AuthData)
+	require.Equal(t, "", user.AuthService)
+	require.False(t, user.EmailVerified)
+	require.Equal(t, NewPointer(""), user.RemoteId)
+	require.Equal(t, int64(0), user.CreateAt)
+	require.Equal(t, int64(0), user.UpdateAt)
+	require.Equal(t, int64(0), user.DeleteAt)
+	require.Equal(t, int64(0), user.LastPasswordUpdate)
+	require.Equal(t, int64(0), user.LastPictureUpdate)
+	require.Equal(t, int64(0), user.LastActivityAt)
+	require.Equal(t, 0, user.FailedAttempts)
+
+	// these fields should remain intact
+	require.Equal(t, "user@example.com", user.Email)
+	require.Equal(t, "username", user.Username)
+	require.Equal(t, "nickname", user.Nickname)
+	require.Equal(t, "firstname", user.FirstName)
+	require.Equal(t, "lastname", user.LastName)
+	require.Equal(t, "position", user.Position)
 }
 
 func HasExpectedUserIsValidError(err *AppError, fieldName, userId string, fieldValue any) bool {
@@ -383,9 +429,9 @@ var usernames = []usernamesTest{
 	{"spin-punch", true, true},
 	{"sp", true, true},
 	{"s", true, true},
-	{"1spin-punch", true, true},
-	{"-spin-punch", true, true},
-	{".spin-punch", true, true},
+	{"1spin-punch", false, false},
+	{"-spin-punch", false, false},
+	{".spin-punch", false, false},
 	{"Spin-punch", false, false},
 	{"spin punch-", false, false},
 	{"spin_punch", true, true},

@@ -88,6 +88,7 @@ type AppIface interface {
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, *model.AppError)
 	// Create/ Update a subscription history event
+	// This function is run daily to record the number of activated users in the system for Cloud workspaces
 	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
@@ -730,7 +731,6 @@ type AppIface interface {
 	GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
 	GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
-	GetMattermostLog(ctx request.CTX) (*model.FileData, error)
 	GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError)
@@ -1105,6 +1105,7 @@ type AppIface interface {
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
 	SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission)
+	SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool
 	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(session model.Session, userID string) bool

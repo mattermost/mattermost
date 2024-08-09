@@ -22,14 +22,14 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 	configService := &testutils.StaticConfigService{
 		Cfg: &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL:                             model.NewString("https://mattermost.example.com"),
-				AllowedUntrustedInternalConnections: model.NewString("127.0.0.1"),
+				SiteURL:                             model.NewPointer("https://mattermost.example.com"),
+				AllowedUntrustedInternalConnections: model.NewPointer("127.0.0.1"),
 			},
 			ImageProxySettings: model.ImageProxySettings{
-				Enable:                  model.NewBool(true),
-				ImageProxyType:          model.NewString(model.ImageProxyTypeAtmosCamo),
-				RemoteImageProxyURL:     model.NewString("http://images.example.com"),
-				RemoteImageProxyOptions: model.NewString("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
+				Enable:                  model.NewPointer(true),
+				ImageProxyType:          model.NewPointer(model.ImageProxyTypeAtmosCamo),
+				RemoteImageProxyURL:     model.NewPointer("http://images.example.com"),
+				RemoteImageProxyOptions: model.NewPointer("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
 			},
 		},
 	}

@@ -18,7 +18,7 @@ import {a11yFocus} from 'utils/utils';
 
 export type OwnProps = {
     adminMode?: boolean;
-    currentUserId?: string;
+    userId: string;
     userPreferences?: PreferencesType;
 }
 
@@ -80,15 +80,15 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
     };
 
     handleSubmit = async () => {
-        if (!this.props.currentUserId) {
+        if (!this.props.userId) {
             // Only for type safety, won't actually happen
             return;
         }
 
         this.setState({isSaving: true});
 
-        await this.props.savePreferences(this.props.currentUserId, [{
-            user_id: this.props.currentUserId,
+        await this.props.savePreferences(this.props.userId, [{
+            user_id: this.props.userId,
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.SHOW_UNREAD_SECTION,
             value: this.state.checked.toString(),
