@@ -12,11 +12,11 @@
 
 import {getRandomLetter} from '../../../../utils';
 import {doTestQuickChannelSwitcher} from '../common_test';
-import {createSearchData} from '../helpers';
+import {createSearchData, SimpleUser} from '../helpers';
 
 describe('Autocomplete with Database - Users', () => {
     const prefix = getRandomLetter(3);
-    let testUsers;
+    let testUsers: Record<string, SimpleUser>;
 
     before(() => {
         cy.apiGetClientLicense().then(({isCloudLicensed}) => {

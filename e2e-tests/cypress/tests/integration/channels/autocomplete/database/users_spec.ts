@@ -12,12 +12,12 @@
 
 import {getRandomLetter} from '../../../../utils';
 import {doTestDMChannelSidebar, doTestUserChannelSection} from '../common_test';
-import {createSearchData} from '../helpers';
+import {createSearchData, SimpleUser} from '../helpers';
 
 describe('Autocomplete with Database - Users', () => {
     const prefix = getRandomLetter(3);
-    let testUsers;
-    let testTeam;
+    let testUsers: Record<string, SimpleUser>;
+    let testTeam: Cypress.Team;
 
     before(() => {
         cy.apiGetClientLicense().then(({isCloudLicensed}) => {
