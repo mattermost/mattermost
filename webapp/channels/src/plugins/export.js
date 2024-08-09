@@ -15,6 +15,7 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
 import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
+import UserSettingsModal from 'components/user_settings/modal';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -65,6 +66,11 @@ window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
     sendDesktopNotificationToMe: notifyMe,
+    openUserSettings: (dialogProps) => openModal({
+        modalId: ModalIdentifiers.USER_SETTINGS,
+        dialogType: UserSettingsModal,
+        dialogProps,
+    }),
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),
