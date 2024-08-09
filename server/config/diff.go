@@ -62,19 +62,27 @@ func (cd ConfigDiffs) Sanitize() ConfigDiffs {
 	if len(cd) == 1 {
 		cfgPtr, ok := cd[0].BaseVal.(*model.Config)
 		if ok {
-			cfgPtr.Sanitize()
+			if err := cfgPtr.Sanitize(); err != nil {
+				fmt.Println("Error sanitizing config:", err)
+			}
 		}
 		cfgPtr, ok = cd[0].ActualVal.(*model.Config)
 		if ok {
-			cfgPtr.Sanitize()
+			if err := cfgPtr.Sanitize(); err != nil {
+				fmt.Println("Error sanitizing config:", err)
+			}
 		}
 		cfgVal, ok := cd[0].BaseVal.(model.Config)
 		if ok {
-			cfgVal.Sanitize()
+			if err := cfgVal.Sanitize(); err != nil {
+				fmt.Println("Error sanitizing config:", err)
+			}
 		}
 		cfgVal, ok = cd[0].ActualVal.(model.Config)
 		if ok {
-			cfgVal.Sanitize()
+			if err := cfgVal.Sanitize(); err != nil {
+				fmt.Println("Error sanitizing config:", err)
+			}
 		}
 	}
 
