@@ -71,13 +71,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 
 		a.InvalidateCacheForUser(user.Id)
 
-		var invErr *users.ErrInvalidPassword
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
-		default:
-			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 
 	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
