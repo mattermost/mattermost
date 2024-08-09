@@ -7,7 +7,6 @@ import {defineMessages} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
 import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -16,7 +15,6 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences} from 'mattermost-redux/constants';
 import {
     getDirectAndGroupChannels,
     getGroupChannels,
@@ -29,7 +27,7 @@ import {
     getAllTeamsUnreadChannelIds,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
     getCurrentTeamId,
@@ -46,7 +44,6 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName, isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {getPostDraft} from 'selectors/rhs';
@@ -772,28 +769,10 @@ export default class SwitchChannelProvider extends Provider {
         return null;
     }
 
-    getTimestampFromPrefs(myPreferences: Record<string, PreferenceType>, category: string, name: string) {
-        const pref = myPreferences[getPreferenceKey(category, name)];
-        const prefValue = pref ? pref.value : '0';
-        return parseInt(prefValue ?? '', 10);
-    }
-
-    getLastViewedAt(member: ChannelMembership, myPreferences: Record<string, PreferenceType>, channel: Channel) {
-        // The server only ever sets the last_viewed_at to the time of the last post in channel,
-        // So thought of using preferences but it seems that also not keeping track.
-        // TODO Update and remove comment once solution is finalized
-        return Math.max(
-            member.last_viewed_at,
-            this.getTimestampFromPrefs(myPreferences, Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, channel.id),
-            this.getTimestampFromPrefs(myPreferences, Preferences.CATEGORY_CHANNEL_OPEN_TIME, channel.id),
-        );
-    }
-
     wrapChannels(channels: Channel[], channelType: string) {
         const state = this.store.getState();
         const currentChannel = getCurrentChannel(state);
         const myMembers = getMyChannelMemberships(state);
-        const myPreferences = getMyPreferences(state);
         const allUnreadChannelIds = getAllTeamsUnreadChannelIds(state);
         const allUnreadChannelIdsSet = new Set(allUnreadChannelIds);
 
@@ -806,7 +785,7 @@ export default class SwitchChannelProvider extends Provider {
             let wrappedChannel: WrappedChannel = {channel, name: channel.name, deactivated: false};
             const member = myMembers[channel.id];
             if (member) {
-                wrappedChannel.last_viewed_at = this.getLastViewedAt(member, myPreferences, channel);
+                wrappedChannel.last_viewed_at = member.last_viewed_at;
             }
             if (channel.type === Constants.GM_CHANNEL) {
                 wrappedChannel.name = channel.display_name;

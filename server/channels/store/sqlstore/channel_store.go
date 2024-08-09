@@ -2488,7 +2488,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userId s
 	return nil
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
+func (s SqlChannelStore) UpdateLastViewedAtToNow(channelIds []string, userId string, now int64) (map[string]int64, error) {
 	lastPostAtTimes := []struct {
 		Id                string
 		LastPostAt        int64
@@ -2518,8 +2518,8 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			Set("UrgentMentionCount", 0).
 			Set("MsgCount", sq.Expr("greatest(cm.MsgCount, c.TotalMsgCount)")).
 			Set("MsgCountRoot", sq.Expr("greatest(cm.MsgCountRoot, c.TotalMsgCountRoot)")).
-			Set("LastViewedAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
-			Set("LastUpdateAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+			Set("LastViewedAt", now).
+			Set("LastUpdateAt", sq.Expr("cm.LastViewedAt")).
 			SuffixExpr(sq.Expr("FROM c WHERE cm.UserId = ? AND c.Id = cm.ChannelId", userId))
 		updateWrap := update.Prefix("updated AS (").Suffix(")")
 		query = with.SuffixExpr(updateWrap).Suffix("SELECT Id, LastPostAt FROM c")
@@ -2547,17 +2547,17 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	}
 
 	times := map[string]int64{}
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		for _, t := range lastPostAtTimes {
-			times[t.Id] = t.LastPostAt
-		}
-		return times, nil
-	}
+	// if s.DriverName() == model.DatabaseDriverPostgres {
+	// 	for _, t := range lastPostAtTimes {
+	// 		times[t.Id] = t.LastPostAt
+	// 	}
+	// 	return times, nil
+	// }
 
-	var msgCountQuery, msgCountQueryRoot, lastViewedQuery = sq.Case("ChannelId"), sq.Case("ChannelId"), sq.Case("ChannelId")
+	var msgCountQuery, msgCountQueryRoot = sq.Case("ChannelId"), sq.Case("ChannelId")
 
 	for _, t := range lastPostAtTimes {
-		times[t.Id] = t.LastPostAt
+		times[t.Id] = now
 
 		msgCountQuery = msgCountQuery.When(
 			sq.Expr("?", t.Id),
@@ -2566,10 +2566,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		msgCountQueryRoot = msgCountQueryRoot.When(
 			sq.Expr("?", t.Id),
 			sq.Expr("GREATEST(MsgCountRoot, ?)", t.TotalMsgCountRoot))
-
-		lastViewedQuery = lastViewedQuery.When(
-			sq.Expr("?", t.Id),
-			sq.Expr("GREATEST(LastViewedAt, ?)", t.LastPostAt))
 	}
 
 	updateQuery := s.getQueryBuilder().Update("ChannelMembers").
@@ -2578,7 +2574,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		Set("UrgentMentionCount", 0).
 		Set("MsgCount", msgCountQuery).
 		Set("MsgCountRoot", msgCountQueryRoot).
-		Set("LastViewedAt", lastViewedQuery).
+		Set("LastViewedAt", now).
 		Set("LastUpdateAt", sq.Expr("LastViewedAt")).
 		Where(sq.Eq{
 			"UserId":    userId,

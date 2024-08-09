@@ -5,8 +5,6 @@ import type {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferen
 
 const Preferences = {
     APP_BAR: 'app_bar',
-    CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
-    CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME: 'channel_approximate_view_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
     CATEGORY_GROUP_CHANNEL_SHOW: 'group_channel_show',
     CATEGORY_FLAGGED_POST: 'flagged_post',

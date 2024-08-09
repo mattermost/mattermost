@@ -36,7 +36,6 @@ export type Props = {
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
-        updateApproximateViewTime: (channelId: string) => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -202,9 +201,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private handleBeforeUnload = (): void => {
         // remove the event listener to prevent getting stuck in a loop
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
-        if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
-            this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
-        }
+
         WebSocketActions.close();
     };
 }

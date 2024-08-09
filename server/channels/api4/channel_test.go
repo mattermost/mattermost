@@ -2647,7 +2647,7 @@ func TestViewChannel(t *testing.T) {
 
 	channel, _ := th.App.GetChannel(th.Context, th.BasicChannel.Id)
 
-	require.Equal(t, channel.LastPostAt, viewResp.LastViewedAtTimes[channel.Id], "LastPostAt does not match returned LastViewedAt time")
+	require.GreaterOrEqual(t, viewResp.LastViewedAtTimes[channel.Id], channel.LastPostAt, "LastPostAt does not match returned LastViewedAt time")
 
 	view.PrevChannelId = th.BasicChannel.Id
 	_, _, err = client.ViewChannel(context.Background(), th.BasicUser.Id, view)
