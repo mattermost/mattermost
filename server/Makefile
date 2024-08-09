@@ -156,7 +156,7 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
 PLUGIN_PACKAGES += focalboard-v8.0.0
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.2
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.3
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
