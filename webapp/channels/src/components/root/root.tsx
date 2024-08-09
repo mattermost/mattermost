@@ -3,12 +3,10 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
-import type {History} from 'history';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import type {ClientConfig} from '@mattermost/types/config';
 import {ServiceEnvironment} from '@mattermost/types/config';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
@@ -16,7 +14,6 @@ import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -52,12 +49,12 @@ import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import type {ProductComponent, PluginComponent} from 'types/store/plugins';
-
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
+
+import type {PropsFromRedux} from './index';
 
 import 'plugins/export.js';
 
@@ -126,36 +123,7 @@ function LoggedInRoute(props: LoggedInRouteProps) {
 
 const noop = () => {};
 
-export type Actions = {
-    getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
-    loadRecentlyUsedCustomEmojis: () => Promise<unknown>;
-    migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
-    registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<unknown>;
-    handleLoginLogoutSignal: (e: StorageEvent) => unknown;
-    redirectToOnboardingOrDefaultTeam: (history: History) => unknown;
-}
-
-type Props = {
-    theme: Theme;
-    telemetryEnabled: boolean;
-    telemetryId?: string;
-    iosDownloadLink?: string;
-    androidDownloadLink?: string;
-    appDownloadLink?: string;
-    noAccounts: boolean;
-    showTermsOfService: boolean;
-    permalinkRedirectTeamName: string;
-    isCloud: boolean;
-    actions: Actions;
-    plugins?: PluginComponent[];
-    products: ProductComponent[];
-    showLaunchingWorkspace: boolean;
-    rhsIsExpanded: boolean;
-    rhsIsOpen: boolean;
-    shouldShowAppBar: boolean;
-} & RouteComponentProps
+export type Props = PropsFromRedux & RouteComponentProps;
 
 interface State {
     configLoaded?: boolean;
@@ -205,12 +173,12 @@ export default class Root extends React.PureComponent<Props, State> {
         this.a11yController = new A11yController();
     }
 
-    onConfigLoaded = (config: Partial<ClientConfig>) => {
+    setRudderConfig = () => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
         let rudderKey = '';
-        switch (config.ServiceEnvironment) {
+        switch (this.props.serviceEnvironment) {
         case ServiceEnvironment.PRODUCTION:
             rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
             break;
@@ -223,13 +191,15 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
-            const siteURL = config.SiteURL;
-            if (siteURL !== '') {
+            if (this.props.siteURL !== '') {
                 try {
-                    rudderCfg.setCookieDomain = new URL(siteURL || '').hostname;
-                    // eslint-disable-next-line no-empty
-                } catch (_) {}
+                    rudderCfg.setCookieDomain = new URL(this.props.siteURL || '').hostname;
+                } catch (_) {
+                    // eslint-disable-next-line no-console
+                    console.error('Failed to set cookie domain for RudderStack');
+                }
             }
+
             rudderAnalytics.load(rudderKey, rudderUrl || '', rudderCfg);
 
             rudderAnalytics.identify(telemetryId, {}, {
@@ -268,7 +238,9 @@ export default class Root extends React.PureComponent<Props, State> {
                 }
             });
         }
+    };
 
+    onConfigLoaded = () => {
         if (this.props.location.pathname === '/' && this.props.noAccounts) {
             this.props.history.push('/signup_user_complete');
         }
@@ -352,6 +324,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
             Utils.applyTheme(this.props.theme);
         }
+
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
                 prevProps.history.push('/signup_user_complete');
@@ -359,12 +332,17 @@ export default class Root extends React.PureComponent<Props, State> {
                 prevProps.history.push('/terms_of_service');
             }
         }
+
         if (
             this.props.shouldShowAppBar !== prevProps.shouldShowAppBar ||
             this.props.rhsIsOpen !== prevProps.rhsIsOpen ||
             this.props.rhsIsExpanded !== prevProps.rhsIsExpanded
         ) {
             this.setRootMeta();
+        }
+
+        if (prevProps.isConfigLoaded !== this.props.isConfigLoaded && this.props.isConfigLoaded) {
+            this.setRudderConfig();
         }
     }
 
@@ -393,14 +371,16 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
+        const isUserAtRootRoute = this.props.location.pathname === '/';
+
         const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
 
-        if (isMeLoaded && this.props.location.pathname === '/') {
+        if (isMeLoaded && isUserAtRootRoute) {
             this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
         }
 
         if (config) {
-            this.onConfigLoaded(config);
+            this.onConfigLoaded();
         }
     };
 
