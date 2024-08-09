@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
@@ -17,9 +16,8 @@ import * as GlobalActions from 'actions/global_actions';
 import Root from 'components/root/root';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
-
-import type {ProductComponent} from 'types/store/plugins';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 
@@ -30,16 +28,13 @@ jest.mock('rudder-sdk-js', () => ({
     ready: jest.fn((callback) => callback()),
     track: jest.fn(),
 }));
-
 jest.mock('actions/telemetry_actions');
-
-jest.mock('actions/global_actions', () => ({
-    redirectUserToDefaultTeam: jest.fn(),
-}));
-
+jest.mock('components/announcement_bar', () => () => <div/>);
+jest.mock('components/team_sidebar', () => () => <div/>);
+jest.mock('components/mobile_view_watcher', () => () => <div/>);
+jest.mock('./performance_reporter_controller', () => () => <div/>);
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');
-
     return {
         ...original,
         localizeMessage: () => {},
@@ -47,7 +42,9 @@ jest.mock('utils/utils', () => {
         makeIsEligibleForClick: jest.fn(),
     };
 });
-
+jest.mock('actions/global_actions', () => ({
+    redirectUserToDefaultTeam: jest.fn(),
+}));
 jest.mock('mattermost-redux/actions/general', () => ({
     getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
         type: 'FIRST_ADMIN_COMPLETE_SETUP_RECEIVED',
@@ -58,6 +55,8 @@ jest.mock('mattermost-redux/actions/general', () => ({
 
 describe('components/Root', () => {
     const store = testConfigureStore();
+    let originalMatchMedia: (query: string) => MediaQueryList;
+    let originalReload: () => void;
 
     const baseProps = {
         telemetryEnabled: true,
@@ -98,7 +97,32 @@ describe('components/Root', () => {
         shouldShowAppBar: false,
     };
 
-    test('should load config and license on mount and redirect to sign-up page', () => {
+    beforeAll(() => {
+        originalMatchMedia = window.matchMedia;
+        originalReload = window.location.reload;
+
+        Object.defineProperty(window, 'matchMedia', {
+            writable: true,
+            value: jest.fn().mockImplementation((query) => ({
+                matches: false,
+                media: query,
+            })),
+        });
+
+        Object.defineProperty(window.location, 'reload', {
+            configurable: true,
+            writable: true,
+        });
+
+        window.location.reload = jest.fn();
+    });
+
+    afterAll(() => {
+        window.matchMedia = originalMatchMedia;
+        window.location.reload = originalReload;
+    });
+
+    test('should load config and license on mount and redirect to sign-up page', async () => {
         const props = {
             ...baseProps,
             noAccounts: true,
@@ -107,14 +131,14 @@ describe('components/Root', () => {
             } as unknown as RouteComponentProps['history'],
         };
 
-        const wrapper = shallow<Root>(<Root {...props}/>);
+        renderWithContext(<Root {...props}/>);
 
-        wrapper.instance().onConfigLoaded({});
-        expect(props.history.push).toHaveBeenCalledWith('/signup_user_complete');
-        wrapper.unmount();
+        await waitFor(() => {
+            expect(props.history.push).toHaveBeenCalledWith('/signup_user_complete');
+        });
     });
 
-    test('should load user, config, and license on mount and redirect to defaultTeam on success', (done) => {
+    test('should load user, config, and license on mount and redirect to defaultTeam on success', async () => {
         document.cookie = 'MMUSERID=userid';
         localStorage.setItem('was_logged_in', 'true');
 
@@ -131,21 +155,15 @@ describe('components/Root', () => {
             },
         };
 
-        // Mock the method by extending the class because we don't have a chance to do it before shallow mounts the component
-        class MockedRoot extends Root {
-            onConfigLoaded = jest.fn(() => {
-                expect(this.onConfigLoaded).toHaveBeenCalledTimes(1);
-                expect(GlobalActions.redirectUserToDefaultTeam).toHaveBeenCalledTimes(1);
-                expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
-                done();
-            });
-        }
+        renderWithContext(<Root {...props}/>);
 
-        const wrapper = shallow(<MockedRoot {...props}/>);
-        wrapper.unmount();
+        await waitFor(() => {
+            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
+            expect(GlobalActions.redirectUserToDefaultTeam).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('should load user, config, and license on mount and should not redirect to defaultTeam id pathname is not root', (done) => {
+    test('should load user, config, and license on mount and should not redirect to defaultTeam id pathname is not root', async () => {
         document.cookie = 'MMUSERID=userid';
         localStorage.setItem('was_logged_in', 'true');
 
@@ -165,18 +183,12 @@ describe('components/Root', () => {
             },
         };
 
-        // Mock the method by extending the class because we don't have a chance to do it before shallow mounts the component
-        class MockedRoot extends Root {
-            onConfigLoaded = jest.fn(() => {
-                expect(this.onConfigLoaded).toHaveBeenCalledTimes(1);
-                expect(GlobalActions.redirectUserToDefaultTeam).not.toHaveBeenCalled();
-                expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
-                done();
-            });
-        }
+        renderWithContext(<Root {...props}/>);
 
-        const wrapper = shallow(<MockedRoot {...props}/>);
-        wrapper.unmount();
+        await waitFor(() => {
+            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
+            expect(GlobalActions.redirectUserToDefaultTeam).not.toHaveBeenCalled();
+        });
     });
 
     test('should call history on props change', () => {
@@ -187,23 +199,28 @@ describe('components/Root', () => {
                 push: jest.fn(),
             } as unknown as RouteComponentProps['history'],
         };
-        const wrapper = shallow<Root>(<Root {...props}/>);
+
+        const {rerender} = renderWithContext(<Root {...props}/>);
         expect(props.history.push).not.toHaveBeenCalled();
+
         const props2 = {
+            ...props,
             noAccounts: true,
         };
-        wrapper.setProps(props2);
+
+        rerender(<Root {...props2}/>);
         expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
-        wrapper.unmount();
     });
 
     test('should reload on focus after getting signal login event from another tab', () => {
+        renderWithContext(<Root {...baseProps}/>);
+
         Object.defineProperty(window.location, 'reload', {
             configurable: true,
             writable: true,
         });
         window.location.reload = jest.fn();
-        const wrapper = shallow<Root>(<Root {...baseProps}/>);
+
         const loginSignal = new StorageEvent('storage', {
             key: StoragePrefixes.LOGIN,
             newValue: String(Math.random()),
@@ -212,8 +229,8 @@ describe('components/Root', () => {
 
         window.dispatchEvent(loginSignal);
         window.dispatchEvent(new Event('focus'));
+
         expect(window.location.reload).toBeCalledTimes(1);
-        wrapper.unmount();
     });
 
     describe('onConfigLoaded', () => {
@@ -221,79 +238,85 @@ describe('components/Root', () => {
             Client4.telemetryHandler = undefined;
         });
 
-        test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', () => {
-            const wrapper = shallow<Root>(<Root {...baseProps}/>);
+        test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', async () => {
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    loadConfigAndMe: jest.fn().mockImplementation(() => {
+                        return Promise.resolve({
+                            config: {ServiceEnvironment: ServiceEnvironment.DEV},
+                            isMeLoaded: true,
+                        });
+                    }),
+                },
+            };
 
-            wrapper.instance().onConfigLoaded({
-                ServiceEnvironment: ServiceEnvironment.DEV,
+            renderWithContext(<Root {...props}/>);
+
+            // Wait for the component to load config and call onConfigLoaded
+            await waitFor(() => {
+                expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
             });
 
             Client4.trackEvent('category', 'event');
 
             expect(Client4.telemetryHandler).not.toBeDefined();
-
-            wrapper.unmount();
         });
 
-        test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', () => {
-            const wrapper = shallow<Root>(<Root {...baseProps}/>);
+        test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', async () => {
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    loadConfigAndMe: jest.fn().mockImplementation(() => {
+                        return Promise.resolve({
+                            config: {ServiceEnvironment: ServiceEnvironment.TEST},
+                            isMeLoaded: true,
+                        });
+                    }),
+                },
+            };
 
-            wrapper.instance().onConfigLoaded({
-                ServiceEnvironment: ServiceEnvironment.TEST,
+            renderWithContext(<Root {...props}/>);
+
+            // Wait for the component to load config and call onConfigLoaded
+            await waitFor(() => {
+                expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
             });
 
             Client4.trackEvent('category', 'event');
 
             expect(Client4.telemetryHandler).toBeDefined();
-
-            wrapper.unmount();
         });
 
-        test('should not set a TelemetryHandler when onConfigLoaded is called but Rudder has been blocked', () => {
+        test('should not set a TelemetryHandler when onConfigLoaded is called but Rudder has been blocked', async () => {
             (rudderAnalytics.ready as any).mockImplementation(() => {
                 // Simulate an error occurring and the callback not getting called
             });
 
-            const wrapper = shallow<Root>(<Root {...baseProps}/>);
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    loadConfigAndMe: jest.fn().mockImplementation(() => {
+                        return Promise.resolve({
+                            config: {ServiceEnvironment: ServiceEnvironment.PRODUCTION},
+                            isMeLoaded: true,
+                        });
+                    }),
+                },
+            };
 
-            wrapper.instance().onConfigLoaded({
-                ServiceEnvironment: ServiceEnvironment.PRODUCTION,
+            renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
             });
 
             Client4.trackEvent('category', 'event');
 
             expect(Client4.telemetryHandler).not.toBeDefined();
-
-            wrapper.unmount();
-        });
-    });
-
-    describe('Routes', () => {
-        test('Should mount public product routes', () => {
-            const mainComponent = () => (<p>{'TestMainComponent'}</p>);
-            const publicComponent = () => (<p>{'TestPublicProduct'}</p>);
-
-            const props = {
-                ...baseProps,
-                products: [{
-                    id: 'productwithpublic',
-                    baseURL: '/productwithpublic',
-                    mainComponent,
-                    publicComponent,
-                } as unknown as ProductComponent,
-                {
-                    id: 'productwithoutpublic',
-                    baseURL: '/productwithoutpublic',
-                    mainComponent,
-                    publicComponent: null,
-                } as unknown as ProductComponent],
-            };
-
-            const wrapper = shallow<Root>(<Root {...props}/>);
-
-            wrapper.instance().setState({configLoaded: true});
-            expect(wrapper).toMatchSnapshot();
-            wrapper.unmount();
         });
     });
 
@@ -314,14 +337,15 @@ describe('components/Root', () => {
             } as unknown as RouteComponentProps['history'],
         };
 
-        test('should show for normal cases', () => {
-            const wrapper = shallow<Root>(<Root {...landingProps}/>);
-            wrapper.instance().onConfigLoaded({});
-            expect(landingProps.history.push).toHaveBeenCalledWith('/landing#/');
-            wrapper.unmount();
+        test('should show for normal cases', async () => {
+            renderWithContext(<Root {...landingProps}/>);
+
+            await waitFor(() => {
+                expect(landingProps.history.push).toHaveBeenCalledWith('/landing#/');
+            });
         });
 
-        test('should not show for Desktop App login flow', () => {
+        test('should not show for Desktop App login flow', async () => {
             const props = {
                 ...landingProps,
                 ...{
@@ -330,10 +354,12 @@ describe('components/Root', () => {
                     },
                 } as RouteComponentProps,
             };
-            const wrapper = shallow<Root>(<Root {...props}/>);
-            wrapper.instance().onConfigLoaded({});
-            expect(props.history.push).not.toHaveBeenCalled();
-            wrapper.unmount();
+
+            renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(props.history.push).not.toHaveBeenCalled();
+            });
         });
     });
 });

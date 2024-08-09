@@ -11,7 +11,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
 
-import SidebarRightMenu from './sidebar_right_menu';
+import SidebarMobileRightMenu from './sidebar_mobile_right_menu';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -27,4 +27,4 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-export default connect(mapStateToProps)(SidebarRightMenu);
+export default connect(mapStateToProps)(SidebarMobileRightMenu);
