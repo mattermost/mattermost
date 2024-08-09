@@ -88,7 +88,7 @@ func TestGetPing(t *testing.T) {
 		resp, err := client.DoAPIGet(context.Background(), "/system/ping?device_id=platform:id", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		var respMap map[string]string
+		var respMap map[string]interface{}
 		err = json.NewDecoder(resp.Body).Decode(&respMap)
 		require.NoError(t, err)
 		assert.Equal(t, "unknown", respMap["CanReceiveNotifications"]) // Unrecognized platform
