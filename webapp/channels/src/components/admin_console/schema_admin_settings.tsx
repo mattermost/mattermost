@@ -1108,6 +1108,23 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     );
                 }
 
+                // This is a bit of special case since designs for plugin config expect the Enable/Disable setting
+                // to be on top and out of the sections.
+                if (section.key.startsWith('PluginSettings.PluginStates') && section.key.endsWith('Enable.Section')) {
+                    sections.push(
+                        <SettingsGroup
+                            container={false}
+                            key={section.key}
+                        >
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </SettingsGroup>,
+                    );
+
+                    return;
+                }
+
                 sections.push(
                     <div
                         className={'config-section'}
