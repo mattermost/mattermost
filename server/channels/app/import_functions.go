@@ -1759,14 +1759,14 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	}
 
 	var members []string
-	if data.Members != nil {
-		members = make([]string, len(*data.Members))
-		copy(members, *data.Members)
-	} else if data.Participants != nil {
+	if data.Participants != nil {
 		members = make([]string, len(data.Participants))
 		for i, member := range data.Participants {
 			members[i] = *member.Username
 		}
+	} else if data.Members != nil {
+		members = make([]string, len(*data.Members))
+		copy(members, *data.Members)
 	} else {
 		return model.NewAppError("BulkImport", "app.import.import_direct_channel.no_members.error", nil, "", http.StatusBadRequest)
 	}
@@ -1796,9 +1796,21 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		channel = ch
 	}
 
-	ems, err := a.GetChannelMembersPage(rctx, channel.Id, 0, 10000)
+	totalMembers, err := a.GetChannelMemberCount(rctx, channel.Id)
 	if err != nil {
 		return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	var ems = make([]model.ChannelMember, 0, totalMembers)
+	var page int
+
+	for int64(len(ems)) < totalMembers {
+		res, err := a.GetChannelMembersPage(rctx, channel.Id, page, 100)
+		if err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		ems = append(ems, res...)
+		page++
 	}
 
 	existingMembers := make(map[string]model.ChannelMember)

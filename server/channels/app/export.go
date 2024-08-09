@@ -892,6 +892,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 		for i, member := range channel.Members {
 			otherMember := member // in case it's a channel with self
 			if len(channel.Members) == 2 {
+				// since the are only two members, the other member is should be the remainder of i+1/2
 				otherMember = channel.Members[(i+1)%2]
 			}
 			prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryDirectChannelShow, otherMember.UserId)
