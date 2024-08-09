@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import isNil from 'lodash/isNil';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -18,15 +19,18 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     formatGithubCodePaste,
+    formatMarkdownLinkMessage,
     formatMarkdownMessage,
     getHtmlTable,
     hasHtmlLink,
     isGitHubCodeBlock,
+    isTextUrl,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
@@ -81,7 +85,7 @@ export type Props = {
 
 export type State = {
     editText: string;
-    selectionRange: {start: number; end: number};
+    selectionRange: { start: number; end: number };
     postError: React.ReactNode;
     errorClass: string | null;
     showEmojiPicker: boolean;
@@ -115,7 +119,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // If we would just use the editText value from the state it would be a stale since it is encapsuled in the
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
-    const saveDraftFrame = useRef<number|null>();
+    const saveDraftFrame = useRef<number | null>();
 
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${editingPost.postId}`;
 
@@ -167,6 +171,35 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         const target = e.target as HTMLTextAreaElement;
         caretPosition.current = target.selectionEnd;
     };
+
+    useEffect(() => {
+        function onPaste(event: ClipboardEvent) {
+            const {clipboardData, target} = event;
+
+            if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'edit_textbox') {
+                return;
+            }
+
+            const {selectionStart, selectionEnd} = target as TextboxElement;
+
+            const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+            const hasTextUrl = isTextUrl(clipboardData);
+
+            const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+            event.preventDefault();
+
+            const message = editText;
+            if (shouldApplyLinkMarkdown) {
+                const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+                execCommandInsertText(formattedLink);
+            }
+        }
+
+        document.addEventListener('paste', onPaste);
+        return () => {
+            document.removeEventListener('paste', onPaste);
+        };
+    });
 
     const handlePaste = useCallback((e: ClipboardEvent) => {
         const {clipboardData, target} = e;
@@ -229,7 +262,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
-    const handleRefocusAndExit = (refocusId: string|null) => {
+    const handleRefocusAndExit = (refocusId: string | null) => {
         if (refocusId) {
             const element = document.getElementById(refocusId);
             element?.focus();
