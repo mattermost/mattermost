@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -29,8 +27,8 @@ type Props = {
     setUsername: (value: string) => void;
     updateSection: (section: string) => void;
     submitUser: (user: UserProfile, emailUpdated: boolean) => void;
-    serverError: React.ReactNode;
-    clientError: React.ReactNode;
+    serverError: string;
+    clientError: string;
     sectionIsSaving: boolean;
     setServerError: (error: string) => void;
     setClientError: (error: string) => void;

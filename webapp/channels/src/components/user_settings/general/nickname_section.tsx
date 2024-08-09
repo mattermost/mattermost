@@ -28,8 +28,8 @@ type Props = {
     setNickname: (value: string) => void;
     updateSection: (section: string) => void;
     submitUser: (user: UserProfile, emailUpdated: boolean) => void;
-    serverError: React.ReactNode;
-    clientError: React.ReactNode;
+    serverError: string;
+    clientError: string;
     sectionIsSaving: boolean;
 }
 const NicknameSection = ({

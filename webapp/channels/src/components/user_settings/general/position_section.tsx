@@ -1,34 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
-import React, {PureComponent, useCallback} from 'react';
-import {FormattedMessage, injectIntl, useIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import React, {useCallback} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {AnnouncementBarMessages, AnnouncementBarTypes, Constants, ValidationErrors} from 'utils/constants';
+import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 import {holders} from './messages';
-
-import SettingDesktopHeader from '../headers/setting_desktop_header';
-import SettingMobileHeader from '../headers/setting_mobile_header';
-import { useSelector } from 'react-redux';
-
-import { getConfig } from 'mattermost-redux/selectors/entities/general';
-import { getIsMobileView } from 'selectors/views/browser';
-import { GlobalState } from 'types/store';
 
 type Props = {
     user: UserProfile;
@@ -37,8 +29,8 @@ type Props = {
     position: string;
     updateSection: (section: string) => void;
     submitUser: (user: UserProfile, emailUpdated: boolean) => void;
-    serverError: React.ReactNode;
-    clientError: React.ReactNode;
+    serverError: string;
+    clientError: string;
     sectionIsSaving: boolean;
 };
 const PositionSection = ({
@@ -72,11 +64,11 @@ const PositionSection = ({
         trackEvent('settings', 'user_settings_update', {field: 'position'});
 
         submitUser(patchedUser, false);
-    }, []);
+    }, [position, submitUser, updateSection, user]);
 
     const updatePosition = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setPosition(e.target.value);
-    }, []);
+    }, [setPosition]);
 
     const active = activeSection === 'position';
     let max = null;

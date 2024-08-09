@@ -30,8 +30,8 @@ import {holders} from './messages';
 type Props = {
     user: UserProfile;
     activeSection: string;
-    serverError: React.ReactNode;
-    clientError: React.ReactNode;
+    serverError: string;
+    clientError: string;
     updateSection: (section: string) => void;
     pictureFile: File | undefined;
     submitActive: MutableRefObject<boolean>;

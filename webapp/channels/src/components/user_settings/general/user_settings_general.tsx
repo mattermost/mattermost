@@ -58,9 +58,9 @@ const UserSettingsGeneralTab = ({
     const [pictureFile, setPictureFile] = useState<File>();
     const [loadingPicture, setLoadingPicture] = useState(false);
     const [sectionIsSaving, setSectionIsSaving] = useState(false);
-    const [clientError, setClientError] = useState<string>();
+    const [clientError, setClientError] = useState('');
     const [serverError, setServerError] = useState('');
-    const [emailError, setEmailError] = useState<string>();
+    const [emailError, setEmailError] = useState('');
 
     const requireEmailVerification = useSelector((state: GlobalState) => getConfig(state).RequireEmailVerification === 'true');
 

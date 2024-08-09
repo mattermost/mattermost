@@ -30,7 +30,7 @@ type Props = {
     currentPassword: string;
     updateSection: (section: string) => void;
     serverError: string;
-    emailError: string | undefined;
+    emailError: string;
     sectionIsSaving: boolean;
     submitUser: (user: UserProfile, emailUpdated: boolean) => void;
     setEmailError: (error: string) => void;

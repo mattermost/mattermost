@@ -5466,8 +5466,6 @@
   "user.settings.general.position": "Position",
   "user.settings.general.positionExtra": "Use Position for your role or job title. This will be shown in your profile popover.",
   "user.settings.general.profilePicture": "Profile Picture",
-  "user.settings.general.sendAgain": "Send again",
-  "user.settings.general.sending": "Sending",
   "user.settings.general.uploadImage": "Click 'Edit' to upload an image.",
   "user.settings.general.username": "Username",
   "user.settings.general.usernameGroupNameUniqueness": "This username conflicts with an existing group name.",
