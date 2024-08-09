@@ -54,7 +54,7 @@ services:
     volumes:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-h", "localhost" ]
+      test: pg_isready -U mmuser -d mattermost_test
       interval: 5s
       timeout: 10s
       retries: 3
