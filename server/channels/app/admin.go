@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
-var latestVersionCache = cache.NewLRU(cache.LRUOptions{
+var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
