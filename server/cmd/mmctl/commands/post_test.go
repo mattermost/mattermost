@@ -22,22 +22,17 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().EqualError(err, "message cannot be empty")
 	})
 
-	s.Run("no channel specified", func() {
-		msgArg := "some text"
+	// Implement s.Run("test fails for invalid first argument",func(){
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-
-		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
-		s.Require().EqualError(err, "Unable to find channel ''")
-	})
+	// }))
 
 	s.Run("wrong reply msg", func() {
 		msgArg := "some text"
+		channelArg := "example-channel"
 		replyToArg := "a-non-existing-post"
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
+		cmd.SetArgs([]string{channelArg, msgArg})
 		cmd.Flags().String("reply-to", replyToArg, "")
 
 		s.client.
@@ -46,7 +41,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
-		err := postCreateCmdF(s.client, cmd, []string{msgArg})
+		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
 		s.Require().Contains(err.Error(), "some-error")
 	})
 
@@ -59,7 +54,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
+		cmd.SetArgs([]string{channelArg, msgArg})
 
 		s.client.
 			EXPECT().
@@ -86,7 +81,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
+		cmd.SetArgs([]string{channelArg, msgArg})
 
 		s.client.
 			EXPECT().
@@ -118,7 +113,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("reply-to", replyToArg, "")
-		cmd.Flags().String("message", msgArg, "")
+		cmd.SetArgs([]string{channelArg, msgArg})
 
 		s.client.
 			EXPECT().

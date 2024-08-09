@@ -1,0 +1,10 @@
+{
+    "MyName": {
+        "name": "MyName",
+        "username": "MyUsername",
+        "authToken": "",
+        "authMethod": "",
+        "instanceUrl": "My Instance URL",
+        "active": true
+    }
+}
