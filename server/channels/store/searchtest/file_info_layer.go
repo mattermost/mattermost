@@ -121,9 +121,14 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should always be able to support wildcard searches",
+		Fn:   testFileInfoAlwaysSupportWildcards,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should not support search with preceding wildcards",
 		Fn:   testFileInfoNotSupportPrecedingWildcards,
-		Tags: []string{EngineAll},
+		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
@@ -1197,6 +1202,55 @@ func testFileInfoSupportWildcards(t *testing.T, th *SearchTestHelper) {
 	})
 }
 
+func testFileInfoAlwaysSupportWildcards(t *testing.T, th *SearchTestHelper) {
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	p1, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "search post", "search post", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	p2, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "searching", "searching", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	p3, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "long post", "first text and second text and last text", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "another post", "another post", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "another long post", "another text and second text and last text", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	defer th.deleteUserFileInfos(th.User.Id)
+
+	t.Run("supports wildcard search without wildcards", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "search",
+		}
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 2)
+		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
+	})
+
+	t.Run("support wildcard search only for plain terms when plain terms and quoted terms are used together.", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "\"first text\" secon \"last text\"",
+		}
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 1)
+		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
+
+		params2 := &model.SearchParams{
+			Terms: "\"firs\"",
+		}
+		results2, err := th.Store.FileInfo().Search([]*model.SearchParams{params2}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results2.FileInfos, 0)
+	})
+}
+
 func testFileInfoNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper) {
 	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
@@ -1226,7 +1280,7 @@ func testFileInfoSearchDiscardWildcardAlone(t *testing.T, th *SearchTestHelper) 
 
 	p1, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "qwerty", "qwerty", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
-	_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "qwertyjkl", "qwertyjkl", "jpg", "image/jpeg", 0, 0)
+	_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "asdf", "asdf", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
 	defer th.deleteUserFileInfos(th.User.Id)
 

@@ -44,6 +44,8 @@ type fileInfoWithChannelID struct {
 	Archived        bool
 }
 
+var wildcardRegExpForPostgres = regexp.MustCompile(`\*($| )`)
+
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
 	return &model.FileInfo{
 		Id:              fi.Id,
@@ -587,21 +589,27 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			}
 		}
 
-		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
+		// these chars have special meaning and can be treated as spaces
 		for _, c := range fs.specialSearchChars() {
-			terms = strings.Replace(terms, c, " ", -1)
+			params.Terms = strings.Replace(params.Terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
-		if terms == "" && excludedTerms == "" {
+		if params.Terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
-			// Parse text for wildcards
-			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
-				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
-				excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
+			// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+			// Add asterisk character after each term of the normalTerms to perform wildcard search
+			wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+			exactPhraseTerms := params.GetExactPhraseTerms()
+
+			// replace a term only if there is a wildcard at the end of the word
+			excludedTerms = wildcardRegExpForPostgres.ReplaceAllLiteralString(excludedTerms, ":* ")
+
+			if wildcardAddedNormalTerms != "" {
+				wildcardAddedNormalTerms = wildcardRegExpForPostgres.ReplaceAllLiteralString(wildcardAddedNormalTerms, ":* ")
 			}
 
 			excludeClause := ""
@@ -609,11 +617,13 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 				excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 			}
 
+			parsedTerms := strings.TrimSpace(wildcardAddedNormalTerms + " " + exactPhraseTerms)
+
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(strings.Fields(parsedTerms), " | ") + ")" + excludeClause
 			} else {
-				queryTerms = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(strings.Fields(parsedTerms), " & ") + ")" + excludeClause
 			}
 
 			query = query.Where(sq.Or{
@@ -623,14 +633,28 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			})
 		} else if fs.DriverName() == model.DatabaseDriverMysql {
 			var err error
-			terms, err = removeMysqlStopWordsFromTerms(terms)
+
+			params.Terms, err = removeMysqlStopWordsFromTerms(params.Terms)
+
+			// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+			// Add asterisk character after each term of the normalTerms to perform wildcard search
+			wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+			exactPhraseTerms := params.GetExactPhraseTerms()
+
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
 			}
 
-			if terms == "" {
+			exactPhraseTerms, err = removeMysqlStopWordsFromTerms(exactPhraseTerms)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
+			}
+
+			if wildcardAddedNormalTerms == "" && exactPhraseTerms == "" {
 				return model.NewFileInfoList(), nil
 			}
+
+			parsedTerms := strings.TrimSpace(wildcardAddedNormalTerms + " " + exactPhraseTerms)
 
 			excludeClause := ""
 			if excludedTerms != "" {
@@ -639,14 +663,15 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = terms + excludeClause
+				queryTerms = parsedTerms + excludeClause
 			} else {
 				splitTerms := []string{}
-				for _, t := range strings.Fields(terms) {
+				for _, t := range strings.Fields(parsedTerms) {
 					splitTerms = append(splitTerms, "+"+t)
 				}
 				queryTerms = strings.Join(splitTerms, " ") + excludeClause
 			}
+
 			query = query.Where(sq.Or{
 				sq.Expr("MATCH (FileInfo.Name) AGAINST (? IN BOOLEAN MODE)", queryTerms),
 				sq.Expr("MATCH (FileInfo.Content) AGAINST (? IN BOOLEAN MODE)", queryTerms),
