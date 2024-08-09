@@ -85,8 +85,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultTeamGuestRole == nil {
 			data.DefaultTeamGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewString("Team Guest Role for Scheme"),
-				SchemeManaged: model.NewBool(true),
+				DisplayName:   model.NewPointer("Team Guest Role for Scheme"),
+				SchemeManaged: model.NewPointer(true),
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
@@ -108,8 +108,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultChannelGuestRole == nil {
 			data.DefaultChannelGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewString("Channel Guest Role for Scheme"),
-				SchemeManaged: model.NewBool(true),
+				DisplayName:   model.NewPointer("Channel Guest Role for Scheme"),
+				SchemeManaged: model.NewPointer(true),
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
@@ -889,7 +889,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
 		}
 		if !user.IsGuest() {
-			channels[team.Id] = append(channels[team.Id], imports.UserChannelImportData{Name: model.NewString(model.DefaultChannelName)})
+			channels[team.Id] = append(channels[team.Id], imports.UserChannelImportData{Name: model.NewPointer(model.DefaultChannelName)})
 		}
 
 		teamsByID[team.Id] = team

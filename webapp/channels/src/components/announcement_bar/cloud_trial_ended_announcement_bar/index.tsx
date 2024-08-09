@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -30,14 +30,13 @@ import type {GlobalState} from 'types/store';
 
 import AnnouncementBar from '../default_announcement_bar';
 
+const getCloudTrialEndBannerPreferences = makeGetCategory('getCloudTrialEndBannerPreferences', Preferences.CLOUD_TRIAL_END_BANNER);
+
 const CloudTrialEndAnnouncementBar: React.FC = () => {
     const limits = useGetLimits();
     const subscription = useGetSubscription();
-    const getCategory = useMemo(makeGetCategory, []);
     const dispatch = useDispatch();
-    const preferences = useSelector((state: GlobalState) =>
-        getCategory(state, Preferences.CLOUD_TRIAL_END_BANNER),
-    );
+    const preferences = useSelector(getCloudTrialEndBannerPreferences);
     const currentUser = useSelector((state: GlobalState) =>
         getCurrentUser(state),
     );
