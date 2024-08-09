@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
-import type {History} from 'history';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -16,7 +15,6 @@ import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -31,6 +29,7 @@ import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_re
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import InitialLoadingScreen from 'components/initial_loading_screen';
 import MobileViewWatcher from 'components/mobile_view_watcher';
 import ModalController from 'components/modal_controller';
 import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
@@ -52,12 +51,12 @@ import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import type {ProductComponent, PluginComponent} from 'types/store/plugins';
-
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
+
+import type {PropsFromRedux} from './index';
 
 import 'plugins/export.js';
 
@@ -126,36 +125,7 @@ function LoggedInRoute(props: LoggedInRouteProps) {
 
 const noop = () => {};
 
-export type Actions = {
-    getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
-    loadRecentlyUsedCustomEmojis: () => Promise<unknown>;
-    migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
-    registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<unknown>;
-    handleLoginLogoutSignal: (e: StorageEvent) => unknown;
-    redirectToOnboardingOrDefaultTeam: (history: History) => unknown;
-}
-
-type Props = {
-    theme: Theme;
-    telemetryEnabled: boolean;
-    telemetryId?: string;
-    iosDownloadLink?: string;
-    androidDownloadLink?: string;
-    appDownloadLink?: string;
-    noAccounts: boolean;
-    showTermsOfService: boolean;
-    permalinkRedirectTeamName: string;
-    isCloud: boolean;
-    actions: Actions;
-    plugins?: PluginComponent[];
-    products: ProductComponent[];
-    showLaunchingWorkspace: boolean;
-    rhsIsExpanded: boolean;
-    rhsIsOpen: boolean;
-    shouldShowAppBar: boolean;
-} & RouteComponentProps
+export type Props = PropsFromRedux & RouteComponentProps;
 
 interface State {
     configLoaded?: boolean;
@@ -348,7 +318,7 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
-    componentDidUpdate(prevProps: Props) {
+    componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
             Utils.applyTheme(this.props.theme);
         }
@@ -365,6 +335,12 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.rhsIsExpanded !== prevProps.rhsIsExpanded
         ) {
             this.setRootMeta();
+        }
+
+        if (prevState.configLoaded !== this.state.configLoaded && this.state.configLoaded) {
+            if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
+                InitialLoadingScreen.stop();
+            }
         }
     }
 
@@ -629,4 +605,9 @@ export default class Root extends React.PureComponent<Props, State> {
             </RootProvider>
         );
     }
+}
+
+export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
+    const TEAM_CONTROLLER_PATH_PATTERN = /^\/([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+    return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }
