@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Bot as BotConstants} from 'mattermost-redux/constants';
 import {generateId} from 'mattermost-redux/utils/helpers';
 
 import Markdown from 'components/markdown';
@@ -39,35 +40,47 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(wrapper.contains(bot.display_name + ' (@' + bot.username + ')')).toEqual(true);
-        expect(wrapper.contains(<Markdown message={bot.description}/>)).toEqual(true);
+        expect(
+            wrapper.contains(bot.display_name + ' (@' + bot.username + ')'),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(<Markdown message={bot.description}/>),
+        ).toEqual(true);
         expect(wrapper.contains('plugin')).toEqual(true);
 
         // if bot managed by plugin, remove ability to edit from UI
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.enable'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.create_token'
+                    defaultMessage='Create New Token'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bots.manage.edit'
+                    defaultMessage='Edit'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.disable'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.enable'
+                    defaultMessage='Enable'
+                />,
+            ),
+        ).toEqual(false);
     });
 
     it('app bot', () => {
@@ -85,35 +98,47 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(wrapper.contains(bot.display_name + ' (@' + bot.username + ')')).toEqual(true);
-        expect(wrapper.contains(<Markdown message={bot.description}/>)).toEqual(true);
+        expect(
+            wrapper.contains(bot.display_name + ' (@' + bot.username + ')'),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(<Markdown message={bot.description}/>),
+        ).toEqual(true);
         expect(wrapper.contains('Apps Framework')).toEqual(true);
 
         // if bot managed by plugin, remove ability to edit from UI
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.enable'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.create_token'
+                    defaultMessage='Create New Token'
+                />,
+            ),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bots.manage.edit'
+                    defaultMessage='Edit'
+                />,
+            ),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.disable'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.enable'
+                    defaultMessage='Enable'
+                />,
+            ),
+        ).toEqual(false);
     });
 
     it('disabled bot', () => {
@@ -131,33 +156,45 @@ describe('components/integrations/bots/Bot', () => {
                 fromApp={false}
             />,
         );
-        expect(wrapper.contains(bot.display_name + ' (@' + bot.username + ')')).toEqual(true);
-        expect(wrapper.contains(<Markdown message={bot.description}/>)).toEqual(true);
+        expect(
+            wrapper.contains(bot.display_name + ' (@' + bot.username + ')'),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(<Markdown message={bot.description}/>),
+        ).toEqual(true);
         expect(wrapper.contains('plugin')).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.enable'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.create_token'
+                    defaultMessage='Create New Token'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bots.manage.edit'
+                    defaultMessage='Edit'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.disable'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.enable'
+                    defaultMessage='Enable'
+                />,
+            ),
+        ).toEqual(true);
     });
 
     it('bot with owner', () => {
@@ -179,24 +216,30 @@ describe('components/integrations/bots/Bot', () => {
         expect(wrapper.contains('plugin')).toEqual(false);
 
         // if bot is not managed by plugin, ability to edit from UI is retained
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.create_token'
+                    defaultMessage='Create New Token'
+                />,
+            ),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bots.manage.edit'
+                    defaultMessage='Edit'
+                />,
+            ),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.disable'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(true);
     });
 
     it('bot with access tokens', () => {
@@ -223,18 +266,22 @@ describe('components/integrations/bots/Bot', () => {
         );
 
         expect(wrapper.contains(tokenId)).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.deactivate'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.activate'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='user.settings.tokens.deactivate'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='user.settings.tokens.activate'
+                    defaultMessage='Enable'
+                />,
+            ),
+        ).toEqual(false);
     });
 
     it('bot with disabled access tokens', () => {
@@ -263,17 +310,82 @@ describe('components/integrations/bots/Bot', () => {
         );
 
         expect(wrapper.contains(tokenId)).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.deactivate'
-                defaultMessage='Disable'
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='user.settings.tokens.deactivate'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='user.settings.tokens.activate'
+                    defaultMessage='Enable'
+                />,
+            ),
+        ).toEqual(true);
+    });
+
+    it('system bot', () => {
+        const bot = UtilsTestHelper.getBotMock({
+            user_id: '1',
+            username: BotConstants.BOT_SYSTEM_BOT_USERNAME,
+        });
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        const wrapper = shallow(
+            <Bot
+                bot={bot}
+                user={user}
+                owner={undefined}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
             />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.activate'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(true);
+        );
+
+        expect(
+            wrapper.contains(bot.display_name + ' (@' + bot.username + ')'),
+        ).toEqual(true);
+        expect(
+            wrapper.contains(<Markdown message={bot.description}/>),
+        ).toEqual(true);
+        expect(wrapper.contains('plugin')).toEqual(true);
+
+        // if bot managed by plugin, remove ability to edit from UI
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.create_token'
+                    defaultMessage='Create New Token'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bots.manage.edit'
+                    defaultMessage='Edit'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.disable'
+                    defaultMessage='Disable'
+                />,
+            ),
+        ).toEqual(false);
+        expect(
+            wrapper.contains(
+                <FormattedMessage
+                    id='bot.manage.enable'
+                    defaultMessage='Enable'
+                />,
+            ),
+        ).toEqual(false);
     });
 });
