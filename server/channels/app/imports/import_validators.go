@@ -489,11 +489,19 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 }
 
 func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppError {
-	if data.Members == nil {
+	if data.Participants == nil && data.Members == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_required.error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*data.Members) != 2 {
+	if data.Participants != nil && len(data.Participants) != 2 {
+		if len(data.Participants) < model.ChannelGroupMinUsers {
+			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
+		} else if len(data.Participants) > model.ChannelGroupMaxUsers {
+			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if data.Members != nil && len(*data.Members) != 2 {
 		if len(*data.Members) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
 		} else if len(*data.Members) > model.ChannelGroupMaxUsers {
@@ -508,10 +516,18 @@ func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
 			found := false
-			for _, member := range *data.Members {
-				if favoriter == member {
+			for _, member := range data.Participants {
+				if favoriter == *member.Username {
 					found = true
 					break
+				}
+			}
+			if data.Members != nil {
+				for _, member := range *data.Members {
+					if favoriter == member {
+						found = true
+						break
+					}
 				}
 			}
 			if !found {

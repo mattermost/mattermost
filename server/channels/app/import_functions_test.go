@@ -3161,6 +3161,7 @@ func TestImportImportPost(t *testing.T) {
 func TestImportImportDirectChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	user3 := th.CreateUser()
 
 	// Check how many channels are in the database.
 	directChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
@@ -3169,161 +3170,363 @@ func TestImportImportDirectChannel(t *testing.T) {
 	groupChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
 	require.NoError(t, err, "Failed to get group channel count.")
 
-	// Do an invalid channel in dry-run mode.
-	data := imports.DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-		},
-		Header: ptrStr("Channel Header"),
+	// We need to generate the dataset twice to test the same data with different formats.
+	generateDataset := func(data imports.DirectChannelImportData) map[string]imports.DirectChannelImportData {
+		members := make([]string, len(data.Participants))
+		for i, member := range data.Participants {
+			members[i] = *member.Username
+		}
+
+		return map[string]imports.DirectChannelImportData{
+			"Participants": data,
+			"Members": {
+				Members: &members,
+			},
+		}
 	}
-	err = th.App.importDirectChannel(th.Context, &data, true)
-	require.Error(t, err)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Invalid channel in dry-run mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+			Header: ptrStr("Channel Header"),
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				err = th.App.importDirectChannel(th.Context, &data, true)
+				require.Error(t, err)
 
-	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
-	data.Members = &[]string{
-		model.NewId(),
-		model.NewId(),
-	}
-	appErr := th.App.importDirectChannel(th.Context, &data, true)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Valid DIRECT channel with a nonexistent member in dry-run mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, true)
+				require.Nil(t, appErr)
 
-	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
-	data.Members = &[]string{
-		model.NewId(),
-		model.NewId(),
-		model.NewId(),
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, true)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Valid GROUP channel with a nonexistent member in dry-run mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, true)
+				require.Nil(t, appErr)
 
-	// Do an invalid channel in apply mode.
-	data.Members = &[]string{
-		model.NewId(),
-	}
-	err = th.App.importDirectChannel(th.Context, &data, false)
-	require.Error(t, err)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Invalid channel in apply mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				err = th.App.importDirectChannel(th.Context, &data, false)
+				require.Error(t, err)
 
-	// Do a valid DIRECT channel.
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that one more DIRECT channel is in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Valid DIRECT channel ", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Do the same DIRECT channel again.
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that one more DIRECT channel is in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+				// Do the same DIRECT channel again.
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Update the channel's HEADER
-	data.Header = ptrStr("New Channel Header 2")
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+				// Update the channel's HEADER
+				data.Header = ptrStr("New Channel Header 2")
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Get the channel to check that the header was updated.
-	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	require.Nil(t, appErr)
-	require.Equal(t, channel.Header, *data.Header)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
-	// Do a GROUP channel with an extra invalid member.
-	user3 := th.CreateUser()
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-		user3.Username,
-		model.NewId(),
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.NotNil(t, appErr)
+				// Get the channel to check that the header was updated.
+				channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+				require.Nil(t, appErr)
+				require.Equal(t, channel.Header, *data.Header)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("GROUP channel with an extra invalid member", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+				{
+					Username: model.NewString(user3.Username),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.NotNil(t, appErr)
 
-	// Do a valid GROUP channel.
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-		user3.Username,
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that one more GROUP channel is in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
+	t.Run("Valid GROUP channel", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+				{
+					Username: model.NewString(user3.Username),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Do the same DIRECT channel again.
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that one more GROUP channel is in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
+				// Do the same DIRECT channel again.
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Update the channel's HEADER
-	data.Header = ptrStr("New Channel Header 3")
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
+				// Update the channel's HEADER
+				data.Header = ptrStr("New Channel Header 3")
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Get the channel to check that the header was updated.
-	userIDs := []string{
-		th.BasicUser.Id,
-		th.BasicUser2.Id,
-		user3.Id,
-	}
-	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
-	require.Equal(t, appErr.Id, store.ChannelExistsError)
-	require.Equal(t, channel.Header, *data.Header)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
-	// Import a channel with some favorites.
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-	}
-	data.FavoritedBy = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Get the channel to check that the header was updated.
+				userIDs := []string{
+					th.BasicUser.Id,
+					th.BasicUser2.Id,
+					user3.Id,
+				}
+				channel, appErr := th.App.createGroupChannel(th.Context, userIDs)
+				require.Equal(t, appErr.Id, store.ChannelExistsError)
+				require.Equal(t, channel.Header, *data.Header)
+			})
+		}
+	})
 
-	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	require.Nil(t, appErr)
-	checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
-	checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+	t.Run("Import a channel with some favorites", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				data.FavoritedBy = &[]string{
+					th.BasicUser.Username,
+					th.BasicUser2.Username,
+				}
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
+
+				channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+				require.Nil(t, appErr)
+				checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+				checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+			})
+		}
+	})
+
+	t.Run("Import a DM channel and user last view should be imported", func(t *testing.T) {
+		lastView := model.GetMillis()
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username:     model.NewString(th.BasicUser.Username),
+					LastViewedAt: ptrInt64(lastView),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+		}
+
+		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		require.Nil(t, appErr)
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, members, 2)
+
+		for _, member := range members {
+			if member.UserId == th.BasicUser.Id {
+				require.Equal(t, member.LastViewedAt, lastView)
+			}
+		}
+	})
+
+	t.Run("Import a DM channel and preserve if the channel was shown to users", func(t *testing.T) {
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+			ShownBy: &[]string{
+				th.BasicUser.Username,
+			},
+		}
+
+		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		require.Nil(t, appErr)
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, members, 2)
+
+		for _, member := range members {
+			if member.UserId == th.BasicUser.Id {
+				checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryDirectChannelShow, th.BasicUser2.Id, "true")
+			}
+		}
+	})
+
+	t.Run("Import a GM channel and preserve if the channel was shown to users", func(t *testing.T) {
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+				{
+					Username: model.NewString(user3.Username),
+				},
+			},
+			ShownBy: &[]string{
+				th.BasicUser.Username,
+			},
+		}
+
+		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		require.Nil(t, appErr)
+
+		channel, appErr := th.App.GetGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.Nil(t, appErr)
+
+		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, members, 3)
+
+		for _, member := range members {
+			if member.UserId == th.BasicUser.Id {
+				checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryGroupChannelShow, channel.Id, "true")
+			}
+		}
+	})
 }
 
 func TestImportImportDirectPost(t *testing.T) {
@@ -3332,9 +3535,13 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Create the DIRECT channel.
 	channelData := imports.DirectChannelImportData{
-		Members: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
+		Participants: []*imports.DirectChannelMemberImportData{
+			{
+				Username: model.NewString(th.BasicUser.Username),
+			},
+			{
+				Username: model.NewString(th.BasicUser2.Username),
+			},
 		},
 	}
 	appErr := th.App.importDirectChannel(th.Context, &channelData, false)
@@ -3688,10 +3895,16 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Create the GROUP channel.
 	user3 := th.CreateUser()
 	channelData = imports.DirectChannelImportData{
-		Members: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
+		Participants: []*imports.DirectChannelMemberImportData{
+			{
+				Username: model.NewString(th.BasicUser.Username),
+			},
+			{
+				Username: model.NewString(th.BasicUser2.Username),
+			},
+			{
+				Username: model.NewString(user3.Username),
+			},
 		},
 	}
 	appErr = th.App.importDirectChannel(th.Context, &channelData, false)
