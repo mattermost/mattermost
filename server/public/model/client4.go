@@ -848,6 +848,25 @@ func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Respo
 	return &user, BuildResponse(r), nil
 }
 
+func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId string) (*User, *Response, error) {
+	m := make(map[string]string)
+	m["token"] = token
+	m["deviceId"] = deviceId
+	r, err := c.DoAPIPost(ctx, "/users/login/desktop_token", MapToJSON(m))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		return nil, nil, NewAppError("loginWithDesktopToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &user, BuildResponse(r), nil
+}
+
 // Logout terminates the current user's session.
 func (c *Client4) Logout(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, "/users/logout", "")
