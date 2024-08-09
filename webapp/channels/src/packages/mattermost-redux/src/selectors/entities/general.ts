@@ -47,6 +47,10 @@ export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
 }
 
+export function shouldAlwaysShowTeamSidebar(state: GlobalState) {
+    return getConfig(state).AlwaysShowTeamSidebar === 'true';
+}
+
 export const isCloudLicense: (state: GlobalState) => boolean = createSelector(
     'isCloudLicense',
     getLicense,

@@ -6205,6 +6205,14 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
+                            type: 'bool',
+                            key: 'ServiceSettings.AlwaysShowTeamSidebar',
+                            label: defineMessage({id: 'admin.experimental.alwaysShowTeamSidebar.title', defaultMessage: 'Always show team sidebar:'}),
+                            help_text: defineMessage({id: 'admin.experimental.alwaysShowTeamSidebar.desc', defaultMessage: 'When true, the team sidebar will always be shown. When false, the team sidebar will be hidden for users that are members of only one team.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
                             type: 'number',
                             key: 'TeamSettings.UserStatusAwayTimeout',
                             label: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),

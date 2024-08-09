@@ -11,7 +11,7 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, shouldAlwaysShowTeamSidebar} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getCurrentTeamId,
@@ -32,6 +32,7 @@ import TeamSidebar from './team_sidebar';
 function mapStateToProps(state: GlobalState) {
     const config: Partial<ClientConfig> = getConfig(state);
 
+    const alwaysShowTeamSidebar = shouldAlwaysShowTeamSidebar(state);
     const experimentalPrimaryTeam: string | undefined = config.ExperimentalPrimaryTeam;
     const joinableTeams: string[] = getJoinableTeamIds(state);
     const moreTeamsToJoin: boolean = joinableTeams && joinableTeams.length > 0;
@@ -41,6 +42,7 @@ function mapStateToProps(state: GlobalState) {
     const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
     return {
+        alwaysShowTeamSidebar,
         currentTeamId: getCurrentTeamId(state),
         myTeams: getMyTeams(state),
         isOpen: getIsLhsOpen(state),
