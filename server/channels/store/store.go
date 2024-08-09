@@ -1043,6 +1043,7 @@ type ChannelBookmarkStore interface {
 
 type ScheduledPostStore interface {
 	Save(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -332,6 +332,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()
 	api.InitClientPerformanceMetrics()
+	api.InitScheduledPost()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
