@@ -854,7 +854,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 
-	t.fileinfo.HasPreviewImage = true
+	t.fileinfo.HasPreviewImage = false
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
 	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview." + getFileExtFromMimeType(t.fileinfo.MimeType)
 	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(t.fileinfo.MimeType)
