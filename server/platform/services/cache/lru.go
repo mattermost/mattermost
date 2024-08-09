@@ -58,12 +58,6 @@ func (l *LRU) Purge() error {
 	return nil
 }
 
-// Set adds the given key and value to the store without an expiry. If the key already exists,
-// it will overwrite the previous value.
-func (l *LRU) Set(key string, value any) error {
-	return l.SetWithExpiry(key, value, 0)
-}
-
 // SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
 // the key already exists, it will overwrite the previous value
 func (l *LRU) SetWithDefaultExpiry(key string, value any) error {

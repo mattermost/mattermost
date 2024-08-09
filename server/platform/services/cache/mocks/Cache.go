@@ -162,24 +162,6 @@ func (_m *Cache) Scan(f func([]string) error) error {
 	return r0
 }
 
-// Set provides a mock function with given fields: key, value
-func (_m *Cache) Set(key string, value interface{}) error {
-	ret := _m.Called(key, value)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Set")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
-		r0 = rf(key, value)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // SetWithDefaultExpiry provides a mock function with given fields: key, value
 func (_m *Cache) SetWithDefaultExpiry(key string, value interface{}) error {
 	ret := _m.Called(key, value)

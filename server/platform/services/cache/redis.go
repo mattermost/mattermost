@@ -42,10 +42,6 @@ func (r *Redis) Purge() error {
 	return r.Scan(r.RemoveMulti)
 }
 
-func (r *Redis) Set(key string, value any) error {
-	return r.SetWithExpiry(key, value, 0)
-}
-
 // SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
 // the key already exists, it will overwrite the previous value
 func (r *Redis) SetWithDefaultExpiry(key string, value any) error {
@@ -269,7 +265,7 @@ func (r *Redis) Scan(f func([]string) error) error {
 			r.client.B().Scan().
 				Cursor(scan.Cursor).
 				Match(r.name+":*").
-				Count(200).
+				Count(100).
 				Build()).AsScanEntry()
 		if err != nil {
 			return err

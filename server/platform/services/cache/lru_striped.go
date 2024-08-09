@@ -63,11 +63,6 @@ func (L LRUStriped) Purge() error {
 	return nil
 }
 
-// Set does the same as LRU.Set
-func (L LRUStriped) Set(key string, value any) error {
-	return L.keyBucket(key).Set(key, value)
-}
-
 // SetWithDefaultExpiry does the same as LRU.SetWithDefaultExpiry
 func (L LRUStriped) SetWithDefaultExpiry(key string, value any) error {
 	return L.keyBucket(key).SetWithDefaultExpiry(key, value)

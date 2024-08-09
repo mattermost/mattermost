@@ -15,13 +15,13 @@ import (
 )
 
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
-	ps.statusCache.Set(status.UserId, status)
+	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
 }
 
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
 	ps.AddStatusCacheSkipClusterSend(status)
 
-	if ps.Cluster() != nil {
+	if ps.Cluster() != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
 		statusJSON, err := json.Marshal(status)
 		if err != nil {
 			ps.logger.Warn("Failed to encode status to JSON", mlog.Err(err))

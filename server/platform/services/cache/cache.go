@@ -18,10 +18,6 @@ type Cache interface {
 	// Purge is used to completely clear the cache.
 	Purge() error
 
-	// Set adds the given key and value to the store without an expiry. If the key already exists,
-	// it will overwrite the previous value.
-	Set(key string, value any) error
-
 	// SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
 	// the key already exists, it will overwrite the previous value
 	SetWithDefaultExpiry(key string, value any) error

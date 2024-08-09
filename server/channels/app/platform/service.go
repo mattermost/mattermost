@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -298,12 +299,13 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	ps.sessionCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,
