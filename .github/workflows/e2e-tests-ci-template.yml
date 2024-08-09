@@ -240,8 +240,8 @@ jobs:
         # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
         # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
         #
-        #os: [ubuntu-latest, windows-2022, macos-12-xl]
-        os: [ubuntu-latest]
+        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
+        os: [ubuntu-latest-8-cores]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 120
