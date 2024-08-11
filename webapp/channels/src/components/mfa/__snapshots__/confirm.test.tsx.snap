@@ -4,7 +4,6 @@ exports[`components/mfa/components/Confirm should match snapshot 1`] = `
 <div>
   <form
     className="form-group"
-    onKeyPress={[Function]}
     onSubmit={[Function]}
   >
     <p>
