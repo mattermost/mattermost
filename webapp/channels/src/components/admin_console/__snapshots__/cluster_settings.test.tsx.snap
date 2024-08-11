@@ -25,14 +25,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
           id="admin.cluster.noteDescription"
         />
       </div>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will run in High Availability mode. Please see <link>documentation</link> to learn more about configuring High Availability for Mattermost."
@@ -53,12 +46,6 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -109,14 +96,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         value=""
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, the cluster will attempt to communicate via IP Address vs using the hostname."
@@ -132,22 +112,9 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
@@ -163,22 +130,9 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled."
@@ -194,12 +148,6 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -295,14 +243,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
           id="admin.cluster.noteDescription"
         />
       </div>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will run in High Availability mode. Please see <link>documentation</link> to learn more about configuring High Availability for Mattermost."
@@ -323,12 +264,6 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -379,14 +314,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         value=""
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, the cluster will attempt to communicate via IP Address vs using the hostname."
@@ -402,22 +330,9 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
@@ -433,22 +348,9 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled."
@@ -464,12 +366,6 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -565,14 +461,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
           id="admin.cluster.noteDescription"
         />
       </div>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will run in High Availability mode. Please see <link>documentation</link> to learn more about configuring High Availability for Mattermost."
@@ -593,12 +482,6 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -649,14 +532,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         value=""
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, the cluster will attempt to communicate via IP Address vs using the hostname."
@@ -672,22 +548,9 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
@@ -703,22 +566,9 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled."
@@ -734,12 +584,6 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -835,14 +679,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
           id="admin.cluster.noteDescription"
         />
       </div>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will run in High Availability mode. Please see <link>documentation</link> to learn more about configuring High Availability for Mattermost."
@@ -863,12 +700,6 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -919,14 +750,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         value=""
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, the cluster will attempt to communicate via IP Address vs using the hostname."
@@ -942,22 +766,9 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be encrypted."
@@ -973,22 +784,9 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled."
@@ -1004,12 +802,6 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting

@@ -16,14 +16,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -44,12 +37,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -196,14 +183,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -224,12 +204,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -490,14 +464,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -518,12 +485,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -670,14 +631,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -698,12 +652,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
