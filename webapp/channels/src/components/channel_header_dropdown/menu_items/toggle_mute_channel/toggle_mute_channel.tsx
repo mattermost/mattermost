@@ -43,42 +43,25 @@ type Props = {
     actions: Actions;
 };
 
-export default class MenuItemToggleMuteChannel extends React.PureComponent<Props> {
-    handleClick = () => {
-        const {
-            user,
-            channel,
-            isMuted,
-            actions: {
-                updateChannelNotifyProps,
-            },
-        } = this.props;
-
-        updateChannelNotifyProps(user.id, channel.id, {
+export default function MenuItemToggleMuteChannel({id, isMuted, channel, user, actions}: Props) {
+    const handleClick = () => {
+        actions.updateChannelNotifyProps(user.id, channel.id, {
             mark_unread: (isMuted ? NotificationLevels.ALL : NotificationLevels.MENTION) as 'all' | 'mention',
         });
     };
 
-    render() {
-        const {
-            id,
-            isMuted,
-            channel,
-        } = this.props;
-
-        let text;
-        if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
-            text = isMuted ? localizeMessage('channel_header.unmuteConversation', 'Unmute Conversation') : localizeMessage('channel_header.muteConversation', 'Mute Conversation');
-        } else {
-            text = isMuted ? localizeMessage('channel_header.unmute', 'Unmute Channel') : localizeMessage('channel_header.mute', 'Mute Channel');
-        }
-
-        return (
-            <Menu.ItemAction
-                id={id}
-                onClick={this.handleClick}
-                text={text}
-            />
-        );
+    let text;
+    if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+        text = isMuted ? localizeMessage('channel_header.unmuteConversation', 'Unmute Conversation') : localizeMessage('channel_header.muteConversation', 'Mute Conversation');
+    } else {
+        text = isMuted ? localizeMessage('channel_header.unmute', 'Unmute Channel') : localizeMessage('channel_header.mute', 'Mute Channel');
     }
+
+    return (
+        <Menu.ItemAction
+            id={id}
+            onClick={handleClick}
+            text={text}
+        />
+    );
 }
