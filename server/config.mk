@@ -9,8 +9,11 @@
 #
 # Must be space separated names.
 #
-# Example: mysql postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
+# Example: postgres elasticsearch
+ENABLED_DOCKER_SERVICES ?= postgres inbucket
+
+# Enable MySQL service to be run in docker.
+ENABLED_MYSQL ?= false
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false

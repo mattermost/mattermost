@@ -201,6 +201,12 @@ ifeq ($(ARM_BASED_MAC),true)
   DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
 
+ifeq ($(ENABLED_MYSQL),true)
+  $(info MySQL is enabled, running MySQL services)
+  ENABLED_DOCKER_SERVICES:= $(ENABLED_DOCKER_SERVICES) mysql
+  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.mysql.yaml $(DOCKER_COMPOSE_OVERRIDE)
+endif
+
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
