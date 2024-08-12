@@ -53,10 +53,36 @@ const CallButton = ({
 
     const isCallsEnabled = useSelector((state: GlobalState) => getIsCallsEnabled(state));
     const dmChannel = useSelector((state: GlobalState) => getChannelByName(state, getDirectChannelName(currentUserId, userId)));
-    const callsConfig = useSelector(getCallsConfig);
-    const currentUser = useSelector((state: GlobalState) => getUser(state, currentUserId));
-    const callsExplicitlyDisabled = useSelector((state: GlobalState) => callsChannelExplicitlyDisabled(state, dmChannel?.id ?? ''));
-    const callsExplicitlyEnabled = useSelector((state: GlobalState) => callsChannelExplicitlyEnabled(state, dmChannel?.id ?? ''));
+
+    const shouldRenderButton = useSelector((state: GlobalState) => {
+        // 1. No one should get the button if the plugin is disabled.
+        if (!isCallsEnabled) {
+            return false;
+        }
+
+        // 2. No one should get the button if calls in channel have been explicitly disabled in the DM channel.
+        if (callsChannelExplicitlyDisabled(state, dmChannel?.id ?? '')) {
+            return false;
+        }
+
+        // 3. Admins should get the button unless calls have been explicitly disabled in the DM channel. This
+        // should apply in test mode as well (DefaultEnabled = false).
+        if (isSystemAdmin(getUser(state, currentUserId)?.roles)) {
+            return true;
+        }
+
+        // 4. Users should only see the button if test mode is off (DefaultEnabled = true) and calls in the DM channel are not disabled.
+        if (getCallsConfig(state).DefaultEnabled) {
+            return true;
+        }
+
+        // 5. Everyone should see the button if calls have been explicitly enabled in the DM channel, regardless of test mode state.
+        if (callsChannelExplicitlyEnabled(state, dmChannel?.id ?? '')) {
+            return true;
+        }
+
+        return false;
+    });
 
     const hasDMCall = useSelector((state: GlobalState) => {
         if (isCallsEnabled && dmChannel) {
@@ -65,11 +91,7 @@ const CallButton = ({
         return false;
     });
 
-    // 1. No one should get the button if the plugin is disabled.
-    // 2. Admins should get the button unless calls have been explicitly disabled in the DM channel. This
-    // should apply in test mode as well (DefaultEnabled = false).
-    // 3. Users should only see the button if test mode is off (DefaultEnabled = true) and calls in the DM channel are not disabled.
-    if (!isCallsEnabled || callsExplicitlyDisabled || (!isSystemAdmin(currentUser.roles) && !callsConfig?.DefaultEnabled && !callsExplicitlyEnabled)) {
+    if (!shouldRenderButton) {
         return null;
     }
 
