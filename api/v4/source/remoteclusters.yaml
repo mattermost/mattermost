@@ -171,6 +171,9 @@
               properties:
                 display_name:
                   type: string
+                default_team_id:
+                  type: string
+                  description: The team where channels from invites are created
       responses:
         "200":
           description: Remote Cluster patch successful
