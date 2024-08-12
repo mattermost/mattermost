@@ -478,7 +478,7 @@
   "admin.channel_settings.channel_list.no_logs_found": "Brak zdarzeń",
   "admin.channel_settings.channel_list.search_channels_errored": "Coś poszło nie tak. Spróbuj ponownie",
   "admin.channel_settings.channel_list.teamHeader": "Zespół",
-  "admin.channel_settings.channel_moderation.channelMentions": "Wzmianki o Kanałach",
+  "admin.channel_settings.channel_moderation.channelMentions": "Wzmianki na Kanałach",
   "admin.channel_settings.channel_moderation.channelMentions.disabledBoth": "Wzmianki o kanałach dla członków i gości są wyłączone w [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.channelMentions.disabledBothDueToCreatePosts": "Goście i członkowie nie mogą używać wzmianek o kanałach bez możliwości tworzenia postów.",
   "admin.channel_settings.channel_moderation.channelMentions.disabledGuest": "Wzmianki o kanałach dla gości są wyłączone w [{scheme_name}](../permissions/{scheme_link}).",
