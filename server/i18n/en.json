@@ -9559,10 +9559,6 @@
     "translation": "Invalid base draft."
   },
   {
-    "id": "model.scheduled_post.is_valid.empty_message.app_error",
-    "translation": "Cannot scheduled a post with empty message."
-  },
-  {
     "id": "model.scheduled_post.is_valid.id.app_error",
     "translation": "Scheduled post must have an ID."
   },
