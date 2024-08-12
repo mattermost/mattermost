@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"testing"
+
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
 func TestScheduledPostStore(t *testing.T) {

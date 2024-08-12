@@ -1297,12 +1297,12 @@ func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return migrations, nil
 }
 
-func (s *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, error) {
+func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, error) {
 	var columnSizeBytes int32
-	s.getQueryPlaceholder()
+	ss.getQueryPlaceholder()
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		if err := s.GetReplicaX().Get(&columnSizeBytes, `
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		if err := ss.GetReplicaX().Get(&columnSizeBytes, `
 			SELECT
 				COALESCE(character_maximum_length, 0)
 			FROM
@@ -1314,8 +1314,8 @@ func (s *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, er
 			mlog.Warn("Unable to determine the maximum supported column size for Postgres", mlog.Err(err))
 			return 0, err
 		}
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		if err := s.GetReplicaX().Get(&columnSizeBytes, `
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
+		if err := ss.GetReplicaX().Get(&columnSizeBytes, `
 			SELECT
 				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
 			FROM

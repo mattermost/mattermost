@@ -1,11 +1,15 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package sqlstore
 
 import (
+	"sync"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
-	"sync"
 )
 
 type SqlScheduledPostStore struct {
@@ -118,7 +122,6 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 	}
 
 	return scheduledPosts, nil
-
 }
 
 func (s *SqlScheduledPostStore) getMaxMessageSize() int {
