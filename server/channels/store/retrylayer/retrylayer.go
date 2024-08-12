@@ -785,11 +785,11 @@ func (s *RetryLayerChannelStore) AutocompleteInTeamForSearch(teamID string, user
 
 }
 
-func (s *RetryLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s *RetryLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string, limit int) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID)
+		err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID, limit)
 		if err == nil {
 			return nil
 		}
@@ -4211,11 +4211,11 @@ func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 }
 
-func (s *RetryLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s *RetryLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string, limit int) error {
 
 	tries := 0
 	for {
-		err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID)
+		err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID, limit)
 		if err == nil {
 			return nil
 		}

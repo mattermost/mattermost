@@ -308,7 +308,7 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
-	BatchMergeCreatorId(toUserID, fromUserID string) error
+	BatchMergeCreatorId(toUserID, fromUserID string, limit int) error
 
 	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset, limit int) ([]*model.Channel, error)
 	GetGMsWithMemberIdsForUser(userID string, offset, limit int) ([]*model.ChannelWithMemberIds, error)
@@ -701,7 +701,7 @@ type EmojiStore interface {
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
-	BatchMergeCreatorId(toUserID, fromUserID string) error
+	BatchMergeCreatorId(toUserID, fromUserID string, limit int) error
 }
 
 type StatusStore interface {

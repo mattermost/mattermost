@@ -31,6 +31,7 @@ func TestBotStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testBotStoreUpdate(t, rctx, ss) })
 	t.Run("PermanentDelete", func(t *testing.T) { testBotStorePermanentDelete(t, rctx, ss) })
+	t.Run("MergeOwnerId", func(t *testing.T) { testBotStoreMergeOwnerId(t, rctx, ss) })
 }
 
 func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -469,5 +470,48 @@ func testBotStorePermanentDelete(t *testing.T, rctx request.CTX, ss store.Store)
 		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
+	})
+}
+
+func testBotStoreMergeOwnerId(t *testing.T, rctx request.CTX, ss store.Store) {
+	owner1Id := model.NewId()
+	owner2Id := model.NewId()
+	owner3Id := model.NewId()
+
+	b1, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
+		Username: "b1",
+		OwnerId:  owner1Id,
+	})
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b1.UserId)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b1.UserId)) }()
+
+	b2, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
+		Username: "b2",
+		OwnerId:  owner2Id,
+	})
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b2.UserId)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b2.UserId)) }()
+
+	b3, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
+		Username: "b3",
+		OwnerId:  owner2Id,
+	})
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b3.UserId)) }()
+
+	b4, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
+		Username: "b4",
+		OwnerId:  owner3Id,
+	})
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b4.UserId)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b4.UserId)) }()
+
+	t.Run("merge owner2 into owner1", func(t *testing.T) {
+		err := ss.Bot().MergeOwnerId(owner1Id, owner2Id)
+		require.NoError(t, err)
+
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: owner1Id})
+		require.NoError(t, err)
+		require.Len(t, bots, 3, "should have 3 bots")
+		require.ElementsMatch(t, []*string{&b1.Username, &b2.Username, &b3.Username}, []*string{&bots[0].Username, &bots[1].Username, &bots[2].Username})
 	})
 }

@@ -379,7 +379,16 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 }
 
 func (s *SqlChannelBookmarkStore) MergeOwnerId(toOwnerID, fromOwnerID string) error {
-	_, err := s.GetMasterX().Exec("UPDATE ChannelBookmarks SET OwnerId = ? WHERE OwnerId = ?", toOwnerID, fromOwnerID)
+	mergeQuery, mergeArgs, mergeErr := s.getQueryBuilder().
+		Update("ChannelBookmarks").
+		Set("OwnerId", toOwnerID).
+		Where(sq.Eq{"OwnerId": fromOwnerID}).
+		ToSql()
+
+	if mergeErr != nil {
+		return errors.Wrap(mergeErr, "channel_bookmark_merge_owner_id_tosql")
+	}
+	_, err := s.GetMasterX().Exec(mergeQuery, mergeArgs...)
 	if err != nil {
 		return errors.Wrap(err, "failed to update channel bookmarks")
 	}

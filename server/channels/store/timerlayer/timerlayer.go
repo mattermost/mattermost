@@ -695,10 +695,10 @@ func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamID string, user
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s *TimerLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string, limit int) error {
 	start := time.Now()
 
-	err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID)
+	err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3421,10 +3421,10 @@ func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s *TimerLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string, limit int) error {
 	start := time.Now()
 
-	err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID)
+	err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
