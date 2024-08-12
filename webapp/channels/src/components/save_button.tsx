@@ -1,13 +1,10 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 type Props = {
-    saving: boolean;
+    saving?: boolean;
     disabled?: boolean;
     id?: string;
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -18,7 +15,7 @@ type Props = {
 };
 
 const SaveButton: React.FC<Props> = ({
-    saving,
+    saving = false,
     disabled = false,
     savingMessage = (
         <FormattedMessage
