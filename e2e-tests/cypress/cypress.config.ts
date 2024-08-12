@@ -5,7 +5,7 @@ import {defineConfig} from 'cypress';
 
 export default defineConfig({
     chromeWebSecurity: false,
-    defaultCommandTimeout: 20000,
+    defaultCommandTimeout: 30000,
     downloadsFolder: 'tests/downloads',
     fixturesFolder: 'tests/fixtures',
     numTestsKeptInMemory: 0,

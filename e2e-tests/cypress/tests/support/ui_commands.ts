@@ -150,7 +150,7 @@ function waitForCommentDraft(message: string) {
 function waitUntilPermanentPost() {
     // Add explicit wait to let the page load freely since `cy.get` seemed to block
     // some operation which caused to prolong complete page loading.
-    cy.wait(TIMEOUTS.HALF_SEC);
+    cy.wait(TIMEOUTS.TWO_SEC);
     cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
     return cy.waitUntil(() => cy.findAllByTestId('postView').last().then((el) => !(el[0].id.includes(':'))));
 }

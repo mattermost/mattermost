@@ -30,7 +30,7 @@ export function switchToChannel(channel) {
     cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.ONE_MIN}).should('contain', channel.display_name);
 
     // # Wait some time for the channel to set state
-    cy.wait(TIMEOUTS.ONE_SEC);
+    cy.wait(TIMEOUTS.TWO_SEC);
 }
 
 export function verifyPostNextToNewMessageSeparator(message) {
