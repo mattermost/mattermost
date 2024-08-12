@@ -83,27 +83,20 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         if (!providerResults) {
             return null;
         }
+
         return (
             <SuggestionsBody>
                 <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
-                {providerResults.items.map((item, idx) => {
-                    if (!providerResults.component) {
-                        return null;
-                    }
-                    if (idx !== selectedOption) {
-                        return null;
-                    }
-                    return (
-                        <div
-                            aria-live='polite'
-                            role='alert'
-                            className='sr-only'
-                            key={providerResults.terms[idx]}
-                        >
-                            {idx === selectedOption ? generateLabel(item) : ''}
-                        </div>
-                    );
-                })}
+                {providerResults.component && providerResults.items[selectedOption] && (
+                    <div
+                        aria-live='polite'
+                        role='alert'
+                        className='sr-only'
+                        key={providerResults.terms[selectedOption]}
+                    >
+                        {generateLabel(providerResults.items[selectedOption])}
+                    </div>
+                )}
                 {providerResults.items.map((item, idx) => {
                     if (!providerResults.component) {
                         return null;

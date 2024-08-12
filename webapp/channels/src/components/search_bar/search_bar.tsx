@@ -155,7 +155,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     ref={getSearch}
                     id={props.isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
                     tabIndex='0'
-                    className={'search-bar form-control'}
+                    className={'search-bar form-control a11y__region'}
                     containerClass='w-full'
                     data-a11y-sort-order='9'
                     aria-describedby={props.isSideBarRight ? 'sbr-searchbar-help-popup' : 'searchbar-help-popup'}
