@@ -16,7 +16,7 @@ type Props = {
 }
 
 const GroupMembersModal: React.FC<Props> = ({
-    group, onExited, onLoad
+    group, onExited, onLoad,
 }) => {
     const [show, setShow] = useState(true);
 
@@ -24,17 +24,16 @@ const GroupMembersModal: React.FC<Props> = ({
         if (onLoad) {
             onLoad();
         }
-    }, [onLoad]);
+    }, []);
 
-   const handleHide = useCallback(() => {
+    const handleHide = useCallback(() => {
         setShow(false);
     }, []);
 
-   const handleExit = useCallback(() => {
+    const handleExit = useCallback(() => {
         onExited();
     }, [onExited]);
 
-    
     const button = (
         <FormattedMessage
             id='admin.team_channel_settings.groupMembers.close'
@@ -78,6 +77,6 @@ const GroupMembersModal: React.FC<Props> = ({
             </Modal.Footer>
         </Modal>
     );
-}
+};
 
-export default React.memo(GroupMembersModal) 
+export default React.memo(GroupMembersModal);
