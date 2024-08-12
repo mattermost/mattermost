@@ -5,7 +5,6 @@ package cache
 
 import (
 	"container/list"
-	"errors"
 	"sync"
 	"time"
 
@@ -97,12 +96,19 @@ func (l *LRU) Remove(key string) error {
 }
 
 func (l *LRU) RemoveMulti(keys []string) error {
-	var err error
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	// Note, this is a copy of l.Remove. But we want to avoid
+	// fine-grained locking for every single removal. Therefore,
+	// we copy a bit of code for simplicity.
 	for _, key := range keys {
-		err = errors.Join(err, l.Remove(key))
+		if ent, ok := l.items[key]; ok {
+			l.removeElement(ent)
+		}
 	}
 
-	return err
+	return nil
 }
 
 // Scan passes the whole slice of keys to the callback in LRU mode.
