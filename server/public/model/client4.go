@@ -604,6 +604,27 @@ func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response
 	return &serverLimits, BuildResponse(r), nil
 }
 
+func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
+	buf, err := json.Marshal(scheduledPost)
+	if err != nil {
+		return nil, nil, NewAppError("CreateScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/schedule", string(buf))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var createdScheduledPost ScheduledPost
+	if r.StatusCode == http.StatusNotModified {
+		return &createdScheduledPost, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&createdScheduledPost); err != nil {
+		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &createdScheduledPost, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }

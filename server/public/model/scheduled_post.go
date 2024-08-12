@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package model
 
 import "net/http"
@@ -14,6 +17,10 @@ func (s *ScheduledPost) IsValid(maxMessageSize int) *AppError {
 	draftAppErr := s.Draft.IsValid(maxMessageSize)
 	if draftAppErr != nil {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.draft.app_error", nil, "", http.StatusBadRequest).Wrap(draftAppErr)
+	}
+
+	if len(s.Message) == 0 {
+		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.empty_message.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
 	if s.Id == "" {

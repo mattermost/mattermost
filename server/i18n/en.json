@@ -9047,6 +9047,14 @@
     "translation": "Invalid scheduled at time."
   },
   {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Scheduled post must have an ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_message.app_error",
+    "translation": "Cannot scheduled a post with empty message."
+  },
+  {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Invalid processed at time."
   },
