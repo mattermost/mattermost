@@ -117,6 +117,8 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         TEST_CYCLE_LINK_PREFIX,
         MM_ENV,
         SERVER_TYPE,
+        BUILD_ID,
+        AUTOMATION_DASHBOARD_FRONTEND_URL,
     } = process.env;
     const {statsFieldValue, stats} = summary;
     const {
@@ -216,6 +218,12 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         testCycleLink = testCycleKey ? `| [Recorded test executions](${TEST_CYCLE_LINK_PREFIX}${testCycleKey})` : '';
     }
 
+    const automationDashboardField = AUTOMATION_DASHBOARD_FRONTEND_URL ? `| [Automation Dashboard](${AUTOMATION_DASHBOARD_FRONTEND_URL}/cycle/${BUILD_ID})` : '';
+
+    const rollingReleaseMatchRegex = BUILD_ID.match(/-rolling(?<version>[^-]+)-/);
+    const rollingReleaseFrom = rollingReleaseMatchRegex?.groups?.version;
+    const rollingReleaseFromField = rollingReleaseFrom ? `\nRolling release upgrade from: ${rollingReleaseFrom}` : '';
+
     const startAt = dayjs(stats.start);
     const endAt = dayjs(stats.end);
     const statsDuration = dayjs.duration(endAt.diff(startAt)).format('H:mm:ss');
@@ -229,7 +237,7 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
             author_icon: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
             author_link: 'https://www.mattermost.com/',
             title,
-            text: `${quickSummary} | ${statsDuration} ${testCycleLink}\n${runnerEnvValue}${SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : ''}${MM_ENV ? '\nTest server override: ' + MM_ENV : ''}`,
+            text: `${quickSummary} | ${statsDuration} ${testCycleLink} ${automationDashboardField}\n${runnerEnvValue}${SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : ''}${rollingReleaseFromField}${MM_ENV ? '\nTest server override: ' + MM_ENV : ''}`,
         }],
     };
 }
