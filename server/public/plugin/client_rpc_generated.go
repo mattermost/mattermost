@@ -6630,3 +6630,30 @@ func (s *apiRPCServer) UpdateUserRoles(args *Z_UpdateUserRolesArgs, returns *Z_U
 	}
 	return nil
 }
+
+type Z_GetPluginIdArgs struct {
+}
+
+type Z_GetPluginIdReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetPluginId() string {
+	_args := &Z_GetPluginIdArgs{}
+	_returns := &Z_GetPluginIdReturns{}
+	if err := g.client.Call("Plugin.GetPluginId", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginId API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetPluginId(args *Z_GetPluginIdArgs, returns *Z_GetPluginIdReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginId() string
+	}); ok {
+		returns.A = hook.GetPluginId()
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginId called but not implemented."))
+	}
+	return nil
+}
