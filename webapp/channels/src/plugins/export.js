@@ -6,6 +6,7 @@ import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
 import {openPricingModal} from 'components/global_header/right_controls/plan_upgrade_button';
@@ -26,7 +27,6 @@ import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
-import CreatePost from './exported_create_post';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import Textbox from './textbox';
 
@@ -89,8 +89,8 @@ window.Components = {
     BotBadge: BotTag,
     StartTrialFormModal,
     ThreadViewer,
-    CreatePost,
     PostMessagePreview,
+    AdvancedTextEditor,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

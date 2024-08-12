@@ -6,27 +6,21 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
-import {getTheme, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getTheme, getThemePreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
-
-import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import UserSettingsTheme from './user_settings_theme';
 
-function makeMapStateToProps() {
-    const getThemeCategory = makeGetCategory();
-
-    return (state: GlobalState) => {
-        return {
-            currentTeamId: getCurrentTeamId(state),
-            theme: getTheme(state),
-            applyToAllTeams: getThemeCategory(state, Preferences.CATEGORY_THEME).length <= 1,
-            showAllTeamsCheckbox: getMyTeamsCount(state) > 1,
-        };
+function mapStateToProps(state: GlobalState) {
+    return {
+        currentTeamId: getCurrentTeamId(state),
+        theme: getTheme(state),
+        applyToAllTeams: getThemePreferences(state).length <= 1,
+        showAllTeamsCheckbox: getMyTeamsCount(state) > 1,
     };
 }
 
@@ -40,4 +34,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(UserSettingsTheme);
+export default connect(mapStateToProps, mapDispatchToProps)(UserSettingsTheme);

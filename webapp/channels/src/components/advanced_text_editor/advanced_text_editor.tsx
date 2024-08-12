@@ -18,6 +18,7 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 
 import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
@@ -79,14 +80,20 @@ type Props = {
     postId: string;
     isThreadView?: boolean;
     placeholder?: string;
+
+    /**
+     * Used by plugins to act after the post is made
+     */
+    afterSubmit?: (response: SubmitPostReturnType) => void;
 }
 
-const AdvanceTextEditor = ({
+const AdvancedTextEditor = ({
     location,
     channelId,
     postId,
     isThreadView = false,
     placeholder,
+    afterSubmit,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -244,7 +251,7 @@ const AdvanceTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck);
+    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -660,4 +667,4 @@ const AdvanceTextEditor = ({
     );
 };
 
-export default AdvanceTextEditor;
+export default AdvancedTextEditor;
