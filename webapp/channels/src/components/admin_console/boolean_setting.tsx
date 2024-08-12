@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
@@ -74,7 +74,7 @@ type Props = {
     onChange: (id: string, value: boolean) => void;
     trueText?: React.ReactNode;
     falseText?: React.ReactNode;
-    disabled: boolean|undefined;
+    disabled?: boolean;
     setByEnv: boolean;
     disabledText?: React.ReactNode;
     helpText: React.ReactNode;
@@ -102,25 +102,23 @@ const BooleanSetting = ({
     disabledText,
     helpText,
 }: Props) => {
-    const [helptext, setHelptext] = useState(helpText);
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange(id, e.target.value === 'true');
-    };
-
-    useEffect(() => {
+    const helptext = useMemo(() => {
         if (disabled && disabledText) {
-            setHelptext((
+            return (
                 <div>
                     <span className='admin-console__disabled-text'>
                         {disabledText}
                     </span>
                     {helpText}
                 </div>
-            ));
-        } else {
-            setHelptext(helpText);
+            );
         }
+        return helpText;
     }, [helpText, disabled, disabledText]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(id, e.target.value === 'true');
+    };
 
     return (
         <Setting
