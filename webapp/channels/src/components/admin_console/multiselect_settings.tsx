@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
-import ReactSelect, {ValueType}  from 'react-select';
+import React, {useState, useCallback, useMemo} from 'react';
+import type {ValueType} from 'react-select';
+import ReactSelect from 'react-select';
 
 import FormError from 'components/form_error';
 
@@ -25,6 +26,8 @@ interface Props {
     noResultText?: React.ReactNode;
 }
 
+const getOptionLabel = ({text}: { text: string}) => text;
+
 const MultiSelectSetting: React.FC<Props> = ({
     id,
     values,
@@ -39,24 +42,30 @@ const MultiSelectSetting: React.FC<Props> = ({
     const [error, setError] = useState(false);
 
     const handleChange = useCallback((newValue: ValueType<Option>) => {
-        const updatedValues = newValue ? (newValue as Option[]).map((n) => 
-        n.value) : [];
+        const updatedValues = newValue ? (newValue as Option[]).map((n) => {
+            return n.value;
+        }) : [];
 
         onChange(id, updatedValues);
         setError(false);
     }, [id, onChange]);
 
-   const calculateValue = useCallback(() => {
+    const valuesMap = useMemo(() => {
+        return values.reduce((map, v) => {
+            map[v.value] = v;
+            return map;
+        }, {} as Record<string, Option>);
+    }, [values]);
+
+    const calculatedValue = useMemo(() => {
         return selected.reduce<Option[]>((result, item) => {
-            const found = values.find((e) => e.value === item);
+            const found = valuesMap[item];
             if (found) {
                 result.push(found);
             }
             return result;
         }, []);
-    }, [selected, values]);
-
-    const getOptionLabel = useCallback(({text}: { text: string}) => text, []);
+    }, [selected, valuesMap]);
 
     return (
         <Setting
@@ -75,11 +84,11 @@ const MultiSelectSetting: React.FC<Props> = ({
                 isDisabled={disabled || setByEnv}
                 noResultsText={noResultText}
                 onChange={handleChange}
-                value={calculateValue()}
+                value={calculatedValue}
             />
             <FormError error={error}/>
         </Setting>
     );
-}
+};
 
 export default React.memo(MultiSelectSetting);
