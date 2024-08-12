@@ -25,7 +25,7 @@ import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition';
 import {escapePathPart} from '../schema_admin_settings';
-import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection, AdminDefinitionSettingBanner} from '../types';
+import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 
@@ -134,8 +134,8 @@ function makeGetPluginSchema() {
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
-                if (sections.length > 0 && sections.filter((s) => (s.settings[0] as AdminDefinitionSettingBanner).banner_type !== 'warning').length === 0) {
-                    // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled, we show a single warning.
+                if (plugin.settings_schema && plugin.settings_schema.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()])) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled (custom components are not found), we show a single warning.
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
