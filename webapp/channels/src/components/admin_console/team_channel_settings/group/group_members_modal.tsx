@@ -22,7 +22,7 @@ const GroupMembersModal: React.FC<Props> = ({
 
     useEffect(() => {
         if (onLoad) {
-            onLoad();
+            onLoad?.();
         }
     }, []);
 
