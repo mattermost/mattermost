@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
-import { FormattedMessage } from "react-intl";
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import LoadingWrapper from "components/widgets/loading/loading_wrapper";
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 type Props = {
     saving: boolean;
@@ -21,39 +21,48 @@ const SaveButton: React.FC<Props> = ({
     saving,
     disabled = false,
     savingMessage = (
-        <FormattedMessage id="save_button.saving" defaultMessage="Saving" />
+        <FormattedMessage
+            id='save_button.saving'
+            defaultMessage='Saving'
+        />
     ),
     defaultMessage = (
-        <FormattedMessage id="save_button.save" defaultMessage="Save" />
+        <FormattedMessage
+            id='save_button.save'
+            defaultMessage='Save'
+        />
     ),
-    btnClass = "",
-    extraClasses = "",
+    btnClass = '',
+    extraClasses = '',
     ...props
 }) => {
-    let className = "btn";
+    let className = 'btn';
     if (!btnClass) {
-        className += " btn-primary";
+        className += ' btn-primary';
     }
 
     if (!disabled || saving) {
-        className += " " + btnClass;
+        className += ' ' + btnClass;
     }
 
     if (extraClasses) {
-        className += " " + extraClasses;
+        className += ' ' + extraClasses;
     }
 
     return (
         <button
-            type="submit"
-            data-testid="saveSetting"
-            id="saveSetting"
+            type='submit'
+            data-testid='saveSetting'
+            id='saveSetting'
             className={className}
             disabled={disabled}
             {...props}
         >
-            <LoadingWrapper loading={saving} text={savingMessage}>
-                {defaultMessage}
+            <LoadingWrapper
+                loading={saving}
+                text={savingMessage}
+            >
+                <span> {defaultMessage} </span>
             </LoadingWrapper>
         </button>
     );
