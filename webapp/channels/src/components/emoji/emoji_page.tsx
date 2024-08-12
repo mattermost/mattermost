@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -25,23 +25,35 @@ type Props = {
     };
 }
 
-export default function EmojiPage({teamDisplayName = '', teamName = '', siteName = '', scrollToTop, currentTheme, actions}: Props) {
+const CREATE_EMOJIS_PERMISSIONS = [Permissions.CREATE_EMOJIS];
+const ROLES = ['system_admin', 'team_admin', 'system_user', 'team_user'];
+
+export default function EmojiPage({
+    teamDisplayName = '',
+    teamName = '',
+    siteName = '',
+    scrollToTop,
+    currentTheme,
+    actions,
+}: Props) {
+    const intl = useIntl();
+
     useEffect(() => {
         updateTitle();
-        actions.loadRolesIfNeeded(['system_admin', 'team_admin', 'system_user', 'team_user']);
+        actions.loadRolesIfNeeded(ROLES);
         Utils.resetTheme();
 
         return () => {
             Utils.applyTheme(currentTheme);
         };
-    }, [actions, currentTheme]);
+    }, []);
 
     useEffect(() => {
         updateTitle();
     }, [siteName]);
 
     const updateTitle = () => {
-        document.title = Utils.localizeMessage('custom_emoji.header', 'Custom Emoji') + ' - ' + teamDisplayName + ' ' + siteName;
+        document.title = intl.formatMessage({id: 'custom_emoji.header', defaultMessage: 'Custom Emoji'}) + ' - ' + teamDisplayName + ' ' + siteName;
     };
 
     return (
@@ -53,7 +65,7 @@ export default function EmojiPage({teamDisplayName = '', teamName = '', siteName
                         defaultMessage='Custom Emoji'
                     />
                 </h1>
-                <AnyTeamPermissionGate permissions={[Permissions.CREATE_EMOJIS]}>
+                <AnyTeamPermissionGate permissions={CREATE_EMOJIS_PERMISSIONS}>
                     <Link
                         className='add-link'
                         to={'/' + teamName + '/emoji/add'}
