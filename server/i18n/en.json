@@ -7359,8 +7359,32 @@
     "translation": "Unable to convert export to XML."
   },
   {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Unable to write the export file."
+    "id": "ent.actiance.export.writeExport.batch.create.temp.appError",
+    "translation": "Unable to create the batch temporary file."
+  },
+  {
+    "id": "ent.actiance.export.writeExport.temp.seek.appError",
+    "translation": "Unable to seek to the beginning of the the batch temporary file."
+  },
+  {
+    "id": "ent.actiance.export.writeExport.write.dest.appError",
+    "translation": "Unable to transfer the batch zip to the file backend."
+  },
+  {
+    "id": "ent.actiance.export.writeExport.zip.close.appError",
+    "translation": "Unable to close the zipFile created with the batch temporary file."
+  },
+  {
+    "id": "ent.actiance.export.writeExport.zip.creation.appError",
+    "translation": "Unable to create the xml file in the zipFile created with the batch temporary file."
+  },
+  {
+    "id": "ent.actiance.export.writeExport.zip.creation.warning.appError",
+    "translation": "Unable to create the warning file in the zipFile created with the batch temporary file."
+  },
+  {
+    "id": "ent.actiance.export.writeExport.zip.write.appError",
+    "translation": "Unable to write into the zipFile created with the batch temporary file."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
