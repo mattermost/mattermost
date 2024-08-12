@@ -158,9 +158,10 @@ func TestGetRemoteClusters(t *testing.T) {
 func TestCreateRemoteCluster(t *testing.T) {
 	rcWithTeamAndPassword := &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
-			Name:    "remotecluster",
-			SiteURL: "http://example.com",
-			Token:   model.NewId(),
+			Name:          "remotecluster",
+			SiteURL:       "http://example.com",
+			DefaultTeamId: model.NewId(),
+			Token:         model.NewId(),
 		},
 		Password: "mysupersecret",
 	}
@@ -231,6 +232,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, rcWithTeamAndPassword.Name, rcWithInvite.RemoteCluster.Name)
+		require.Equal(t, rcWithTeamAndPassword.DefaultTeamId, rcWithInvite.RemoteCluster.DefaultTeamId)
 		require.NotZero(t, rcWithInvite.Invite)
 		require.Zero(t, rcWithInvite.RemoteCluster.Token)
 		require.Zero(t, rcWithInvite.RemoteCluster.RemoteToken)
@@ -431,6 +433,7 @@ func TestGetRemoteCluster(t *testing.T) {
 	defer th.TearDown()
 
 	newRC.CreatorId = th.SystemAdminUser.Id
+	newRC.DefaultTeamId = th.BasicTeam.Id
 
 	rc, appErr := th.App.AddRemoteCluster(newRC)
 	require.Nil(t, appErr)
@@ -455,6 +458,7 @@ func TestGetRemoteCluster(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, rc.RemoteId, fetchedRC.RemoteId)
+		require.Equal(t, th.BasicTeam.Id, fetchedRC.DefaultTeamId)
 		require.Empty(t, fetchedRC.Token)
 	})
 }
@@ -509,12 +513,17 @@ func TestPatchRemoteCluster(t *testing.T) {
 	})
 
 	t.Run("should correctly patch the remote cluster", func(t *testing.T) {
-		rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("patched!")}
+		newTeamId := model.NewId()
+		rcp := &model.RemoteClusterPatch{
+			DisplayName:   model.NewPointer("patched!"),
+			DefaultTeamId: model.NewPointer(newTeamId),
+		}
 
 		patchedRC, resp, err := th.SystemAdminClient.PatchRemoteCluster(context.Background(), rc.RemoteId, rcp)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, "patched!", patchedRC.DisplayName)
+		require.Equal(t, newTeamId, patchedRC.DefaultTeamId)
 	})
 }
 
