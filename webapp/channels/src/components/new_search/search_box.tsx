@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
+import {escapeRegex} from 'utils/text_formatting';
 import * as Keyboard from 'utils/keyboard';
 
 import useSearchSuggestions from './hooks';
@@ -81,38 +82,57 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             setCaretPosition(inputRef.current?.selectionEnd || 0);
         }
 
-        if (inputRef.current) {
-            inputRef.current.addEventListener('change', updateCaretPosition);
-            inputRef.current.addEventListener('keypress', updateCaretPosition);
-            inputRef.current.addEventListener('keyup', updateCaretPosition);
-            inputRef.current.addEventListener('mousedown', updateCaretPosition);
-            inputRef.current.addEventListener('touchstart', updateCaretPosition);
-            inputRef.current.addEventListener('input', updateCaretPosition);
-            inputRef.current.addEventListener('paste', updateCaretPosition);
-            inputRef.current.addEventListener('cut', updateCaretPosition);
-            inputRef.current.addEventListener('mousemove', updateCaretPosition);
-            inputRef.current.addEventListener('select', updateCaretPosition);
-            inputRef.current.addEventListener('selectstart', updateCaretPosition);
+        const input = inputRef.current
+
+        if (input) {
+            input.addEventListener('change', updateCaretPosition);
+            input.addEventListener('keypress', updateCaretPosition);
+            input.addEventListener('keyup', updateCaretPosition);
+            input.addEventListener('mousedown', updateCaretPosition);
+            input.addEventListener('touchstart', updateCaretPosition);
+            input.addEventListener('input', updateCaretPosition);
+            input.addEventListener('paste', updateCaretPosition);
+            input.addEventListener('cut', updateCaretPosition);
+            input.addEventListener('mousemove', updateCaretPosition);
+            input.addEventListener('select', updateCaretPosition);
+            input.addEventListener('selectstart', updateCaretPosition);
         }
 
         return () => {
-            if (inputRef.current) {
-                inputRef.current.removeEventListener('change', updateCaretPosition);
-                inputRef.current.removeEventListener('keypress', updateCaretPosition);
-                inputRef.current.removeEventListener('mousedown', updateCaretPosition);
-                inputRef.current.removeEventListener('keyup', updateCaretPosition);
-                inputRef.current.removeEventListener('touchstart', updateCaretPosition);
-                inputRef.current.removeEventListener('input', updateCaretPosition);
-                inputRef.current.removeEventListener('paste', updateCaretPosition);
-                inputRef.current.removeEventListener('cut', updateCaretPosition);
-                inputRef.current.removeEventListener('mousemove', updateCaretPosition);
-                inputRef.current.removeEventListener('select', updateCaretPosition);
-                inputRef.current.removeEventListener('selectstart', updateCaretPosition);
+            if (input) {
+                input.removeEventListener('change', updateCaretPosition);
+                input.removeEventListener('keypress', updateCaretPosition);
+                input.removeEventListener('mousedown', updateCaretPosition);
+                input.removeEventListener('keyup', updateCaretPosition);
+                input.removeEventListener('touchstart', updateCaretPosition);
+                input.removeEventListener('input', updateCaretPosition);
+                input.removeEventListener('paste', updateCaretPosition);
+                input.removeEventListener('cut', updateCaretPosition);
+                input.removeEventListener('mousemove', updateCaretPosition);
+                input.removeEventListener('select', updateCaretPosition);
+                input.removeEventListener('selectstart', updateCaretPosition);
             }
         };
     }, [inputRef.current]);
 
     const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, caretPosition, getCaretPosition, setSelectedOption);
+
+    const focus = useCallback((newposition: number) => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+            setTimeout(() => {
+                inputRef.current?.setSelectionRange(newposition, newposition);
+            }, 0);
+        }
+    }, []);
+
+    const updateSearchValue = useCallback((value: string, matchedPretext: string) => {
+        const escapedMatchedPretext = escapeRegex(matchedPretext);
+        const caretPosition = getCaretPosition();
+        const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
+        setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
+        focus((caretPosition + value.length + 1) - matchedPretext.length);
+    }, [searchTerms, setSearchTerms, focus, getCaretPosition]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
@@ -148,25 +168,13 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
                 onSearch(searchType, searchTerms);
             } else {
-                const caretPosition = getCaretPosition();
                 const matchedPretext = providerResults?.matchedPretext;
                 const value = providerResults?.terms[selectedOption];
-                const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
-                setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext + '$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
+                updateSearchValue(value, matchedPretext);
                 setSelectedOption(-1);
-                focus((caretPosition + value.length + 1) - matchedPretext.length);
             }
         }
-    }, [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms]);
-
-    const focus = useCallback((newposition: number) => {
-        if (inputRef.current) {
-            inputRef.current.focus();
-            setTimeout(() => {
-                inputRef.current?.setSelectionRange(newposition, newposition);
-            }, 0);
-        }
-    }, []);
+    }, [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms, updateSearchValue]);
 
     const closeHandler = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -208,14 +216,12 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             <SearchSuggestions
                 searchType={searchType}
                 searchTerms={searchTerms}
-                getCaretPosition={getCaretPosition}
-                setSearchTerms={setSearchTerms}
                 suggestionsHeader={suggestionsHeader}
                 providerResults={providerResults}
                 selectedOption={selectedOption}
                 setSelectedOption={setSelectedOption}
-                focus={focus}
                 onSearch={onSearch}
+                onSuggestionSelected={updateSearchValue}
             />
             <SearchBoxHints
                 searchTerms={searchTerms}

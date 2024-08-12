@@ -34,24 +34,16 @@ const SuggestionsBody = styled.div`
 type Props = {
     searchType: string;
     searchTerms: string;
-    setSearchTerms: (searchTerms: string) => void;
-    getCaretPosition: () => number;
     selectedOption: number;
     setSelectedOption: (idx: number) => void;
     suggestionsHeader: React.ReactNode;
     providerResults: ProviderResult<unknown>|null;
-    focus: (newPosition: number) => void;
     onSearch: (searchType: string, searchTerms: string) => void;
+    onSuggestionSelected: (value: string, matchedPretext: string) => void;
 }
 
-const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, getCaretPosition, suggestionsHeader, providerResults, selectedOption, setSelectedOption, focus, onSearch}: Props) => {
+const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, onSearch, onSuggestionSelected}: Props) => {
     const license = useSelector(getLicense);
-    const updateSearchValue = useCallback((value: string, matchedPretext: string) => {
-        const caretPosition = getCaretPosition();
-        const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
-        setSearchTerms(searchTerms.slice(0, caretPosition).replace(new RegExp(matchedPretext + '$'), '') + value + extraSpace + searchTerms.slice(caretPosition));
-        focus((caretPosition + value.length + 1) - matchedPretext.length);
-    }, [searchTerms, setSearchTerms, focus, getCaretPosition]);
 
     const runSearch = useCallback((searchTerms: string) => {
         onSearch(searchType, searchTerms);
@@ -124,7 +116,7 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, getCaretPos
                             term={providerResults.terms[idx]}
                             matchedPretext={providerResults.matchedPretext}
                             isSelection={idx === selectedOption}
-                            onClick={updateSearchValue}
+                            onClick={onSuggestionSelected}
                             onMouseMove={() => {
                                 setSelectedOption(idx);
                             }}
@@ -153,7 +145,7 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, getCaretPos
             <Component
                 key={pluginComponentInfo.pluginId}
                 searchTerms={searchTerms}
-                onChangeSearch={updateSearchValue}
+                onChangeSearch={onSuggestionSelected}
                 onRunSearch={runSearch}
             />
         </ErrorBoundary>
