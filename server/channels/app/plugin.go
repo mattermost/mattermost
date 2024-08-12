@@ -997,13 +997,19 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 		if err != nil {
 			return nil, errors.Wrapf(err, "Unable to verify prepackaged playbooks version")
 		}
-		if version.GTE(SemVerV2) {
-			license := ch.License()
-			canUsePlaybookv2 := license != nil && license.IsE20OrEnterprise()
-			if !canUsePlaybookv2 {
-				logger.Info("Skip installing prepackaged playbooks because the license does not allow it")
-				return plugin, nil
-			}
+		license := ch.License()
+		hasEnterpriseLicense := license != nil && license.IsE20OrEnterprise()
+
+		// Do not install playbooks >=v2 if we do not have an enterprise license
+		if version.GTE(SemVerV2) && !hasEnterpriseLicense {
+			logger.Info("Skip installing prepackaged playbooks >=v2 because the license does not allow it")
+			return plugin, nil
+		}
+
+		// Do not install playbooks <v2 if we have an enterprise license
+		if version.LT(SemVerV2) && hasEnterpriseLicense {
+			logger.Info("Skip installing prepackaged playbooks <v2 because the license allows v2")
+			return plugin, nil
 		}
 	}
 
@@ -1224,10 +1230,6 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
-			return true, false
-		}
-	case model.PluginIdCalls:
-		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
 			return true, false
 		}
 	}

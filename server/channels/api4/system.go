@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
@@ -33,7 +34,7 @@ const (
 	MaxServerBusySeconds          = 86400
 )
 
-var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
+var redirectLocationDataCache = cache.NewLRU(&cache.CacheOptions{
 	Size: RedirectLocationCacheSize,
 })
 
@@ -84,7 +85,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Support packet generation is limited to system admins (MM-42271).
+	// Support Packet generation is limited to system admins (MM-42271).
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
@@ -427,14 +428,14 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := c.App.GetMattermostLog(c.AppContext)
+	fileData, err := c.App.Srv().Platform().GetLogFile(c.AppContext)
 	if err != nil {
 		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	reader := bytes.NewReader(fileData.Body)
-	web.WriteFileResponse("mattermost.log",
+	web.WriteFileResponse(config.LogFilename,
 		"text/plain",
 		int64(len(fileData.Body)),
 		time.Now(),

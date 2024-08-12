@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import {Button} from 'react-bootstrap';
 
 import PermissionRow from 'components/admin_console/permission_schemes_settings/permission_row';
 
@@ -50,6 +51,26 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
+            />,
+        );
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot with additional values', () => {
+        const ADDITIONAL_VALUES = {
+            edit_post: {
+                editTimeLimitButton: (
+                    <Button
+                        onClick={jest.fn()}
+                    />
+                ),
+            },
+        };
+
+        const wrapper = shallow(
+            <PermissionRow
+                {...defaultProps}
+                additionalValues={ADDITIONAL_VALUES}
             />,
         );
         expect(wrapper).toMatchSnapshot();

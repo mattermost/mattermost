@@ -1385,7 +1385,6 @@
   "post_priority.button.acknowledge": "Potvrdi",
   "post_priority.picker.apply": "Primijeni",
   "post_priority.picker.cancel": "Odustani",
-  "post_priority.picker.feedback": "Pošalji povratne informacije",
   "post_priority.picker.header": "Prioritet poruke",
   "post_priority.priority.important": "Važno",
   "post_priority.priority.standard": "Standardno",

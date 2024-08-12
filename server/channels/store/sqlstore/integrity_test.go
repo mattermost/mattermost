@@ -856,7 +856,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 				ChildId:  &channel.Id,
 			}, data.Records[0])
 			require.Equal(t, model.OrphanedRecord{
-				ParentId: model.NewString("test"),
+				ParentId: model.NewPointer("test"),
 				ChildId:  &direct.Id,
 			}, data.Records[1])
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)

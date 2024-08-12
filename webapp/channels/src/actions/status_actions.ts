@@ -3,7 +3,7 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {addUserIdsForStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
@@ -52,7 +52,7 @@ export function addVisibleUsersInCurrentChannelToStatusPoll(): ActionFunc<boolea
         // Both the users in the DM list and recent posts constitute for all the visible users in the current channel
         const userIdsForStatus = Array.from(userIdsToFetchStatusFor);
         if (userIdsForStatus.length > 0) {
-            dispatch(addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus}));
+            dispatch(addUserIdsForStatusFetchingPoll(userIdsForStatus));
         }
 
         return {data: true};
