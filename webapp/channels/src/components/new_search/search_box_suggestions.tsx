@@ -7,14 +7,12 @@ import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getSearchPluginSuggestions} from 'selectors/plugins';
 
 import type {ProviderResult} from 'components/suggestion/provider';
 import type {SuggestionProps} from 'components/suggestion/suggestion';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
-
-import type {GlobalState} from 'types/store';
 
 const SuggestionsHeader = styled.div`
     margin-top: 16px;
@@ -43,16 +41,11 @@ type Props = {
 }
 
 const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, onSearch, onSuggestionSelected}: Props) => {
-    const license = useSelector(getLicense);
-
     const runSearch = useCallback((searchTerms: string) => {
         onSearch(searchType, searchTerms);
     }, [onSearch, searchType]);
 
-    let SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
-    if (license.IsLicensed !== 'true') {
-        SearchPluginSuggestions = [];
-    }
+    const SearchPluginSuggestions = useSelector(getSearchPluginSuggestions);
 
     const generateLabel = (item: any) => {
         let label = '';

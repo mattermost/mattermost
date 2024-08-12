@@ -6,11 +6,9 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getSearchButtons} from 'selectors/plugins';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
-
-import type {GlobalState} from 'types/store';
 
 const SearchTypeSelectorContainer = styled.div`
     margin: 24px 32px 0px 24px;
@@ -51,14 +49,11 @@ type Props = {
 }
 
 const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
-    const license = useSelector(getLicense);
     const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
     const setFilesSearchType = useCallback(() => setSearchType('files'), [setSearchType]);
 
-    let SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
-    if (license.IsLicensed !== 'true') {
-        SearchPluginButtons = [];
-    }
+    const SearchPluginButtons = useSelector(getSearchButtons);
+
     return (
         <SearchTypeSelectorContainer>
             <SearchTypeItem

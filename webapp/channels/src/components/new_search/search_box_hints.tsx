@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getSearchBoxHints} from 'selectors/plugins';
 
 import type {ProviderResult} from 'components/suggestion/provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
-
-import type {GlobalState} from 'types/store';
 
 import SearchHints from './search_hint';
 
@@ -25,7 +23,6 @@ type Props = {
 }
 
 const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResults, selectedOption, focus}: Props) => {
-    const license = useSelector(getLicense);
     const filterSelectedCallback = useCallback((filter: string) => {
         if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
             setSearchTerms(searchTerms + filter);
@@ -42,13 +39,7 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
         focus(searchTerms.length + changedValue.length + 1);
     }, [searchTerms, setSearchTerms, focus]);
 
-    const SearchPluginHintsList = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
-    const SearchPluginHints = useMemo(() => {
-        if (license.IsLicensed !== 'true') {
-            return [];
-        }
-        return SearchPluginHintsList;
-    }, [SearchPluginHintsList, license.IsLicensed]);
+    const SearchPluginHints = useSelector(getSearchBoxHints);
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
         return (

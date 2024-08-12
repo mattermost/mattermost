@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
-import {escapeRegex} from 'utils/text_formatting';
 import * as Keyboard from 'utils/keyboard';
+import {escapeRegex} from 'utils/text_formatting';
 
 import useSearchSuggestions from './hooks';
 import SearchBoxHints from './search_box_hints';
@@ -82,7 +82,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             setCaretPosition(inputRef.current?.selectionEnd || 0);
         }
 
-        const input = inputRef.current
+        const input = inputRef.current;
 
         if (input) {
             input.addEventListener('change', updateCaretPosition);

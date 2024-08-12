@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {
     updateSearchTerms,
     showSearchResults,
     updateSearchType,
 } from 'actions/views/rhs';
+import {getSearchButtons} from 'selectors/plugins';
 import {
     getSearchTerms,
 } from 'selectors/rhs';
@@ -24,8 +24,6 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
-
-import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -65,14 +63,7 @@ const NewSearchContainer = styled.div`
 const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
-    const license = useSelector(getLicense);
-    const pluginSearchButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
-    const pluginSearch = useMemo(() => {
-        if (license.IsLicensed !== 'true') {
-            return [];
-        }
-        return pluginSearchButtons;
-    }, [license.IsLicensed, pluginSearchButtons]);
+    const pluginSearch = useSelector(getSearchButtons);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
