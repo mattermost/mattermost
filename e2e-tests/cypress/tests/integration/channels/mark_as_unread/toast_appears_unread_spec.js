@@ -33,6 +33,9 @@ describe('Verify unread toast appears after repeated manual marking post as unre
                     cy.visit(`/${team.name}/channels/${testChannel.name}`);
                     switchToChannel(offTopicChannel);
 
+                    // Ensure that the Off-Topic channel has loaded successfully, before posting messages in the other channel
+                    cy.get('#channelHeaderTitle').should('be.visible').and('contain.text', offTopicChannel.display_name);
+
                     cy.postMessageAs({
                         sender: otherUser,
                         message: 'First message',

@@ -11,6 +11,7 @@ export function markAsUnreadFromPost(post, rhs = false) {
     cy.get('body').type('{alt}', {release: false});
     cy.get(`#${prefix}_${post.id}`).click({force: true});
     cy.get('body').type('{alt}', {release: true});
+    cy.wait(TIMEOUTS.HALF_SEC);
 }
 
 export function markAsUnreadShouldBeAbsent(postId, prefix = 'post', location = 'CENTER') {
