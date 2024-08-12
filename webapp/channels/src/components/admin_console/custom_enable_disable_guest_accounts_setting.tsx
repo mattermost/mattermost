@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useState } from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
@@ -28,8 +28,6 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
     setByEnv,
     showConfirm,
 }) => {
-    const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-
     const handleChange = useCallback((id: string, value: boolean, submit = false) => {
         const confirmNeeded = value === false; // Requires confirmation if disabling guest accounts
         let warning: React.ReactNode | string = '';
@@ -46,7 +44,6 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
 
     const handleConfirm = useCallback(() => {
         handleChange(id, false, true);
-        setConfirmModalVisible(false);
     }, [handleChange, id]);
 
     const label = (
@@ -59,7 +56,7 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
     const helpText = (
         <FormattedMarkdownMessage
             id='admin.guest_access.enableDescription'
-            defaultMessage='When true, external guests can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests.'
+            defaultMessage='When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests.'
         />
     );
 
@@ -85,7 +82,7 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
                 message={
                     <FormattedMessage
                         id='admin.guest_access.disableConfirmMessage'
-                        defaultMessage='Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to log in, and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?'
+                        defaultMessage='Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?'
                     />
                 }
                 confirmButtonText={
