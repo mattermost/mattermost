@@ -40,7 +40,6 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     const baseProps = {
         searchType: 'messages',
         searchTerms: '',
-        setSearchTerms: jest.fn(),
         selectedOption: -1,
         setSelectedOption: jest.fn(),
         suggestionsHeader: <p>{'Test Header'}</p>,
@@ -50,9 +49,8 @@ describe('components/new_search/SearchBoxSuggestions', () => {
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
             component: TestProviderResultComponent,
         },
-        getCaretPosition: () => 0,
-        focus: jest.fn(),
         onSearch: jest.fn(),
+        onSuggestionSelected: jest.fn(),
     };
 
     test('should show the suggestions and the suggestion header on messages', () => {
@@ -64,19 +62,17 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(screen.getByText('user2')).toBeInTheDocument();
     });
 
-    test('should change the search term and focus on click', () => {
+    test('should call the onSuggestionSelected on click', () => {
         renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
         fireEvent.click(screen.getByText('test-username1'));
-        expect(baseProps.setSearchTerms).toHaveBeenCalledWith('test-username1 ');
-        expect(baseProps.focus).toHaveBeenCalledWith(15);
+        expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', '');
     });
 
-    test('should change the search term and focus on click with matchedPretext and previous text', () => {
-        const props = {...baseProps, searchTerms: 'something from:test-user', getCaretPosition: () => 24, providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
+    test('should call the onSuggestionSelected on click with matchedPretext and previous text', () => {
+        const props = {...baseProps, searchTerms: 'something from:test-user', providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
         fireEvent.click(screen.getByText('test-username1'));
-        expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test-username1 ');
-        expect(baseProps.focus).toHaveBeenCalledWith(30);
+        expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', 'test-user');
     });
 
     test('should change the selected option on mousemove', () => {
@@ -114,8 +110,8 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(screen.getByText('test-search-terms')).toBeInTheDocument();
     });
 
-    test('should on search change change the search term and focus', () => {
-        const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t', getCaretPosition: () => 16};
+    test('should call the onSuggestionSelected on plugin search change', () => {
+        const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
@@ -124,8 +120,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
             },
         );
         screen.getByText('onChangeSearch').click();
-        expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test ');
-        expect(baseProps.focus).toHaveBeenCalledWith(20);
+        expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test', 't');
     });
 
     test('should run search whenver onRunSearch is executed', () => {
