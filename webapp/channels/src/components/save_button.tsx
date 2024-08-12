@@ -62,7 +62,7 @@ const SaveButton: React.FC<Props> = ({
                 loading={saving}
                 text={savingMessage}
             >
-                <span> {defaultMessage} </span>
+                <span>{defaultMessage}</span>
             </LoadingWrapper>
         </button>
     );
