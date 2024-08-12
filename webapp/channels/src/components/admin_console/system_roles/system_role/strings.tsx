@@ -196,6 +196,12 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
             defaultMessage: 'Developer',
         },
     }),
+    environment_secure_connections: defineMessages({
+        name: {
+            id: 'admin.permissions.sysconsole_section_environment_secure_connections.name',
+            defaultMessage: 'Secure Connections',
+        },
+    }),
     site: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_site.name',

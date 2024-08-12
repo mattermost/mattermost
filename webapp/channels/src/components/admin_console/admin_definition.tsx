@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
@@ -87,6 +85,8 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
+import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
@@ -231,6 +231,7 @@ export const it = {
         }
         return cloud?.subscription?.is_free_trial === 'true';
     },
+
     userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
     userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
     userHasWritePermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
@@ -1881,6 +1882,55 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                     ],
+                },
+            },
+
+            secure_connection_detail: {
+                url: `environment/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.configIsFalse('ExperimentalSettings', 'EnableSharedChannels'),
+                    it.not(it.any(
+                        it.licensedForFeature('SharedChannels'),
+                        it.licensedForSku(LicenseSkus.Enterprise),
+                        it.licensedForSku(LicenseSkus.Professional),
+                    )),
+                ),
+                isDisabled: it.any(
+                    it.configIsFalse('ExperimentalSettings', 'EnableRemoteClusterService'),
+
+                    //it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)),
+                ),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+
+            secure_connections: {
+                url: 'environment/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Secure Connections (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.configIsFalse('ExperimentalSettings', 'EnableSharedChannels'),
+                    it.not(it.any(
+                        it.licensedForFeature('SharedChannels'),
+                        it.licensedForSku(LicenseSkus.Enterprise),
+                        it.licensedForSku(LicenseSkus.Professional),
+
+                        //it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)
+                    )),
+                ),
+
+                isDisabled: it.any(
+                    it.configIsFalse('ExperimentalSettings', 'EnableRemoteClusterService'),
+
+                    //it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)),
+                ),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
                 },
             },
         },

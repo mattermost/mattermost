@@ -15,7 +15,7 @@ type Button = {
 }
 type Props = {
     title: string;
-    text: string;
+    text?: string;
     primaryButton?: Button;
     secondaryButton?: Button;
     linkButton?: Button;
@@ -52,34 +52,35 @@ const SectionNotice = ({
                 {icon && <i className={classNames('icon sectionNoticeIcon', icon, type)}/>}
                 <div className='sectionNoticeBody'>
                     <h4 className={classNames('sectionNoticeTitle', {welcome: type === 'welcome'})}>{title}</h4>
-                    <Markdown message={text}/>
-                    <div className='sectionNoticeActions'>
-                        {primaryButton &&
-                        <button
-                            onClick={primaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-primary')}
-                        >
-                            {primaryButton.text}
-                        </button>
-                        }
-                        {secondaryButton &&
-                        <button
-                            onClick={secondaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-secondary')}
-                        >
-                            {secondaryButton.text}
-                        </button>
-                        }
-                        {linkButton &&
-                        <button
-                            onClick={linkButton.onClick}
-                            className={classNames(buttonClass, 'btn-link')}
-                        >
-                            {linkButton.text}
-                        </button>
-                        }
-                    </div>
-
+                    {text && <Markdown message={text}/>}
+                    {(primaryButton || secondaryButton || linkButton) && (
+                        <div className='sectionNoticeActions'>
+                            {primaryButton && (
+                                <button
+                                    onClick={primaryButton.onClick}
+                                    className={classNames(buttonClass, 'btn-primary')}
+                                >
+                                    {primaryButton.text}
+                                </button>
+                            )}
+                            {secondaryButton && (
+                                <button
+                                    onClick={secondaryButton.onClick}
+                                    className={classNames(buttonClass, 'btn-secondary')}
+                                >
+                                    {secondaryButton.text}
+                                </button>
+                            )}
+                            {linkButton && (
+                                <button
+                                    onClick={linkButton.onClick}
+                                    className={classNames(buttonClass, 'btn-link')}
+                                >
+                                    {linkButton.text}
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
             {showDismiss &&

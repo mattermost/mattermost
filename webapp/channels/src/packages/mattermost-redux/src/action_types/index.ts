@@ -22,6 +22,7 @@ import PlaybookType from './playbooks';
 import PluginTypes from './plugins';
 import PostTypes from './posts';
 import PreferenceTypes from './preferences';
+import RemoteClusterTypes from './remote_clusters';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import SearchTypes from './search';
@@ -57,4 +58,5 @@ export {
     DraftTypes,
     PlaybookType,
     ChannelBookmarkTypes,
+    RemoteClusterTypes,
 };

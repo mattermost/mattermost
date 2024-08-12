@@ -72,7 +72,6 @@ interface Props {
     menuButton: MenuButtonProps;
     menuButtonTooltip?: MenuButtonTooltipProps;
     menu: MenuProps;
-    children: ReactNode[];
     anchorOrigin?: {
         vertical: VerticalOrigin;
         horizontal: HorizontalOrigin;
@@ -81,6 +80,7 @@ interface Props {
         vertical: VerticalOrigin;
         horizontal: HorizontalOrigin;
     };
+    children: ReactNode | ReactNode[];
 }
 
 /**

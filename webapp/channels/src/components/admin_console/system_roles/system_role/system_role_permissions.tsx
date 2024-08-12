@@ -82,6 +82,7 @@ const sectionsList: SystemSection[] = [
             {name: 'environment_session_lengths'},
             {name: 'environment_performance_monitoring'},
             {name: 'environment_developer'},
+            {name: 'environment_secure_connections'},
         ],
     },
     {

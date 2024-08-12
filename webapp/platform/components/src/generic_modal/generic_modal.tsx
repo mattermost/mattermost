@@ -31,7 +31,7 @@ export type Props = {
     ariaLabel?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
-    backdrop?: boolean;
+    backdrop?: boolean | 'static';
     backdropClassName?: string;
     tabIndex?: number;
     children: React.ReactNode;
