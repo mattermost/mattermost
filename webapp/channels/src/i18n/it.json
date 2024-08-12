@@ -1112,7 +1112,7 @@
   "admin.permissions.group.teams.name": "Squadre",
   "admin.permissions.group.teams_team_scope.description": "Gestisci membri squadra.",
   "admin.permissions.group.teams_team_scope.name": "Squadre",
-  "admin.permissions.inherited_from": "Ereditato da [{name}]().",
+  "admin.permissions.inherited_from": "Ereditato da <link>{name}</link>.",
   "admin.permissions.introBanner": "Gli Schemi di Permesso impostano i permessi di default per gli Amministratori di Squadra, gli Amministratori di Canale e chiunque altro. Scopri di più sugli schemi di permesso nella <link>documentation</link>.",
   "admin.permissions.loadMoreSchemes": "Carica più schemi",
   "admin.permissions.loadingMoreSchemes": "Caricamento...",
