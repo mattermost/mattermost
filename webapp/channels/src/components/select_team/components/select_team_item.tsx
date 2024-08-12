@@ -28,15 +28,15 @@ const SelectTeamItem = ({
 }: Props) => {
     const intl = useIntl();
 
-   const handleTeamClick = useCallback((e: React.MouseEvent) => {
+    const handleTeamClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         onTeamClick(team);
     }, [onTeamClick, team]);
 
-  const renderDescriptionTooltip = (): React.ReactNode => {
-    if (!team.description) {
-        return null;
-    }
+    const renderDescriptionTooltip = (): React.ReactNode => {
+        if (!team.description) {
+            return null;
+        }
 
         return (
             <WithTooltip
@@ -87,6 +87,6 @@ const SelectTeamItem = ({
             </a>
         </div>
     );
-}
+};
 
 export default React.memo(SelectTeamItem);
