@@ -1769,25 +1769,14 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           <div
             className="channel-header__icons"
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              delayShow={400}
-              overlay={
-                <Tooltip
-                  id="channelMutedTooltip"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Unmute"
-                    id="channelHeader.unmute"
-                  />
-                </Tooltip>
-              }
+            <WithTooltip
+              id="channelMutedTooltip"
               placement="bottom"
-              trigger={
-                Array [
-                  "hover",
-                  "focus",
-                ]
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Unmute"
+                  id="channelHeader.unmute"
+                />
               }
             >
               <button
@@ -1800,7 +1789,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   className="icon icon-bell-off-outline"
                 />
               </button>
-            </OverlayTrigger>
+            </WithTooltip>
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"

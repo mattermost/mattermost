@@ -337,7 +337,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.FileSettings.ExtractContent = model.NewBool(true)
+		config.FileSettings.ExtractContent = model.NewPointer(true)
 	})
 
 	system := model.System{
@@ -561,7 +561,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.ServiceSettings.PostPriority = model.NewBool(true)
+		config.ServiceSettings.PostPriority = model.NewPointer(true)
 	})
 
 	system := model.System{
