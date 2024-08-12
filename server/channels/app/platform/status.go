@@ -42,6 +42,10 @@ func (ps *PlatformService) GetAllStatuses() map[string]*model.Status {
 
 	statusMap := map[string]*model.Status{}
 	err := ps.statusCache.Scan(func(keys []string) error {
+		if len(keys) == 0 {
+			return nil
+		}
+
 		toPass := make([]any, 0, len(keys))
 		for i := 0; i < len(keys); i++ {
 			var status *model.Status

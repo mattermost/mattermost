@@ -78,6 +78,10 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 	var toDelete []string
 	err := s.rootStore.profilesInChannelCache.Scan(func(keys []string) error {
+		if len(keys) == 0 {
+			return nil
+		}
+
 		toPass := make([]any, 0, len(keys))
 		for i := 0; i < len(keys); i++ {
 			// Note: keep https://github.com/mattermost/mattermost/pull/27830 in mind.

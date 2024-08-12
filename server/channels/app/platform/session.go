@@ -54,6 +54,10 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 	var toDelete []string
 	// First, we iterate over the entire session cache.
 	err := ps.sessionCache.Scan(func(keys []string) error {
+		if len(keys) == 0 {
+			return nil
+		}
+
 		toPass := make([]any, 0, len(keys))
 		for i := 0; i < len(keys); i++ {
 			var session *model.Session
