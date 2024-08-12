@@ -7,7 +7,6 @@ import (
 )
 
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
-	scheduledPost.UserId = rctx.Session().UserId
 	scheduledPost.Id = model.NewId()
 
 	if scheduledPost.ScheduledAt < model.GetMillis() {

@@ -17,6 +17,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("schedule_post", err)
 		return
 	}
+	scheduledPost.UserId = c.AppContext.Session().UserId
 
 	hasPermissionToCreatePostInChannel := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionCreatePost)
 	if !hasPermissionToCreatePostInChannel {

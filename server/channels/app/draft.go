@@ -63,22 +63,6 @@ func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string
 		}
 		return nil, nil
 	}
-	// LOL
-	//scheduledPost := &model.ScheduledPost{
-	//	Draft: model.Draft{
-	//		UserId:    draft.UserId,
-	//		ChannelId: draft.ChannelId,
-	//		RootId:    draft.RootId,
-	//		Message:   draft.Message,
-	//		FileIds:   draft.FileIds,
-	//		Priority:  draft.Priority,
-	//	},
-	//	ScheduledAt: model.GetMillis(),
-	//	ProcessedAt: model.GetMillis(),
-	//	ErrorCode:   "error_code_11111",
-	//}
-	//
-	//_, _ = a.Srv().Store().ScheduledPost().Save(scheduledPost)
 
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
 	if nErr != nil {
