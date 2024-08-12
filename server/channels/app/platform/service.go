@@ -305,6 +305,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
+	// Note: we hardcode the session cache to LRU because the session invalidation
+	// path always iterates through the entire cache, leading to a lot of SCAN calls
+	// in case of Redis. We could potentially have a reverse mapping of userIDs to
+	// session IDs, but leaving this one for now.
 	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Session",
 		Size:           model.SessionCacheSize,

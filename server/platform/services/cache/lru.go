@@ -105,9 +105,9 @@ func (l *LRU) RemoveMulti(keys []string) error {
 	return err
 }
 
-// Scan returns the whole slice of keys LRU mode. We don't need
-// this callback style for LRU, but since we share the same interface
-// with Redis, we maintain parity.
+// Scan passes the whole slice of keys to the callback in LRU mode.
+// We don't need this callback style for LRU, but since we share
+// the same interface with Redis, we maintain parity.
 func (l *LRU) Scan(f func([]string) error) error {
 	l.lock.RLock()
 	keys := make([]string, l.len)

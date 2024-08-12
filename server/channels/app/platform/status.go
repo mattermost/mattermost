@@ -85,6 +85,7 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 		var status *model.Status
 		toPass = append(toPass, &status)
 	}
+	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -96,19 +97,21 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 				metrics.IncrementMemCacheMissCounter(ps.statusCache.Name())
 			}
 		} else {
+			// If we get a hit, we need to cast it back to the right type.
 			gotStatus := *(toPass[i].(**model.Status))
-			if gotStatus != nil {
-				statusMap[userIDs[i]] = gotStatus.Status
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
-				}
+			if gotStatus == nil {
+				ps.logger.Warn("Found nil in GetStatusesByIds. This is not expected")
 				continue
 			}
-			ps.logger.Warn("Found nil in GetStatusesByIds. This is not expected")
+			statusMap[userIDs[i]] = gotStatus.Status
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
+			}
 		}
 	}
 
 	if len(missingUserIds) > 0 {
+		// For cache misses, we fill them back from the DB.
 		statuses, err := ps.Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -145,6 +148,7 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 		var status *model.Status
 		toPass = append(toPass, &status)
 	}
+	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -156,19 +160,21 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 				metrics.IncrementMemCacheMissCounter(ps.statusCache.Name())
 			}
 		} else {
+			// If we get a hit, we need to cast it back to the right type.
 			gotStatus := *(toPass[i].(**model.Status))
-			if gotStatus != nil {
-				statusMap = append(statusMap, gotStatus)
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
-				}
+			if gotStatus == nil {
+				ps.logger.Warn("Found nil in GetUserStatusesByIds. This is not expected")
 				continue
 			}
-			ps.logger.Warn("Found nil in GetUserStatusesByIds. This is not expected")
+			statusMap = append(statusMap, gotStatus)
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
+			}
 		}
 	}
 
 	if len(missingUserIds) > 0 {
+		// For cache misses, we fill them back from the DB.
 		statuses, err := ps.Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

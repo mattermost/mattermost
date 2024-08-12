@@ -144,7 +144,7 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 	}()
 
 	errs := make([]error, len(keys))
-	newKeys := sliceMap(keys, func(elem string) string {
+	newKeys := sliceMapper(keys, func(elem string) string {
 		return r.name + ":" + elem
 	})
 	vals, err := r.client.DoCache(context.Background(),
@@ -238,7 +238,7 @@ func (r *Redis) RemoveMulti(keys []string) error {
 		return nil
 	}
 
-	newKeys := sliceMap(keys, func(elem string) string {
+	newKeys := sliceMapper(keys, func(elem string) string {
 		return r.name + ":" + elem
 	})
 
@@ -271,7 +271,7 @@ func (r *Redis) Scan(f func([]string) error) error {
 			return err
 		}
 
-		removed := sliceMap(scan.Elements, func(elem string) string {
+		removed := sliceMapper(scan.Elements, func(elem string) string {
 			return strings.TrimPrefix(elem, r.name+":")
 		})
 		err = f(removed)
@@ -312,7 +312,7 @@ func (r *Redis) Name() string {
 	return r.name
 }
 
-func sliceMap[S ~[]E, E, R any](slice S, mapper func(E) R) []R {
+func sliceMapper[S ~[]E, E, R any](slice S, mapper func(E) R) []R {
 	newSlice := make([]R, len(slice))
 	for i, v := range slice {
 		newSlice[i] = mapper(v)

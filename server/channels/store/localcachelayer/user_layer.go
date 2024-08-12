@@ -93,13 +93,13 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 				continue
 			}
 			gotMap := *(toPass[i].(*map[string]*model.User))
-			if gotMap != nil {
-				if _, ok := gotMap[userId]; ok {
-					toDelete = append(toDelete, keys[i])
-				}
+			if gotMap == nil {
+				s.rootStore.logger.Warn("Found nil userMap in InvalidateProfilesInChannelCacheByUser. This is not expected")
 				continue
 			}
-			s.rootStore.logger.Warn("Found nil userMap in InvalidateProfilesInChannelCacheByUser. This is not expected")
+			if _, ok := gotMap[userId]; ok {
+				toDelete = append(toDelete, keys[i])
+			}
 		}
 		return nil
 	})

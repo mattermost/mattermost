@@ -40,7 +40,7 @@ type Cache interface {
 	// RemoveMulti deletes multiple keys in a single operation.
 	RemoveMulti(keys []string) error
 
-	// Scan allow incremental iteration over the entire key-space
+	// Scan allows incremental iteration over the entire key-space
 	// in a performant manner. It provides a callback that consumers
 	// can use to process the keys. If the callback returns an error,
 	// the scan stops, returning the same error.

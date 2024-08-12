@@ -488,19 +488,25 @@ func (s *LocalCacheStore) doMultiInvalidateCacheCluster(cache cache.Cache, keys 
 }
 
 func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
-	cache.SetWithDefaultExpiry(key, value)
+	err := cache.SetWithDefaultExpiry(key, value)
+	if err != nil {
+		s.logger.Warn("Error while setting cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
 }
 
-func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value any) error {
-	err := cache.Get(key, value)
+func (s *LocalCacheStore) doStandardReadCache(c cache.Cache, key string, value any) error {
+	err := c.Get(key, value)
 	if err == nil {
 		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter(cache.Name())
+			s.metrics.IncrementMemCacheHitCounter(c.Name())
 		}
 		return nil
 	}
+	if err != cache.ErrKeyNotFound {
+		s.logger.Warn("Error while reading from cache", mlog.Err(err), mlog.String("cache_name", c.Name()))
+	}
 	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter(cache.Name())
+		s.metrics.IncrementMemCacheMissCounter(c.Name())
 	}
 	return err
 }
