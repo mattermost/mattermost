@@ -52,7 +52,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
     const setFilesSearchType = useCallback(() => setSearchType('files'), [setSearchType]);
 
-    const SearchPluginButtons = useSelector(getSearchButtons);
+    const searchPluginButtons = useSelector(getSearchButtons);
 
     return (
         <SearchTypeSelectorContainer>
@@ -74,7 +74,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     defaultMessage='Files'
                 />
             </SearchTypeItem>
-            {SearchPluginButtons.map(({component, pluginId}: any) => {
+            {searchPluginButtons.map(({component, pluginId}: any) => {
                 const Component = component as React.ComponentType;
                 return (
                     <SearchTypeItem

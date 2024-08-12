@@ -45,7 +45,7 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         onSearch(searchType, searchTerms);
     }, [onSearch, searchType]);
 
-    const SearchPluginSuggestions = useSelector(getSearchPluginSuggestions);
+    const searchPluginSuggestions = useSelector(getSearchPluginSuggestions);
 
     const generateLabel = (item: any) => {
         let label = '';
@@ -113,7 +113,7 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         );
     }
 
-    const pluginComponentInfo = SearchPluginSuggestions.find(({pluginId}: any) => {
+    const pluginComponentInfo = searchPluginSuggestions.find(({pluginId}: any) => {
         if (searchType === pluginId) {
             return true;
         }

@@ -39,7 +39,7 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
         focus(searchTerms.length + changedValue.length + 1);
     }, [searchTerms, setSearchTerms, focus]);
 
-    const SearchPluginHints = useSelector(getSearchBoxHints);
+    const searchPluginHints = useSelector(getSearchBoxHints);
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
         return (
@@ -53,7 +53,7 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
         );
     }
 
-    const pluginComponentInfo = SearchPluginHints.find(({pluginId}: any) => {
+    const pluginComponentInfo = searchPluginHints.find(({pluginId}: any) => {
         if (searchType === pluginId) {
             return true;
         }
