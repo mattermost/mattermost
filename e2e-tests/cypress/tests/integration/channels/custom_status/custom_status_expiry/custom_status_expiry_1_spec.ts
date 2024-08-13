@@ -31,8 +31,8 @@ describe('MM-T4063 Custom status expiry', () => {
 
     const waitingTime = 30; //minutes
     let expiresAt = dayjs();
-    let expiresAtAcceptableValues = [""];
-    let expiresAtRegexp : RegExp;
+    let expiresAtAcceptableValues = [''];
+    let expiresAtRegexp: RegExp;
     const expiryTimeFormat = 'h:mm A';
     it('MM-T4063_1 should open status dropdown', () => {
         // # Click on the sidebar header to open status dropdown
@@ -82,9 +82,9 @@ describe('MM-T4063 Custom status expiry', () => {
         // # Note that we need to be flexible around accepted values, as this calculation and the server-side one may differ slightly
         expiresAt = dayjs().add(waitingTime, 'minute');
         expiresAtAcceptableValues = [-1, 0, 1].map((el) =>
-            expiresAt.add(el, 'minute').format(expiryTimeFormat)
+            expiresAt.add(el, 'minute').format(expiryTimeFormat),
         );
-        expiresAtRegexp = new RegExp(`(${expiresAtAcceptableValues.join("|")})`)
+        expiresAtRegexp = new RegExp(`(${expiresAtAcceptableValues.join('|')})`);
 
         // * Status should be set and the emoji should be visible in the sidebar header
         cy.uiGetProfileHeader().

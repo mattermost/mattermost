@@ -142,7 +142,6 @@ describe('Integrations', () => {
         // * Error appears: "We couldn't find the user. They may have been deactivated by the System Administrator."
         cy.uiWaitUntilMessagePostedIncludes(`We couldn't find the user ${testChannel.name}. They may have been deactivated by the System Administrator.`);
 
-
         cy.uiAddDirectMessage().click();
         cy.get('#selectItems input').typeWithForce(userDM.username).wait(TIMEOUTS.ONE_SEC);
         cy.get('#multiSelectList').findByText(`@${userDM.username}`).click();
