@@ -86,6 +86,9 @@ jest.mock('plugins', () => ({
 
 let mockState = {
     entities: {
+        apps: {
+            enablePlugin: true,
+        },
         users: {
             currentUserId: 'currentUserId',
             profiles: {
