@@ -48,7 +48,8 @@ export default function MenuItemToggleMuteChannel({
     isMuted,
     channel,
     user,
-    actions}: Props) {
+    actions,
+}: Props) {
     const intl = useIntl();
 
     const handleClick = useCallback(() => {
