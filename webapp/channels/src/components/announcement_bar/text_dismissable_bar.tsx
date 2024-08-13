@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -20,18 +20,20 @@ interface Props extends Partial<AnnouncementBarProps> {
     className?: string;
 }
 
-const TextDismissableBar = (props: Props) => {
-    const {allowDismissal, text, ...extraProps} = props;
-    const [dismissed, setDismissed] = useState<boolean>(false);
+const options = {
+    singleline: true,
+    mentionHighlight: false,
+};
+
+const TextDismissableBar = ({allowDismissal, text, onDismissal, ...extraProps}: Props) => {
+    const getDismissed = (text?: React.ReactNode) => localStorage.getItem(localStoragePrefix + text?.toString()) === 'true';
+    const [dismissed, setDismissed] = useState<boolean>(() => getDismissed(text));
 
     useEffect(() => {
-        const dismissedFromStorage = localStorage.getItem(localStoragePrefix + text?.toString());
-        if (dismissedFromStorage === 'true') {
-            setDismissed(true);
-        }
+        setDismissed(getDismissed(text));
     }, [text]);
 
-    const handleDismiss = () => {
+    const handleDismiss = useCallback(() => {
         if (!allowDismissal) {
             return;
         }
@@ -41,10 +43,10 @@ const TextDismissableBar = (props: Props) => {
         setDismissed(
             true,
         );
-        if (props.onDismissal) {
-            props.onDismissal();
+        if (onDismissal) {
+            onDismissal();
         }
-    };
+    }, [allowDismissal, onDismissal, text]);
 
     if (dismissed) {
         return null;
@@ -61,10 +63,7 @@ const TextDismissableBar = (props: Props) => {
                     {typeof text === 'string' ? (
                         <Markdown
                             message={text}
-                            options={{
-                                singleline: true,
-                                mentionHighlight: false,
-                            }}
+                            options={options}
                         />
                     ) : text}
                 </>
