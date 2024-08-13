@@ -5793,11 +5793,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 122+"
+    "translation": "Версия 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 122+"
+    "translation": "Версия 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10090,5 +10090,29 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Неверный поисковый бэкэнд. Должен быть либо elasticsearch, либо opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Невозможно обработать запрос. Тело запроса слишком большое."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Недопустимая максимальная длина URL для настроек сервиса. Должно быть целое число больше нуля."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Недопустимое значение для limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress должен быть указан для типа кэша redis."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Тип кэша должен быть либо lru, либо redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB должен иметь значение, большее или равное нулю."
   }
 ]
