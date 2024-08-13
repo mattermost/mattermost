@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
@@ -24,6 +24,9 @@ export type Props = {
     };
 };
 
+const DELETE_PERMISSION = [Permissions.DELETE_EMOJIS];
+const DELETE_OTHER_PERMISSION = [Permissions.DELETE_OTHERS_EMOJIS];
+
 const EmojiListItem = ({
     actions: {
         deleteCustomEmoji,
@@ -34,7 +37,8 @@ const EmojiListItem = ({
     currentUserId = '',
     creatorDisplayName = '',
 }: Props) => {
-    const handleDelete = (): void => {
+    let displayName = creatorDisplayName;
+    const handleDelete = useCallback((): void => {
         if (!emoji) {
             return;
         }
@@ -42,30 +46,33 @@ const EmojiListItem = ({
             onDelete(emoji.id);
         }
         deleteCustomEmoji(emoji.id);
-    };
+    }, [deleteCustomEmoji, emoji, onDelete]);
 
-    if (creatorUsername && creatorUsername !== creatorDisplayName) {
-        // eslint-disable-next-line no-param-reassign
-        creatorDisplayName += ' (@' + creatorUsername + ')';
+    if (creatorUsername && creatorUsername !== displayName) {
+        displayName += ' (@' + creatorUsername + ')';
     }
 
     let deleteButton = <DeleteEmojiButton onDelete={handleDelete}/>;
 
     if (emoji.creator_id === currentUserId) {
         deleteButton = (
-            <AnyTeamPermissionGate permissions={[Permissions.DELETE_EMOJIS]}>
+            <AnyTeamPermissionGate permissions={DELETE_PERMISSION}>
                 {deleteButton}
             </AnyTeamPermissionGate>
         );
     } else {
         deleteButton = (
-            <AnyTeamPermissionGate permissions={[Permissions.DELETE_EMOJIS]}>
-                <AnyTeamPermissionGate permissions={[Permissions.DELETE_OTHERS_EMOJIS]}>
+            <AnyTeamPermissionGate permissions={DELETE_PERMISSION}>
+                <AnyTeamPermissionGate permissions={DELETE_OTHER_PERMISSION}>
                     {deleteButton}
                 </AnyTeamPermissionGate>
             </AnyTeamPermissionGate>
         );
     }
+
+    const emoticonStyle = useMemo(() => {
+        return {backgroundImage: `url(${Client4.getCustomEmojiImageUrl(emoji.id)})`};
+    }, [emoji.id]);
 
     return (
         <tr className='backstage-list__item'>
@@ -73,15 +80,10 @@ const EmojiListItem = ({
             <td className='emoji-list__image'>
                 <span
                     className='emoticon'
-                    style={{
-                        backgroundImage:
-                            'url(' +
-                            Client4.getCustomEmojiImageUrl(emoji.id) +
-                            ')',
-                    }}
+                    style={emoticonStyle}
                 />
             </td>
-            <td className='emoji-list__creator'>{creatorDisplayName}</td>
+            <td className='emoji-list__creator'>{displayName}</td>
             <td className='emoji-list-item_actions'>{deleteButton}</td>
         </tr>
     );
