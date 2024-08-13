@@ -25,8 +25,14 @@ const options = {
     mentionHighlight: false,
 };
 
-const TextDismissableBar = ({allowDismissal, text, onDismissal, ...extraProps}: Props) => {
-    const getDismissed = (text?: React.ReactNode) => localStorage.getItem(localStoragePrefix + text?.toString()) === 'true';
+const getDismissed = (text?: React.ReactNode) => localStorage.getItem(localStoragePrefix + text?.toString()) === 'true';
+
+const TextDismissableBar = ({
+    allowDismissal,
+    text,
+    onDismissal,
+    ...extraProps
+}: Props) => {
     const [dismissed, setDismissed] = useState<boolean>(() => getDismissed(text));
 
     useEffect(() => {
