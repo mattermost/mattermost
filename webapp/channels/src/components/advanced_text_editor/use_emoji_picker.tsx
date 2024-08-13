@@ -15,10 +15,8 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {splitMessageBasedOnCaretPosition} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
@@ -119,15 +117,6 @@ const useEmojiPicker = (
     let emojiPicker = null;
 
     if (enableEmojiPicker && !readOnlyChannel) {
-        const emojiPickerTooltip = (
-            <Tooltip id='upload-tooltip'>
-                <KeyboardShortcutSequence
-                    shortcut={KEYBOARD_SHORTCUTS.msgShowEmojiPicker}
-                    hoistDescription={true}
-                    isInsideTooltip={true}
-                />
-            </Tooltip>
-        );
         emojiPicker = (
             <>
                 <EmojiPickerOverlay
@@ -139,11 +128,16 @@ const useEmojiPicker = (
                     enableGifPicker={enableGifPicker}
                     topOffset={-7}
                 />
-                <OverlayTrigger
+                <WithTooltip
+                    id='upload-tooltip'
                     placement='top'
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                    overlay={emojiPickerTooltip}
+                    title={
+                        <KeyboardShortcutSequence
+                            shortcut={KEYBOARD_SHORTCUTS.msgShowEmojiPicker}
+                            hoistDescription={true}
+                            isInsideTooltip={true}
+                        />
+                    }
                 >
                     <IconContainer
                         id={'emojiPickerButton'}
@@ -159,7 +153,7 @@ const useEmojiPicker = (
                             size={18}
                         />
                     </IconContainer>
-                </OverlayTrigger>
+                </WithTooltip>
             </>
         );
     }

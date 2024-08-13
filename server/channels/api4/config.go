@@ -258,7 +258,9 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		config = c.App.Srv().Platform().ClientConfigWithComputed()
 	}
 
-	w.Write([]byte(model.MapToJSON(config)))
+	if err := json.NewEncoder(w).Encode(config); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {

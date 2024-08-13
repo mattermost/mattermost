@@ -959,7 +959,7 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 			return errors.New("username is empty")
 		}
 	} else {
-		up.Username = model.NewString(username)
+		up.Username = model.NewPointer(username)
 	}
 
 	email, _ := cmd.Flags().GetString("email")
@@ -968,27 +968,27 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 			return errors.New("email is empty")
 		}
 	} else {
-		up.Email = model.NewString(email)
+		up.Email = model.NewPointer(email)
 	}
 
 	nickname, _ := cmd.Flags().GetString("nickname")
 	if nickname != "" {
-		up.Nickname = model.NewString(nickname)
+		up.Nickname = model.NewPointer(nickname)
 	}
 
 	firstname, _ := cmd.Flags().GetString("firstname")
 	if firstname != "" {
-		up.FirstName = model.NewString(firstname)
+		up.FirstName = model.NewPointer(firstname)
 	}
 
 	lastname, _ := cmd.Flags().GetString("lastname")
 	if lastname != "" {
-		up.LastName = model.NewString(lastname)
+		up.LastName = model.NewPointer(lastname)
 	}
 
 	locale, _ := cmd.Flags().GetString("locale")
 	if locale != "" {
-		up.Locale = model.NewString(locale)
+		up.Locale = model.NewPointer(locale)
 	}
 
 	systemAdmin, _ := cmd.Flags().GetBool("system-admin")

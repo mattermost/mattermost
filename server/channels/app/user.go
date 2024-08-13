@@ -319,20 +319,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}, plugin.UserHasBeenCreatedID)
 	})
 
-	// For cloud yearly subscriptions, if the current user count of the workspace exceeds the number of seats initially purchased
-	// (plus the “threshold” of 10%), then a subscriptionHistoryEvent object would need to be created and added to the subscriptionHistory
-	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
-	// workspace is currently on a monthly plan, then this function will not do anything.
-
-	if a.Channels().License().IsCloud() && !ruser.IsRemote() {
-		go func(userId string) {
-			_, err := a.SendSubscriptionHistoryEvent(userId)
-			if err != nil {
-				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-			}
-		}(ruser.Id)
-	}
-
 	userLimits, limitErr := a.GetServerLimits()
 	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
@@ -1354,15 +1340,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
-
-	if a.Channels().License().IsCloud() && prev.IsRemote() && !user.IsRemote() {
-		go func(userId string) {
-			_, err := a.SendSubscriptionHistoryEvent(userId)
-			if err != nil {
-				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-			}
-		}(user.Id)
-	}
 
 	newUser.Sanitize(map[string]bool{})
 

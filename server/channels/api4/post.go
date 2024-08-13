@@ -257,15 +257,20 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannelContent) {
+	channel, err := c.App.GetChannel(c.AppContext, channelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
 	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		channel, err := c.App.GetChannel(c.AppContext, channelId)
-		if err != nil {
-			c.Err = err
+		channel, appErr := c.App.GetChannel(c.AppContext, channelId)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		if channel.DeleteAt != 0 {
@@ -275,7 +280,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var list *model.PostList
-	var err *model.AppError
 	etag := ""
 
 	if since > 0 {
@@ -341,7 +345,12 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	channelId := c.Params.ChannelId
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannelContent) {
+	channel, err := c.App.GetChannel(c.AppContext, channelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -423,6 +432,20 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	channelMap := make(map[string]*model.Channel)
+	channelIds := []string{}
+	for _, post := range posts.Posts {
+		channelIds = append(channelIds, post.ChannelId)
+	}
+	channels, err := c.App.GetChannels(c.AppContext, channelIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	for _, channel := range channels {
+		channelMap[channel.Id] = channel
+	}
+
 	pl := model.NewPostList()
 	channelReadPermission := make(map[string]bool)
 
@@ -432,7 +455,11 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		if !ok {
 			allowed = false
 
-			if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+			channel, ok := channelMap[post.ChannelId]
+			if !ok {
+				continue
+			}
+			if c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 				allowed = true
 			}
 
@@ -523,26 +550,29 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var posts = []*model.Post{}
 	channelMap := make(map[string]*model.Channel)
-
+	channelIds := []string{}
 	for _, post := range postsList {
-		var channel *model.Channel
-		if val, ok := channelMap[post.ChannelId]; ok {
-			channel = val
-		} else {
-			channel, appErr = c.App.GetChannel(c.AppContext, post.ChannelId)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			channelMap[channel.Id] = channel
+		channelIds = append(channelIds, post.ChannelId)
+	}
+	channels, appErr := c.App.GetChannels(c.AppContext, channelIds)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	for _, channel := range channels {
+		channelMap[channel.Id] = channel
+	}
+
+	var posts = []*model.Post{}
+	for _, post := range postsList {
+		channel, ok := channelMap[post.ChannelId]
+		if !ok {
+			continue
 		}
 
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannelContent) {
-			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
-				continue
-			}
+		if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+			continue
 		}
 
 		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
@@ -1031,13 +1061,18 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+	channel, err := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
 	patch := &model.PostPatch{}
-	patch.IsPinned = model.NewBool(isPinned)
+	patch.IsPinned = model.NewPointer(isPinned)
 
 	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch)
 	if err != nil {

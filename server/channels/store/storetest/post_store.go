@@ -250,9 +250,9 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		o1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("important"),
-				RequestedAck:            model.NewBool(true),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer("important"),
+				RequestedAck:            model.NewPointer(true),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		}
 
@@ -4062,7 +4062,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: model.NewPointer(int64(30)),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
@@ -4091,7 +4091,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(20),
+				PostDurationDays: model.NewPointer(int64(20)),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -4151,7 +4151,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: model.NewPointer(int64(30)),
 			},
 			ChannelIDs: []string{c1.Id},
 		})
@@ -4160,7 +4160,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: model.NewPointer(int64(30)),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -4281,7 +4281,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err = ss.User().Save(rctx, &u1)
@@ -4663,7 +4663,7 @@ func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store
 func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
-	remoteID := model.NewString(model.NewId())
+	remoteID := model.NewPointer(model.NewId())
 	first := model.GetMillis()
 
 	data := []*model.Post{
@@ -4682,7 +4682,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 	for i, p := range data {
 		p.UpdateAt = first + (int64(i) * 300000)
 		if p.RemoteId == nil {
-			p.RemoteId = model.NewString(model.NewId())
+			p.RemoteId = model.NewPointer(model.NewId())
 		}
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
@@ -4766,7 +4766,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
-	remoteID := model.NewString(model.NewId())
+	remoteID := model.NewPointer(model.NewId())
 	first := model.GetMillis()
 
 	data := []*model.Post{
@@ -4785,7 +4785,7 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 	for i, p := range data {
 		p.CreateAt = first + (int64(i) * 300000)
 		if p.RemoteId == nil {
-			p.RemoteId = model.NewString(model.NewId())
+			p.RemoteId = model.NewPointer(model.NewId())
 		}
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
@@ -4979,7 +4979,7 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 
 	u1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Locale:   "es",
 	}
 
