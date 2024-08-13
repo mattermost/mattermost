@@ -1,63 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 const KeyCodes = Constants.KeyCodes;
 
-type MFAControllerState = {
-    enforceMultifactorAuthentication: boolean;
+const submit = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    redirectUserToDefaultTeam();
 };
 
-type Props = {
+const onKeyPress = (e: React.KeyboardEvent<HTMLFormElement>| KeyboardEvent) => {
+    if (isKeyPressed(e as KeyboardEvent, KeyCodes.ENTER)) {
+        submit(e);
+    }
+};
 
-    /*
-     * Object containing enforceMultifactorAuthentication
-     */
-    state: MFAControllerState;
-
-    /*
-     * Function that updates parent component with state props
-     */
-    updateParent: (state: MFAControllerState) => void;
-}
-
-export default function Confirm({state, updateParent}: Props) {
-    const submit = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
-        e.preventDefault();
-        redirectUserToDefaultTeam();
-    };
-
-    const onKeyPress = useCallback((e: KeyboardEvent) => {
-        if (isKeyPressed(e, KeyCodes.ENTER)) {
-            submit(e);
-        }
-    }, [submit]);
-
+export default function Confirm() {
     useEffect(() => {
         document.body.addEventListener('keydown', onKeyPress);
 
         return () => {
             document.body.removeEventListener('keydown', onKeyPress);
         };
-    }, [onKeyPress]);
+    }, []);
 
     return (
         <div>
             <form
                 onSubmit={submit}
+                onKeyPress={onKeyPress}
                 className='form-group'
             >
                 <p>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='mfa.confirm.complete'
                         defaultMessage='**Set up complete!**'
                     />
