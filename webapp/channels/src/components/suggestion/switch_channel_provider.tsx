@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {defineMessages} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
 import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
@@ -863,3 +864,22 @@ export default class SwitchChannelProvider extends Provider {
         });
     }
 }
+
+defineMessages({
+    moreChannels: {
+        id: 'suggestion.mention.morechannels',
+        defaultMessage: 'Other Channels',
+    },
+    privateChannelsDivider: {
+        id: 'suggestion.mention.private.channels',
+        defaultMessage: 'Private Channels',
+    },
+    recentChannels: {
+        id: 'suggestion.mention.recent.channels',
+        defaultMessage: 'Recent',
+    },
+    unreadChannels: {
+        id: 'suggestion.mention.unread',
+        defaultMessage: 'Unread',
+    },
+});

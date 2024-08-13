@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
@@ -24,8 +23,7 @@ import (
 )
 
 const (
-	LicenseEnv                = "MM_LICENSE"
-	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
+	LicenseEnv = "MM_LICENSE"
 )
 
 // JWTClaims custom JWT claims with the needed information for the

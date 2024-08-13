@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {Store} from 'redux';
-import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals';
-import type {Metric} from 'web-vitals';
+import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
+import type {INPMetricWithAttribution, LCPMetricWithAttribution, Metric} from 'web-vitals/attribution';
 
 import type {Client4} from '@mattermost/client';
 
@@ -12,6 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
+import {identifyElementRegion} from './element_identification';
 import type {PerformanceLongTaskTiming} from './long_task';
 import type {PlatformLabel, UserAgentLabel} from './platform_detection';
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
@@ -37,6 +38,12 @@ type PerformanceReportMeasure = {
      * use floating point numbers for performance timestamps, so we need to make sure to round this.
      */
     timestamp: number;
+
+    /**
+     * labels is an optional map of extra labels to attach to the measure. They must be supported constants as defined
+     * in model/metrics.go on the server.
+     */
+    labels?: Record<string, string>;
 }
 
 type PerformanceReport = {
@@ -126,7 +133,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: Measure.PageLoad,
             value: entries[0].duration,
-            timestamp: performance.timeOrigin + entries[0].startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -162,7 +169,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
-            timestamp: performance.timeOrigin + entry.startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -184,10 +191,28 @@ export default class PerformanceReporter {
     }
 
     private handleWebVital(metric: Metric) {
+        let labels: Record<string, string> | undefined;
+
+        if (isLCPMetric(metric)) {
+            const selector = metric.attribution?.element;
+            const element = selector ? document.querySelector(selector) : null;
+
+            if (element) {
+                labels = {
+                    region: identifyElementRegion(element),
+                };
+            }
+        } else if (isINPMetric(metric)) {
+            labels = {
+                interaction: metric.attribution?.interactionType,
+            };
+        }
+
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
-            timestamp: performance.timeOrigin + performance.now(),
+            timestamp: Date.now(),
+            labels,
         });
     }
 
@@ -243,7 +268,7 @@ export default class PerformanceReporter {
     }
 
     private generateReport(histogramMeasures: PerformanceReportMeasure[], counters: Map<string, number>): PerformanceReport {
-        const now = performance.timeOrigin + performance.now();
+        const now = Date.now();
 
         const counterMeasures = this.countersToMeasures(now, counters);
 
@@ -264,7 +289,7 @@ export default class PerformanceReporter {
 
     private getReportStartEnd(now: number, histogramMeasures: PerformanceReportMeasure[], counterMeasures: PerformanceReportMeasure[]): {start: number; end: number} {
         let start = now;
-        let end = performance.timeOrigin;
+        let end = 0;
 
         for (const measure of histogramMeasures) {
             start = Math.min(start, measure.timestamp);
@@ -308,6 +333,11 @@ export default class PerformanceReporter {
     }
 
     protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        // Confirm that sendBeacon exists because it doesn't on Firefox with certain settings enabled
+        if (!navigator.sendBeacon) {
+            return false;
+        }
+
         return navigator.sendBeacon(url, data);
     }
 }
@@ -322,4 +352,12 @@ function isPerformanceMark(entry: PerformanceEntry): entry is PerformanceMark {
 
 function isPerformanceMeasure(entry: PerformanceEntry): entry is PerformanceMeasure {
     return entry.entryType === 'measure';
+}
+
+function isLCPMetric(entry: Metric): entry is LCPMetricWithAttribution {
+    return entry.name === 'LCP';
+}
+
+function isINPMetric(entry: Metric): entry is INPMetricWithAttribution {
+    return entry.name === 'INP';
 }

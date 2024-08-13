@@ -598,6 +598,7 @@ x-tagGroups:
       - roles
       - schemes
       - integration_actions
+      - remote clusters
       - shared channels
       - terms of service
       - imports

@@ -21,6 +21,28 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
+export type PasswordConfig = {
+    minimumLength: number;
+    requireLowercase: boolean;
+    requireUppercase: boolean;
+    requireNumber: boolean;
+    requireSymbol: boolean;
+};
+
+export const getPasswordConfig: (state: GlobalState) => PasswordConfig = createSelector(
+    'getPasswordConfig',
+    getConfig,
+    (config) => {
+        return {
+            minimumLength: parseInt(config.PasswordMinimumLength!, 10),
+            requireLowercase: config.PasswordRequireLowercase === 'true',
+            requireUppercase: config.PasswordRequireUppercase === 'true',
+            requireNumber: config.PasswordRequireNumber === 'true',
+            requireSymbol: config.PasswordRequireSymbol === 'true',
+        };
+    },
+);
+
 export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
 }

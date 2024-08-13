@@ -821,6 +821,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                         <OverlayTrigger
                           defaultOverlayShown={false}
                           delay={400}
+                          disabled={false}
                           overlay={<Unknown />}
                           placement="top"
                           trigger={

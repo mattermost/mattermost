@@ -270,7 +270,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 }
 
 func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JobTypeExportProcess)
+	return jobListCmdF(c, command, model.JobTypeExportProcess, "")
 }
 
 func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

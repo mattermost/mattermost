@@ -27,7 +27,7 @@
     }
 
     .ThreadViewer & {
-        padding-top: 12px;
+        padding-top: 0px;
 
         .AutoHeight {
             position: absolute;
@@ -138,16 +138,6 @@
         background: rgba(var(--button-bg-rgb), 0.08);
         color: rgb(var(--button-bg-rgb));
         fill: currentColor;
-    }
-
-    &__icon {
-        display: inline-flex;
-        width: 100%;
-        height: 100%;
-        align-items: center;
-        justify-content: center;
-        font-family: "compass-icons";
-        font-size: 18px;
     }
 
     &__cell {

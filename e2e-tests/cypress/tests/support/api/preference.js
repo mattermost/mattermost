@@ -77,24 +77,6 @@ Cypress.Commands.add('apiSaveMessageDisplayPreference', (value = 'clean') => {
 });
 
 /**
- * Saves show markdown preview option preference of a user directly via API
- * This API assume that the user is logged in and has cookie to access
- * @param {String} value - Either "true" to show the options (default) or "false"
- */
-Cypress.Commands.add('apiSaveShowMarkdownPreviewPreference', (value = 'true') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'advanced_settings',
-            name: 'feature_enabled_markdown_preview',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-/**
  * Saves teammate name display preference of a user directly via API
  * This API assume that the user is logged in and has cookie to access
  * @param {String} value - Either "username" (default), "nickname_full_name" or "full_name"
@@ -274,17 +256,6 @@ Cypress.Commands.add('apiSaveCloudTrialBannerPreference', (userId, name, value) 
     return cy.apiSaveUserPreference([preference], userId);
 });
 
-Cypress.Commands.add('apiSaveActionsMenuPreference', (userId, value = true) => {
-    const preference = {
-        user_id: userId,
-        category: 'actions_menu',
-        name: 'actions_menu_tutorial_state',
-        value: JSON.stringify({actions_menu_modal_viewed: value}),
-    };
-
-    return cy.apiSaveUserPreference([preference], userId);
-});
-
 Cypress.Commands.add('apiSaveStartTrialModal', (userId, value = 'true') => {
     const preference = {
         user_id: userId,
@@ -419,12 +390,6 @@ Cypress.Commands.add('apiDisableTutorials', (userId) => {
             category: 'crt_thread_pane_step',
             name: userId,
             value: '999',
-        },
-        {
-            user_id: userId,
-            category: 'actions_menu',
-            name: 'actions_menu_tutorial_state',
-            value: '{"actions_menu_modal_viewed":true}',
         },
         {
             user_id: userId,

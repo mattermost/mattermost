@@ -1967,7 +1967,7 @@ func (a *OpenTracingAppLayer) CopyWranglerPostlist(c request.CTX, wpl *model.Wra
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CountNotification(notificationType model.NotificationType) {
+func (a *OpenTracingAppLayer) CountNotification(notificationType model.NotificationType, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotification")
 
@@ -1979,10 +1979,10 @@ func (a *OpenTracingAppLayer) CountNotification(notificationType model.Notificat
 	}()
 
 	defer span.Finish()
-	a.app.CountNotification(notificationType)
+	a.app.CountNotification(notificationType, platform)
 }
 
-func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.NotificationType) {
+func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.NotificationType, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotificationAck")
 
@@ -1994,10 +1994,10 @@ func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.Notifi
 	}()
 
 	defer span.Finish()
-	a.app.CountNotificationAck(notificationType)
+	a.app.CountNotificationAck(notificationType, platform)
 }
 
-func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason) {
+func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotificationReason")
 
@@ -2009,7 +2009,7 @@ func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.N
 	}()
 
 	defer span.Finish()
-	a.app.CountNotificationReason(notificationStatus, notificationType, notificationReason)
+	a.app.CountNotificationReason(notificationStatus, notificationType, notificationReason, platform)
 }
 
 func (a *OpenTracingAppLayer) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
@@ -2544,6 +2544,28 @@ func (a *OpenTracingAppLayer) CreatePostMissingChannel(c request.CTX, post *mode
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CreateRemoteClusterInvite(remoteId string, siteURL string, token string, password string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateRemoteClusterInvite")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CreateRemoteClusterInvite(remoteId, siteURL, token, password)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateRetentionPolicy")
@@ -3048,6 +3070,28 @@ func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(c request.CTX, userID s
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) DecryptRemoteClusterInvite(inviteCode string, password string) (*model.RemoteClusterInvite, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DecryptRemoteClusterInvite")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.DecryptRemoteClusterInvite(inviteCode, password)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DefaultChannelNames(c request.CTX) []string {
@@ -5023,7 +5067,7 @@ func (a *OpenTracingAppLayer) GetAllPublicTeams() ([]*model.Team, *model.AppErro
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllRemoteClusters(page int, perPage int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClusters")
 
@@ -5035,7 +5079,7 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQue
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(filter)
+	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(page, perPage, filter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7176,6 +7220,28 @@ func (a *OpenTracingAppLayer) GetIncomingWebhook(hookID string) (*model.Incoming
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetIncomingWebhooksCount(teamID string, userID string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksCount")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetIncomingWebhooksCount(teamID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetIncomingWebhooksForTeamPage(teamID string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksForTeamPage")
@@ -7299,6 +7365,28 @@ func (a *OpenTracingAppLayer) GetJobsByType(c request.CTX, jobType string, offse
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetJobsByType(c, jobType, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypeAndStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetJobsByTypeAndStatus(c, jobTypes, status, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13332,6 +13420,28 @@ func (a *OpenTracingAppLayer) PatchPost(c request.CTX, postID string, patch *mod
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchRemoteCluster")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PatchRemoteCluster(rcId, patch)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchRetentionPolicy")
@@ -16316,6 +16426,40 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(rctx request.CTX, 
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToManageJob")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SessionHasPermissionToManageJob(session, job)
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToReadChannel(c, session, channel)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadJob")
@@ -18081,6 +18225,28 @@ func (a *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebho
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateJobStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateJobStatus(c, job, newStatus)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateMfa(c request.CTX, activate bool, userID string, token string) *model.AppError {

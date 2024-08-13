@@ -351,7 +351,7 @@ func (ts *TelemetryService) trackActivity() {
 
 	slashCommandsCount, _ = ts.dbStore.Command().AnalyticsCommandCount("")
 
-	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount("", ""); err == nil {
 		incomingWebhooksCount = c
 	}
 
@@ -430,6 +430,7 @@ func (ts *TelemetryService) trackConfig() {
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
 		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
+		"terminate_sessions_on_password_change":                   *cfg.ServiceSettings.TerminateSessionsOnPasswordChange,
 		"session_length_web_in_hours":                             *cfg.ServiceSettings.SessionLengthWebInHours,
 		"session_length_mobile_in_hours":                          *cfg.ServiceSettings.SessionLengthMobileInHours,
 		"session_length_sso_in_hours":                             *cfg.ServiceSettings.SessionLengthSSOInHours,
@@ -455,7 +456,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
-		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
@@ -493,6 +493,7 @@ func (ts *TelemetryService) trackConfig() {
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
+		"maximum_url_length":                                      *cfg.ServiceSettings.MaximumURLLength,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -1434,6 +1435,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"skype4business",
 		"zoom",
 		"focalboard",
+		"com.mattermost.msteams-sync",
 	}
 
 	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)

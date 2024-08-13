@@ -87,7 +87,6 @@ export type ClientConfig = {
     EnableOutgoingWebhooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
-    EnablePreviewFeatures: string;
     EnablePreviewModeBanner: string;
     EnablePublicLink: string;
     EnableReliableWebSockets: string;
@@ -331,6 +330,7 @@ export type ServiceSettings = {
     CorsDebug: boolean;
     AllowCookiesForSubdomains: boolean;
     ExtendSessionLengthWithActivity: boolean;
+    TerminateSessionsOnPasswordChange: boolean;
     SessionLengthWebInDays: number;
     SessionLengthWebInHours: number;
     SessionLengthMobileInDays: number;
@@ -356,7 +356,6 @@ export type ServiceSettings = {
     EnableUserStatuses: boolean;
     ExperimentalEnableAuthenticationTransfer: boolean;
     ClusterLogTimeoutMilliseconds: number;
-    EnablePreviewFeatures: boolean;
     EnableTutorial: boolean;
     EnableOnboardingFlow: boolean;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: boolean;
@@ -794,6 +793,7 @@ export type AnalyticsSettings = {
 
 export type ElasticsearchSettings = {
     ConnectionURL: string;
+    Backend: string;
     Username: string;
     Password: string;
     EnableIndexing: boolean;

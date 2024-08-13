@@ -31,7 +31,7 @@ describe('Feature discovery', () => {
             {sidebarName: 'OpenID Connect', featureDiscoveryTitle: 'OpenID Connect'},
             {sidebarName: 'Groups', featureDiscoveryTitle: 'Active Directory/LDAP groups'},
             {sidebarName: 'Compliance Export', featureDiscoveryTitle: 'compliance exports'},
-            {sidebarName: 'System Roles', featureDiscoveryTitle: 'controlled access to the System Console'},
+            {sidebarName: 'Delegated Granular Administration', featureDiscoveryTitle: 'controlled access to the System Console'},
             {sidebarName: 'Permissions', featureDiscoveryTitle: 'role-based permissions'},
             {sidebarName: 'Channels', featureDiscoveryTitle: 'read-only channels'},
             {sidebarName: 'Custom Terms of Service', featureDiscoveryTitle: 'custom terms of service'},

@@ -13,8 +13,8 @@ import (
 )
 
 func (api *API) InitElasticsearch() {
-	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch)).Methods("POST")
-	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch)).Methods(http.MethodPost)
+	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes)).Methods(http.MethodPost)
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	// we set BulkIndexingTimeWindowSeconds to a random value to avoid failing on the nil check
 	// TODO: remove this hack once we remove BulkIndexingTimeWindowSeconds from the config.
 	if cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds == nil {
-		cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = model.NewInt(0)
+		cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = model.NewPointer(0)
 	}
 	if checkHasNilFields(&cfg.ElasticsearchSettings) {
 		c.Err = model.NewAppError("testElasticsearch", "api.elasticsearch.test_elasticsearch_settings_nil.app_error", nil, "", http.StatusBadRequest)

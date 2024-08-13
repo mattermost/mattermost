@@ -194,7 +194,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
-		user.RemoteId = model.NewString(rc.RemoteId)
+		user.RemoteId = model.NewPointer(rc.RemoteId)
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
@@ -209,12 +209,15 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
+		// save the updated username and email in props
+		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
+		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+
 		patch := &model.UserPatch{
 			Username:  &user.Username,
 			Nickname:  &user.Nickname,
 			FirstName: &user.FirstName,
 			LastName:  &user.LastName,
-			Email:     &user.Email,
 			Props:     user.Props,
 			Position:  &user.Position,
 			Locale:    &user.Locale,
@@ -254,8 +257,8 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	user = sanitizeUserForSync(user)
 
 	// save the original username and email in props
-	user.SetProp(KeyRemoteUsername, user.Username)
-	user.SetProp(KeyRemoteEmail, user.Email)
+	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
+	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
@@ -267,7 +270,7 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 		}
 
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
-		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
+		user.Email = model.NewId()
 
 		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
 			field, ok := isConflictError(err)
@@ -300,8 +303,8 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	// preserve existing real username/email since Patch will over-write them;
 	// the real username/email in props can be updated if they don't contain colons,
 	// meaning the update is coming from the user's origin server (not munged).
-	realUsername, _ := user.GetProp(KeyRemoteUsername)
-	realEmail, _ := user.GetProp(KeyRemoteEmail)
+	realUsername, _ := user.GetProp(model.UserPropsKeyRemoteUsername)
+	realEmail, _ := user.GetProp(model.UserPropsKeyRemoteEmail)
 
 	if patch.Username != nil && !strings.Contains(*patch.Username, ":") {
 		realUsername = *patch.Username
@@ -312,8 +315,8 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 
 	user.Patch(patch)
 	user = sanitizeUserForSync(user)
-	user.SetProp(KeyRemoteUsername, realUsername)
-	user.SetProp(KeyRemoteEmail, realEmail)
+	user.SetProp(model.UserPropsKeyRemoteUsername, realUsername)
+	user.SetProp(model.UserPropsKeyRemoteEmail, realEmail)
 
 	// Apply a suffix to the username until it is unique.
 	for i := 1; i <= MaxUpsertRetries; i++ {
@@ -321,7 +324,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 			suffix = strconv.FormatInt(int64(i), 10)
 		}
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
-		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
+		user.Email = model.NewId()
 
 		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
 			field, ok := isConflictError(err)
@@ -350,7 +353,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	var appErr *model.AppError
 
-	post.RemoteId = model.NewString(rc.RemoteId)
+	post.RemoteId = model.NewPointer(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())
 
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
@@ -447,7 +450,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
 		}
-		reaction.RemoteId = model.NewString(rc.RemoteId)
+		reaction.RemoteId = model.NewPointer(rc.RemoteId)
 		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	} else {
 		// make sure the reaction being deleted is owned by the remote
