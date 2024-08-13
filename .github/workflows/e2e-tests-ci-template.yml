@@ -326,6 +326,7 @@ jobs:
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
+          retention-days: 1
 
   report:
     runs-on: ubuntu-latest
