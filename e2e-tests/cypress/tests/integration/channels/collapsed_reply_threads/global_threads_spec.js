@@ -7,6 +7,7 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+// Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
