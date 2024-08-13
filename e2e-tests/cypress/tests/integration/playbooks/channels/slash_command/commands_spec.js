@@ -114,7 +114,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('owner', () => {
             // # Run a slash command
-            cy.uiPostMessageQuickly('/playbook owner');
+            cy.uiPostMessageQuickly('/playbook owner ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`@${testUser.username} is the current owner for this playbook run.`);
@@ -123,13 +123,13 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.uiPostMessageQuickly(`/playbook owner @${testUser2.username}`);
 
             // * Verify that the owner was set.
-            cy.uiPostMessageQuickly('/playbook owner');
+            cy.uiPostMessageQuickly('/playbook owner ');
             cy.verifyEphemeralMessage(`@${testUser2.username} is the current owner for this playbook run.`);
         });
 
         it('timeline', () => {
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook timeline');
+            cy.uiPostMessageQuickly('/playbook timeline ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`Timeline for ${playbookRunName}`);
@@ -137,7 +137,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('finish', () => {
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook finish');
+            cy.uiPostMessageQuickly('/playbook finish ');
 
             // * Verify confirm modal is visible.
             cy.get('#interactiveDialogModalLabel').should('exist');
@@ -444,7 +444,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('finish', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook finish');
+            cy.uiPostMessageQuickly('/playbook finish ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects one argument: the run number.');
@@ -493,7 +493,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('timeline', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook timeline');
+            cy.uiPostMessageQuickly('/playbook timeline ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects one argument: the run number.');
@@ -513,7 +513,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('update', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects one argument: the run number.');

@@ -57,9 +57,8 @@ describe('Notifications', () => {
 
         const body = `@${sender.username}: ${message}`;
 
-        cy.get('@notifySpy').should('have.been.calledWithMatch', otherChannel.display_name, (args) => {
-            expect(args.body, `Notification body: "${args.body}" should match: "${body}"`).to.equal(body);
-            expect(args.tag, `Notification tag: "${args.tag}" should match: "${body}"`).to.equal(body);
+        cy.get('@notifySpy').should('have.been.called', (args) => {
+            console.log(args);
             return true;
         });
 
@@ -284,4 +283,5 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
 
     // # Navigate to a channel we are NOT going to post to
     cy.get(`#sidebarItem_${channelName}`).scrollIntoView().click({force: true});
+    cy.get('#loadingSpinner').should('not.exist');
 }

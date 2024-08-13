@@ -150,7 +150,7 @@ function waitForCommentDraft(message: string) {
 function waitUntilPermanentPost() {
     // Add explicit wait to let the page load freely since `cy.get` seemed to block
     // some operation which caused to prolong complete page loading.
-    cy.wait(TIMEOUTS.ONE_SEC);
+    cy.wait(TIMEOUTS.HALF_SEC);
     cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
     return cy.waitUntil(() => cy.findAllByTestId('postView').last().then((el) => !(el[0].id.includes(':'))));
 }
@@ -180,7 +180,7 @@ function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<any> {
 
     // Wait for 5 seconds with 500ms check interval
     const options = {
-        timeout: TIMEOUTS.TEN_SEC,
+        timeout: TIMEOUTS.FIVE_SEC,
         interval: TIMEOUTS.HALF_SEC,
         errorMsg: `Expected "${message}" to be in the last message posted but not found.`,
     };

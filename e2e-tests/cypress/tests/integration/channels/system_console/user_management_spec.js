@@ -188,6 +188,7 @@ describe('User Management', () => {
 
             // # Open actions menu.
             cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
+            cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', gitlabUser.email);
 
             // * Verify Switch to Email/Password is visible.
             cy.findByText('Switch to Email/Password').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);

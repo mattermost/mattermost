@@ -11,7 +11,6 @@ export function markAsUnreadFromPost(post, rhs = false) {
     cy.get('body').type('{alt}', {release: false});
     cy.get(`#${prefix}_${post.id}`).click({force: true});
     cy.get('body').type('{alt}', {release: true});
-    cy.wait(TIMEOUTS.HALF_SEC);
 }
 
 export function markAsUnreadShouldBeAbsent(postId, prefix = 'post', location = 'CENTER') {
@@ -31,7 +30,7 @@ export function switchToChannel(channel) {
     cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.ONE_MIN}).should('contain', channel.display_name);
 
     // # Wait some time for the channel to set state
-    cy.wait(TIMEOUTS.TWO_SEC);
+    cy.wait(TIMEOUTS.HALF_SEC);
 }
 
 export function verifyPostNextToNewMessageSeparator(message) {

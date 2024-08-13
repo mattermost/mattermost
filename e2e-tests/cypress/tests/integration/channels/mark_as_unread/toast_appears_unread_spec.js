@@ -11,6 +11,7 @@
 // Group: @channels @mark_as_unread
 
 import {markAsUnreadFromPost, switchToChannel} from './helpers';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Verify unread toast appears after repeated manual marking post as unread', () => {
     let firstPost;
@@ -36,7 +37,7 @@ describe('Verify unread toast appears after repeated manual marking post as unre
                     // Ensure that the Off-Topic channel has loaded successfully, before posting messages in the other channel
                     cy.get('#channelHeaderTitle').should('be.visible').and('contain.text', offTopicChannel.display_name);
 
-                    cy.postMessageAs({
+                    cy.wait(TIMEOUTS.ONE_SEC).postMessageAs({
                         sender: otherUser,
                         message: 'First message',
                         channelId: testChannel.id,

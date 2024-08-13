@@ -73,7 +73,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
     describe('post update dialog', () => {
         it('renders description correctly', () => {
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -84,7 +84,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
 
         it('description link navigates to run overview', () => {
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -101,7 +101,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
 
         it('prevents posting an update message with only whitespace', () => {
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -157,7 +157,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
                 cy.visit(`/${testTeam.name}/channels/${channelName}`);
 
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -183,7 +183,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
             const reminderTime = '1 day';
 
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get the dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -249,7 +249,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
         describe('prevents user from losing changes', () => {
             it('cancel, go back and save', () => {
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -279,7 +279,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
 
             it('click overview link, go back and save', () => {
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -310,7 +310,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
 
             it('cancel and discard explicitly', () => {
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -333,7 +333,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
 
             it('click overview link and discard explicitly', () => {
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -364,7 +364,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
         describe('shows the last update in update message', () => {
             it('shows the default when we have not made an update before', () => {
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get the dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -383,7 +383,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
                 cy.updateStatus(firstMessage);
 
                 // # Run the `/playbook update` slash command.
-                cy.uiPostMessageQuickly('/playbook update');
+                cy.uiPostMessageQuickly('/playbook update ');
 
                 // # Get the dialog modal.
                 cy.getStatusUpdateDialog().within(() => {
@@ -399,7 +399,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
     describe('the default reminder', () => {
         it('shows the configured default when we have not made a previous update', () => {
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get the dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -418,7 +418,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
             cy.updateStatus(firstMessage, '15 minutes');
 
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get the dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -437,7 +437,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
             cy.updateStatus(firstMessage, '90 minutes');
 
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get the dialog modal.
             cy.getStatusUpdateDialog().within(() => {
@@ -456,7 +456,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
             cy.updateStatus(firstMessage, '7 days');
 
             // # Run the `/playbook update` slash command.
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // # Get the dialog modal.
             cy.getStatusUpdateDialog().within(() => {
