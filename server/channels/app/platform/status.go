@@ -11,16 +11,17 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
-	ps.statusCache.Set(status.UserId, status)
+	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
 }
 
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
 	ps.AddStatusCacheSkipClusterSend(status)
 
-	if ps.Cluster() != nil {
+	if ps.Cluster() != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
 		statusJSON, err := json.Marshal(status)
 		if err != nil {
 			ps.logger.Warn("Failed to encode status to JSON", mlog.Err(err))
@@ -40,13 +41,36 @@ func (ps *PlatformService) GetAllStatuses() map[string]*model.Status {
 	}
 
 	statusMap := map[string]*model.Status{}
-	if userIDs, err := ps.statusCache.Keys(); err == nil {
-		for _, userID := range userIDs {
-			status := ps.GetStatusFromCache(userID)
-			if status != nil {
-				statusMap[userID] = status
-			}
+	err := ps.statusCache.Scan(func(keys []string) error {
+		if len(keys) == 0 {
+			return nil
 		}
+
+		toPass := make([]any, 0, len(keys))
+		for i := 0; i < len(keys); i++ {
+			var status *model.Status
+			toPass = append(toPass, &status)
+		}
+		errs := ps.statusCache.GetMulti(keys, toPass)
+		for i, err := range errs {
+			if err != nil {
+				if err != cache.ErrKeyNotFound {
+					return err
+				}
+				continue
+			}
+			gotStatus := *(toPass[i].(**model.Status))
+			if gotStatus != nil {
+				statusMap[keys[i]] = gotStatus
+				continue
+			}
+			ps.logger.Warn("Found nil status in GetAllStatuses. This is not expected")
+		}
+		return nil
+	})
+	if err != nil {
+		ps.logger.Warn("Error while getting all status in GetAllStatuses", mlog.Err(err))
+		return nil
 	}
 	return statusMap
 }
@@ -58,24 +82,40 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 
 	statusMap := map[string]any{}
 	metrics := ps.Metrics()
-
 	missingUserIds := []string{}
-	for _, userID := range userIDs {
+
+	toPass := make([]any, 0, len(userIDs))
+	for i := 0; i < len(userIDs); i++ {
 		var status *model.Status
-		if err := ps.statusCache.Get(userID, &status); err == nil {
-			statusMap[userID] = status.Status
-			if metrics != nil {
-				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
+		toPass = append(toPass, &status)
+	}
+	// First, we do a GetMulti to get all the status objects.
+	errs := ps.statusCache.GetMulti(userIDs, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				ps.logger.Warn("Error in GetStatusesByIds: ", mlog.Err(err))
 			}
-		} else {
-			missingUserIds = append(missingUserIds, userID)
+			missingUserIds = append(missingUserIds, userIDs[i])
 			if metrics != nil {
 				metrics.IncrementMemCacheMissCounter(ps.statusCache.Name())
+			}
+		} else {
+			// If we get a hit, we need to cast it back to the right type.
+			gotStatus := *(toPass[i].(**model.Status))
+			if gotStatus == nil {
+				ps.logger.Warn("Found nil in GetStatusesByIds. This is not expected")
+				continue
+			}
+			statusMap[userIDs[i]] = gotStatus.Status
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
 			}
 		}
 	}
 
 	if len(missingUserIds) > 0 {
+		// For cache misses, we fill them back from the DB.
 		statuses, err := ps.Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -107,22 +147,38 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 	metrics := ps.Metrics()
 
 	missingUserIds := []string{}
-	for _, userID := range userIDs {
+	toPass := make([]any, 0, len(userIDs))
+	for i := 0; i < len(userIDs); i++ {
 		var status *model.Status
-		if err := ps.statusCache.Get(userID, &status); err == nil {
-			statusMap = append(statusMap, status)
-			if metrics != nil {
-				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
+		toPass = append(toPass, &status)
+	}
+	// First, we do a GetMulti to get all the status objects.
+	errs := ps.statusCache.GetMulti(userIDs, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				ps.logger.Warn("Error in GetUserStatusesByIds: ", mlog.Err(err))
 			}
-		} else {
-			missingUserIds = append(missingUserIds, userID)
+			missingUserIds = append(missingUserIds, userIDs[i])
 			if metrics != nil {
 				metrics.IncrementMemCacheMissCounter(ps.statusCache.Name())
+			}
+		} else {
+			// If we get a hit, we need to cast it back to the right type.
+			gotStatus := *(toPass[i].(**model.Status))
+			if gotStatus == nil {
+				ps.logger.Warn("Found nil in GetUserStatusesByIds. This is not expected")
+				continue
+			}
+			statusMap = append(statusMap, gotStatus)
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
 			}
 		}
 	}
 
 	if len(missingUserIds) > 0 {
+		// For cache misses, we fill them back from the DB.
 		statuses, err := ps.Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -179,9 +235,7 @@ func (ps *PlatformService) SaveAndBroadcastStatus(status *model.Status) {
 func (ps *PlatformService) GetStatusFromCache(userID string) *model.Status {
 	var status *model.Status
 	if err := ps.statusCache.Get(userID, &status); err == nil {
-		statusCopy := &model.Status{}
-		*statusCopy = *status
-		return statusCopy
+		return status
 	}
 
 	return nil

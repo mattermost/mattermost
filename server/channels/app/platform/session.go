@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
@@ -50,18 +51,52 @@ func (ps *PlatformService) AddSessionToCache(session *model.Session) {
 }
 
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
-	if keys, err := ps.sessionCache.Keys(); err == nil {
-		var session *model.Session
-		for _, key := range keys {
-			if err := ps.sessionCache.Get(key, &session); err == nil {
-				if session.UserId == userID {
-					ps.sessionCache.Remove(key)
-					if m := ps.metricsIFace; m != nil {
-						m.IncrementMemCacheInvalidationCounterSession()
-					}
+	var toDelete []string
+	// First, we iterate over the entire session cache.
+	err := ps.sessionCache.Scan(func(keys []string) error {
+		if len(keys) == 0 {
+			return nil
+		}
+
+		toPass := make([]any, 0, len(keys))
+		for i := 0; i < len(keys); i++ {
+			var session *model.Session
+			toPass = append(toPass, &session)
+		}
+
+		errs := ps.sessionCache.GetMulti(keys, toPass)
+		for i, err := range errs {
+			if err != nil {
+				if err != cache.ErrKeyNotFound {
+					return err
+				}
+				continue
+			}
+			gotSession := *(toPass[i].(**model.Session))
+			if gotSession == nil {
+				ps.logger.Warn("Found nil session in ClearUserSessionCacheLocal. This is not expected")
+				continue
+			}
+			// If we find the userID matches the passed userID,
+			// we mark it up for deletion.
+			if gotSession.UserId == userID {
+				toDelete = append(toDelete, keys[i])
+				if m := ps.metricsIFace; m != nil {
+					m.IncrementMemCacheInvalidationCounterSession()
 				}
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		ps.logger.Warn("Error while scanning in ClearUserSessionCacheLocal", mlog.Err(err))
+		return
+	}
+	// Now, we delete everything.
+	err = ps.sessionCache.RemoveMulti(toDelete)
+	if err != nil {
+		ps.logger.Warn("Error while removing keys in ClearUserSessionCacheLocal", mlog.Err(err))
+		return
 	}
 }
 
