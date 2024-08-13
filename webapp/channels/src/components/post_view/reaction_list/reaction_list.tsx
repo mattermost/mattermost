@@ -9,7 +9,6 @@ import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import EmojiConstant from 'mattermost-redux/constants/emoji';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -19,6 +18,9 @@ import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {localizeMessage} from 'utils/utils';
+import { getConfig } from 'mattermost-redux/selectors/entities/general';
+import { GlobalState } from 'types/store';
+import store from 'stores/redux_store';
 
 const DEFAULT_EMOJI_PICKER_RIGHT_OFFSET = 15;
 const EMOJI_PICKER_WIDTH_OFFSET = 260;
@@ -151,7 +153,10 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         }
 
         let emojiPicker = null;
-        if (this.props.canAddReactions && this.state.emojiNames?.length < EmojiConstant.MAX_EMOJI_NAME_LENGTH) {
+        const getState = store.getState;
+        const state = getState() as GlobalState;
+        const config = getConfig(state);
+        if (this.props.canAddReactions && this.state.emojiNames?.length < Number(config.UniqueEmojiReactionLimitPerPost)) {
             emojiPicker = (
                 <span className='emoji-picker__container'>
                     <EmojiPickerOverlay

@@ -50,52 +50,6 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
   />
   <div
     className="post-add-reaction"
-  >
-    <span
-      className="emoji-picker__container"
-    >
-      <Connect(EmojiPickerOverlay)
-        onEmojiClick={[Function]}
-        onHide={[Function]}
-        rightOffset={15}
-        show={false}
-        target={[Function]}
-        topOffset={-5}
-      />
-      <Memo(ChannelPermissionGate)
-        channelId=""
-        permissions={
-          Array [
-            "add_reaction",
-          ]
-        }
-        teamId="teamId"
-      >
-        <WithTooltip
-          id="addReactionTooltip"
-          placement="top"
-          title={
-            Object {
-              "defaultMessage": "Add a reaction",
-              "id": "reaction_list.addReactionTooltip",
-            }
-          }
-        >
-          <button
-            aria-label="Add a reaction"
-            className="Reaction"
-            onClick={[Function]}
-          >
-            <span
-              className="Reaction__add"
-              id="addReaction-post_id"
-            >
-              <AddReactionIcon />
-            </span>
-          </button>
-        </WithTooltip>
-      </Memo(ChannelPermissionGate)>
-    </span>
-  </div>
+  />
 </div>
 `;

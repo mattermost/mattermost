@@ -3,5 +3,4 @@
 
 export default {
     SORT_BY_NAME: 'name',
-    MAX_EMOJI_NAME_LENGTH: 40
 };
