@@ -109,6 +109,7 @@ async function runTests() {
             spec: testFile,
             config: {
                 screenshotsFolder: `${MOCHAWESOME_REPORT_DIR}/screenshots`,
+                videosFolder: `${MOCHAWESOME_REPORT_DIR}/videos`,
                 trashAssetsBeforeRuns: false,
             },
             env: {
