@@ -10112,5 +10112,9 @@
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
     "translation": "Redis DB muss einen Wert größer oder gleich Null haben."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Es ist nicht möglich, den Webhook für teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}} zu erhalten."
   }
 ]
