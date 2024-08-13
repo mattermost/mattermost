@@ -29,7 +29,9 @@ const MigrationsTable = ({
     useEffect(() => {
         async function handleGetAppliedSchemaMigrations() {
             const result: ActionResult = await actions.getAppliedSchemaMigrations();
-            setMigrations(result.data);
+            if (result.data) {
+                setMigrations(result.data);
+            }
         }
 
         handleGetAppliedSchemaMigrations();
