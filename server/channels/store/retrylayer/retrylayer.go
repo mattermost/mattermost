@@ -8909,11 +8909,11 @@ func (s *RetryLayerProductNoticesStore) View(userID string, notices []string) er
 
 }
 
-func (s *RetryLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
+func (s *RetryLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string, limit int) error {
 
 	tries := 0
 	for {
-		err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID)
+		err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID, limit)
 		if err == nil {
 			return nil
 		}
@@ -15512,11 +15512,11 @@ func (s *RetryLayerWebhookStore) MergeIncomingWebhookUserId(toUserID string, fro
 
 }
 
-func (s *RetryLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+func (s *RetryLayerWebhookStore) MergeOutgoingWebhookCreatorId(toCreatorID string, fromCreatorID string) error {
 
 	tries := 0
 	for {
-		err := s.WebhookStore.MergeOutgoingWebhookUserId(toUserID, fromUserID)
+		err := s.WebhookStore.MergeOutgoingWebhookCreatorId(toCreatorID, fromCreatorID)
 		if err == nil {
 			return nil
 		}

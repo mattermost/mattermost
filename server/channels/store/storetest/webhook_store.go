@@ -41,6 +41,8 @@ func TestWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UpdateOutgoing", func(t *testing.T) { testWebhookStoreUpdateOutgoing(t, rctx, ss) })
 	t.Run("CountIncoming", func(t *testing.T) { testWebhookStoreCountIncoming(t, rctx, ss) })
 	t.Run("CountOutgoing", func(t *testing.T) { testWebhookStoreCountOutgoing(t, rctx, ss) })
+	t.Run("MergeIncomingWebhookUserId", func(t *testing.T) { testMergeIncomingWebhookUserId(t, rctx, ss) })
+	t.Run("MergeOutgoingWebhookCreatorId", func(t *testing.T) { testMergeOutgoingWebhookCreatorId(t, rctx, ss) })
 }
 
 func testWebhookStoreSaveIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -614,4 +616,138 @@ func testWebhookStoreCountOutgoing(t *testing.T, rctx request.CTX, ss store.Stor
 	r, err := ss.Webhook().AnalyticsOutgoingCount("")
 	require.NoError(t, err)
 	require.NotEqual(t, 0, r, "should have at least 1 outgoing hook")
+}
+
+func testMergeIncomingWebhookUserId(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("merge users", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+		randomUserID := model.NewId()
+
+		o1 := &model.IncomingWebhook{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = toUserID
+		o1.TeamId = model.NewId()
+
+		o2 := &model.IncomingWebhook{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = fromUserID
+		o2.TeamId = model.NewId()
+
+		o3 := &model.IncomingWebhook{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = fromUserID
+		o3.TeamId = model.NewId()
+
+		o4 := &model.IncomingWebhook{}
+		o4.ChannelId = model.NewId()
+		o4.UserId = randomUserID
+		o4.TeamId = model.NewId()
+
+		o1, err := ss.Webhook().SaveIncoming(o1)
+		require.NoError(t, err)
+
+		o2, err = ss.Webhook().SaveIncoming(o2)
+		require.NoError(t, err)
+
+		o3, err = ss.Webhook().SaveIncoming(o3)
+		require.NoError(t, err)
+
+		o4, err = ss.Webhook().SaveIncoming(o4)
+		require.NoError(t, err)
+
+		err = ss.Webhook().MergeIncomingWebhookUserId(toUserID, fromUserID)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetIncomingListByUser(toUserID, 0, 10)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3, "only 3 should be returned")
+
+		var ids []string
+		for _, hook := range hooks {
+			require.Equal(t, hook.UserId, toUserID)
+			ids = append(ids, hook.Id)
+		}
+
+		require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, ids)
+
+		hook, err := ss.Webhook().GetIncoming(o4.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, hook.UserId, randomUserID)
+	})
+}
+
+func testMergeOutgoingWebhookCreatorId(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("merge users", func(t *testing.T) {
+		toCreatorID := model.NewId()
+		fromCreatorID := model.NewId()
+		randomCreatorID := model.NewId()
+
+		callbackURLs := []string{"http://nowhere.com/"}
+		username := "test-user-name"
+		iconURL := "http://nowhere.com/icon"
+
+		o1 := &model.OutgoingWebhook{}
+		o1.ChannelId = model.NewId()
+		o1.CreatorId = toCreatorID
+		o1.TeamId = model.NewId()
+		o1.CallbackURLs = callbackURLs
+		o1.Username = username
+		o1.IconURL = iconURL
+
+		o2 := &model.OutgoingWebhook{}
+		o2.ChannelId = model.NewId()
+		o2.CreatorId = fromCreatorID
+		o2.TeamId = model.NewId()
+		o2.CallbackURLs = callbackURLs
+		o2.Username = username
+		o2.IconURL = iconURL
+
+		o3 := &model.OutgoingWebhook{}
+		o3.ChannelId = model.NewId()
+		o3.CreatorId = fromCreatorID
+		o3.TeamId = model.NewId()
+		o3.CallbackURLs = callbackURLs
+		o3.Username = username
+		o3.IconURL = iconURL
+
+		o4 := &model.OutgoingWebhook{}
+		o4.ChannelId = model.NewId()
+		o4.CreatorId = randomCreatorID
+		o4.TeamId = model.NewId()
+		o4.CallbackURLs = callbackURLs
+		o4.Username = username
+		o4.IconURL = iconURL
+
+		o1, err := ss.Webhook().SaveOutgoing(o1)
+		require.NoError(t, err)
+
+		o2, err = ss.Webhook().SaveOutgoing(o2)
+		require.NoError(t, err)
+
+		o3, err = ss.Webhook().SaveOutgoing(o3)
+		require.NoError(t, err)
+
+		o4, err = ss.Webhook().SaveOutgoing(o4)
+		require.NoError(t, err)
+
+		err = ss.Webhook().MergeOutgoingWebhookCreatorId(toCreatorID, fromCreatorID)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetOutgoingListByUser(toCreatorID, 0, 10)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3, "only 3 should be returned")
+
+		var ids []string
+		for _, hook := range hooks {
+			require.Equal(t, hook.CreatorId, toCreatorID)
+			ids = append(ids, hook.Id)
+		}
+
+		require.ElementsMatch(t, []string{o1.Id, o2.Id, o3.Id}, ids)
+
+		hook, err := ss.Webhook().GetOutgoing(o4.Id)
+		require.NoError(t, err)
+		require.Equal(t, hook.CreatorId, randomCreatorID)
+	})
 }

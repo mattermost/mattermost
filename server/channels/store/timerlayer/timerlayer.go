@@ -7065,10 +7065,10 @@ func (s *TimerLayerProductNoticesStore) View(userID string, notices []string) er
 	return err
 }
 
-func (s *TimerLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
+func (s *TimerLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string, limit int) error {
 	start := time.Now()
 
-	err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID)
+	err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -12224,10 +12224,10 @@ func (s *TimerLayerWebhookStore) MergeIncomingWebhookUserId(toUserID string, fro
 	return err
 }
 
-func (s *TimerLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+func (s *TimerLayerWebhookStore) MergeOutgoingWebhookCreatorId(toCreatorID string, fromCreatorID string) error {
 	start := time.Now()
 
-	err := s.WebhookStore.MergeOutgoingWebhookUserId(toUserID, fromUserID)
+	err := s.WebhookStore.MergeOutgoingWebhookCreatorId(toCreatorID, fromCreatorID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -12235,7 +12235,7 @@ func (s *TimerLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fro
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.MergeOutgoingWebhookUserId", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.MergeOutgoingWebhookCreatorId", success, elapsed)
 	}
 	return err
 }

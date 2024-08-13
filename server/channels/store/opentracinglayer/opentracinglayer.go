@@ -7828,7 +7828,7 @@ func (s *OpenTracingLayerProductNoticesStore) View(userID string, notices []stri
 	return err
 }
 
-func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
+func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string, limit int) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.BatchMergeUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -7837,7 +7837,7 @@ func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserID string, fromUs
 	}()
 
 	defer span.Finish()
-	err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID)
+	err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -13582,16 +13582,16 @@ func (s *OpenTracingLayerWebhookStore) MergeIncomingWebhookUserId(toUserID strin
 	return err
 }
 
-func (s *OpenTracingLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+func (s *OpenTracingLayerWebhookStore) MergeOutgoingWebhookCreatorId(toCreatorID string, fromCreatorID string) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.MergeOutgoingWebhookUserId")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.MergeOutgoingWebhookCreatorId")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.WebhookStore.MergeOutgoingWebhookUserId(toUserID, fromUserID)
+	err := s.WebhookStore.MergeOutgoingWebhookCreatorId(toCreatorID, fromCreatorID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

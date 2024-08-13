@@ -633,7 +633,7 @@ type WebhookStore interface {
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
 	MergeIncomingWebhookUserId(toUserID, fromUserID string) error
-	MergeOutgoingWebhookUserId(toUserID, fromUserID string) error
+	MergeOutgoingWebhookCreatorId(toCreatorID, fromCreatorID string) error
 }
 
 type CommandStore interface {
@@ -762,7 +762,7 @@ type ReactionStore interface {
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
-	BatchMergeUserId(toUserID, fromUserID string) error
+	BatchMergeUserId(toUserID, fromUserID string, limit int) error
 	BatchMoveReactionsToChannel(toChannelID, fromChannelID string) error
 }
 

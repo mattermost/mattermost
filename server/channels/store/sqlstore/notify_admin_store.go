@@ -96,8 +96,16 @@ func (s SqlNotifyAdminStore) Update(userId string, requiredPlan string, required
 }
 
 func (s SqlNotifyAdminStore) MergeUserId(toUserID, fromUserID string) error {
-	query := "UPDATE NotifyAdmin SET UserId = ? WHERE UserId = ?"
-	if _, err := s.GetMasterX().Exec(query, toUserID, fromUserID); err != nil {
+	mergeQuery, mergeArgs, mergeErr := s.getQueryBuilder().
+		Update("NotifyAdmin").
+		Set("UserId", toUserID).
+		Where(sq.Eq{"UserId": fromUserID}).
+		ToSql()
+	if mergeErr != nil {
+		return errors.Wrap(mergeErr, "failed to build merge query")
+	}
+
+	if _, err := s.GetMasterX().Exec(mergeQuery, mergeArgs...); err != nil {
 		return errors.Wrap(err, "failed to update notifyadmin")
 	}
 	return nil

@@ -3128,11 +3128,12 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	}
 
 	rctx.Logger().Info("MergeUsers: Merging outgoing webhooks")
-	err = a.Srv().Store().Webhook().MergeOutgoingWebhookUserId(toUser.Id, fromUser.Id)
+	err = a.Srv().Store().Webhook().MergeOutgoingWebhookCreatorId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_outgoing_webhooks.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Might delete, no value
 	rctx.Logger().Info("MergeUsers: Merging notify admin records")
 	err = a.Srv().Store().NotifyAdmin().MergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
@@ -3140,7 +3141,7 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	}
 
 	rctx.Logger().Info("MergeUsers: Batch merging reactions")
-	err = a.Srv().Store().Reaction().BatchMergeUserId(toUser.Id, fromUser.Id)
+	err = a.Srv().Store().Reaction().BatchMergeUserId(toUser.Id, fromUser.Id, batchLimit)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

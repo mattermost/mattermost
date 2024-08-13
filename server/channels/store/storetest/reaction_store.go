@@ -32,6 +32,7 @@ func TestReactionStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("ExistsOnPost", func(t *testing.T) { testExistsOnPost(t, rctx, ss) })
 	t.Run("GetUniqueCountForPost", func(t *testing.T) { testGetUniqueCountForPost(t, rctx, ss) })
 	t.Run("ReactionGetSingle", func(t *testing.T) { testReactionGetSingle(t, rctx, ss) })
+	t.Run("BatchMergeUserId", func(t *testing.T) { testBatchMergeUserId(t, rctx, ss) })
 }
 
 func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1019,5 +1020,175 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		var errNotFound *store.ErrNotFound
 		assert.ErrorAs(t, err, &errNotFound)
+	})
+}
+
+func testBatchMergeUserId(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should update reactions userId to given userId", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+		randomUserID := model.NewId()
+
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+
+		reaction1 := &model.Reaction{
+			UserId:    toUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr := ss.Reaction().Save(reaction1)
+		require.NoError(t, nErr)
+
+		reaction2 := &model.Reaction{
+			UserId:    fromUserID,
+			PostId:    post.Id,
+			EmojiName: "heart",
+		}
+		_, nErr = ss.Reaction().Save(reaction2)
+		require.NoError(t, nErr)
+
+		reaction3 := &model.Reaction{
+			UserId:    fromUserID,
+			PostId:    post.Id,
+			EmojiName: "thumbsup",
+		}
+		_, nErr = ss.Reaction().Save(reaction3)
+		require.NoError(t, nErr)
+
+		reaction4 := &model.Reaction{
+			UserId:    randomUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr = ss.Reaction().Save(reaction4)
+		require.NoError(t, nErr)
+
+		err = ss.Reaction().BatchMergeUserId(toUserID, fromUserID, 1000)
+		require.NoError(t, err)
+
+		reactions, err := ss.Reaction().GetForPost(post.Id, false)
+		require.NoError(t, err)
+		require.Len(t, reactions, 4)
+		var userIds = []string{}
+		for _, reaction := range reactions {
+			userIds = append(userIds, reaction.UserId)
+		}
+		assert.ElementsMatch(t, []string{toUserID, toUserID, toUserID, randomUserID}, userIds)
+	})
+
+	t.Run("merge userId when there are more records than the limit", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+		randomUserID := model.NewId()
+
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+
+		reaction1 := &model.Reaction{
+			UserId:    toUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr := ss.Reaction().Save(reaction1)
+		require.NoError(t, nErr)
+
+		reaction2 := &model.Reaction{
+			UserId:    fromUserID,
+			PostId:    post.Id,
+			EmojiName: "heart",
+		}
+		_, nErr = ss.Reaction().Save(reaction2)
+		require.NoError(t, nErr)
+
+		reaction3 := &model.Reaction{
+			UserId:    fromUserID,
+			PostId:    post.Id,
+			EmojiName: "thumbsup",
+		}
+		_, nErr = ss.Reaction().Save(reaction3)
+		require.NoError(t, nErr)
+
+		reaction4 := &model.Reaction{
+			UserId:    randomUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr = ss.Reaction().Save(reaction4)
+		require.NoError(t, nErr)
+
+		err = ss.Reaction().BatchMergeUserId(toUserID, fromUserID, 1)
+		require.NoError(t, err)
+
+		reactions, err := ss.Reaction().GetForPost(post.Id, false)
+		require.NoError(t, err)
+		require.Len(t, reactions, 4)
+		var userIds = []string{}
+		for _, reaction := range reactions {
+			userIds = append(userIds, reaction.UserId)
+		}
+		assert.ElementsMatch(t, []string{toUserID, toUserID, toUserID, randomUserID}, userIds)
+	})
+
+	t.Run("should ignore reactions that would create a duplicate error at the db level", func(t *testing.T) {
+		toUserID := model.NewId()
+		fromUserID := model.NewId()
+		randomUserID := model.NewId()
+
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+
+		reaction1 := &model.Reaction{
+			UserId:    toUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr := ss.Reaction().Save(reaction1)
+		require.NoError(t, nErr)
+
+		reaction2 := &model.Reaction{
+			UserId:    fromUserID,
+			PostId:    post.Id,
+			EmojiName: "heart",
+		}
+		_, nErr = ss.Reaction().Save(reaction2)
+		require.NoError(t, nErr)
+
+		reaction3 := &model.Reaction{
+			UserId:    fromUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr = ss.Reaction().Save(reaction3)
+		require.NoError(t, nErr)
+
+		reaction4 := &model.Reaction{
+			UserId:    randomUserID,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, nErr = ss.Reaction().Save(reaction4)
+		require.NoError(t, nErr)
+
+		err = ss.Reaction().BatchMergeUserId(toUserID, fromUserID, 1000)
+		require.NoError(t, err)
+
+		reactions, err := ss.Reaction().GetForPost(post.Id, false)
+		require.NoError(t, err)
+		require.Len(t, reactions, 4)
+		var userIds = []string{}
+		for _, reaction := range reactions {
+			userIds = append(userIds, reaction.UserId)
+		}
+		assert.ElementsMatch(t, []string{toUserID, toUserID, fromUserID, randomUserID}, userIds)
 	})
 }

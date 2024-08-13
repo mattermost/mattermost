@@ -524,17 +524,17 @@ func (_m *WebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID s
 	return r0
 }
 
-// MergeOutgoingWebhookUserId provides a mock function with given fields: toUserID, fromUserID
-func (_m *WebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
-	ret := _m.Called(toUserID, fromUserID)
+// MergeOutgoingWebhookCreatorId provides a mock function with given fields: toCreatorID, fromCreatorID
+func (_m *WebhookStore) MergeOutgoingWebhookCreatorId(toCreatorID string, fromCreatorID string) error {
+	ret := _m.Called(toCreatorID, fromCreatorID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for MergeOutgoingWebhookUserId")
+		panic("no return value specified for MergeOutgoingWebhookCreatorId")
 	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(toUserID, fromUserID)
+		r0 = rf(toCreatorID, fromCreatorID)
 	} else {
 		r0 = ret.Error(0)
 	}

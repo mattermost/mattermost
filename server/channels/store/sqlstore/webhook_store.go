@@ -403,21 +403,33 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 }
 
 func (s SqlWebhookStore) MergeIncomingWebhookUserId(toUserID, fromUserID string) error {
-	query := "UPDATE IncomingWebhooks SET UserId = ? WHERE UserId = ?"
-	_, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
-	if err != nil {
-		return errors.Wrap(err, "failed to update IncomingWebhooks")
+	mergeQuery, mergeArgs, mergeErr := s.getQueryBuilder().
+		Update("IncomingWebhooks").
+		Set("UserId", toUserID).
+		Where(sq.Eq{"UserId": fromUserID}).
+		ToSql()
+	if mergeErr != nil {
+		return errors.Wrap(mergeErr, "failed to build merge query")
 	}
 
+	if _, err := s.GetMasterX().Exec(mergeQuery, mergeArgs...); err != nil {
+		return errors.Wrap(err, "failed to update IncomingWebhooks")
+	}
 	return nil
 }
 
-func (s SqlWebhookStore) MergeOutgoingWebhookUserId(toUserID, fromUserID string) error {
-	query := "UPDATE OutgoingWebhooks SET CreatorId = ? WHERE CreatorId = ?"
-	_, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
-	if err != nil {
-		return errors.Wrap(err, "failed to update OutgoingWebhooks")
+func (s SqlWebhookStore) MergeOutgoingWebhookCreatorId(toCreatorID, fromCreatorID string) error {
+	mergeQuery, mergeArgs, mergeErr := s.getQueryBuilder().
+		Update("OutgoingWebhooks").
+		Set("CreatorId", toCreatorID).
+		Where(sq.Eq{"CreatorId": fromCreatorID}).
+		ToSql()
+	if mergeErr != nil {
+		return errors.Wrap(mergeErr, "failed to build merge query")
 	}
 
+	if _, err := s.GetMasterX().Exec(mergeQuery, mergeArgs...); err != nil {
+		return errors.Wrap(err, "failed to update OutgoingWebhooks")
+	}
 	return nil
 }

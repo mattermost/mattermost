@@ -454,18 +454,24 @@ func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) e
 	return err
 }
 
-func (s *SqlReactionStore) BatchMergeUserId(toUserID, fromUserID string) error {
+func (s *SqlReactionStore) BatchMergeUserId(toUserID, fromUserID string, limit int) error {
+	userParams := map[string]any{
+		"touserid":   toUserID,
+		"fromuserid": fromUserID,
+		"limit":      limit,
+	}
+	var query string
+
+	if s.DriverName() == "postgres" {
+		query = `UPDATE Reactions r SET UserId=:touserid WHERE r.CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE UserId=:fromuserid LIMIT :limit))
+		AND NOT EXISTS (
+			SELECT 1 FROM Reactions WHERE UserId=:touserid AND PostId = r.PostId AND EmojiName = r.EmojiName
+		)`
+	} else {
+		query = "UPDATE IGNORE Reactions SET UserId=:touserid WHERE UserId=:fromuserid LIMIT :limit"
+	}
 	for {
-		var query string
-
-		// TODO: Possibility of duplicate error here,
-		if s.DriverName() == "postgres" {
-			query = "UPDATE Reactions SET UserId = ? WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE UserId = ? LIMIT 1000))"
-		} else {
-			query = "UPDATE Reactions SET UserId = ? WHERE UserId = ? LIMIT 1000"
-		}
-
-		sqlResult, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
+		sqlResult, err := s.GetMasterX().NamedExec(query, userParams)
 		if err != nil {
 			return errors.Wrap(err, "failed to update reactions")
 		}
@@ -475,7 +481,7 @@ func (s *SqlReactionStore) BatchMergeUserId(toUserID, fromUserID string) error {
 			return errors.Wrap(err, "failed to update reactions")
 		}
 
-		if rowsAffected < 1000 {
+		if rowsAffected < int64(limit) {
 			break
 		}
 	}

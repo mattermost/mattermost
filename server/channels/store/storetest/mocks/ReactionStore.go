@@ -14,17 +14,17 @@ type ReactionStore struct {
 	mock.Mock
 }
 
-// BatchMergeUserId provides a mock function with given fields: toUserID, fromUserID
-func (_m *ReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
-	ret := _m.Called(toUserID, fromUserID)
+// BatchMergeUserId provides a mock function with given fields: toUserID, fromUserID, limit
+func (_m *ReactionStore) BatchMergeUserId(toUserID string, fromUserID string, limit int) error {
+	ret := _m.Called(toUserID, fromUserID, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BatchMergeUserId")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(toUserID, fromUserID)
+	if rf, ok := ret.Get(0).(func(string, string, int) error); ok {
+		r0 = rf(toUserID, fromUserID, limit)
 	} else {
 		r0 = ret.Error(0)
 	}
