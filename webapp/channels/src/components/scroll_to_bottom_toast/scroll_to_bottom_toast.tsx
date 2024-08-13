@@ -39,7 +39,7 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
     return (
         <div
             data-testid={SCROLL_TO_BOTTOM_TOAST_TESTID}
-            className='scroll-to-bottom-toast'
+            className='scroll-to-bottom-toast btn btn-primary'
             onClick={handleScrollToBottom}
         >
             <UnreadBelowIcon/>
