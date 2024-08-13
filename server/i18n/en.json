@@ -7355,6 +7355,10 @@
     "translation": "Unable to get SAML users."
   },
   {
+    "id": "ent.actiance.export.flush.xml.appError",
+    "translation": "Unable to flush the XML encoder."
+  },
+  {
     "id": "ent.actiance.export.marshalToXml.appError",
     "translation": "Unable to convert export to XML."
   },
