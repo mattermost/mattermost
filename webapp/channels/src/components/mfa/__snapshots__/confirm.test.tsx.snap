@@ -4,10 +4,11 @@ exports[`components/mfa/components/Confirm should match snapshot 1`] = `
 <div>
   <form
     className="form-group"
+    onKeyPress={[Function]}
     onSubmit={[Function]}
   >
     <p>
-      <FormattedMarkdownMessage
+      <MemoizedFormattedMessage
         defaultMessage="**Set up complete!**"
         id="mfa.confirm.complete"
       />
