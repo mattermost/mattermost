@@ -301,6 +301,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+	props["AppsPluginEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable && c.PluginSettings.PluginStates[model.PluginIdApps].Enable)
 
 	props["PasswordMinimumLength"] = strconv.Itoa(*c.PasswordSettings.MinimumLength)
 	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)

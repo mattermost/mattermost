@@ -180,7 +180,7 @@ const state: GlobalState = {
                 bindings: [],
                 forms: {},
             },
-            pluginEnabled: false,
+            pluginEnabled: true,
         },
         cloud: {
             limits: {

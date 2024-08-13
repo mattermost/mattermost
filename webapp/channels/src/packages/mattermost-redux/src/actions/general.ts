@@ -5,7 +5,7 @@ import {LogLevel} from '@mattermost/types/client4';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {SystemSetting} from '@mattermost/types/general';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
+import {AppsTypes, GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -27,6 +27,11 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
         Client4.setDiagnosticId(data.DiagnosticId);
 
         dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data});
+        if (data.AppsPluginEnabled === 'true') {
+            dispatch({type: AppsTypes.APPS_PLUGIN_ENABLED, data: getState().entities.apps.pluginEnabled});
+        } else {
+            dispatch({type: AppsTypes.APPS_PLUGIN_DISABLED, data: getState().entities.apps.pluginEnabled});
+        }
 
         return {data};
     };
