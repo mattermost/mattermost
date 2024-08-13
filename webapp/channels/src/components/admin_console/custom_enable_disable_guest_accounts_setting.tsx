@@ -42,10 +42,6 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
         onChange(id, value, confirmNeeded, submit, warning);
     }, [onChange]);
 
-    const handleConfirm = useCallback(() => {
-        handleChange(id, false, true);
-    }, [handleChange, id]);
-
     const label = (
         <FormattedMessage
             id='admin.guest_access.enableTitle'
@@ -91,7 +87,7 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
                         defaultMessage='Save and Disable Guest Access'
                     />
                 }
-                onConfirm={handleConfirm}
+                onConfirm={() => handleChange(id, false, true)}
                 onCancel={cancelSubmit}
             />
         </>
