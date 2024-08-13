@@ -616,9 +616,6 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 	}
 	defer closeBody(r)
 	var createdScheduledPost ScheduledPost
-	if r.StatusCode == http.StatusNotModified {
-		return &createdScheduledPost, BuildResponse(r), nil
-	}
 	if err := json.NewDecoder(r.Body).Decode(&createdScheduledPost); err != nil {
 		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

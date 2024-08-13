@@ -61,7 +61,7 @@ func TestSaveScheduledPost(t *testing.T) {
 		require.Nil(t, createdScheduledPost)
 	})
 
-	t.Run("cannot save post sdcheduled in the past", func(t *testing.T) {
+	t.Run("cannot save post scheduled in the past", func(t *testing.T) {
 		userId := model.NewId()
 
 		scheduledPost := &model.ScheduledPost{
@@ -179,5 +179,42 @@ func TestSaveScheduledPost(t *testing.T) {
 		createdScheduledPost, appErr = th.App.SaveScheduledPost(th.Context, scheduledPost)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
+	})
+
+	t.Run("cannot save an empty post", func(t *testing.T) {
+		userId := model.NewId()
+
+		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
+			Name:        model.NewId(),
+			DisplayName: "Channel",
+			Type:        model.ChannelTypeOpen,
+		}, 1000)
+		require.NoError(t, err)
+
+		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+
+		defer func() {
+			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
+			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
+		}()
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: channel.Id,
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		require.NotNil(t, appErr)
+		require.Nil(t, createdScheduledPost)
 	})
 }

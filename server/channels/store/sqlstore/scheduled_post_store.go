@@ -65,7 +65,7 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 	}
 }
 
-func (s *SqlScheduledPostStore) Save(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	scheduledPost.PreSave()
 	maxMessageSize := s.getMaxMessageSize()
 	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
@@ -79,13 +79,13 @@ func (s *SqlScheduledPostStore) Save(scheduledPost *model.ScheduledPost) (*model
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		mlog.Error("SqlScheduledPostStore.Save failed to generate SQL from query builder", mlog.Err(err))
-		return nil, errors.Wrap(err, "SqlScheduledPostStore.Save failed to generate SQL from query builder")
+		mlog.Error("SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder", mlog.Err(err))
+		return nil, errors.Wrap(err, "SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder")
 	}
 
 	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
-		mlog.Error("SqlScheduledPostStore.Save failed to insert scheduled post", mlog.Err(err))
-		return nil, errors.Wrap(err, "SqlScheduledPostStore.Save failed to insert scheduled post")
+		mlog.Error("SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post", mlog.Err(err))
+		return nil, errors.Wrap(err, "SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post")
 	}
 
 	return scheduledPost, nil

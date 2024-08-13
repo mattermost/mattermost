@@ -40,7 +40,7 @@ func testSaveScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
 
-		createdScheduledPost, err := ss.ScheduledPost().Save(scheduledPost)
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
@@ -62,7 +62,26 @@ func testSaveScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 			ScheduledAt: model.GetMillis() - 100000, // 100 seconds in the past
 		}
 
-		_, err := ss.ScheduledPost().Save(scheduledPost)
+		_, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
 		assert.Error(t, err)
+	})
+
+	t.Run("cannot save an empty post", func(t *testing.T) {
+		userId := model.NewId()
+
+		// a post with no message and no files is an empty post
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: createdChannel.Id,
+				Message:   "",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		assert.Error(t, err)
+		assert.Nil(t, createdScheduledPost)
 	})
 }

@@ -1042,7 +1042,7 @@ type ChannelBookmarkStore interface {
 }
 
 type ScheduledPostStore interface {
-	Save(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
 	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
 }
 

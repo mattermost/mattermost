@@ -23,6 +23,10 @@ func (s *ScheduledPost) IsValid(maxMessageSize int) *AppError {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.id.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
+	if len(s.Message) == 0 && len(s.FileIds) == 0 {
+		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.empty_post.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	}
+
 	if s.ScheduledAt < GetMillis() {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.scheduled_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}

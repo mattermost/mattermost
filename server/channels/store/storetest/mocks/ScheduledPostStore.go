@@ -14,6 +14,36 @@ type ScheduledPostStore struct {
 	mock.Mock
 }
 
+// CreateScheduledPost provides a mock function with given fields: scheduledPost
+func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+	ret := _m.Called(scheduledPost)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateScheduledPost")
+	}
+
+	var r0 *model.ScheduledPost
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) (*model.ScheduledPost, error)); ok {
+		return rf(scheduledPost)
+	}
+	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) *model.ScheduledPost); ok {
+		r0 = rf(scheduledPost)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ScheduledPost)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.ScheduledPost) error); ok {
+		r1 = rf(scheduledPost)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetScheduledPostsForUser provides a mock function with given fields: userId, teamId
 func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
 	ret := _m.Called(userId, teamId)
@@ -37,36 +67,6 @@ func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId str
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, teamId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Save provides a mock function with given fields: scheduledPost
-func (_m *ScheduledPostStore) Save(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
-	ret := _m.Called(scheduledPost)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Save")
-	}
-
-	var r0 *model.ScheduledPost
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) (*model.ScheduledPost, error)); ok {
-		return rf(scheduledPost)
-	}
-	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) *model.ScheduledPost); ok {
-		r0 = rf(scheduledPost)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ScheduledPost)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*model.ScheduledPost) error); ok {
-		r1 = rf(scheduledPost)
 	} else {
 		r1 = ret.Error(1)
 	}

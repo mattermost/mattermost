@@ -6391,10 +6391,6 @@
     "translation": "Error occurred saving the scheduled post."
   },
   {
-    "id": "app.save_scheduled_post.save.time_in_past.app_error",
-    "translation": "Cannot schedule a post in the past"
-  },
-  {
     "id": "app.scheme.delete.app_error",
     "translation": "Unable to delete this scheme."
   },
@@ -9557,6 +9553,10 @@
   {
     "id": "model.scheduled_post.is_valid.draft.app_error",
     "translation": "Invalid base draft."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Cannot schedule an empty post. Scheduled post must have at least a message or file attachments."
   },
   {
     "id": "model.scheduled_post.is_valid.id.app_error",

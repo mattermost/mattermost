@@ -13,10 +13,6 @@ import (
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
 	scheduledPost.Id = model.NewId()
 
-	if scheduledPost.ScheduledAt < model.GetMillis() {
-		return nil, model.NewAppError("App.SaveScheduledPost", "app.save_scheduled_post.save.time_in_past.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	// verify user belongs to the channel
 	_, appErr := a.GetChannelMember(rctx, scheduledPost.ChannelId, scheduledPost.UserId)
 	if appErr != nil {
@@ -33,7 +29,7 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.SaveScheduledPost", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	savedScheduledPost, err := a.Srv().Store().ScheduledPost().Save(scheduledPost)
+	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(scheduledPost)
 	if err != nil {
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
