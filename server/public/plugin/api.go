@@ -1309,9 +1309,8 @@ type API interface {
 
 	// GetPluginID returns the plugin ID.
 	//
-	// @tag ID
 	// @tag Plugin
-	// Minimum server version: 9.12
+	// Minimum server version: 10.1
 	GetPluginID() string
 }
 
