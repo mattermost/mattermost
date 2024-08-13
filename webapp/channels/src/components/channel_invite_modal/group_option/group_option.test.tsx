@@ -12,7 +12,7 @@ import store from 'stores/redux_store';
 
 import type {Value} from 'components/multiselect/multiselect';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
 import GroupOption from './group_option';
 
@@ -39,20 +39,6 @@ describe('GroupOption', () => {
     });
 
     test('should match snapshot', () => {
-        const wrapper = renderWithContext(
-            <IntlProvider locale='en'>
-                <Provider store={store}>
-                    <GroupOption
-                        {...props}
-                    />
-                </Provider>
-            </IntlProvider>,
-
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    it('should render correctly', () => {
         const wrapper = renderWithContext(
             <IntlProvider locale='en'>
                 <Provider store={store}>
@@ -107,16 +93,16 @@ describe('GroupOption', () => {
         const event = new KeyboardEvent('keydown', {key: 'Enter'});
         document.dispatchEvent(event);
 
-        setTimeout(() => {
+        waitFor(() => {
             expect(addUserProfileMock).toHaveBeenCalled();
+        });
 
-            wrapper.unmount();
+        wrapper.unmount();
 
-            document.dispatchEvent(event);
+        document.dispatchEvent(event);
 
-            setTimeout(() => {
-                expect(addUserProfileMock).toHaveBeenCalledTimes(1);
-            }, 0);
-        }, 0);
+        waitFor(() => {
+            expect(addUserProfileMock).toHaveBeenCalledTimes(1);
+        });
     });
 });
