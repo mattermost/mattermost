@@ -186,7 +186,7 @@ export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktop
         return DesktopSound.ON;
     }
 
-    return DesktopSound.OFF;
+    return DesktopSound.ON;
 }
 
 const utils = {
