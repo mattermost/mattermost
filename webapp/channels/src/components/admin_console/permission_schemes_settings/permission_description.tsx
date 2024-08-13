@@ -4,14 +4,11 @@
 import React, {useState, useRef} from 'react';
 import type {MouseEvent} from 'react';
 import {Overlay} from 'react-bootstrap';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Tooltip from 'components/tooltip';
-
-import {generateId} from 'utils/utils';
 
 import type {AdditionalValues} from './permissions_tree/types';
 import {rolesRolesStrings} from './strings/roles';
@@ -32,7 +29,6 @@ const PermissionDescription = ({
     inherited,
 }: Props): JSX.Element => {
     const [open, setOpen] = useState(false);
-    const randomId = generateId();
     const contentRef = useRef<HTMLSpanElement>(null);
     const intl = useIntl();
 
@@ -57,12 +53,18 @@ const PermissionDescription = ({
 
     let content: string | JSX.Element = '';
     if (inherited && inherited.name) {
+        const formattedName = intl.formatMessage(rolesRolesStrings[inherited.name]);
         content = (
             <span className='inherit-link-wrapper'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.permissions.inherited_from'
-                    defaultMessage='Inherited from [{name}]().'
-                    values={{name: intl.formatMessage(rolesRolesStrings[inherited.name])}}
+                    defaultMessage='Inherited from <link>{name}</link>.'
+                    values={{
+                        name: formattedName,
+                        link: (text: string) => (
+                            <a>{text}</a>
+                        ),
+                    }}
                 />
             </span>
         );
@@ -75,7 +77,7 @@ const PermissionDescription = ({
             placement='top'
             target={(contentRef.current as HTMLSpanElement)}
         >
-            <Tooltip id={randomId}>
+            <Tooltip>
                 {content}
             </Tooltip>
         </Overlay>

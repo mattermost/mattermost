@@ -785,7 +785,7 @@ func TestAppUpdateChannelScheme(t *testing.T) {
 	defer th.TearDown()
 
 	channel := th.BasicChannel
-	mockID := model.NewString("x")
+	mockID := model.NewPointer("x")
 	channel.SchemeId = mockID
 
 	updatedChannel, err := th.App.UpdateChannelScheme(th.Context, channel)
@@ -1632,7 +1632,7 @@ func TestAddUserToChannel(t *testing.T) {
 	require.True(t, cm2.SchemeAdmin)
 
 	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	privateChannel.GroupConstrained = model.NewBool(true)
+	privateChannel.GroupConstrained = model.NewPointer(true)
 	_, err = th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, err)
 
@@ -1685,7 +1685,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	privateChannel.GroupConstrained = model.NewBool(true)
+	privateChannel.GroupConstrained = model.NewPointer(true)
 	_, err = th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, err)
 
@@ -1735,7 +1735,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1746,7 +1746,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1755,7 +1755,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1766,7 +1766,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1775,7 +1775,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1786,7 +1786,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1795,7 +1795,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1806,7 +1806,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1815,7 +1815,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1826,7 +1826,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1835,7 +1835,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1846,7 +1846,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1855,7 +1855,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1866,7 +1866,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1875,7 +1875,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1886,7 +1886,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(true)},
 				},
 			},
 		},
@@ -1895,7 +1895,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
@@ -1907,7 +1907,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
@@ -1920,8 +1920,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &nonChannelModeratedPermission,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(false),
-						Guests:  model.NewBool(false),
+						Members: model.NewPointer(false),
+						Guests:  model.NewPointer(false),
 					},
 				},
 			},
@@ -1935,8 +1935,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(true),
-						Guests:  model.NewBool(false),
+						Members: model.NewPointer(true),
+						Guests:  model.NewPointer(false),
 					},
 				},
 			},
@@ -1950,8 +1950,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(false),
-						Guests:  model.NewBool(true),
+						Members: model.NewPointer(false),
+						Guests:  model.NewPointer(true),
 					},
 				},
 			},
@@ -1965,7 +1965,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(false),
+						Members: model.NewPointer(false),
 					},
 				},
 			},
@@ -1990,34 +1990,34 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(true),
-						Guests:  model.NewBool(true),
+						Members: model.NewPointer(true),
+						Guests:  model.NewPointer(true),
 					},
 				},
 				{
 					Name: &createReactions,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(true),
-						Guests:  model.NewBool(true),
+						Members: model.NewPointer(true),
+						Guests:  model.NewPointer(true),
 					},
 				},
 				{
 					Name: &channelMentions,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(true),
-						Guests:  model.NewBool(true),
+						Members: model.NewPointer(true),
+						Guests:  model.NewPointer(true),
 					},
 				},
 				{
 					Name: &manageMembers,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(true),
+						Members: model.NewPointer(true),
 					},
 				},
 				{
 					Name: &manageBookmarks,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewBool(true),
+						Members: model.NewPointer(true),
 					},
 				},
 			},
@@ -2097,8 +2097,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewBool(false),
-					Guests:  model.NewBool(false),
+					Members: model.NewPointer(false),
+					Guests:  model.NewPointer(false),
 				},
 			},
 		}
@@ -2106,8 +2106,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewBool(false),
-					Guests:  model.NewBool(false),
+					Members: model.NewPointer(false),
+					Guests:  model.NewPointer(false),
 				},
 			},
 		}
@@ -2142,7 +2142,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewBool(true),
+					Members: model.NewPointer(true),
 				},
 			},
 		}
@@ -2150,7 +2150,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewBool(false),
+					Members: model.NewPointer(false),
 				},
 			},
 		}
