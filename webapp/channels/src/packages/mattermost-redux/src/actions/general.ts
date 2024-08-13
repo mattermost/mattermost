@@ -28,7 +28,7 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
 
         dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data});
         const type = data.AppsPluginEnabled === 'true' ? AppsTypes.APPS_PLUGIN_ENABLED : AppsTypes.APPS_PLUGIN_DISABLED;
-        dispatch({type: {type}});
+        dispatch({type});
 
         return {data};
     };
