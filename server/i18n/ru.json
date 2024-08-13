@@ -1313,7 +1313,7 @@
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": "Ошибочный RouteId параметр."
+    "translation": "Ошибочный RootId параметр."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
