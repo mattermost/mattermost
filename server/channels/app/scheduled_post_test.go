@@ -176,6 +176,7 @@ func TestSaveScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		scheduledPost.Message = "this is a second scheduled post"
+		scheduledPost.Id = model.NewId()
 		createdScheduledPost, appErr = th.App.SaveScheduledPost(th.Context, scheduledPost)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
