@@ -381,7 +381,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           <div
             className="migrations-table-setting"
           >
-            <Connect(MigrationsTable)
+            <Connect(Component)
               createHelpText={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="All applied migrations."

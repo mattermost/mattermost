@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {SchemaMigration} from '@mattermost/types/admin';
@@ -33,9 +33,9 @@ const MigrationsTable = ({
         }
 
         handleGetAppliedSchemaMigrations();
-    });
+    }, []);
 
-    const items = migrations.map((migration) => {
+    const items = useMemo(() => migrations.map((migration) => {
         return (
             <tr
                 key={migration.version}
@@ -44,7 +44,7 @@ const MigrationsTable = ({
                 <td className='whitespace--nowrap'>{migration.name}</td>
             </tr>
         );
-    });
+    }), [migrations]);
 
     return (
         <div className={classNames('MigrationsTable', 'migrations-table__panel', className)}>
@@ -81,4 +81,4 @@ const MigrationsTable = ({
     );
 };
 
-export default MigrationsTable;
+export default React.memo(MigrationsTable);
