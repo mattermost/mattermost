@@ -72,36 +72,6 @@ func (_m *Cache) GetMulti(keys []string, values []interface{}) []error {
 	return r0
 }
 
-// Keys provides a mock function with given fields:
-func (_m *Cache) Keys() ([]string, error) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for Keys")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]string, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() []string); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Name provides a mock function with given fields:
 func (_m *Cache) Name() string {
 	ret := _m.Called()
@@ -156,17 +126,35 @@ func (_m *Cache) Remove(key string) error {
 	return r0
 }
 
-// Set provides a mock function with given fields: key, value
-func (_m *Cache) Set(key string, value interface{}) error {
-	ret := _m.Called(key, value)
+// RemoveMulti provides a mock function with given fields: keys
+func (_m *Cache) RemoveMulti(keys []string) error {
+	ret := _m.Called(keys)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Set")
+		panic("no return value specified for RemoveMulti")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
-		r0 = rf(key, value)
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(keys)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Scan provides a mock function with given fields: f
+func (_m *Cache) Scan(f func([]string) error) error {
+	ret := _m.Called(f)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Scan")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(func([]string) error) error); ok {
+		r0 = rf(f)
 	} else {
 		r0 = ret.Error(0)
 	}
