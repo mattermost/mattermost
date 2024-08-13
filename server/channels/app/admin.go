@@ -229,7 +229,7 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
 	}
 
-	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse)
+	err = latestVersionCache.SetWithExpiry("latest_version_cache", releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}

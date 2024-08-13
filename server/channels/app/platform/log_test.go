@@ -81,7 +81,7 @@ func TestGetNotificationLogFile(t *testing.T) {
 	// Enable notifications file but point to an empty directory to get an error trying to read the file
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.NotificationLogSettings.EnableFile = true
-		*cfg.LogSettings.FileLocation = dir
+		*cfg.NotificationLogSettings.FileLocation = dir
 	})
 
 	logLocation := config.GetNotificationsLogFileLocation(dir)

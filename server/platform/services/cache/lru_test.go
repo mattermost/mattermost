@@ -23,7 +23,7 @@ func TestLRU(t *testing.T) {
 	})
 
 	for i := 0; i < 256; i++ {
-		err := l.Set(fmt.Sprintf("%d", i), i)
+		err := l.SetWithDefaultExpiry(fmt.Sprintf("%d", i), i)
 		require.NoError(t, err)
 	}
 
@@ -32,25 +32,40 @@ func TestLRU(t *testing.T) {
 	size := lru.len
 	require.Equalf(t, size, 128, "bad len: %v", size)
 
-	keys, err := l.Keys()
-	require.NoError(t, err)
-	for i, k := range keys {
-		var v int
-		err = l.Get(k, &v)
-		require.NoError(t, err, "bad key: %v", k)
-		require.Equalf(t, fmt.Sprintf("%d", v), k, "bad key: %v", k)
-		require.Equalf(t, i+128, v, "bad value: %v", k)
-	}
+	l.Scan(func(keys []string) error {
+		for i, k := range keys {
+			var v int
+			err := l.Get(k, &v)
+			require.NoError(t, err, "bad key: %v", k)
+			require.Equalf(t, fmt.Sprintf("%d", v), k, "bad key: %v", k)
+			require.Equalf(t, i+128, v, "bad value: %v", k)
+		}
+		return nil
+	})
+
 	for i := 0; i < 128; i++ {
 		var v int
-		err = l.Get(fmt.Sprintf("%d", i), &v)
+		err := l.Get(fmt.Sprintf("%d", i), &v)
 		require.Equal(t, ErrKeyNotFound, err, "should be evicted %v: %v", i, err)
 	}
 	for i := 128; i < 256; i++ {
 		var v int
-		err = l.Get(fmt.Sprintf("%d", i), &v)
+		err := l.Get(fmt.Sprintf("%d", i), &v)
 		require.NoError(t, err, "should not be evicted %v: %v", i, err)
 	}
+	var v1, v2 int
+	var values = []any{&v1, &v2}
+	errs := l.GetMulti([]string{"128", "129"}, values)
+	for _, err := range errs {
+		require.NoError(t, err)
+	}
+	err := l.RemoveMulti([]string{"128", "129"})
+	require.NoError(t, err)
+	errs = l.GetMulti([]string{"128", "129"}, values)
+	for i, err := range errs {
+		require.Equal(t, ErrKeyNotFound, err, "should be deleted %v: %v", i, err)
+	}
+
 	for i := 128; i < 192; i++ {
 		l.Remove(fmt.Sprintf("%d", i))
 		var v int
@@ -63,12 +78,13 @@ func TestLRU(t *testing.T) {
 	require.NoError(t, err, "should exist")
 	require.Equalf(t, 192, v, "bad value: %v", v)
 
-	keys, err = l.Keys()
-	require.NoError(t, err)
-	for i, k := range keys {
-		require.Falsef(t, i < 63 && k != fmt.Sprintf("%d", i+193), "out of order key: %v", k)
-		require.Falsef(t, i == 63 && k != "192", "out of order key: %v", k)
-	}
+	l.Scan(func(keys []string) error {
+		for i, k := range keys {
+			require.Falsef(t, i < 63 && k != fmt.Sprintf("%d", i+193), "out of order key: %v", k)
+			require.Falsef(t, i == 63 && k != "192", "out of order key: %v", k)
+		}
+		return nil
+	})
 
 	l.Purge()
 	size = lru.len
@@ -76,7 +92,7 @@ func TestLRU(t *testing.T) {
 	err = l.Get("200", &v)
 	require.Equal(t, err, ErrKeyNotFound, "should contain nothing")
 
-	err = l.Set("201", 301)
+	err = l.SetWithDefaultExpiry("201", 301)
 	require.NoError(t, err)
 	err = l.Get("201", &v)
 	require.NoError(t, err)
@@ -116,7 +132,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 		"key1": 1,
 		"key2": "value2",
 	}
-	err := l.Set("test", value1)
+	err := l.SetWithDefaultExpiry("test", value1)
 
 	require.NoError(t, err)
 
@@ -196,7 +212,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 			},
 		},
 	}
-	err = l.Set("post", post.Clone())
+	err = l.SetWithDefaultExpiry("post", post.Clone())
 	require.NoError(t, err)
 
 	var p model.Post
@@ -224,7 +240,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 		},
 	}
 
-	err = l.Set("session", session)
+	err = l.SetWithDefaultExpiry("session", session)
 	require.NoError(t, err)
 	var s = &model.Session{}
 	err = l.Get("session", s)
@@ -267,7 +283,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 		TermsOfServiceCreateAt: 111111,
 	}
 
-	err = l.Set("user", user)
+	err = l.SetWithDefaultExpiry("user", user)
 	require.NoError(t, err)
 
 	var u *model.User
@@ -280,7 +296,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 
 	tt := make(map[string]*model.User)
 	tt["1"] = u
-	err = l.Set("mm", model.UserMap(tt))
+	err = l.SetWithDefaultExpiry("mm", model.UserMap(tt))
 	require.NoError(t, err)
 
 	var out map[string]*model.User
@@ -300,7 +316,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", value1)
+			err := l2.SetWithDefaultExpiry("test", value1)
 			require.NoError(b, err)
 
 			var val string
@@ -350,7 +366,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", value2)
+			err := l2.SetWithDefaultExpiry("test", value2)
 			require.NoError(b, err)
 
 			var val obj
@@ -433,7 +449,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", user)
+			err := l2.SetWithDefaultExpiry("test", user)
 			require.NoError(b, err)
 
 			var val model.User
@@ -466,7 +482,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", model.UserMap(uMap))
+			err := l2.SetWithDefaultExpiry("test", model.UserMap(uMap))
 			require.NoError(b, err)
 
 			var val map[string]*model.User
@@ -545,7 +561,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", post)
+			err := l2.SetWithDefaultExpiry("test", post)
 			require.NoError(b, err)
 
 			var val model.Post
@@ -569,7 +585,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", status)
+			err := l2.SetWithDefaultExpiry("test", status)
 			require.NoError(b, err)
 
 			var val *model.Status
@@ -605,7 +621,7 @@ func BenchmarkLRU(b *testing.B) {
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
 			})
-			err := l2.Set("test", &session)
+			err := l2.SetWithDefaultExpiry("test", &session)
 			require.NoError(b, err)
 
 			var val *model.Session
@@ -622,14 +638,14 @@ func TestLRURace(t *testing.T) {
 		InvalidateClusterEvent: "",
 	})
 	var wg sync.WaitGroup
-	l2.Set("test", "value1")
+	l2.SetWithDefaultExpiry("test", "value1")
 
 	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
 		value1 := "simplestring"
-		err := l2.Set("test", value1)
+		err := l2.SetWithDefaultExpiry("test", value1)
 		require.NoError(t, err)
 	}()
 
