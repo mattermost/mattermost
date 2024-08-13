@@ -692,12 +692,14 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
 export const getTeamsUnreadStatuses: (state: GlobalState) => [Set<Team['id']>, Map<Team['id'], number>, Map<Team['id'], boolean>] = createSelector(
     'getTeamsUnreadStatuses',
     getAllChannels,
+    getTeamMemberships,
     getMyChannelMemberships,
     getChannelMessageCounts,
     isCollapsedThreadsEnabled,
     getThreadCounts,
     (
         channels,
+        teamMemberships,
         channelMemberships,
         channelMessageCounts,
         collapsedThreadsEnabled,
@@ -760,6 +762,28 @@ export const getTeamsUnreadStatuses: (state: GlobalState) => [Set<Team['id']>, M
                 const previousHasUrgetInTeam = teamHasUrgentMap.has(channel.team_id) ? teamHasUrgentMap.get(channel.team_id) as boolean : false;
                 if (!previousHasUrgetInTeam) {
                     teamHasUrgentMap.set(channel.team_id, unreadCountObjectForChannel.hasUrgent);
+                }
+            }
+        }
+
+        for (const [teamId, teamMembership] of Object.entries(teamMemberships)) {
+            if (!teamMembership || teamMembership.delete_at !== 0) {
+                continue;
+            }
+
+            if (!teamUnreadsSet.has(teamId)) {
+                if (collapsedThreadsEnabled && teamMembership.msg_count_root) {
+                    teamUnreadsSet.add(teamId);
+                } else if (!collapsedThreadsEnabled && teamMembership.msg_count) {
+                    teamUnreadsSet.add(teamId);
+                }
+            }
+
+            if ((teamMentionsMap.get(teamId) ?? 0) === 0) {
+                if (collapsedThreadsEnabled && teamMembership.mention_count_root) {
+                    teamMentionsMap.set(teamId, teamMembership.mention_count_root);
+                } else if (!collapsedThreadsEnabled && teamMembership.mention_count) {
+                    teamMentionsMap.set(teamId, teamMembership.mention_count);
                 }
             }
         }
