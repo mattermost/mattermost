@@ -153,6 +153,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
+	t.Run("BatchMergeCreatorId", func(t *testing.T) { testBatchMergeCreatorId(t, rctx, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -8175,5 +8176,137 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, unreads, 0)
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
+	})
+}
+
+func testBatchMergeCreatorId(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should update channel creatorId to given creatorId", func(t *testing.T) {
+		toCreatorID := model.NewId()
+		fromCreatorID := model.NewId()
+		randomUserID := model.NewId()
+
+		channel1 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   toCreatorID,
+		}
+		channel1, err := ss.Channel().Save(rctx, channel1, 999)
+		require.NoError(t, err)
+
+		channel2 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   fromCreatorID,
+		}
+		channel2, err = ss.Channel().Save(rctx, channel2, 999)
+		require.NoError(t, err)
+
+		channel3 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   fromCreatorID,
+		}
+		channel3, err = ss.Channel().Save(rctx, channel3, 999)
+		require.NoError(t, err)
+
+		channel4 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   randomUserID,
+		}
+		channel4, err = ss.Channel().Save(rctx, channel4, 999)
+		require.NoError(t, err)
+
+		err = ss.Channel().BatchMergeCreatorId(toCreatorID, fromCreatorID, 100)
+		require.NoError(t, err)
+
+		updatedChannel1, err := ss.Channel().Get(channel1.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, toCreatorID, updatedChannel1.CreatorId)
+
+		updatedChannel2, err := ss.Channel().Get(channel2.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, toCreatorID, updatedChannel2.CreatorId)
+
+		updatedChannel3, err := ss.Channel().Get(channel3.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, toCreatorID, updatedChannel3.CreatorId)
+
+		updatedChannel4, err := ss.Channel().Get(channel4.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, randomUserID, updatedChannel4.CreatorId)
+	})
+
+	t.Run("merge creatorIds when there are more channels than the limit", func(t *testing.T) {
+		toCreatorID := model.NewId()
+		fromCreatorID := model.NewId()
+		randomUserID := model.NewId()
+
+		channel1 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   toCreatorID,
+		}
+		channel1, err := ss.Channel().Save(rctx, channel1, 999)
+		require.NoError(t, err)
+
+		channel2 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   fromCreatorID,
+		}
+		channel2, err = ss.Channel().Save(rctx, channel2, 999)
+		require.NoError(t, err)
+
+		channel3 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   fromCreatorID,
+		}
+		channel3, err = ss.Channel().Save(rctx, channel3, 999)
+		require.NoError(t, err)
+
+		channel4 := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   randomUserID,
+		}
+		channel4, err = ss.Channel().Save(rctx, channel4, 999)
+		require.NoError(t, err)
+
+		err = ss.Channel().BatchMergeCreatorId(toCreatorID, fromCreatorID, 1)
+		require.NoError(t, err)
+
+		updatedChannel1, err := ss.Channel().Get(channel1.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, toCreatorID, updatedChannel1.CreatorId)
+
+		updatedChannel2, err := ss.Channel().Get(channel2.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, toCreatorID, updatedChannel2.CreatorId)
+
+		updatedChannel3, err := ss.Channel().Get(channel3.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, toCreatorID, updatedChannel3.CreatorId)
+
+		updatedChannel4, err := ss.Channel().Get(channel4.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, randomUserID, updatedChannel4.CreatorId)
 	})
 }

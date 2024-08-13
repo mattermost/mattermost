@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	sq "github.com/mattermost/squirrel"
 )
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.
@@ -221,8 +222,16 @@ func (us SqlBotStore) PermanentDelete(botUserId string) error {
 }
 
 func (us SqlBotStore) MergeOwnerId(toOwnerID, fromOwnerID string) error {
-	query := "UPDATE Bots SET OwnerId = ? WHERE OwnerId = ?"
-	if _, err := us.GetMasterX().Exec(query, toOwnerID, fromOwnerID); err != nil {
+	mergeQuery, mergeArgs, mergeErr := us.getQueryBuilder().
+		Update("Bots").
+		Set("OwnerId", toOwnerID).
+		Where(sq.Eq{"OwnerId": fromOwnerID}).
+		ToSql()
+	if mergeErr != nil {
+		return errors.Wrap(mergeErr, "failed to build merge query")
+	}
+
+	if _, err := us.GetMasterX().Exec(mergeQuery, mergeArgs...); err != nil {
 		return errors.Wrap(err, "failed to update bots")
 	}
 	return nil

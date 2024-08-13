@@ -30,6 +30,7 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, rctx, ss) })
 	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, rctx, ss) })
 	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, rctx, ss) })
+	t.Run("MergeOwnerId", func(t *testing.T) { testMergeOwnerId(t, rctx, ss) })
 }
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -484,5 +485,90 @@ func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		bookmarkResp, err = ss.ChannelBookmark().Get(bookmark1.Id, true)
 		assert.NoError(t, err)
 		assert.NotNil(t, bookmarkResp)
+	})
+}
+
+func testMergeOwnerId(t *testing.T, rctx request.CTX, ss store.Store) {
+	channelId := model.NewId()
+	owner1Id := model.NewId()
+	owner2Id := model.NewId()
+	owner3Id := model.NewId()
+
+	bookmark1 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		OwnerId:     owner1Id,
+		DisplayName: "Link bookmark test",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	bookmark2 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		OwnerId:     owner2Id,
+		DisplayName: "Link bookmark test",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	bookmark3 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		OwnerId:     owner2Id,
+		DisplayName: "Link bookmark test",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	bookmark4 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		OwnerId:     owner3Id,
+		DisplayName: "Link bookmark test",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	t.Run("merge owner2 into owner1", func(t *testing.T) {
+		bookmark1Resp, err := ss.ChannelBookmark().Save(bookmark1.Clone(), true)
+		assert.NoError(t, err)
+		bookmark1 = bookmark1Resp.ChannelBookmark.Clone()
+
+		bookmark2Resp, err := ss.ChannelBookmark().Save(bookmark2.Clone(), true)
+		assert.NoError(t, err)
+		bookmark2 = bookmark2Resp.ChannelBookmark.Clone()
+
+		bookmark3Resp, err := ss.ChannelBookmark().Save(bookmark3.Clone(), true)
+		assert.NoError(t, err)
+		bookmark3 = bookmark3Resp.ChannelBookmark.Clone()
+
+		bookmark4Resp, err := ss.ChannelBookmark().Save(bookmark4.Clone(), true)
+		assert.NoError(t, err)
+		bookmark4 = bookmark4Resp.ChannelBookmark.Clone()
+
+		err = ss.ChannelBookmark().MergeOwnerId(owner1Id, owner2Id)
+		assert.NoError(t, err)
+
+		bookmark1Resp, err = ss.ChannelBookmark().Get(bookmark1.Id, true)
+		assert.NoError(t, err)
+		assert.NotNil(t, bookmark1Resp)
+		assert.Equal(t, owner1Id, bookmark1Resp.OwnerId)
+
+		bookmark2Resp, err = ss.ChannelBookmark().Get(bookmark2.Id, true)
+		assert.NoError(t, err)
+		assert.NotNil(t, bookmark2Resp)
+		assert.Equal(t, owner1Id, bookmark2Resp.OwnerId)
+
+		bookmark3Resp, err = ss.ChannelBookmark().Get(bookmark3.Id, true)
+		assert.NoError(t, err)
+		assert.NotNil(t, bookmark3Resp)
+		assert.Equal(t, owner1Id, bookmark3Resp.OwnerId)
+
+		bookmark4Resp, err = ss.ChannelBookmark().Get(bookmark4.Id, true)
+		assert.NoError(t, err)
+		assert.NotNil(t, bookmark4Resp)
+		assert.Equal(t, owner3Id, bookmark4Resp.OwnerId)
+
 	})
 }

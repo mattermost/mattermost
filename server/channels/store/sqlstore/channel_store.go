@@ -4255,16 +4255,26 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	return &team, nil
 }
 
-func (s SqlChannelStore) BatchMergeCreatorId(toUserID, fromUserID string) error {
+func (s SqlChannelStore) BatchMergeCreatorId(toUserID, fromUserID string, limit int) error {
 	for {
-		var query string
+		var query = s.getQueryBuilder().Update("Channels").Set("CreatorId", toUserID)
 		if s.DriverName() == "postgres" {
-			query = "UPDATE Channels SET CreatorId = ? WHERE Id = any (array (SELECT Id FROM channels WHERE CreatorId = ? LIMIT 1000))"
+			subQuery := s.getSubQueryBuilder().
+				Select("Id").
+				From("Channels").
+				Where(sq.Eq{"CreatorId": fromUserID}).Limit(uint64(limit))
+
+			query = query.Where(sq.Expr("Id = any (array (?))", subQuery))
 		} else {
-			query = "UPDATE Channels SET CreatorId = ? WHERE CreatorId = ? LIMIT 1000"
+			query = query.Where(sq.Eq{"CreatorId": fromUserID}).Limit(uint64(limit))
 		}
 
-		sqlResult, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			return errors.Wrap(err, "batch_merge_creator_id_tosql")
+		}
+
+		sqlResult, err := s.GetMasterX().Exec(queryString, args...)
 		if err != nil {
 			return errors.Wrap(err, "failed to update channels")
 		}
@@ -4274,7 +4284,7 @@ func (s SqlChannelStore) BatchMergeCreatorId(toUserID, fromUserID string) error 
 			return errors.Wrap(err, "failed to update channels")
 		}
 
-		if rowsAffected < 1000 {
+		if rowsAffected < int64(limit) {
 			break
 		}
 	}

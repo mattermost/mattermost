@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	sq "github.com/mattermost/squirrel"
 )
 
 type SqlEmojiStore struct {
@@ -156,16 +157,26 @@ func (es SqlEmojiStore) getBy(c request.CTX, what, key string) (*model.Emoji, er
 	return &emoji, nil
 }
 
-func (es SqlEmojiStore) BatchMergeCreatorId(toUserID, fromUserID string) error {
+func (es SqlEmojiStore) BatchMergeCreatorId(toUserID, fromUserID string, limit int) error {
 	for {
-		var query string
+		var query = es.getQueryBuilder().Update("Emoji").Set("CreatorId", toUserID)
 		if es.DriverName() == "postgres" {
-			query = "UPDATE Emoji SET CreatorId = ? WHERE Id = any (array (SELECT Id FROM Emoji WHERE CreatorId = ? LIMIT 1000))"
+			subQuery := es.getSubQueryBuilder().
+				Select("Id").
+				From("Emoji").
+				Where(sq.Eq{"CreatorId": fromUserID}).Limit(uint64(limit))
+
+			query = query.Where(sq.Expr("Id = any (array (?))", subQuery))
 		} else {
-			query = "UPDATE Emoji SET CreatorId = ? WHERE CreatorId = ? LIMIT 1000"
+			query = query.Where(sq.Eq{"CreatorId": fromUserID}).Limit(uint64(limit))
 		}
 
-		sqlResult, err := es.GetMasterX().Exec(query, toUserID, fromUserID)
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			return errors.Wrap(err, "batch_merge_creator_id_tosql")
+		}
+
+		sqlResult, err := es.GetMasterX().Exec(queryString, args...)
 		if err != nil {
 			return errors.Wrap(err, "failed to update channels")
 		}
@@ -175,7 +186,7 @@ func (es SqlEmojiStore) BatchMergeCreatorId(toUserID, fromUserID string) error {
 			return errors.Wrap(err, "failed to update channels")
 		}
 
-		if rowsAffected < 1000 {
+		if rowsAffected < int64(limit) {
 			break
 		}
 	}

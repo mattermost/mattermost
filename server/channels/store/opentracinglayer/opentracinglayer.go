@@ -723,7 +723,7 @@ func (s *OpenTracingLayerChannelStore) AutocompleteInTeamForSearch(teamID string
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s *OpenTracingLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string, limit int) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.BatchMergeCreatorId")
 	s.Root.Store.SetContext(newCtx)
@@ -732,7 +732,7 @@ func (s *OpenTracingLayerChannelStore) BatchMergeCreatorId(toUserID string, from
 	}()
 
 	defer span.Finish()
-	err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID)
+	err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3746,7 +3746,7 @@ func (s *OpenTracingLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error
 	return result, err
 }
 
-func (s *OpenTracingLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s *OpenTracingLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string, limit int) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.BatchMergeCreatorId")
 	s.Root.Store.SetContext(newCtx)
@@ -3755,7 +3755,7 @@ func (s *OpenTracingLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUs
 	}()
 
 	defer span.Finish()
-	err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID)
+	err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

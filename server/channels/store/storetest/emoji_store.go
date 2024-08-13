@@ -22,6 +22,7 @@ func TestEmojiStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("EmojiGetMultipleByName", func(t *testing.T) { testEmojiGetMultipleByName(t, rctx, ss) })
 	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, rctx, ss) })
 	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, rctx, ss) })
+	t.Run("BatchMergeCreatorId", func(t *testing.T) { testBatchMergeEmojiCreatorId(t, rctx, ss) })
 }
 
 func testEmojiSaveDelete(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -301,4 +302,108 @@ func testEmojiSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		assert.Equal(t, shouldFind[i], found, emoji.Name)
 	}
+}
+
+func testBatchMergeEmojiCreatorId(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should update emoji creatorId to given creatorId", func(t *testing.T) {
+		toCreatorID := model.NewId()
+		fromCreatorID := model.NewId()
+		randomUserID := model.NewId()
+
+		emojis := []model.Emoji{
+			{
+				CreatorId: toCreatorID,
+				Name:      model.NewId(),
+			},
+			{
+				CreatorId: fromCreatorID,
+				Name:      model.NewId(),
+			},
+			{
+				CreatorId: fromCreatorID,
+				Name:      model.NewId(),
+			},
+			{
+				CreatorId: randomUserID,
+				Name:      model.NewId(),
+			},
+		}
+
+		for i, emoji := range emojis {
+			data, err := ss.Emoji().Save(&emoji)
+			require.NoError(t, err)
+			emojis[i] = *data
+		}
+		defer func() {
+			for _, emoji := range emojis {
+				err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+				require.NoError(t, err)
+			}
+		}()
+
+		err := ss.Emoji().BatchMergeCreatorId(toCreatorID, fromCreatorID, 100)
+		require.NoError(t, err)
+
+		for i, emoji := range emojis {
+			emoji, err := ss.Emoji().Get(rctx, emoji.Id, false)
+			require.NoError(t, err)
+
+			if i == 3 {
+				assert.Equal(t, randomUserID, emoji.CreatorId)
+			} else {
+				assert.Equal(t, toCreatorID, emoji.CreatorId)
+			}
+		}
+	})
+
+	t.Run("merge creatorIds when there are more emojis than the limit", func(t *testing.T) {
+		toCreatorID := model.NewId()
+		fromCreatorID := model.NewId()
+		randomUserID := model.NewId()
+
+		emojis := []model.Emoji{
+			{
+				CreatorId: toCreatorID,
+				Name:      model.NewId(),
+			},
+			{
+				CreatorId: fromCreatorID,
+				Name:      model.NewId(),
+			},
+			{
+				CreatorId: fromCreatorID,
+				Name:      model.NewId(),
+			},
+			{
+				CreatorId: randomUserID,
+				Name:      model.NewId(),
+			},
+		}
+
+		for i, emoji := range emojis {
+			data, err := ss.Emoji().Save(&emoji)
+			require.NoError(t, err)
+			emojis[i] = *data
+		}
+		defer func() {
+			for _, emoji := range emojis {
+				err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+				require.NoError(t, err)
+			}
+		}()
+
+		err := ss.Emoji().BatchMergeCreatorId(toCreatorID, fromCreatorID, 1)
+		require.NoError(t, err)
+
+		for i, emoji := range emojis {
+			emoji, err := ss.Emoji().Get(rctx, emoji.Id, false)
+			require.NoError(t, err)
+
+			if i == 3 {
+				assert.Equal(t, randomUserID, emoji.CreatorId)
+			} else {
+				assert.Equal(t, toCreatorID, emoji.CreatorId)
+			}
+		}
+	})
 }

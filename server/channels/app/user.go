@@ -3063,7 +3063,6 @@ func (a *App) BatchMergeGmChannels(rctx request.CTX, toUser, fromUser *model.Use
 }
 
 func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError {
-	// Make this limit a config
 	batchLimit := *a.Config().ServiceSettings.UserMergeBatchSize
 	toUser, appErr := a.GetUser(opts.ToUserId)
 	if appErr != nil {
@@ -3111,13 +3110,13 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	}
 
 	rctx.Logger().Info("MergeUsers: Batch merging channel creatorIds")
-	err = a.Srv().Store().Channel().BatchMergeCreatorId(toUser.Id, fromUser.Id)
+	err = a.Srv().Store().Channel().BatchMergeCreatorId(toUser.Id, fromUser.Id, batchLimit)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	rctx.Logger().Info("MergeUsers: Batch merging emoji creatorIds")
-	err = a.Srv().Store().Emoji().BatchMergeCreatorId(toUser.Id, fromUser.Id)
+	err = a.Srv().Store().Emoji().BatchMergeCreatorId(toUser.Id, fromUser.Id, batchLimit)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_emojis.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
