@@ -49,9 +49,7 @@ const TextDismissableBar = ({
         setDismissed(
             true,
         );
-        if (onDismissal) {
-            onDismissal();
-        }
+        onDismissal?.();
     }, [allowDismissal, onDismissal, text]);
 
     if (dismissed) {
