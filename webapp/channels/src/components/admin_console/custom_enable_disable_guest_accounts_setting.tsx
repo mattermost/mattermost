@@ -19,7 +19,7 @@ type Props = {
     showConfirm: boolean;
 }
 
-const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
+const CustomEnableDisableGuestAccountsSetting = ({
     id,
     value,
     onChange,
@@ -27,9 +27,9 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
     disabled,
     setByEnv,
     showConfirm,
-}) => {
-    const handleChange = useCallback((id: string, value: boolean, submit = false) => {
-        const confirmNeeded = value === false; // Requires confirmation if disabling guest accounts
+}: Props) => {
+    const handleChange = useCallback((targetId: string, newValue: boolean, submit = false) => {
+        const confirmNeeded = newValue === false; // Requires confirmation if disabling guest accounts
         let warning: React.ReactNode | string = '';
         if (confirmNeeded) {
             warning = (
@@ -39,8 +39,12 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
                 />
             );
         }
-        onChange(id, value, confirmNeeded, submit, warning);
+        onChange(targetId, newValue, confirmNeeded, submit, warning);
     }, [onChange]);
+
+    const handleConfirm = useCallback(() => {
+        handleChange(id, false, true);
+    }, [handleChange, id]);
 
     const label = (
         <FormattedMessage
@@ -87,7 +91,7 @@ const CustomEnableDisableGuestAccountsSetting: React.FC<Props> = ({
                         defaultMessage='Save and Disable Guest Access'
                     />
                 }
-                onConfirm={() => handleChange(id, false, true)}
+                onConfirm={handleConfirm}
                 onCancel={cancelSubmit}
             />
         </>

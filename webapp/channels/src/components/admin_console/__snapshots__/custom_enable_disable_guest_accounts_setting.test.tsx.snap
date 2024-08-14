@@ -1,485 +1,129 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial state with false 1`] = `
-<Fragment>
-  <BooleanSetting
-    disabled={false}
-    falseText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="False"
-        id="admin.false"
-      />
-    }
-    helpText={
-      <FormattedMarkdownMessage
-        defaultMessage="When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests."
-        id="admin.guest_access.enableDescription"
-      />
-    }
-    id="MySetting"
-    label={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Enable Guest Access: "
-        id="admin.guest_access.enableTitle"
-      />
-    }
-    onChange={[Function]}
-    setByEnv={false}
-    trueText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="True"
-        id="admin.true"
-      />
-    }
-    value={false}
-  />
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
-    confirmButtonText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Save and Disable Guest Access"
-        id="admin.guest_access.disableConfirmButton"
-      />
-    }
-    message={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?"
-        id="admin.guest_access.disableConfirmMessage"
-      />
-    }
-    modalClass=""
-    onCancel={[MockFunction]}
-    onConfirm={[Function]}
-    show={false}
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Save and Disable Guest Access?"
-        id="admin.guest_access.disableConfirmTitle"
-      />
-    }
-  />
-</Fragment>
-`;
-
-exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial state with true 1`] = `
-<Fragment>
-  <BooleanSetting
-    disabled={false}
-    falseText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="False"
-        id="admin.false"
-      />
-    }
-    helpText={
-      <FormattedMarkdownMessage
-        defaultMessage="When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests."
-        id="admin.guest_access.enableDescription"
-      />
-    }
-    id="MySetting"
-    label={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Enable Guest Access: "
-        id="admin.guest_access.enableTitle"
-      />
-    }
-    onChange={[Function]}
-    setByEnv={false}
-    trueText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="True"
-        id="admin.true"
-      />
-    }
-    value={true}
-  />
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
-    confirmButtonText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Save and Disable Guest Access"
-        id="admin.guest_access.disableConfirmButton"
-      />
-    }
-    message={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?"
-        id="admin.guest_access.disableConfirmMessage"
-      />
-    }
-    modalClass=""
-    onCancel={[MockFunction]}
-    onConfirm={[Function]}
-    show={false}
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Save and Disable Guest Access?"
-        id="admin.guest_access.disableConfirmTitle"
-      />
-    }
-  />
-</Fragment>
-`;
-
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders correctly when disabled 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <div
-        class="form-group"
-        data-testid="MySetting"
-      >
-        <label
-          class="control-label col-sm-4"
-          for="MySetting"
-        >
-          Enable Guest Access: 
-        </label>
-        <div
-          class="col-sm-8"
-        >
-          <a
-            id="MySetting"
-          />
-          <label
-            class="Label-eIDBis glIJuw"
-          >
-            <input
-              data-testid="MySettingtrue"
-              id="MySettingtrue"
-              name="MySetting"
-              type="radio"
-              value="true"
-            />
-            True
-          </label>
-          <label
-            class="Label-eIDBis glIJuw"
-          >
-            <input
-              checked=""
-              data-testid="MySettingfalse"
-              id="MySettingfalse"
-              name="MySetting"
-              type="radio"
-              value="false"
-            />
-            False
-          </label>
-          <div
-            class="help-text"
-            data-testid="MySettinghelp-text"
-          >
-            <span>
-              When true, external guest can be invited to channels within teams. Please see 
-              <a
-                href="../user_management/permissions/system_scheme"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Permissions Schemes
-              </a>
-               for which roles can invite guests.
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      class="form-group"
-      data-testid="MySetting"
+<div>
+  <div
+    class="form-group"
+    data-testid="MySetting"
+  >
+    <label
+      class="control-label col-sm-4"
+      for="MySetting"
     >
+      Enable Guest Access: 
+    </label>
+    <div
+      class="col-sm-8"
+    >
+      <a
+        id="MySetting"
+      />
       <label
-        class="control-label col-sm-4"
-        for="MySetting"
+        class="Label-eIDBis glIJuw"
       >
-        Enable Guest Access: 
+        <input
+          data-testid="MySettingtrue"
+          id="MySettingtrue"
+          name="MySetting"
+          type="radio"
+          value="true"
+        />
+        True
+      </label>
+      <label
+        class="Label-eIDBis glIJuw"
+      >
+        <input
+          checked=""
+          data-testid="MySettingfalse"
+          id="MySettingfalse"
+          name="MySetting"
+          type="radio"
+          value="false"
+        />
+        False
       </label>
       <div
-        class="col-sm-8"
+        class="help-text"
+        data-testid="MySettinghelp-text"
       >
-        <a
-          id="MySetting"
-        />
-        <label
-          class="Label-eIDBis glIJuw"
-        >
-          <input
-            data-testid="MySettingtrue"
-            id="MySettingtrue"
-            name="MySetting"
-            type="radio"
-            value="true"
-          />
-          True
-        </label>
-        <label
-          class="Label-eIDBis glIJuw"
-        >
-          <input
-            checked=""
-            data-testid="MySettingfalse"
-            id="MySettingfalse"
-            name="MySetting"
-            type="radio"
-            value="false"
-          />
-          False
-        </label>
-        <div
-          class="help-text"
-          data-testid="MySettinghelp-text"
-        >
-          <span>
-            When true, external guest can be invited to channels within teams. Please see 
-            <a
-              href="../user_management/permissions/system_scheme"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Permissions Schemes
-            </a>
-             for which roles can invite guests.
-          </span>
-        </div>
+        <span>
+          When true, external guest can be invited to channels within teams. Please see 
+          <a
+            href="../user_management/permissions/system_scheme"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Permissions Schemes
+          </a>
+           for which roles can invite guests.
+        </span>
       </div>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </div>
+</div>
 `;
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders correctly when enabled 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <div
-        class="form-group"
-        data-testid="MySetting"
-      >
-        <label
-          class="control-label col-sm-4"
-          for="MySetting"
-        >
-          Enable Guest Access: 
-        </label>
-        <div
-          class="col-sm-8"
-        >
-          <a
-            id="MySetting"
-          />
-          <label
-            class="Label-eIDBis glIJuw"
-          >
-            <input
-              checked=""
-              data-testid="MySettingtrue"
-              id="MySettingtrue"
-              name="MySetting"
-              type="radio"
-              value="true"
-            />
-            True
-          </label>
-          <label
-            class="Label-eIDBis glIJuw"
-          >
-            <input
-              data-testid="MySettingfalse"
-              id="MySettingfalse"
-              name="MySetting"
-              type="radio"
-              value="false"
-            />
-            False
-          </label>
-          <div
-            class="help-text"
-            data-testid="MySettinghelp-text"
-          >
-            <span>
-              When true, external guest can be invited to channels within teams. Please see 
-              <a
-                href="../user_management/permissions/system_scheme"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Permissions Schemes
-              </a>
-               for which roles can invite guests.
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      class="form-group"
-      data-testid="MySetting"
+<div>
+  <div
+    class="form-group"
+    data-testid="MySetting"
+  >
+    <label
+      class="control-label col-sm-4"
+      for="MySetting"
     >
+      Enable Guest Access: 
+    </label>
+    <div
+      class="col-sm-8"
+    >
+      <a
+        id="MySetting"
+      />
       <label
-        class="control-label col-sm-4"
-        for="MySetting"
+        class="Label-eIDBis glIJuw"
       >
-        Enable Guest Access: 
+        <input
+          checked=""
+          data-testid="MySettingtrue"
+          id="MySettingtrue"
+          name="MySetting"
+          type="radio"
+          value="true"
+        />
+        True
+      </label>
+      <label
+        class="Label-eIDBis glIJuw"
+      >
+        <input
+          data-testid="MySettingfalse"
+          id="MySettingfalse"
+          name="MySetting"
+          type="radio"
+          value="false"
+        />
+        False
       </label>
       <div
-        class="col-sm-8"
+        class="help-text"
+        data-testid="MySettinghelp-text"
       >
-        <a
-          id="MySetting"
-        />
-        <label
-          class="Label-eIDBis glIJuw"
-        >
-          <input
-            checked=""
-            data-testid="MySettingtrue"
-            id="MySettingtrue"
-            name="MySetting"
-            type="radio"
-            value="true"
-          />
-          True
-        </label>
-        <label
-          class="Label-eIDBis glIJuw"
-        >
-          <input
-            data-testid="MySettingfalse"
-            id="MySettingfalse"
-            name="MySetting"
-            type="radio"
-            value="false"
-          />
-          False
-        </label>
-        <div
-          class="help-text"
-          data-testid="MySettinghelp-text"
-        >
-          <span>
-            When true, external guest can be invited to channels within teams. Please see 
-            <a
-              href="../user_management/permissions/system_scheme"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Permissions Schemes
-            </a>
-             for which roles can invite guests.
-          </span>
-        </div>
+        <span>
+          When true, external guest can be invited to channels within teams. Please see 
+          <a
+            href="../user_management/permissions/system_scheme"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Permissions Schemes
+          </a>
+           for which roles can invite guests.
+        </span>
       </div>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+  </div>
+</div>
 `;

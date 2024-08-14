@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, fireEvent, screen} from '@testing-library/react';
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
-import {FormattedMessage, IntlProvider} from 'react-intl';
-import {Provider} from 'react-redux';
+import {FormattedMessage} from 'react-intl';
 
-import store from 'stores/redux_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 
@@ -21,23 +20,6 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
         showConfirm: false,
     };
 
-    const intlProviderProps = {
-        defaultLocale: 'en',
-        locale: 'en',
-    };
-
-    const renderComponent = (props = {}) => {
-        return render(
-            <IntlProvider {...intlProviderProps}>
-                <Provider store={store}>
-                    <CustomEnableDisableGuestAccountsSetting
-                        {...baseProps}
-                        {...props}
-                    />
-                </Provider>
-            </IntlProvider>);
-    };
-
     const warningMessage = (
         <FormattedMessage
             defaultMessage='All current guest account sessions will be revoked, and marked as inactive'
@@ -47,13 +29,23 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
 
     describe('renders correctly', () => {
         test('when enabled', () => {
-            const wrapper = renderComponent({value: true});
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    value={true}
+                />,
+            );
+            expect(container).toMatchSnapshot();
         });
 
         test('when disabled', () => {
-            const wrapper = renderComponent({value: false});
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    value={false}
+                />,
+            );
+            expect(container).toMatchSnapshot();
         });
     });
 
@@ -64,7 +56,12 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 onChange: jest.fn(),
             };
 
-            renderComponent(props);
+            renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    {...props}
+                />,
+            );
 
             const trueRadio = screen.getByTestId('MySettingtrue');
             fireEvent.click(trueRadio);
@@ -79,7 +76,12 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 onChange: jest.fn(),
             };
 
-            renderComponent(props);
+            renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    {...props}
+                />,
+            );
 
             const falseRadio = screen.getByTestId('MySettingfalse');
             fireEvent.click(falseRadio);
@@ -94,7 +96,11 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 showConfirm: true,
             };
 
-            renderComponent(props);
+            renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...props}
+                />,
+            );
 
             const falseRadio = screen.getByTestId('MySettingfalse');
             fireEvent.click(falseRadio);
