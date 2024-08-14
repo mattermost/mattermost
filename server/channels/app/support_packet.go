@@ -168,12 +168,13 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	sp.Database.SearchConnections = a.Srv().Store().TotalSearchDbConnections()
 
 	/* File store */
-	sp.FileStore.Driver = a.Srv().Platform().FileBackend().DriverName()
 	sp.FileStore.Status = model.StatusOk
 	err = a.Srv().Platform().FileBackend().TestConnection()
 	if err != nil {
-		sp.FileStore.Status = model.StatusFail + ": " + err.Error()
+		sp.FileStore.Status = model.StatusFail
+		sp.FileStore.Error = err.Error()
 	}
+	sp.FileStore.Driver = a.Srv().Platform().FileBackend().DriverName()
 
 	/* Websockets */
 	sp.Websocket.Connections = a.TotalWebsocketConnections()
@@ -189,28 +190,30 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* LDAP */
 
 	if ldap := a.Ldap(); ldap != nil && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
-		var severName, serverVersion string
-
-		severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(c)
-		if err != nil {
-			rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
-		}
-
-		if severName == "" {
-			severName = unknownDataPoint
-		}
-		if serverVersion == "" {
-			serverVersion = unknownDataPoint
-		}
-
-		sp.LDAP.ServerName = severName
-		sp.LDAP.ServerVersion = serverVersion
-
 		sp.LDAP.Status = model.StatusOk
 		appErr := ldap.RunTest(c)
 		if appErr != nil {
-			sp.LDAP.Status = model.StatusFail + ": " + appErr.Error()
+			sp.LDAP.Status = model.StatusFail
+			sp.LDAP.Error = appErr.Error()
 		}
+
+		severName, serverVersion := unknownDataPoint, unknownDataPoint
+		// Only if the LDAP test was successful, try to get the LDAP server info
+		if sp.LDAP.Status == model.StatusOk {
+			severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(c)
+			if err != nil {
+				rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
+			}
+
+			if severName == "" {
+				severName = unknownDataPoint
+			}
+			if serverVersion == "" {
+				serverVersion = unknownDataPoint
+			}
+		}
+		sp.LDAP.ServerName = severName
+		sp.LDAP.ServerVersion = serverVersion
 	}
 
 	/* Elastic Search */

@@ -100,8 +100,9 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Zero(t, sp.Database.SearchConnections)
 
 		/* File store */
-		assert.Equal(t, "local", sp.FileStore.Driver)
 		assert.Equal(t, "OK", sp.FileStore.Status)
+		assert.Empty(t, sp.FileStore.Error)
+		assert.Equal(t, "local", sp.FileStore.Driver)
 
 		/* Websockets */
 		assert.Zero(t, sp.Websocket.Connections)
@@ -111,9 +112,10 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Zero(t, sp.Cluster.NumberOfNodes)
 
 		/* LDAP */
+		assert.Empty(t, sp.LDAP.Status)
+		assert.Empty(t, sp.LDAP.Error)
 		assert.Empty(t, sp.LDAP.ServerName)
 		assert.Empty(t, sp.LDAP.ServerVersion)
-		assert.Empty(t, sp.LDAP.Status)
 
 		/* Elastic Search */
 		assert.Empty(t, sp.ElasticSearch.ServerVersion)
@@ -167,8 +169,9 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		packet := generateSupportPacket(t)
 
+		assert.Equal(t, "FAIL", packet.FileStore.Status)
+		assert.Equal(t, "all broken", packet.FileStore.Error)
 		assert.Equal(t, "mock", packet.FileStore.Driver)
-		assert.Equal(t, "FAIL: all broken", packet.FileStore.Status)
 	})
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
@@ -177,8 +180,8 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		packet := generateSupportPacket(t)
 
-		assert.Equal(t, "", packet.LdapVendorName)
-		assert.Equal(t, "", packet.LdapVendorVersion)
+		assert.Equal(t, "", packet.LDAP.ServerName)
+		assert.Equal(t, "", packet.LDAP.ServerVersion)
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -199,9 +202,10 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		packet := generateSupportPacket(t)
 
+		assert.Equal(t, "OK", packet.LDAP.Status)
+		assert.Empty(t, packet.LDAP.Error)
 		assert.Equal(t, "unknown", packet.LDAP.ServerName)
 		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
-		assert.Equal(t, "OK", packet.LDAP.Status)
 	})
 
 	t.Run("found LDAP vendor info", func(t *testing.T) {
@@ -218,12 +222,13 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		packet := generateSupportPacket(t)
 
+		assert.Equal(t, "OK", packet.LDAP.Status)
+		assert.Empty(t, packet.LDAP.Error)
 		assert.Equal(t, "some vendor", packet.LDAP.ServerName)
 		assert.Equal(t, "v1.0.0", packet.LDAP.ServerVersion)
-		assert.Equal(t, "OK", packet.LDAP.Status)
 	})
 
-	t.Run("found LDAP vendor info", func(t *testing.T) {
+	t.Run("LDAP test fails", func(t *testing.T) {
 		ldapMock := &emocks.LdapInterface{}
 		ldapMock.On(
 			"GetVendorNameAndVendorVersion",
@@ -237,9 +242,10 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		packet := generateSupportPacket(t)
 
-		assert.Equal(t, "some vendor", packet.LDAP.ServerName)
-		assert.Equal(t, "v1.0.0", packet.LDAP.ServerVersion)
-		assert.Equal(t, "FAIL: some error", packet.LDAP.Status)
+		assert.Equal(t, "FAIL", packet.LDAP.Status)
+		assert.Equal(t, "some error", packet.LDAP.Error)
+		assert.Equal(t, "unknown", packet.LDAP.ServerName)
+		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
 	})
 }
 
