@@ -21,6 +21,9 @@ describe('Message Reply', () => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             newChannel = channel;
             cy.visit(`/${team.name}/channels/${channel.name}`);
+
+            // # Wait for the page to fully load before continuing
+            cy.get('#sidebar-header-container').should('be.visible').and('have.text', team.display_name);
         });
     });
 
