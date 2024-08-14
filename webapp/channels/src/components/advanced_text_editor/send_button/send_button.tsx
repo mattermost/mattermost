@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent, memo} from 'react';
-import {useIntl} from 'react-intl';
+import React, {FormEvent, memo, useMemo} from 'react';
+import {defineMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
+
+import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
 
@@ -13,6 +16,8 @@ import './style.scss';
 import classNames from 'classnames';
 
 import WithTooltip from 'components/with_tooltip';
+import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
+import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent) => void;
@@ -20,26 +25,10 @@ type SendButtonProps = {
 }
 
 const SendButtonContainer = styled.button`
-    //display: flex;
-    //height: 32px;
-    //padding: 0 16px;
-    //border: none;
-    //background: var(--button-bg);
-    //border-radius: 4px;
-    //color: var(--button-color);
     cursor: pointer;
     place-content: center;
     place-items: center;
     transition: color 150ms;
-
-    //&--disabled,
-    //&[disabled] {
-    //    background: rgba(var(--center-channel-color-rgb), 0.08);
-    //
-    //    svg {
-    //        fill: rgba(var(--center-channel-color-rgb), 0.32);
-    //    }
-    //}
 
     .android &,
     .ios & {
@@ -56,12 +45,39 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
         handleSubmit(e);
     };
 
+    const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
+
+    const sendNowKeyboardShortcutDescriptor = useMemo<ShortcutDefinition>(() => {
+        const shortcutDefinition: ShortcutDefinition = {
+            default: [
+                defineMessage({
+                    id: 'shortcuts.generic.enter',
+                    defaultMessage: 'Enter',
+                }),
+            ],
+            mac: [
+                defineMessage({
+                    id: 'shortcuts.generic.enter',
+                    defaultMessage: 'Enter',
+                }),
+            ],
+        };
+
+        if (sendOnCtrlEnter) {
+            shortcutDefinition.default.unshift(ShortcutKeys.ctrl);
+            shortcutDefinition.mac?.unshift(ShortcutKeys.cmd);
+        }
+
+        return shortcutDefinition;
+    }, [sendOnCtrlEnter]);
+
     return (
         <div className={classNames('splitSendButton', {disabled})}>
             <WithTooltip
                 placement='top'
                 id='send_post_now_tooltip'
-                title='Send Now'
+                title={formatMessage({id: 'create_post_button.option.send_now', defaultMessage: 'Send Now'})}
+                shortcut={sendNowKeyboardShortcutDescriptor}
                 disabled={disabled}
             >
                 <SendButtonContainer

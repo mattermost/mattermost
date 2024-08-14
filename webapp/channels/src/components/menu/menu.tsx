@@ -13,6 +13,8 @@ import type {
     KeyboardEvent,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import Constants, {A11yClassNames} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 import {GenericModal} from '@mattermost/components';
 
@@ -23,9 +25,6 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
 import WithTooltip from 'components/with_tooltip';
-
-import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
 import {MuiMenuStyled} from './menu_styled';
@@ -73,6 +72,9 @@ interface Props {
     menuButtonTooltip?: MenuButtonTooltipProps;
     menu: MenuProps;
     children: ReactNode[];
+
+    // Use MUI Anchor Playgroup to try various anchorOrigin
+    // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
     anchorOrigin?: {
         vertical: VerticalOrigin;
         horizontal: HorizontalOrigin;
@@ -81,6 +83,7 @@ interface Props {
         vertical: VerticalOrigin;
         horizontal: HorizontalOrigin;
     };
+    hideTooltipWhenDisabled?: boolean;
 }
 
 /**
@@ -94,6 +97,9 @@ interface Props {
  * </Menu.Item>
  */
 export function Menu(props: Props) {
+    // Use MUI Anchor Playgroup to try various anchorOrigin
+    // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
+
     const theme = useSelector(getTheme);
 
     const isMobileView = useSelector(getIsMobileView);
@@ -205,7 +211,7 @@ export function Menu(props: Props) {
                     id={props.menuButtonTooltip.id}
                     title={props.menuButtonTooltip.text}
                     placement={props?.menuButtonTooltip?.placement ?? 'top'}
-                    disabled={isMenuOpen}
+                    disabled={props.hideTooltipWhenDisabled ? props.menuButton.disabled || isMenuOpen : isMenuOpen}
                 >
                     {triggerElement}
                 </WithTooltip>
@@ -303,7 +309,7 @@ function MenuModal(props: MenuModalProps) {
         <CompassDesignProvider theme={theme}>
             <GenericModal
                 id={props.menuId}
-                className='menuModal'
+                className='menuModal LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOL'
                 backdrop={true}
                 ariaLabel={props.menuAriaLabel}
                 onExited={closeMenuModal}
@@ -314,6 +320,7 @@ function MenuModal(props: MenuModalProps) {
                     component='div'
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
+                    className='KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK'
                 >
                     {props.children}
                 </MuiMenuList>

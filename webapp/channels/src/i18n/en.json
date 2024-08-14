@@ -4828,6 +4828,7 @@
   "shortcuts.generic.alt": "Alt",
   "shortcuts.generic.ctrl": "Ctrl",
   "shortcuts.generic.shift": "Shift",
+  "shortcuts.generic.enter": "Enter",
   "shortcuts.header": "Keyboard shortcuts\tCtrl|/",
   "shortcuts.header.mac": "Keyboard shortcuts\t⌘|/",
   "shortcuts.info": "Begin a message with / for a list of all the available slash commands.",
@@ -5803,5 +5804,8 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": "View upgrade options",
   "workspace_limits.upgrade": "Upgrade to avoid {planName} data limits",
   "workspace_limits.upgrade_reasons.free": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-  "yourcomputer": "Your computer"
+  "yourcomputer": "Your computer",
+  "create_post_button.option.send_now": "Send Now",
+  "create_post_button.option.schedule_message": "Schedule message",
+  "create_post_button.option.schedule_message.options.header": "Schedule message"
 }

@@ -15,3 +15,12 @@ export const arePreviewsCollapsed = (state: GlobalState) => {
         Preferences.COLLAPSE_DISPLAY_DEFAULT !== 'false',
     );
 };
+
+export const isSendOnCtrlEnter = (state: GlobalState) => {
+    return getBoolPreference(
+        state,
+        Preferences.CATEGORY_ADVANCED_SETTINGS,
+        'send_on_ctrl_enter',
+        false,
+    );
+};

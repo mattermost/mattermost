@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import type Constants from 'utils/constants';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
@@ -13,13 +13,19 @@ import * as Menu from 'components/menu';
 import './style.scss';
 
 type Props = {
-    location?: keyof typeof Constants.Locations;
     disabled?: boolean;
 }
 
-export function SendPostOptions({location, disabled}: Props) {
+export function SendPostOptions({disabled}: Props) {
+    const {formatMessage} = useIntl();
+
     return (
         <Menu.Container
+            hideTooltipWhenDisabled={true}
+            menuButtonTooltip={{
+                id: 'send_post_option_schedule_post',
+                text: formatMessage({id: 'create_post_button.option.schedule_message', defaultMessage: 'Schedule message'}),
+            }}
             menuButton={{
                 id: 'button_send_post_options',
                 class: classNames('button_send_post_options', {disabled}),
@@ -27,19 +33,26 @@ export function SendPostOptions({location, disabled}: Props) {
                 disabled,
             }}
             menu={{
-                id: `${location}_dropdown_send_post_options`,
+                id: 'dropdown_send_post_options',
+            }}
+            transformOrigin={{
+                horizontal: 'right',
+                vertical: 'bottom',
+            }}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
             }}
         >
             <Menu.Item
+                disabled={true}
                 labels={
                     <FormattedMessage
-                        id='post_info.reply'
-                        defaultMessage='Reply'
+                        id='create_post_button.option.schedule_message.options.header'
+                        defaultMessage={'Scheduled message'}
                     />
                 }
-            >
-                <p>{'Hello!!!'}</p>
-            </Menu.Item>
+            />
 
             <Menu.Item
                 labels={
@@ -48,9 +61,16 @@ export function SendPostOptions({location, disabled}: Props) {
                         defaultMessage='Reply'
                     />
                 }
-            >
-                <p>{'World!!!'}</p>
-            </Menu.Item>
+            />
+
+            <Menu.Item
+                labels={
+                    <FormattedMessage
+                        id='post_info.reply'
+                        defaultMessage='Reply'
+                    />
+                }
+            />
         </Menu.Container>
     );
 }
