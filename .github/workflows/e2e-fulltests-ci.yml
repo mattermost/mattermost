@@ -259,6 +259,7 @@ jobs:
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       COMMIT_SHA: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
+      WORKFLOW_RUN_URL: "${{ needs.generate-test-variables.outputs.WORKFLOW_RUN_URL }}"
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
     steps:
       - name: ci/notify-user-test-completion
@@ -267,5 +268,6 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           You can check its result on the [Automation Dashboard]($CYCLE_URL), or by checking out the status check named \`${STATUS_CHECK_CONTEXT}\` in this PR.
+          The run summary artifact is available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi
