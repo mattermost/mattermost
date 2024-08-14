@@ -46,9 +46,7 @@ const TextDismissableBar = ({
         trackEvent('signup', 'click_dismiss_bar');
 
         localStorage.setItem(localStoragePrefix + text?.toString(), 'true');
-        setDismissed(
-            true,
-        );
+        setDismissed(true);
         onDismissal?.();
     }, [allowDismissal, onDismissal, text]);
 
