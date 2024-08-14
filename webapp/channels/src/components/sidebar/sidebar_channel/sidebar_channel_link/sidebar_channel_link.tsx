@@ -10,9 +10,8 @@ import type {Channel} from '@mattermost/types/channels';
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
+import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
@@ -201,20 +200,15 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             </span>
         );
         if (this.state.showTooltip) {
-            const displayNameToolTip = (
-                <Tooltip id='channel-displayname__tooltip'>
-                    {label}
-                </Tooltip>
-            );
             labelElement = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={displayNameToolTip}
+                <WithTooltip
+                    id='channel-displayname__tooltip'
+                    title={label}
+                    placement={'top'}
                     onEntering={this.removeTooltipLink}
                 >
                     {labelElement}
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 

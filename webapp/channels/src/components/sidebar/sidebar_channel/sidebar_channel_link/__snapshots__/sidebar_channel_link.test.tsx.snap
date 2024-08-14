@@ -180,31 +180,18 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarChannelLinkLabel_wrapper"
   >
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
+    <WithTooltip
+      id="channel-displayname__tooltip"
       onEntering={[Function]}
-      overlay={
-        <Tooltip
-          id="channel-displayname__tooltip"
-        >
-          channel_label
-        </Tooltip>
-      }
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+      title="channel_label"
     >
       <span
         className="SidebarChannelLinkLabel"
       >
         channel_label
       </span>
-    </OverlayTrigger>
+    </WithTooltip>
     <Connect(Pluggable)
       channel={
         Object {
