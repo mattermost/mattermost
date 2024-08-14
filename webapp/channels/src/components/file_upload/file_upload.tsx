@@ -15,8 +15,7 @@ import type {UploadFile} from 'actions/file_actions';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -569,18 +568,15 @@ export class FileUpload extends PureComponent<Props, State> {
         if (this.props.pluginFileUploadMethods.length === 0) {
             bodyAction = (
                 <div>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        id='upload-tooltip'
                         placement='top'
-                        trigger={['hover', 'focus']}
-                        overlay={
-                            <Tooltip id='upload-tooltip'>
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                    hoistDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            </Tooltip>
+                        title={
+                            <KeyboardShortcutSequence
+                                shortcut={KEYBOARD_SHORTCUTS.filesUpload}
+                                hoistDescription={true}
+                                isInsideTooltip={true}
+                            />
                         }
                     >
                         <button
@@ -599,7 +595,7 @@ export class FileUpload extends PureComponent<Props, State> {
                                 aria-label={iconAriaLabel}
                             />
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                     <input
                         id='fileUploadInput'
                         tabIndex={-1}
@@ -648,18 +644,15 @@ export class FileUpload extends PureComponent<Props, State> {
                         accept={accept}
                     />
                     <MenuWrapper>
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                        <WithTooltip
+                            id='upload-tooltip'
                             placement='top'
-                            trigger={['hover', 'focus']}
-                            overlay={
-                                <Tooltip id='upload-tooltip'>
-                                    <KeyboardShortcutSequence
-                                        shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                        hoistDescription={true}
-                                        isInsideTooltip={true}
-                                    />
-                                </Tooltip>
+                            title={
+                                <KeyboardShortcutSequence
+                                    shortcut={KEYBOARD_SHORTCUTS.filesUpload}
+                                    hoistDescription={true}
+                                    isInsideTooltip={true}
+                                />
                             }
                         >
                             <button
@@ -674,7 +667,7 @@ export class FileUpload extends PureComponent<Props, State> {
                                     aria-label={iconAriaLabel}
                                 />
                             </button>
-                        </OverlayTrigger>
+                        </WithTooltip>
                         <Menu
                             id='fileUploadOptions'
                             openLeft={true}
