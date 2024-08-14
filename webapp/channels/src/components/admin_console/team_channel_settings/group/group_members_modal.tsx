@@ -21,9 +21,7 @@ const GroupMembersModal: React.FC<Props> = ({
     const [show, setShow] = useState(true);
 
     useEffect(() => {
-        if (onLoad) {
-            onLoad?.();
-        }
+        onLoad?.();
     }, []);
 
     const handleHide = useCallback(() => {
