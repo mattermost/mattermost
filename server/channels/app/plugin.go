@@ -964,6 +964,8 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	return nil
 }
 
+var SemVerV2 = semver.MustParse("2.0.0")
+
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
