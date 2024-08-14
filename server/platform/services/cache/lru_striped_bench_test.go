@@ -19,7 +19,7 @@ const (
 )
 
 func BenchmarkLRUStriped(b *testing.B) {
-	opts := cache.LRUOptions{
+	opts := cache.CacheOptions{
 		Name:                   "",
 		Size:                   128,
 		DefaultExpiry:          0,
@@ -27,7 +27,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 		StripedBuckets:         runtime.NumCPU() - 1,
 	}
 
-	cache, err := cache.NewLRUStriped(opts)
+	cache, err := cache.NewLRUStriped(&opts)
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +43,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 		bucketKeys[bucketKey] = append(bucketKeys[bucketKey], key)
 	}
 	for i := 0; i < opts.Size; i++ {
-		cache.Set(keys[i], "preflight")
+		cache.SetWithDefaultExpiry(keys[i], "preflight")
 	}
 
 	wgGet := &sync.WaitGroup{}
@@ -58,7 +58,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 			case <-stopSet:
 				return
 			default:
-				_ = cache.Set(keys[i], "ignored")
+				_ = cache.SetWithDefaultExpiry(keys[i], "ignored")
 			}
 		}
 	}

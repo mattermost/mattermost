@@ -87,6 +87,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         EnableSignUpWithGoogle,
         EnableSignUpWithOpenId,
         EnableOpenServer,
+        EnableUserCreation,
         LdapLoginFieldName,
         GitLabButtonText,
         GitLabButtonColor,
@@ -125,10 +126,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableCustomBrand = EnableCustomBrand === 'true';
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
+    const enableUserCreation = EnableUserCreation === 'true';
     const enableSaml = EnableSaml === 'true';
     const enableSignInWithEmail = EnableSignInWithEmail === 'true';
     const enableSignInWithUsername = EnableSignInWithUsername === 'true';
-    const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
+    const enableSignUpWithEmail = enableUserCreation && EnableSignUpWithEmail === 'true';
     const enableSignUpWithGitLab = EnableSignUpWithGitLab === 'true';
     const enableSignUpWithGoogle = EnableSignUpWithGoogle === 'true';
     const enableSignUpWithOffice365 = EnableSignUpWithOffice365 === 'true';

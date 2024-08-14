@@ -105,7 +105,7 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
     user_management_system_roles: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_user_management_system_roles.name',
-            defaultMessage: 'System Roles',
+            defaultMessage: 'Delegated Granular Administration',
         },
     }),
     environment: defineMessages({

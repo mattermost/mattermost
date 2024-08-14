@@ -234,7 +234,6 @@ Cypress.Commands.add('apiCreateUser', ({
     prefix = 'user',
     createAt = 0,
     bypassTutorial = true,
-    hideActionsMenu = true,
     hideOnboarding = true,
     bypassWhatsNewModal = true,
     user = null,
@@ -263,10 +262,6 @@ Cypress.Commands.add('apiCreateUser', ({
 
         if (bypassTutorial) {
             cy.apiDisableTutorials(createdUser.id);
-        }
-
-        if (hideActionsMenu) {
-            cy.apiSaveActionsMenuPreference(createdUser.id, true);
         }
 
         if (hideOnboarding) {

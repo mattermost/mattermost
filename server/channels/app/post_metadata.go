@@ -202,6 +202,11 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 }
 
 func removePermalinkMetadataFromPost(post *model.Post) {
+	removeEmbeddedPostsFromMetadata(post)
+	post.DelProp(model.PostPropsPreviewedPost)
+}
+
+func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return
 	}
@@ -217,8 +222,6 @@ func removePermalinkMetadataFromPost(post *model.Post) {
 	}
 
 	post.Metadata.Embeds = newEmbeds
-
-	post.DelProp(model.PostPropsPreviewedPost)
 }
 
 func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {

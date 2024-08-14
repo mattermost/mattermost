@@ -735,7 +735,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.general.loginOffice365'
-                    defaultMessage='Login done through Office 365 ({email})'
+                    defaultMessage='Login done through Entra ID ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}
