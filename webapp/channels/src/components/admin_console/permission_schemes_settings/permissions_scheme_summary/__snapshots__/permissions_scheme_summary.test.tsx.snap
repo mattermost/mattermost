@@ -262,14 +262,11 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     >
       Team 8
     </span>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      overlay={
-        <Tooltip
-          className="team-scheme-extra-teams-overlay"
-          id="id-extra-teams-overlay"
-        >
+    <WithTooltip
+      id="id-extra-teams-overlay"
+      placement="bottom"
+      title={
+        <React.Fragment>
           <span
             className="team"
           >
@@ -280,14 +277,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           >
             Team 10
           </span>
-        </Tooltip>
-      }
-      placement="bottom"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+        </React.Fragment>
       }
     >
       <span
@@ -304,7 +294,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           }
         />
       </span>
-    </OverlayTrigger>
+    </WithTooltip>
   </div>
 </div>
 `;

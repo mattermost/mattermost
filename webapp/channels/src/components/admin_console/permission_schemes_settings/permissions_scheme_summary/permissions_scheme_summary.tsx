@@ -12,11 +12,9 @@ import type {Team} from '@mattermost/types/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 const MAX_TEAMS_PER_SCHEME_SUMMARY = 8;
@@ -148,17 +146,13 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
         let extraTeams = null;
         if (teams.length > MAX_TEAMS_PER_SCHEME_SUMMARY) {
             extraTeams = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='bottom'
-                    overlay={
-                        <Tooltip
-                            className='team-scheme-extra-teams-overlay'
-                            id={scheme.id + '-extra-teams-overlay'}
-                        >
+                <WithTooltip
+                    id={scheme.id + '-extra-teams-overlay'}
+                    title={
+                        <>
                             {teams.slice(MAX_TEAMS_PER_SCHEME_SUMMARY)}
-                        </Tooltip>
-                    }
+                        </>}
+                    placement='bottom'
                 >
                     <span
                         className='team'
@@ -170,7 +164,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
                             values={{number: teams.length - MAX_TEAMS_PER_SCHEME_SUMMARY}}
                         />
                     </span>
-                </OverlayTrigger>
+                </WithTooltip>
             );
             teams = teams.slice(0, MAX_TEAMS_PER_SCHEME_SUMMARY);
         }
