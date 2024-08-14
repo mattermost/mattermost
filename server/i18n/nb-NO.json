@@ -94,5 +94,45 @@
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
     "translation": "Du kan ikke gi en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Kunne ikke åpne sertifikat fil."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Kunne ikke lagre sertifikat fil."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Kan ikke slette merkevarebilde, ikke funnet."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Feil ved lesing av loggfil."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Bildelagring er ikke konfigurert."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP er ikke tilgjengelig."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Det oppstod en feil under sletting av sertifikatet."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunne ikke tilbakestille AuthData-feltet til e-post."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Kunne ikke lagre sertifikatfilen."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigurert eller støttet på denne serveren."
   }
 ]

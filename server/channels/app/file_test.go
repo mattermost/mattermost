@@ -321,14 +321,16 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	t.Run("write one file", func(t *testing.T) {
 		mockBackend := filesStoreMocks.FileBackend{}
 		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil).Run(func(args mock.Arguments) {
-			now := time.Now()
 			r, err := zip.OpenReader(zipName)
 			require.NoError(t, err)
 			require.Len(t, r.File, 1)
 
 			file := r.File[0]
 			assert.Equal(t, "file1", file.Name)
-			assert.GreaterOrEqual(t, file.Modified, now.Truncate(time.Second)) // Files are stored with a second precision
+			now := time.Now().Truncate(time.Second) // Files are stored with a second precision
+			// Confirm that the file was created in the last 10 seconds
+			assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
+			assert.GreaterOrEqual(t, now, file.Modified)
 
 			fr, err := file.Open()
 			require.NoError(t, err)
@@ -654,7 +656,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Files: &model.FilesLimits{
-				TotalStorage: model.NewInt64(1),
+				TotalStorage: model.NewPointer(int64(1)),
 			},
 		}, nil)
 

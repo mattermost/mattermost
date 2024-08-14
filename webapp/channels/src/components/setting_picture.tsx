@@ -6,13 +6,13 @@ import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 
 import {FormattedMessage} from 'react-intl';
 
 import FormError from 'components/form_error';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
+
+import WithTooltip from './with_tooltip';
 
 type Props = {
     clientError?: ReactNode;
@@ -231,16 +231,11 @@ export default class SettingPicture extends Component<Props, State> {
                     >
                         {imageElement}
                     </div>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        id='removeIcon'
+                        title={title ?? ''}
                         placement='right'
-                        overlay={(
-                            <Tooltip id='removeIcon'>
-                                <div aria-hidden={true}>
-                                    {title}
-                                </div>
-                            </Tooltip>
-                        )}
+                        disabled={!title}
                     >
                         <button
                             data-testid='removeSettingPicture'
@@ -250,7 +245,7 @@ export default class SettingPicture extends Component<Props, State> {
                             <span aria-hidden={true}>{'×'}</span>
                             <span className='sr-only'>{title}</span>
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </div>
             );
         }

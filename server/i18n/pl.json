@@ -10090,5 +10090,29 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Nieprawidłowy backend wyszukiwania. Musi to być elasticsearch lub opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Nie można przetworzyć żądania. Treść żądania jest zbyt duża."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Nieprawidłowa maksymalna długość URL dla ustawień usługi. Musi być liczbą całkowitą większą od zera."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Nieprawidłowa wartość dla limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Typem pamięci podręcznej musi być lru lub redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress musi być określony dla typu pamięci podręcznej redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB musi mieć wartość większą lub równą zero."
   }
 ]

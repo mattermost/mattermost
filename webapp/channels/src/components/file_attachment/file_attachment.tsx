@@ -12,10 +12,9 @@ import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils
 
 import useTooltip from 'components/common/hooks/useTooltip';
 import GetPublicModal from 'components/get_public_link_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
 import {trimFilename} from 'utils/file_utils';
@@ -226,22 +225,15 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        const tooltip = (
-            <Tooltip id='file-name__tooltip'>
-                {formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
-            </Tooltip>
-        );
-
         return (
             <MenuWrapper
                 onToggle={handleDropdownOpened}
                 stopPropagationOnToggle={true}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={1000}
+                <WithTooltip
+                    id='file-name__tooltip'
+                    title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
                     placement='top'
-                    overlay={tooltip}
                 >
                     <button
                         ref={buttonRef}
@@ -255,7 +247,7 @@ export default function FileAttachment(props: Props) {
                     >
                         <i className='icon icon-dots-vertical'/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     id={`file_dropdown_${props.fileInfo.id}`}
                     ariaLabel={'file menu'}

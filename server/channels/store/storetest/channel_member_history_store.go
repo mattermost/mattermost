@@ -41,7 +41,7 @@ func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
@@ -67,7 +67,7 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
@@ -96,7 +96,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
@@ -192,7 +192,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
@@ -304,7 +304,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
@@ -313,7 +313,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	user2 := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	user2Ptr, err := ss.User().Save(rctx, &user2)
 	require.NoError(t, err)
@@ -377,7 +377,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})

@@ -158,9 +158,10 @@ func TestGetRemoteClusters(t *testing.T) {
 func TestCreateRemoteCluster(t *testing.T) {
 	rcWithTeamAndPassword := &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
-			Name:    "remotecluster",
-			SiteURL: "http://example.com",
-			Token:   model.NewId(),
+			Name:          "remotecluster",
+			SiteURL:       "http://example.com",
+			DefaultTeamId: model.NewId(),
+			Token:         model.NewId(),
 		},
 		Password: "mysupersecret",
 	}
@@ -195,17 +196,35 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	t.Run("Should enforce the presence of the password", func(t *testing.T) {
+	t.Run("Should generate a password if none is given", func(t *testing.T) {
 		// clean the password and check the response
-		rcWithTeamAndPassword.Password = ""
+		rcWithTeamNoPassword := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:    "remotecluster-nopasswd",
+				SiteURL: "http://no-passwd.example.com",
+				Token:   model.NewId(),
+			},
+			Password: "",
+		}
 
-		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithTeamAndPassword)
-		CheckBadRequestStatus(t, resp)
-		require.Error(t, err)
-		require.Empty(t, rcWithInvite)
+		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithTeamNoPassword)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotZero(t, rcWithInvite.Invite)
+		// when the password is not provided, it is returned as part
+		// of the response
+		require.NotZero(t, rcWithInvite.Password)
+		require.Len(t, rcWithInvite.Password, 16)
 
-		// reset password for the next tests
-		rcWithTeamAndPassword.Password = "mysupersecret"
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		require.Nil(t, appErr)
+		require.Equal(t, rcWithTeamNoPassword.Name, rc.Name)
+
+		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithInvite.Password)
+		require.Nil(t, appErr)
+		require.Equal(t, rc.RemoteId, rci.RemoteId)
+		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
 	t.Run("Should return a sanitized remote cluster and its invite", func(t *testing.T) {
@@ -213,9 +232,13 @@ func TestCreateRemoteCluster(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, rcWithTeamAndPassword.Name, rcWithInvite.RemoteCluster.Name)
+		require.Equal(t, rcWithTeamAndPassword.DefaultTeamId, rcWithInvite.RemoteCluster.DefaultTeamId)
 		require.NotZero(t, rcWithInvite.Invite)
 		require.Zero(t, rcWithInvite.RemoteCluster.Token)
 		require.Zero(t, rcWithInvite.RemoteCluster.RemoteToken)
+		// when the password is provided as an input, is not returned
+		// by the endpoint
+		require.Zero(t, rcWithInvite.Password)
 
 		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
 		require.Nil(t, appErr)
@@ -410,6 +433,7 @@ func TestGetRemoteCluster(t *testing.T) {
 	defer th.TearDown()
 
 	newRC.CreatorId = th.SystemAdminUser.Id
+	newRC.DefaultTeamId = th.BasicTeam.Id
 
 	rc, appErr := th.App.AddRemoteCluster(newRC)
 	require.Nil(t, appErr)
@@ -434,6 +458,7 @@ func TestGetRemoteCluster(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, rc.RemoteId, fetchedRC.RemoteId)
+		require.Equal(t, th.BasicTeam.Id, fetchedRC.DefaultTeamId)
 		require.Empty(t, fetchedRC.Token)
 	})
 }
@@ -446,7 +471,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		Token:       model.NewId(),
 	}
 
-	rcp := &model.RemoteClusterPatch{DisplayName: model.NewString("different value")}
+	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
@@ -488,12 +513,17 @@ func TestPatchRemoteCluster(t *testing.T) {
 	})
 
 	t.Run("should correctly patch the remote cluster", func(t *testing.T) {
-		rcp := &model.RemoteClusterPatch{DisplayName: model.NewString("patched!")}
+		newTeamId := model.NewId()
+		rcp := &model.RemoteClusterPatch{
+			DisplayName:   model.NewPointer("patched!"),
+			DefaultTeamId: model.NewPointer(newTeamId),
+		}
 
 		patchedRC, resp, err := th.SystemAdminClient.PatchRemoteCluster(context.Background(), rc.RemoteId, rcp)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, "patched!", patchedRC.DisplayName)
+		require.Equal(t, newTeamId, patchedRC.DefaultTeamId)
 	})
 }
 
