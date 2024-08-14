@@ -44,7 +44,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
         gotoUserConfigurationPage(testUser);
 
-        verifyManageUserSettingModal(testUser);
+        verifyManageUserSettingModal(testUser, true);
 
         cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
         cy.get('#notificationCommentsNever').should('be.checked');
