@@ -37,7 +37,10 @@ const EmojiListItem = ({
     currentUserId = '',
     creatorDisplayName = '',
 }: Props) => {
-    let displayName = creatorDisplayName;
+    const emoticonStyle = useMemo(() => {
+        return {backgroundImage: `url(${Client4.getCustomEmojiImageUrl(emoji.id)})`};
+    }, [emoji.id]);
+
     const handleDelete = useCallback((): void => {
         if (!emoji) {
             return;
@@ -48,6 +51,7 @@ const EmojiListItem = ({
         deleteCustomEmoji(emoji.id);
     }, [deleteCustomEmoji, emoji, onDelete]);
 
+    let displayName = creatorDisplayName;
     if (creatorUsername && creatorUsername !== displayName) {
         displayName += ' (@' + creatorUsername + ')';
     }
@@ -69,10 +73,6 @@ const EmojiListItem = ({
             </AnyTeamPermissionGate>
         );
     }
-
-    const emoticonStyle = useMemo(() => {
-        return {backgroundImage: `url(${Client4.getCustomEmojiImageUrl(emoji.id)})`};
-    }, [emoji.id]);
 
     return (
         <tr className='backstage-list__item'>
