@@ -45,8 +45,9 @@ type SupportPacket struct {
 	} `yaml:"database"`
 
 	FileStore struct {
-		Driver string `yaml:"file_driver"`
 		Status string `yaml:"file_status"`
+		Error  string `yaml:"erorr,omitempty"`
+		Driver string `yaml:"file_driver"`
 	} `yaml:"file_store"`
 
 	Websocket struct {
@@ -59,9 +60,10 @@ type SupportPacket struct {
 	} `yaml:"cluster"`
 
 	LDAP struct {
+		Status        string `yaml:"status,omitempty"`
+		Error         string `yaml:"erorr,omitempty"`
 		ServerName    string `yaml:"server_name,omitempty"`
 		ServerVersion string `yaml:"server_version,omitempty"`
-		Status        string `yaml:"status,omitempty"`
 	} `yaml:"ldap"`
 
 	ElasticSearch struct {
