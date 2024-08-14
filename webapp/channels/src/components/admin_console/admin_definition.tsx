@@ -3491,15 +3491,10 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'TeamSettings.EnableOpenServer',
-<<<<<<< HEAD
                             label: t('admin.team.openServerTitle'),
                             label_default: 'Enable Open Server: ',
                             help_text: t('admin.team.openServerDescription'),
-                            help_text_default: 'When true, anyone can signup for a user account on this server without the need to be invited.',
-=======
-                            label: defineMessage({id: 'admin.team.openServerTitle', defaultMessage: 'Enable Open Server: '}),
-                            help_text: defineMessage({id: 'admin.team.openServerDescription', defaultMessage: 'When true, anyone can sign up for a user account on this server without the need to be invited. Applies to Email-based signups only.'}),
->>>>>>> 8f3a13122f (MM-58793 Apply EnableUserCreation to signup.tsx (#27692))
+                            help_text_default: 'When true, anyone can sign up for a user account on this server without the need to be invited. Applies to Email-based signups only.',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
