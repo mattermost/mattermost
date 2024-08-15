@@ -245,7 +245,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
 	}
-	c.SetSiteURLHeader(siteURLHeader)c
+	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())
 	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Channels().License() != nil))
