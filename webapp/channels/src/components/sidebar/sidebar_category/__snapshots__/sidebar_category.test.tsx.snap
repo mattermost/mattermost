@@ -297,39 +297,26 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       }
       handleOpenDirectMessagesModal={[Function]}
     />
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="new-group-tooltip"
-        >
-          Create new direct message
-          <Memo(KeyboardShortcutSequence)
-            hideDescription={true}
-            isInsideTooltip={true}
-            shortcut={
-              Object {
-                "default": Object {
-                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu",
-                },
-                "mac": Object {
-                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu.mac",
-                },
-              }
-            }
-          />
-        </Tooltip>
-      }
+    <WithTooltip
+      id="new-group-tooltip"
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+      title={
+        <Memo(KeyboardShortcutSequence)
+          hideDescription={true}
+          isInsideTooltip={true}
+          shortcut={
+            Object {
+              "default": Object {
+                "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
+                "id": "shortcuts.nav.direct_messages_menu",
+              },
+              "mac": Object {
+                "defaultMessage": "Direct messages menu:	⌘|Shift|K",
+                "id": "shortcuts.nav.direct_messages_menu.mac",
+              },
+            }
+          }
+        />
       }
     >
       <button
@@ -341,7 +328,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
           className="icon-plus"
         />
       </button>
-    </OverlayTrigger>
+    </WithTooltip>
   </SidebarCategoryHeader>
   <div
     className="SidebarChannelGroup_content"
@@ -420,39 +407,26 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       }
       handleOpenDirectMessagesModal={[Function]}
     />
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={500}
-      overlay={
-        <Tooltip
-          className="hidden-xs"
-          id="new-group-tooltip"
-        >
-          Create new direct message
-          <Memo(KeyboardShortcutSequence)
-            hideDescription={true}
-            isInsideTooltip={true}
-            shortcut={
-              Object {
-                "default": Object {
-                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu",
-                },
-                "mac": Object {
-                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
-                  "id": "shortcuts.nav.direct_messages_menu.mac",
-                },
-              }
-            }
-          />
-        </Tooltip>
-      }
+    <WithTooltip
+      id="new-group-tooltip"
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+      title={
+        <Memo(KeyboardShortcutSequence)
+          hideDescription={true}
+          isInsideTooltip={true}
+          shortcut={
+            Object {
+              "default": Object {
+                "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
+                "id": "shortcuts.nav.direct_messages_menu",
+              },
+              "mac": Object {
+                "defaultMessage": "Direct messages menu:	⌘|Shift|K",
+                "id": "shortcuts.nav.direct_messages_menu.mac",
+              },
+            }
+          }
+        />
       }
     >
       <button
@@ -464,7 +438,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
           className="icon-plus"
         />
       </button>
-    </OverlayTrigger>
+    </WithTooltip>
   </SidebarCategoryHeader>
   <div
     className="SidebarChannelGroup_content"
