@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {RenderResult} from '@testing-library/react';
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -11,7 +10,7 @@ import type {SchemaMigration} from '@mattermost/types/admin';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import MigrationsTable from './migrations_table';
 
@@ -45,8 +44,6 @@ describe('components/MigrationsTable', () => {
     });
 
     test('should have called actions.getAppliedSchemaMigrations only when first rendered', async () => {
-        let view: RenderResult;
-
         const mockMigrations = [
             {version: '1.0', name: 'Initial migration'},
             {version: '1.1', name: 'Add users table'},
@@ -60,9 +57,7 @@ describe('components/MigrationsTable', () => {
             },
         };
 
-        act(() => {
-            view = render(withIntl(<MigrationsTable {...withDataProps}/>));
-        });
+        const view = renderWithContext(<MigrationsTable {...withDataProps}/>);
 
         await waitFor(() => {
             expect(withDataProps.actions.getAppliedSchemaMigrations).toHaveBeenCalledTimes(1);
@@ -70,7 +65,7 @@ describe('components/MigrationsTable', () => {
 
         act(() => {
             const newProps = {...withDataProps, className: 'foo'};
-            view.rerender(withIntl(<MigrationsTable {...newProps}/>));
+            view.rerender(<MigrationsTable {...newProps}/>);
         });
 
         await waitFor(() => {
@@ -81,44 +76,4 @@ describe('components/MigrationsTable', () => {
             });
         });
     });
-
-    // test('should match snapshot when no audits exist', () => {
-    //     const wrapper = shallow(
-    //         <AccessHistoryModal {...baseProps} />,
-    //     );
-    //     expect(wrapper).toMatchSnapshot();
-    //     expect(wrapper.find(LoadingScreen).exists()).toBe(true);
-    //     expect(wrapper.find(AuditTable).exists()).toBe(false);
-    // });
-
-    // test('should match snapshot when audits exist', () => {
-    //     const wrapper = shallow(
-    //         <AccessHistoryModal {...baseProps} />,
-    //     );
-
-    //     wrapper.setProps({ userAudits: ['audit1', 'audit2'] });
-    //     expect(wrapper).toMatchSnapshot();
-    //     expect(wrapper.find(LoadingScreen).exists()).toBe(false);
-    //     expect(wrapper.find(AuditTable).exists()).toBe(true);
-    // });
-
-    // test('should have called actions.getUserAudits only when first rendered', () => {
-    //     const actions = {
-    //         getUserAudits: jest.fn(),
-    //     };
-    //     const props = { ...baseProps, actions };
-    //     const view = render(withIntl(<AccessHistoryModal {...props} />));
-
-    //     expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
-    //     const newProps = { ...props, currentUserId: 'foo' };
-    //     view.rerender(withIntl(<AccessHistoryModal {...newProps} />));
-    //     expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
-    // });
-
-    // test('should hide', async () => {
-    //     render(withIntl(<AccessHistoryModal {...baseProps} />));
-    //     await waitFor(() => screen.getByText('Access History'));
-    //     fireEvent.click(screen.getByLabelText('Close'));
-    //     await waitForElementToBeRemoved(() => screen.getByText('Access History'));
-    // });
 });
