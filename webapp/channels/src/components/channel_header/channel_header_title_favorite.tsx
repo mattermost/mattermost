@@ -9,10 +9,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentChannel, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {Constants} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 const ChannelHeaderTitleFavorite = () => {
     const intl = useIntl();
@@ -49,8 +46,8 @@ const ChannelHeaderTitleFavorite = () => {
     }
     ariaLabel = ariaLabel.toLowerCase();
 
-    const toggleFavoriteTooltip = (
-        <Tooltip id='favoriteTooltip' >
+    const title = (
+        <>
             {!isFavorite &&
                 <FormattedMessage
                     id='channelHeader.addToFavorites'
@@ -61,15 +58,15 @@ const ChannelHeaderTitleFavorite = () => {
                     id='channelHeader.removeFromFavorites'
                     defaultMessage='Remove from Favorites'
                 />}
-        </Tooltip>
+        </>
     );
 
     return (
-        <OverlayTrigger
+        <WithTooltip
             key={`isFavorite-${isFavorite}`}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+            id='favoriteTooltip'
+            title={title}
             placement='bottom'
-            overlay={toggleFavoriteTooltip}
             onEntering={removeTooltipLink}
         >
             <button
@@ -81,7 +78,7 @@ const ChannelHeaderTitleFavorite = () => {
             >
                 <i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})}/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
