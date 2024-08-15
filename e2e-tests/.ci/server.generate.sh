@@ -276,7 +276,6 @@ generate_env_files() {
 
   # Generating TEST-specific env files
   # Some are defaulted in .e2erc due to being needed to other scripts as well
-  export CI_BASE_URL="${CI_BASE_URL:-http://localhost:8065}"
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
   export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in

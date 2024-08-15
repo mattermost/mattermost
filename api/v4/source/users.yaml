@@ -2618,16 +2618,16 @@
             type: string
         - name: page
           in: query
-          description: Page specifies which part of the results to return, by PageSize.
+          description: Page specifies which part of the results to return, by perPage.
           required: false
           schema:
             type: integer
-        - name: pageSize
+        - name: per_page
           in: query
-          description: PageSize specifies the size of the returned chunk of results.
-          required: false
+          description: The size of the returned chunk of results.
           schema:
-           type: integer
+            type: integer
+            default: 60
       responses:
         "200":
           description: User's uploads retrieval successful
@@ -2787,18 +2787,17 @@
           default: false
       - name: page
         in: query
-        description: Page specifies which part of the results to return, by PageSize.
+        description: Page specifies which part of the results to return, by per_page.
         required: false
         schema:
           type: integer
           default: 0
-      - name: pageSize
+      - name: per_page
         in: query
-        description: PageSize specifies the size of the returned chunk of results.
-        required: false
+        description: The size of the returned chunk of results.
         schema:
-         default: 30
-         type: integer
+          type: integer
+          default: 60
       - name: totalsOnly
         in: query
         description: Setting this to true will only return the total counts.

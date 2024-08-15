@@ -142,7 +142,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             });
         }
 
-        // # Visit the test channel
+        // # Visit the test channel, and wait for the page to fully load
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open Add Members Dialog
@@ -160,6 +160,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
             // # Search for a text and then check up and down arrow
             cy.findByRole('textbox', {name: 'Search for people or groups'}).
+                wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('u').
                 wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
