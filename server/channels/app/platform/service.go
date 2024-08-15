@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -293,16 +294,21 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	// Needed before loading license
-	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
+	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
+	// Note: we hardcode the session cache to LRU because the session invalidation
+	// path always iterates through the entire cache, leading to a lot of SCAN calls
+	// in case of Redis. We could potentially have a reverse mapping of userIDs to
+	// session IDs, but leaving this one for now.
 	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Session",
 		Size:           model.SessionCacheSize,

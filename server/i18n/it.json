@@ -8722,5 +8722,9 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": " "
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parametri di input non validi."
   }
 ]
