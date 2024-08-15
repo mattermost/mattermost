@@ -3207,7 +3207,7 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 	for id, settings := range s.Plugins {
 		manifest := manifestMap[id]
 
-		for key, _ := range settings {
+		for key := range settings {
 			sanitize := false
 
 			if manifest == nil {
