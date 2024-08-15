@@ -12,6 +12,8 @@ import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {markChannelAsReadOnFocus} from 'actions/views/channel';
+import {markThreadAsRead} from 'actions/views/threads';
+import {getSelectedPostId} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
 import {initializeTeam, joinTeam} from 'components/team_controller/actions';
@@ -43,6 +45,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         teamsList: getMyTeams(state),
         plugins,
         selectedThreadId: getSelectedThreadIdInCurrentTeam(state),
+        selectedPostId: getSelectedPostId(state),
         mfaRequired: checkIfMFARequired(currentUser, license, config, ownProps.match.url),
         disableRefetchingOnBrowserFocus,
         disableWakeUpReconnectHandler,
@@ -53,6 +56,7 @@ const mapDispatchToProps = {
     fetchChannelsAndMembers,
     fetchAllMyTeamsChannelsAndChannelMembersREST,
     markChannelAsReadOnFocus,
+    markThreadAsRead,
     initializeTeam,
     joinTeam,
     unsetActiveChannelOnServer,
