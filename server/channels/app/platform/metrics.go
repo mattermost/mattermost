@@ -6,6 +6,7 @@ package platform
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -138,32 +139,30 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	pm.router = mux.NewRouter()
 	runtime.SetBlockProfileRate(*pm.cfgFn().MetricsSettings.BlockProfileRate)
 
-	metricsPage := `
+	rootMetricsPage := `
 			<html>
-				<body>{{ if .hasMetrics }}
-					<div><a href="metrics">Metrics</a></div>{{ end }}
-					<div><a href="debug/pprof/">Profiling Root</a></div>
-					<div><a href="debug/pprof/cmdline">Profiling Command Line</a></div>
-					<div><a href="debug/pprof/symbol">Profiling Symbols</a></div>
-					<div><a href="debug/pprof/goroutine">Profiling Goroutines</a></div>
-					<div><a href="debug/pprof/heap">Profiling Heap</a></div>
-					<div><a href="debug/pprof/threadcreate">Profiling Threads</a></div>
-					<div><a href="debug/pprof/block">Profiling Blocking</a></div>
-					<div><a href="debug/pprof/trace">Profiling Execution Trace</a></div>{{if .root }}
-					<div><a href="plugins">Plugins Profiling</a></div>{{ end }}
+				<body>{{if .}}
+					<div><a href="/metrics">Metrics</a></div>{{end}}
+					<div><a href="/debug/pprof/">Profiling Root</a></div>
+					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
+					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
+					<div><a href="/plugins">Plugins Profiling</a></div>
 				</body>
 			</html>
 		`
-	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
+	metricsPageTmpl, err := template.New("rootMetricsPage").Parse(rootMetricsPage)
 	if err != nil {
 		return errors.Wrap(err, "failed to create template")
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, map[string]any{
-			"hasMetrics": pm.metricsImpl != nil,
-			"root":       true,
-		})
+		pm.renderTemplate(metricsPageTmpl, r, w, pm.metricsImpl != nil)
 	}
 
 	pm.router.HandleFunc("/", rootHandler)
@@ -187,11 +186,29 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	pluginsRouter := pm.router.PathPrefix("/plugins").Subrouter()
 	pluginsRouter.HandleFunc("/", pm.serveListPluginsRequest)
 
+	pluginMetricsPage := `
+			<html>
+				<body>
+					<div><a href="debug/pprof/">Profiling Root</a></div>
+					<div><a href="debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="debug/pprof/trace">Profiling Execution Trace</a></div>
+					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
+				</body>
+			</html>
+		`
+
+	pluginMetricsPageTmpl, err := template.New("pluginMetricsPage").Parse(pluginMetricsPage)
+	if err != nil {
+		return errors.Wrap(err, "failed to create template")
+	}
 	pluginRouter := pluginsRouter.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginRouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, map[string]any{
-			"hasMetrics": pm.metricsImpl != nil,
-		})
+		pm.renderTemplate(pluginMetricsPageTmpl, r, w, nil)
 	})
 
 	// Plugins metrics route
@@ -249,8 +266,7 @@ func (pm *platformMetrics) serveListPluginsRequest(w http.ResponseWriter, r *htt
 		return
 	}
 
-	metricsPageTmpl.Execute(w, ids)
-
+	pm.renderTemplate(metricsPageTmpl, r, w, ids)
 }
 
 func (pm *platformMetrics) servePluginDebugMetricsRequest(w http.ResponseWriter, r *http.Request) {
@@ -325,6 +341,16 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 	// Passing an empty plugin context for the time being. To be decided whether we
 	// should support forms of authentication in the future.
 	hooks.ServeMetrics(&plugin.Context{}, w, r)
+}
+
+func (pm *platformMetrics) renderTemplate(tmpl *template.Template, r *http.Request, w io.Writer, data any) {
+	err := tmpl.Execute(w, data)
+	if err != nil {
+		pm.logger.Warn("Failed to debug metrics page",
+			mlog.String("path", r.URL.Path),
+			mlog.Err(err),
+		)
+	}
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
