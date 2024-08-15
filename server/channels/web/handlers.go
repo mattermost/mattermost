@@ -245,7 +245,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
 	}
-	c.SetSiteURLHeader(siteURLHeader)
+	c.SetSiteURLHeader(siteURLHeader)c
 
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())
 	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Channels().License() != nil))
@@ -491,8 +491,8 @@ func GetOriginClient(r *http.Request) OriginClient {
 	return OriginClientWeb
 }
 
-// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
-// a CSRF check occurred and whether or not it succeeded.
+// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether
+// a CSRF check occurred and whether it succeeded.
 func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
 	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
@@ -508,11 +508,6 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 
 			sid := ""
 			userId := ""
-
-			if session != nil {
-				sid = session.Id
-				userId = session.UserId
-			}
 
 			fields := []mlog.Field{
 				mlog.String("path", r.URL.Path),
