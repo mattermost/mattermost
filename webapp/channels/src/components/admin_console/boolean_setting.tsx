@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
@@ -116,9 +116,9 @@ const BooleanSetting = ({
         return helpText;
     }, [helpText, disabled, disabledText]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.value === 'true');
-    };
+    }, [id]);
 
     return (
         <Setting
