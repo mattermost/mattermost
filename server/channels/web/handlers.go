@@ -506,8 +506,8 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 
-			sid := ""
-			userId := ""
+			sid := session.Id
+			userId := session.UserId
 
 			fields := []mlog.Field{
 				mlog.String("path", r.URL.Path),
