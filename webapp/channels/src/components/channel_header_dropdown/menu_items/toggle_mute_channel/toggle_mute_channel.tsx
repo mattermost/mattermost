@@ -56,7 +56,7 @@ export default function MenuItemToggleMuteChannel({
         actions.updateChannelNotifyProps(user.id, channel.id, {
             mark_unread: (isMuted ? NotificationLevels.ALL : NotificationLevels.MENTION) as 'all' | 'mention',
         });
-    }, [actions]);
+    }, [actions, isMuted, user.id, channel.id]);
 
     let text;
     if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
