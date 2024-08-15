@@ -12,6 +12,10 @@ type Props = {
     buildHash?: string;
 }
 
+const reloadPage = () => {
+    window.location.reload();
+};
+
 const VersionBar = ({
     buildHash,
 }: Props) => {
@@ -22,10 +26,6 @@ const VersionBar = ({
             setBuildHashOnAppLoad(buildHash);
         }
     }, [buildHash, buildHashOnAppLoad]);
-
-    const reloadPage = () => {
-        window.location.reload();
-    };
 
     if (!buildHashOnAppLoad || buildHashOnAppLoad === buildHash) {
         return null;
