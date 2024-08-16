@@ -67,7 +67,6 @@ const ChannelHeaderTitleFavorite = () => {
             id='favoriteTooltip'
             title={title}
             placement='bottom'
-            onEntering={removeTooltipLink}
         >
             <button
                 id='toggleFavorite'
