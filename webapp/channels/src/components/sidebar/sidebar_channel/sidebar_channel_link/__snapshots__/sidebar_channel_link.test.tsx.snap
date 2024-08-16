@@ -182,7 +182,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   >
     <WithTooltip
       id="channel-displayname__tooltip"
-      onEntering={[Function]}
       placement="top"
       title="channel_label"
     >

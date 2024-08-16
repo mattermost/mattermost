@@ -205,7 +205,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                     id='channel-displayname__tooltip'
                     title={label}
                     placement={'top'}
-                    onEntering={this.removeTooltipLink}
                 >
                     {labelElement}
                 </WithTooltip>
