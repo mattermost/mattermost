@@ -48,7 +48,7 @@ func (a *App) NotifySessionsExpired() error {
 		errPush := a.sendToPushProxy(tmpMessage, session)
 		if errPush != nil {
 			reason := model.NotificationReasonPushProxySendError
-			if err.Error() == notificationErrorRemoveDevice {
+			if errPush.Error() == notificationErrorRemoveDevice {
 				reason = model.NotificationReasonPushProxyRemoveDevice
 			}
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
