@@ -149,9 +149,9 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
                 <WithTooltip
                     id={scheme.id + '-extra-teams-overlay'}
                     title={
-                        <>
+                        <div className='team-scheme-extra-teams-overlay'>
                             {teams.slice(MAX_TEAMS_PER_SCHEME_SUMMARY)}
-                        </>}
+                        </div>}
                     placement='bottom'
                 >
                     <span

@@ -266,7 +266,9 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       id="id-extra-teams-overlay"
       placement="bottom"
       title={
-        <React.Fragment>
+        <div
+          className="team-scheme-extra-teams-overlay"
+        >
           <span
             className="team"
           >
@@ -277,7 +279,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           >
             Team 10
           </span>
-        </React.Fragment>
+        </div>
       }
     >
       <span
