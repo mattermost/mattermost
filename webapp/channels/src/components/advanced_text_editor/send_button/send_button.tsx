@@ -3,7 +3,7 @@
 
 import React, {FormEvent, memo, useCallback, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
@@ -18,6 +18,7 @@ import classNames from 'classnames';
 import WithTooltip from 'components/with_tooltip';
 import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+import {createSchedulePost} from "actions/schedule_message";
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent) => void;
@@ -38,6 +39,7 @@ const SendButtonContainer = styled.button`
 
 const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
     const sendMessage = (e: React.FormEvent) => {
         e.stopPropagation();
@@ -72,7 +74,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
     }, [sendOnCtrlEnter]);
 
     const schedulePost = useCallback((timestamp: number) => {
-        console.log(timestamp);
+        const {data: success} = await dispatch(createSchedulePost({}));
     }, []);
 
     return (

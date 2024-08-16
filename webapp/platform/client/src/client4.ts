@@ -145,6 +145,7 @@ import type {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
+import {SchedulePost} from "@mattermost/types/lib/schedule_post";
 
 const HEADER_AUTH = 'Authorization';
 const HEADER_BEARER = 'BEARER';
@@ -4312,6 +4313,14 @@ export default class Client4 {
         return this.doFetchWithResponse<Channel>(
             `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
             {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    // Schedule Post methods
+    createSchedulePost = (schedulePost: SchedulePost, connectionId: string) => {
+        return this.doFetchWithResponse<SchedulePost>(
+            `${this.getPostsRoute()}/schedule`,
+            {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
         );
     };
 }
