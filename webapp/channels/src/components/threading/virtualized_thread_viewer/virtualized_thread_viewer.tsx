@@ -451,6 +451,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                                     style={virtListStyles}
                                     width={width}
                                     className={'post-list__dynamic--RHS'}
+                                    correctScrollToBottom={true}
                                 >
                                     {this.renderRow}
                                 </DynamicSizeList>
