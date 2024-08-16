@@ -24,3 +24,12 @@ export const isSendOnCtrlEnter = (state: GlobalState) => {
         false,
     );
 };
+
+export const isUseMilitaryTime = (state: GlobalState) => {
+    return getBoolPreference(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.USE_MILITARY_TIME,
+        false,
+    );
+};

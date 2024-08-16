@@ -5807,5 +5807,9 @@
   "yourcomputer": "Your computer",
   "create_post_button.option.send_now": "Send Now",
   "create_post_button.option.schedule_message": "Schedule message",
-  "create_post_button.option.schedule_message.options.header": "Schedule message"
+  "create_post_button.option.schedule_message.options.header": "Schedule message",
+  "create_post_button.option.schedule_message.options.monday": "Monday at {9amTime}",
+  "create_post_button.option.schedule_message.options.tomorrow": "Tomorrow at {9amTime}",
+  "create_post_button.option.schedule_message.options.next_monday": "Next Monday at {9amTime}",
+  "create_post_button.option.schedule_message.options.choose_custom_time": "Choose a custom time"
 }

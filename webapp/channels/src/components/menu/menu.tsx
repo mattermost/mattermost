@@ -64,8 +64,8 @@ type MenuProps = {
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'};
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'};
 
-type VerticalOrigin = 'top' | 'center' | 'bottom';
-type HorizontalOrigin = 'left' | 'center' | 'right';
+type VerticalOrigin = 'top' | 'center' | 'bottom' | number;
+type HorizontalOrigin = 'left' | 'center' | 'right' | number;
 
 interface Props {
     menuButton: MenuButtonProps;
