@@ -1,0 +1,60 @@
+  /api/v4/posts/schedule:
+    post:
+      tags:
+        - scheduled_post
+      summary: Creates a scheduled post
+      description: >
+        Creates a scheduled post
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel the post is being created in.
+
+      operationId: CreateScheduledPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - message
+                - scheduled_at
+              properties:
+                scheduled_at:
+                  type: integer
+                  description: UNIX timestamp in milliseconds of the time when the scheduled post should be sent
+                channel_id:
+                  type: string
+                  description: The channel ID to post in
+                message:
+                  type: string
+                  description: The message contents, can be formatted with Markdown
+                root_id:
+                  type: string
+                  description: The post ID to comment on
+                file_ids:
+                  type: array
+                  description: A list of file IDs to associate with the post. Note that
+                    posts are limited to 5 files maximum. Please use additional
+                    posts for more files.
+                props:
+                  description: A general JSON property bag to attach to the post
+                  type: object
+      responses:
+        "200":
+          description: Created scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
