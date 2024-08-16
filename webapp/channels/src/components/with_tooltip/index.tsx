@@ -33,7 +33,6 @@ const WithTooltip = ({
     delayHide,
     children,
     onExit,
-    shouldUpdatePosition,
     disabled = false,
 }: WithTooltipProps) => {
     const ThisTooltip = useMemo(() => createTooltip({
@@ -52,8 +51,7 @@ const WithTooltip = ({
             placement={placement}
             onEnter={onShow}
             delayHide={delayHide}
-            onExit={onExit}
-            shouldUpdatePosition={shouldUpdatePosition}
+            // onExit={onExit}
             disabled={disabled}
         >
             {children}

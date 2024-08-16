@@ -96,8 +96,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             key='filePreviewPublicLink'
             placement={tooltipPlacement}
             title={publicTooltipMessage}
-            shouldUpdatePosition={true}
-            onExit={() => setPublicLinkCopied(false)}
+            // onExit={() => setPublicLinkCopied(false)}
         >
             <a
                 href='#'
