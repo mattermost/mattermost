@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent, memo, useMemo} from 'react';
+import React, {FormEvent, memo, useCallback, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -71,6 +71,10 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
         return shortcutDefinition;
     }, [sendOnCtrlEnter]);
 
+    const schedulePost = useCallback((timestamp: number) => {
+        console.log(timestamp);
+    }, []);
+
     return (
         <div className={classNames('splitSendButton', {disabled})}>
             <WithTooltip
@@ -104,6 +108,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
             <SendPostOptions
                 disabled={disabled}
+                onSelect={schedulePost}
             />
         </div>
     );

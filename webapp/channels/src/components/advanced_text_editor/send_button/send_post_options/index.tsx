@@ -14,9 +14,10 @@ import Timestamp from 'components/timestamp';
 
 type Props = {
     disabled?: boolean;
+    onSelect: (number) => void;
 }
 
-export function SendPostOptions({disabled}: Props) {
+export function SendPostOptions({disabled, onSelect}: Props) {
     const {formatMessage} = useIntl();
 
     const coreMenuOptions = useMemo(() => {
@@ -31,8 +32,15 @@ export function SendPostOptions({disabled}: Props) {
             />
         );
 
+        const tomorrow9amTime = new Date();
+        tomorrow9amTime.setHours(9, 0, 0, 0);
+        tomorrow9amTime.setDate(today.getDate() + 1);
+
         const optionTomorrow = (
             <Menu.Item
+                onClick={() => {
+                    onSelect(tomorrow9amTime.getTime());
+                }}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.tomorrow'
@@ -43,8 +51,17 @@ export function SendPostOptions({disabled}: Props) {
             />
         );
 
+        const nextMonday = new Date();
+        const dayOfWeek = today.getDay();
+        const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
+        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+        nextMonday.setHours(9, 0, 0, 0);
+
         const optionNextMonday = (
             <Menu.Item
+                onClick={() => {
+                    onSelect(nextMonday.getTime());
+                }}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.next_monday'
@@ -57,6 +74,9 @@ export function SendPostOptions({disabled}: Props) {
 
         const optionMonday = (
             <Menu.Item
+                onClick={() => {
+                    onSelect(nextMonday.getTime());
+                }}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.monday'
