@@ -20,28 +20,32 @@ const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
     const prevData = useRef(data);
 
     useEffect(() => {
-        const isEqual = data === prevData.current || deepEqual(prevData.current, data);
+        const isEqual = deepEqual(prevData.current, data);
 
-        if (!isEqual) {
-            if (chartRef.current) {
-                chartRef.current.destroy();
-            }
-
-            if (canvasRef.current && data) {
-                const ctx = canvasRef.current.getContext('2d');
-                if (ctx) {
-                    const dataCopy = JSON.parse(JSON.stringify(data));
-                    chartRef.current = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: dataCopy,
-                        options: {},
-                    });
-                }
-            }
-
-            prevData.current = data;
+        if (isEqual) {
+            return; 
         }
 
+        if (chartRef.current) {
+            chartRef.current.update();
+        }
+
+        else if (canvasRef.current && data) {
+            const ctx = canvasRef.current.getContext('2d');
+            if (ctx) {
+                chartRef.current = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: JSON.parse(JSON.stringify(data)),
+                    options: {},
+                });
+            }
+        }
+    }, [data]);
+
+    useEffect(() => {
+        return () => {
+            prevData.current = data;
+        };
     }, [data]);
 
     useEffect(() => {
