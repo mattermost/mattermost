@@ -240,11 +240,11 @@ jobs:
         # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
         # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
         #
-        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
-        os: [ubuntu-latest-8-cores]
+        #os: [ubuntu-latest, windows-2022, macos-12-xl]
+        os: [ubuntu-latest]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 90
+    timeout-minutes: 120
     needs:
       - cypress-check
       - playwright-check
@@ -265,7 +265,7 @@ jobs:
       MM_ENV: "${{ inputs.MM_ENV }}"
       BRANCH: "${{ inputs.BRANCH }}"
       BUILD_ID: "${{ inputs.BUILD_ID }}"
-      CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
+      CI_BASE_URL: "${{ matrix.os }}-${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
@@ -326,6 +326,7 @@ jobs:
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
+          retention-days: 1
 
   report:
     runs-on: ubuntu-latest
@@ -349,6 +350,13 @@ jobs:
         with:
           path: e2e-tests/cypress/
           merge-multiple: true
+      - name: ci/upload-report-global
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
       - name: ci/report-calculate-failures
         id: calculate-failures
         run: |
