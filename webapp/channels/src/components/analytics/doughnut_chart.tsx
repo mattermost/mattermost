@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef} from 'react';
+import deepEqual from 'fast-deep-equal';
 import type {ChartData} from 'chart.js';
 import Chart from 'chart.js/auto';
-import deepEqual from 'fast-deep-equal';
+import React, {useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 type Props = {
@@ -23,7 +23,7 @@ const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
         const isEqual = deepEqual(prevData.current, data);
 
         if (isEqual) {
-            return; 
+            return;
         }
 
         if (chartRef.current) {

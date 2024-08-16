@@ -1,7 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import type {ChartData} from 'chart.js';
+import type {Chart, ChartData} from 'chart.js';
 import {shallow, mount} from 'enzyme';
 import React from 'react';
 
@@ -9,12 +6,7 @@ import DoughnutChart from 'components/analytics/doughnut_chart';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-jest.mock('chart.js', () => ({
-    Chart: jest.fn().mockImplementation(() => ({
-        destroy: jest.fn(),
-        update: jest.fn(),
-    })),
-}));
+jest.mock('chart.js');
 
 describe('components/analytics/doughnut_chart.tsx', () => {
     test('should match snapshot, on loading', () => {
@@ -42,7 +34,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart.Chart).not.toBeCalled();
+        expect(Chart).not.toBeCalled();
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -62,7 +54,8 @@ describe('components/analytics/doughnut_chart.tsx', () => {
                 data={data}
             />,
         );
-        expect(Chart.Chart).toBeCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
+
+        expect(Chart).toBeCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -76,7 +69,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -85,10 +78,9 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart.Chart).toBeCalled();
-        const chartInstance = Chart.Chart.mock.instances[0];
+        expect(Chart).toBeCalled();
         wrapper.unmount();
-        expect(chartInstance.destroy).toBeCalled();
+        expect(Chart.mock.instances[0].destroy).toBeCalled();
     });
 
     test('should update the chart on data change', () => {
@@ -108,7 +100,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3', 'test4'],
         };
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -117,10 +109,13 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart.Chart).toBeCalled();
-        const chartInstance = Chart.Chart.mock.instances[0];
-        expect(chartInstance.update).not.toBeCalled();
+        expect(Chart).toBeCalled();
+        expect(Chart.mock.instances[0].update).not.toBeCalled();
+
+        wrapper.setProps({title: 'new title'});
+        expect(Chart.mock.instances[0].update).not.toBeCalled();
+
         wrapper.setProps({data: newData});
-        expect(chartInstance.update).toBeCalled();
+        expect(Chart.mock.instances[0].update).toBeCalled();
     });
 });
