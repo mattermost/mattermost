@@ -67,6 +67,7 @@ describe('Integrations', () => {
                 click();
 
             // * Verify that only "Hello World" is posted in off-topic channel
+            cy.uiWaitUntilMessagePostedIncludes('Hello World');
             cy.getLastPostId().then((postId) => {
                 cy.get(`#postMessageText_${postId}`).should('be.visible').and('have.text', 'Hello World');
             });
@@ -103,6 +104,7 @@ describe('Integrations', () => {
                 click();
 
             // * Verify that both messages are posted in off-topic channel
+            cy.uiWaitUntilMessagePostedIncludes('Hello World');
             cy.getLastPostId().then((postId) => {
                 cy.get(`#postMessageText_${postId}`).should('be.visible').and('have.text', 'Hello World');
             });
