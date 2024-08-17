@@ -129,9 +129,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         return ariaLabel.toLowerCase();
     };
 
-    // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
-    removeTooltipLink = (): void => this.labelRef.current?.removeAttribute?.('aria-describedby');
-
     handleChannelClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
         mark(Mark.ChannelLinkClicked);
         this.handleSelectChannel(event);
