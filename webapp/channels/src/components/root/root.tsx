@@ -337,7 +337,8 @@ export default class Root extends React.PureComponent<Props, State> {
             this.setRootMeta();
         }
 
-        if (prevState.configLoaded !== this.state.configLoaded && this.state.configLoaded) {
+        const isConfigNowLoaded = prevState.configLoaded === false && this.state.configLoaded === true;
+        if (isConfigNowLoaded) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 InitialLoadingScreen.stop();
             }
