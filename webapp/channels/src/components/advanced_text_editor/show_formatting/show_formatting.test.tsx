@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
@@ -15,21 +15,21 @@ jest.mock('components/with_tooltip', () => {
 
 describe('ShowFormatting Component', () => {
     it('should render correctly with default props', () => {
-        const {getByLabelText} = renderWithContext(
+        renderWithContext(
             <IntlProvider locale='en'>
                 <ShowFormatting
-                    onClick={() => {}}
+                    onClick={jest.fn()}
                     active={false}
                 />
             </IntlProvider>,
         );
 
-        expect(getByLabelText('Eye Icon')).toBeInTheDocument();
+        expect(screen.getByLabelText('Eye Icon')).toBeInTheDocument();
     });
 
     it('should call onClick handler when clicked', () => {
         const onClick = jest.fn();
-        const {getByLabelText} = renderWithContext(
+        renderWithContext(
             <IntlProvider locale='en'>
                 <ShowFormatting
                     onClick={onClick}
@@ -38,7 +38,7 @@ describe('ShowFormatting Component', () => {
             </IntlProvider>,
         );
 
-        fireEvent.click(getByLabelText('Eye Icon'));
+        fireEvent.click(screen.getByLabelText('Eye Icon'));
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
@@ -46,7 +46,7 @@ describe('ShowFormatting Component', () => {
         const {container} = renderWithContext(
             <IntlProvider locale='en'>
                 <ShowFormatting
-                    onClick={() => {}}
+                    onClick={jest.fn()}
                     active={true}
                 />
             </IntlProvider>,
