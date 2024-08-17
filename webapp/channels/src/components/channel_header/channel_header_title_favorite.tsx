@@ -31,11 +31,6 @@ const ChannelHeaderTitleFavorite = () => {
         }
     }, [isFavorite, channel?.id]);
 
-    const removeTooltipLink = useCallback(() => {
-        // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
-        toggleFavoriteRef.current?.removeAttribute('aria-describedby');
-    }, []);
-
     if (!channel || channelIsArchived) {
         return null;
     }
