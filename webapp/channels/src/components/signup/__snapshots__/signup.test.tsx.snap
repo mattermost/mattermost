@@ -1,5 +1,82 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/signup/Signup should match snapshot for all signup options enabled with EnableUserCreaton disabled 1`] = `
+<div
+  className="signup-body"
+>
+  <div
+    className="signup-body-content"
+  >
+    <div
+      className="signup-body-message with-alternate-link"
+    >
+      <h1
+        className="signup-body-message-title"
+      >
+        Let’s get started
+      </h1>
+      <p
+        className="signup-body-message-subtitle"
+      >
+        Create your Mattermost account to start collaborating with your team
+      </p>
+      <div
+        className="signup-body-message-svg"
+      >
+        <Svg />
+      </div>
+    </div>
+    <div
+      className="signup-body-action"
+    >
+      <AlternateLink
+        alternateLinkLabel="Log in"
+        alternateLinkPath="/login"
+        alternateMessage="Already have an account?"
+        className="signup-body-alternate-link"
+      />
+      <div
+        className="signup-body-card"
+      >
+        <div
+          className="signup-body-card-content"
+          onKeyDown={[Function]}
+          tabIndex={0}
+        >
+          <p
+            className="signup-body-card-title"
+          >
+            Create your account with one of the following:
+          </p>
+          <div
+            className="signup-body-card-form-login-options column"
+          >
+            <ExternalLoginButton
+              direction="column"
+              icon={<LockIcon />}
+              id="ldap"
+              key="ldap"
+              label="AD/LDAP Credentials"
+              onClick={[Function]}
+              url="/login?extra=create_ldap"
+            />
+            <ExternalLoginButton
+              direction="column"
+              icon={<LockIcon />}
+              id="saml"
+              key="saml"
+              label="SAML"
+              onClick={[Function]}
+              url="/login/sso/saml?action=signup"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/signup/Signup should match snapshot for all signup options enabled with isLicensed disabled 1`] = `
 <div
   className="signup-body"
@@ -116,7 +193,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -290,7 +366,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
