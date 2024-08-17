@@ -23,18 +23,16 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
     const buttonAriaLabel = formatMessage({id: 'accessibility.button.preview', defaultMessage: 'preview'});
     const iconAriaLabel = formatMessage({id: 'generic_icons.preview', defaultMessage: 'Eye Icon'});
 
-    const title = (
-        <KeyboardShortcutSequence
-            shortcut={KEYBOARD_SHORTCUTS.msgMarkdownPreview}
-            hoistDescription={true}
-            isInsideTooltip={true}
-        />
-    );
-
     return (
         <WithTooltip
             id='PreviewInputTextButtonTooltip'
-            title={title}
+            title={
+                <KeyboardShortcutSequence
+                    shortcut={KEYBOARD_SHORTCUTS.msgMarkdownPreview}
+                    hoistDescription={true}
+                    isInsideTooltip={true}
+                />
+            }
             placement='left'
         >
             <IconContainer
