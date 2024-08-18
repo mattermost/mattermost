@@ -320,23 +320,9 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -725,23 +711,9 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -1132,23 +1104,9 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -1605,23 +1563,9 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"

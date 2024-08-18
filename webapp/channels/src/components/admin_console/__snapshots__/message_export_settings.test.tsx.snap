@@ -141,15 +141,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
         savingMessage="Saving Config..."
@@ -435,15 +427,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
         savingMessage="Saving Config..."
@@ -615,15 +599,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
         savingMessage="Saving Config..."
@@ -909,15 +885,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
         savingMessage="Saving Config..."

@@ -491,8 +491,8 @@ func GetOriginClient(r *http.Request) OriginClient {
 	return OriginClientWeb
 }
 
-// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
-// a CSRF check occurred and whether or not it succeeded.
+// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether
+// a CSRF check occurred and whether it succeeded.
 func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
 	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
@@ -506,19 +506,11 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 
-			sid := ""
-			userId := ""
-
-			if session != nil {
-				sid = session.Id
-				userId = session.UserId
-			}
-
 			fields := []mlog.Field{
 				mlog.String("path", r.URL.Path),
 				mlog.String("ip", r.RemoteAddr),
-				mlog.String("session_id", sid),
-				mlog.String("user_id", userId),
+				mlog.String("session_id", session.Id),
+				mlog.String("user_id", session.UserId),
 			}
 
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {

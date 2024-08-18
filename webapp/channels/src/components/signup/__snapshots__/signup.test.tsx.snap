@@ -193,7 +193,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -367,7 +366,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
