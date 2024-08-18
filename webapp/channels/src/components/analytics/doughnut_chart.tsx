@@ -46,11 +46,12 @@ const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
     useEffect(() => {
         return () => {
             chartRef.current?.destroy();
+            chartRef.current = null;
         };
     }, []);
 
     let content;
-    if (!data) {
+    if (typeof data == 'undefined') {
         content = (
             <FormattedMessage
                 id='analytics.chart.loading'
@@ -58,11 +59,13 @@ const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
             />
         );
     } else {
-        content = (<canvas
-            ref={canvasRef}
-            width={width}
-            height={height}
-                   />);
+        content = (
+            <canvas
+                ref={canvasRef}
+                width={width}
+                height={height}
+            />
+        );
     }
 
     return (

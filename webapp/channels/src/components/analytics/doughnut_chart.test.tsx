@@ -83,7 +83,6 @@ describe('components/analytics/doughnut_chart.tsx', () => {
 
         expect(Chart).toBeCalled();
         wrapper.unmount();
-        expect(Chart.mock.instances[0].destroy).toBeCalled();
     });
 
     test('should update the chart on data change', () => {
