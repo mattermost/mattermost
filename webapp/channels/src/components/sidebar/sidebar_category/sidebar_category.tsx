@@ -278,11 +278,15 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     <WithTooltip
                         id='new-group-tooltip'
                         title={
-                            <KeyboardShortcutSequence
-                                shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
-                                hideDescription={true}
-                                isInsideTooltip={true}
-                            />}
+                            <>
+                                {addHelpLabel}
+                                <KeyboardShortcutSequence
+                                    shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
+                                    hideDescription={true}
+                                    isInsideTooltip={true}
+                                />
+                            </>
+                        }
                         placement='top'
                     >
                         <button
