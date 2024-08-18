@@ -126,19 +126,16 @@ const noop = () => {};
 export type Props = PropsFromRedux & RouteComponentProps;
 
 interface State {
-    configLoaded?: boolean;
+    shouldMountAppRoutes?: boolean;
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    private mounted: boolean;
-
     // The constructor adds a bunch of event listeners,
     // so we do need this.
     private a11yController: A11yController;
 
     constructor(props: Props) {
         super(props);
-        this.mounted = false;
 
         // Redux
         setUrl(getSiteURL());
@@ -167,7 +164,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.state = {
-            configLoaded: false,
+            shouldMountAppRoutes: false,
         };
 
         this.a11yController = new A11yController();
@@ -241,19 +238,11 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     onConfigLoaded = () => {
-        if (this.props.location.pathname === '/' && this.props.noAccounts) {
-            this.props.history.push('/signup_user_complete');
-        }
-
         Promise.all([
             this.props.actions.initializeProducts(),
             initializePlugins(),
         ]).then(() => {
-            if (this.mounted) {
-                // supports enzyme tests, set state if and only if
-                // the component is still mounted on screen
-                this.setState({configLoaded: true});
-            }
+            this.setState({shouldMountAppRoutes: true});
         });
 
         this.props.actions.migrateRecentEmojis();
@@ -341,7 +330,7 @@ export default class Root extends React.PureComponent<Props, State> {
             this.setRootMeta();
         }
 
-        if (prevProps.isConfigLoaded !== this.props.isConfigLoaded && this.props.isConfigLoaded) {
+        if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
         }
     }
@@ -371,23 +360,25 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
-        const isUserAtRootRoute = this.props.location.pathname === '/';
+        const {isLoaded, isMeRequested} = await this.props.actions.loadConfigAndMe();
 
-        const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
+        if (isLoaded) {
+            const isUserAtRootRoute = this.props.location.pathname === '/';
 
-        if (isMeLoaded && isUserAtRootRoute) {
-            this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
-        }
+            if (isUserAtRootRoute) {
+                if (isMeRequested) {
+                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
+                } else if (this.props.noAccounts) {
+                    this.props.history.push('/signup_user_complete');
+                }
+            }
 
-        if (config) {
             this.onConfigLoaded();
         }
     };
 
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
-
-        this.mounted = true;
 
         this.initiateMeRequests();
 
@@ -399,7 +390,6 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        this.mounted = false;
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
     }
 
@@ -420,7 +410,7 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     render() {
-        if (!this.state.configLoaded) {
+        if (!this.state.shouldMountAppRoutes) {
             return <div/>;
         }
 

@@ -17,7 +17,12 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadRecentlyUsedCustomEmojis, migrateRecentEmojis} from 'actions/emoji_actions';
-import {loadConfigAndMe, registerCustomPostRenderer} from 'actions/views/root';
+import {
+    loadConfigAndMe,
+    registerCustomPostRenderer,
+    handleLoginLogoutSignal,
+    redirectToOnboardingOrDefaultTeam,
+} from 'actions/views/root';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
 import {
@@ -31,7 +36,6 @@ import {initializeProducts} from 'plugins/products';
 
 import type {GlobalState} from 'types/store/index';
 
-import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import Root from './root';
 
 function mapStateToProps(state: GlobalState) {
