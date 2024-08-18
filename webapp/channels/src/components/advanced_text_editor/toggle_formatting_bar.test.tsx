@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
@@ -16,22 +16,22 @@ jest.mock('components/with_tooltip', () => {
 
 describe('ToggleFormattingBar Component', () => {
     it('should render correctly with default props', () => {
-        const {getAllByLabelText} = renderWithContext(
+        renderWithContext(
             <IntlProvider locale='en'>
                 <ToggleFormattingBar
-                    onClick={() => {}}
+                    onClick={jest.fn()}
                     active={false}
                     disabled={false}
                 />
             </IntlProvider>,
         );
 
-        expect(getAllByLabelText('Format letter Case Icon')[0]).toBeInTheDocument();
+        expect(screen.getAllByLabelText('Format letter Case Icon')[0]).toBeInTheDocument();
     });
 
     it('should call onClick handler when clicked', () => {
         const onClick = jest.fn();
-        const {getByLabelText} = renderWithContext(
+        renderWithContext(
             <IntlProvider locale='en'>
                 <ToggleFormattingBar
                     onClick={onClick}
@@ -41,13 +41,13 @@ describe('ToggleFormattingBar Component', () => {
             </IntlProvider>,
         );
 
-        fireEvent.click(getByLabelText('formatting'));
+        fireEvent.click(screen.getByLabelText('formatting'));
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
     it('should not be clickable when disabled', () => {
         const onClick = jest.fn();
-        const {getByLabelText} = renderWithContext(
+        renderWithContext(
             <IntlProvider locale='en'>
                 <ToggleFormattingBar
                     onClick={onClick}
@@ -57,21 +57,21 @@ describe('ToggleFormattingBar Component', () => {
             </IntlProvider>,
         );
 
-        fireEvent.click(getByLabelText('formatting'));
+        fireEvent.click(screen.getByLabelText('formatting'));
         expect(onClick).not.toHaveBeenCalled();
     });
 
     it('should have the correct id based on active prop', () => {
-        const {getByRole} = renderWithContext(
+        renderWithContext(
             <IntlProvider locale='en'>
                 <ToggleFormattingBar
-                    onClick={() => {}}
+                    onClick={jest.fn()}
                     active={true}
                     disabled={false}
                 />
             </IntlProvider>,
         );
 
-        expect(getByRole('button')).toHaveAttribute('id', 'toggleFormattingBarButton');
+        expect(screen.getByRole('button')).toHaveAttribute('id', 'toggleFormattingBarButton');
     });
 });
