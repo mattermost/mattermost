@@ -32,7 +32,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import useGroups from './use_groups';
-import {ScheduleInfo} from "@mattermost/types/lib/schedule_post";
+import {ScheduledPostInfo} from "@mattermost/types/lib/schedule_post";
 import {options} from "yargs";
 
 function getStatusFromSlashCommand(message: string) {
@@ -118,7 +118,7 @@ const useSchedulePost = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, scheduleInfo?: ScheduleInfo) => {
+    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, scheduleInfo?: ScheduledPostInfo) => {
         e?.preventDefault();
         console.log(scheduleInfo);
         if (submittingDraft.uploadsInProgress.length > 0) {
@@ -156,7 +156,8 @@ const useSchedulePost = (
         setServerError(null);
 
         const ignoreSlash = isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message;
-        const options = {ignoreSlash, afterSubmit};
+        // const options = {ignoreSlash, afterSubmit};
+        const options = {ignoreSlash}; // no need of afterSubmit for scheduled post as its for plugins to act after the post is created,
 
         try {
             const schedulePost = {
@@ -211,7 +212,7 @@ const useSchedulePost = (
         }));
     }, [doSubmit, dispatch]);
 
-    const handleSchedulePost = useCallback(async (e: React.FormEvent, submittingDraft = draft, scheduleInfo: ScheduleInfo) => {
+    const handleSchedulePost = useCallback(async (e: React.FormEvent, submittingDraft = draft, scheduleInfo: ScheduledPostInfo) => {
         console.log('handleSchedulePost');
         if (!channel) {
             return;

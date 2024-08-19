@@ -3,11 +3,11 @@
 
 import type {Draft} from './drafts';
 
-export type ScheduleInfo = {
+export type ScheduledPostInfo = {
     id: string;
     scheduled_at: string;
     processed_at?: string;
     error_code?: string;
 }
 
-export type SchedulePost = Omit<Draft, 'delete_at'> & ScheduleInfo;
+export type ScheduledPost = Omit<Draft, 'delete_at'> & ScheduledPostInfo;

@@ -6,7 +6,7 @@ import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {Post} from '@mattermost/types/posts';
+import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
@@ -39,6 +39,8 @@ import {updateDraft, removeDraft} from 'actions/views/drafts';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {PostScheduledPost} from 'types/store/scheduled_post';
+import {createSchedulePost} from "actions/schedule_message";
+import {ScheduledPost} from "@mattermost/types/lib/schedule_post";
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
@@ -109,7 +111,7 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft, 
     };
 }
 
-export function submitScheduledPost(channelId: string, rootId: string, scheduledPost: PostScheduledPost, afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+export function submitScheduledPost(channelId: string, rootId: string, scheduledPost: PostScheduledPost): ActionFuncAsync<{data: true, error?: string}, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -138,7 +140,7 @@ export function submitScheduledPost(channelId: string, rootId: string, scheduled
         // for running the plugin hooks
         const userId = getCurrentUserId(state);
         const time = Utils.getTimestamp();
-        const dummyPost = {
+        let dummyPost = {
             file_ids: [],
             message: scheduledPost.message,
             channel_id: channelId,
@@ -157,7 +159,24 @@ export function submitScheduledPost(channelId: string, rootId: string, scheduled
 
         dummyPost = hookResult.data;
 
-        return dispatch(PostActions.createPost(post, scheduledPost.fileInfos, afterSubmit));
+        const currentUserId = getCurrentUserId(state);
+
+        const updatedScheduledPost: ScheduledPost = {
+            id: scheduledPost.id,
+            scheduled_at: scheduledPost.scheduled_at,
+            create_at: scheduledPost.createAt,
+            update_at: scheduledPost.updateAt || 0,
+            user_id: currentUserId,
+            channel_id: scheduledPost.channelId,
+            root_id: scheduledPost.rootId,
+            message: scheduledPost.message,
+            props: dummyPost.props,
+            file_ids: scheduledPost.fileInfos
+            metadata?: PostMetadata;
+            priority?: PostPriorityMetadata;
+        }
+
+        return dispatch(createSchedulePost(updatedScheduledPost));
     };
 }
 
@@ -262,7 +281,7 @@ export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean; afte
     };
 }
 
-export function onSubmitSchedulePost(schedulePost: PostScheduledPost, options: {ignoreSlash?: boolean; afterSubmit?: (response: SubmitPostReturnType) => void}): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
+export function onSubmitSchedulePost(schedulePost: PostScheduledPost, options: {ignoreSlash?: boolean}): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const {message, channelId, rootId} = schedulePost;
         const state = getState();
@@ -286,7 +305,7 @@ export function onSubmitSchedulePost(schedulePost: PostScheduledPost, options: {
         //     return dispatch(submitCommand(channelId, rootId, schedulePost));
         // }
 
-        return dispatch(submitScheduledPost(channelId, rootId, schedulePost, options.afterSubmit));
+        return dispatch(submitScheduledPost(channelId, rootId, schedulePost));
     };
 }
 
