@@ -218,7 +218,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -226,15 +225,8 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         />
       }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"
