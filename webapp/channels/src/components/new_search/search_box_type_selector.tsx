@@ -11,15 +11,15 @@ import {getSearchButtons} from 'selectors/plugins';
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
 const SearchTypeSelectorContainer = styled.div`
-    margin: 24px 32px 0px 24px;
+    margin: 20px 20px 0px 20px;
     display: flex;
     align-items: center;
-    padding: 4px;
+    padding: 3px;
     background-color: var(--center-channel-bg);
     border-radius: var(--radius-m);
     border: var(--border-default);
     width: fit-content;
-    gap: 4px;
+    gap: 3px;
 `;
 
 type SearchTypeItemProps = {

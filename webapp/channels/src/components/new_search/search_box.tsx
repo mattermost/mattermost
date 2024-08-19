@@ -54,6 +54,7 @@ const CloseIcon = styled.button`
     position: absolute;
     top: 18px;
     right: 18px;
+    z-index: 1;
 `;
 
 const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
