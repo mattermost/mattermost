@@ -10100,5 +10100,33 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Ongeldig zoekbackend. Moet elasticsearch of opensearch zijn."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Kan verzoek niet verwerken. Request body te groot."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Ongeldige waarde voor limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Ongeldige maximale URL-lengte voor service-instellingen. Moet een geheel getal groter dan nul zijn."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Het cache-type moet lru of redis zijn."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress moet worden opgegeven voor het redis cache type."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB moet een waarde groter of gelijk aan nul hebben."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Kan de webhook niet ophalen voor teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   }
 ]
