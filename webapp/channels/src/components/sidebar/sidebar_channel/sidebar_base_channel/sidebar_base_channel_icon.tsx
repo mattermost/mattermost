@@ -26,11 +26,13 @@ const SidebarBaseChannelIcon = ({
                 withTooltip={true}
             />
         );
-    } else if (channelType === Constants.OPEN_CHANNEL) {
+    }
+    if (channelType === Constants.OPEN_CHANNEL) {
         return (
             <i className='icon icon-globe'/>
         );
-    } else if (channelType === Constants.PRIVATE_CHANNEL) {
+    }
+    if (channelType === Constants.PRIVATE_CHANNEL) {
         return (
             <i className='icon icon-lock-outline'/>
         );

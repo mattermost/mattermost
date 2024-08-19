@@ -33,13 +33,13 @@ const SidebarBaseChannel = ({
         actions.leaveChannel(channel.id);
         trackEvent('ui', 'ui_public_channel_x_button_clicked');
         callback();
-    }, [channel.id]);
+    }, [channel.id, actions.leaveChannel]);
 
     const handleLeavePrivateChannel = useCallback((callback: () => void) => {
         actions.openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}});
         trackEvent('ui', 'ui_private_channel_x_button_clicked');
         callback();
-    }, [channel]);
+    }, [channel, actions.openModal]);
 
     let channelLeaveHandler = null;
     if (channel.type === Constants.OPEN_CHANNEL && channel.name !== Constants.DEFAULT_CHANNEL) {
@@ -48,7 +48,7 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const getIcon = (
+    const channelIcon = (
         <SidebarBaseChannelIcon
             isSharedChannel={Boolean(channel.shared)}
             channelType={channel.type}
@@ -69,7 +69,7 @@ const SidebarBaseChannel = ({
             label={channel.display_name}
             ariaLabelPrefix={ariaLabelPrefix}
             channelLeaveHandler={channelLeaveHandler!}
-            icon={getIcon}
+            icon={channelIcon}
         />
     );
 };
