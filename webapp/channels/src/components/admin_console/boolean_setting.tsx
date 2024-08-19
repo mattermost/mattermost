@@ -118,7 +118,7 @@ const BooleanSetting = ({
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.value === 'true');
-    }, [id]);
+    }, [id, onChange]);
 
     return (
         <Setting
