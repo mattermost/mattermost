@@ -36,7 +36,7 @@ const SearchInputContainer = styled.div`
         flex-grow: 1;
     }
     && input {
-        padding: 20px 100px 20px 60px;
+        padding: 20px 100px 20px 58px;
         height: auto;
         border-radius: 0;
         border: none;
