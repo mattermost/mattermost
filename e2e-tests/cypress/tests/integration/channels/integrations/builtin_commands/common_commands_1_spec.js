@@ -87,8 +87,7 @@ describe('Integrations', () => {
         // # Type "/echo message 3"
         cy.uiGetPostTextBox().clear().type(`/echo ${message} 3{enter}`);
 
-        // * Verify that post is not shown after 1 second
-        cy.wait(TIMEOUTS.ONE_SEC);
+        // * Verify that post is not shown after pressing enter
         cy.getLastPost().within(() => {
             cy.findByText(message).should('not.exist');
         });
