@@ -14,10 +14,8 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-
 import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import * as Utils from 'utils/utils';
 
