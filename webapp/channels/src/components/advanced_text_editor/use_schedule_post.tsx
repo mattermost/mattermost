@@ -4,6 +4,8 @@
 import type React from 'react';
 import {useCallback, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -16,7 +18,7 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {scrollPostListToBottom} from 'actions/views/channel';
-import type {SubmitPostReturnType} from 'actions/views/create_comment';
+import {onSubmitSchedulePost, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
@@ -26,13 +28,12 @@ import NotifyConfirmModal from 'components/notify_confirm_modal';
 import PostDeletedModal from 'components/post_deleted_modal';
 import ResetStatusModal from 'components/reset_status_modal';
 
-import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
-
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import useGroups from './use_groups';
+import {ScheduleInfo} from "@mattermost/types/lib/schedule_post";
+import {options} from "yargs";
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -48,7 +49,7 @@ function getStatusFromSlashCommand(message: string) {
     return '';
 }
 
-const useSubmit = (
+const useSchedulePost = (
     draft: PostDraft,
     postError: React.ReactNode,
     channelId: string,
@@ -117,9 +118,9 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft) => {
+    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, scheduleInfo?: ScheduleInfo) => {
         e?.preventDefault();
-
+        console.log(scheduleInfo);
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -138,11 +139,11 @@ const useSubmit = (
             return;
         }
 
-        if (isRootDeleted) {
-            showPostDeletedModal();
-            isDraftSubmitting.current = false;
-            return;
-        }
+        // if (isRootDeleted) {
+        //     showPostDeletedModal();
+        //     isDraftSubmitting.current = false;
+        //     return;
+        // }
 
         if (serverError && !isErrorInvalidSlashCommand(serverError)) {
             return;
@@ -158,7 +159,12 @@ const useSubmit = (
         const options = {ignoreSlash, afterSubmit};
 
         try {
-            await dispatch(onSubmit(submittingDraft, options));
+            const schedulePost = {
+                ...submittingDraft,
+                ...scheduleInfo,
+            };
+
+            await dispatch(onSubmitSchedulePost(schedulePost, options));
 
             setPostError(null);
             setServerError(null);
@@ -205,8 +211,8 @@ const useSubmit = (
         }));
     }, [doSubmit, dispatch]);
 
-    const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft) => {
-        console.log('handleSubmit');
+    const handleSchedulePost = useCallback(async (e: React.FormEvent, submittingDraft = draft, scheduleInfo: ScheduleInfo) => {
+        console.log('handleSchedulePost');
         if (!channel) {
             return;
         }
@@ -239,7 +245,8 @@ const useSubmit = (
             channelTimezoneCount = data ? data.length : 0;
         }
 
-        if (prioritySubmitCheck(doSubmit)) {
+        // if (prioritySubmitCheck(doSubmit)) {
+        if (prioritySubmitCheck(() => doSubmit(submittingDraft, options))) {
             isDraftSubmitting.current = false;
             return;
         }
@@ -250,59 +257,59 @@ const useSubmit = (
             return;
         }
 
-        const status = getStatusFromSlashCommand(submittingDraft.message);
-        if (userIsOutOfOffice && status) {
-            const resetStatusModalData = {
-                modalId: ModalIdentifiers.RESET_STATUS,
-                dialogType: ResetStatusModal,
-                dialogProps: {newStatus: status},
-            };
+        // const status = getStatusFromSlashCommand(submittingDraft.message);
+        // if (userIsOutOfOffice && status) {
+        //     const resetStatusModalData = {
+        //         modalId: ModalIdentifiers.RESET_STATUS,
+        //         dialogType: ResetStatusModal,
+        //         dialogProps: {newStatus: status},
+        //     };
+        //
+        //     dispatch(openModal(resetStatusModalData));
+        //
+        //     handleDraftChange({
+        //         ...submittingDraft,
+        //         message: '',
+        //     });
+        //     isDraftSubmitting.current = false;
+        //     return;
+        // }
+        //
+        // if (submittingDraft.message.trimEnd() === '/header') {
+        //     const editChannelHeaderModalData = {
+        //         modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+        //         dialogType: EditChannelHeaderModal,
+        //         dialogProps: {channel},
+        //     };
+        //
+        //     dispatch(openModal(editChannelHeaderModalData));
+        //
+        //     handleDraftChange({
+        //         ...submittingDraft,
+        //         message: '',
+        //     });
+        //     isDraftSubmitting.current = false;
+        //     return;
+        // }
+        //
+        // if (!isDirectOrGroup && submittingDraft.message.trimEnd() === '/purpose') {
+        //     const editChannelPurposeModalData = {
+        //         modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+        //         dialogType: EditChannelPurposeModal,
+        //         dialogProps: {channel},
+        //     };
+        //
+        //     dispatch(openModal(editChannelPurposeModalData));
+        //
+        //     handleDraftChange({
+        //         ...submittingDraft,
+        //         message: '',
+        //     });
+        //     isDraftSubmitting.current = false;
+        //     return;
+        // }
 
-            dispatch(openModal(resetStatusModalData));
-
-            handleDraftChange({
-                ...submittingDraft,
-                message: '',
-            });
-            isDraftSubmitting.current = false;
-            return;
-        }
-
-        if (submittingDraft.message.trimEnd() === '/header') {
-            const editChannelHeaderModalData = {
-                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-                dialogType: EditChannelHeaderModal,
-                dialogProps: {channel},
-            };
-
-            dispatch(openModal(editChannelHeaderModalData));
-
-            handleDraftChange({
-                ...submittingDraft,
-                message: '',
-            });
-            isDraftSubmitting.current = false;
-            return;
-        }
-
-        if (!isDirectOrGroup && submittingDraft.message.trimEnd() === '/purpose') {
-            const editChannelPurposeModalData = {
-                modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
-                dialogType: EditChannelPurposeModal,
-                dialogProps: {channel},
-            };
-
-            dispatch(openModal(editChannelPurposeModalData));
-
-            handleDraftChange({
-                ...submittingDraft,
-                message: '',
-            });
-            isDraftSubmitting.current = false;
-            return;
-        }
-
-        await doSubmit(e, submittingDraft);
+        await doSubmit(e, submittingDraft, scheduleInfo);
     }, [
         doSubmit,
         draft,
@@ -321,7 +328,7 @@ const useSubmit = (
         prioritySubmitCheck,
     ]);
 
-    return [handleSubmit, errorClass];
+    return [handleSchedulePost, errorClass];
 };
 
-export default useSubmit;
+export default useSchedulePost;

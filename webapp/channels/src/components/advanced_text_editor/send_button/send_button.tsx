@@ -73,9 +73,9 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
         return shortcutDefinition;
     }, [sendOnCtrlEnter]);
 
-    const schedulePost = useCallback((timestamp: number) => {
+    const schedulePost = useCallback(async (timestamp: number) => {
         const {data: success} = await dispatch(createSchedulePost({}));
-    }, []);
+    }, [dispatch]);
 
     return (
         <div className={classNames('splitSendButton', {disabled})}>

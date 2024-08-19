@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Constants, StoragePrefixes} from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
+import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
 import type {Post} from '@mattermost/types/posts';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
@@ -31,13 +36,9 @@ import * as PostActions from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
 
-import {Constants, StoragePrefixes} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
-import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
-
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import type {PostScheduledPost} from 'types/store/scheduled_post';
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
@@ -82,6 +83,7 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft, 
         }
         const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
         if (!useChannelMentions && containsAtChannel(post.message, {checkAllMentions: true})) {
+            // LOL
             post.props.mentionHighlightDisabled = true;
         }
 
@@ -104,6 +106,58 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft, 
         post = hookResult.data;
 
         return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit));
+    };
+}
+
+export function submitScheduledPost(channelId: string, rootId: string, scheduledPost: PostScheduledPost, afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        const channel = getChannel(state, channelId);
+        if (!channel) {
+            return {error: new Error('cannot find channel')};
+        }
+        const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
+        if (!useChannelMentions && containsAtChannel(scheduledPost.message, {checkAllMentions: true})) {
+            // LOL
+            scheduledPost.props.mentionHighlightDisabled = true;
+        }
+
+        const license = getLicense(state);
+        const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
+        const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
+
+        const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
+
+        const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
+        if (!useLDAPGroupMentions && !useCustomGroupMentions && groupsMentionedInText(scheduledPost.message, groupsWithAllowReference)) {
+            scheduledPost.props.disable_group_highlight = true;
+        }
+
+        // the post object constructed below is ONY used
+        // for running the plugin hooks
+        const userId = getCurrentUserId(state);
+        const time = Utils.getTimestamp();
+        const dummyPost = {
+            file_ids: [],
+            message: scheduledPost.message,
+            channel_id: channelId,
+            root_id: rootId,
+            pending_post_id: `${userId}:${time}`,
+            user_id: userId,
+            create_at: time,
+            metadata: {...scheduledPost.metadata},
+            props: {...scheduledPost.props},
+        } as unknown as Post;
+
+        const hookResult = await dispatch(runMessageWillBePostedHooks(dummyPost));
+        if (hookResult.error) {
+            return {error: hookResult.error};
+        }
+
+        dummyPost = hookResult.data;
+
+        return dispatch(PostActions.createPost(post, scheduledPost.fileInfos, afterSubmit));
     };
 }
 
@@ -147,6 +201,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
     };
 }
 
+// LOL
 export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => ActionFuncAsync<boolean, GlobalState> {
     return (draft, options = {}) => async (dispatch, getState) => {
         const {message} = draft;
@@ -204,6 +259,34 @@ export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean; afte
         }
 
         return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit));
+    };
+}
+
+export function onSubmitSchedulePost(schedulePost: PostScheduledPost, options: {ignoreSlash?: boolean; afterSubmit?: (response: SubmitPostReturnType) => void}): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
+    return async (dispatch, getState) => {
+        const {message, channelId, rootId} = schedulePost;
+        const state = getState();
+
+        // dispatch(addMessageIntoHistory(message));
+
+        // const isReaction = Utils.REACTION_PATTERN.exec(message);
+
+        // const emojis = getCustomEmojisByName(state);
+        // const emojiMap = new EmojiMap(emojis);
+
+        // if (isReaction && emojiMap.has(isReaction[2])) {
+        //     const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
+        //     if (latestPostId) {
+        //         return dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+        //     }
+        //     return {error: new Error('no post to react to')};
+        // }
+
+        // if (message.indexOf('/') === 0 && !options.ignoreSlash) {
+        //     return dispatch(submitCommand(channelId, rootId, schedulePost));
+        // }
+
+        return dispatch(submitScheduledPost(channelId, rootId, schedulePost, options.afterSubmit));
     };
 }
 
