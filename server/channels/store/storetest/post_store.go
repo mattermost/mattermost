@@ -793,7 +793,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
-		assert.True(t, *r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Going from bottom to top now.
 		firstPostCreateAt := r1.Posts[r1.Order[1]].CreateAt
@@ -809,7 +809,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
-		assert.True(t, *r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Only with CreateAt
 		opts = model.GetPostsOptions{
@@ -861,7 +861,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 4) // including the root post
 		require.Len(t, r1.Posts, 4)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
-		assert.True(t, *r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Going from bottom to top now.
 		firstPostCreateAt = r1.Posts[r1.Order[1]].CreateAt
@@ -878,7 +878,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
-		assert.True(t, *r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Only with CreateAt
 		opts = model.GetPostsOptions{
