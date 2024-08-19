@@ -10,14 +10,12 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import FollowButton from 'components/threading/common/follow_button';
-
-import WithTooltip from 'components/with_tooltip';
-
 import CRTThreadsPaneTutorialTip
     from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
+import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {RHSStates} from 'utils/constants';
+import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -120,8 +118,8 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         // if props.isExpanded is true, defaultMessage would feed from 'shrinkTooltip', else 'expandTooltip'
 
         const rhsHeaderTooltipContent = this.props.isExpanded ? (
-           <>
-             <FormattedMessage
+            <>
+                <FormattedMessage
                     id='rhs_header.collapseSidebarTooltip'
                     defaultMessage='Collapse the right sidebar'
                 />
@@ -130,7 +128,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     hideDescription={true}
                     isInsideTooltip={true}
                 />
-           </>
+            </>
         ) : (
             <>
                 <FormattedMessage
