@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useRef, useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -17,7 +17,6 @@ const ChannelHeaderTitleFavorite = () => {
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const channel = useSelector(getCurrentChannel);
     const channelIsArchived = (channel?.delete_at ?? 0) > 0;
-    const toggleFavoriteRef = useRef<HTMLButtonElement>(null);
 
     const toggleFavoriteCallback = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -65,7 +64,6 @@ const ChannelHeaderTitleFavorite = () => {
         >
             <button
                 id='toggleFavorite'
-                ref={toggleFavoriteRef}
                 onClick={toggleFavoriteCallback}
                 className={classNames('channel-header__favorites btn btn-icon btn-xs', {active: isFavorite, inactive: !isFavorite})}
                 aria-label={ariaLabel}
