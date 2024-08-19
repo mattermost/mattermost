@@ -22,7 +22,7 @@ import NoResultsIndicator from 'components/no_results_indicator';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
 import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_tip';
 import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -231,12 +231,13 @@ const ThreadList = ({
                 )}
                 right={(
                     <div className='right-anchor'>
-                        <SimpleTooltip
+                        <WithTooltip
                             id='threadListMarkRead'
-                            content={formatMessage({
+                            title={formatMessage({
                                 id: 'threading.threadList.markRead',
                                 defaultMessage: 'Mark all as read',
                             })}
+                            placement={'top'}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
@@ -248,7 +249,7 @@ const ThreadList = ({
                                     <PlaylistCheckIcon size={18}/>
                                 </span>
                             </Button>
-                        </SimpleTooltip>
+                        </WithTooltip>
                     </div>
                 )}
             />

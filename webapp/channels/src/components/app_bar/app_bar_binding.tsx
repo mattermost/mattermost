@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -14,10 +13,9 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} from 'actions/apps';
 
-import OverlayTrigger from 'components/overlay_trigger';
+import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
-import Constants from 'utils/constants';
 
 import type {DoAppCallResult} from 'types/apps';
 
@@ -84,18 +82,11 @@ const AppBarBinding = (props: BindingComponentProps) => {
     const id = `app-bar-icon-${binding.app_id}`;
     const label = binding.label || binding.app_id;
 
-    const tooltip = (
-        <Tooltip id={'tooltip-' + id}>
-            <span>{label}</span>
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id={'tooltip-' + id}
+            title={label}
             placement='left'
-            overlay={tooltip}
         >
             <div
                 id={id}
@@ -107,7 +98,7 @@ const AppBarBinding = (props: BindingComponentProps) => {
                     <img src={binding.icon}/>
                 </div>
             </div>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
