@@ -145,7 +145,7 @@ import type {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
-import {SchedulePost} from "@mattermost/types/lib/schedule_post";
+import {ScheduledPost} from "@mattermost/types/schedule_post";
 
 const HEADER_AUTH = 'Authorization';
 const HEADER_BEARER = 'BEARER';
@@ -4317,8 +4317,8 @@ export default class Client4 {
     };
 
     // Schedule Post methods
-    createSchedulePost = (schedulePost: SchedulePost, connectionId: string) => {
-        return this.doFetchWithResponse<SchedulePost>(
+    createSchedulePost = (schedulePost: ScheduledPost, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule`,
             {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
         );

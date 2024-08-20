@@ -1,9 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Dispatch} from 'redux';
+import {
+    ActionTypes,
+    Constants,
+    ModalIdentifiers,
+    RHSStates,
+    StoragePrefixes,
+} from 'utils/constants';
+import {matchEmoticons} from 'utils/emoticons';
+import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
+
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
-import type {Post} from '@mattermost/types/posts';
+import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/lib/schedule_post';
+import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
@@ -19,6 +31,7 @@ import type {DispatchFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'm
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
+import {createSchedulePost} from 'actions/schedule_message';
 import * as StorageActions from 'actions/storage';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
 import {removeDraft} from 'actions/views/drafts';
@@ -31,21 +44,12 @@ import {getGlobalItem} from 'selectors/storage';
 
 import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
 
-import {
-    ActionTypes,
-    Constants,
-    ModalIdentifiers,
-    RHSStates,
-    StoragePrefixes,
-} from 'utils/constants';
-import {matchEmoticons} from 'utils/emoticons';
-import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
-
 import type {GlobalState} from 'types/store';
 
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
 import type {SubmitPostReturnType} from './views/create_comment';
+import type {PostDraft} from "types/store/draft";
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
@@ -106,14 +110,19 @@ export function unflagPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[], afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+function parseMessageEmojis(message: string, dispatch: Dispatch) {
+    // parse message and emit emoji event
+    const emojis = matchEmoticons(message);
+    if (emojis) {
+        const trimmedEmojis = emojis.map((emoji) => emoji.substring(1, emoji.length - 1));
+        dispatch(addRecentEmojis(trimmedEmojis));
+    }
+}
+
+export type CreatePostAfterSubmitFunc = (response: SubmitPostReturnType) => void;
+export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePostAfterSubmitFunc): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
-        // parse message and emit emoji event
-        const emojis = matchEmoticons(post.message);
-        if (emojis) {
-            const trimmedEmojis = emojis.map((emoji) => emoji.substring(1, emoji.length - 1));
-            dispatch(addRecentEmojis(trimmedEmojis));
-        }
+        parseMessageEmojis(post.message, dispatch);
 
         const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
@@ -121,6 +130,22 @@ export function createPost(post: Post, files: FileInfo[], afterSubmit?: (respons
             dispatch(storeCommentDraft(post.root_id, null));
         } else {
             dispatch(storeDraft(post.channel_id, null));
+        }
+
+        return result;
+    };
+}
+
+export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<ScheduledPost, GlobalState> {
+    return async (dispatch) => {
+        parseMessageEmojis(scheduledPost.message, dispatch);
+
+        const result = await dispatch(createSchedulePost(scheduledPost));
+
+        if (scheduledPost.root_id) {
+            dispatch(storeCommentDraft(scheduledPost.root_id, null));
+        } else {
+            dispatch(storeDraft(scheduledPost.channel_id, null));
         }
 
         return result;

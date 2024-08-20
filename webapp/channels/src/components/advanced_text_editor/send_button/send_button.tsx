@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent, memo, useCallback, useMemo} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {isSendOnCtrlEnter} from 'selectors/preferences';
 
@@ -18,10 +19,9 @@ import classNames from 'classnames';
 import WithTooltip from 'components/with_tooltip';
 import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
-import {createSchedulePost} from "actions/schedule_message";
 
 type SendButtonProps = {
-    handleSubmit: (e: React.FormEvent) => void;
+    handleSubmit: (e: React.FormEvent, schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
 }
 
@@ -39,13 +39,19 @@ const SendButtonContainer = styled.button`
 
 const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
 
     const sendMessage = (e: React.FormEvent) => {
         e.stopPropagation();
         e.preventDefault();
         handleSubmit(e);
     };
+
+    const scheduleMessage = useCallback((e: React.FormEvent, schedulingInfo: SchedulingInfo) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log({schedulingInfo});
+        handleSubmit(e, schedulingInfo);
+    }, [handleSubmit]);
 
     const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
 
@@ -72,10 +78,6 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
         return shortcutDefinition;
     }, [sendOnCtrlEnter]);
-
-    const schedulePost = useCallback((timestamp: number) => {
-        const {data: success} = await dispatch(createSchedulePost({}));
-    }, []);
 
     return (
         <div className={classNames('splitSendButton', {disabled})}>
@@ -110,7 +112,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
             <SendPostOptions
                 disabled={disabled}
-                onSelect={schedulePost}
+                onSelect={scheduleMessage}
             />
         </div>
     );

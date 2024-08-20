@@ -24,6 +24,7 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import type {SchedulingInfo} from "@mattermost/types/lib/schedule_post";
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -38,7 +39,7 @@ const useKeyHandler = (
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
-    handleSubmit: (e: React.FormEvent, submittingDraft?: PostDraft) => void,
+    handleSubmit: (e: React.FormEvent, submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
     emitTypingEvent: () => void,
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,

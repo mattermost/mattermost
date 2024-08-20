@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Constants, StoragePrefixes} from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
+import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
+import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 import type {Post} from '@mattermost/types/posts';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
@@ -31,13 +37,9 @@ import * as PostActions from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
 
-import {Constants, StoragePrefixes} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
-import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
-
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {createSchedulePostFromDraft} from "actions/post_actions";
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
@@ -56,7 +58,7 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft, afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+export function submitPost(channelId: string, rootId: string, draft: PostDraft, afterSubmit?: (response: SubmitPostReturnType) => void, schedulingInfo?: SchedulingInfo): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -102,6 +104,25 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft, 
         }
 
         post = hookResult.data;
+
+        if (schedulingInfo) {
+            const fileIDs = draft.fileInfos.map((fileInfo) => fileInfo.id);
+            const scheduledPost: ScheduledPost = {
+                id: '',
+                scheduled_at: schedulingInfo.scheduled_at,
+                create_at: post.create_at,
+                update_at: post.update_at,
+                user_id: userId,
+                channel_id: post.channel_id,
+                root_id: post.root_id,
+                message: post.message,
+                props: post.props,
+                file_ids: fileIDs,
+                metadata: post.metadata,
+                priority: post.metadata.priority,
+            };
+            return dispatch(createSchedulePostFromDraft(scheduledPost));
+        }
 
         return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit));
     };
@@ -178,32 +199,38 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
 }
 
 export type SubmitPostReturnType = CreatePostReturnType & SubmitCommandRerturnType & SubmitReactionReturnType;
+export type OnSubmitOptions = {
+    ignoreSlash?: boolean;
+    afterSubmit?: (response: SubmitPostReturnType) => void;
+};
 
-export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean; afterSubmit?: (response: SubmitPostReturnType) => void}): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
+export function onSubmit(draft: PostDraft, options: OnSubmitOptions, schedulingInfo?: SchedulingInfo): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const {message, channelId, rootId} = draft;
         const state = getState();
 
         dispatch(addMessageIntoHistory(message));
 
-        const isReaction = Utils.REACTION_PATTERN.exec(message);
+        if (!schedulingInfo) {
+            const isReaction = Utils.REACTION_PATTERN.exec(message);
 
-        const emojis = getCustomEmojisByName(state);
-        const emojiMap = new EmojiMap(emojis);
+            const emojis = getCustomEmojisByName(state);
+            const emojiMap = new EmojiMap(emojis);
 
-        if (isReaction && emojiMap.has(isReaction[2])) {
-            const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
-            if (latestPostId) {
-                return dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+            if (isReaction && emojiMap.has(isReaction[2])) {
+                const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
+                if (latestPostId) {
+                    return dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+                }
+                return {error: new Error('no post to react to')};
             }
-            return {error: new Error('no post to react to')};
+
+            if (message.indexOf('/') === 0 && !options.ignoreSlash) {
+                return dispatch(submitCommand(channelId, rootId, draft));
+            }
         }
 
-        if (message.indexOf('/') === 0 && !options.ignoreSlash) {
-            return dispatch(submitCommand(channelId, rootId, draft));
-        }
-
-        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit));
+        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo));
     };
 }
 
