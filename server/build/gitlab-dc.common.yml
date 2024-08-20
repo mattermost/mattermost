@@ -61,18 +61,22 @@ services:
       timeout: 15s
       retries: 12
   keycloak:
-    image: mattermostdevelopment/mirrored-keycloak:10.0.2
+    image: quay.io/keycloak/keycloak:23.0.7
     restart: always
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     environment:
-      KEYCLOAK_USER: mmuser
-      KEYCLOAK_PASSWORD: mostest
-      DB_VENDOR: h2
-      KEYCLOAK_IMPORT: /setup/realm.json
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
       JAVA_OPTS: "-Xms64m -Xmx2G -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
     volumes:
-     - "./docker/keycloak:/setup"
+     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
+     - "./docker/keycloak/kc-healthcheck.sh:/usr/local/bin/kc-healthcheck.sh"
     healthcheck:
-      test: [ "CMD", "bash", "-o", "pipefail", "-c", "curl --silent localhost:9990/health | grep -q '\"status\":\"UP\"'" ]
+      # We can't use a simple 'curl --silent localhost:9990/health | grep -q \"status\":\"UP\"' because there's no curl in the image: https://www.keycloak.org/server/health#_using_the_health_checks
+      test: [ "CMD", "/usr/local/bin/kc-healthcheck.sh" ]
       interval: 10s
       timeout: 15s
       retries: 12
