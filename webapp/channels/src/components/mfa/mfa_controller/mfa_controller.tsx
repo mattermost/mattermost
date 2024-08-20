@@ -122,12 +122,8 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
                                         />
                                         <Route
                                             path={`${this.props.match.url}/confirm`}
-                                            render={(props) => (
-                                                <Confirm
-                                                    state={this.state}
-                                                    updateParent={this.updateParent}
-                                                    {...props}
-                                                />
+                                            render={() => (
+                                                <Confirm/>
                                             )}
                                         />
                                     </Switch>
