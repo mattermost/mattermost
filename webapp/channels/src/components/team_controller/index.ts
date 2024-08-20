@@ -11,8 +11,7 @@ import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {markChannelAsReadOnFocus} from 'actions/views/channel';
-import {markThreadAsRead} from 'actions/views/threads';
+import {markAsReadOnFocus} from 'actions/views/channel';
 import {getSelectedPostId} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
@@ -55,8 +54,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 const mapDispatchToProps = {
     fetchChannelsAndMembers,
     fetchAllMyTeamsChannelsAndChannelMembersREST,
-    markChannelAsReadOnFocus,
-    markThreadAsRead,
+    markAsReadOnFocus,
     initializeTeam,
     joinTeam,
     unsetActiveChannelOnServer,
