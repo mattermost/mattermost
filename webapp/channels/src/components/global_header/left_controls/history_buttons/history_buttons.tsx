@@ -72,7 +72,7 @@ const HistoryButtons = (): JSX.Element => {
     return (
         <HistoryButtonsContainer>
             <WithTooltip
-                id='upload-tooltip'
+                id='global_header_history_back'
                 placement='bottom'
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
             >
@@ -87,7 +87,7 @@ const HistoryButtons = (): JSX.Element => {
                 />
             </WithTooltip>
             <WithTooltip
-                id='upload-tooltip'
+                id='global_header_history_forward'
                 placement='bottom'
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
             >
