@@ -66,7 +66,7 @@ export function selectTeam(team: Team | Team['id']) {
 export function getMyTeams() {
     return bindClientFunc({
         clientFunc: Client4.getMyTeams,
-        onSuccess: [TeamTypes.RECEIVED_TEAMS_LIST, TeamTypes.MY_TEAMS_SUCCESS],
+        onSuccess: TeamTypes.RECEIVED_TEAMS_LIST,
     });
 }
 

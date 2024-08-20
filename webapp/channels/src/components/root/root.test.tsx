@@ -11,13 +11,14 @@ import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as GlobalActions from 'actions/global_actions';
-import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from 'actions/views/root';
-
-import Root, {type Props} from 'components/root/root';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
+
+import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
+import type {Props} from './root';
+import Root from './root';
 
 jest.mock('mattermost-redux/client/rudder', () => ({
     rudderAnalytics: {
