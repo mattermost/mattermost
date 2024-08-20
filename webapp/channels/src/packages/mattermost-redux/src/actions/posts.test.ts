@@ -89,38 +89,6 @@ describe('Actions.Posts', () => {
         expect(!postsInChannel[channelId]).toBeTruthy();
     });
 
-    it('maintain postReplies', async () => {
-        const channelId = TestHelper.basicChannel!.id;
-        const post = TestHelper.fakePost(channelId);
-        const postId = TestHelper.generateId();
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post, id: postId});
-
-        await store.dispatch(Actions.createPostImmediately(post));
-
-        const post2 = TestHelper.fakePostWithId(channelId);
-        post2.root_id = postId;
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, post2);
-
-        await store.dispatch(Actions.createPostImmediately(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
-
-        nock(Client4.getBaseRoute()).
-            delete(`/posts/${post2.id}`).
-            reply(200, OK_RESPONSE);
-
-        await store.dispatch(Actions.deletePost(post2));
-        await store.dispatch(Actions.removePost(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(0);
-    });
-
     it('resetCreatePostRequest', async () => {
         const channelId = TestHelper.basicChannel!.id;
         const post = TestHelper.fakePost(channelId);

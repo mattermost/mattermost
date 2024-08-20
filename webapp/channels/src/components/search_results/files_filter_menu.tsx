@@ -7,11 +7,10 @@ import {FormattedMessage} from 'react-intl';
 import {FilterVariantIcon} from '@mattermost/compass-icons/components';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import OverlayTrigger from 'components/overlay_trigger';
 import type {SearchFilterType} from 'components/search/types';
-import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import './files_filter_menu.scss';
 
@@ -21,26 +20,17 @@ type Props = {
 };
 
 export default function FilesFilterMenu(props: Props): JSX.Element {
-    const toolTip = (
-        <Tooltip
-            id='files-filter-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='channel_info_rhs.menu.files.filter'
-                defaultMessage='Filter'
-            />
-        </Tooltip>
-    );
     return (
         <div className='FilesFilterMenu'>
             <MenuWrapper>
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
+                <WithTooltip
+                    id='files-filter-tooltip'
+                    title={
+                        <FormattedMessage
+                            id='channel_info_rhs.menu.files.filter'
+                            defaultMessage='Filter'
+                        />}
                     placement='top'
-                    overlay={toolTip}
-                    rootClose={true}
                 >
                     <IconContainer
                         id='filesFilterButton'
@@ -53,7 +43,8 @@ export default function FilesFilterMenu(props: Props): JSX.Element {
                             color='currentColor'
                         />
                     </IconContainer>
-                </OverlayTrigger>
+                </WithTooltip>
+
                 <Menu
                     ariaLabel={'file menu'}
                     openLeft={true}

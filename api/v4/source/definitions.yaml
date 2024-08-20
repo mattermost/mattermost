@@ -3499,6 +3499,9 @@ components:
         site_url:
           description: URL of the remote cluster
           type: string
+        default_team_id:
+          description: The team where channels from invites are created
+          type: string
         create_at:
           description: Time in milliseconds that the remote cluster was created
           type: integer

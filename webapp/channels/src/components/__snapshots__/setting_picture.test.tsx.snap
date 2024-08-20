@@ -739,29 +739,15 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="removeIcon"
-              >
-                <div
-                  aria-hidden={true}
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Remove This Icon"
-                    id="setting_picture.remove"
-                  />
-                </div>
-              </Tooltip>
-            }
+          <WithTooltip
+            disabled={false}
+            id="removeIcon"
             placement="right"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove This Icon"
+                id="setting_picture.remove"
+              />
             }
           >
             <button
@@ -783,7 +769,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 />
               </span>
             </button>
-          </OverlayTrigger>
+          </WithTooltip>
         </div>
       </li>
       <div
@@ -908,29 +894,15 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="removeIcon"
-              >
-                <div
-                  aria-hidden={true}
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Remove Profile Picture"
-                    id="setting_picture.remove_profile_picture"
-                  />
-                </div>
-              </Tooltip>
-            }
+          <WithTooltip
+            disabled={false}
+            id="removeIcon"
             placement="right"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove Profile Picture"
+                id="setting_picture.remove_profile_picture"
+              />
             }
           >
             <button
@@ -952,7 +924,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 />
               </span>
             </button>
-          </OverlayTrigger>
+          </WithTooltip>
         </div>
       </li>
       <div
