@@ -101,13 +101,17 @@ export function createSafeId(prop: {props: {defaultMessage: string}} | string): 
 }
 
 /**
- * check keydown event for line break combo. Should catch alt/option + enter not all browsers except Safari
+ * check keydown event for line break combo. Should catch alt/ctrl/option + enter not all browsers except Safari
  */
 export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEvent): boolean {
     return Boolean(
         Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        !UserAgent.isSafari() &&
+        (
+            (e.altKey && !Keyboard.cmdOrCtrlPressed(e)) || // alt/option + enter is already handled in Safari, so don't handle again
+            (!e.altKey && Keyboard.cmdOrCtrlPressed(e))
+        ),
     );
 }
 
