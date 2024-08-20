@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent, memo, useCallback, useMemo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
+import type {ScheduledPostInfo} from '@mattermost/types/schedule_post';
 
 import {isSendOnCtrlEnter} from 'selectors/preferences';
 
@@ -18,8 +19,6 @@ import classNames from 'classnames';
 import WithTooltip from 'components/with_tooltip';
 import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
-import {createSchedulePost} from "actions/schedule_message";
-import {ScheduledPostInfo} from "@mattermost/types/lib/schedule_post";
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent) => void;

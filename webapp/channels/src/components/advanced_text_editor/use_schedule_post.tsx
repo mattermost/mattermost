@@ -4,12 +4,11 @@
 import type React from 'react';
 import {useCallback, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
-import {options} from 'yargs';
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {ScheduledPostInfo} from '@mattermost/types/lib/schedule_post';
+import type {ScheduledPostInfo} from '@mattermost/types/schedule_post';
 
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
@@ -17,37 +16,33 @@ import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entitie
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {scrollPostListToBottom} from 'actions/views/channel';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
-import {onSubmitSchedulePost, onSubmit} from 'actions/views/create_comment';
+import {onSubmitSchedulePost,} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import PostDeletedModal from 'components/post_deleted_modal';
-import ResetStatusModal from 'components/reset_status_modal';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import useGroups from './use_groups';
 
-function getStatusFromSlashCommand(message: string) {
-    const tokens = message.split(' ');
-    const command = tokens[0] || '';
-    if (command[0] !== '/') {
-        return '';
-    }
-    const status = command.substring(1);
-    if (status === 'online' || status === 'away' || status === 'dnd' || status === 'offline') {
-        return status;
-    }
-
-    return '';
-}
+// function getStatusFromSlashCommand(message: string) {
+//     const tokens = message.split(' ');
+//     const command = tokens[0] || '';
+//     if (command[0] !== '/') {
+//         return '';
+//     }
+//     const status = command.substring(1);
+//     if (status === 'online' || status === 'away' || status === 'dnd' || status === 'offline') {
+//         return status;
+//     }
+//
+//     return '';
+// }
 
 const useSchedulePost = (
     draft: PostDraft,
@@ -250,7 +245,7 @@ const useSchedulePost = (
         }
 
         // if (prioritySubmitCheck(doSubmit)) {
-        if (prioritySubmitCheck(() => doSubmit(submittingDraft, options))) {
+        if (prioritySubmitCheck(() => doSubmit(submittingDraft))) {
             isDraftSubmitting.current = false;
             return;
         }
@@ -313,7 +308,7 @@ const useSchedulePost = (
         //     return;
         // }
 
-        await doSubmit(e, submittingDraft, scheduleInfo);
+        await doSubmit(scheduleInfo, e, submittingDraft);
     }, [doSubmit, draft, channel, channelId, channelMembersCount, dispatch, enableConfirmNotificationsToChannel, showNotifyAllModal, useChannelMentions, getGroupMentions, setShowPreview, prioritySubmitCheck]);
 
     return [handleSchedulePost, errorClass];
