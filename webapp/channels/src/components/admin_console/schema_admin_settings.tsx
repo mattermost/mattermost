@@ -1073,6 +1073,17 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     });
                 }
 
+                if (section.component) {
+                    const CustomComponent = section.component;
+                    sections.push((
+                        <CustomComponent
+                            settingsList={settingsList}
+                            key={section.key}
+                        />
+                    ));
+                    return;
+                }
+
                 let header;
                 if (section.header) {
                     header = (
@@ -1098,7 +1109,10 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 }
 
                 sections.push(
-                    <div className={'config-section'}>
+                    <div
+                        className={'config-section'}
+                        key={section.key}
+                    >
                         <SettingsGroup
                             show={true}
                             title={section.title}

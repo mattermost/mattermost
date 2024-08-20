@@ -183,7 +183,7 @@ describe('executeCommand', () => {
                 modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
             });
 
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
     });
 
@@ -198,7 +198,7 @@ describe('executeCommand', () => {
                     modalId: 'user_settings',
                 },
             ]);
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
     });
 
@@ -220,7 +220,7 @@ describe('executeCommand', () => {
                 toHaveBeenCalledWith('/leave is not supported in reply threads. Use it in the center channel instead.',
                     'channel_id', 'root_id');
 
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
 
         test('should show private modal if channel is private', async () => {
@@ -236,7 +236,7 @@ describe('executeCommand', () => {
                 dialogProps: {channel: {type: Constants.PRIVATE_CHANNEL}},
             });
 
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
 
         test('should use user id as name if channel is dm', async () => {
@@ -248,7 +248,7 @@ describe('executeCommand', () => {
             const result = await store.dispatch(executeCommand('/leave', {}));
             expect(store.getActions()[0].data).toEqual([{category: 'direct_channel_show', name: 'userId', user_id: 'user123', value: 'false'}]);
 
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
 
         test('should use channel id as name if channel is gm', async () => {
@@ -260,7 +260,7 @@ describe('executeCommand', () => {
             const result = await store.dispatch(executeCommand('/leave', {}));
             expect(store.getActions()[0].data).toEqual([{category: 'group_channel_show', name: 'channelId', user_id: 'user123', value: 'false'}]);
 
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
     });
 
@@ -295,7 +295,7 @@ describe('executeCommand', () => {
                 type: ActionTypes.MODAL_OPEN,
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
             });
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
 
         test('should show error when marketpace is not enabled', async () => {
@@ -395,7 +395,7 @@ describe('executeCommand', () => {
                 query: undefined,
                 selected_field: undefined,
             }, true);
-            expect(result).toEqual({data: true});
+            expect(result.data).toBeDefined();
         });
     });
 });

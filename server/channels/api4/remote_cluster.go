@@ -13,23 +13,24 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods(http.MethodPost)
 
-	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(getRemoteClusters)).Methods("GET")
-	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(createRemoteCluster)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/accept_invite", api.APISessionRequired(remoteClusterAcceptInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}/generate_invite", api.APISessionRequired(generateRemoteClusterInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteCluster)).Methods("GET")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(patchRemoteCluster)).Methods("PATCH")
-	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRemoteCluster)).Methods("DELETE")
+	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(getRemoteClusters)).Methods(http.MethodGet)
+	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(createRemoteCluster)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/accept_invite", api.APISessionRequired(remoteClusterAcceptInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}/generate_invite", api.APISessionRequired(generateRemoteClusterInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteCluster)).Methods(http.MethodGet)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(patchRemoteCluster)).Methods(http.MethodPatch)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRemoteCluster)).Methods(http.MethodDelete)
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -366,11 +367,6 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rcWithTeamAndPassword.Password == "" {
-		c.SetInvalidParam("password")
-		return
-	}
-
 	url := c.App.GetSiteURL()
 	if url == "" {
 		c.Err = model.NewAppError("createRemoteCluster", "api.get_site_url_error", nil, "", http.StatusUnprocessableEntity)
@@ -382,11 +378,12 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	rc := &model.RemoteCluster{
-		Name:        rcWithTeamAndPassword.Name,
-		DisplayName: rcWithTeamAndPassword.DisplayName,
-		SiteURL:     model.SiteURLPending + model.NewId(),
-		Token:       model.NewId(),
-		CreatorId:   c.AppContext.Session().UserId,
+		Name:          rcWithTeamAndPassword.Name,
+		DisplayName:   rcWithTeamAndPassword.DisplayName,
+		SiteURL:       model.SiteURLPending + model.NewId(),
+		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
+		Token:         model.NewId(),
+		CreatorId:     c.AppContext.Session().UserId,
 	}
 
 	audit.AddEventParameterAuditable(auditRec, "remotecluster", rc)
@@ -398,7 +395,12 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	rcSaved.Sanitize()
 
-	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, rcWithTeamAndPassword.Password)
+	password := rcWithTeamAndPassword.Password
+	if password == "" {
+		password = utils.SecureRandString(16)
+	}
+
+	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
 	if iErr != nil {
 		c.Err = iErr
 		return
@@ -408,7 +410,12 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(rcSaved)
 	auditRec.AddEventObjectType("remotecluster")
 
-	b, err := json.Marshal(model.RemoteClusterWithInvite{RemoteCluster: rcSaved, Invite: inviteCode})
+	resp := model.RemoteClusterWithInvite{RemoteCluster: rcSaved, Invite: inviteCode}
+	if rcWithTeamAndPassword.Password == "" {
+		resp.Password = password
+	}
+
+	b, err := json.Marshal(resp)
 	if err != nil {
 		c.Err = model.NewAppError("createRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

@@ -166,8 +166,6 @@
   "add_outgoing_webhook.token": "**Token**: {token}",
   "admin.billing.subscription.cancelSubscriptionSection.contactUs": "Bizben Baylanısınız",
   "admin.billing.subscription.cancelSubscriptionSection.title": "Jazıluınızdı toktau",
-  "admin.billing.subscription.cloudTrial.daysLeftOnTrial": "Tegin baykamanızdıŋ {daysLeftOnTrial} küni kaldı",
-  "admin.billing.subscription.cloudTrial.moreThan3Days": "Sizdiŋ baykamanız bastaldı! {daysLeftOnTrial} kün kaldı",
   "admin.billing.subscription.cloudTrial.subscribeButton": "Däl kazir jazılu",
   "admin.billing.subscription.creditCardExpired": "Sizdiŋ neseie kärtеnizdiŋ merzimi ayaktalgan. Būzılıs bolmas ücin tölem akparatınızdı jaŋartınız.",
   "admin.billing.subscription.creditCardHasExpired": "Sizdiŋ neseie kärtenizdiŋ merzimi ayaktalgan",

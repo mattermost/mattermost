@@ -62,6 +62,7 @@ type MetricsInterface interface {
 	ObserveFilesSearchDuration(elapsed float64)
 	ObserveStoreMethodDuration(method, success string, elapsed float64)
 	ObserveAPIEndpointDuration(endpoint, method, statusCode, originClient, pageLoadContext string, elapsed float64)
+	ObserveRedisEndpointDuration(cacheName, operation string, elapsed float64)
 	IncrementPostIndexCounter()
 	IncrementFileIndexCounter()
 	IncrementUserIndexCounter()
@@ -105,8 +106,8 @@ type MetricsInterface interface {
 
 	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
 	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
-	ObserveClientLargestContentfulPaint(platform, agent string, elapsed float64)
-	ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64)
+	ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64)
+	ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64)
 	ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64)
 	IncrementClientLongTasks(platform, agent string, inc float64)
 	ObserveClientPageLoadDuration(platform, agent string, elapsed float64)

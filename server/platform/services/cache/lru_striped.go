@@ -4,6 +4,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -62,11 +63,6 @@ func (L LRUStriped) Purge() error {
 	return nil
 }
 
-// Set does the same as LRU.Set
-func (L LRUStriped) Set(key string, value any) error {
-	return L.keyBucket(key).Set(key, value)
-}
-
 // SetWithDefaultExpiry does the same as LRU.SetWithDefaultExpiry
 func (L LRUStriped) SetWithDefaultExpiry(key string, value any) error {
 	return L.keyBucket(key).SetWithDefaultExpiry(key, value)
@@ -82,21 +78,35 @@ func (L LRUStriped) Get(key string, value any) error {
 	return L.keyBucket(key).Get(key, value)
 }
 
+func (L LRUStriped) GetMulti(keys []string, values []any) []error {
+	errs := make([]error, 0, len(values))
+	for i, key := range keys {
+		errs = append(errs, L.keyBucket(key).Get(key, values[i]))
+	}
+	return errs
+}
+
 // Remove does the same as LRU.Remove
 func (L LRUStriped) Remove(key string) error {
 	return L.keyBucket(key).Remove(key)
 }
 
-// Keys does the same as LRU.Keys. However, because this is lock-free, keys might be
-// inserted or removed from a previously scanned LRU cache.
-// This is not as precise as using a single LRU instance.
-func (L LRUStriped) Keys() ([]string, error) {
-	var keys []string
-	for _, lru := range L.buckets {
-		k, _ := lru.Keys() // Keys never returns any error
-		keys = append(keys, k...)
+// RemoveMulti does the same as LRU.RemoveMulti
+func (L LRUStriped) RemoveMulti(keys []string) error {
+	var err error
+	for _, key := range keys {
+		err = errors.Join(err, L.keyBucket(key).Remove(key))
 	}
-	return keys, nil
+	return err
+}
+
+// Scan is basically a copy of Keys in LRU mode.
+// See comment in LRU.Scan.
+func (L LRUStriped) Scan(f func([]string) error) error {
+	for _, lru := range L.buckets {
+		lru.Scan(f)
+	}
+	return nil
 }
 
 // Len does the same as LRU.Len. As for LRUStriped.Keys, this call cannot be precise.
@@ -119,12 +129,12 @@ func (L LRUStriped) Name() string {
 	return L.name
 }
 
-// NewLRUStriped creates a striped LRU cache using the special LRUOptions.StripedBuckets value.
-// See LRUStriped and LRUOptions for more details.
+// NewLRUStriped creates a striped LRU cache using the special CacheOptions.StripedBuckets value.
+// See LRUStriped and CacheOptions for more details.
 //
 // Not that in order to prevent false eviction, this LRU cache adds 10% (computation is rounded up) of the
 // requested size to the total cache size.
-func NewLRUStriped(opts LRUOptions) (Cache, error) {
+func NewLRUStriped(opts *CacheOptions) (Cache, error) {
 	if opts.StripedBuckets == 0 {
 		return nil, fmt.Errorf("number of buckets is mandatory")
 	}

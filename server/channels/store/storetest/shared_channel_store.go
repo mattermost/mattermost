@@ -869,7 +869,7 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 		Header:      name + " header",
 		Purpose:     name + "purpose",
 		CreatorId:   model.NewId(),
-		Shared:      model.NewBool(shared),
+		Shared:      model.NewPointer(shared),
 	}
 	channel, err := ss.Channel().Save(rctx, channel, 10000)
 	if err != nil {
@@ -1021,7 +1021,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 	var users []*model.User
 	for i := 0; i < 10; i++ { // need real users
 		u := &model.User{
-			Username:          model.NewId(),
+			Username:          model.NewUsername(),
 			Email:             model.NewId() + "@example.com",
 			LastPictureUpdate: model.GetMillis(),
 		}
@@ -1093,7 +1093,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:          model.NewId(),
+		Username:          model.NewUsername(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() - 300000, // 5 mins
 	}
@@ -1101,7 +1101,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, err)
 
 	u2 := &model.User{
-		Username:          model.NewId(),
+		Username:          model.NewUsername(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() + 300000,
 	}

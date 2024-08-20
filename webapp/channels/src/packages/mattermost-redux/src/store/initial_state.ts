@@ -97,6 +97,7 @@ const state: GlobalState = {
         },
         preferences: {
             myPreferences: {},
+            userPreferences: {},
         },
         bots: {
             accounts: {},
@@ -124,6 +125,7 @@ const state: GlobalState = {
         },
         integrations: {
             incomingHooks: {},
+            incomingHooksTotalCount: 0,
             outgoingHooks: {},
             oauthApps: {},
             systemCommands: {},
