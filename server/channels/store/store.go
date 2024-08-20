@@ -533,7 +533,7 @@ type RemoteClusterStore interface {
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
 	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
-	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
+	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
 }
@@ -615,7 +615,7 @@ type WebhookStore interface {
 	PermanentDeleteOutgoingByUser(userID string) error
 	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error)
 
-	AnalyticsIncomingCount(teamID string) (int64, error)
+	AnalyticsIncomingCount(teamID string, userID string) (int64, error)
 	AnalyticsOutgoingCount(teamID string) (int64, error)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
@@ -652,6 +652,7 @@ type PreferenceStore interface {
 	PermanentDeleteByUser(userID string) error
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	CleanupFlagsBatch(limit int64) (int64, error)
+	DeleteInvalidVisibleDmsGms() (int64, error)
 }
 
 type LicenseStore interface {

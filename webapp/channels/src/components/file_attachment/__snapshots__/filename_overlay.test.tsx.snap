@@ -37,14 +37,14 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
     placement="top"
     title="Download"
   >
-    <ExternalLink
+    <ForwardRef
       aria-label="download"
       download="test_filename"
       href="/api/v4/files/thumbnail_id?download=1"
       location="filename_overlay"
     >
       test_filename
-    </ExternalLink>
+    </ForwardRef>
   </WithTooltip>
 </div>
 `;
@@ -58,14 +58,14 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
     placement="top"
     title="Download"
   >
-    <ExternalLink
+    <ForwardRef
       aria-label="download"
       download="test_filename"
       href="/api/v4/files/thumbnail_id?download=1"
       location="filename_overlay"
     >
       <AttachmentIcon />
-    </ExternalLink>
+    </ForwardRef>
   </WithTooltip>
 </div>
 `;

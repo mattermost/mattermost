@@ -36,6 +36,7 @@ import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_i
 
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
+import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
@@ -457,7 +458,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_user_detail: {
-                url: 'user_management/user/:user_id',
+                url: `user_management/user/:user_id(${ID_PATH_PATTERN})`,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
@@ -465,7 +466,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             group_detail: {
-                url: 'user_management/groups/:group_id',
+                url: `user_management/groups/:group_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 schema: {
@@ -510,7 +511,7 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
             team_detail: {
-                url: 'user_management/teams/:team_id',
+                url: `user_management/teams/:team_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 schema: {
@@ -530,7 +531,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             channel_detail: {
-                url: 'user_management/channels/:channel_id',
+                url: `user_management/channels/:channel_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 schema: {
@@ -557,7 +558,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             teamSchemeDetail: {
-                url: 'user_management/permissions/team_override_scheme/:scheme_id',
+                url: `user_management/permissions/team_override_scheme/:scheme_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -586,7 +587,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_role: {
-                url: 'user_management/system_roles/:role_id',
+                url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
@@ -595,7 +596,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_roles: {
                 url: 'user_management/system_roles',
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -610,14 +611,14 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles_feature_discovery: {
                 url: 'user_management/system_roles',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
-                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'System Roles'}),
+                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                     settings: [
                         {
                             type: 'custom',
@@ -1815,7 +1816,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
                                 it.configIsFalse('MetricsSettings', 'Enable'),
                             ),
-                            isHidden: it.configIsFalse('FeatureFlags', 'ClientMetrics'),
                         },
                         {
                             type: 'text',
@@ -2192,7 +2192,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'ServiceSettings.EnableCustomGroups',
-                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups (Beta): '}),
+                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups: '}),
                             help_text: defineMessage({id: 'admin.team.customUserGroupsDescription', defaultMessage: 'When true, users with appropriate permissions can create custom user groups and enables at-mentions for those groups.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                             isHidden: it.not(it.any(
@@ -2398,19 +2398,19 @@ const AdminDefinition: AdminDefinitionType = {
             },
             announcement_banner: {
                 url: 'site_config/announcement_banner',
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Announcement')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'bool',
                             key: 'AnnouncementSettings.EnableBanner',
-                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable Announcement Banner:'}),
+                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable System-wide Notifications:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.enableBannerDesc', defaultMessage: 'Enable an announcement banner across all teams.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                         },
@@ -2459,14 +2459,14 @@ const AdminDefinition: AdminDefinitionType = {
             announcement_banner_feature_discovery: {
                 url: 'site_config/announcement_banner',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'custom',
@@ -2515,7 +2515,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.ThreadAutoFollow',
                             label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Collapsed Reply Threads. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Collapsed Reply Threads are disabled.'}),
+                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
                             help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                             isHidden: it.licensedForFeature('Cloud'),
@@ -2523,8 +2523,8 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'dropdown',
                             key: 'ServiceSettings.CollapsedThreads',
-                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Collapsed Reply Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable collapsed reply threads in Settings. When disabled, users cannot access Collapsed Reply Threads. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
+                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
                             help_text_values: {
                                 linkKnownIssues: (msg: string) => (
                                     <ExternalLink
@@ -3046,7 +3046,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.EnableUserCreation',
                             label: defineMessage({id: 'admin.team.userCreationTitle', defaultMessage: 'Enable Account Creation: '}),
-                            help_text: defineMessage({id: 'admin.team.userCreationDescription', defaultMessage: 'When false, the ability to create accounts is disabled. The create account button displays error when pressed.'}),
+                            help_text: defineMessage({id: 'admin.team.userCreationDescription', defaultMessage: 'When false, the ability to create accounts is disabled, and selecting Create Account displays an error. Applies to Email, OpenID Connect, and OAuth 2.0 user account authentication.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
@@ -3077,7 +3077,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.EnableOpenServer',
                             label: defineMessage({id: 'admin.team.openServerTitle', defaultMessage: 'Enable Open Server: '}),
-                            help_text: defineMessage({id: 'admin.team.openServerDescription', defaultMessage: 'When true, anyone can signup for a user account on this server without the need to be invited.'}),
+                            help_text: defineMessage({id: 'admin.team.openServerDescription', defaultMessage: 'When true, anyone can sign up for a user account on this server without the need to be invited. Applies to Email-based signups only.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
@@ -3220,6 +3220,7 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
                     sections: [
                         {
+                            key: 'admin.authentication.ldap.connection',
                             title: 'Connection',
                             subtitle: 'Connection and security level to your AD/LDAP server.',
                             settings: [
@@ -3385,6 +3386,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.dn_and_filters',
                             title: 'Base DN & Filters',
                             settings: [
                                 {
@@ -3476,6 +3478,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.account_synchronization',
                             title: 'Account Synchronization',
                             settings: [
                                 {
@@ -3631,6 +3634,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.group_synchronization',
                             title: 'Group Synchronization',
                             settings: [
                                 {
@@ -3661,6 +3665,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_performance',
                             title: 'Synchronization Performance',
                             settings: [
                                 {
@@ -3734,6 +3739,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_history',
                             title: 'Synchronization History',
                             subtitle: 'See the table below for the status of each synchronization',
                             settings: [
@@ -5548,13 +5554,13 @@ const AdminDefinition: AdminDefinitionType = {
             },
             gif: {
                 url: 'integrations/gif',
-                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF'}),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                 ),
                 schema: {
                     id: 'GifSettings',
-                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF (Beta)'}),
+                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF'}),
                     settings: [
                         {
                             type: 'bool',
@@ -5623,7 +5629,7 @@ const AdminDefinition: AdminDefinitionType = {
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE)),
         subsections: {
             custom_policy_form_edit: {
-                url: 'compliance/data_retention_settings/custom_policy/:policy_id',
+                url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
                     it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
@@ -6046,14 +6052,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnablePreviewFeatures',
-                            label: defineMessage({id: 'admin.experimental.enablePreviewFeatures.title', defaultMessage: 'Enable Preview Features:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enablePreviewFeatures.desc', defaultMessage: 'When true, preview features can be enabled from **Settings > Advanced > Preview pre-release features**. When false, disables and hides preview features from **Settings > Advanced > Preview pre-release features**.'}),
-                            help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

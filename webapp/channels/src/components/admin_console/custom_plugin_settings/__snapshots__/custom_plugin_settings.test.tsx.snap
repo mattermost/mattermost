@@ -186,15 +186,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
@@ -255,15 +247,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
@@ -486,15 +470,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."

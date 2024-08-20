@@ -662,7 +662,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 <AccountOutlineIcon
                                     size={16}
                                     color={'rgba(var(--center-channel-color-rgb), 0.56)'}
-                                    className={'profile__icon'}
                                 />
                             }
                         >

@@ -492,7 +492,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 	require.Nil(t, err)
 
 	group, err := th.App.CreateGroup(&model.Group{
-		Name:           model.NewString(model.NewId()),
+		Name:           model.NewPointer(model.NewId()),
 		DisplayName:    model.NewId(),
 		Source:         model.GroupSourceCustom,
 		AllowReference: true,
@@ -699,7 +699,7 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 
 	t.Run("read archived channel - setting off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(false)
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(false)
 		})
 		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
 		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
@@ -707,7 +707,7 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 
 	t.Run("read archived channel - setting on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(true)
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(true)
 		})
 		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
 		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
@@ -748,7 +748,7 @@ func TestHasPermissionToChannelByPost(t *testing.T) {
 
 	t.Run("read archived channel - setting off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(false)
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(false)
 		})
 		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, archivedPost.Id, model.PermissionReadChannel))
 		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, archivedPost.Id, model.PermissionReadChannel))
@@ -756,7 +756,7 @@ func TestHasPermissionToChannelByPost(t *testing.T) {
 
 	t.Run("read archived channel - setting on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(true)
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewPointer(true)
 		})
 		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, archivedPost.Id, model.PermissionReadChannel))
 		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, archivedPost.Id, model.PermissionReadChannel))

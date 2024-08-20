@@ -370,6 +370,7 @@
 .post-create__container {
     width: 100%;
     flex: 0 0 auto;
+    border-radius: 0 0 12px 12px;
     background: var(--center-channel-bg);
     color: var(--center-channel-color);
 
@@ -1061,8 +1062,7 @@
     p {
         width: 100%;
         margin: 0;
-        font-size: 13.5px;
-        line-height: 1.6em;
+        line-height: 20px;
         white-space: pre-wrap;
         word-break: break-word;
     }
@@ -1466,8 +1466,6 @@
 
         ul,
         ol {
-            font-size: 13.5px;
-
             p {
                 margin-bottom: 0;
             }

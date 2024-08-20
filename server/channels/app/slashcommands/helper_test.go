@@ -261,7 +261,7 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewBool(v)
+		channel.Shared = model.NewPointer(v)
 	}
 }
 

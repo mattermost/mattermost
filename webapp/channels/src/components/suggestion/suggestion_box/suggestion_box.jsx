@@ -302,7 +302,7 @@ export default class SuggestionBox extends React.PureComponent {
         this.setState({focused: false});
 
         if (this.props.onBlur) {
-            this.props.onBlur();
+            this.props.onBlur(e);
         }
     };
 
