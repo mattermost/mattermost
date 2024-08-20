@@ -651,6 +651,28 @@ describe('Actions.Posts', () => {
                 }),
                 expected: new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
             },
+            {
+                name: 'should return at-mentions from inside message attachment field values but not their titles',
+                input: TestHelper.getPostMock({
+                    props: {
+                        attachments: [
+                            {
+                                fields: [
+                                    {title: '@bbb', value: '@ccc'},
+                                    {value: '@ddd'},
+                                ],
+                            },
+                            {
+                                fields: [
+                                    {title: '@eee', value: '@fff'},
+                                    {value: '@ggg'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ccc', 'ddd', 'fff', 'ggg']),
+            },
         ];
 
         for (const specialMention of [
