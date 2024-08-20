@@ -65,6 +65,7 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
+import useSchedulePost from "components/advanced_text_editor/use_schedule_post";
 
 function isDraftEmpty(draft: PostDraft) {
     return draft.message === '' && draft.fileInfos.length === 0 && draft.uploadsInProgress.length === 0;
@@ -252,6 +253,9 @@ const AdvancedTextEditor = ({
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
     const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+
+    const [handleSchedulePost, schedulePostErrorClass] = useSchedulePost(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -424,6 +428,7 @@ const AdvancedTextEditor = ({
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmit}
+            handleSchedulePost={handleSchedulePost}
         />
     );
 

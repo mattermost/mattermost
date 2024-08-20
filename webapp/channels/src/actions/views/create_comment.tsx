@@ -6,7 +6,8 @@ import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
@@ -33,14 +34,13 @@ import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
+import {createSchedulePost} from 'actions/schedule_message';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {PostScheduledPost} from 'types/store/scheduled_post';
-import {createSchedulePost} from "actions/schedule_message";
-import {ScheduledPost} from "@mattermost/types/lib/schedule_post";
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
@@ -111,7 +111,7 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft, 
     };
 }
 
-export function submitScheduledPost(channelId: string, rootId: string, scheduledPost: PostScheduledPost): ActionFuncAsync<{data: true, error?: string}, GlobalState> {
+export function submitScheduledPost(channelId: string, rootId: string, scheduledPost: PostScheduledPost): ActionFuncAsync<{data: true; error?: string}, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -148,7 +148,10 @@ export function submitScheduledPost(channelId: string, rootId: string, scheduled
             pending_post_id: `${userId}:${time}`,
             user_id: userId,
             create_at: time,
-            metadata: {...scheduledPost.metadata},
+            metadata: {
+                ...scheduledPost.metadata,
+                priority: scheduledPost.pr,
+            },
             props: {...scheduledPost.props},
         } as unknown as Post;
 
@@ -161,6 +164,7 @@ export function submitScheduledPost(channelId: string, rootId: string, scheduled
 
         const currentUserId = getCurrentUserId(state);
 
+        const fileIds = scheduledPost.fileInfos.map((file) => file.id);
         const updatedScheduledPost: ScheduledPost = {
             id: scheduledPost.id,
             scheduled_at: scheduledPost.scheduled_at,
@@ -171,10 +175,10 @@ export function submitScheduledPost(channelId: string, rootId: string, scheduled
             root_id: scheduledPost.rootId,
             message: scheduledPost.message,
             props: dummyPost.props,
-            file_ids: scheduledPost.fileInfos
-            metadata?: PostMetadata;
-            priority?: PostPriorityMetadata;
-        }
+            file_ids: fileIds,
+            metadata: dummyPost.metadata,
+            priority: dummyPost.metadata.priority,
+        };
 
         return dispatch(createSchedulePost(updatedScheduledPost));
     };

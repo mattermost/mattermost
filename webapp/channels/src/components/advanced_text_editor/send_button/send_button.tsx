@@ -19,9 +19,11 @@ import WithTooltip from 'components/with_tooltip';
 import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 import {createSchedulePost} from "actions/schedule_message";
+import {ScheduledPostInfo} from "@mattermost/types/lib/schedule_post";
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent) => void;
+    handleSchedulePost: (e: React.FormEvent, scheduleInfo: ScheduledPostInfo) => void;
     disabled: boolean;
 }
 
@@ -37,7 +39,7 @@ const SendButtonContainer = styled.button`
     }
 `;
 
-const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, handleSchedulePost}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -45,6 +47,12 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
         e.stopPropagation();
         e.preventDefault();
         handleSubmit(e);
+    };
+
+    const scheduleMessage = (e: React.FormEvent, schedulePostInfo: ScheduledPostInfo) => {
+        e.stopPropagation();
+        e.preventDefault();
+        handleSchedulePost(e, schedulePostInfo);
     };
 
     const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
@@ -72,10 +80,6 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
         return shortcutDefinition;
     }, [sendOnCtrlEnter]);
-
-    const schedulePost = useCallback(async (timestamp: number) => {
-        const {data: success} = await dispatch(createSchedulePost({}));
-    }, [dispatch]);
 
     return (
         <div className={classNames('splitSendButton', {disabled})}>
@@ -110,7 +114,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
             <SendPostOptions
                 disabled={disabled}
-                onSelect={schedulePost}
+                onSelect={scheduleMessage}
             />
         </div>
     );

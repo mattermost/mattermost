@@ -6,8 +6,10 @@ import {useCallback, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
+import {options} from 'yargs';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {ScheduledPostInfo} from '@mattermost/types/lib/schedule_post';
 
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
@@ -18,8 +20,8 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {scrollPostListToBottom} from 'actions/views/channel';
-import {onSubmitSchedulePost, SubmitPostReturnType} from 'actions/views/create_comment';
-import {onSubmit} from 'actions/views/create_comment';
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
+import {onSubmitSchedulePost, onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -32,8 +34,6 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import useGroups from './use_groups';
-import {ScheduledPostInfo} from "@mattermost/types/lib/schedule_post";
-import {options} from "yargs";
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -64,7 +64,7 @@ const useSchedulePost = (
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
     afterSubmit?: (response: SubmitPostReturnType) => void,
 ): [
-        (e: React.FormEvent, submittingDraft?: PostDraft) => void,
+        (e: React.FormEvent, scheduleInfo: ScheduledPostInfo, submittingDraft?: PostDraft) => void,
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
@@ -73,13 +73,14 @@ const useSchedulePost = (
 
     const isDraftSubmitting = useRef(false);
     const [errorClass, setErrorClass] = useState<string | null>(null);
-    const isDirectOrGroup = useSelector((state: GlobalState) => {
-        const channel = getChannel(state, channelId);
-        if (!channel) {
-            return false;
-        }
-        return channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
-    });
+
+    // const isDirectOrGroup = useSelector((state: GlobalState) => {
+    //     const channel = getChannel(state, channelId);
+    //     if (!channel) {
+    //         return false;
+    //     }
+    //     return channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
+    // });
 
     const channel = useSelector((state: GlobalState) => {
         return getChannel(state, channelId);
@@ -99,10 +100,11 @@ const useSchedulePost = (
 
     const enableConfirmNotificationsToChannel = useSelector((state: GlobalState) => getConfig(state).EnableConfirmNotificationsToChannel === 'true');
     const channelMembersCount = useSelector((state: GlobalState) => getAllChannelStats(state)[channelId]?.member_count ?? 1);
-    const userIsOutOfOffice = useSelector((state: GlobalState) => {
-        const currentUserId = getCurrentUserId(state);
-        return getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
-    });
+
+    // const userIsOutOfOffice = useSelector((state: GlobalState) => {
+    //     const currentUserId = getCurrentUserId(state);
+    //     return getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
+    // });
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         if (!channel) {
@@ -118,7 +120,7 @@ const useSchedulePost = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, scheduleInfo?: ScheduledPostInfo) => {
+    const doSubmit = useCallback(async (scheduleInfo: ScheduledPostInfo, e?: React.FormEvent, submittingDraft = draft) => {
         e?.preventDefault();
         console.log(scheduleInfo);
         if (submittingDraft.uploadsInProgress.length > 0) {
@@ -156,6 +158,7 @@ const useSchedulePost = (
         setServerError(null);
 
         const ignoreSlash = isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message;
+
         // const options = {ignoreSlash, afterSubmit};
         const options = {ignoreSlash}; // no need of afterSubmit for scheduled post as its for plugins to act after the post is created,
 
@@ -199,7 +202,7 @@ const useSchedulePost = (
         isDraftSubmitting.current = false;
     }, [handleDraftChange, dispatch, draft, focusTextbox, isRootDeleted, postError, serverError, showPostDeletedModal, channelId, postId, lastBlurAt, setPostError, setServerError, afterSubmit]);
 
-    const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
+    const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, scheduleInfo: ScheduledPostInfo) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
             dialogType: NotifyConfirmModal,
@@ -207,12 +210,12 @@ const useSchedulePost = (
                 mentions,
                 channelTimezoneCount,
                 memberNotifyCount,
-                onConfirm: () => doSubmit(),
+                onConfirm: () => doSubmit(scheduleInfo),
             },
         }));
     }, [doSubmit, dispatch]);
 
-    const handleSchedulePost = useCallback(async (e: React.FormEvent, submittingDraft = draft, scheduleInfo: ScheduledPostInfo) => {
+    const handleSchedulePost = useCallback(async (e: React.FormEvent, scheduleInfo: ScheduledPostInfo, submittingDraft = draft) => {
         console.log('handleSchedulePost');
         if (!channel) {
             return;
@@ -253,7 +256,7 @@ const useSchedulePost = (
         }
 
         if (memberNotifyCount > 0) {
-            showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
+            showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, scheduleInfo);
             isDraftSubmitting.current = false;
             return;
         }
@@ -311,23 +314,7 @@ const useSchedulePost = (
         // }
 
         await doSubmit(e, submittingDraft, scheduleInfo);
-    }, [
-        doSubmit,
-        draft,
-        isDirectOrGroup,
-        channel,
-        channelId,
-        channelMembersCount,
-        dispatch,
-        enableConfirmNotificationsToChannel,
-        handleDraftChange,
-        showNotifyAllModal,
-        useChannelMentions,
-        userIsOutOfOffice,
-        getGroupMentions,
-        setShowPreview,
-        prioritySubmitCheck,
-    ]);
+    }, [doSubmit, draft, channel, channelId, channelMembersCount, dispatch, enableConfirmNotificationsToChannel, showNotifyAllModal, useChannelMentions, getGroupMentions, setShowPreview, prioritySubmitCheck]);
 
     return [handleSchedulePost, errorClass];
 };

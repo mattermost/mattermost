@@ -4,9 +4,9 @@
 import type {Draft} from './drafts';
 
 export type ScheduledPostInfo = {
-    id: string;
-    scheduled_at: string;
-    processed_at?: string;
+    id?: string;
+    scheduled_at: number;
+    processed_at?: number;
     error_code?: string;
 }
 
