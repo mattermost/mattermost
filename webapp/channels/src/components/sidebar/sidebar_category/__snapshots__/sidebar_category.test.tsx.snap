@@ -301,22 +301,25 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       id="new-group-tooltip"
       placement="top"
       title={
-        <Memo(KeyboardShortcutSequence)
-          hideDescription={true}
-          isInsideTooltip={true}
-          shortcut={
-            Object {
-              "default": Object {
-                "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
-                "id": "shortcuts.nav.direct_messages_menu",
-              },
-              "mac": Object {
-                "defaultMessage": "Direct messages menu:	⌘|Shift|K",
-                "id": "shortcuts.nav.direct_messages_menu.mac",
-              },
+        <React.Fragment>
+          Create new direct message
+          <Memo(KeyboardShortcutSequence)
+            hideDescription={true}
+            isInsideTooltip={true}
+            shortcut={
+              Object {
+                "default": Object {
+                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu",
+                },
+                "mac": Object {
+                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu.mac",
+                },
+              }
             }
-          }
-        />
+          />
+        </React.Fragment>
       }
     >
       <button
@@ -411,22 +414,25 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       id="new-group-tooltip"
       placement="top"
       title={
-        <Memo(KeyboardShortcutSequence)
-          hideDescription={true}
-          isInsideTooltip={true}
-          shortcut={
-            Object {
-              "default": Object {
-                "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
-                "id": "shortcuts.nav.direct_messages_menu",
-              },
-              "mac": Object {
-                "defaultMessage": "Direct messages menu:	⌘|Shift|K",
-                "id": "shortcuts.nav.direct_messages_menu.mac",
-              },
+        <React.Fragment>
+          Create new direct message
+          <Memo(KeyboardShortcutSequence)
+            hideDescription={true}
+            isInsideTooltip={true}
+            shortcut={
+              Object {
+                "default": Object {
+                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu",
+                },
+                "mac": Object {
+                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu.mac",
+                },
+              }
             }
-          }
-        />
+          />
+        </React.Fragment>
       }
     >
       <button
