@@ -17,6 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	prom_client_model "github.com/prometheus/client_model/go"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1336,6 +1337,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
 	return m
+}
+
+func (mi *MetricsInterfaceImpl) Gather() ([]*prom_client_model.MetricFamily, error) {
+	return mi.Registry.Gather()
 }
 
 func (mi *MetricsInterfaceImpl) isLicensed() bool {

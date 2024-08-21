@@ -6,6 +6,7 @@ package metrics
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -25,6 +26,8 @@ func configureMetrics(th *api4.TestHelper) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MetricsSettings.Enable = true
 		*cfg.MetricsSettings.ListenAddress = ":0"
+		*cfg.MetricsSettings.EnableClientMetrics = true
+		*cfg.MetricsSettings.EnableNotificationMetrics = true
 	})
 	th.App.Srv().SetLicense(model.NewTestLicense("metrics"))
 }
@@ -271,5 +274,206 @@ func TestExtractDBCluster(t *testing.T) {
 
 			require.Equal(t, tc.expectedClusterName, host)
 		})
+	}
+}
+
+type MetricsSection struct {
+	Title   string
+	Metrics []*prometheusModels.MetricFamily
+}
+
+// This needs the docker containers running (make start-docker is enough)
+func TestGather(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+	defer th.TearDown()
+
+	configureMetrics(th)
+	mi := th.App.Srv().Platform().Metrics()
+
+	// We need to register the DB collector explicitly to get the go_sql_* metrics
+	mi.RegisterDBCollector(th.Server.GetStore().GetInternalMasterDB(), "master")
+
+	sections := make(map[string]*MetricsSection)
+
+	// Custom, by MM
+	sections["mattermost_api"] = &MetricsSection{"API metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_cache"] = &MetricsSection{"Caching metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_cluster"] = &MetricsSection{"Cluster metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_db"] = &MetricsSection{"Database metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_http"] = &MetricsSection{"HTTP metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_login"] = &MetricsSection{"Login and session metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_post"] = &MetricsSection{"Mattermost channels metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_search"] = &MetricsSection{"Search metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_websocket"] = &MetricsSection{"WebSocket metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_logging"] = &MetricsSection{"Logging metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_system"] = &MetricsSection{"Debugging metrics - system", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_jobs"] = &MetricsSection{"Debugging metrics - jobs", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_plugin"] = &MetricsSection{"Plugin metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_shared"] = &MetricsSection{"Shared metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_remote"] = &MetricsSection{"Remote cluster metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_notifications"] = &MetricsSection{"Notification metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_mobileapp"] = &MetricsSection{"Mobile app metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_webapp"] = &MetricsSection{"Web app metrics", []*prometheusModels.MetricFamily{}}
+	// Custom, by other collectors
+	sections["go_sql"] = &MetricsSection{"Database connection metrics", []*prometheusModels.MetricFamily{}}
+	sections["mattermost_process"] = &MetricsSection{"Process metrics", []*prometheusModels.MetricFamily{}}
+
+	sectionsByTitle := make(map[string]*MetricsSection)
+	for _, section := range sections {
+		sectionsByTitle[section.Title] = section
+	}
+
+	// The *Vec metrics need to be observed at least once in order to Gather to report them back.
+	// This is error-prone, since we can (we will) definitely forget some
+	// Notifications
+	mi.IncrementNotificationAckCounter("", "")
+	mi.IncrementNotificationCounter("", "")
+	mi.IncrementNotificationErrorCounter("", "", "")
+	mi.IncrementNotificationNotSentCounter("", "", "")
+	mi.IncrementNotificationSuccessCounter("", "")
+	mi.IncrementNotificationUnsupportedCounter("", "", "")
+	// RemoteCluster
+	mi.IncrementRemoteClusterConnStateChangeCounter("", true)
+	mi.IncrementRemoteClusterMsgErrorsCounter("", true)
+	mi.IncrementRemoteClusterMsgReceivedCounter("")
+	mi.IncrementRemoteClusterMsgSentCounter("")
+	mi.ObserveRemoteClusterClockSkew("", 0)
+	mi.ObserveRemoteClusterPingDuration("", 0)
+	// MobileClient
+	mi.ObserveMobileClientChannelSwitchDuration("", 0)
+	mi.ObserveMobileClientLoadDuration("", 0)
+	mi.ObserveMobileClientTeamSwitchDuration("", 0)
+	// API
+	mi.ObserveAPIEndpointDuration("", "", "", "", "", 0)
+	// Webapp
+	mi.IncrementClientLongTasks("", "", 0)
+	mi.ObserveClientChannelSwitchDuration("", "", 0)
+	mi.ObserveClientCumulativeLayoutShift("", "", 0)
+	mi.ObserveClientFirstContentfulPaint("", "", 0)
+	mi.ObserveClientInteractionToNextPaint("", "", "", 0)
+	mi.ObserveClientLargestContentfulPaint("", "", "", 0)
+	mi.ObserveClientPageLoadDuration("", "", 0)
+	mi.ObserveClientRHSLoadDuration("", "", 0)
+	mi.ObserveClientTeamSwitchDuration("", "", 0)
+	mi.ObserveClientTimeToFirstByte("", "", 0)
+	mi.ObserveGlobalThreadsLoadDuration("", "", 0)
+	// Jobs
+	mi.IncrementJobActive("")
+	// Cache
+	mi.IncrementEtagHitCounter("")
+	mi.IncrementEtagMissCounter("")
+	// DB
+	mi.ObserveStoreMethodDuration("", "", 0)
+	// Redis
+	mi.ObserveRedisEndpointDuration("", "", 0)
+	// Plugins
+	mi.ObservePluginAPIDuration("", "", true, 0)
+	mi.ObservePluginHookDuration("", "", true, 0)
+	mi.ObservePluginMultiHookDuration(0)
+	mi.ObservePluginMultiHookIterationDuration("", 0)
+	// Shared channels
+	mi.IncrementSharedChannelsSyncCounter("")
+	mi.ObserveSharedChannelsQueueSize(0)
+	mi.ObserveSharedChannelsSyncCollectionDuration("", 0)
+	mi.ObserveSharedChannelsSyncCollectionStepDuration("", "", 0)
+	mi.ObserveSharedChannelsSyncSendDuration("", 0)
+	mi.ObserveSharedChannelsSyncSendStepDuration("", "", 0)
+	mi.ObserveSharedChannelsTaskInQueueDuration(0)
+	// Replica
+	mi.SetReplicaLagAbsolute("", 0)
+	mi.SetReplicaLagTime("", 0)
+	// Cache
+	mi.AddMemCacheHitCounter("", 0)
+	mi.AddMemCacheMissCounter("", 0)
+	mi.IncrementMemCacheHitCounter("")
+	mi.IncrementMemCacheHitCounterSession()
+	mi.IncrementMemCacheInvalidationCounter("")
+	mi.IncrementMemCacheInvalidationCounterSession()
+	mi.IncrementMemCacheMissCounter("")
+	mi.IncrementMemCacheMissCounterSession()
+	// Cluster
+	mi.IncrementClusterEventType("")
+	// Websockets
+	mi.DecrementHTTPWebSockets("")
+	mi.DecrementWebSocketBroadcastBufferSize("", 0)
+	mi.DecrementWebSocketBroadcastUsersRegistered("", 0)
+	mi.IncrementHTTPWebSockets("")
+	mi.IncrementWebSocketBroadcast("")
+	mi.IncrementWebSocketBroadcastBufferSize("", 0)
+	mi.IncrementWebSocketBroadcastUsersRegistered("", 0)
+	mi.IncrementWebsocketEvent("")
+	mi.IncrementWebsocketReconnectEvent("")
+	// Logger
+	mi.GetLoggerMetricsCollector().LoggedCounter("")
+	mi.GetLoggerMetricsCollector().BlockedCounter("")
+	mi.GetLoggerMetricsCollector().DroppedCounter("")
+	mi.GetLoggerMetricsCollector().ErrorCounter("")
+	mi.GetLoggerMetricsCollector().QueueSizeGauge("")
+
+	metrics, err := mi.Gather()
+	require.NoError(t, err)
+	require.NotEmpty(t, metrics)
+	for _, metric := range metrics {
+		require.NotNil(t, metric)
+
+		// Skip standard Go metrics (go_sql is not standard, but its prefix is still go :shrug:)
+		if strings.HasPrefix(metric.GetName(), "go") && !strings.HasPrefix(metric.GetName(), "go_sql") {
+			continue
+		}
+
+		// Get prefix and verify it is covered by the sections map
+		fields := strings.Split(metric.GetName(), "_")
+		require.GreaterOrEqual(t, len(fields), 2)
+		prefix := strings.Join(fields[:2], "_")
+		require.Contains(t, sections, prefix)
+
+		// Add the metric to its corresponding section
+		section := sections[prefix]
+		section.Metrics = append(section.Metrics, metric)
+	}
+
+	// Verify that all specified sections have at least one metric
+	for _, section := range sections {
+		require.NotEmpty(t, section.Metrics, "If a section has no metrics it means we need to observe it; i.e., call its Increment/Decrement/Observe function.")
+	}
+
+	// Specify the current order in the docs
+	order := []string{
+		"API metrics",
+		"Caching metrics",
+		"Cluster metrics",
+		"Database metrics",
+		"Database connection metrics",
+		"HTTP metrics",
+		"Login and session metrics",
+		"Mattermost channels metrics",
+		"Process metrics",
+		"Search metrics",
+		"WebSocket metrics",
+		"Logging metrics",
+		"Debugging metrics - system",
+		"Debugging metrics - jobs",
+		"Plugin metrics",
+		"Shared metrics",
+		"Remote cluster metrics",
+		"Notification metrics",
+		"Mobile app metrics",
+		"Web app metrics",
+	}
+
+	for _, title := range order {
+		fmt.Println(title)
+		fmt.Println(strings.Repeat("~", len(title)))
+
+		section := sectionsByTitle[title]
+		fmt.Println("")
+		for _, metric := range section.Metrics {
+			dot := "."
+			if strings.HasSuffix(metric.GetHelp(), ".") {
+				dot = ""
+			}
+			fmt.Printf("- ``%s``: %s%s\n", metric.GetName(), metric.GetHelp(), dot)
+		}
+		fmt.Println()
 	}
 }

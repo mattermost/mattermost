@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	prom_client_model "github.com/prometheus/client_model/go"
 )
 
 type MetricsInterface interface {
@@ -118,4 +119,6 @@ type MetricsInterface interface {
 	ObserveMobileClientLoadDuration(platform string, elapsed float64)
 	ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64)
 	ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64)
+
+	Gather() ([]*prom_client_model.MetricFamily, error)
 }
