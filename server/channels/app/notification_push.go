@@ -213,7 +213,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 
 		if msg.Type == model.PushTypeMessage {
 			// If we are ignoring the ack, we don't count the send
-			if session.Props[model.SessionPropIgnoreNotificationACK] != "true" {
+			if session.Props[model.SessionPropDeviceNotificationDisabled] != "true" {
 				a.CountNotification(model.NotificationTypePush, tmpMessage.Platform)
 			}
 		}

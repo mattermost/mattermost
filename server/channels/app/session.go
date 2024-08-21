@@ -291,12 +291,21 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	return nil
 }
 
-func (a *App) SetIgnoreNotificationACK(session *model.Session, value bool) *model.AppError {
-	stringValue := "false"
-	if value {
-		stringValue = "true"
+func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	changed := false
+	for k, v := range newProps {
+		if session.Props[k] == v {
+			continue
+		}
+
+		session.AddProp(k, v)
+		changed = true
 	}
-	session.AddProp(model.SessionPropIgnoreNotificationACK, stringValue)
+
+	if !changed {
+		return nil
+	}
+
 	err := a.Srv().Store().Session().UpdateProps(session)
 	if err != nil {
 		return model.NewAppError("SetIgnoreNotificationACK", "app.session.ignore_ack.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
