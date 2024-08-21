@@ -424,7 +424,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               ]
             }
           />
-          <MultiSelectSetting
+          <Memo(MultiSelectSetting)
             disabled={false}
             helpText={
               <SchemaText
