@@ -7776,3 +7776,75 @@ func TestUserUpdateEvents(t *testing.T) {
 		})
 	})
 }
+
+func TestLoginWithDesktopToken(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("login SAML User with desktop token", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), samlUser)
+		assert.Nil(t, appErr)
+
+		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.NoError(t, err)
+		assert.Equal(t, samlUser.Id, user.Id)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, "true", sessions[0].Props["isSaml"])
+		assert.Equal(t, "false", sessions[0].Props["isOAuthUser"])
+	})
+
+	t.Run("login OAuth User with desktop token", func(t *testing.T) {
+		gitlabUser := th.CreateUserWithAuth(model.UserAuthServiceGitlab)
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), gitlabUser)
+		assert.Nil(t, appErr)
+
+		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.NoError(t, err)
+		assert.Equal(t, gitlabUser.Id, user.Id)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), gitlabUser.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, "false", sessions[0].Props["isSaml"])
+		assert.Equal(t, "true", sessions[0].Props["isOAuthUser"])
+	})
+
+	t.Run("login email user with desktop token", func(t *testing.T) {
+		// Sleep to avoid rate limit error
+		time.Sleep(time.Second)
+		user := th.CreateUser()
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		assert.Nil(t, appErr)
+
+		_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("invalid desktop token on login", func(t *testing.T) {
+		user := th.CreateUser()
+
+		_, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		assert.Nil(t, appErr)
+
+		invalidToken := "testinvalidToken"
+		token := &invalidToken
+
+		_, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), user.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 0)
+	})
+}
