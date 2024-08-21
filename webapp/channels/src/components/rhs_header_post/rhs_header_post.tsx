@@ -116,7 +116,6 @@ class RhsHeaderPost extends React.PureComponent<Props> {
 
         //rhsHeaderTooltipContent contains tooltips content for expand or shrink sidebarTooltip.
         // if props.isExpanded is true, defaultMessage would feed from 'shrinkTooltip', else 'expandTooltip'
-
         const rhsHeaderTooltipContent = this.props.isExpanded ? (
             <>
                 <FormattedMessage
