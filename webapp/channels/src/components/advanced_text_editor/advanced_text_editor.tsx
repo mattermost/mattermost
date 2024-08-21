@@ -251,7 +251,6 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    console.log({draftInAdvTextEditor: draft.message});
     const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -272,6 +271,7 @@ const AdvancedTextEditor = ({
     );
 
     const handlePostError = useCallback((err: React.ReactNode) => {
+        console.log('AAA');
         setPostError(err);
     }, []);
 

@@ -118,8 +118,6 @@ const useSubmit = (
     }, [dispatch]);
 
     const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
-        console.log('XXX');
-        console.log({submittingDraft: submittingDraft.message});
         e?.preventDefault();
 
         if (submittingDraft.uploadsInProgress.length > 0) {
@@ -162,9 +160,7 @@ const useSubmit = (
         const options = {ignoreSlash, afterSubmit};
 
         try {
-            await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
-
-            setPostError(null);
+            const result = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
             setServerError(null);
             handleDraftChange({
                 message: '',
@@ -175,6 +171,10 @@ const useSubmit = (
                 channelId,
                 rootId: postId,
             }, {instant: true});
+
+            if (result.error && result.error.message) {
+                setPostError(result.error.message);
+            }
         } catch (err: unknown) {
             if (isServerError(err)) {
                 if (isErrorInvalidSlashCommand(err)) {
@@ -189,8 +189,7 @@ const useSubmit = (
             return;
         }
 
-        // TODO: maybe this shouldn'rt happen for schedule post
-        if (!postId) {
+        if (!postId && !schedulingInfo) {
             dispatch(scrollPostListToBottom());
         }
 

@@ -19,6 +19,14 @@ func (s *ScheduledPost) IsValid(maxMessageSize int) *AppError {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.draft.app_error", nil, "", http.StatusBadRequest).Wrap(draftAppErr)
 	}
 
+	return s.BaseIsValid()
+}
+
+func (s *ScheduledPost) BaseIsValid() *AppError {
+	if draftAppErr := s.Draft.BaseIsValid(); draftAppErr != nil {
+		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.draft.app_error", nil, "", http.StatusBadRequest).Wrap(draftAppErr)
+	}
+
 	if s.Id == "" {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.id.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ScheduledPost} from '@mattermost/types/lib/schedule_post';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {Client4} from 'mattermost-redux/client';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';

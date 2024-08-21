@@ -11,6 +11,10 @@ import (
 )
 
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
+		return nil, validationErr
+	}
+
 	// verify user belongs to the channel
 	_, appErr := a.GetChannelMember(rctx, scheduledPost.ChannelId, scheduledPost.UserId)
 	if appErr != nil {

@@ -40,16 +40,9 @@ const SendButtonContainer = styled.button`
 const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
     const {formatMessage} = useIntl();
 
-    const sendMessage = (e: React.FormEvent) => {
+    const sendMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
         e.stopPropagation();
         e.preventDefault();
-        handleSubmit(e);
-    };
-
-    const scheduleMessage = useCallback((e: React.FormEvent, schedulingInfo: SchedulingInfo) => {
-        e.stopPropagation();
-        e.preventDefault();
-        console.log({schedulingInfo});
         handleSubmit(e, schedulingInfo);
     }, [handleSubmit]);
 
@@ -112,7 +105,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
             <SendPostOptions
                 disabled={disabled}
-                onSelect={scheduleMessage}
+                onSelect={sendMessage}
             />
         </div>
     );
