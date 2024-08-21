@@ -283,7 +283,7 @@ body.app__body #root {
                 transition: width .25s ease-in-out;
             }
 
-            --columns: min-content auto min-content;
+            --columns: min-content 1fr min-content;
         }
 
         #sidebar-right {
