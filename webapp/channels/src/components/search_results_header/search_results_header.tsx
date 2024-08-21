@@ -22,7 +22,6 @@ function SearchResultsHeader(props: Props) {
 
     // sidebarTooltipContent contains tooltips content for expand or shrink sidebarTooltip.
     // if props.isExpanded is true, defaultMessage would feed from 'shrinkTooltip', else 'expandTooltip'
-
     const sidebarTooltipContent = props.isExpanded ? (
         <>
             <FormattedMessage
