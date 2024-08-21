@@ -13,8 +13,6 @@ import type {
     KeyboardEvent,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
 
 import {GenericModal} from '@mattermost/components';
 
@@ -25,6 +23,9 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
 import WithTooltip from 'components/with_tooltip';
+
+import Constants, {A11yClassNames} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
 import {MuiMenuStyled} from './menu_styled';

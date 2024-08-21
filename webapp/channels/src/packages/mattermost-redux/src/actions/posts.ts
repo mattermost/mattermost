@@ -37,7 +37,6 @@ import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsy
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
-import type {SchedulingInfo} from "@mattermost/types/lib/schedule_post";
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -173,6 +172,7 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
 export type CreatePostReturnType = {
     created?: boolean;
     pending?: string;
+    error?: string;
 }
 
 export function createPost(post: Post, files: any[] = [], afterSubmit?: (response: any) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
@@ -237,7 +237,7 @@ export function createPost(post: Post, files: any[] = [], afterSubmit?: (respons
 
         dispatch(batchActions(actions, 'BATCH_CREATE_POST_INIT'));
 
-        (async function createPostWrapper() {
+        ((async function createPostWrapper() {
             try {
                 const created = await Client4.createPost({...newPost, create_at: 0});
 
@@ -299,7 +299,7 @@ export function createPost(post: Post, files: any[] = [], afterSubmit?: (respons
                 dispatch(batchActions(actions, 'BATCH_CREATE_POST_FAILED'));
                 return {error};
             }
-        }().then(() => {}));
+        }()).then(() => {}));
 
         return {data: {created: true}};
     };

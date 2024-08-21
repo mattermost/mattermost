@@ -113,6 +113,7 @@ import type {Reaction} from '@mattermost/types/reactions';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
@@ -145,7 +146,6 @@ import type {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
-import {ScheduledPost} from "@mattermost/types/schedule_post";
 
 const HEADER_AUTH = 'Authorization';
 const HEADER_BEARER = 'BEARER';

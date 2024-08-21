@@ -6,13 +6,12 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import * as Menu from 'components/menu';
-
-import './style.scss';
 import Timestamp from 'components/timestamp';
 
-import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+import './style.scss';
 
 type Props = {
     disabled?: boolean;

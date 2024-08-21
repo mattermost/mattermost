@@ -11,6 +11,7 @@ import (
 )
 
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+	scheduledPost.PreSave()
 	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
 		return nil, validationErr
 	}

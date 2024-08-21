@@ -2,20 +2,11 @@
 // See LICENSE.txt for license information.
 
 import type {Dispatch} from 'redux';
-import {
-    ActionTypes,
-    Constants,
-    ModalIdentifiers,
-    RHSStates,
-    StoragePrefixes,
-} from 'utils/constants';
-import {matchEmoticons} from 'utils/emoticons';
-import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
-import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/lib/schedule_post';
-import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
@@ -44,12 +35,21 @@ import {getGlobalItem} from 'selectors/storage';
 
 import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
 
+import {
+    ActionTypes,
+    Constants,
+    ModalIdentifiers,
+    RHSStates,
+    StoragePrefixes,
+} from 'utils/constants';
+import {matchEmoticons} from 'utils/emoticons';
+import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
+
 import type {GlobalState} from 'types/store';
 
-import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
+import {completePostReceive} from './new_post';
 import type {SubmitPostReturnType} from './views/create_comment';
-import type {PostDraft} from "types/store/draft";
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
@@ -136,7 +136,7 @@ export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePo
     };
 }
 
-export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<ScheduledPost, GlobalState> {
+export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         parseMessageEmojis(scheduledPost.message, dispatch);
 

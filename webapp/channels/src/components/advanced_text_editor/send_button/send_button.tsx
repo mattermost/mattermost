@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -12,13 +13,11 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
-
-import './style.scss';
-import classNames from 'classnames';
-
 import WithTooltip from 'components/with_tooltip';
 import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+
+import './style.scss';
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent, schedulingInfo?: SchedulingInfo) => void;

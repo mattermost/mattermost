@@ -5,6 +5,8 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
@@ -24,7 +26,6 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {SchedulingInfo} from "@mattermost/types/lib/schedule_post";
 
 const KeyCodes = Constants.KeyCodes;
 

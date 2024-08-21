@@ -16,7 +16,7 @@ type ScheduledPost struct {
 func (s *ScheduledPost) IsValid(maxMessageSize int) *AppError {
 	draftAppErr := s.Draft.IsValid(maxMessageSize)
 	if draftAppErr != nil {
-		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.draft.app_error", nil, "", http.StatusBadRequest).Wrap(draftAppErr)
+		return draftAppErr
 	}
 
 	return s.BaseIsValid()
@@ -24,7 +24,7 @@ func (s *ScheduledPost) IsValid(maxMessageSize int) *AppError {
 
 func (s *ScheduledPost) BaseIsValid() *AppError {
 	if draftAppErr := s.Draft.BaseIsValid(); draftAppErr != nil {
-		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.draft.app_error", nil, "", http.StatusBadRequest).Wrap(draftAppErr)
+		return draftAppErr
 	}
 
 	if s.Id == "" {

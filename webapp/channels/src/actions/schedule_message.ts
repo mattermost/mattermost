@@ -16,19 +16,17 @@ export function createSchedulePost(schedulePost: ScheduledPost) {
         const connectionId = getConnectionId(state);
 
         try {
-            const createdSchedulePost = await Client4.createSchedulePost(schedulePost, connectionId);
-
-            console.log(createdSchedulePost);
+            await Client4.createSchedulePost(schedulePost, connectionId);
 
             // TODO: dispatch action to store created schedule
             // post in store to display it.
         } catch (error) {
             return {
-                data: false,
+                created: false,
                 error,
             };
         }
 
-        return {data: true};
+        return {created: true};
     };
 }

@@ -1,11 +1,11 @@
 .splitSendButton {
     display: flex;
-    flex-direction: row;
-    background: var(--button-bg);
-    border-radius: 4px;
-    color: var(--button-color);
-    height: 32px;
     width: 56px;
+    height: 32px;
+    flex-direction: row;
+    border-radius: 4px;
+    background: var(--button-bg);
+    color: var(--button-color);
 
     &.disabled {
         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -20,11 +20,11 @@
     }
 
     .SendMessageButton, .button_send_post_options {
-        background: none;
-        border: none;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        border: none;
+        background: none;
 
         &.disabled {
             cursor: not-allowed;

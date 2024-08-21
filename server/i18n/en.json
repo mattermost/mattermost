@@ -9551,10 +9551,6 @@
     "translation": "Date range provided is invalid."
   },
   {
-    "id": "model.scheduled_post.is_valid.draft.app_error",
-    "translation": "Invalid base draft."
-  },
-  {
     "id": "model.scheduled_post.is_valid.empty_post.app_error",
     "translation": "Cannot schedule an empty post. Scheduled post must have at least a message or file attachments."
   },

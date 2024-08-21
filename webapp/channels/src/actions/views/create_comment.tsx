@@ -1,13 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Constants, StoragePrefixes} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
-import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
-
-import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 import type {Post} from '@mattermost/types/posts';
+import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
@@ -34,12 +29,17 @@ import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
+import {createSchedulePostFromDraft} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
 
+import {Constants, StoragePrefixes} from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
+import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {createSchedulePostFromDraft} from "actions/post_actions";
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
