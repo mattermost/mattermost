@@ -29,10 +29,6 @@ declare global {
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
-    import('components/initial_loading_screen').then(({default: InitialLoadingScreen}) => {
-        InitialLoadingScreen.start();
-    });
-
     window.onerror = (msg, url, line, column, error) => {
         if (msg === 'ResizeObserver loop limit exceeded') {
             return;

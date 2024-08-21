@@ -41,6 +41,8 @@ export class InitialLoadingScreenClass {
             if (!this.isLoading) {
                 this.loadingAnimationElement.className = STATIC_CLASS_FOR_ANIMATION;
 
+                // Automatically destroy the loading screen after the animation has finished.
+                // Should be changed if we want to loading animation to start again.
                 setTimeout(() => {
                     this.destroy();
                 }, DESTROY_DELAY_AFTER_ANIMATION_END);
@@ -80,6 +82,11 @@ export class InitialLoadingScreenClass {
         this.isLoading = null;
     }
 
+    /**
+     * The loading animations are always started as soon as the loading indicator is shown in the screen for the first time.
+     * But we still want to have this start method incase we need to start the loading animations manually any time.
+     * If we do want to do that then we should remove the set timeout destroy call doing above.
+     */
     public start() {
         if (isDesktopApp()) {
             // Let Mattermost desktop handle the loading screen
