@@ -54,7 +54,8 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
               >
@@ -312,7 +313,8 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -629,7 +631,8 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
               >
@@ -890,7 +893,8 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -1210,7 +1214,8 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
               >
@@ -1433,7 +1438,8 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
             >

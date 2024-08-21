@@ -1282,10 +1282,6 @@
     "translation": "[action]"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation from secure connection"
   },
@@ -1790,6 +1786,10 @@
     "translation": "Secure connection ID missing."
   },
   {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Unable to process request. Request body too large."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
@@ -2145,6 +2145,10 @@
     "translation": "Invalid team id provided."
   },
   {
+    "id": "api.get_site_url_error",
+    "translation": "Could not get the instance site url"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -2177,6 +2181,10 @@
     "translation": "The job types of a job you are trying to retrieve does not contain permissions"
   },
   {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
     "translation": "The job type of the job you are trying to create is invalid"
   },
@@ -2187,6 +2195,10 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "The job type you are trying to download is not supported at the moment"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -2273,52 +2285,12 @@
     "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error getting the license renewal link"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Renewing this license on the portal is not possible"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Could not create true up status record"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Failed to submit true up review profile to CWS."
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Could not get true up status records"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "True up review requires a license"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True up review is not allowed for cloud instances"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Could not get the total active users count"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Could not get the total incoming webhook count"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Could not get the total outgoing webhook count"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -2759,12 +2731,32 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
     "id": "api.remote_cluster.delete.app_error",
     "translation": "We encountered an error deleting the secure connection."
   },
   {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
     "id": "api.remote_cluster.get.app_error",
     "translation": "We encountered an error retrieving a secure connection."
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -2773,6 +2765,10 @@
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
   },
   {
     "id": "api.remote_cluster.save.app_error",
@@ -2853,10 +2849,6 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the license renewal link"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -2973,6 +2965,10 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -3491,20 +3487,12 @@
     "translation": "Contact sales"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renew now"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Your license is up for renewal"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Log in to your Customer Account to renew"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -3553,10 +3541,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Questions?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -4189,6 +4173,10 @@
   {
     "id": "api.user.update_password.oauth.app_error",
     "translation": "Update password failed because the user is logged in through an OAuth service."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -5139,6 +5127,10 @@
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
+  },
+  {
     "id": "app.import.emoji.bad_file.error",
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
@@ -5727,6 +5719,10 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
+  },
+  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Error fetching last accessible file"
   },
@@ -5735,24 +5731,8 @@
     "translation": "Error fetching last accessible post"
   },
   {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Failed to generate a new renewal token."
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "This type of license doesn't support renewal token generation"
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "No license present"
-  },
-  {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Failed to get post count"
   },
   {
     "id": "app.login.doLogin.updateLastLogin.error",
@@ -6903,6 +6883,10 @@
     "translation": "Must call update for existing user."
   },
   {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
     "id": "app.user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
   },
@@ -6919,12 +6903,20 @@
     "translation": "Failed to check if user store is empty."
   },
   {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
   {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
@@ -7053,6 +7045,10 @@
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
     "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
@@ -7323,10 +7319,6 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
@@ -7363,6 +7355,10 @@
     "translation": "Unable to add header to the CSV export."
   },
   {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Unable to close the zip file"
+  },
+  {
     "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Unable to add metadata file to the zip file."
   },
@@ -7377,6 +7373,10 @@
   {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Unable to seek to start of export file."
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -7449,10 +7449,6 @@
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decoding of the CA for Elasticsearch failed"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
@@ -7659,20 +7655,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Failed to get Elasticsearch server version."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse Elasticsearch server version."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -8547,6 +8535,10 @@
     "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache type must be either lru or redis."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -8627,6 +8619,10 @@
     "translation": "Ignored indexes for purge should not start with dash."
   },
   {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
   },
@@ -8653,6 +8649,10 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Invalid connection security for email settings. Must be '', 'TLS', or 'STARTTLS'."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress must be specified for redis cache type."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -8693,6 +8693,10 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB must have a value greater or equal to zero."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -8777,6 +8781,10 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -9495,6 +9503,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Invalid value for limit_visible_dms_gms."
+  },
+  {
     "id": "model.preference.is_valid.name.app_error",
     "translation": "Invalid name."
   },
@@ -9799,6 +9811,14 @@
     "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
+  },
+  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters."
   },
@@ -9939,6 +9959,10 @@
     "translation": "A team member with that ID already exists."
   },
   {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
+  },
+  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
@@ -10008,11 +10032,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 120+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 120+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10020,11 +10044,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

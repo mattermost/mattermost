@@ -72,8 +72,6 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
         }
       }
     />
-    <br />
-    <br />
   </ModalBody>
   <ModalFooter
     bsClass="modal-footer"
@@ -177,17 +175,19 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
         }
       }
     />
-    <br />
-    <br />
-    <MemoizedFormattedMessage
-      defaultMessage="This post has {count, number} {count, plural, one {comment} other {comments}} on it."
-      id="delete_post.warning"
-      values={
-        Object {
-          "count": 1,
+    <div
+      className="mt-2"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="This post has {count, number} {count, plural, one {comment} other {comments}} on it."
+        id="delete_post.warning"
+        values={
+          Object {
+            "count": 1,
+          }
         }
-      }
-    />
+      />
+    </div>
   </ModalBody>
   <ModalFooter
     bsClass="modal-footer"
@@ -291,8 +291,6 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
         }
       }
     />
-    <br />
-    <br />
   </ModalBody>
   <ModalFooter
     bsClass="modal-footer"

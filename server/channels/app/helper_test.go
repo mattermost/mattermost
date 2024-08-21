@@ -166,6 +166,18 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 	return setupTestHelper(dbStore, false, true, nil, options, tb)
 }
 
+func SetupEnterprise(tb testing.TB, options ...Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, true, true, nil, options, tb)
+}
+
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
@@ -358,13 +370,13 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewBool(v)
+		channel.Shared = model.NewPointer(v)
 	}
 }
 
 func WithCreateAt(v int64) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.CreateAt = *model.NewInt64(v)
+		channel.CreateAt = *model.NewPointer(v)
 	}
 }
 
@@ -527,10 +539,10 @@ func (th *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	}
 
 	var err *model.AppError

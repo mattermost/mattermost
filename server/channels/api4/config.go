@@ -30,12 +30,12 @@ const (
 )
 
 func (api *API) InitConfig() {
-	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(getConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(updateConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(getConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(updateConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
 }
 
 func init() {
@@ -258,7 +258,9 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		config = c.App.Srv().Platform().ClientConfigWithComputed()
 	}
 
-	w.Write([]byte(model.MapToJSON(config)))
+	if err := json.NewEncoder(w).Encode(config); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -55,6 +56,7 @@ type S3FileBackendNoBucketError struct{}
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
 	bucketNotFound = "NoSuchBucket"
+	invalidBucket  = "InvalidBucketName"
 )
 
 var (
@@ -210,7 +212,7 @@ func (b *S3FileBackend) TestConnection() error {
 		obj := <-b.client.ListObjects(ctx, b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
-			if typedErr.Code != bucketNotFound {
+			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
 				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
 			}
 			exists = false
@@ -218,7 +220,10 @@ func (b *S3FileBackend) TestConnection() error {
 	} else {
 		exists, err = b.client.BucketExists(ctx, b.bucket)
 		if err != nil {
-			return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+			typedErr := s3.ToErrorResponse(err)
+			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
+				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+			}
 		}
 	}
 
@@ -641,6 +646,7 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 	var paths []string
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
+	var count int
 	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
 		if object.Err != nil {
 			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
@@ -652,6 +658,12 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 		if trimmed != "" {
 			paths = append(paths, trimmed)
 		}
+		count++
+	}
+	// Check if only one item was returned and it matches the path prefix
+	if count == 1 && len(paths) > 0 && strings.TrimRight(path, "/") == paths[0] {
+		// Return a fs.PathError to maintain consistency
+		return nil, &fs.PathError{Op: "readdir", Path: path, Err: fs.ErrNotExist}
 	}
 
 	return paths, nil

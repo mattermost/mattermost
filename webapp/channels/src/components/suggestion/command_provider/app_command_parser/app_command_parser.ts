@@ -1452,7 +1452,7 @@ export class AppCommandParser {
     };
 
     // getChannel gets the channel in which the user is typing the command
-    private getChannel = (): Channel | null => {
+    private getChannel = (): Channel | undefined => {
         const state = this.store.getState();
         return selectChannel(state, this.channelID);
     };

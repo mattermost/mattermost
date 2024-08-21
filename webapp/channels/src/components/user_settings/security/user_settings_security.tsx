@@ -11,6 +11,7 @@ import {Link} from 'react-router-dom';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AccessHistoryModal from 'components/access_history_modal';
@@ -22,7 +23,7 @@ import ToggleModalButton from 'components/toggle_modal_button';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {isValidPassword} from 'utils/password';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
@@ -64,7 +65,7 @@ type Props = {
     enableSaml: boolean;
     enableSignUpWithOffice365: boolean;
     experimentalEnableAuthenticationTransfer: boolean;
-    passwordConfig: ReturnType<typeof Utils.getPasswordConfig>;
+    passwordConfig: PasswordConfig;
     militaryTime: boolean;
     actions: Actions;
     intl: IntlShape;
@@ -135,7 +136,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {valid, error} = Utils.isValidPassword(
+        const {valid, error} = isValidPassword(
             newPassword,
             this.props.passwordConfig,
         );

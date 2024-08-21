@@ -39,7 +39,7 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
-		th.App.Config().ServiceSettings.EnableBotAccountCreation = model.NewBool(false)
+		th.App.Config().ServiceSettings.EnableBotAccountCreation = model.NewPointer(false)
 
 		_, _, err := th.Client.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -1351,7 +1351,7 @@ func TestConvertBotToUser(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	user, resp, err := th.Client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+	user, resp, err := th.Client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewPointer("password")}, false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, user)
@@ -1370,7 +1370,7 @@ func TestConvertBotToUser(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, user)
 
-		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewPointer("password")}, false)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
@@ -1387,7 +1387,7 @@ func TestConvertBotToUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
+		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewPointer("password")}, true)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)

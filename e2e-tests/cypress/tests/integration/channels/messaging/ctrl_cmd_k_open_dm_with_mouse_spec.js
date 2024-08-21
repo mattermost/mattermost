@@ -57,7 +57,7 @@ describe('Messaging', () => {
             cy.get('.channel-intro__text').
                 should('be.visible').
                 and('contain', `This is the start of your direct message history with ${secondUser.username}.`).
-                and('contain', 'Direct messages and files shared here are not shown to people outside this area.');
+                and('contain', 'Messages and files shared here are not shown to anyone else.');
         });
 
         // # Verify that the focus is on the message box

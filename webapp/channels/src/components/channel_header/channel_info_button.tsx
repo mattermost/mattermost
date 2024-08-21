@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -30,6 +31,7 @@ const Icon = styled.i`
 
 const ChannelInfoButton = ({channel}: Props) => {
     const dispatch = useDispatch();
+    const intl = useIntl();
 
     const rhsState: RhsState = useSelector(getRhsState);
     const isRhsOpen: boolean = useSelector(getIsRhsOpen);
@@ -48,7 +50,12 @@ const ChannelInfoButton = ({channel}: Props) => {
         }
     }, [buttonActive, channel.id, isChannelInfo, dispatch]);
 
-    const tooltipKey = buttonActive ? 'closeChannelInfo' : 'openChannelInfo';
+    let tooltip;
+    if (buttonActive) {
+        tooltip = intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close info'});
+    } else {
+        tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
+    }
 
     let buttonClass = 'channel-header__icon';
     if (buttonActive) {
@@ -60,9 +67,8 @@ const ChannelInfoButton = ({channel}: Props) => {
             buttonClass={buttonClass}
             buttonId='channel-info-btn'
             onClick={toggleRHS}
-            ariaLabel={true}
             iconComponent={<Icon className='icon-information-outline'/>}
-            tooltipKey={tooltipKey}
+            tooltip={tooltip}
         />
     );
 };

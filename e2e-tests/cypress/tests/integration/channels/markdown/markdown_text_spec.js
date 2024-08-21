@@ -49,7 +49,7 @@ describe('Markdown message', () => {
     testCases.forEach((testCase) => {
         it(testCase.name, () => {
             // #  Post markdown message
-            cy.postMessageFromFile(`markdown/${testCase.fileKey}.md`).wait(TIMEOUTS.FIVE_SEC);
+            cy.postMessageFromFile(`markdown/${testCase.fileKey}.md`).wait(TIMEOUTS.TWO_SEC);
 
             // * Verify that HTML Content is correct
             cy.compareLastPostHTMLContentFromFile(`markdown/${testCase.fileKey}.html`);
@@ -58,14 +58,10 @@ describe('Markdown message', () => {
 
     it('Markdown - block quotes 2', () => {
         const baseUrl = Cypress.config('baseUrl');
-        const expectedHtml = `<h3 class="markdown__heading">Block Quotes</h3><p><strong>The following markdown should render within the block quote:</strong></p>
-<blockquote>
-<h4 class="markdown__heading">Heading 4</h4><p><em>Italics</em>, <em>Italics</em>, <strong>Bold</strong>, <strong><em>Bold-italics</em></strong>, <strong><em>Bold-italics</em></strong>, <del>Strikethrough</del>
-<span data-emoticon="slightly_smiling_face"><span alt=":slightly_smiling_face:" class="emoticon" title=":slightly_smiling_face:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f642.png&quot;);">:slightly_smiling_face:</span></span> <span data-emoticon="slightly_smiling_face"><span alt=":slightly_smiling_face:" class="emoticon" title=":slightly_smiling_face:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f642.png&quot;);">:slightly_smiling_face:</span></span> <span data-emoticon="wink"><span alt=":wink:" class="emoticon" title=":wink:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f609.png&quot;);">:wink:</span></span> <span data-emoticon="scream"><span alt=":scream:" class="emoticon" title=":scream:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f631.png&quot;);">:scream:</span></span> <span data-emoticon="bamboo"><span alt=":bamboo:" class="emoticon" title=":bamboo:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f38d.png&quot;);">:bamboo:</span></span> <span data-emoticon="gift_heart"><span alt=":gift_heart:" class="emoticon" title=":gift_heart:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f49d.png&quot;);">:gift_heart:</span></span> <span data-emoticon="dolls"><span alt=":dolls:" class="emoticon" title=":dolls:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f38e.png&quot;);">:dolls:</span></span></p>
-</blockquote>`;
+        const expectedHtml = `<h3 class="markdown__heading">Block Quotes</h3><p><strong>The following markdown should render within the block quote:</strong></p>\n<blockquote>\n<h4 class="markdown__heading">Heading 4</h4><p><em>Italics</em>, <em>Italics</em>, <strong>Bold</strong>, <strong><em>Bold-italics</em></strong>, <strong><em>Bold-italics</em></strong>, <del>Strikethrough</del>\n<span data-emoticon="slightly_smiling_face"><span alt=":slightly_smiling_face:" class="emoticon" data-testid="postEmoji.:slightly_smiling_face:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f642.png&quot;);">:slightly_smiling_face:</span></span> <span data-emoticon="slightly_smiling_face"><span alt=":slightly_smiling_face:" class="emoticon" data-testid="postEmoji.:slightly_smiling_face:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f642.png&quot;);">:slightly_smiling_face:</span></span> <span data-emoticon="wink"><span alt=":wink:" class="emoticon" data-testid="postEmoji.:wink:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f609.png&quot;);">:wink:</span></span> <span data-emoticon="scream"><span alt=":scream:" class="emoticon" data-testid="postEmoji.:scream:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f631.png&quot;);">:scream:</span></span> <span data-emoticon="bamboo"><span alt=":bamboo:" class="emoticon" data-testid="postEmoji.:bamboo:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f38d.png&quot;);">:bamboo:</span></span> <span data-emoticon="gift_heart"><span alt=":gift_heart:" class="emoticon" data-testid="postEmoji.:gift_heart:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f49d.png&quot;);">:gift_heart:</span></span> <span data-emoticon="dolls"><span alt=":dolls:" class="emoticon" data-testid="postEmoji.:dolls:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f38e.png&quot;);">:dolls:</span></span></p>\n</blockquote>`;
 
         // #  Post markdown message
-        cy.postMessageFromFile('markdown/markdown_block_quotes_2.md').wait(TIMEOUTS.FIVE_SEC);
+        cy.postMessageFromFile('markdown/markdown_block_quotes_2.md').wait(TIMEOUTS.TWO_SEC);
 
         // * Verify that HTML Content is correct
         cy.getLastPostId().then((postId) => {

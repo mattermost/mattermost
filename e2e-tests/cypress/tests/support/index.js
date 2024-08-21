@@ -183,7 +183,7 @@ function printServerDetails() {
     cy.apiGetConfig().then(({config}) => {
         cy.log(`Notable Server Config:
   - ServiceSettings.EnableSecurityFixAlert  = ${config.ServiceSettings.EnableSecurityFixAlert}
-  - LogSettings.EnableDiagnostics           = ${config.LogSettings.EnableDiagnostics}`);
+  - LogSettings.EnableDiagnostics           = ${config.LogSettings?.EnableDiagnostics}`);
     });
 }
 
@@ -261,7 +261,6 @@ function resetUserPreference(userId) {
     cy.apiSaveOnboardingTaskListPreference(userId, 'onboarding_task_list_open', 'false');
     cy.apiSaveOnboardingTaskListPreference(userId, 'onboarding_task_list_show', 'false');
     cy.apiSaveCloudTrialBannerPreference(userId, 'trial', 'max_days_banner');
-    cy.apiSaveActionsMenuPreference(userId);
     cy.apiSaveSkipStepsPreference(userId, 'true');
     cy.apiSaveStartTrialModal(userId, 'true');
     cy.apiSaveUnreadScrollPositionPreference(userId, 'start_from_left_off');

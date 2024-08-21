@@ -25,17 +25,16 @@ import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import DndCustomTimePicker from 'components/dnd_custom_time_picker_modal';
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
-import OverlayTrigger from 'components/overlay_trigger';
 import ResetStatusModal from 'components/reset_status_modal';
-import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar from 'components/widgets/users/avatar/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {getBrowserTimezone, getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {ModalData} from 'types/actions';
@@ -308,13 +307,11 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             <PulsatingDot/>
         );
 
-        const clearableTooltip = (
-            <Tooltip id={'InputClearTooltip'}>
-                <FormattedMessage
-                    id={'input.clear'}
-                    defaultMessage='Clear'
-                />
-            </Tooltip>
+        const clearableTooltipText = (
+            <FormattedMessage
+                id={'input.clear'}
+                defaultMessage='Clear'
+            />
         );
 
         const clearButton = isStatusSet && !pulsatingDot && (
@@ -323,10 +320,10 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 onClick={this.handleClearStatus}
                 onTouchEnd={this.handleClearStatus}
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement={'left'}
-                    overlay={clearableTooltip}
+                <WithTooltip
+                    id='InputClearTooltip'
+                    placement='left'
+                    title={clearableTooltipText}
                 >
                     <span
                         className='input-clear-x'
@@ -334,7 +331,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     >
                         <i className='icon icon-close-circle'/>
                     </span>
-                </OverlayTrigger>
+                </WithTooltip>
             </div>
         );
 
@@ -665,7 +662,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 <AccountOutlineIcon
                                     size={16}
                                     color={'rgba(var(--center-channel-color-rgb), 0.56)'}
-                                    className={'profile__icon'}
                                 />
                             }
                         >

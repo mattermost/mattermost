@@ -370,11 +370,10 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	remoteID := model.NewId()
 
 	rc := model.RemoteCluster{
-		RemoteId:     remoteID,
-		RemoteTeamId: model.NewId(),
-		Name:         "test",
-		Token:        token,
-		CreatorId:    model.NewId(),
+		RemoteId:  remoteID,
+		Name:      "test",
+		Token:     token,
+		CreatorId: model.NewId(),
 	}
 
 	_, err := th.GetSqlStore().RemoteCluster().Save(&rc)

@@ -56,6 +56,30 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         helpText={
           <Memo(MemoizedFormattedMessage)
+            defaultMessage="The type of the search backend."
+            id="admin.elasticsearch.backendDescription"
+          />
+        }
+        id="backend"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Backend type:"
+            id="admin.elasticsearch.backendTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elasticsearch\\"",
+            "id": "admin.elasticsearch.backendExample",
+          }
+        }
+        setByEnv={false}
+      />
+      <AdminTextSetting
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>"
             id="admin.elasticsearch.connectionUrlDescription"
             values={
@@ -511,15 +535,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
         savingMessage="Saving Config..."
@@ -601,6 +617,30 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         value={true}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="The type of the search backend."
+            id="admin.elasticsearch.backendDescription"
+          />
+        }
+        id="backend"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Backend type:"
+            id="admin.elasticsearch.backendTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elasticsearch\\"",
+            "id": "admin.elasticsearch.backendExample",
+          }
+        }
+        setByEnv={false}
       />
       <AdminTextSetting
         disabled={false}
@@ -1060,15 +1100,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
         savingMessage="Saving Config..."

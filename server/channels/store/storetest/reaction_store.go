@@ -31,6 +31,7 @@ func TestReactionStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, rctx, ss) })
 	t.Run("ExistsOnPost", func(t *testing.T) { testExistsOnPost(t, rctx, ss) })
 	t.Run("GetUniqueCountForPost", func(t *testing.T) { testGetUniqueCountForPost(t, rctx, ss) })
+	t.Run("ReactionGetSingle", func(t *testing.T) { testReactionGetSingle(t, rctx, ss) })
 }
 
 func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -937,4 +938,86 @@ func testGetUniqueCountForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	count, err := ss.Reaction().GetUniqueCountForPost(post.Id)
 	require.NoError(t, err)
 	require.Equal(t, 2, count)
+}
+
+func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
+	var (
+		testUserID    = model.NewId()
+		testEmojiName = "smile"
+		testRemoteID  = model.NewId()
+	)
+
+	t.Run("get without remoteId", func(t *testing.T) {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    testUserID,
+		})
+		require.NoError(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    testUserID,
+			PostId:    post.Id,
+			EmojiName: testEmojiName,
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.NoError(t, nErr)
+
+		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, "", testEmojiName)
+		require.NoError(t, err)
+		assert.Equal(t, testUserID, reactionFound.UserId)
+		assert.Equal(t, post.Id, reactionFound.PostId)
+		assert.Equal(t, "", reactionFound.GetRemoteID())
+		assert.Equal(t, testEmojiName, reactionFound.EmojiName)
+	})
+
+	t.Run("get with remoteId", func(t *testing.T) {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    testUserID,
+		})
+		require.NoError(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    testUserID,
+			PostId:    post.Id,
+			EmojiName: testEmojiName,
+			RemoteId:  model.NewPointer(testRemoteID),
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.NoError(t, nErr)
+
+		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, testRemoteID, testEmojiName)
+		require.NoError(t, err)
+		assert.Equal(t, testUserID, reactionFound.UserId)
+		assert.Equal(t, post.Id, reactionFound.PostId)
+		assert.Equal(t, testRemoteID, reactionFound.GetRemoteID())
+		assert.Equal(t, testEmojiName, reactionFound.EmojiName)
+	})
+
+	t.Run("not found - wrong remoteID", func(t *testing.T) {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    testUserID,
+		})
+		require.NoError(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    testUserID,
+			PostId:    post.Id,
+			EmojiName: testEmojiName,
+			RemoteId:  model.NewPointer(testRemoteID),
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.NoError(t, nErr)
+
+		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, "bogus-remoteId", testEmojiName)
+		require.Error(t, err)
+		assert.Nil(t, reactionFound)
+
+		var errNotFound *store.ErrNotFound
+		assert.ErrorAs(t, err, &errNotFound)
+	})
 }

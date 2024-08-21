@@ -712,10 +712,6 @@
     "translation": "[poruka]"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Datoteke"
-  },
-  {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "Saznaj više"
   },
@@ -998,10 +994,6 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v je napustio/la tim."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Obnovi licencu sada"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",

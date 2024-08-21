@@ -5,12 +5,12 @@ import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
+import {AnalyticsVisualizationType} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import * as AdminActions from 'actions/admin_actions.jsx';
 
 import ActivatedUserCard from 'components/analytics/activated_users_card';
-import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -393,21 +393,48 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         );
 
         // Extract plugin stats that should be displayed and pass them to widget
-        const pluginSiteStats = (
-            <>
-                {Object.entries(this.state.pluginSiteStats).map(([key, stat]) =>
-                    (
-                        <StatisticCount
-                            id={key}
-                            key={'pluginstat.' + key}
-                            title={stat.name}
-                            icon={stat.icon}
-                            count={stat.value}
-                        />
-                    ),
-                )}
-            </>
-        );
+        const pluginCounts = [];
+        const pluginLineCharts = [];
+        const pluginDoughnutCharts = [];
+
+        for (const [key, stat] of Object.entries(this.state.pluginSiteStats)) {
+            switch (stat.visualizationType) {
+            case AnalyticsVisualizationType.LineChart:
+                pluginLineCharts.push((
+                    <LineChart
+                        id={key}
+                        key={'pluginstat.' + key}
+                        title={stat.name}
+                        data={stat.value}
+                        width={740}
+                        height={225}
+                    />
+                ));
+                break;
+            case AnalyticsVisualizationType.DoughnutChart:
+                pluginDoughnutCharts.push((
+                    <DoughnutChart
+                        key={'pluginstat.' + key}
+                        title={stat.name}
+                        data={stat.value}
+                        width={300}
+                        height={225}
+                    />
+                ));
+                break;
+            case AnalyticsVisualizationType.Count:
+            default:
+                pluginCounts.push((
+                    <StatisticCount
+                        id={key}
+                        key={'pluginstat.' + key}
+                        title={stat.name}
+                        icon={stat.icon!}
+                        count={stat.value}
+                    />
+                ));
+            }
+        }
 
         let systemCards;
         if (isLicensed) {
@@ -444,18 +471,19 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         {banner}
-                        <TrueUpReview/>
                         <div className='grid-statistics'>
                             {systemCards}
                             {dailyActiveUsers}
                             {monthlyActiveUsers}
                             {advancedStats}
-                            {pluginSiteStats}
+                            {pluginCounts}
                         </div>
                         {advancedGraphs}
+                        {pluginDoughnutCharts}
                         {postTotalGraph}
                         {botPostTotalGraph}
                         {activeUserGraph}
+                        {pluginLineCharts}
                     </div>
                 </div>
             </div>

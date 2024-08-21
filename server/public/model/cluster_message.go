@@ -6,6 +6,7 @@ package model
 type ClusterEvent string
 
 const (
+	ClusterEventNone                                        ClusterEvent = "none"
 	ClusterEventPublish                                     ClusterEvent = "publish"
 	ClusterEventUpdateStatus                                ClusterEvent = "update_status"
 	ClusterEventInvalidateAllCaches                         ClusterEvent = "inv_all_caches"
@@ -41,16 +42,22 @@ const (
 	ClusterEventPluginEvent                                 ClusterEvent = "plugin_event"
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	// Note: if you are adding a new event, please also add it in the slice of
+	// m.ClusterEventMap in metrics/metrics.go file.
 
 	// Gossip communication
-	ClusterGossipEventRequestGetLogs            = "gossip_request_get_logs"
-	ClusterGossipEventResponseGetLogs           = "gossip_response_get_logs"
-	ClusterGossipEventRequestGetClusterStats    = "gossip_request_cluster_stats"
-	ClusterGossipEventResponseGetClusterStats   = "gossip_response_cluster_stats"
-	ClusterGossipEventRequestGetPluginStatuses  = "gossip_request_plugin_statuses"
-	ClusterGossipEventResponseGetPluginStatuses = "gossip_response_plugin_statuses"
-	ClusterGossipEventRequestSaveConfig         = "gossip_request_save_config"
-	ClusterGossipEventResponseSaveConfig        = "gossip_response_save_config"
+	ClusterGossipEventRequestGetLogs                = "gossip_request_get_logs"
+	ClusterGossipEventResponseGetLogs               = "gossip_response_get_logs"
+	ClusterGossipEventRequestGenerateSupportPacket  = "gossip_request_generate_support_packet"
+	ClusterGossipEventResponseGenerateSupportPacket = "gossip_response_generate_support_packet"
+	ClusterGossipEventRequestGetClusterStats        = "gossip_request_cluster_stats"
+	ClusterGossipEventResponseGetClusterStats       = "gossip_response_cluster_stats"
+	ClusterGossipEventRequestGetPluginStatuses      = "gossip_request_plugin_statuses"
+	ClusterGossipEventResponseGetPluginStatuses     = "gossip_response_plugin_statuses"
+	ClusterGossipEventRequestSaveConfig             = "gossip_request_save_config"
+	ClusterGossipEventResponseSaveConfig            = "gossip_response_save_config"
+	ClusterGossipEventRequestWebConnCount           = "gossip_request_webconn_count"
+	ClusterGossipEventResponseWebConnCount          = "gossip_response_webconn_count"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"
