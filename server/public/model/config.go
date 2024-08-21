@@ -1070,6 +1070,7 @@ type ExperimentalSettings struct {
 	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels                                  *bool   `access:"experimental_features"`
 	EnableRemoteClusterService                            *bool   `access:"experimental_features"`
+	DisableSharedChannelsStatusSync                       *bool   `access:"experimental_features"`
 	DisableAppBar                                         *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
@@ -1100,6 +1101,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableRemoteClusterService == nil {
 		s.EnableRemoteClusterService = NewPointer(false)
+	}
+
+	if s.DisableSharedChannelsStatusSync == nil {
+		s.DisableSharedChannelsStatusSync = NewPointer(false)
 	}
 
 	if s.DisableAppBar == nil {
