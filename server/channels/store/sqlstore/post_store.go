@@ -677,7 +677,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		list.AddPost(p)
 		list.AddOrder(p.Id)
 	}
-	list.HasNext = hasNext
+	list.HasNext = &hasNext
 
 	return list, nil
 }
@@ -828,7 +828,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
-		pl.HasNext = hasNext
+		pl.HasNext = &hasNext
 	}
 	return pl, nil
 }

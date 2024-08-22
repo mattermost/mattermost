@@ -7997,7 +7997,7 @@
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": " "
+    "translation": "Errore impostando lo stato."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -8717,7 +8717,7 @@
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": " "
+    "translation": "Errore nella cancellazione dello stato."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
