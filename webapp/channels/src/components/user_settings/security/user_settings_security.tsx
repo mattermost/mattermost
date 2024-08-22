@@ -495,7 +495,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
-                    defaultMessage='Login done through Entra IDS'
+                    defaultMessage='Login done through Entra ID'
                 />
             );
         }
