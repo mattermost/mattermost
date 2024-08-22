@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Dispatch} from 'redux';
-
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
@@ -110,19 +108,22 @@ export function unflagPost(postId: string): ActionFuncAsync {
     };
 }
 
-function parseMessageEmojis(message: string, dispatch: Dispatch) {
-    // parse message and emit emoji event
-    const emojis = matchEmoticons(message);
-    if (emojis) {
-        const trimmedEmojis = emojis.map((emoji) => emoji.substring(1, emoji.length - 1));
-        dispatch(addRecentEmojis(trimmedEmojis));
-    }
+function addRecentEmojisForMessage(message: string): ActionFunc {
+    return (dispatch) => {
+        // parse message and emit emoji event
+        const emojis = matchEmoticons(message);
+        if (emojis) {
+            const trimmedEmojis = emojis.map((emoji) => emoji.substring(1, emoji.length - 1));
+            dispatch(addRecentEmojis(trimmedEmojis));
+        }
+        return {data: true};
+    };
 }
 
 export type CreatePostAfterSubmitFunc = (response: SubmitPostReturnType) => void;
 export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePostAfterSubmitFunc): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
-        parseMessageEmojis(post.message, dispatch);
+        dispatch(addRecentEmojisForMessage(post.message));
 
         const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
@@ -138,7 +139,7 @@ export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePo
 
 export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
-        parseMessageEmojis(scheduledPost.message, dispatch);
+        dispatch(addRecentEmojisForMessage(scheduledPost.message));
 
         const result = await dispatch(createSchedulePost(scheduledPost));
 

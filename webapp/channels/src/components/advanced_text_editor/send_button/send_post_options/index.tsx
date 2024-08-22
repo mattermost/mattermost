@@ -42,8 +42,8 @@ export function SendPostOptions({disabled, onSelect}: Props) {
         );
 
         const tomorrow9amTime = new Date();
-        tomorrow9amTime.setHours(9, 0, 0, 0);
         tomorrow9amTime.setDate(today.getDate() + 1);
+        tomorrow9amTime.setHours(9, 0, 0, 0);
 
         const optionTomorrow = (
             <Menu.Item
@@ -61,8 +61,8 @@ export function SendPostOptions({disabled, onSelect}: Props) {
         const nextMonday = new Date();
         const dayOfWeek = today.getDay();
         const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
-        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
         nextMonday.setHours(9, 0, 0, 0);
+        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
 
         const optionNextMonday = (
             <Menu.Item
@@ -92,28 +92,28 @@ export function SendPostOptions({disabled, onSelect}: Props) {
             />
         );
 
-        const options: React.ReactElement[] = [];
+        let options: React.ReactElement[] = [];
 
         switch (today.getDay()) {
         // Sunday
         case 0:
-            options.push(optionTomorrow);
+            options = [optionTomorrow];
             break;
 
         // Monday
         case 1:
-            options.push(optionTomorrow, optionNextMonday);
+            options = [optionTomorrow, optionNextMonday];
             break;
 
         // Friday and Saturday
         case 5:
         case 6:
-            options.push(optionMonday);
+            options = [optionMonday];
             break;
 
         // Tuesday to Thursday
         default:
-            options.push(optionTomorrow, optionMonday);
+            options = [optionTomorrow, optionMonday];
         }
 
         return options;
@@ -134,6 +134,10 @@ export function SendPostOptions({disabled, onSelect}: Props) {
                 class: classNames('button_send_post_options', {disabled}),
                 children: <ChevronDownIcon size={16}/>,
                 disabled,
+                'aria-label': formatMessage({
+                    id: 'create_post_button.option.schedule_message',
+                    defaultMessage: 'Schedule message',
+                }),
             }}
             menu={{
                 id: 'dropdown_send_post_options',

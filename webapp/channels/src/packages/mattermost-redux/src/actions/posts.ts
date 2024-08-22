@@ -237,7 +237,7 @@ export function createPost(post: Post, files: any[] = [], afterSubmit?: (respons
 
         dispatch(batchActions(actions, 'BATCH_CREATE_POST_INIT'));
 
-        ((async function createPostWrapper() {
+        (async function createPostWrapper() {
             try {
                 const created = await Client4.createPost({...newPost, create_at: 0});
 
@@ -299,7 +299,7 @@ export function createPost(post: Post, files: any[] = [], afterSubmit?: (respons
                 dispatch(batchActions(actions, 'BATCH_CREATE_POST_FAILED'));
                 return {error};
             }
-        }()).then(() => {}));
+        }());
 
         return {data: {created: true}};
     };

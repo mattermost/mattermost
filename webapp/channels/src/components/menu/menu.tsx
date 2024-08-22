@@ -65,8 +65,8 @@ type MenuProps = {
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'};
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'};
 
-type VerticalOrigin = 'top' | 'center' | 'bottom' | number;
-type HorizontalOrigin = 'left' | 'center' | 'right' | number;
+type VerticalOrigin = 'top' | 'center' | 'bottom';
+type HorizontalOrigin = 'left' | 'center' | 'right';
 
 interface Props {
     menuButton: MenuButtonProps;
@@ -310,7 +310,7 @@ function MenuModal(props: MenuModalProps) {
         <CompassDesignProvider theme={theme}>
             <GenericModal
                 id={props.menuId}
-                className='menuModal LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOL'
+                className='menuModal'
                 backdrop={true}
                 ariaLabel={props.menuAriaLabel}
                 onExited={closeMenuModal}
@@ -321,7 +321,6 @@ function MenuModal(props: MenuModalProps) {
                     component='div'
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
-                    className='KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK'
                 >
                     {props.children}
                 </MuiMenuList>

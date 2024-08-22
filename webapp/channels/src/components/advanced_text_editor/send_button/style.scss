@@ -32,7 +32,16 @@
     }
 
     .SendMessageButton {
+        cursor: pointer;
         padding-inline: 7px;
+        place-content: center;
+        place-items: center;
+        transition: color 150ms;
+
+        .android &,
+        .ios & {
+            display: flex;
+        }
     }
 
     .button_send_post_options {

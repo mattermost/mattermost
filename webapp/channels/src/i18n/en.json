@@ -3359,7 +3359,6 @@
   "create_post.file_limit_sticky_banner.non_admin_message": "New uploads will automatically archive older files. To view them again, <a>notify your admin to upgrade to a paid plan.</a>",
   "create_post.file_limit_sticky_banner.snooze_tooltip": "Snooze for {snoozeDays} days",
   "create_post.fileProcessing": "Processing...",
-  "create_post.icon": "Create a post",
   "create_post.post": "Post",
   "create_post.prewritten.custom": "Custom message...",
   "create_post.prewritten.tip.dm_hello": "Oh hello",

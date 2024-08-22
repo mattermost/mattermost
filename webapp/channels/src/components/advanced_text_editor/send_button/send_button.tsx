@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {memo, useCallback, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
@@ -23,18 +22,6 @@ type SendButtonProps = {
     handleSubmit: (e: React.FormEvent, schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
 }
-
-const SendButtonContainer = styled.button`
-    cursor: pointer;
-    place-content: center;
-    place-items: center;
-    transition: color 150ms;
-
-    .android &,
-    .ios & {
-        display: flex;
-    }
-`;
 
 const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
     const {formatMessage} = useIntl();
@@ -80,7 +67,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
                 shortcut={sendNowKeyboardShortcutDescriptor}
                 disabled={disabled}
             >
-                <SendButtonContainer
+                <button
                     className={classNames('SendMessageButton', {disabled})}
                     data-testid='SendMessageButton'
                     tabIndex={0}
@@ -94,12 +81,8 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
                     <SendIcon
                         size={18}
                         color='currentColor'
-                        aria-label={formatMessage({
-                            id: 'create_post.icon',
-                            defaultMessage: 'Create a post',
-                        })}
                     />
-                </SendButtonContainer>
+                </button>
             </WithTooltip>
 
             <SendPostOptions
