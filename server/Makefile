@@ -154,6 +154,7 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
 PLUGIN_PACKAGES += focalboard-v8.0.0
+PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
