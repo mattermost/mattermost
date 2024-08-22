@@ -141,40 +141,30 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -435,40 +425,30 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -615,40 +595,30 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -909,40 +879,30 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>

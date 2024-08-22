@@ -57,12 +57,6 @@ func (l *LRU) Purge() error {
 	return nil
 }
 
-// Set adds the given key and value to the store without an expiry. If the key already exists,
-// it will overwrite the previous value.
-func (l *LRU) Set(key string, value any) error {
-	return l.SetWithExpiry(key, value, 0)
-}
-
 // SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
 // the key already exists, it will overwrite the previous value
 func (l *LRU) SetWithDefaultExpiry(key string, value any) error {
@@ -101,11 +95,27 @@ func (l *LRU) Remove(key string) error {
 	return nil
 }
 
-// Keys returns a slice of the keys in the cache.
-func (l *LRU) Keys() ([]string, error) {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
+func (l *LRU) RemoveMulti(keys []string) error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
 
+	// Note, this is a copy of l.Remove. But we want to avoid
+	// fine-grained locking for every single removal. Therefore,
+	// we copy a bit of code for simplicity.
+	for _, key := range keys {
+		if ent, ok := l.items[key]; ok {
+			l.removeElement(ent)
+		}
+	}
+
+	return nil
+}
+
+// Scan passes the whole slice of keys to the callback in LRU mode.
+// We don't need this callback style for LRU, but since we share
+// the same interface with Redis, we maintain parity.
+func (l *LRU) Scan(f func([]string) error) error {
+	l.lock.RLock()
 	keys := make([]string, l.len)
 	i := 0
 	for ent := l.evictList.Back(); ent != nil; ent = ent.Prev() {
@@ -115,7 +125,9 @@ func (l *LRU) Keys() ([]string, error) {
 			i++
 		}
 	}
-	return keys, nil
+	l.lock.RUnlock()
+
+	return f(keys)
 }
 
 // Len returns the number of items in the cache.
