@@ -312,29 +312,27 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -652,29 +650,27 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -740,29 +736,27 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1080,29 +1074,27 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1422,29 +1414,27 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1766,29 +1756,27 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -2106,29 +2094,27 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -2423,29 +2409,27 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -2763,29 +2747,27 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -3110,29 +3092,27 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -3513,29 +3493,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -3884,29 +3862,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -4255,29 +4231,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -4626,29 +4600,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -5029,29 +5001,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
