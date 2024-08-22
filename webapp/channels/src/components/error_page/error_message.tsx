@@ -134,7 +134,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                                         url={'https://docs.mattermost.com/deployment/sso-office.html'}
                                         message={defineMessage({
                                             id: 'error.oauth_missing_code.office365.link',
-                                            defaultMessage: 'Office 365',
+                                            defaultMessage: 'Entra ID',
                                         })}
                                     />
                                 ),
