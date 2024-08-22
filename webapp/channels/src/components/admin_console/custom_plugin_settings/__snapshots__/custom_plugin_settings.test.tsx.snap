@@ -191,34 +191,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
-    >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
+    <WithTooltip
+      id="error-tooltip"
       placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
+      title=""
     >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <FormError
+          error=""
+          errors={Array []}
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;
@@ -252,34 +245,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
-    >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
+    <WithTooltip
+      id="error-tooltip"
       placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
+      title=""
     >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <FormError
+          error=""
+          errors={Array []}
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;
@@ -475,34 +461,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
-    >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
+    <WithTooltip
+      id="error-tooltip"
       placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
+      title=""
     >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <FormError
+          error=""
+          errors={Array []}
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;

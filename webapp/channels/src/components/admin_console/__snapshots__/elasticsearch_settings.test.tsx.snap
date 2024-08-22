@@ -538,29 +538,27 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1103,29 +1101,27 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={true}
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
