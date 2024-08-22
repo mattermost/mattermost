@@ -47,6 +47,7 @@ export function SendPostOptions({disabled, onSelect}: Props) {
 
         const optionTomorrow = (
             <Menu.Item
+                key={'scheduling_time_tomorrow_9_am'}
                 onClick={(e) => handleOnSelect(e, tomorrow9amTime.getTime())}
                 labels={
                     <FormattedMessage
@@ -66,6 +67,7 @@ export function SendPostOptions({disabled, onSelect}: Props) {
 
         const optionNextMonday = (
             <Menu.Item
+                key={'scheduling_time_next_monday_9_am'}
                 onClick={(e) => handleOnSelect(e, nextMonday.getTime())}
                 labels={
                     <FormattedMessage
@@ -79,6 +81,7 @@ export function SendPostOptions({disabled, onSelect}: Props) {
 
         const optionMonday = (
             <Menu.Item
+                key={'scheduling_time_next_monday_9_am'}
                 onClick={(e) => handleOnSelect(e, nextMonday.getTime())}
                 labels={
                     <FormattedMessage
