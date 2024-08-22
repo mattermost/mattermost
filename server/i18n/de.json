@@ -10100,5 +10100,21 @@
   {
     "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
     "translation": "Ungültiger Wert für limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Der Cache-Typ muss entweder lru oder redis sein."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress muss für den Redis-Cache-Typ angegeben werden."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB muss einen Wert größer oder gleich Null haben."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Es ist nicht möglich, den Webhook für teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}} zu erhalten."
   }
 ]

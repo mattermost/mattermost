@@ -3,5 +3,4 @@
 
 export {
     default,
-    useSynchronizedImmediate,
 } from './simple_tooltip';
