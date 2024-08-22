@@ -10114,5 +10114,9 @@
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
     "translation": "Redis DB musi mieć wartość większą lub równą zero."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Nie można uzyskać webhooka dla teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   }
 ]
