@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -187,7 +186,15 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	params.TimeRange = query.Get("time_range")
 	params.Permanent, _ = strconv.ParseBool(query.Get("permanent"))
-	params.PerPage = getPerPageFromQuery(query)
+
+	val, err := strconv.Atoi(query.Get("per_page"))
+	if err != nil || val < 0 {
+		params.PerPage = PerPageDefault
+	} else if val > PerPageMaximum {
+		params.PerPage = PerPageMaximum
+	} else {
+		params.PerPage = val
+	}
 
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
 		params.LogsPerPage = LogsPerPageDefault
@@ -272,21 +279,4 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	return params
-}
-
-// getPerPageFromQuery returns the PerPage value from the given query.
-// This function should be removed and the support for `pageSize`
-// should be dropped after v1.46 of the mobile app is no longer supported
-// https://mattermost.atlassian.net/browse/MM-38131
-func getPerPageFromQuery(query url.Values) int {
-	val, err := strconv.Atoi(query.Get("per_page"))
-	if err != nil {
-		val, err = strconv.Atoi(query.Get("pageSize"))
-	}
-	if err != nil || val < 0 {
-		return PerPageDefault
-	} else if val > PerPageMaximum {
-		return PerPageMaximum
-	}
-	return val
 }
