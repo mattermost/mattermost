@@ -2285,7 +2285,7 @@ func setExtraSessionProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if mobileVersion != "" {
-		newProps[model.SessionPropDeviceNotificationDisabled] = mobileVersion
+		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
 	if err := c.App.SetExtraSessionProps(c.AppContext.Session(), newProps); err != nil {

@@ -1785,6 +1785,44 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /api/v4/users/sessions/device/extra:
+    put:
+      tags:
+        - users
+      summary: Attach extra props to the session object
+      description: >
+        Attach extra props to the session object. The props available are whether
+        the device has notifications disabled and the mobile version.
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: SetExtraSessionProps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceNotificationDisabled:
+                  description: Whether the mobile device has notifications disabled.
+                    Accepted values are "true" or "false".
+                  type: string
+                mobileVersion:
+                  description: Mobile app version. The version must be parseable as a semver.
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: Successfully added the prop
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   "/api/v4/users/{user_id}/audits":
     get:
       tags:

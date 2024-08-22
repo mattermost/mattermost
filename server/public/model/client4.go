@@ -9103,3 +9103,16 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 
 	return BuildResponse(res), nil
 }
+
+func (c *Client4) SetExtraSessionProps(ctx context.Context, props map[string]string) (*Response, error) {
+	buf, err := json.Marshal(props)
+	if err != nil {
+		return nil, NewAppError("SetExtraSessionProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	res, err := c.DoAPIPutBytes(ctx, c.usersRoute()+"/sessions/device/extra", buf)
+	if err != nil {
+		return BuildResponse(res), err
+	}
+
+	return BuildResponse(res), nil
+}

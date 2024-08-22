@@ -307,8 +307,9 @@ func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]s
 	}
 
 	err := a.Srv().Store().Session().UpdateProps(session)
+	a.Srv().Platform().AddSessionToCache(session)
 	if err != nil {
-		return model.NewAppError("SetIgnoreNotificationACK", "app.session.ignore_ack.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("SetIgnoreNotificationACK", "app.session.set_extra_session_prop.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
