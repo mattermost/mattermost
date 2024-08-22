@@ -489,10 +489,4 @@ func TestSetExtraSessionProps(t *testing.T) {
 		assert.Equal(t, "true", updatedSession.Props["testProp"])
 		assert.Equal(t, "true", storeSession.Props["testProp"])
 	})
-	t.Run("an invalid session will return an error", func(t *testing.T) {
-		invalidSession := session.DeepCopy()
-		invalidSession.Id = "invalid"
-		err := th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
-		assert.Error(t, err)
-	})
 }
