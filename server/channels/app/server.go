@@ -80,6 +80,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
+const (
+	// TODO set this back to 5 mins when creating the PR.
+	//scheduledPostJobInterval = 5 * time.Minute
+	scheduledPostJobInterval = 5 * time.Second
+)
+
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
 
 // This is a placeholder to allow the existing release pipelines to run without failing to insert
@@ -505,6 +511,7 @@ func (s *Server) runJobs() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
+		runScheduledPostJob(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
@@ -1808,6 +1815,31 @@ func runPostReminderJob(a *App) {
 			})
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
+		}
+	})
+}
+
+func runScheduledPostJob(a *App) {
+	if a.IsLeader() {
+		rctx := request.EmptyContext(a.Log())
+		withMut(&a.ch.scheduledPostMut, func() {
+			fn := func() { a.ProcessScheduledPosts(rctx) }
+			a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, scheduledPostJobInterval)
+		})
+	}
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			mlog.Info("This is the leader node now. Running scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			rctx := request.EmptyContext(a.Log())
+			withMut(&a.ch.scheduledPostMut, func() {
+				fn := func() { a.ProcessScheduledPosts(rctx) }
+				a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, scheduledPostJobInterval)
+			})
+		} else {
+			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
 		}
 	})
 }
