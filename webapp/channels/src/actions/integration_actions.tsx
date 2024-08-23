@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
+import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
@@ -11,11 +11,13 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 const DEFAULT_PAGE_SIZE = 100;
 
-export function loadIncomingHooksAndProfilesForTeam(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFuncAsync<IncomingWebhook[]> {
+export function loadIncomingHooksAndProfilesForTeam(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE, includeTotalCount = false): ActionFuncAsync<IncomingWebhook[] | IncomingWebhooksWithCount> {
     return async (dispatch) => {
-        const {data} = await dispatch(IntegrationActions.getIncomingHooks(teamId, page, perPage));
+        const {data} = await dispatch(IntegrationActions.getIncomingHooks(teamId, page, perPage, includeTotalCount));
         if (data) {
-            dispatch(loadProfilesForIncomingHooks(data));
+            const isWebhooksWithCount = IntegrationActions.isIncomingWebhooksWithCount(data);
+            const hooks = isWebhooksWithCount ? (data as IncomingWebhooksWithCount).incoming_webhooks : data;
+            dispatch(loadProfilesForIncomingHooks(hooks as IncomingWebhook[]));
         }
         return {data};
     };

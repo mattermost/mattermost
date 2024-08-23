@@ -84,13 +84,8 @@ function TeamController(props: Props) {
     // Effect runs on mount, add event listeners on windows object
     useEffect(() => {
         function handleFocus() {
-            if (props.selectedThreadId) {
-                window.isActive = true;
-            }
-            if (props.currentChannelId) {
-                window.isActive = true;
-                props.markChannelAsReadOnFocus(props.currentChannelId);
-            }
+            window.isActive = true;
+            props.markAsReadOnFocus();
 
             // Temporary flag to disable refetching of channel members on browser focus
             if (!props.disableRefetchingOnBrowserFocus) {
@@ -130,7 +125,7 @@ function TeamController(props: Props) {
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [props.selectedThreadId, props.currentChannelId, props.currentTeamId]);
+    }, [props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
