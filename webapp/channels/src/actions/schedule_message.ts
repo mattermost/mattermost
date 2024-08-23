@@ -16,7 +16,7 @@ export function createSchedulePost(schedulePost: ScheduledPost): ActionFuncAsync
         const connectionId = getConnectionId(state);
 
         try {
-            const createdPost = await Client4.createSchedulePost(schedulePost, connectionId);
+            const createdPost = await Client4.createScheduledPost(schedulePost, connectionId);
             return {data: createdPost};
 
             // TODO: dispatch action to store created schedule

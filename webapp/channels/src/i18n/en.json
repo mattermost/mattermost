@@ -3376,7 +3376,6 @@
   "create_post.prewritten.tip.team_hi": "Hi team!",
   "create_post.prewritten.tip.team_hi_message": ":wave: Hi team!",
   "create_post.read_only": "This channel is read-only. Only members with permission can post here.",
-  "create_post.send_message": "Send a message",
   "create_post.shortcutsNotSupported": "Keyboard shortcuts are not supported on your device.",
   "create_post.write": "Write to {channelDisplayName}",
   "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}.",

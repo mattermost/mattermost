@@ -4317,7 +4317,7 @@ export default class Client4 {
     };
 
     // Schedule Post methods
-    createSchedulePost = (schedulePost: ScheduledPost, connectionId: string) => {
+    createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule`,
             {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},

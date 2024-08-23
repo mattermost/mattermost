@@ -197,7 +197,7 @@ const useSubmit = (
         isDraftSubmitting.current = false;
     }, [handleDraftChange, dispatch, draft, focusTextbox, isRootDeleted, postError, serverError, showPostDeletedModal, channelId, postId, lastBlurAt, setPostError, setServerError, afterSubmit]);
 
-    const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, schedulingInfo?: SchedulingInfo) => {
+    const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
             dialogType: NotifyConfirmModal,
@@ -205,10 +205,10 @@ const useSubmit = (
                 mentions,
                 channelTimezoneCount,
                 memberNotifyCount,
-                onConfirm: () => doSubmit(undefined, undefined, schedulingInfo),
+                onConfirm,
             },
         }));
-    }, [doSubmit, dispatch]);
+    }, [dispatch]);
 
     const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (!channel) {
@@ -243,13 +243,14 @@ const useSubmit = (
             channelTimezoneCount = data ? data.length : 0;
         }
 
-        if (prioritySubmitCheck(() => doSubmit(undefined, undefined, schedulingInfo))) {
+        const onConfirm = () => doSubmit(e, submittingDraft, schedulingInfo);
+        if (prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;
             return;
         }
 
         if (memberNotifyCount > 0) {
-            showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, schedulingInfo);
+            showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, onConfirm);
             isDraftSubmitting.current = false;
             return;
         }

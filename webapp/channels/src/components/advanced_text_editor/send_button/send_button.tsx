@@ -72,8 +72,8 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
                     data-testid='SendMessageButton'
                     tabIndex={0}
                     aria-label={formatMessage({
-                        id: 'create_post.send_message',
-                        defaultMessage: 'Send a message',
+                        id: 'create_post_button.option.send_now',
+                        defaultMessage: 'Send Now',
                     })}
                     disabled={disabled}
                     onClick={sendMessage}
