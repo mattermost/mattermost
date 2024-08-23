@@ -53,6 +53,7 @@ export type Props = Attrs & {
     inputPlaceholder?: string;
     rootPostId: string;
     enableWebSocketEventScope: boolean;
+    forceClearNewMessages: boolean;
 };
 
 type State = {
@@ -101,7 +102,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
 
         if (
             this.props.isCollapsedThreadsEnabled &&
-            this.props.userThread?.id !== prevProps.userThread?.id
+            (this.props.forceClearNewMessages || (this.props.userThread?.id !== prevProps.userThread?.id))
         ) {
             this.markThreadRead();
         }
