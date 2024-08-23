@@ -424,7 +424,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               ]
             }
           />
-          <MultiSelectSetting
+          <Memo(MultiSelectSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -705,47 +705,32 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
-    >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
+    <WithTooltip
+      id="error-tooltip"
       placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
+      title=""
     >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <FormError
+          error=""
+          errors={Array []}
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;

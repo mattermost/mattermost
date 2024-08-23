@@ -10102,5 +10102,21 @@
   {
     "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
     "translation": "Nieprawidłowa wartość dla limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Typem pamięci podręcznej musi być lru lub redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress musi być określony dla typu pamięci podręcznej redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB musi mieć wartość większą lub równą zero."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Nie można uzyskać webhooka dla teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   }
 ]
