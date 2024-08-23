@@ -265,22 +265,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <WithTooltip
       id="id-extra-teams-overlay"
       placement="bottom"
-      title={
-        <div
-          className="team-scheme-extra-teams-overlay"
-        >
-          <span
-            className="team"
-          >
-            Team 9
-          </span>
-          <span
-            className="team"
-          >
-            Team 10
-          </span>
-        </div>
-      }
+      title="Team 9, Team 10"
     >
       <span
         className="team"
