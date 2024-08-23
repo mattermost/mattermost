@@ -186,7 +186,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 id: 'office365',
                 url,
                 icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }

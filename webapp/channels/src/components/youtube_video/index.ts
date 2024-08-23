@@ -24,6 +24,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         googleDeveloperKey: config.GoogleDeveloperKey,
         hasImageProxy: config.HasImageProxy === 'true',
         metadata: getOpenGraphMetadataForUrl(state, ownProps.postId, ownProps.link),
+        youtubeReferrerPolicy: config.YoutubeReferrerPolicy === 'true',
     };
 }
 
