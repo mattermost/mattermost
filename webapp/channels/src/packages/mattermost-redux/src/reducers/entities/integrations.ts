@@ -296,6 +296,15 @@ function appsBotIDs(state: string[] = [], action: AnyAction) {
     }
 }
 
+function dialogArguments(state = '', action: AnyAction) {
+    switch (action.type) {
+    case IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS:
+        return action.data;
+    default:
+        return state;
+    }
+}
+
 function dialogTriggerId(state = '', action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID:
@@ -342,6 +351,9 @@ export default combineReducers({
 
     // object to represent built-in slash commands
     systemCommands,
+
+    // object containing arguments for interactive dialog
+    dialogArguments,
 
     // trigger ID for interactive dialogs
     dialogTriggerId,

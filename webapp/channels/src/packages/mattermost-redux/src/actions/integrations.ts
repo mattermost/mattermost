@@ -497,7 +497,7 @@ export function deleteOutgoingOAuthConnection(id: string): ActionFuncAsync<boole
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
     return async (dispatch, getState) => {
         const state = getState();
-        submission.channel_id = getCurrentChannelId(state);
+        submission.channel_id = state.entities.integrations.dialogArguments ? state.entities.integrations.dialogArguments.channel_id : getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);
 
         let data;
