@@ -9717,6 +9717,27 @@ func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 
 }
 
+func (s *RetryLayerScheduledPostStore) GetScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.GetScheduledPosts(beforeTime, lastScheduledPostId, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
 
 	tries := 0

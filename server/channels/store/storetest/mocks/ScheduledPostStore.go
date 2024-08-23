@@ -44,6 +44,36 @@ func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.Scheduled
 	return r0, r1
 }
 
+// GetScheduledPosts provides a mock function with given fields: beforeTime, lastScheduledPostId, perPage
+func (_m *ScheduledPostStore) GetScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	ret := _m.Called(beforeTime, lastScheduledPostId, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetScheduledPosts")
+	}
+
+	var r0 []*model.ScheduledPost
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64, string, uint64) ([]*model.ScheduledPost, error)); ok {
+		return rf(beforeTime, lastScheduledPostId, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(int64, string, uint64) []*model.ScheduledPost); ok {
+		r0 = rf(beforeTime, lastScheduledPostId, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ScheduledPost)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64, string, uint64) error); ok {
+		r1 = rf(beforeTime, lastScheduledPostId, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetScheduledPostsForUser provides a mock function with given fields: userId, teamId
 func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
 	ret := _m.Called(userId, teamId)

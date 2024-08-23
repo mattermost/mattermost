@@ -7683,6 +7683,22 @@ func (s *TimerLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 	return result, err
 }
 
+func (s *TimerLayerScheduledPostStore) GetScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledPostStore.GetScheduledPosts(beforeTime, lastScheduledPostId, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetScheduledPosts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
 	start := time.Now()
 

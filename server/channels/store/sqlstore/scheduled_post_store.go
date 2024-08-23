@@ -93,7 +93,7 @@ func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.Schedul
 
 func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error) {
 	// return scheduled posts for this user for
-	//specified team, including scheduled posts belonging to
+	// specified team, including scheduled posts belonging to
 	// DMs and GMs (DMs and GMs do not belong to any team
 
 	// We're intentionally including scheduled posts from archived channels,
@@ -135,4 +135,33 @@ func (s *SqlScheduledPostStore) getMaxMessageSize() int {
 	})
 
 	return s.maxMessageSizeCached
+}
+
+func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	// SELECT * FROM scheduledposts WHERE scheduledat < 1724643000000 OR (scheduledat = 1724643000000 AND id > '7tykm36acirdbqpq9c6iciyj7y') ORDER BY scheduledat DESC, id limit 5;
+
+	query := s.getQueryBuilder().
+		Select(s.columns("")...).
+		From("ScheduledPosts").
+		OrderBy("ScheduledAt DESC", "Id").
+		Limit(perPage)
+
+	if lastScheduledPostId != "" {
+		query = query.Where(sq.Or{
+			sq.Lt{"ScheduleAt": beforeTime},
+			sq.And{
+				sq.Eq{"ScheduledAt": beforeTime},
+				sq.Gt{"Id": lastScheduledPostId},
+			},
+		})
+	}
+
+	var scheduledPosts []*model.ScheduledPost
+	if err := s.GetReplicaX().SelectBuilder(&scheduledPosts, query); err != nil {
+		mlog.Error("SqlScheduledPostStore.GetScheduledPosts: failed to fetch pending scheduled posts for processing", mlog.Int("before_time", beforeTime), mlog.String("last_scheduled_post_id", lastScheduledPostId), mlog.Uint("items_per_page", perPage), mlog.Err(err))
+
+		return nil, errors.Wrapf(err, "SqlScheduledPostStore.GetScheduledPosts: failed to fetch pending scheduled posts for processing, before_time: %d, last_scheduled_post_id: %s, items_per_page: %d", beforeTime, lastScheduledPostId, perPage)
+	}
+
+	return scheduledPosts, nil
 }
