@@ -1,20 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import type {Group} from '@mattermost/types/groups';
-
-import store from 'stores/redux_store';
 
 import type {Value} from 'components/multiselect/multiselect';
 
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
 import GroupOption from './group_option';
+import type{Props} from './group_option';
 
 const mockGroup = {
     id: 'group-id',
@@ -25,29 +21,20 @@ const mockGroup = {
 } as Group&Value;
 
 describe('GroupOption', () => {
-    let props: ComponentProps<typeof GroupOption>;
-
-    beforeEach(() => {
-        props = {
-            group: mockGroup,
-            isSelected: false,
-            rowSelected: '',
-            selectedItemRef: React.createRef(),
-            onMouseMove: jest.fn(),
-            addUserProfile: jest.fn(),
-        };
-    });
+    const props: Props = {
+        group: mockGroup,
+        isSelected: false,
+        rowSelected: '',
+        selectedItemRef: React.createRef(),
+        onMouseMove: jest.fn(),
+        addUserProfile: jest.fn(),
+    };
 
     test('should match snapshot', () => {
         const wrapper = renderWithContext(
-            <IntlProvider locale='en'>
-                <Provider store={store}>
-                    <GroupOption
-                        {...props}
-                    />
-                </Provider>
-            </IntlProvider>,
-
+            <GroupOption
+                {...props}
+            />,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -55,19 +42,14 @@ describe('GroupOption', () => {
     it('should cleanup keydown event listener on unmount', () => {
         const addUserProfileMock = jest.fn();
         const wrapper = renderWithContext(
-            <IntlProvider locale='en'>
-                <Provider store={store}>
-                    <GroupOption
-                        group={mockGroup}
-                        isSelected={false}
-                        rowSelected=''
-                        selectedItemRef={React.createRef()}
-                        onMouseMove={() => {}}
-                        addUserProfile={addUserProfileMock}
-                    />
-                </Provider>
-            </IntlProvider>,
-
+            <GroupOption
+                group={mockGroup}
+                isSelected={false}
+                rowSelected=''
+                selectedItemRef={React.createRef()}
+                onMouseMove={() => {}}
+                addUserProfile={addUserProfileMock}
+            />,
         );
         wrapper.unmount();
         const event = new KeyboardEvent('keydown', {key: 'Enter'});
@@ -80,14 +62,10 @@ describe('GroupOption', () => {
         props.isSelected = true;
 
         const wrapper = renderWithContext(
-            <IntlProvider locale='en'>
-                <Provider store={store}>
-                    <GroupOption
-                        {...props}
-                        addUserProfile={addUserProfileMock}
-                    />
-                </Provider>
-            </IntlProvider>,
+            <GroupOption
+                {...props}
+                addUserProfile={addUserProfileMock}
+            />,
         );
 
         const event = new KeyboardEvent('keydown', {key: 'Enter'});
