@@ -23,8 +23,10 @@ import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent} from 'components/async_load';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
+import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
@@ -68,13 +70,11 @@ const CreateTeam = makeAsyncComponent('CreateTeam', lazy(() => import('component
 const Mfa = makeAsyncComponent('Mfa', lazy(() => import('components/mfa/mfa_controller')));
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', lazy(() => import('components/preparing_workspace')));
 const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
-const LoggedIn = makeAsyncComponent('LoggedIn', lazy(() => import('components/logged_in')));
 const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => import('components/preparing_workspace/launching_workspace')));
 const CompassThemeProvider = makeAsyncComponent('CompassThemeProvider', lazy(() => import('components/compass_theme_provider/compass_theme_provider')));
 const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
 const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController', lazy(() => import('components/announcement_bar')));
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
-const GlobalHeader = makeAsyncComponent('GlobalHeader', lazy(() => import('components/global_header/global_header')));
 const CloudEffects = makeAsyncComponent('CloudEffects', lazy(() => import('components/cloud_effects')));
 const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('components/team_sidebar')));
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
@@ -119,12 +119,15 @@ interface State {
 }
 
 export default class Root extends React.PureComponent<Props, State> {
+    private mounted: boolean;
+
     // The constructor adds a bunch of event listeners,
     // so we do need this.
     private a11yController: A11yController;
 
     constructor(props: Props) {
         super(props);
+        this.mounted = false;
 
         setUrl(getSiteURL());
 
@@ -140,7 +143,7 @@ export default class Root extends React.PureComponent<Props, State> {
         this.a11yController = new A11yController();
     }
 
-    onConfigLoaded = async (config: Partial<ClientConfig>) => {
+    onConfigLoaded = (config: Partial<ClientConfig>) => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
@@ -208,8 +211,16 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.history.push('/signup_user_complete');
         }
 
-        await Promise.all([this.props.actions.initializeProducts(), initializePlugins()]);
-        this.setState({configLoaded: true});
+        Promise.all([
+            this.props.actions.initializeProducts(),
+            initializePlugins(),
+        ]).then(() => {
+            if (this.mounted) {
+                // supports enzyme tests, set state if and only if
+                // the component is still mounted on screen
+                this.setState({configLoaded: true});
+            }
+        });
 
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
@@ -348,6 +359,8 @@ export default class Root extends React.PureComponent<Props, State> {
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
+        this.mounted = true;
+
         this.initiateMeRequests();
 
         // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
@@ -366,6 +379,8 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
+        this.mounted = false;
+
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
         document.removeEventListener('drop', this.handleDropEvent);
         document.removeEventListener('dragover', this.handleDragOverEvent);

@@ -94,7 +94,7 @@ exports[`SidebarList should match snapshot 2`] = `
 <div
   id="sidebar-droppable-categories"
 >
-  <SidebarCategory
+  <Connect(SidebarCategory)
     category={
       Object {
         "channel_ids": Array [

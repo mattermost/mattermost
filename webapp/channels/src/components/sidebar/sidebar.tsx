@@ -8,6 +8,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {makeAsyncComponent} from 'components/async_load';
 import DataPrefetch from 'components/data_prefetch';
+import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
+import SidebarHeader from 'components/sidebar/sidebar_header';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
@@ -21,7 +23,6 @@ import ChannelNavigator from './channel_navigator';
 import SidebarList from './sidebar_list';
 
 const MobileSidebarHeader = makeAsyncComponent('MobileSidebarHeader', lazy(() => import('./mobile_sidebar_header')));
-const SidebarHeader = makeAsyncComponent('SidebarHeader', lazy(() => import('./sidebar_header')));
 const MoreDirectChannels = makeAsyncComponent('MoreDirectChannels', lazy(() => import('components/more_direct_channels')));
 const BrowseChannels = makeAsyncComponent('BrowseChannels', lazy(() => import('components/browse_channels')));
 const EditCategoryModal = makeAsyncComponent('EditCategoryModal', lazy(() => import('components/edit_category_modal')));
@@ -29,7 +30,6 @@ const CreateUserGroupsModal = makeAsyncComponent('CreateUserGroupsModal', lazy((
 const InvitationModal = makeAsyncComponent('InvitationModal', lazy(() => import('components/invitation_modal')));
 const KeyboardShortcutsModal = makeAsyncComponent('KeyboardShortcutsModal', lazy(() => import('components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal')));
 const NewChannelModal = makeAsyncComponent('NewChannelModal', lazy(() => import('components/new_channel_modal/new_channel_modal')));
-const ResizableLhs = makeAsyncComponent('ResizableLhs', lazy(() => import('components/resizable_sidebar/resizable_lhs')));
 const UserSettingsModal = makeAsyncComponent('UserSettingsModal', lazy(() => import('components/user_settings/modal')));
 
 type Props = {

@@ -14,6 +14,7 @@ import {reconnect} from 'actions/websocket_actions.jsx';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {makeAsyncComponent} from 'components/async_load';
+import ChannelController from 'components/channel_layout/channel_controller';
 import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
 
 import Constants from 'utils/constants';
@@ -25,7 +26,6 @@ import type {OwnProps, PropsFromRedux} from './index';
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
 const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
-const ChannelController = makeAsyncComponent('ChannelController', lazy(() => import('components/channel_layout/channel_controller')));
 
 const WAKEUP_CHECK_INTERVAL = 30000; // 30 seconds
 const WAKEUP_THRESHOLD = 60000; // 60 seconds

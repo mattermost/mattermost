@@ -6,6 +6,7 @@ import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
+import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
 import LoadingScreen from 'components/loading_screen';
 
 import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
@@ -30,7 +31,6 @@ const Drafts = makeAsyncComponent('Drafts', lazy(() => import('components/drafts
 );
 const PermalinkView = makeAsyncComponent('PermalinkView', lazy(() => import('components/permalink_view')));
 const PlaybookRunner = makeAsyncComponent('PlaybookRunner', lazy(() => import('components/channel_layout/playbook_runner')));
-const ChannelIdentifierRouter = makeAsyncComponent('ChannelIdentifierRouter', lazy(() => import('components/channel_layout/channel_identifier_router')));
 
 type Props = PropsFromRedux & OwnProps;
 

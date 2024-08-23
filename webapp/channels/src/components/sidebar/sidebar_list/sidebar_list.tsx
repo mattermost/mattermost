@@ -21,6 +21,7 @@ import {General} from 'mattermost-redux/constants';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import {makeAsyncComponent} from 'components/async_load';
+import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
@@ -32,7 +33,6 @@ import type {StaticPage} from 'types/store/lhs';
 
 const DraftsLink = makeAsyncComponent('DraftsLink', lazy(() => import('components/drafts/drafts_link/drafts_link')));
 const GlobalThreadsLink = makeAsyncComponent('GlobalThreadsLink', lazy(() => import('components/threading/global_threads_link')));
-const SidebarCategory = makeAsyncComponent('SidebarCategory', lazy(() => import('../sidebar_category')));
 const UnreadChannelIndicator = makeAsyncComponent('UnreadChannelIndicator', lazy(() => import('../unread_channel_indicator')));
 const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('../unread_channels')));
 
