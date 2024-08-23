@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {ValueType} from 'react-select';
 
-import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -21,11 +21,11 @@ import type {Option} from 'components/widgets/modals/components/react_select_ite
 import {IgnoreChannelMentions, NotificationLevels, DesktopSound} from 'utils/constants';
 import {getValueOfNotificationSoundsSelect, notificationSoundKeys, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
 
+import ResetToDefaultButton, {SectionName} from './reset_to_default_button';
 import type {ChannelMemberNotifyProps} from './utils';
 import utils, {convertDesktopSoundNotifyPropFromUserToDesktop} from './utils';
 
 import type {PropsFromRedux} from './index';
-
 import './channel_notifications_modal.scss';
 
 type Props = PropsFromRedux & {
@@ -289,11 +289,13 @@ export default function ChannelNotificationsModal(props: Props) {
 
     function handleSave() {
         const userSettings: Partial<SettingsType> = {...settings};
+
         if (!props.collapsedReplyThreads) {
             delete userSettings.push_threads;
             delete userSettings.desktop_threads;
             delete userSettings.channel_auto_follow_threads;
         }
+
         props.actions.updateChannelNotifyProps(props.currentUser.id, props.channel.id, userSettings).then((value) => {
             const {error} = value;
             if (error) {
@@ -304,58 +306,6 @@ export default function ChannelNotificationsModal(props: Props) {
         });
     }
 
-    const resetToDefaultBtn = useCallback((sectionName: string) => {
-        const userNotifyProps = {
-            ...props.currentUser.notify_props,
-            desktop_notification_sound: props.currentUser.notify_props?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'],
-        };
-
-        function resetToDefault(sectionName: string) {
-            if (sectionName === 'desktop') {
-                setSettings({
-                    ...settings,
-                    desktop: userNotifyProps.desktop,
-                    desktop_threads: userNotifyProps.desktop_threads || settings.desktop_threads,
-                    desktop_sound: convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps.desktop_sound),
-                    desktop_notification_sound: userNotifyProps?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'],
-                });
-            }
-
-            if (sectionName === 'push') {
-                setSettings({...settings, push: userNotifyProps.desktop, push_threads: userNotifyProps.push_threads || settings.push_threads});
-            }
-        }
-
-        const isDesktopSameAsDefault =
-            userNotifyProps.desktop === settings.desktop &&
-            userNotifyProps.desktop_threads === settings.desktop_threads &&
-            userNotifyProps.desktop_notification_sound === settings.desktop_notification_sound &&
-            convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps.desktop_sound) === settings.desktop_sound;
-
-        const isPushSameAsDefault = (userNotifyProps.push === settings.push && userNotifyProps.push_threads === settings.push_threads);
-
-        if ((sectionName === 'desktop' && isDesktopSameAsDefault) || (sectionName === 'push' && isPushSameAsDefault)) {
-            return undefined;
-        }
-
-        return (
-            <button
-                className='channel-notifications-settings-modal__reset-btn'
-                onClick={() => resetToDefault(sectionName)}
-                data-testid={`resetToDefaultButton-${sectionName}`}
-            >
-                <RefreshIcon
-                    size={14}
-                    color={'currentColor'}
-                />
-                <FormattedMessage
-                    id='channel_notifications.resetToDefault'
-                    defaultMessage='Reset to default'
-                />
-            </button>
-        );
-    }, [props.currentUser.notify_props, settings]);
-
     const desktopAndMobileNotificationSectionContent = settings.mark_unread === 'all' ? (
         <>
             <div className='channel-notifications-settings-modal__divider'/>
@@ -364,7 +314,12 @@ export default function ChannelNotificationsModal(props: Props) {
                     id: 'channel_notifications.desktopNotificationsTitle',
                     defaultMessage: 'Desktop Notifications',
                 })}
-                titleSuffix={resetToDefaultBtn('desktop')}
+                titleSuffix={
+                    <ResetToDefaultButton
+                        sectionName={SectionName.Desktop}
+                        userNotifyProps={props.currentUser.notify_props}
+                    />
+                }
                 description={formatMessage({
                     id: 'channel_notifications.desktopNotificationsDesc',
                     defaultMessage: 'Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.',
@@ -377,7 +332,12 @@ export default function ChannelNotificationsModal(props: Props) {
                     id: 'channel_notifications.mobileNotificationsTitle',
                     defaultMessage: 'Mobile Notifications',
                 })}
-                titleSuffix={resetToDefaultBtn('push')}
+                titleSuffix={
+                    <ResetToDefaultButton
+                        sectionName={SectionName.Mobile}
+                        userNotifyProps={props.currentUser.notify_props}
+                    />
+                }
                 description={formatMessage({
                     id: 'channel_notifications.mobileNotificationsDesc',
                     defaultMessage: 'Notification alerts are pushed to your mobile device when there is activity in Mattermost.',
