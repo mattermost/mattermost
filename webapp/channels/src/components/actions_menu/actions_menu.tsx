@@ -6,6 +6,7 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 
+import {ChevronRightIcon} from '@mattermost/compass-icons/components';
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
 
@@ -14,10 +15,11 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import * as Menu from 'components/menu';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
-import Menu from 'components/widgets/menu/menu';
+import MenuOld from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
@@ -29,7 +31,7 @@ import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
+import type {PluginComponent, Menu as PluginSubMenu} from 'types/store/plugins';
 
 import './actions_menu.scss';
 
@@ -265,77 +267,92 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const pluginItems = this.props.pluginMenuItems?.
-            filter((item) => {
-                return item.filter ? item.filter(this.props.post.id) : item;
-            }).
-            map((item) => {
-                if (item.subMenu) {
-                    return (
-                        <Menu.ItemSubMenu
-                            key={item.id + '_pluginmenuitem'}
-                            id={item.id}
-                            postId={this.props.post.id}
-                            text={item.text}
-                            subMenu={item.subMenu}
-                            action={item.action}
-                            root={true}
-                        />
-                    );
-                }
-                return (
-                    <Menu.ItemAction
-                        key={item.id + '_pluginmenuitem'}
-                        text={item.text}
-                        onClick={() => {
-                            if (item.action) {
-                                item.action(this.props.post.id);
-                            }
-                        }}
-                    />
-                );
-            }) || [];
+        const postId = this.props.post.id;
+        function renderPluginItem(item: PluginComponent | PluginSubMenu) {
+            if (item.filter && !item.filter(postId)) {
+                return undefined;
+            }
 
-        let appBindings = [] as JSX.Element[];
+            if (!item.text) {
+                return undefined;
+            }
+
+            if (item.subMenu && item.subMenu.length > 0) {
+                return (
+                    <Menu.SubMenu
+                        key={item.id}
+                        id={item.id}
+                        menuId={`${item.id}-menu`}
+
+                        leadingElement={item.icon}
+                        labels={typeof item.text === 'string' ? <span>{item.text}</span> : item.text}
+                        trailingElements={<span className={'dot-menu__item-trailing-icon'}><ChevronRightIcon size={16}/></span>}
+                    >
+                        {item.subMenu.map((subItem) => renderPluginItem(subItem))}
+                    </Menu.SubMenu>
+                );
+            }
+
+            return (
+                <Menu.Item
+                    key={item.id}
+                    id={item.id}
+                    labels={<span>{item.text}</span>}
+
+                    onClick={() => {
+                        if (item.action) {
+                            item.action(postId);
+                        }
+                    }}
+                />
+            );
+        }
+
+        const pluginItems = (this.props.pluginMenuItems ?? []).
+            flatMap((item) => renderPluginItem(item) ?? []);
+
+        const appBindings = [] as JSX.Element[];
         if (this.props.appsEnabled && this.state.appBindings) {
-            appBindings = this.state.appBindings.map((item) => {
-                let icon: JSX.Element | undefined;
-                if (item.icon) {
-                    icon = (
-                        <img
-                            key={item.app_id + 'app_icon'}
-                            src={item.icon}
-                        />);
-                }
+            // TODO convert to use a Menu.Item
+            // appBindings = this.state.appBindings.map((item) => {
+            //     let icon: JSX.Element | undefined;
+            //     if (item.icon) {
+            //         icon = (
+            //             <img
+            //                 key={item.app_id + 'app_icon'}
+            //                 src={item.icon}
+            //             />);
+            //     }
 
-                return (
-                    <Menu.ItemAction
-                        text={item.label}
-                        key={item.app_id + item.location}
-                        onClick={() => this.onClickAppBinding(item)}
-                        icon={icon}
-                    />
-                );
-            });
+            //     return (
+            //         <MenuOld.ItemAction
+            //             text={item.label}
+            //             key={item.app_id + item.location}
+            //             onClick={() => this.onClickAppBinding(item)}
+            //             icon={icon}
+            //         />
+            //     );
+            // });
         }
 
         const {formatMessage} = this.props.intl;
 
-        let marketPlace = null;
+        const marketPlace = null;
         if (this.props.canOpenMarketplace) {
-            marketPlace = (
-                <React.Fragment key={'marketplace'}>
-                    {this.renderDivider('marketplace')}
-                    <Menu.ItemAction
-                        id={`marketplace_icon_${this.props.post.id}`}
-                        key={`marketplace_${this.props.post.id}`}
-                        show={true}
-                        text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
-                        onClick={this.handleOpenMarketplace}
-                    />
-                </React.Fragment>
-            );
+            // TODO convert to use a Menu.Item
+        //     marketPlace = (
+        //         <React.Fragment key={'marketplace'}>
+        //             {this.renderDivider('marketplace')}
+        //             <MenuOld.ItemAction
+        //                 id={`marketplace_icon_${this.props.post.id}`}
+        //                 key={`marketplace_${this.props.post.id}`}
+        //                 show={true}
+        //                 text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
+        //                 icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
+        //                 onClick={this.handleOpenMarketplace}
+        //             />
+        //         </React.Fragment>
+        //     );
         }
 
         let menuItems;
@@ -349,6 +366,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         }
 
         if (hasPluginMenuItems) {
+            // TODO Wtf
             const pluggable = (
                 <Pluggable
                     postId={this.props.post.id}
@@ -363,6 +381,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 marketPlace,
             ];
         } else {
+            // TODO convert to use a Menu.Item somehow
             menuItems = [this.visitMarketplaceTip()];
             if (!this.props.isSysAdmin) {
                 return null;
@@ -370,44 +389,26 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         }
 
         return (
-            <MenuWrapper
-                open={this.props.isMenuOpen}
-                onToggle={this.handleDropdownOpened}
+            <Menu.Container
+                menuButton={{
+                    id: `${this.props.location}_actions_button_${this.props.post.id}`,
+                    class: classNames('post-menu__item', {
+                        'post-menu__item--active': this.props.isMenuOpen,
+                    }),
+                    'aria-label': formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}),
+                    children: <i className={'icon icon-apps'}/>,
+                }}
+                menu={{
+                    id: `${this.props.location}_actions_dropdown_${this.props.post.id}`,
+                    onToggle: this.handleDropdownOpened,
+                }}
+                menuButtonTooltip={{
+                    id: `${this.props.location}_${this.props.post.id}_tooltip`,
+                    text: formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}),
+                }}
             >
-                <WithTooltip
-                    id={`${this.props.location}_${this.props.post.id}_tooltip`}
-                    title={
-                        <FormattedMessage
-                            id='post_info.tooltip.actions'
-                            defaultMessage='Message actions'
-                        />
-                    }
-                    placement='top'
-                >
-                    <button
-                        key='more-actions-button'
-                        ref={this.buttonRef}
-                        id={`${this.props.location}_actions_button_${this.props.post.id}`}
-                        aria-label={Utils.localizeMessage('post_info.actions.tooltip.actions', 'Actions').toLowerCase()}
-                        className={classNames('post-menu__item', {
-                            'post-menu__item--active': this.props.isMenuOpen,
-                        })}
-                        type='button'
-                        aria-expanded='false'
-                    >
-                        <i className={'icon icon-apps'}/>
-                    </button>
-                </WithTooltip>
-                <Menu
-                    id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
-                    openLeft={true}
-                    openUp={this.state.openUp}
-                    ariaLabel={Utils.localizeMessage('post_info.menuAriaLabel', 'Post extra options')}
-                    key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
-                >
-                    {menuItems}
-                </Menu>
-            </MenuWrapper >
+                {menuItems}
+            </Menu.Container>
         );
     }
 }
