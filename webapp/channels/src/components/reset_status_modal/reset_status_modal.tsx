@@ -19,7 +19,7 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
     away: defineMessages({
         auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_away',
-            defaultMessage: 'Would you like to switch your status to "Away" and disable Automatic Replies?',
+            defaultMessage: 'Would you like to switch your status to "Away" and disable automatic replies?',
         },
         button: {
             id: 'modal.manual_status.button_away',
@@ -35,35 +35,35 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
         },
         title: {
             id: 'modal.manual_status.title_away',
-            defaultMessage: 'Your Status is Set to "Away"',
+            defaultMessage: 'Your status is set to "Away"',
         },
     }),
     dnd: defineMessages({
         auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_dnd',
-            defaultMessage: 'Would you like to switch your status to "Do Not Disturb" and disable Automatic Replies?',
+            defaultMessage: 'Would you like to switch your status to "Do not disturb" and disable automatic replies?',
         },
         button: {
             id: 'modal.manual_status.button_dnd',
-            defaultMessage: 'Set status to "Do Not Disturb"',
+            defaultMessage: 'Set status to "Do not disturb"',
         },
         cancel: {
             id: 'modal.manual_status.cancel_dnd',
-            defaultMessage: 'Stay as "Do Not Disturb"',
+            defaultMessage: 'Stay as "Do not disturb"',
         },
         message: {
             id: 'modal.manual_status.message_dnd',
-            defaultMessage: 'Would you like to switch your status to "Do Not Disturb"?',
+            defaultMessage: 'Would you like to switch your status to "Do not disturb"?',
         },
         title: {
             id: 'modal.manual_status.title_dnd',
-            defaultMessage: 'Your Status is Set to "Do Not Disturb"',
+            defaultMessage: 'Your status is set to "Do not disturb"',
         },
     }),
     offline: defineMessages({
         auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_offline',
-            defaultMessage: 'Would you like to switch your status to "Offline" and disable Automatic Replies?',
+            defaultMessage: 'Would you like to switch your status to "Offline" and disable automatic replies?',
         },
         button: {
             id: 'modal.manual_status.button_offline',
@@ -79,13 +79,13 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
         },
         title: {
             id: 'modal.manual_status.title_offline',
-            defaultMessage: 'Your Status is Set to "Offline"',
+            defaultMessage: 'Your status is set to "Offline"',
         },
     }),
     online: defineMessages({
         auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_online',
-            defaultMessage: 'Would you like to switch your status to "Online" and disable Automatic Replies?',
+            defaultMessage: 'Would you like to switch your status to "Online" and disable automatic replies?',
         },
         button: {
             id: 'modal.manual_status.button_online',
@@ -99,11 +99,11 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
     ooo: defineMessages({
         cancel: {
             id: 'modal.manual_status.cancel_ooo',
-            defaultMessage: 'Stay "Out of Office"',
+            defaultMessage: 'Stay "Out of office"',
         },
         title: {
             id: 'modal.manual_status.title_ooo',
-            defaultMessage: 'Your Status is Set to "Out of Office"',
+            defaultMessage: 'Your status is set to "Out of office"',
         },
     }),
 };
