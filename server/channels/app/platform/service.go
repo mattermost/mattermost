@@ -137,6 +137,13 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
 
+	// Apply options, some of the options overrides the default config actually.
+	for _, option := range options {
+		if err2 := option(ps); err2 != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err2)
+		}
+	}
+
 	// the config store is not set, we need to create a new one
 	if ps.configStore == nil {
 		innerStore, err := config.NewFileStore("config.json", true)
@@ -175,13 +182,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	res, err := ps.cacheProvider.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
-	}
-
-	// Apply options, some of the options overrides the default config actually.
-	for _, option := range options {
-		if err2 := option(ps); err2 != nil {
-			return nil, fmt.Errorf("failed to apply option: %w", err2)
-		}
 	}
 
 	// Step 2: Start logging.
