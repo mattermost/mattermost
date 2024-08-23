@@ -493,7 +493,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             <Menu.Container
                 menuButton={{
                     id: `${this.props.location}_button_${this.props.post.id}`,
-                    dateTestId: `PostDotMenu-Button-${this.props.post.id}`,
+                    testId: `PostDotMenu-Button-${this.props.post.id}`,
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
