@@ -594,6 +594,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 />
                             )}
                             extraText={this.props.intl.formatMessage(statusDropdownMessages.ooo.extra)}
+                            rightDecorator={selectedIndicator}
                         />
                     </Menu.Group>
                     {customStatusComponent}

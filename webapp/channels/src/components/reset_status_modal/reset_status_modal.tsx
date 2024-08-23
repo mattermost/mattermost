@@ -23,11 +23,11 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
         },
         button: {
             id: 'modal.manual_status.button_away',
-            defaultMessage: 'Yes, set my status to "Away"',
+            defaultMessage: 'Set status to "Away"',
         },
         cancel: {
             id: 'modal.manual_status.cancel_away',
-            defaultMessage: 'No, keep it as "Away"',
+            defaultMessage: 'Stay as "Away"',
         },
         message: {
             id: 'modal.manual_status.message_away',
@@ -45,11 +45,11 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
         },
         button: {
             id: 'modal.manual_status.button_dnd',
-            defaultMessage: 'Yes, set my status to "Do Not Disturb"',
+            defaultMessage: 'Set status to "Do Not Disturb"',
         },
         cancel: {
             id: 'modal.manual_status.cancel_dnd',
-            defaultMessage: 'No, keep it as "Do Not Disturb"',
+            defaultMessage: 'Stay as "Do Not Disturb"',
         },
         message: {
             id: 'modal.manual_status.message_dnd',
@@ -67,11 +67,11 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
         },
         button: {
             id: 'modal.manual_status.button_offline',
-            defaultMessage: 'Yes, set my status to "Offline"',
+            defaultMessage: 'Set status to "Offline"',
         },
         cancel: {
             id: 'modal.manual_status.cancel_offline',
-            defaultMessage: 'No, keep it as "Offline"',
+            defaultMessage: 'Stay "Offline"',
         },
         message: {
             id: 'modal.manual_status.message_offline',
@@ -89,7 +89,7 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
         },
         button: {
             id: 'modal.manual_status.button_online',
-            defaultMessage: 'Yes, set my status to "Online"',
+            defaultMessage: 'Set status to "Online"',
         },
         message: {
             id: 'modal.manual_status.message_online',
@@ -99,7 +99,7 @@ const messages: Record<string, Record<string, MessageDescriptor>> = {
     ooo: defineMessages({
         cancel: {
             id: 'modal.manual_status.cancel_ooo',
-            defaultMessage: 'No, keep it as "Out of Office"',
+            defaultMessage: 'Stay "Out of Office"',
         },
         title: {
             id: 'modal.manual_status.title_ooo',
