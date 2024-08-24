@@ -445,9 +445,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>

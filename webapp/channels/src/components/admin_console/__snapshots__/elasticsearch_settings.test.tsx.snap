@@ -553,9 +553,8 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -1116,9 +1115,8 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>

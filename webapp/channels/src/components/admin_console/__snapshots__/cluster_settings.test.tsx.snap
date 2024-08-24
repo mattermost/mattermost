@@ -249,9 +249,8 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -509,9 +508,8 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -769,9 +767,8 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -1029,9 +1026,8 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>

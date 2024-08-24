@@ -327,9 +327,8 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -665,9 +664,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -751,9 +749,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -1089,9 +1086,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -1429,9 +1425,8 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -1771,9 +1766,8 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -2109,9 +2103,8 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -2424,9 +2417,8 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -2762,9 +2754,8 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -3107,9 +3098,8 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -3508,9 +3498,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -3877,9 +3866,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -4246,9 +4234,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -4615,9 +4602,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -5016,9 +5002,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <FormError
+          <[object Object]
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
