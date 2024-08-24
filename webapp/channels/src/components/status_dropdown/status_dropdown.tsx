@@ -585,7 +585,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     <Menu.Group>
                         <Menu.ItemAction
                             show={this.isUserOutOfOffice()}
-                            onClick={() => null}
+                            onClick={setOnline}
                             ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.ooo.name)}
                             text={this.props.intl.formatMessage(statusDropdownMessages.ooo.name)}
                             icon={(
