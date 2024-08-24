@@ -2,80 +2,139 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
+import {Provider} from 'react-redux';
+import {BrowserRouter as Router} from 'react-router-dom';
 
-// accepts either a single error or an array of errors
-type Props = {
-    type?: React.ReactNode;
-    error?: React.ReactNode;
-    textClassName?: string;
-    iconClassName?: string;
-    margin?: boolean;
-    errors?: React.ReactNode[];
-}
+import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
-export default class FormError extends React.PureComponent<Props> {
-    public static defaultProps = {
-        error: null,
-        errors: [],
+import {Permissions} from 'mattermost-redux/constants';
+
+import AbstractOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/abstract_outgoing_oauth_connection';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
+
+describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
+    const header = {id: 'Header', defaultMessage: 'Header'};
+    const footer = {id: 'Footer', defaultMessage: 'Footer'};
+    const loading = {id: 'Loading', defaultMessage: 'Loading'};
+    const initialConnection: OutgoingOAuthConnection = {
+        id: 'facxd9wpzpbpfp8pad78xj75pr',
+        name: 'testConnection',
+        client_secret: '',
+        client_id: 'clientid',
+        create_at: 1501365458934,
+        creator_id: '88oybd1dwfdoxpkpw1h5kpbyco',
+        update_at: 1501365458934,
+        grant_type: 'client_credentials',
+        oauth_token_url: 'https://token.com',
+        audiences: ['https://aud.com'],
     };
-    public render() {
-        const {error = null, errors = [], iconClassName, margin, textClassName, type} = this.props;
 
-        if (!error && errors.length === 0) {
-            return null;
-        }
+    const outgoingOAuthConnections: Record<string, OutgoingOAuthConnection> = {
+        facxd9wpzpbpfp8pad78xj75pr: initialConnection,
+    };
 
-        // look for the first truthy error to display
-        let message = error;
+    const state = {
+        entities: {
+            general: {
+                config: {
+                    EnableOutgoingOAuthConnections: 'true',
+                },
+                license: {
+                    IsLicensed: 'true',
+                    Cloud: 'true',
+                },
+            },
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {roles: 'system_role'},
+                },
+            },
+            roles: {
+                roles: {
+                    system_role: {id: 'system_role', permissions: [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]},
+                },
+            },
+            integrations: {
+                outgoingOAuthConnections,
+            },
+        },
+    };
 
-        if (!message) {
-            for (const err of errors) {
-                if (err) {
-                    message = err;
-                }
-            }
-        }
+    const team = TestHelper.getTeamMock({name: 'test', id: initialConnection.id});
 
-        if (!message) {
-            return null;
-        }
+    const baseProps: React.ComponentProps<typeof AbstractOutgoingOAuthConnection> = {
+        team,
+        header,
+        footer,
+        loading,
+        renderExtra: <div>{'renderExtra'}</div>,
+        serverError: '',
+        initialConnection,
+        submitAction: jest.fn(),
+    };
 
-        if (type === 'modal') {
-            return (
-                <div className='form-group'>
-                    <label className='col-sm-12 has-error'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
-        if (type === 'backstage') {
-            return (
-                <div className='pull-left has-error'>
-                    <label className='control-label'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
-        if (margin) {
-            return (
-                <div className='form-group has-error'>
-                    <label className='control-label'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
-        return (
-            <div className={`col-sm-12 ${textClassName || 'has-error'}`}>
-                <label className='control-label'>
-                    <i className={`fa ${iconClassName || 'fa-exclamation-circle'}`}/> {message}
-                </label>
-            </div>
+    test('should match snapshot', () => {
+        const props = {...baseProps};
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <AbstractOutgoingOAuthConnection {...props}/>
+                </Provider>
+            </Router>,
         );
-    }
-}
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, displays client error', () => {
+        const submitAction = jest.fn().mockResolvedValue({data: true});
+
+        const newServerError = 'serverError';
+        const props = {...baseProps, serverError: newServerError, submitAction};
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <AbstractOutgoingOAuthConnection {...props}/>
+                </Provider>
+            </Router>,
+        );
+
+        wrapper.find('#audienceUrls').simulate('change', {target: {value: ''}});
+        wrapper.find('button.btn-primary').simulate('click', {preventDefault() {
+            return jest.fn();
+        }});
+
+        expect(submitAction).not.toBeCalled();
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find('Memo(FormError)').exists()).toBe(true);
+    });
+
+    test('should call action function', async () => {
+        const submitAction = jest.fn().mockResolvedValue({data: true});
+
+        const props = {...baseProps, submitAction};
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <AbstractOutgoingOAuthConnection {...props}/>
+                </Provider>
+            </Router>,
+        );
+
+        await act(async () => {
+            wrapper.find('#name').simulate('change', {target: {value: 'name'}});
+            wrapper.find('button.btn-primary').simulate('click', {preventDefault() {
+                return jest.fn();
+            }});
+
+            expect(submitAction).toBeCalled();
+        });
+    });
+});
