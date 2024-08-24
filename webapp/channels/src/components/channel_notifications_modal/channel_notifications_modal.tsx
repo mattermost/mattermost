@@ -19,10 +19,10 @@ import RadioSettingItem from 'components/widgets/modals/components/radio_setting
 import type {Option} from 'components/widgets/modals/components/react_select_item';
 
 import {NotificationLevels, DesktopSound} from 'utils/constants';
-import {getValueOfNotificationSoundsSelect, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
+import {getValueOfNotificationSoundsSelect, notificationSoundKeys, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
 
 import ResetToDefaultButton, {SectionName} from './reset_to_default_button';
-import utils, {getInitialValuesOfChannelNotifyProps} from './utils';
+import utils, {convertDesktopSoundNotifyPropFromUserToDesktop, getInitialValuesOfChannelNotifyProps} from './utils';
 
 import type {PropsFromRedux} from './index';
 
@@ -53,27 +53,15 @@ function getUseSameDesktopSetting(currentUserNotifyProps: UserNotifyProps, chann
 }
 
 function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMembership['notify_props']): Omit<ChannelNotifyProps, 'email'> {
-    const ignoreChannelMentions = getInitialValuesOfChannelNotifyProps('ignore_channel_mentions', currentUserNotifyProps, channelMemberNotifyProps);
-
-    // We should keep this default while saving if its same as user's setting.
-    const desktop = getInitialValuesOfChannelNotifyProps('desktop', currentUserNotifyProps, channelMemberNotifyProps);
-    const desktopThreads = getInitialValuesOfChannelNotifyProps('desktop_threads', currentUserNotifyProps, channelMemberNotifyProps);
-    const desktopSound = getInitialValuesOfChannelNotifyProps('desktop_sound', currentUserNotifyProps, channelMemberNotifyProps);
-    const desktopNotificationSound = getInitialValuesOfChannelNotifyProps('desktop_notification_sound', currentUserNotifyProps, channelMemberNotifyProps);
-
-    // We should keep this default while saving if its same as user's setting.
-    const push = getInitialValuesOfChannelNotifyProps('push', currentUserNotifyProps, channelMemberNotifyProps);
-    const pushThreads = getInitialValuesOfChannelNotifyProps('push_threads', currentUserNotifyProps, channelMemberNotifyProps);
-
     return {
         mark_unread: channelMemberNotifyProps?.mark_unread || NotificationLevels.ALL,
-        ignore_channel_mentions: ignoreChannelMentions,
-        desktop,
-        desktop_threads: desktopThreads,
-        desktop_sound: desktopSound,
-        desktop_notification_sound: desktopNotificationSound,
-        push,
-        push_threads: pushThreads,
+        ignore_channel_mentions: getInitialValuesOfChannelNotifyProps('ignore_channel_mentions', currentUserNotifyProps, channelMemberNotifyProps),
+        desktop: getInitialValuesOfChannelNotifyProps('desktop', currentUserNotifyProps, channelMemberNotifyProps),
+        desktop_threads: getInitialValuesOfChannelNotifyProps('desktop_threads', currentUserNotifyProps, channelMemberNotifyProps),
+        desktop_sound: getInitialValuesOfChannelNotifyProps('desktop_sound', currentUserNotifyProps, channelMemberNotifyProps),
+        desktop_notification_sound: getInitialValuesOfChannelNotifyProps('desktop_notification_sound', currentUserNotifyProps, channelMemberNotifyProps),
+        push: getInitialValuesOfChannelNotifyProps('push', currentUserNotifyProps, channelMemberNotifyProps),
+        push_threads: getInitialValuesOfChannelNotifyProps('push_threads', currentUserNotifyProps, channelMemberNotifyProps),
         channel_auto_follow_threads: channelMemberNotifyProps?.channel_auto_follow_threads || 'off',
     };
 }
@@ -114,6 +102,49 @@ export default function ChannelNotificationsModal(props: Props) {
 
             setSettings({...settings, push, push_threads: pushThreads});
         }
+    }
+
+    function handleSave() {
+        const savedChannelNotifyProps = {...settings};
+        const userNotifyProps = {...props.currentUser.notify_props};
+
+        // TODO manually create the channel notify props object
+        if (userNotifyProps.desktop === savedChannelNotifyProps.desktop) {
+            savedChannelNotifyProps.desktop = 'default';
+        }
+        if (userNotifyProps.desktop_threads === savedChannelNotifyProps.desktop_threads) {
+            Reflect.deleteProperty(savedChannelNotifyProps, 'desktop_threads');
+        }
+        if (convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps.desktop_sound) === savedChannelNotifyProps.desktop_sound) {
+            Reflect.deleteProperty(savedChannelNotifyProps, 'desktop_sound');
+        }
+        if ((userNotifyProps && userNotifyProps.desktop_notification_sound) && userNotifyProps.desktop_notification_sound === savedChannelNotifyProps.desktop_notification_sound) {
+            Reflect.deleteProperty(savedChannelNotifyProps, 'desktop_notification_sound');
+        }
+        if (!('desktop_notification_sound' in savedChannelNotifyProps) && savedChannelNotifyProps.desktop_notification_sound === notificationSoundKeys[0]) {
+            // If user never changed global notification sound and channel notification sound is default, we should delete it
+            Reflect.deleteProperty(savedChannelNotifyProps, 'desktop_notification_sound');
+        }
+        if (userNotifyProps.push === savedChannelNotifyProps.push) {
+            savedChannelNotifyProps.push = 'default';
+        }
+        if (userNotifyProps.push_threads === savedChannelNotifyProps.push_threads) {
+            Reflect.deleteProperty(savedChannelNotifyProps, 'push_threads');
+        }
+        if (!props.collapsedReplyThreads) {
+            Reflect.deleteProperty(savedChannelNotifyProps, 'desktop_threads');
+            Reflect.deleteProperty(savedChannelNotifyProps, 'push_threads');
+            Reflect.deleteProperty(savedChannelNotifyProps, 'channel_auto_follow_threads');
+        }
+
+        props.actions.updateChannelNotifyProps(props.currentUser.id, props.channel.id, savedChannelNotifyProps).then((value) => {
+            const {error} = value;
+            if (error) {
+                setServerError(error.message);
+            } else {
+                handleHide();
+            }
+        });
     }
 
     const muteOrIgnoreSectionContent = (
@@ -274,23 +305,6 @@ export default function ChannelNotificationsModal(props: Props) {
             handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
         />
     );
-
-    function handleSave() {
-        const userSettings: ChannelMembership['notify_props'] = {...settings};
-        if (!props.collapsedReplyThreads) {
-            delete userSettings.push_threads;
-            delete userSettings.desktop_threads;
-            delete userSettings.channel_auto_follow_threads;
-        }
-        props.actions.updateChannelNotifyProps(props.currentUser.id, props.channel.id, userSettings).then((value) => {
-            const {error} = value;
-            if (error) {
-                setServerError(error.message);
-            } else {
-                handleHide();
-            }
-        });
-    }
 
     const desktopAndMobileNotificationSectionContent = settings.mark_unread === 'all' ? (
         <>
