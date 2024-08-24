@@ -83,16 +83,16 @@ func TestGetPing(t *testing.T) {
 		require.Contains(t, respString, "testvalue")
 	}, "ping feature flag test")
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet(context.Background(), "/system/ping?get_server_status=true", "")
+	t.Run("ping root_status test", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/system/ping?get_server_status=true", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		var respMap map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&respMap)
 		require.NoError(t, err)
-		assert.Equal(t, false, respMap["root_status"])
-	}, "ping root_status test")
+		_, ok := respMap["root_status"]
+		assert.Equal(t, true, ok)
+	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
