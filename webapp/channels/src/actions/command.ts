@@ -59,7 +59,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
         const cmd = msg.substring(0, cmdLength).toLowerCase();
         if (cmd === '/code') {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trimEnd();
+            msg = cmd + msg.substring(cmdLength, msg.length).trimEnd();
         } else {
             msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
         }
