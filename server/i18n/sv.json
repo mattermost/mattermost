@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10096,5 +10096,25 @@
   {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Kunde inte få fram webhook för teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ogiltig sök-funktion i backend. Måste vara antingen elasticsearch eller opensearch."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Ogiltigt värde för limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress måste anges för cachetypen redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB måste ha ett värde som är noll eller större."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Ogiltig maxlängd för URL för serviceinställningar. Måste vara ett heltal större än noll."
   }
 ]
