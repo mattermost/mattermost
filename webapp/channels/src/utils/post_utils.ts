@@ -310,7 +310,7 @@ export function postMessageOnKeyPress(
         return {allowSending: false, ignoreKeyPress: true};
     }
 
-    const ctrlOrMetaKey = event.ctrlKey || event.metaKey;
+    const ctrlOrMetaKey = Boolean(event.ctrlKey || event.metaKey);
 
     if (!ctrlOrMetaKey && !sendMessageOnCtrlEnter && !sendCodeBlockOnCtrlEnter) {
         return {allowSending: true};
