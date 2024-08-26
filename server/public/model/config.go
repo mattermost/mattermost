@@ -3198,7 +3198,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 // Sanitize cleans up the plugin settings by removing any sensitive information.
-// It does so by checking is the setting is marked as secret in the plugin manifest.
+// It does so by checking if the setting is marked as secret in the plugin manifest.
 // If it is, the setting is replaced with a fake value.
 // If a plugin is no longer installed, all settings of it's are sanitized.
 // If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
