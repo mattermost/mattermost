@@ -48,3 +48,20 @@ func (s *ScheduledPost) PreSave() {
 
 	s.Draft.PreSave()
 }
+
+func (s *ScheduledPost) ToPost() *Post {
+	post := &Post{
+		UserId:    s.UserId,
+		ChannelId: s.ChannelId,
+		Message:   s.Message,
+		FileIds:   s.FileIds,
+		RootId:    s.RootId,
+		Metadata:  s.Metadata,
+
+		// TODO add post prioroty stuff.
+	}
+
+	for key, value := range s.GetProps() {
+		post.AddProp(key, value)
+	}
+}
