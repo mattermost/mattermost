@@ -98,9 +98,6 @@ interface Props {
  * </Menu.Item>
  */
 export function Menu(props: Props) {
-    // Use MUI Anchor Playgroup to try various anchorOrigin
-    // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
-
     const theme = useSelector(getTheme);
 
     const isMobileView = useSelector(getIsMobileView);
