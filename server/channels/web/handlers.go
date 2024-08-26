@@ -164,7 +164,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestID := model.NewId()
-	var statusCode string
 	var rateLimitExceeded bool
 	defer func() {
 		responseLogFields := []mlog.Field{
@@ -176,6 +175,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if c.AppContext.Session() != nil {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
+
+		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
 			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
@@ -183,7 +185,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.Debug("Received HTTP request", responseLogFields...)
 
 		if !rateLimitExceeded {
-			h.recordMetrics(c, w, r, now)
+			h.recordMetrics(c, r, now, statusCode)
 		}
 	}()
 
@@ -392,8 +394,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h Handler) recordMetrics(c *Context, w http.ResponseWriter, r *http.Request, now time.Time) {
-	statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+func (h Handler) recordMetrics(c *Context, r *http.Request, now time.Time, statusCode string) {
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
