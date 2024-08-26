@@ -96,22 +96,25 @@ describe('/components/data_prefetch', () => {
         expect(instance.prefetchPosts).toHaveBeenCalledWith('currentChannelId');
     });
 
-    test('should fetch profiles for sidebar on first channel load', async () => {
-        const props = defaultProps;
+    test('should fetch profiles for sidebar on sidebar load', async () => {
+        const props = {
+            ...defaultProps,
+            sidebarLoaded: false,
+        };
         const wrapper = shallow<DataPrefetch>(
             <DataPrefetch {...props}/>,
         );
 
         expect(loadProfilesForSidebar).not.toHaveBeenCalled();
 
-        // Change channels
-        wrapper.setProps({currentChannelId: 'currentChannelId'});
+        // Finish loading the sidebar
+        wrapper.setProps({sidebarLoaded: true});
         await Promise.resolve(true);
 
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
 
-        // Change channels again
-        wrapper.setProps({currentChannelId: 'anotherChannelId'});
+        // Reload the sidebar
+        wrapper.setProps({sidebarLoaded: true});
         await Promise.resolve(true);
 
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
@@ -345,7 +348,7 @@ describe('/components/data_prefetch', () => {
         expect(props.actions.prefetchChannelPosts).toHaveBeenCalledWith('mentionChannel', undefined);
     });
 
-    test('should load profiles once the current channel and sidebar are both loaded', () => {
+    test('should load profiles once the sidebar is loaded irrespective of the current channel', () => {
         const props = {
             ...defaultProps,
             currentChannelId: '',
@@ -370,37 +373,6 @@ describe('/components/data_prefetch', () => {
         expect(loadProfilesForSidebar).not.toHaveBeenCalled();
 
         wrapper.setProps({
-            sidebarLoaded: true,
-        });
-
-        expect(loadProfilesForSidebar).toHaveBeenCalled();
-
-        jest.clearAllMocks();
-
-        // With sidebar loaded first
-        wrapper = shallow<DataPrefetch>(
-            <DataPrefetch {...props}/>,
-        );
-        wrapper.setProps({
-            sidebarLoaded: true,
-        });
-
-        expect(loadProfilesForSidebar).not.toHaveBeenCalled();
-
-        wrapper.setProps({
-            currentChannelId: 'channel',
-        });
-
-        expect(loadProfilesForSidebar).toHaveBeenCalled();
-
-        jest.clearAllMocks();
-
-        // With both loaded at once
-        wrapper = shallow<DataPrefetch>(
-            <DataPrefetch {...props}/>,
-        );
-        wrapper.setProps({
-            currentChannelId: 'channel',
             sidebarLoaded: true,
         });
 

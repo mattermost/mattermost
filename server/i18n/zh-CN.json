@@ -10080,5 +10080,33 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "搜索后端无效。必须是 elasticsearch 或 opensearch。"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "无法处理请求。请求体过大。"
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "limit_visible_dms_gms 的值无效。"
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "缓存类型必须为 lru 或 redis。"
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "必须为 redis 缓存类型指定 RedisAddress。"
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB 的值必须大于或等于 0。"
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "服务设置的最大 URL 长度无效。必须为大于 0 的整数。"
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "无法获取 teamID={{.TeamID}}, userID={{.UserID}} 的 webhook，err={{.Error}}。"
   }
 ]
