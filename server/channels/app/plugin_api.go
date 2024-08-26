@@ -1343,3 +1343,7 @@ func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID s
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
 }
+
+func (api *PluginAPI) GetPluginID() string {
+	return api.id
+}
