@@ -223,7 +223,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -483,7 +483,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -743,7 +743,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -973,7 +973,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1200,7 +1200,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1460,7 +1460,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "serverError",

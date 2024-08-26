@@ -197,7 +197,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>
@@ -404,7 +404,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>
@@ -611,7 +611,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>
@@ -818,7 +818,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>

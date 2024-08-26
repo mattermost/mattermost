@@ -193,7 +193,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>
@@ -394,7 +394,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>

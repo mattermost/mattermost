@@ -409,7 +409,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -857,7 +857,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1305,7 +1305,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "server error",

@@ -298,7 +298,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         />
       </div>
     </div>
-    <[object Object]
+    <Memo(FormError)
       error="error"
     />
     <div

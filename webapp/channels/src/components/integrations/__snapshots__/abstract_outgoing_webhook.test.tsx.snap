@@ -309,7 +309,7 @@ callbackUrl2.com
       <div
         className="backstage-form__footer"
       >
-        <[object Object]
+        <Memo(FormError)
           errors={
             Array [
               "",

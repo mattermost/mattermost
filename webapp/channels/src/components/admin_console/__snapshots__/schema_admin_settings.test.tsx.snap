@@ -683,12 +683,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
         className="error-message"
         data-testid="errorMessage"
       >
-        <[object Object]
+        <Memo(FormError)
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <[object Object]
+        <Memo(FormError)
           error={null}
         />
       </div>

@@ -188,12 +188,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <[object Object]
+        <Memo(FormError)
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <[object Object]
+        <Memo(FormError)
           error={null}
         />
       </div>
@@ -240,12 +240,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <[object Object]
+        <Memo(FormError)
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <[object Object]
+        <Memo(FormError)
           error={null}
         />
       </div>
@@ -442,12 +442,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <[object Object]
+        <Memo(FormError)
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <[object Object]
+        <Memo(FormError)
           error={null}
         />
       </div>

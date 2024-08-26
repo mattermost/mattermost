@@ -421,7 +421,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         <div
           className="error-message"
         >
-          <[object Object]
+          <Memo(FormError)
             error={null}
           />
         </div>
