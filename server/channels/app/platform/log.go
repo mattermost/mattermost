@@ -230,7 +230,7 @@ func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileDat
 		return nil, errors.New("Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
 	}
 
-	notificationsLog := config.GetNotificationsLogFileLocation(*ps.Config().LogSettings.FileLocation)
+	notificationsLog := config.GetNotificationsLogFileLocation(*ps.Config().NotificationLogSettings.FileLocation)
 	notificationsLogFileData, err := os.ReadFile(notificationsLog)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", notificationsLog)

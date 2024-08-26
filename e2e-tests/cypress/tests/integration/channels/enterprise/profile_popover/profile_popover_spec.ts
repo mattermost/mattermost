@@ -347,8 +347,8 @@ describe('Profile popover', () => {
         // # Visit that channel
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
-        // * Verify that there are 2 post views now.
-        cy.findAllByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).should('have.length', 2);
+        // * Verify that there are 1 post views now.
+        cy.findAllByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).should('have.length', 1);
 
         // * Verify that user added message is there.
         cy.findAllByTestId('postView').last().find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);

@@ -9,6 +9,7 @@ import {
     getSuggestionsSplitByMultiple,
     includesAnAdminRole,
     applyRolesFilters,
+    nameSuggestionsForUser,
 } from 'mattermost-redux/utils/user_utils';
 
 import TestHelper from '../../test/test_helper';
@@ -56,6 +57,56 @@ describe('user utils', () => {
         it('should return empty string when user does not exist and useDefaultUserName param is false', () => {
             let noUserObj;
             expect(displayUsername(noUserObj, 'UNKNOWN_PREFERENCE', false)).toBe('');
+        });
+    });
+
+    describe('nameSuggestionsForUser', () => {
+        const userObj = TestHelper.getUserMock({
+            username: 'test.user',
+            nickname: 'tester',
+            first_name: 'Test',
+            last_name: 'UsEr NaMe',
+            position: 'Software Engineer at Mattermost',
+            email: 'test.user_name@example.com',
+        });
+
+        it('should return correct suggestions for user', () => {
+            const suggestions = nameSuggestionsForUser(userObj);
+            const expectedSuggestions = [
+                'test.user', '.user', 'user',
+                'test', 'user name', 'test user name', 'tester',
+                'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
+                'test.user_name@example.com', 'example.com',
+            ];
+            expect(suggestions).toEqual(expectedSuggestions);
+        });
+
+        it('should gracefully handle missing values for fields', () => {
+            const suggestions: string[] = nameSuggestionsForUser({...userObj,
+                username: '',
+                nickname: '',
+                first_name: '',
+                last_name: '',
+                position: '',
+                email: '',
+            });
+            expect(suggestions).toEqual(expect.arrayContaining(['']));
+        });
+
+        it('should handle different split username characters correctly', () => {
+            const suggestions: string[] = nameSuggestionsForUser({...userObj, username: 'john-doe_jr'});
+            const expectedUsernameSuggestions: string[] = [
+                'john-doe_jr', '-doe_jr', 'doe_jr', '_jr', 'jr',
+            ];
+            expect(suggestions).toEqual(expect.arrayContaining(expectedUsernameSuggestions));
+        });
+
+        it('should split position on whitespace', () => {
+            const suggestions: string[] = nameSuggestionsForUser({...userObj, position: 'test-position split is corre_ct'});
+            const expectedPositionSuggestions: string[] = [
+                'test-position split is corre_ct', 'split is corre_ct', 'is corre_ct', 'corre_ct',
+            ];
+            expect(suggestions).toEqual(expect.arrayContaining(expectedPositionSuggestions));
         });
     });
 

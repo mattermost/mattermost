@@ -156,6 +156,7 @@ describe('User Management', () => {
 
         // # Search for the user.
         cy.get('#input_searchTerm').clear().type(user.email, {delay: TIMEOUTS.ONE_HUNDRED_MILLIS}).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', user.email);
 
         cy.get('#actionMenuButton-systemUsersTable-0').click().wait(TIMEOUTS.HALF_SEC);
 

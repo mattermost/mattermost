@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import type {ValueType} from 'react-select';
 import ReactSelect from 'react-select';
@@ -9,12 +10,17 @@ import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
 export type Option = {
-    value: number;
-    label: string;
+    value: string;
+    label: ReactNode;
 };
 
 export type FieldsetReactSelect = {
+    id: string;
+    name?: string;
+    inputId?: string;
     dataTestId?: string;
+    ariaLabelledby?: string;
+    clearable?: boolean;
     options: Option[];
 }
 
@@ -23,6 +29,7 @@ type Props = BaseSettingItemProps & {
     inputFieldValue: Option;
     handleChange: (selected: ValueType<Option>) => void;
 }
+
 function ReactSelectItemCreator({
     title,
     description,
@@ -33,19 +40,23 @@ function ReactSelectItemCreator({
     const content = (
         <fieldset className='mm-modal-generic-section-item__fieldset-react-select'>
             <ReactSelect
-                className='react-select'
+                id={inputFieldData.id}
+                name={inputFieldData.name}
+                inputId={inputFieldData.inputId}
+                aria-labelledby={inputFieldData.ariaLabelledby}
+                className='react-select singleSelect react-select-top'
                 classNamePrefix='react-select'
-                id='limitVisibleGMsDMs'
                 options={inputFieldData.options}
-                clearable={false}
+                clearable={inputFieldData.clearable}
+                isClearable={inputFieldData.clearable}
+                isSearchable={false}
                 onChange={handleChange}
                 value={inputFieldValue}
-                isSearchable={false}
-                menuPortalTarget={document.body}
-                styles={reactStyles}
+                components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
             />
         </fieldset>
     );
+
     return (
         <BaseSettingItem
             content={content}
@@ -57,9 +68,6 @@ function ReactSelectItemCreator({
 
 export default ReactSelectItemCreator;
 
-const reactStyles = {
-    menuPortal: (provided: React.CSSProperties) => ({
-        ...provided,
-        zIndex: 9999,
-    }),
-};
+function NoIndicatorSeparatorComponent() {
+    return null;
+}
