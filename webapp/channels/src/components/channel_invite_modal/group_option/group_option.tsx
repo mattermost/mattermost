@@ -13,7 +13,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 
 import type {Value} from 'components/multiselect/multiselect';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -99,9 +99,10 @@ const GroupOption = (props: Props) => {
                     >
                         {'@'}{group.name}
                     </span>
-                    <SimpleTooltip
+                    <WithTooltip
                         id={'usernames-overflow'}
-                        content={overflowNames}
+                        title={overflowNames}
+                        placement={'top'}
                     >
                         <span
                             className='add-group-members'
@@ -118,7 +119,7 @@ const GroupOption = (props: Props) => {
                                 color={'var(--link-color)'}
                             />
                         </span>
-                    </SimpleTooltip>
+                    </WithTooltip>
                 </div>
             </div>
         </div>
