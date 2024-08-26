@@ -62,12 +62,15 @@ jobs:
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ steps.generate.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ steps.generate.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
+      CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
       ROLLING_RELEASE_FROM_TAG: "${{ inputs.ROLLING_RELEASE_FROM_TAG }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_PR: >-
         --stage="@prod"
@@ -161,9 +164,13 @@ jobs:
             ROLLING_RELEASE_SERVER_IMAGE="mattermost/mattermost-enterprise-edition:${ROLLING_RELEASE_SERVER_IMAGE_TAG}"
             BUILD_ID_SUFFIX="rolling${ROLLING_RELEASE_FROM_TAG/-/_}-$BUILD_ID_SUFFIX"
             BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
+            WORKERS_NUMBER=10   # Rolling release tests are particularly impacted by increased parallelism. It's more efficient to run on fewer workers
             ### Run sanity assertions after variable generations
             git show-ref --verify "refs/tags/${ROLLING_RELEASE_FROM_TAG}" # 'inputs.ROLLING_RELEASE_FROM_TAG' must be a tag, for release report types
           fi
+          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
+          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
           echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -177,18 +184,22 @@ jobs:
           echo "REPORT_TYPE=${COMPUTED_REPORT_TYPE}" >> $GITHUB_OUTPUT
           echo "ROLLING_RELEASE_commit_sha=${ROLLING_RELEASE_COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "ROLLING_RELEASE_SERVER_IMAGE=${ROLLING_RELEASE_SERVER_IMAGE}" >> $GITHUB_OUTPUT
-          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
-          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          echo "BUILD_ID=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
+          echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
+          # User notification variables
+          echo "WORKFLOW_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{github.run_id}}" >> $GITHUB_OUTPUT
+          echo "CYCLE_URL=${AUTOMATION_DASHBOARD_URL%%/api}/cycle/${BUILD_ID}" >> $GITHUB_OUTPUT
       - name: ci/notify-user
+        env:
+          COMMIT_SHA: "${{steps.generate.outputs.commit_sha}}"
+          STATUS_CHECK_CONTEXT: "${{steps.generate.outputs.status_check_context}}"
+          WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
+          CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
-            WORKFLOW_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            CYCLE_URL="https://automation-dashboard.vercel.app/cycle/${{ github.run_id }}"
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          E2E test run is starting for commit \`${{ steps.generate.outputs.commit_sha }}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           You can check its progress by either:
-          - Looking at the corresponding commit status, which will be available in a few moments: \`${{ steps.generate.outputs.status_check_context }}\`.
+          - Looking at the corresponding commit status, which will be available in a few moments: \`${STATUS_CHECK_CONTEXT}\`.
           - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
           - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL).
           EOF
@@ -229,3 +240,34 @@ jobs:
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+
+  notify-user:
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - generate-test-variables
+      - e2e-fulltest
+    permissions:
+      issues: write
+      pull-requests: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      GH_TOKEN: "${{ github.token }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      COMMIT_SHA: "${{ needs.generate-test-variables.outputs.commit_sha }}"
+      STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
+      WORKFLOW_RUN_URL: "${{ needs.generate-test-variables.outputs.WORKFLOW_RUN_URL }}"
+      CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
+    steps:
+      - name: ci/notify-user-test-completion
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+          E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          You can check its result on the [Automation Dashboard]($CYCLE_URL), or by checking out the status check named \`${STATUS_CHECK_CONTEXT}\` in this PR.
+          The run summary artifact is available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
+          EOF
+          fi

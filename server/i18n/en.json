@@ -4067,6 +4067,10 @@
     "translation": "AD/LDAP not available on this server."
   },
   {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "User is not an OAuth or SAML user."
+  },
+  {
     "id": "api.user.oauth_to_email.context.app_error",
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
@@ -5169,6 +5173,14 @@
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Failed to create group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "There are no members for the direct channel"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
