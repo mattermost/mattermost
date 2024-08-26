@@ -165,6 +165,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	requestID := model.NewId()
 	var statusCode string
+	var rateLimitExceeded bool
 	defer func() {
 		responseLogFields := []mlog.Field{
 			mlog.String("method", r.Method),
@@ -180,6 +181,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
 		}
 		mlog.Debug("Received HTTP request", responseLogFields...)
+
+		if !rateLimitExceeded {
+			h.recordMetrics(c, w, r, now)
+		}
 	}()
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
@@ -302,8 +307,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w) {
-			return
+		if c.App.Srv().RateLimiter != nil {
+			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w)
+			if rateLimitExceeded {
+				return
+			}
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
@@ -380,11 +388,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Handle errors that have occurred
 	if c.Err != nil {
 		h.handleContextError(c, w, r)
-		// intentionally not returning here as we need the code block below to report
-		// the Mattermost API time metrics.
+		return
 	}
+}
 
-	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+func (h Handler) recordMetrics(c *Context, w http.ResponseWriter, r *http.Request, now time.Time) {
+	statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
