@@ -126,7 +126,7 @@ describe('System Console OpenId Connect', () => {
             expect(config.Office365Settings.Id).to.equal('Office365Id');
             expect(config.Office365Settings.DiscoveryEndpoint).to.equal('https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration');
         });
-        verifyOAuthLogin('Office 365', '', Cypress.config('baseUrl') + '/oauth/office365/login');
+        verifyOAuthLogin('Entra ID', '', Cypress.config('baseUrl') + '/oauth/office365/login');
     });
 });
 
