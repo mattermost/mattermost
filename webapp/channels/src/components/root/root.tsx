@@ -7,7 +7,6 @@ import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import type {ClientConfig} from '@mattermost/types/config';
 import {ServiceEnvironment} from '@mattermost/types/config';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
@@ -128,19 +127,16 @@ const noop = () => {};
 export type Props = PropsFromRedux & RouteComponentProps;
 
 interface State {
-    configLoaded?: boolean;
+    shouldMountAppRoutes?: boolean;
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    private mounted: boolean;
-
     // The constructor adds a bunch of event listeners,
     // so we do need this.
     private a11yController: A11yController;
 
     constructor(props: Props) {
         super(props);
-        this.mounted = false;
 
         // Redux
         setUrl(getSiteURL());
@@ -169,18 +165,18 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.state = {
-            configLoaded: false,
+            shouldMountAppRoutes: false,
         };
 
         this.a11yController = new A11yController();
     }
 
-    onConfigLoaded = (config: Partial<ClientConfig>) => {
+    setRudderConfig = () => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
         let rudderKey = '';
-        switch (config.ServiceEnvironment) {
+        switch (this.props.serviceEnvironment) {
         case ServiceEnvironment.PRODUCTION:
             rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
             break;
@@ -193,13 +189,15 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
-            const siteURL = config.SiteURL;
-            if (siteURL !== '') {
+            if (this.props.siteURL !== '') {
                 try {
-                    rudderCfg.setCookieDomain = new URL(siteURL || '').hostname;
-                    // eslint-disable-next-line no-empty
-                } catch (_) {}
+                    rudderCfg.setCookieDomain = new URL(this.props.siteURL || '').hostname;
+                } catch (_) {
+                    // eslint-disable-next-line no-console
+                    console.error('Failed to set cookie domain for RudderStack');
+                }
             }
+
             rudderAnalytics.load(rudderKey, rudderUrl || '', rudderCfg);
 
             rudderAnalytics.identify(telemetryId, {}, {
@@ -238,20 +236,14 @@ export default class Root extends React.PureComponent<Props, State> {
                 }
             });
         }
+    };
 
-        if (this.props.location.pathname === '/' && this.props.noAccounts) {
-            this.props.history.push('/signup_user_complete');
-        }
-
+    onConfigLoaded = () => {
         Promise.all([
             this.props.actions.initializeProducts(),
             initializePlugins(),
         ]).then(() => {
-            if (this.mounted) {
-                // supports enzyme tests, set state if and only if
-                // the component is still mounted on screen
-                this.setState({configLoaded: true});
-            }
+            this.setState({shouldMountAppRoutes: true});
         });
 
         this.props.actions.migrateRecentEmojis();
@@ -322,6 +314,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
             Utils.applyTheme(this.props.theme);
         }
+
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
                 prevProps.history.push('/signup_user_complete');
@@ -329,6 +322,7 @@ export default class Root extends React.PureComponent<Props, State> {
                 prevProps.history.push('/terms_of_service');
             }
         }
+
         if (
             this.props.shouldShowAppBar !== prevProps.shouldShowAppBar ||
             this.props.rhsIsOpen !== prevProps.rhsIsOpen ||
@@ -337,8 +331,11 @@ export default class Root extends React.PureComponent<Props, State> {
             this.setRootMeta();
         }
 
-        const isConfigNowLoaded = prevState.configLoaded === false && this.state.configLoaded === true;
-        if (isConfigNowLoaded) {
+        if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
+            this.setRudderConfig();
+        }
+
+        if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 InitialLoadingScreen.stop();
             }
@@ -370,21 +367,25 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
-        const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
+        const {isLoaded, isMeRequested} = await this.props.actions.loadConfigAndMe();
 
-        if (isMeLoaded && this.props.location.pathname === '/') {
-            this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
-        }
+        if (isLoaded) {
+            const isUserAtRootRoute = this.props.location.pathname === '/';
 
-        if (config) {
-            this.onConfigLoaded(config);
+            if (isUserAtRootRoute) {
+                if (isMeRequested) {
+                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
+                } else if (this.props.noAccounts) {
+                    this.props.history.push('/signup_user_complete');
+                }
+            }
+
+            this.onConfigLoaded();
         }
     };
 
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
-
-        this.mounted = true;
 
         this.initiateMeRequests();
 
@@ -396,7 +397,6 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        this.mounted = false;
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
     }
 
@@ -417,7 +417,7 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     render() {
-        if (!this.state.configLoaded) {
+        if (!this.state.shouldMountAppRoutes) {
             return <div/>;
         }
 
