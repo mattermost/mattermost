@@ -26,10 +26,23 @@ export class InitialLoadingScreenClass {
     constructor() {
         this.loadingScreenElement = document.getElementById('initialPageLoadingScreen');
         this.loadingAnimationElement = document.getElementById('initialPageLoadingAnimation');
-
         this.initialLoadingScreenCSS = document.getElementById('initialLoadingScreenCSS') as HTMLLinkElement | null;
 
         this.handleAnimationEndEvent = this.handleAnimationEndEvent.bind(this);
+
+        this.init();
+    }
+
+    private init() {
+        if (isDesktopApp()) {
+            // Let Mattermost desktop handle the loading screen
+            this.destroy();
+            return;
+        }
+
+        this.addAnimationEndListener();
+
+        this.start();
     }
 
     private handleAnimationEndEvent(event: AnimationEvent) {
@@ -88,14 +101,6 @@ export class InitialLoadingScreenClass {
      * If we do want to do that then we should remove the set timeout destroy call doing above.
      */
     public start() {
-        if (isDesktopApp()) {
-            // Let Mattermost desktop handle the loading screen
-            this.destroy();
-            return;
-        }
-
-        this.addAnimationEndListener();
-
         if (!this.loadingScreenElement || !this.loadingAnimationElement) {
             // eslint-disable-next-line no-console
             console.error('InitialLoadingScreen: No loading screen or animation element found');
