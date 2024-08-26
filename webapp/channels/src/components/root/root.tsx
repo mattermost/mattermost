@@ -28,6 +28,7 @@ import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_re
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import InitialLoadingScreen from 'components/initial_loading_screen';
 import MobileViewWatcher from 'components/mobile_view_watcher';
 import ModalController from 'components/modal_controller';
 import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
@@ -309,7 +310,7 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
-    componentDidUpdate(prevProps: Props) {
+    componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
             Utils.applyTheme(this.props.theme);
         }
@@ -332,6 +333,12 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
+        }
+
+        if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
+            if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
+                InitialLoadingScreen.stop();
+            }
         }
     }
 
@@ -599,4 +606,9 @@ export default class Root extends React.PureComponent<Props, State> {
             </RootProvider>
         );
     }
+}
+
+export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
+    const TEAM_CONTROLLER_PATH_PATTERN = /^\/([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+    return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }
