@@ -1320,7 +1320,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(channel)
 	defer c.LogAuditRec(auditRec)
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+	if channel.Type == model.ChannelTypeDirect {
 		c.Err = model.NewAppError("deleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
 		return
 	}
