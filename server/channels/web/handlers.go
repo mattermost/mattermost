@@ -380,7 +380,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Handle errors that have occurred
 	if c.Err != nil {
 		h.handleContextError(c, w, r)
-		return
+		// intentionally not returning here as we need the code block below to report
+		// the Mattermost API time metrics.
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
