@@ -24,8 +24,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <i
-      className="icon icon-globe"
+    <SidebarBaseChannelIcon
+      channelType="O"
+      isSharedChannel={false}
     />
   }
   label="channel_display_name"
@@ -57,8 +58,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <i
-      className="icon icon-lock-outline"
+    <SidebarBaseChannelIcon
+      channelType="P"
+      isSharedChannel={false}
     />
   }
   label="channel_display_name"
@@ -91,10 +93,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <SharedChannelIndicator
+    <SidebarBaseChannelIcon
       channelType="O"
-      className="icon"
-      withTooltip={true}
+      isSharedChannel={true}
     />
   }
   label="channel_display_name"
@@ -127,10 +128,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <SharedChannelIndicator
+    <SidebarBaseChannelIcon
       channelType="P"
-      className="icon"
-      withTooltip={true}
+      isSharedChannel={true}
     />
   }
   label="channel_display_name"
