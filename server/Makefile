@@ -144,19 +144,20 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.29.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
 PLUGIN_PACKAGES += focalboard-v8.0.0
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.2
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.3
+PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -748,7 +749,9 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@new
+	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
+	## having to backport the fix to multiple release branches for any new change.
+	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
@@ -760,7 +763,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@new
+	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
 	make -C ../api build
 	./scripts/vet-api-check.sh
 
