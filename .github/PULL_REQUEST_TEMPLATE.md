@@ -56,7 +56,7 @@ Added new API endpoints POST /api/v4/foo, GET api/v4/foo, and GET api/v4/foo/:fo
 Added a new config setting ServiceSettings.FooBar. Added a new column Foo to the Users table.
 ```
 
-```
+```release-note
 NONE
 ```
 -->

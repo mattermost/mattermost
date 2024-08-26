@@ -9,8 +9,10 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 
 import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox_setting_item';
 import type {FieldsetRadio} from 'components/widgets/modals/components/radio_setting_item';
+import type {FieldsetReactSelect} from 'components/widgets/modals/components/react_select_item';
 
-import {NotificationLevels} from 'utils/constants';
+import {DesktopSound, NotificationLevels} from 'utils/constants';
+import {optionsOfMessageNotificationSoundsSelect} from 'utils/notification_sounds';
 
 export type ChannelMemberNotifyProps = Partial<ChannelNotifyProps> & Pick<UserNotifyProps, 'desktop_threads' | 'push_threads'>
 
@@ -102,6 +104,17 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
     };
 };
 
+export const desktopNotificationSoundsCheckboxFieldData: FieldsetCheckbox = {
+    name: 'desktopNotificationSoundsCheckbox',
+    dataTestId: 'desktopNotificationSoundsCheckbox',
+};
+
+export const desktopNotificationSoundsSelectFieldData: FieldsetReactSelect = {
+    id: 'desktopNotificationSoundsSelect',
+    inputId: 'desktopNotificationSoundsSelectInputId',
+    options: optionsOfMessageNotificationSoundsSelect,
+};
+
 export const mobileNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
     return {
         options: [
@@ -160,8 +173,26 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
     };
 };
 
+/**
+ * This conversion is needed because User's preference for desktop sound is stored as either true or false. On the other hand,
+ * Channel's specific desktop sound is stored as either On or Off.
+ */
+export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktopSound?: UserNotifyProps['desktop_sound']) {
+    if (!userNotifyDesktopSound) {
+        return DesktopSound.OFF;
+    }
+
+    if (userNotifyDesktopSound === 'true') {
+        return DesktopSound.ON;
+    }
+
+    return DesktopSound.ON;
+}
+
 const utils = {
     desktopNotificationInputFieldData,
+    desktopNotificationSoundsCheckboxFieldData,
+    desktopNotificationSoundsSelectFieldData,
     IgnoreMentionsInputFieldData,
     mobileNotificationInputFieldData,
     MuteChannelInputFieldData,
