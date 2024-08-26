@@ -62,11 +62,11 @@ func (s *BleveEngineTestSuite) setupStore() {
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
-	cfg.BleveSettings.EnableIndexing = model.NewBool(true)
-	cfg.BleveSettings.EnableSearching = model.NewBool(true)
-	cfg.BleveSettings.EnableAutocomplete = model.NewBool(true)
-	cfg.BleveSettings.IndexDir = model.NewString(s.IndexDir)
-	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
+	cfg.BleveSettings.EnableIndexing = model.NewPointer(true)
+	cfg.BleveSettings.EnableSearching = model.NewPointer(true)
+	cfg.BleveSettings.EnableAutocomplete = model.NewPointer(true)
+	cfg.BleveSettings.IndexDir = model.NewPointer(s.IndexDir)
+	cfg.SqlSettings.DisableDatabaseSearch = model.NewPointer(true)
 
 	s.SearchEngine = searchengine.NewBroker(cfg)
 	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLStore}, s.SearchEngine, cfg)

@@ -44,7 +44,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
         gotoUserConfigurationPage(testUser);
 
-        verifyManageUserSettingModal(testUser);
+        verifyManageUserSettingModal(testUser, true);
 
         cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
         cy.get('#notificationCommentsNever').should('be.checked');
@@ -122,7 +122,7 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/system_roles');
 
         cy.get('.admin-console__header').within(() => {
-            cy.findByText('System Roles', {timeout: TIMEOUTS.ONE_MIN}).should('exist').and('be.visible');
+            cy.findByText('Delegated Granular Administration', {timeout: TIMEOUTS.ONE_MIN}).should('exist').and('be.visible');
         });
 
         // # Click on edit for the role

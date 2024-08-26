@@ -220,8 +220,8 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 	createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 	updateMap := model.ChannelModeratedRolesPatch{
-		Guests:  model.NewBool(false),
-		Members: model.NewBool(false),
+		Guests:  model.NewPointer(false),
+		Members: model.NewPointer(false),
 	}
 
 	readonlyChannelModerations := []*model.ChannelModerationPatch{
