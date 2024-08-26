@@ -3,7 +3,10 @@
 
 package model
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type ScheduledPost struct {
 	Draft
@@ -49,7 +52,7 @@ func (s *ScheduledPost) PreSave() {
 	s.Draft.PreSave()
 }
 
-func (s *ScheduledPost) ToPost() *Post {
+func (s *ScheduledPost) ToPost() (*Post, error) {
 	post := &Post{
 		UserId:    s.UserId,
 		ChannelId: s.ChannelId,
@@ -57,11 +60,32 @@ func (s *ScheduledPost) ToPost() *Post {
 		FileIds:   s.FileIds,
 		RootId:    s.RootId,
 		Metadata:  s.Metadata,
-
-		// TODO add post prioroty stuff.
 	}
 
 	for key, value := range s.GetProps() {
 		post.AddProp(key, value)
+	}
+
+	if len(s.Priority) > 0 {
+		priority, ok := s.Priority["priority"].(string)
+		if !ok {
+			return nil, fmt.Errorf(`ScheduledPost.ToPost: priority is not a string. ScheduledPost.Priority: %v`, s.Priority)
+		}
+
+		requestedAck, ok := s.Priority["requested_ack"].(bool)
+		if !ok {
+			return nil, fmt.Errorf(`ScheduledPost.ToPost: requested_ack is not a bool. ScheduledPost.Priority: %v`, s.Priority)
+		}
+
+		persistentNotifications, ok := s.Priority["persistent_notifications"].(bool)
+		if !ok {
+			return nil, fmt.Errorf(`ScheduledPost.ToPost: persistent_notifications is not a bool. ScheduledPost.Priority: %v`, s.Priority)
+		}
+
+		post.Metadata.Priority = &PostPriority{
+			Priority:                NewPointer(priority),
+			RequestedAck:            NewPointer(requestedAck),
+			PersistentNotifications: NewPointer(persistentNotifications),
+		}
 	}
 }
