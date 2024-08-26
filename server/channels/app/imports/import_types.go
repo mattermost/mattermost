@@ -123,10 +123,27 @@ type UserChannelImportData struct {
 	LastViewedAt       *int64                            `json:"last_viewed_at,omitempty"`
 }
 
+type DirectChannelMemberImportData struct {
+	Username           *string                           `json:"username"`
+	NotifyProps        *UserChannelNotifyPropsImportData `json:"notify_props,omitempty"`
+	SchemeUser         *bool                             `json:"scheme_user,omitempty"`
+	SchemeAdmin        *bool                             `json:"scheme_admin,omitempty"`
+	SchemeGuest        *bool                             `json:"scheme_guest,omitempty"`
+	MentionCount       *int64                            `json:"mention_count,omitempty"`
+	MentionCountRoot   *int64                            `json:"mention_count_root,omitempty"`
+	UrgentMentionCount *int64                            `json:"urgend_mention_count,omitempty"`
+	MsgCount           *int64                            `json:"msg_count,omitempty"`
+	MsgCountRoot       *int64                            `json:"msg_count_root,omitempty"`
+	LastViewedAt       *int64                            `json:"last_viewed_at,omitempty"`
+}
+
 type UserChannelNotifyPropsImportData struct {
-	Desktop    *string `json:"desktop"`
-	Mobile     *string `json:"mobile"`
-	MarkUnread *string `json:"mark_unread"`
+	Desktop                  *string `json:"desktop"`
+	Mobile                   *string `json:"mobile"`
+	MarkUnread               *string `json:"mark_unread"`
+	Email                    *string `json:"email,omitempty"`
+	IgnoreChannelMentions    *string `json:"ignore_channel_mentions,omitempty"`
+	ChannelAutoFollowThreads *string `json:"channel_auto_follow_threads,omitempty"`
 }
 
 type EmojiImportData struct {
@@ -173,8 +190,10 @@ type PostImportData struct {
 }
 
 type DirectChannelImportData struct {
-	Members     *[]string `json:"members"`
-	FavoritedBy *[]string `json:"favorited_by"`
+	Members      *[]string                        `json:"members,omitempty"`
+	Participants []*DirectChannelMemberImportData `json:"participants,omitempty"`
+	FavoritedBy  *[]string                        `json:"favorited_by,omitempty"`
+	ShownBy      *[]string                        `json:"shown_by,omitempty"`
 
 	Header *string `json:"header"`
 }
