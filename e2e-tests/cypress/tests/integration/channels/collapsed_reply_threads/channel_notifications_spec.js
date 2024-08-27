@@ -144,8 +144,8 @@ describe('CRT Desktop notifications', () => {
         cy.visit(testChannelUrl);
         cy.uiOpenChannelMenu('Notification Preferences');
 
-        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click().then(() => {
-            cy.get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
+        cy.get('#desktopNotification-mention').scrollIntoView().should('be.visible').click().then(() => {
+            cy.get('[data-testid="desktopReplyThreads"]').scrollIntoView().should('be.visible').click();
         });
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
         cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click().should('be.checked').then(() => {
@@ -174,7 +174,7 @@ describe('CRT Desktop notifications', () => {
         // Setup notification spy
         spyNotificationAs('notifySpy', 'granted');
         cy.uiOpenChannelMenu('Notification Preferences');
-        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click();
+        cy.get('#desktopNotification-mention').scrollIntoView().should('be.visible').click();
 
         // # Save the changes
         cy.findByText('Save').should('be.visible').click();

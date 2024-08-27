@@ -144,19 +144,20 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
+PLUGIN_PACKAGES += mattermost-plugin-ai-v1.0.0
 PLUGIN_PACKAGES += focalboard-v8.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.3
+PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
