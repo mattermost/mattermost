@@ -465,5 +465,4 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
-
 }
