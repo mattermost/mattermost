@@ -1049,6 +1049,8 @@ type AppIface interface {
 	RevokeUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 	Saml() einterfaces.SamlInterface
+	SanitizeChannel(session model.Session, channel model.Channel) model.Channel
+	SanitizeChannels(session model.Session, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData
 	SanitizePostListMetadataForUser(c request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError)
 	SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError)
 	SanitizeProfile(user *model.User, asAdmin bool)
