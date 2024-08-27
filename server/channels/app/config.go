@@ -235,7 +235,7 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
 	// directly and not through the System Console UI.
 	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
-		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
+		if *cfg.MessageExportSettings.EnableExport && (cfg.MessageExportSettings.ExportFromTimestamp == nil || *cfg.MessageExportSettings.ExportFromTimestamp == int64(0)) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(model.GetMillis())
 		} else if !*cfg.MessageExportSettings.EnableExport {
