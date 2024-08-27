@@ -88,4 +88,6 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 			PersistentNotifications: NewPointer(persistentNotifications),
 		}
 	}
+
+	return post, nil
 }
