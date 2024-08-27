@@ -269,8 +269,9 @@ func TestExportDMChannel(t *testing.T) {
 		// Ensure the Members of the imported DM channel is the same was from the exported
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
-		require.Equal(t, 1, len(channels))
-		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
+		require.Len(t, channels, 1)
+		require.Len(t, channels[0].Members, 2)
+		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, []string{channels[0].Members[0].Username, channels[0].Members[1].Username})
 
 		// Ensure the favorited channel was retained
 		fav, nErr := th2.App.Srv().Store().Preference().Get(th2.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channels[0].Id)
@@ -340,8 +341,8 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(channels))
-	assert.Equal(t, 1, len((*channels[0].Members)))
-	assert.Equal(t, th1.BasicUser.Username, (*channels[0].Members)[0])
+	assert.Equal(t, 1, len((channels[0].Members)))
+	assert.Equal(t, th1.BasicUser.Username, channels[0].Members[0].Username)
 }
 
 func TestExportGMChannel(t *testing.T) {
@@ -416,8 +417,8 @@ func TestExportGMandDMChannels(t *testing.T) {
 	// Adding some determinism so its possible to assert on slice index
 	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
 	assert.Equal(t, 2, len(channels))
-	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
-	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
+	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, []string{channels[0].Members[0].Username, channels[0].Members[1].Username, channels[0].Members[2].Username})
+	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, []string{channels[1].Members[0].Username, channels[1].Members[1].Username})
 }
 
 func TestExportDMandGMPost(t *testing.T) {

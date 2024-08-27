@@ -5175,6 +5175,14 @@
     "translation": "Failed to create group channel"
   },
   {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "There are no members for the direct channel"
+  },
+  {
     "id": "app.import.import_direct_channel.update_header_failed.error",
     "translation": "Failed to update direct channel header"
   },

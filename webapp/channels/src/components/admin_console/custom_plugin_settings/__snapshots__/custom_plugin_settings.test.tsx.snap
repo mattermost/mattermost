@@ -47,14 +47,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="setting_default"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="False"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="This is some help text for the bool field."
@@ -65,12 +59,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="True"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <Memo(DropdownSetting)
@@ -317,14 +305,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="fsdsdg"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="False"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="This is some help text for the bool field."
@@ -335,12 +317,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="True"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <Memo(DropdownSetting)
