@@ -222,7 +222,7 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
 func (a *App) SanitizedConfig(cfg *model.Config) {
-	manifests, err := a.GetPluginManifests()
+	manifests, err := a.getPluginManifests()
 	if err != nil {
 		// GetPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.

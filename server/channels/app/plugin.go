@@ -378,7 +378,7 @@ func (ch *Channels) ShutDownPlugins() {
 	}
 }
 
-func (a *App) GetPluginManifests() ([]*model.Manifest, error) {
+func (a *App) getPluginManifests() ([]*model.Manifest, error) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)

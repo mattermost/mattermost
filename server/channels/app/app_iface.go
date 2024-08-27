@@ -764,7 +764,6 @@ type AppIface interface {
 	GetPermalinkPost(c request.CTX, postID string, userID string) (*model.PostList, *model.AppError)
 	GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError)
 	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
-	GetPluginManifests() ([]*model.Manifest, error)
 	GetPlugins() (*model.PluginsResponse, *model.AppError)
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
