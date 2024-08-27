@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -343,7 +344,8 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 
 	if resetMfa {
 		updateQuery = updateQuery.Set("MfaActive", false).
-			Set("MfaSecret", "")
+			Set("MfaSecret", "").
+			Set("MfaUsedTimestamps", "")
 	}
 
 	queryString, args, err := updateQuery.ToSql()
@@ -427,7 +429,7 @@ func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []st
 func (us SqlUserStore) UpdateMfaSecret(userId, secret string) error {
 	updateAt := model.GetMillis()
 
-	if _, err := us.GetMasterX().Exec("UPDATE Users SET MfaSecret = ?, UpdateAt = ? WHERE Id = ?", secret, updateAt, userId); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET MfaSecret = ?, MfaUsedTimestamps = ?, UpdateAt = ? WHERE Id = ?", secret, "", updateAt, userId); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -442,6 +444,46 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) error {
 	}
 
 	return nil
+}
+
+func (us SqlUserStore) StoreMfaUsedTimestamps(userId string, ts []int) error {
+	// transform ts into a comma-separated string
+	tsStr := ""
+	if len(ts) > 0 {
+		tsStr = fmt.Sprintf("%d", ts[0])
+		for i := 1; i < len(ts); i++ {
+			tsStr = fmt.Sprintf("%s,%d", tsStr, ts[i])
+		}
+	}
+
+	updateAt := model.GetMillis()
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET MfaUsedTimestamps = ?, UpdateAt = ? WHERE Id = ?", tsStr, updateAt, userId); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+	return nil
+}
+
+func (us SqlUserStore) GetMfaUsedTimestamps(userId string) ([]int, error) {
+	var tsStr string
+	err := us.GetReplicaX().Get(&tsStr, "SELECT MfaUsedTimestamps FROM Users WHERE Id = ?", userId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get MFA used timestamps for user with ID %s", userId)
+	}
+	if tsStr == "" {
+		return []int{}, nil
+	}
+
+	tsStrs := strings.Split(tsStr, ",")
+	ts := make([]int, len(tsStrs))
+	for i, tsStr := range tsStrs {
+		var err error
+		ts[i], err = strconv.Atoi(tsStr)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse MFA used timestamp %s for user with ID %s", tsStr, userId)
+		}
+	}
+
+	return ts, nil
 }
 
 // GetMany returns a list of users for the provided list of ids
