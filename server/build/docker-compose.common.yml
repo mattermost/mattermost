@@ -118,7 +118,7 @@ services:
       discovery.type: single-node
       plugins.security.disabled: "true"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "admin"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Nurmoppit$$6"
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     networks:
