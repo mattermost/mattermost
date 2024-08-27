@@ -7,7 +7,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
+import type {Role, RolesState} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 
@@ -499,40 +499,48 @@ class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComp
     };
 
     togglePermission = (roleId: string, permissions: string[]) => {
-        const roles = {...this.getStateRoles()} as RolesMap;
-        let role = null;
-        if (roles.team_admin.name === roleId) {
-            role = {...roles.team_admin};
-        } else if (roles.channel_admin.name === roleId) {
-            role = {...roles.channel_admin};
-        } else if (roles.all_users.name === roleId) {
-            role = {...roles.all_users};
-        } else if (roles.guests.name === roleId) {
-            role = {...roles.guests};
-        } else if (roles.playbook_admin.name === roleId) {
-            role = {...roles.playbook_admin};
+        const roles = {...this.state.roles};
+        const role = {...roles[roleId as keyof RolesState]} as Role;
+        const newPermissions = [...role.permissions!];
+        for (const permission of permissions) {
+            if (newPermissions.indexOf(permission) === -1) {
+                newPermissions.push(permission);
+            } else {
+                newPermissions.splice(newPermissions.indexOf(permission), 1);
+            }
         }
+        role.permissions = newPermissions;
+        roles[roleId] = role;
 
-        if (role) {
-            const newPermissions = [...role.permissions];
-            for (const permission of permissions) {
-                if (newPermissions.indexOf(permission) === -1) {
-                    newPermissions.push(permission);
-                } else {
-                    newPermissions.splice(newPermissions.indexOf(permission), 1);
+        if (roleId === 'all_users') {
+            const moderatedPermissions = [
+                'create_post',
+                'upload_file',
+                'add_reaction',
+                'remove_reaction',
+                'manage_public_channel_members',
+                'manage_private_channel_members',
+                'use_channel_mentions',
+            ];
+
+            const addPermissions: string[] = [];
+            for (const moderatedPermission of moderatedPermissions) {
+                if (role.permissions.indexOf(moderatedPermission) !== -1) {
+                    addPermissions.push(moderatedPermission);
                 }
             }
-            role.permissions = newPermissions;
-            if (roles.team_admin.name === roleId) {
-                roles.team_admin = role;
-            } else if (roles.channel_admin.name === roleId) {
-                roles.channel_admin = role;
-            } else if (roles.all_users.name === roleId) {
-                roles.all_users = role;
-            } else if (roles.guests.name === roleId) {
-                roles.guests = role;
-            } else if (roles.playbook_admin.name === roleId) {
-                roles.playbook_admin = role;
+            if (addPermissions.length > 0) {
+                const channelAdminRole = {...roles['channel_admin' as keyof RolesState]} as Role;
+                const adminPermissions = [...channelAdminRole.permissions!];
+                adminPermissions.push(...addPermissions);
+                channelAdminRole.permissions = adminPermissions;
+                roles.channel_admin = channelAdminRole;
+
+                const teamAdminRole = {...roles['team_admin' as keyof RolesState]} as Role;
+                const teamAdminPermissions = [...teamAdminRole.permissions!];
+                teamAdminPermissions.push(...addPermissions);
+                teamAdminRole.permissions = teamAdminPermissions;
+                roles.team_admin = teamAdminRole;
             }
         }
 

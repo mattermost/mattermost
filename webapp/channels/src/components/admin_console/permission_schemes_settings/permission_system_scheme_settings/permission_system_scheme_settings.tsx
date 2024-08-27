@@ -6,7 +6,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
+import type {Role, RolesState} from '@mattermost/types/roles';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -50,19 +50,6 @@ type State = {
     openRoles: Record<string, boolean>;
     urlParams: URLSearchParams;
 }
-
-type RolesState = {
-    system_admin: Role;
-    team_admin: Role;
-    channel_admin: Role;
-    playbook_admin: Role;
-    playbook_member: Role;
-    run_admin: Role;
-    run_member: Role;
-    all_users: {name: string; display_name: string; permissions: Role['permissions']};
-    guests: {name: string; display_name: string; permissions: Role['permissions']};
-}
-
 class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
@@ -337,6 +324,38 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         }
         role.permissions = newPermissions;
         roles[roleId as keyof RolesState] = role;
+
+        if (roleId === 'all_users') {
+            const moderatedPermissions = [
+                'create_post',
+                'upload_file',
+                'add_reaction',
+                'remove_reaction',
+                'manage_public_channel_members',
+                'manage_private_channel_members',
+                'use_channel_mentions',
+            ];
+
+            const addPermissions: string[] = [];
+            for (const moderatedPermission of moderatedPermissions) {
+                if (role.permissions.indexOf(moderatedPermission) !== -1) {
+                    addPermissions.push(moderatedPermission);
+                }
+            }
+            if (addPermissions.length > 0) {
+                const channelAdminRole = {...roles['channel_admin' as keyof RolesState]} as Role;
+                const adminPermissions = [...channelAdminRole.permissions!];
+                adminPermissions.push(...addPermissions);
+                channelAdminRole.permissions = adminPermissions;
+                roles.channel_admin = channelAdminRole;
+
+                const teamAdminRole = {...roles['team_admin' as keyof RolesState]} as Role;
+                const teamAdminPermissions = [...teamAdminRole.permissions!];
+                teamAdminPermissions.push(...addPermissions);
+                teamAdminRole.permissions = teamAdminPermissions;
+                roles.team_admin = teamAdminRole;
+            }
+        }
 
         this.setState({roles, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
