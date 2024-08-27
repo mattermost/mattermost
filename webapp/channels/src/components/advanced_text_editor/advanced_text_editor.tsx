@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
@@ -39,8 +40,8 @@ import {SendMessageTour} from 'components/tours/onboarding_tour';
 
 import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -419,11 +420,13 @@ const AdvancedTextEditor = ({
         previousDraft.current = draft;
     }, [draft]);
 
+    const handleSubmitPostAndScheduledMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => handleSubmit(e, undefined, schedulingInfo), [handleSubmit]);
+
     const disableSendButton = Boolean(readOnlyChannel || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel ? null : (
         <SendButton
             disabled={disableSendButton}
-            handleSubmit={handleSubmit}
+            handleSubmit={handleSubmitPostAndScheduledMessage}
         />
     );
 

@@ -6,6 +6,7 @@ import {useCallback, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
@@ -63,7 +64,7 @@ const useSubmit = (
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
     afterSubmit?: (response: SubmitPostReturnType) => void,
 ): [
-        (e: React.FormEvent, submittingDraft?: PostDraft) => void,
+        (e: React.FormEvent, submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
@@ -117,7 +118,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft) => {
+    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         e?.preventDefault();
 
         if (submittingDraft.uploadsInProgress.length > 0) {
@@ -138,10 +139,12 @@ const useSubmit = (
             return;
         }
 
-        if (isRootDeleted) {
-            showPostDeletedModal();
-            isDraftSubmitting.current = false;
-            return;
+        if (!schedulingInfo) {
+            if (isRootDeleted) {
+                showPostDeletedModal();
+                isDraftSubmitting.current = false;
+                return;
+            }
         }
 
         if (serverError && !isErrorInvalidSlashCommand(serverError)) {
@@ -158,19 +161,21 @@ const useSubmit = (
         const options = {ignoreSlash, afterSubmit};
 
         try {
-            await dispatch(onSubmit(submittingDraft, options));
-
-            setPostError(null);
-            setServerError(null);
-            handleDraftChange({
-                message: '',
-                fileInfos: [],
-                uploadsInProgress: [],
-                createAt: 0,
-                updateAt: 0,
-                channelId,
-                rootId: postId,
-            }, {instant: true});
+            const result = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+            if (result.error && result.error.message) {
+                setPostError(result.error.message);
+            } else {
+                setServerError(null);
+                handleDraftChange({
+                    message: '',
+                    fileInfos: [],
+                    uploadsInProgress: [],
+                    createAt: 0,
+                    updateAt: 0,
+                    channelId,
+                    rootId: postId,
+                }, {instant: true});
+            }
         } catch (err: unknown) {
             if (isServerError(err)) {
                 if (isErrorInvalidSlashCommand(err)) {
@@ -185,14 +190,14 @@ const useSubmit = (
             return;
         }
 
-        if (!postId) {
+        if (!postId && !schedulingInfo) {
             dispatch(scrollPostListToBottom());
         }
 
         isDraftSubmitting.current = false;
     }, [handleDraftChange, dispatch, draft, focusTextbox, isRootDeleted, postError, serverError, showPostDeletedModal, channelId, postId, lastBlurAt, setPostError, setServerError, afterSubmit]);
 
-    const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
+    const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
             dialogType: NotifyConfirmModal,
@@ -200,12 +205,12 @@ const useSubmit = (
                 mentions,
                 channelTimezoneCount,
                 memberNotifyCount,
-                onConfirm: () => doSubmit(),
+                onConfirm,
             },
         }));
-    }, [doSubmit, dispatch]);
+    }, [dispatch]);
 
-    const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft) => {
+    const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (!channel) {
             return;
         }
@@ -238,70 +243,73 @@ const useSubmit = (
             channelTimezoneCount = data ? data.length : 0;
         }
 
-        if (prioritySubmitCheck(doSubmit)) {
+        const onConfirm = () => doSubmit(e, submittingDraft, schedulingInfo);
+        if (prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;
             return;
         }
 
         if (memberNotifyCount > 0) {
-            showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
+            showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, onConfirm);
             isDraftSubmitting.current = false;
             return;
         }
 
-        const status = getStatusFromSlashCommand(submittingDraft.message);
-        if (userIsOutOfOffice && status) {
-            const resetStatusModalData = {
-                modalId: ModalIdentifiers.RESET_STATUS,
-                dialogType: ResetStatusModal,
-                dialogProps: {newStatus: status},
-            };
+        if (!schedulingInfo) {
+            const status = getStatusFromSlashCommand(submittingDraft.message);
+            if (userIsOutOfOffice && status) {
+                const resetStatusModalData = {
+                    modalId: ModalIdentifiers.RESET_STATUS,
+                    dialogType: ResetStatusModal,
+                    dialogProps: {newStatus: status},
+                };
 
-            dispatch(openModal(resetStatusModalData));
+                dispatch(openModal(resetStatusModalData));
 
-            handleDraftChange({
-                ...submittingDraft,
-                message: '',
-            });
-            isDraftSubmitting.current = false;
-            return;
+                handleDraftChange({
+                    ...submittingDraft,
+                    message: '',
+                });
+                isDraftSubmitting.current = false;
+                return;
+            }
+
+            if (submittingDraft.message.trimEnd() === '/header') {
+                const editChannelHeaderModalData = {
+                    modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                    dialogType: EditChannelHeaderModal,
+                    dialogProps: {channel},
+                };
+
+                dispatch(openModal(editChannelHeaderModalData));
+
+                handleDraftChange({
+                    ...submittingDraft,
+                    message: '',
+                });
+                isDraftSubmitting.current = false;
+                return;
+            }
+
+            if (!isDirectOrGroup && submittingDraft.message.trimEnd() === '/purpose') {
+                const editChannelPurposeModalData = {
+                    modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+                    dialogType: EditChannelPurposeModal,
+                    dialogProps: {channel},
+                };
+
+                dispatch(openModal(editChannelPurposeModalData));
+
+                handleDraftChange({
+                    ...submittingDraft,
+                    message: '',
+                });
+                isDraftSubmitting.current = false;
+                return;
+            }
         }
 
-        if (submittingDraft.message.trimEnd() === '/header') {
-            const editChannelHeaderModalData = {
-                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-                dialogType: EditChannelHeaderModal,
-                dialogProps: {channel},
-            };
-
-            dispatch(openModal(editChannelHeaderModalData));
-
-            handleDraftChange({
-                ...submittingDraft,
-                message: '',
-            });
-            isDraftSubmitting.current = false;
-            return;
-        }
-
-        if (!isDirectOrGroup && submittingDraft.message.trimEnd() === '/purpose') {
-            const editChannelPurposeModalData = {
-                modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
-                dialogType: EditChannelPurposeModal,
-                dialogProps: {channel},
-            };
-
-            dispatch(openModal(editChannelPurposeModalData));
-
-            handleDraftChange({
-                ...submittingDraft,
-                message: '',
-            });
-            isDraftSubmitting.current = false;
-            return;
-        }
-
-        await doSubmit(e, submittingDraft);
+        await doSubmit(e, submittingDraft, schedulingInfo);
     }, [
         doSubmit,
         draft,
