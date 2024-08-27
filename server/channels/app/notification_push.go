@@ -37,6 +37,8 @@ const (
 	notificationTypeMessage     notificationType = "message"
 	notificationTypeUpdateBadge notificationType = "update_badge"
 	notificationTypeDummy       notificationType = "dummy"
+
+	notificationErrorRemoveDevice = "device was reported as removed"
 )
 
 type PushNotificationsHub struct {
@@ -184,11 +186,15 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 
 		err = a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, tmpMessage.Platform)
+			reason := model.NotificationReasonPushProxySendError
+			if err.Error() == notificationErrorRemoveDevice {
+				reason = model.NotificationReasonPushProxyRemoveDevice
+			}
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
 			a.NotificationsLog().Error("Failed to send to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
-				mlog.String("reason", model.NotificationReasonPushProxySendError),
+				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
 				mlog.String("user_id", session.UserId),
@@ -523,7 +529,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	case model.PushStatusRemove:
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
-		return errors.New("device was reported as removed")
+		return errors.New(notificationErrorRemoveDevice)
 	case model.PushStatusFail:
 		return errors.New(pushResponse[model.PushStatusErrorMsg])
 	}
