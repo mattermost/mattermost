@@ -83,7 +83,7 @@ import (
 const (
 	// TODO set this back to 5 mins when creating the PR.
 	//scheduledPostJobInterval = 5 * time.Minute
-	scheduledPostJobInterval = 5 * time.Second
+	scheduledPostJobInterval = 10 * time.Second
 )
 
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -179,4 +180,28 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 	}
 
 	return scheduledPosts, nil
+}
+
+func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	query := s.getQueryBuilder().
+		Delete("ScheduledPosts")
+
+	if *s.settings.DriverName == model.DatabaseDriverPostgres {
+		query = query.Where(sq.Eq{"Id": pq.Array(scheduledPostIDs)})
+	}
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to generate SQL query for permanently deleting batch of scheduled posts")
+		s.Logger().Error(errToReturn.Error())
+		return errToReturn
+	}
+
+	if _, err := s.GetMasterX().Exec(sql, params); err != nil {
+		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to delete batch of scheduled posts from database")
+		s.Logger().Error(errToReturn.Error())
+		return errToReturn
+	}
+
+	return nil
 }

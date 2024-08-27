@@ -104,6 +104,24 @@ func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId str
 	return r0, r1
 }
 
+// PermanentlyDeleteScheduledPosts provides a mock function with given fields: scheduledPostIDs
+func (_m *ScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	ret := _m.Called(scheduledPostIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentlyDeleteScheduledPosts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(scheduledPostIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewScheduledPostStore creates a new instance of ScheduledPostStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewScheduledPostStore(t interface {

@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -22,6 +23,8 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 	for {
 		// TODO add logic to skip posts which have been tried the max umber of allowed attempts times and amrk them as errored.
+
+		// TODO add some delay here to not slam the database with multiple requests back after one another.
 		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetScheduledPosts(beforeTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
 		if err != nil {
 			rctx.Logger().Error(
@@ -63,7 +66,10 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	}
 }
 
-func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) *model.AppError {
+func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
+	var failedScheduledPostIDs []string
+	var successfulScheduledPostIDs []string
+
 	for _, scheduledPost := range scheduledPosts {
 		// we'll process scheduled posts one by one.
 		// If an error occurs, we'll log it and move onto the next scheduled post
@@ -72,6 +78,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 		if err != nil {
 			rctx.Logger().Error("App.processScheduledPostBatch: failed to convert scheduled post job to a post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
 
+			failedScheduledPostIDs = append(failedScheduledPostIDs, scheduledPost.Id)
 			continue
 		}
 
@@ -79,6 +86,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 		if appErr != nil {
 			rctx.Logger().Error("App.processScheduledPostBatch: failed to get channel for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.Err(appErr))
 
+			failedScheduledPostIDs = append(failedScheduledPostIDs, scheduledPost.Id)
 			continue
 		}
 
@@ -86,7 +94,18 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 		if appErr != nil {
 			rctx.Logger().Error("App.processScheduledPostBatch: failed to post scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.Err(appErr))
 
+			failedScheduledPostIDs = append(failedScheduledPostIDs, scheduledPost.Id)
 			continue
+		}
+
+		successfulScheduledPostIDs = append(successfulScheduledPostIDs, scheduledPost.Id)
+	}
+
+	if len(successfulScheduledPostIDs) > 0 {
+		err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts(successfulScheduledPostIDs)
+		if err != nil {
+			rctx.Logger().Error("App.processScheduledPostBatch: failed to delete successfully posted scheduled posts", mlog.Int("successfully_posted_count", len(successfulScheduledPostIDs)), mlog.Err(err))
+			return errors.Wrap(err, "App.processScheduledPostBatch: failed to delete successfully posted scheduled posts")
 		}
 	}
 

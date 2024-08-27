@@ -38,9 +38,9 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.empty_post.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
-	if s.ScheduledAt < GetMillis() {
-		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.scheduled_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
-	}
+	//if s.ScheduledAt < GetMillis() {
+	//	return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.scheduled_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	//}
 
 	if s.ProcessedAt < 0 {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.processed_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
