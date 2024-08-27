@@ -82,6 +82,10 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 			return nil, fmt.Errorf(`ScheduledPost.ToPost: persistent_notifications is not a bool. ScheduledPost.Priority: %v`, s.Priority)
 		}
 
+		if post.Metadata == nil {
+			post.Metadata = &PostMetadata{}
+		}
+
 		post.Metadata.Priority = &PostPriority{
 			Priority:                NewPointer(priority),
 			RequestedAck:            NewPointer(requestedAck),

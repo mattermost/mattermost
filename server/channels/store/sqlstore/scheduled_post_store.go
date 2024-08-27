@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -144,15 +145,22 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 		OrderBy("ScheduledAt DESC", "Id").
 		Limit(perPage)
 
-	if lastScheduledPostId != "" {
-		query = query.Where(sq.Or{
-			sq.Lt{"ScheduleAt": beforeTime},
-			sq.And{
-				sq.Eq{"ScheduledAt": beforeTime},
-				sq.Gt{"Id": lastScheduledPostId},
-			},
-		})
+	if lastScheduledPostId == "" {
+		query = query.Where(sq.LtOrEq{"ScheduledAt": beforeTime})
 	}
+	if lastScheduledPostId != "" {
+		query = query.
+			Where(sq.Or{
+				sq.Lt{"ScheduledAt": beforeTime},
+				sq.And{
+					sq.Eq{"ScheduledAt": beforeTime},
+					sq.Gt{"Id": lastScheduledPostId},
+				},
+			})
+	}
+
+	ddd, p, _ := query.ToSql()
+	s.logger.Info(fmt.Sprintf("%s, %v", ddd, p))
 
 	var scheduledPosts []*model.ScheduledPost
 	if err := s.GetReplicaX().SelectBuilder(&scheduledPosts, query); err != nil {

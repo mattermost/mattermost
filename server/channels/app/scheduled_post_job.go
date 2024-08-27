@@ -10,23 +10,23 @@ import (
 )
 
 const (
-	getPendingScheduledPostsPageSize = 100
+	getPendingScheduledPostsPageSize = 10
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
 	rctx.Logger().Info("ProcessScheduledPosts called...")
 
-	now := model.GetMillis()
+	beforeTime := model.GetMillis()
 	lastScheduledPostId := ""
 
 	for {
-		// TODO add logic to skip postys which have been tried the max umber of allowed attempts times and amrk them as errored.
-		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetScheduledPosts(now, lastScheduledPostId, getPendingScheduledPostsPageSize)
+		// TODO add logic to skip posts which have been tried the max umber of allowed attempts times and amrk them as errored.
+		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetScheduledPosts(beforeTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
 		if err != nil {
 			rctx.Logger().Error(
-				"ProcessScheduledPosts: failed to fetch pending scheduled posts page from database",
-				mlog.Int("now", now),
+				"App.ProcessScheduledPosts: failed to fetch pending scheduled posts page from database",
+				mlog.Int("before_time", beforeTime),
 				mlog.String("last_scheduled_post_id", lastScheduledPostId),
 				mlog.Int("items_per_page", getPendingScheduledPostsPageSize),
 				mlog.Err(err),
@@ -44,11 +44,12 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 		// Saving the last item
 		lastScheduledPostId = scheduledPostsBatch[len(scheduledPostsBatch)-1].Id
+		beforeTime = scheduledPostsBatch[len(scheduledPostsBatch)-1].ScheduledAt
 
 		if appErr := a.processScheduledPostBatch(rctx, scheduledPostsBatch); appErr != nil {
 			rctx.Logger().Error(
-				"ProcessScheduledPosts: failed to process scheduled posts batch",
-				mlog.Int("now", now),
+				"App.ProcessScheduledPosts: failed to process scheduled posts batch",
+				mlog.Int("before_time", beforeTime),
 				mlog.String("last_scheduled_post_id", lastScheduledPostId),
 				mlog.Int("items_per_page", getPendingScheduledPostsPageSize),
 				mlog.Err(appErr),
@@ -64,6 +65,30 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) *model.AppError {
 	for _, scheduledPost := range scheduledPosts {
+		// we'll process scheduled posts one by one.
+		// If an error occurs, we'll log it and move onto the next scheduled post
 
+		post, err := scheduledPost.ToPost()
+		if err != nil {
+			rctx.Logger().Error("App.processScheduledPostBatch: failed to convert scheduled post job to a post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+
+			continue
+		}
+
+		channel, appErr := a.GetChannel(rctx, post.ChannelId)
+		if appErr != nil {
+			rctx.Logger().Error("App.processScheduledPostBatch: failed to get channel for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.Err(appErr))
+
+			continue
+		}
+
+		_, appErr = a.CreatePost(rctx, post, channel, true, false)
+		if appErr != nil {
+			rctx.Logger().Error("App.processScheduledPostBatch: failed to post scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.Err(appErr))
+
+			continue
+		}
 	}
+
+	return nil
 }
