@@ -134,5 +134,9 @@
   {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 er ikke konfigurert eller støttet på denne serveren."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Ingen fil under \"sertifikat\" i forespørsel."
   }
 ]
