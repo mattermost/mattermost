@@ -117,7 +117,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
 		Store:               sc.Store,
-		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
 		goroutineExitSignal: make(chan struct{}, 1),
