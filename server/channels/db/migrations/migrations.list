@@ -247,6 +247,8 @@ channels/db/migrations/mysql/000124_remove_manage_team_permission.down.sql
 channels/db/migrations/mysql/000124_remove_manage_team_permission.up.sql
 channels/db/migrations/mysql/000125_remoteclusters_add_default_team_id.down.sql
 channels/db/migrations/mysql/000125_remoteclusters_add_default_team_id.up.sql
+channels/db/migrations/mysql/000126_add_mfa_used_ts_to_users.down.sql
+channels/db/migrations/mysql/000126_add_mfa_used_ts_to_users.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -495,3 +497,5 @@ channels/db/migrations/postgres/000124_remove_manage_team_permission.down.sql
 channels/db/migrations/postgres/000124_remove_manage_team_permission.up.sql
 channels/db/migrations/postgres/000125_remoteclusters_add_default_team_id.down.sql
 channels/db/migrations/postgres/000125_remoteclusters_add_default_team_id.up.sql
+channels/db/migrations/postgres/000126_add_mfa_used_ts_to_users.down.sql
+channels/db/migrations/postgres/000126_add_mfa_used_ts_to_users.up.sql
