@@ -17,19 +17,29 @@ import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
 import * as UserAgent from 'utils/user_agent';
 
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
+export const DesktopNotificationSounds = {
+    DEFAULT: 'default',
+    BING: 'Bing',
+    CRACKLE: 'Crackle',
+    DOWN: 'Down',
+    HELLO: 'Hello',
+    RIPPLE: 'Ripple',
+    UPSTAIRS: 'Upstairs',
+} as const;
+
+export const notificationSounds = new Map<string, string>([
+    [DesktopNotificationSounds.BING, bing],
+    [DesktopNotificationSounds.CRACKLE, crackle],
+    [DesktopNotificationSounds.DOWN, down],
+    [DesktopNotificationSounds.HELLO, hello],
+    [DesktopNotificationSounds.RIPPLE, ripple],
+    [DesktopNotificationSounds.UPSTAIRS, upstairs],
 ]);
 
 export const notificationSoundKeys = Array.from(notificationSounds.keys());
 
 export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; label: ReactNode}> = notificationSoundKeys.map((soundName) => {
-    if (soundName === 'Bing') {
+    if (soundName === DesktopNotificationSounds.BING) {
         return {
             value: soundName,
             label: (
@@ -39,7 +49,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Crackle') {
+    } else if (soundName === DesktopNotificationSounds.CRACKLE) {
         return {
             value: soundName,
             label: (
@@ -49,7 +59,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Down') {
+    } else if (soundName === DesktopNotificationSounds.DOWN) {
         return {
             value: soundName,
             label: (
@@ -59,7 +69,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Hello') {
+    } else if (soundName === DesktopNotificationSounds.HELLO) {
         return {
             value: soundName,
             label: (
@@ -69,7 +79,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Ripple') {
+    } else if (soundName === DesktopNotificationSounds.RIPPLE) {
         return {
             value: soundName,
             label: (
@@ -79,7 +89,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Upstairs') {
+    } else if (soundName === DesktopNotificationSounds.UPSTAIRS) {
         return {
             value: soundName,
             label: (

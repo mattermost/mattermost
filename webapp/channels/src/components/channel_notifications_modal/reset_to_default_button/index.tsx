@@ -5,11 +5,10 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
+import {DesktopSound, NotificationLevels} from 'utils/constants';
 import {notificationSoundKeys} from 'utils/notification_sounds';
-
-import {convertDesktopSoundNotifyPropFromUserToDesktop} from '../utils';
 
 export enum SectionName {
     Desktop = 'desktop',
@@ -18,18 +17,19 @@ export enum SectionName {
 
 const VALID_SECTION_NAMES = Object.values(SectionName);
 
-interface Props {
+export interface Props {
     sectionName: SectionName;
     userNotifyProps: UserProfile['notify_props'];
 
     /** The user's selected channel notify props which is not yet saved */
     userSelectedChannelNotifyProps: ChannelMembership['notify_props'];
-    onClick: (sectionName: SectionName) => void;
+    onClick: (channelNotifyPropsDefaultedToUserNotifyProps: ChannelMembership['notify_props'], sectionName: SectionName) => void;
 }
 
 export default function ResetToDefaultButton(props: Props) {
     function handleOnClick() {
-        props.onClick(props.sectionName);
+        const channelNotifyPropsDefaultedToUserNotifyProps = resetChannelsNotificationToUsersDefault(props.userNotifyProps, props.sectionName);
+        props.onClick(channelNotifyPropsDefaultedToUserNotifyProps, props.sectionName);
     }
 
     const areDesktopNotificationsSameAsDefault = useMemo(() => {
@@ -94,4 +94,36 @@ export default function ResetToDefaultButton(props: Props) {
             />
         </button>
     );
+}
+
+/**
+ * This conversion is needed because User's preference for desktop sound is stored as either true or false. On the other hand,
+ * Channel's specific desktop sound is stored as either On or Off.
+ */
+export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktopSound?: UserNotifyProps['desktop_sound']): ChannelNotifyProps['desktop_sound'] {
+    if (userNotifyDesktopSound && userNotifyDesktopSound === 'false') {
+        return DesktopSound.OFF;
+    }
+
+    return DesktopSound.ON;
+}
+
+export function resetChannelsNotificationToUsersDefault(userNotifyProps: UserNotifyProps, sectionName: SectionName): ChannelMembership['notify_props'] {
+    if (sectionName === SectionName.Desktop) {
+        return {
+            desktop: userNotifyProps.desktop,
+            desktop_threads: userNotifyProps?.desktop_threads ?? NotificationLevels.ALL,
+            desktop_sound: userNotifyProps && userNotifyProps.desktop_sound ? convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps.desktop_sound) : DesktopSound.ON,
+            desktop_notification_sound: userNotifyProps?.desktop_notification_sound ?? notificationSoundKeys[0] as ChannelNotifyProps['desktop_notification_sound'],
+        };
+    }
+
+    if (sectionName === SectionName.Mobile) {
+        return {
+            push: userNotifyProps.push,
+            push_threads: userNotifyProps?.push_threads ?? NotificationLevels.ALL,
+        };
+    }
+
+    return {};
 }
