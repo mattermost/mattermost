@@ -452,10 +452,18 @@ func TestRequestTrialLicense(t *testing.T) {
 		require.Equal(t, resp.StatusCode, 451)
 	})
 
+	t.Run("trial license invalid JSON", func(t *testing.T) {
+		// the JSON is invalid because it is missing a closing brace
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/trial-license", `{"users": 5`)
+		CheckErrorID(t, err, "api.license.request-trial.bad-request")
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+	})
+
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
+
 }
