@@ -386,6 +386,18 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("trial license invalid JSON", func(t *testing.T) {
+		// the JSON is invalid because it is missing a closing brace
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/trial-license", `{"users": 5`)
+		CheckErrorID(t, err, "api.license.request-trial.bad-request")
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+	})
+
 	t.Run("trial license user count less than current users", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
@@ -450,13 +462,6 @@ func TestRequestTrialLicense(t *testing.T) {
 		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), nUsers)
 		require.Error(t, err)
 		require.Equal(t, resp.StatusCode, 451)
-	})
-
-	t.Run("trial license invalid JSON", func(t *testing.T) {
-		// the JSON is invalid because it is missing a closing brace
-		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/trial-license", `{"users": 5`)
-		CheckErrorID(t, err, "api.license.request-trial.bad-request")
-		CheckBadRequestStatus(t, model.BuildResponse(resp))
 	})
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
