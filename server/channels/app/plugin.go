@@ -390,8 +390,8 @@ func (a *App) getPluginManifests() ([]*model.Manifest, error) {
 	}
 
 	manifests := make([]*model.Manifest, len(plugins))
-	for i, plugin := range plugins {
-		manifests[i] = plugin.Manifest
+	for i := range plugins {
+		manifests[i] = plugins[i].Manifest
 	}
 
 	return manifests, nil
