@@ -1,0 +1,9 @@
+ul#dropdown_send_post_options {
+    li[role="menuitem"][aria-disabled="true"] {
+        opacity: 1;
+
+        .label-elements {
+            font-weight: bold;
+        }
+    }
+}
