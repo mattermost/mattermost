@@ -42,6 +42,8 @@ export class InitialLoadingScreenClass {
 
         this.addAnimationEndListener();
 
+        // Starting automatically in the constructor instead of waiting for call from the code base
+        // as per the latest UX recommendation
         this.start();
     }
 
