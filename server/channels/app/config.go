@@ -227,6 +227,7 @@ func (a *App) SanitizedConfig(cfg *model.Config) {
 		// GetPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.
 		cfg.Sanitize(nil)
+		return
 	}
 
 	cfg.Sanitize(manifests)
