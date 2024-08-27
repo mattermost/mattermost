@@ -2277,11 +2277,12 @@ func setExtraSessionProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	receivedProps := model.MapFromJSON(r.Body)
 
 	deviceNotificationsDisabled := receivedProps[model.SessionPropDeviceNotificationDisabled]
-	if deviceNotificationsDisabled != "" && deviceNotificationsDisabled != "false" && deviceNotificationsDisabled != "true" {
-		c.SetInvalidParam(model.SessionPropDeviceNotificationDisabled)
-		return
-	}
 	if deviceNotificationsDisabled != "" {
+		if deviceNotificationsDisabled != "false" && deviceNotificationsDisabled != "true" {
+			c.SetInvalidParam(model.SessionPropDeviceNotificationDisabled)
+			return
+		}
+
 		newProps[model.SessionPropDeviceNotificationDisabled] = deviceNotificationsDisabled
 	}
 
@@ -2291,8 +2292,6 @@ func setExtraSessionProps(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam(model.SessionPropMobileVersion)
 			return
 		}
-	}
-	if mobileVersion != "" {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
