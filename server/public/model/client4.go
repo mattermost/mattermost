@@ -848,6 +848,25 @@ func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Respo
 	return &user, BuildResponse(r), nil
 }
 
+func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId string) (*User, *Response, error) {
+	m := make(map[string]string)
+	m["token"] = token
+	m["deviceId"] = deviceId
+	r, err := c.DoAPIPost(ctx, "/users/login/desktop_token", MapToJSON(m))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		return nil, nil, NewAppError("loginWithDesktopToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &user, BuildResponse(r), nil
+}
+
 // Logout terminates the current user's session.
 func (c *Client4) Logout(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, "/users/logout", "")
@@ -2317,10 +2336,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewInt(0)
+		search.Page = NewPointer(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewInt(100)
+		search.PerPage = NewPointer(100)
 	}
 	buf, err := json.Marshal(search)
 	if err != nil {
@@ -4636,7 +4655,7 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 
 // General/System Section
 
-// GenerateSupportPacket downloads the generated support packet
+// GenerateSupportPacket generates and downloads a Support Packet.
 func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/support_packet", "")
 	if err != nil {
@@ -4979,6 +4998,24 @@ func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int
 	}
 	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
 		return nil, nil, NewAppError("GetIncomingWebhooks", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return iwl, BuildResponse(r), nil
+}
+
+// GetIncomingWebhooksWithCount returns a page of incoming webhooks on the system including the total count. Page counting starts at 0.
+func (c *Client4) GetIncomingWebhooksWithCount(ctx context.Context, page int, perPage int, etag string) (*IncomingWebhooksWithCount, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var iwl *IncomingWebhooksWithCount
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooksWithCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return iwl, BuildResponse(r), nil
 }
@@ -8852,8 +8889,8 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.permissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, err := c.DoAPIGet(ctx, url, "")
+	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
+	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}

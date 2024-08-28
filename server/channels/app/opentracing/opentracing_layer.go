@@ -1967,7 +1967,7 @@ func (a *OpenTracingAppLayer) CopyWranglerPostlist(c request.CTX, wpl *model.Wra
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CountNotification(notificationType model.NotificationType) {
+func (a *OpenTracingAppLayer) CountNotification(notificationType model.NotificationType, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotification")
 
@@ -1979,10 +1979,10 @@ func (a *OpenTracingAppLayer) CountNotification(notificationType model.Notificat
 	}()
 
 	defer span.Finish()
-	a.app.CountNotification(notificationType)
+	a.app.CountNotification(notificationType, platform)
 }
 
-func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.NotificationType) {
+func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.NotificationType, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotificationAck")
 
@@ -1994,10 +1994,10 @@ func (a *OpenTracingAppLayer) CountNotificationAck(notificationType model.Notifi
 	}()
 
 	defer span.Finish()
-	a.app.CountNotificationAck(notificationType)
+	a.app.CountNotificationAck(notificationType, platform)
 }
 
-func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason) {
+func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CountNotificationReason")
 
@@ -2009,7 +2009,7 @@ func (a *OpenTracingAppLayer) CountNotificationReason(notificationStatus model.N
 	}()
 
 	defer span.Finish()
-	a.app.CountNotificationReason(notificationStatus, notificationType, notificationReason)
+	a.app.CountNotificationReason(notificationStatus, notificationType, notificationReason, platform)
 }
 
 func (a *OpenTracingAppLayer) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
@@ -7220,6 +7220,28 @@ func (a *OpenTracingAppLayer) GetIncomingWebhook(hookID string) (*model.Incoming
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetIncomingWebhooksCount(teamID string, userID string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksCount")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetIncomingWebhooksCount(teamID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetIncomingWebhooksForTeamPage(teamID string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksForTeamPage")
@@ -7651,28 +7673,6 @@ func (a *OpenTracingAppLayer) GetMarketplacePlugins(rctx request.CTX, filter *mo
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetMarketplacePlugins(rctx, filter)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetMattermostLog(ctx request.CTX) (*model.FileData, error) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMattermostLog")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetMattermostLog(ctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16441,6 +16441,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageJob(session model.Sess
 	resultVar0, resultVar1 := a.app.SessionHasPermissionToManageJob(session, job)
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToReadChannel(c, session, channel)
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {

@@ -1344,11 +1344,6 @@ func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID strin
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
 }
 
-func (api *PluginAPI) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
-	md, err := model.GeneratePluginMetadata(api.manifest, api.GetLicense(), api.GetTelemetryId(), pluginMeta)
-	if err != nil {
-		return nil, err
-	}
-
-	return md, nil
+func (api *PluginAPI) GetPluginID() string {
+	return api.id
 }

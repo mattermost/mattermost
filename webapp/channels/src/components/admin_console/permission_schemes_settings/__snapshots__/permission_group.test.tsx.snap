@@ -668,3 +668,56 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
   </div>
 </div>
 `;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group should match snapshot with additional values 1`] = `
+<div
+  className="permission-group"
+>
+  <div
+    className="permission-group-row "
+    id="uniqId"
+    onClick={[Function]}
+  >
+    <div
+      className="fa fa-caret-right permission-arrow open"
+      onClick={[Function]}
+    />
+    <PermissionCheckbox
+      id="uniqId-checkbox"
+      value=""
+    />
+    <span
+      className="permission-name"
+    >
+      name
+    </span>
+    <PermissionDescription
+      description=""
+      id="name"
+      selectRow={[MockFunction]}
+    />
+  </div>
+  <div
+    className="permission-group-permissions open"
+  >
+    <PermissionRow
+      additionalValues={Object {}}
+      id="invite_user"
+      key="invite_user"
+      onChange={[Function]}
+      selectRow={[MockFunction]}
+      uniqId="uniqId-invite_user"
+      value=""
+    />
+    <PermissionRow
+      additionalValues={Object {}}
+      id="add_user_to_team"
+      key="add_user_to_team"
+      onChange={[Function]}
+      selectRow={[MockFunction]}
+      uniqId="uniqId-add_user_to_team"
+      value=""
+    />
+  </div>
+</div>
+`;

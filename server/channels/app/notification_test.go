@@ -819,7 +819,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-		constrainedChannel.GroupConstrained = model.NewBool(true)
+		constrainedChannel.GroupConstrained = model.NewPointer(true)
 		constrainedChannel, appErr = th.App.UpdateChannel(th.Context, constrainedChannel)
 		require.Nil(t, appErr)
 
@@ -1361,7 +1361,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"No matching groups": {
 			Message: "@nothing",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -1370,7 +1370,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with no @": {
 			Message: "engineering",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -1379,7 +1379,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with preceding @": {
 			Message: "@engineering",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
 			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]MentionType{
@@ -1389,7 +1389,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching upper case group with preceding @": {
 			Message: "@Engineering",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewString("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
 			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]MentionType{
@@ -2517,7 +2517,7 @@ func TestInsertGroupMentions(t *testing.T) {
 	channel := th.BasicChannel
 	group := th.CreateGroup()
 	group.DisplayName = "engineering"
-	group.Name = model.NewString("engineering")
+	group.Name = model.NewPointer("engineering")
 	group, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 
@@ -2544,7 +2544,7 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupWithNoMembers := th.CreateGroup()
 	groupWithNoMembers.DisplayName = "marketing"
-	groupWithNoMembers.Name = model.NewString("marketing")
+	groupWithNoMembers.Name = model.NewPointer("marketing")
 	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
 	require.Nil(t, err)
 
@@ -2672,7 +2672,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	customGroupId := model.NewId()
 	customGroup, err := th.App.CreateGroup(&model.Group{
 		DisplayName:    customGroupId,
-		Name:           model.NewString("name" + customGroupId),
+		Name:           model.NewPointer("name" + customGroupId),
 		Source:         model.GroupSourceCustom,
 		Description:    "description_" + customGroupId,
 		AllowReference: true,
@@ -2689,7 +2689,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	// Sync first group to constrained channel
 	constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	constrainedChannel.GroupConstrained = model.NewBool(true)
+	constrainedChannel.GroupConstrained = model.NewPointer(true)
 	constrainedChannel, err = th.App.UpdateChannel(th.Context, constrainedChannel)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -2715,7 +2715,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Sync group2 to the team
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -2745,7 +2745,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
-	team.GroupConstrained = model.NewBool(false)
+	team.GroupConstrained = model.NewPointer(false)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
@@ -2998,7 +2998,7 @@ func TestRemoveNotifications(t *testing.T) {
 
 	t.Run("when mentioned via a user group", func(t *testing.T) {
 		group, appErr := th.App.CreateGroup(&model.Group{
-			Name:        model.NewString("test_group"),
+			Name:        model.NewPointer("test_group"),
 			DisplayName: "test_group",
 			Source:      model.GroupSourceCustom,
 		})
