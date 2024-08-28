@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import * as reactRedux from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -19,6 +16,7 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
         onToggleArchive: jest.fn(),
         isArchived: true,
     };
+
     const initialState = {
         views: {
             announcementBar: {
@@ -102,14 +100,8 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
     };
 
     test('should match snapshot - archived, at teams limit', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <TeamProfile {...baseProps}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(true);
+        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, initialState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot - not archived, at teams limit', () => {
@@ -117,16 +109,9 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
             ...baseProps,
             isArchived: false,
         };
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <TeamProfile {...props}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
 
-        // Unarchived will always be archiveable
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        const {container} = renderWithContext(<TeamProfile {...props}/>, initialState);
+        expect(container).toMatchSnapshot();
     });
 
     test('restore should not be disabled when below teams limit', () => {
@@ -175,16 +160,9 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
                 cardsLoaded: true,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <TeamProfile {...baseProps}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
 
-        // Unarchived will always be archiveable
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, state);
+        expect(container).toMatchSnapshot();
     });
 });
 
@@ -194,6 +172,7 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
         onToggleArchive: jest.fn(),
         isArchived: false,
     };
+
     const initialState = {
         views: {
             announcementBar: {
@@ -274,16 +253,10 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
             },
         },
     };
-    const state = JSON.parse(JSON.stringify(initialState));
-    const store = mockStore(state);
+
     test('should match snapshot (not cloud, freemium disabled', () => {
-        const wrapper = shallow(
-            <reactRedux.Provider store={store}>
-                <TeamProfile {...baseProps}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, initialState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with isArchived true', () => {
@@ -291,12 +264,8 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
             ...baseProps,
             isArchived: true,
         };
-        const wrapper = shallow(
-            <reactRedux.Provider store={store}>
-                <TeamProfile {...props}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+
+        const {container} = renderWithContext(<TeamProfile {...props}/>, initialState);
+        expect(container).toMatchSnapshot();
     });
 });
