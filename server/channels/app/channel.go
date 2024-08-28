@@ -3748,20 +3748,3 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 
 	return channel, nil
 }
-
-func (a *App) SanitizeChannel(session model.Session, channel *model.Channel) {
-	if !a.SessionHasPermissionToAny(session, []*model.Permission{
-		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
-		model.PermissionSysconsoleReadUserManagementChannels,
-	}) {
-		// Only has PermissionSysconsoleReadUserManagementGroups, limit data returned to what's necessary
-		channel.Sanitize()
-	}
-}
-
-func (a *App) SanitizeChannels(session model.Session, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
-	for _, channel := range channels {
-		a.SanitizeChannel(session, &channel.Channel)
-	}
-	return channels
-}

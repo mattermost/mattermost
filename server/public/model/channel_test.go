@@ -116,20 +116,47 @@ func TestGetGroupNameFromUserIds(t *testing.T) {
 }
 
 func TestSanitize(t *testing.T) {
+	schemaId := NewId()
 	o := Channel{
-		Id:               NewId(),
-		Name:             NewId(),
-		DisplayName:      NewId(),
-		Header:           NewId(),
-		Purpose:          NewId(),
-		GroupConstrained: NewPointer(true),
+		Id:                NewId(),
+		CreateAt:          1,
+		UpdateAt:          1,
+		DeleteAt:          1,
+		Name:              NewId(),
+		DisplayName:       NewId(),
+		Header:            NewId(),
+		Purpose:           NewId(),
+		LastPostAt:        1,
+		TotalMsgCount:     1,
+		ExtraUpdateAt:     1,
+		CreatorId:         NewId(),
+		SchemeId:          &schemaId,
+		Props:             make(map[string]any),
+		GroupConstrained:  NewPointer(true),
+		Shared:            NewPointer(true),
+		TotalMsgCountRoot: 1,
+		PolicyID:          &schemaId,
+		LastRootPostAt:    1,
 	}
 	o.Sanitize()
 
 	require.NotEqual(t, "", o.Id)
+	require.Equal(t, int64(0), o.CreateAt)
+	require.Equal(t, int64(0), o.UpdateAt)
+	require.Equal(t, int64(0), o.DeleteAt)
 	require.Equal(t, "", o.Name)
 	require.NotEqual(t, "", o.DisplayName)
 	require.Equal(t, "", o.Header)
 	require.Equal(t, "", o.Purpose)
+	require.Equal(t, int64(0), o.LastPostAt)
+	require.Equal(t, int64(0), o.TotalMsgCount)
+	require.Equal(t, int64(0), o.ExtraUpdateAt)
+	require.Equal(t, "", o.CreatorId)
+	require.Nil(t, o.SchemeId)
+	require.Nil(t, o.Props)
 	require.Nil(t, o.GroupConstrained)
+	require.Nil(t, o.Shared)
+	require.Equal(t, int64(0), o.TotalMsgCountRoot)
+	require.Nil(t, o.PolicyID)
+	require.Equal(t, int64(0), o.LastRootPostAt)
 }

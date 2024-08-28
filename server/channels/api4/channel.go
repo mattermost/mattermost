@@ -793,7 +793,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
-		model.PermissionSysconsoleReadUserManagementGroups,
+		model.PermissionSysconsoleWriteUserManagementGroups,
 		model.PermissionSysconsoleReadUserManagementChannels,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
@@ -822,7 +822,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels = c.App.SanitizeChannels(*c.AppContext.Session(), channels)
+	channels = SanitizeChannels(c, channels)
 
 	if c.Params.IncludeTotalCount {
 		totalCount, err := c.App.GetAllChannelsCount(c.AppContext, opts)
@@ -843,6 +843,18 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func SanitizeChannels(c *Context, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+		model.PermissionSysconsoleReadUserManagementChannels,
+	}) {
+		for _, channel := range channels {
+			channel.Channel.Sanitize()
+		}
+	}
+	return channels
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1260,7 +1272,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(),
 		[]*model.Permission{
-			model.PermissionSysconsoleReadUserManagementGroups,
+			model.PermissionSysconsoleWriteUserManagementGroups,
 			model.PermissionSysconsoleReadUserManagementChannels}) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
@@ -1293,7 +1305,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels = c.App.SanitizeChannels(*c.AppContext.Session(), channels)
+	channels = SanitizeChannels(c, channels)
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 	if props.Page != nil && props.PerPage != nil {
