@@ -54,10 +54,10 @@ func TestScheduler(t *testing.T) {
 			Cfg: &model.Config{
 				// mock config
 				DataRetentionSettings: model.DataRetentionSettings{
-					EnableMessageDeletion: model.NewBool(true),
+					EnableMessageDeletion: model.NewPointer(true),
 				},
 				MessageExportSettings: model.MessageExportSettings{
-					EnableExport: model.NewBool(true),
+					EnableExport: model.NewPointer(true),
 				},
 			},
 		},

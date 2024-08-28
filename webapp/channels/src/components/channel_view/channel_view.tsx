@@ -80,10 +80,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         this.channelViewRef = React.createRef();
     }
 
-    getChannelView = () => {
-        return this.channelViewRef.current;
-    };
-
     onClickCloseChannel = () => {
         this.props.goToLastViewedChannel();
     };
@@ -160,7 +156,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     data-testid='post-create'
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
-                    <AdvancedCreatePost getChannelView={this.getChannelView}/>
+                    <AdvancedCreatePost/>
                 </div>
             );
         }
@@ -175,7 +171,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             >
                 <FileUploadOverlay overlayType='center'/>
                 <ChannelHeader {...this.props}/>
-                <ChannelBookmarks channelId={this.props.channelId}/>
+                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <DeferredPostView
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}

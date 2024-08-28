@@ -75,23 +75,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
+    <WithTooltip
+      id="file-name__tooltip"
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -102,7 +89,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;
@@ -191,23 +178,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
+    <WithTooltip
+      id="file-name__tooltip"
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -218,7 +192,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;
@@ -307,23 +281,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
+    <WithTooltip
+      id="file-name__tooltip"
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -334,7 +295,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;
@@ -418,23 +379,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          Download
-        </Tooltip>
-      }
+    <WithTooltip
+      id="file-name__tooltip"
       placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -445,7 +393,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </OverlayTrigger>
+    </WithTooltip>
   </button>
 </div>
 `;

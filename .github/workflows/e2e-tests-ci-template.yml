@@ -34,6 +34,9 @@ on:
         type: string # Valid values are: onprem, cloud
         required: false
         default: onprem
+      SERVER_IMAGE:
+        type: string
+        required: false
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -50,6 +53,12 @@ on:
         type: string
         required: false
       REPORT_TYPE:
+        type: string
+        required: false
+      ROLLING_RELEASE_commit_sha:
+        type: string
+        required: false
+      ROLLING_RELEASE_SERVER_IMAGE:
         type: string
         required: false
     secrets:
@@ -74,7 +83,7 @@ on:
 
 jobs:
   update-initial-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
@@ -87,7 +96,7 @@ jobs:
           status: pending
 
   cypress-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -118,7 +127,7 @@ jobs:
           npm run check
 
   playwright-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -155,7 +164,7 @@ jobs:
           npm run check
 
   generate-build-variables:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -163,7 +172,6 @@ jobs:
         shell: bash
     outputs:
       workers: "${{ steps.generate.outputs.workers }}"
-      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -174,18 +182,12 @@ jobs:
         id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
-          REPORT_TYPE: ${{ inputs.REPORT_TYPE }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
-          if grep -qE '^((MASTER|CLOUD)(_UNSTABLE)?)$' <<<"$REPORT_TYPE"; then
-            # For MASTER, MASTER_UNSTABLE, CLOUD and CLOUD_UNSTABLE runs, always use the latest master image
-            # The commit_sha is still used for reporting the test result, and for the testing scripts and test cases
-            echo "SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master" >> $GITHUB_OUTPUT
-          fi
 
   generate-test-cycle:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -238,11 +240,11 @@ jobs:
         # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
         # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
         #
-        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
-        os: [ubuntu-latest-8-cores]
+        #os: [ubuntu-latest, windows-2022, macos-12-xl]
+        os: [ubuntu-latest]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 60
+    timeout-minutes: 120
     needs:
       - cypress-check
       - playwright-check
@@ -256,17 +258,19 @@ jobs:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
       SERVER: "${{ inputs.SERVER }}"
-      SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.SERVER_IMAGE }}"
+      SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV }}"
       BRANCH: "${{ inputs.BRANCH }}"
       BUILD_ID: "${{ inputs.BUILD_ID }}"
-      CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
+      CI_BASE_URL: "${{ matrix.os }}-${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+      ROLLING_RELEASE_COMMIT_SHA: "${{ inputs.ROLLING_RELEASE_commit_sha }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -291,7 +295,30 @@ jobs:
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test
         run: |
+          make cloud-init
+          if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
+            echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/ && git status
+            (
+            echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
+            export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
+            export TEST_FILTER=""
+            export AUTOMATION_DASHBOARD_URL=""
+            make
+            )
+            echo "RollingRelease: asserting smoketest result has zero failures."
+            FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+            if [ "$FAILURES" -ne "0" ]; then
+              echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
+              exit 1
+            fi
+            rm -rfv cypress/results
+            echo "RollingRelease: reset the E2E test cases to the revision to test"
+            git reset --hard HEAD && git status
+            echo "RollingRelease: smoketest completed. Starting full E2E tests."
+          fi
           make
+          make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
@@ -299,9 +326,10 @@ jobs:
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
+          retention-days: 1
 
   report:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - test
       - generate-build-variables
@@ -322,6 +350,13 @@ jobs:
         with:
           path: e2e-tests/cypress/
           merge-multiple: true
+      - name: ci/upload-report-global
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
       - name: ci/report-calculate-failures
         id: calculate-failures
         run: |
@@ -346,7 +381,8 @@ jobs:
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
           SERVER: "${{ inputs.SERVER }}"
-          SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.SERVER_IMAGE }}"
+          SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
@@ -357,7 +393,7 @@ jobs:
           make publish-report
 
   update-failure-final-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: failure() || cancelled()
     needs:
       - generate-test-cycle
@@ -377,7 +413,7 @@ jobs:
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: success()
     needs:
       - generate-test-cycle

@@ -6631,32 +6631,29 @@ func (s *apiRPCServer) UpdateUserRoles(args *Z_UpdateUserRolesArgs, returns *Z_U
 	return nil
 }
 
-type Z_GenerateSupportMetadataArgs struct {
-	A map[string]any
+type Z_GetPluginIDArgs struct {
 }
 
-type Z_GenerateSupportMetadataReturns struct {
-	A *model.Metadata
-	B error
+type Z_GetPluginIDReturns struct {
+	A string
 }
 
-func (g *apiRPCClient) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
-	_args := &Z_GenerateSupportMetadataArgs{pluginMeta}
-	_returns := &Z_GenerateSupportMetadataReturns{}
-	if err := g.client.Call("Plugin.GenerateSupportMetadata", _args, _returns); err != nil {
-		log.Printf("RPC call to GenerateSupportMetadata API failed: %s", err.Error())
+func (g *apiRPCClient) GetPluginID() string {
+	_args := &Z_GetPluginIDArgs{}
+	_returns := &Z_GetPluginIDReturns{}
+	if err := g.client.Call("Plugin.GetPluginID", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginID API failed: %s", err.Error())
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
-func (s *apiRPCServer) GenerateSupportMetadata(args *Z_GenerateSupportMetadataArgs, returns *Z_GenerateSupportMetadataReturns) error {
+func (s *apiRPCServer) GetPluginID(args *Z_GetPluginIDArgs, returns *Z_GetPluginIDReturns) error {
 	if hook, ok := s.impl.(interface {
-		GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error)
+		GetPluginID() string
 	}); ok {
-		returns.A, returns.B = hook.GenerateSupportMetadata(args.A)
-		returns.B = encodableError(returns.B)
+		returns.A = hook.GetPluginID()
 	} else {
-		return encodableError(fmt.Errorf("API GenerateSupportMetadata called but not implemented."))
+		return encodableError(fmt.Errorf("API GetPluginID called but not implemented."))
 	}
 	return nil
 }

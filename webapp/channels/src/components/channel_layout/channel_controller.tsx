@@ -45,7 +45,7 @@ export default function ChannelController(props: Props) {
 
             // This cleans up the status and profile setInterval of fetching poll we use to batch requests
             // when fetching statuses and profiles for a list of users.
-            cleanUpStatusAndProfileFetchingPoll();
+            dispatch(cleanUpStatusAndProfileFetchingPoll());
         };
     }, []);
 

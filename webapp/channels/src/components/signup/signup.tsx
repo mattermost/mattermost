@@ -88,6 +88,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const config = useSelector(getConfig);
     const {
         EnableOpenServer,
+        EnableUserCreation,
         NoAccounts,
         EnableSignUpWithEmail,
         EnableSignUpWithGitLab,
@@ -120,17 +121,18 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const isLicensed = IsLicensed === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
+    const enableUserCreation = EnableUserCreation === 'true';
     const noAccounts = NoAccounts === 'true';
-    const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
-    const enableSignUpWithGitLab = EnableSignUpWithGitLab === 'true';
-    const enableSignUpWithGoogle = EnableSignUpWithGoogle === 'true';
-    const enableSignUpWithOffice365 = EnableSignUpWithOffice365 === 'true';
-    const enableSignUpWithOpenId = EnableSignUpWithOpenId === 'true';
+    const enableSignUpWithEmail = enableUserCreation && EnableSignUpWithEmail === 'true';
+    const enableSignUpWithGitLab = enableUserCreation && EnableSignUpWithGitLab === 'true';
+    const enableSignUpWithGoogle = enableUserCreation && EnableSignUpWithGoogle === 'true';
+    const enableSignUpWithOffice365 = enableUserCreation && EnableSignUpWithOffice365 === 'true';
+    const enableSignUpWithOpenId = enableUserCreation && EnableSignUpWithOpenId === 'true';
     const enableLDAP = EnableLdap === 'true';
     const enableSAML = EnableSaml === 'true';
     const enableCustomBrand = EnableCustomBrand === 'true';
 
-    const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts;
+    const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts && !enableUserCreation;
 
     const [email, setEmail] = useState(parsedEmail ?? '');
     const [name, setName] = useState('');
@@ -202,7 +204,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 id: 'office365',
                 url,
                 icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }

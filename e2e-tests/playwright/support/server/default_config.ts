@@ -159,7 +159,6 @@ const defaultServerConfig: AdminConfig = {
         EnableUserStatuses: true,
         ExperimentalEnableAuthenticationTransfer: true,
         ClusterLogTimeoutMilliseconds: 2000,
-        EnablePreviewFeatures: true,
         EnableTutorial: true,
         EnableOnboardingFlow: true,
         ExperimentalEnableDefaultChannelLeaveJoinMessages: true,
@@ -581,6 +580,7 @@ const defaultServerConfig: AdminConfig = {
         DisableAppBar: false,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
+        YoutubeReferrerPolicy: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -589,6 +589,7 @@ const defaultServerConfig: AdminConfig = {
         ConnectionURL: 'http://localhost:9200',
         Username: 'elastic',
         Password: 'changeme',
+        Backend: 'elasticsearch',
         EnableIndexing: false,
         EnableSearching: false,
         EnableAutocomplete: false,

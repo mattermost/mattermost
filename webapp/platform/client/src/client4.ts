@@ -87,6 +87,7 @@ import type {
     CommandResponse,
     DialogSubmission,
     IncomingWebhook,
+    IncomingWebhooksWithCount,
     OAuthApp,
     OutgoingOAuthConnection,
     OutgoingWebhook,
@@ -2523,6 +2524,13 @@ export default class Client4 {
         );
     };
 
+    getUserPreferences = (userId: string) => {
+        return this.doFetch<PreferenceType[]>(
+            `${this.getPreferencesRoute(userId)}`,
+            {method: 'get'},
+        );
+    };
+
     deletePreferences = (userId: string, preferences: PreferenceType[]) => {
         return this.doFetch<StatusOK>(
             `${this.getPreferencesRoute(userId)}/delete`,
@@ -2650,17 +2658,18 @@ export default class Client4 {
         );
     };
 
-    getIncomingWebhooks = (teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
+    getIncomingWebhooks = (teamId = '', page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false) => {
         const queryParams: any = {
             page,
             per_page: perPage,
+            include_total_count: includeTotalCount,
         };
 
         if (teamId) {
             queryParams.team_id = teamId;
         }
 
-        return this.doFetch<IncomingWebhook[]>(
+        return this.doFetch<IncomingWebhook[] | IncomingWebhooksWithCount>(
             `${this.getIncomingHooksRoute()}${buildQueryString(queryParams)}`,
             {method: 'get'},
         );
@@ -4246,8 +4255,8 @@ export default class Client4 {
 
     getAncillaryPermissions = (subsectionPermissions: string[]) => {
         return this.doFetch<string[]>(
-            `${this.getPermissionsRoute()}/ancillary?subsection_permissions=${subsectionPermissions.join(',')}`,
-            {method: 'get'},
+            `${this.getPermissionsRoute()}/ancillary`,
+            {method: 'post', body: JSON.stringify(subsectionPermissions)},
         );
     };
 

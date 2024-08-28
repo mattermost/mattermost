@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -30,8 +31,7 @@ import (
 // The mandatory fields will be checked during the initialization of the service.
 type ServiceConfig struct {
 	// Mandatory fields
-	ConfigStore *config.Store
-	Store       store.Store
+	Store store.Store
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }
@@ -307,10 +307,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range ps.LimitedClientConfig() {
-		respCfg[k] = v
-	}
+	respCfg := maps.Clone(ps.LimitedClientConfig())
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
@@ -321,10 +318,7 @@ func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range ps.clientConfig.Load().(map[string]string) {
-		respCfg[k] = v
-	}
+	respCfg := maps.Clone(ps.ClientConfig())
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
@@ -340,7 +334,6 @@ func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
 	} else {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}
-
 	return respCfg
 }
 

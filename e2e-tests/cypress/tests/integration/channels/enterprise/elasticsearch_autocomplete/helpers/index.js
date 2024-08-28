@@ -87,15 +87,14 @@ module.exports = {
         // # Enable elastic search via the API
         cy.apiUpdateConfig({
             ElasticsearchSettings: {
-                EnableAutocomplete: true,
                 EnableIndexing: true,
                 EnableSearching: true,
-                Sniff: false,
             },
         });
 
         // # Navigate to the elastic search setting page
         cy.visit('/admin_console/environment/elasticsearch');
+        cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
 
         // * Test the connection and verify that we are successful
         cy.contains('button', 'Test Connection').click();
