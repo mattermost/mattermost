@@ -36,6 +36,7 @@ describe('components/ReactionList', () => {
         reactions,
         canAddReactions: true,
         actions,
+        maxUniqueReactions: 50,
     };
 
     test('should render nothing when no reactions', () => {

@@ -18,9 +18,6 @@ import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {localizeMessage} from 'utils/utils';
-import { getConfig } from 'mattermost-redux/selectors/entities/general';
-import { GlobalState } from 'types/store';
-import store from 'stores/redux_store';
 
 const DEFAULT_EMOJI_PICKER_RIGHT_OFFSET = 15;
 const EMOJI_PICKER_WIDTH_OFFSET = 260;
@@ -61,6 +58,11 @@ type Props = {
          */
         toggleReaction: (postId: string, emojiName: string) => void;
     };
+
+    /**
+     * Maximum unique reactions that can be added to this post.
+     */
+    maxUniqueReactions: number;
 };
 
 type State = {
@@ -153,10 +155,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         }
 
         let emojiPicker = null;
-        const getState = store.getState;
-        const state = getState() as GlobalState;
-        const config = getConfig(state);
-        if (this.props.canAddReactions && this.state.emojiNames?.length < Number(config.UniqueEmojiReactionLimitPerPost)) {
+        if (this.props.canAddReactions && this.state.emojiNames?.length < this.props.maxUniqueReactions) {
             emojiPicker = (
                 <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
