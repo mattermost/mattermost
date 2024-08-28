@@ -1412,7 +1412,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
 			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, int64(0), channel.Name)
+			require.NotEqual(t, "", channel.Name)
 		}
 
 		channels, resp, err = th.SystemAdminClient.GetAllChannels(context.Background(), 0, 10000, "")
@@ -1421,7 +1421,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
 			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, int64(0), channel.Name)
+			require.NotEqual(t, "", channel.Name)
 		}
 
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
@@ -1431,7 +1431,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
 			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, int64(0), channel.Name)
+			require.NotEqual(t, "", channel.Name)
 		}
 	})
 }
@@ -1925,7 +1925,7 @@ func TestSearchAllChannels(t *testing.T) {
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
 			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, int64(0), channel.Name)
+			require.NotEqual(t, "", channel.Name)
 		}
 
 		channels, resp, err = th.SystemAdminClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: policyChannel.Name})
@@ -1934,7 +1934,7 @@ func TestSearchAllChannels(t *testing.T) {
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
 			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, int64(0), channel.Name)
+			require.NotEqual(t, "", channel.Name)
 		}
 
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
@@ -1944,7 +1944,7 @@ func TestSearchAllChannels(t *testing.T) {
 		CheckOKStatus(t, resp)
 		for _, channel := range channels {
 			require.Equal(t, "", channel.CreatorId)
-			require.Equal(t, int64(0), channel.Name)
+			require.Equal(t, "", channel.Name)
 		}
 	})
 }
