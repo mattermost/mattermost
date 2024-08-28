@@ -357,13 +357,11 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 }
 
 func (o *Channel) Sanitize() {
-	// o.Id
+	// the only properties that are not cleared.
+	// Id, TeamId, Type, DisplayName
 	o.CreateAt = 0
 	o.UpdateAt = 0
 	o.DeleteAt = 0
-	//o.TeamId
-	//o.Type
-	//o.DisplayName
 	o.Name = ""
 	o.Header = ""
 	o.Purpose = ""

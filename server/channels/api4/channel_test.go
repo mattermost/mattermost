@@ -1404,6 +1404,62 @@ func TestGetAllChannels(t *testing.T) {
 		}
 		require.True(t, found)
 	})
+
+	// set SchemaID
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	sysManagerChannels, resp, err = th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	schemaChannel := (sysManagerChannels)[0]
+
+	scheme := th.SetupChannelScheme()
+	schemaChannel.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateChannelScheme(th.Context, &schemaChannel.Channel)
+	require.Nil(t, appErr)
+
+	t.Run("verify correct sanization", func(t *testing.T) {
+		channels, resp, err := th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range channels {
+			if channel.Id == schemaChannel.Id {
+				found = true
+				require.Equal(t, schemaChannel.SchemeId, channel.SchemeId)
+				break
+			}
+		}
+		require.True(t, found)
+
+		channels, resp, err = th.SystemAdminClient.GetAllChannels(context.Background(), 0, 10000, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		found = false
+		for _, channel := range channels {
+			if channel.Id == schemaChannel.Id {
+				found = true
+				require.Equal(t, schemaChannel.SchemeId, channel.SchemeId)
+				break
+			}
+		}
+		require.True(t, found)
+
+		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
+		channels, resp, err = th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		found = false
+		for _, channel := range channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Nil(t, channel.PolicyID)
+				require.Nil(t, channel.SchemeId)
+				break
+			}
+		}
+		require.True(t, found)
+	})
 }
 
 func TestGetAllChannelsWithCount(t *testing.T) {

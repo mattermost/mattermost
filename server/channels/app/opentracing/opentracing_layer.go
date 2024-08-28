@@ -15146,7 +15146,7 @@ func (a *OpenTracingAppLayer) RolesGrantPermission(roleNames []string, permissio
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SanitizeChannel(session model.Session, channel model.Channel) model.Channel {
+func (a *OpenTracingAppLayer) SanitizeChannel(session model.Session, channel *model.Channel) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizeChannel")
 
@@ -15158,9 +15158,7 @@ func (a *OpenTracingAppLayer) SanitizeChannel(session model.Session, channel mod
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SanitizeChannel(session, channel)
-
-	return resultVar0
+	a.app.SanitizeChannel(session, channel)
 }
 
 func (a *OpenTracingAppLayer) SanitizeChannels(session model.Session, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {

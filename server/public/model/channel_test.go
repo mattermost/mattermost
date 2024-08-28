@@ -114,3 +114,22 @@ func TestGetGroupNameFromUserIds(t *testing.T) {
 
 	require.LessOrEqual(t, len(name), ChannelNameMaxLength)
 }
+
+func TestSanitize(t *testing.T) {
+	o := Channel{
+		Id:               NewId(),
+		Name:             NewId(),
+		DisplayName:      NewId(),
+		Header:           NewId(),
+		Purpose:          NewId(),
+		GroupConstrained: NewPointer(true),
+	}
+	o.Sanitize()
+
+	require.NotEqual(t, "", o.Id)
+	require.Equal(t, "", o.Name)
+	require.NotEqual(t, "", o.DisplayName)
+	require.Equal(t, "", o.Header)
+	require.Equal(t, "", o.Purpose)
+	require.Nil(t, o.GroupConstrained)
+}

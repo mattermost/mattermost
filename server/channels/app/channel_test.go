@@ -2854,3 +2854,60 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		assert.NotNil(t, appErr)
 	})
 }
+
+func TestSanitizeChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("test without session Role, apply sanitization", func(t *testing.T) {
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := model.ChannelWithTeamData{
+			Channel:         *channel,
+			TeamDisplayName: model.NewId(),
+			TeamName:        model.NewId(),
+			TeamUpdateAt:    time.Now().Unix(),
+		}
+		channel = th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := model.ChannelWithTeamData{
+			Channel:         *channel,
+			TeamDisplayName: model.NewId(),
+			TeamName:        model.NewId(),
+			TeamUpdateAt:    time.Now().Unix(),
+		}
+
+		// DisplayName: "dn_" + id,
+		// Name:        "name_" + id,
+		// Type:        channelType,
+		// TeamId:      team.Id,
+		// CreatorId:   th.BasicUser.Id,
+		fmt.Println("roles" + th.Context.Session().Roles + "roles")
+		channels := model.ChannelListWithTeamData{&channel1, &channel2}
+		th.App.SanitizeChannels(*th.Context.Session(), channels)
+		assert.Equal(t, "", channels[0].Name)
+		assert.Equal(t, "", channels[0].CreatorId)
+		assert.Equal(t, "", channels[1].Name)
+		assert.Equal(t, "", channels[1].CreatorId)
+	})
+
+	t.Run("test System Admin no sanitization", func(t *testing.T) {
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := model.ChannelWithTeamData{
+			Channel:         *channel,
+			TeamDisplayName: model.NewId(),
+			TeamName:        model.NewId(),
+			TeamUpdateAt:    time.Now().Unix(),
+		}
+
+		// DisplayName: "dn_" + id,
+		// Name:        "name_" + id,
+		// Type:        channelType,
+		// TeamId:      team.Id,
+		// CreatorId:   th.BasicUser.Id,
+
+		th.Context.Session().Roles = th.SystemAdminUser.Roles
+		channels := model.ChannelListWithTeamData{&channel1}
+		th.App.SanitizeChannels(*th.Context.Session(), channels)
+		assert.NotEqual(t, "", channels[0].Name)
+		assert.NotEqual(t, "", channels[0].CreatorId)
+	})
+}
