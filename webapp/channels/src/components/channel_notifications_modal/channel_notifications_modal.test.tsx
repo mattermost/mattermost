@@ -24,6 +24,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         channelMember: {
             notify_props: {
                 desktop: NotificationLevels.ALL,
+                desktop_sound: 'on',
+                desktop_notification_sound: 'Bing',
                 mark_unread: NotificationLevels.ALL,
                 push: NotificationLevels.DEFAULT,
                 ignore_channel_mentions: IgnoreChannelMentions.DEFAULT,
@@ -35,6 +37,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
             id: 'current_user_id',
             notify_props: {
                 desktop: NotificationLevels.ALL,
+                desktop_sound: 'true',
+                desktop_notification_sound: 'Bing',
                 desktop_threads: NotificationLevels.ALL,
             } as UserNotifyProps,
         }),
@@ -73,6 +77,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     ignore_channel_mentions: 'off',
                     mark_unread: 'mention',
                     push: 'all',
+                    desktop_sound: 'on',
+                    desktop_notification_sound: 'Bing',
                 },
             ),
         );
@@ -98,6 +104,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     mark_unread:
                         baseProps.channelMember?.notify_props.mark_unread,
                     push: 'all',
+                    desktop_sound: 'on',
+                    desktop_notification_sound: 'Bing',
                 },
             ),
         );
@@ -139,10 +147,50 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     ignore_channel_mentions: 'off',
                     mark_unread: 'all',
                     push: 'all',
+                    desktop_sound: 'on',
+                    desktop_notification_sound: 'Bing',
                 },
             ),
         );
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should disable message notification sound if option is unchecked', async () => {
+        renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
+
+        // Since the default value is on, we will uncheck the checkbox
+        fireEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
+        expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
+
+        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await waitFor(() => {
+            expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
+                'current_user_id',
+                'channel_id',
+                {
+                    desktop: 'all',
+                    ignore_channel_mentions: 'off',
+                    mark_unread: 'all',
+                    push: 'all',
+                    desktop_sound: 'off',
+                    desktop_notification_sound: 'Bing',
+                },
+            );
+        });
+    });
+
+    test('should default to user desktop notification sound if reset to default is clicked', async () => {
+        renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
+
+        // Since the default value is on, we will uncheck the checkbox
+        fireEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
+        expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
+
+        // Reset to default button is clicked
+        fireEvent.click(screen.getByTestId('resetToDefaultButton-desktop'));
+
+        // Verify that the checkbox is checked to default to user desktop notification sound
+        expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).toBeChecked();
     });
 
     test('should save the options exactly same as Desktop for mobile if use same as desktop checkbox is checked', async () => {
@@ -170,6 +218,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     ignore_channel_mentions: 'off',
                     mark_unread: 'all',
                     push: 'all',
+                    desktop_sound: 'on',
+                    desktop_notification_sound: 'Bing',
                 },
             ),
         );
@@ -209,6 +259,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     ignore_channel_mentions: 'off',
                     mark_unread: 'all',
                     push: 'none',
+                    desktop_sound: 'on',
+                    desktop_notification_sound: 'Bing',
                 },
             ),
         );
@@ -240,6 +292,8 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                     push: 'all',
                     push_threads: 'default',
                     desktop_threads: 'all',
+                    desktop_sound: 'on',
+                    desktop_notification_sound: 'Bing',
                 },
             ),
         );

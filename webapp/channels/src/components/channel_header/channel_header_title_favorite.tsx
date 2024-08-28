@@ -2,17 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useRef, useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentChannel, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {Constants} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 const ChannelHeaderTitleFavorite = () => {
     const intl = useIntl();
@@ -20,7 +17,6 @@ const ChannelHeaderTitleFavorite = () => {
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const channel = useSelector(getCurrentChannel);
     const channelIsArchived = (channel?.delete_at ?? 0) > 0;
-    const toggleFavoriteRef = useRef<HTMLButtonElement>(null);
 
     const toggleFavoriteCallback = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -34,11 +30,6 @@ const ChannelHeaderTitleFavorite = () => {
         }
     }, [isFavorite, channel?.id]);
 
-    const removeTooltipLink = useCallback(() => {
-        // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
-        toggleFavoriteRef.current?.removeAttribute('aria-describedby');
-    }, []);
-
     if (!channel || channelIsArchived) {
         return null;
     }
@@ -49,8 +40,8 @@ const ChannelHeaderTitleFavorite = () => {
     }
     ariaLabel = ariaLabel.toLowerCase();
 
-    const toggleFavoriteTooltip = (
-        <Tooltip id='favoriteTooltip' >
+    const title = (
+        <>
             {!isFavorite &&
                 <FormattedMessage
                     id='channelHeader.addToFavorites'
@@ -61,27 +52,25 @@ const ChannelHeaderTitleFavorite = () => {
                     id='channelHeader.removeFromFavorites'
                     defaultMessage='Remove from Favorites'
                 />}
-        </Tooltip>
+        </>
     );
 
     return (
-        <OverlayTrigger
+        <WithTooltip
             key={`isFavorite-${isFavorite}`}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+            id='favoriteTooltip'
+            title={title}
             placement='bottom'
-            overlay={toggleFavoriteTooltip}
-            onEntering={removeTooltipLink}
         >
             <button
                 id='toggleFavorite'
-                ref={toggleFavoriteRef}
                 onClick={toggleFavoriteCallback}
                 className={classNames('channel-header__favorites btn btn-icon btn-xs', {active: isFavorite, inactive: !isFavorite})}
                 aria-label={ariaLabel}
             >
                 <i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})}/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
