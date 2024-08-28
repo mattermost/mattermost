@@ -138,9 +138,8 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -330,9 +329,8 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -522,9 +520,8 @@ exports[`SystemUserDetail should not show manage user settings button when user 
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -723,9 +720,8 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -915,9 +911,8 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
