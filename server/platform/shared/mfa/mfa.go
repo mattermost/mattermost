@@ -124,7 +124,7 @@ func (m *MFA) Deactivate(userId string) error {
 
 // Validate the provide token using the secret provided
 func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
-	lock, err := m.store.GetMfaUsedTimestamps(user.Id)
+	usedTs, err := m.store.GetMfaUsedTimestamps(user.Id)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to retrieve the DisallowReuse slice")
 	}
@@ -133,7 +133,7 @@ func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
 		Secret:        user.MfaSecret,
 		WindowSize:    3,
 		HotpCounter:   0,
-		DisallowReuse: lock,
+		DisallowReuse: usedTs,
 	}
 
 	trimmedToken := strings.TrimSpace(token)
@@ -141,12 +141,14 @@ func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "unable to parse the token")
 	}
-	// retrieve the DisallowReuse slice from the otpConfig to store is
-	lock = otpConfig.DisallowReuse
-	err = m.store.StoreMfaUsedTimestamps(user.Id, otpConfig.DisallowReuse)
-	if err != nil {
-		return false, errors.Wrap(err, "unable to store the DisallowReuse slice")
+	if !ok {
+		return false, errors.New("invalid token")
 	}
 
-	return ok, nil
+	err = m.store.StoreMfaUsedTimestamps(user.Id, otpConfig.DisallowReuse)
+	if err != nil {
+		return true, errors.Wrap(err, "unable to store the DisallowReuse slice")
+	}
+
+	return true, nil
 }
