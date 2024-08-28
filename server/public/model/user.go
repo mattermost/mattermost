@@ -109,6 +109,7 @@ type User struct {
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
 	LastLogin              int64     `json:"last_login,omitempty"`
+	MfaUsedTimestamps      string    `json:"mfa_used_timestamps,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -660,6 +661,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
+	u.MfaUsedTimestamps = ""
 	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
@@ -694,6 +696,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.FailedAttempts = 0
 	u.MfaActive = false
 	u.MfaSecret = ""
+	u.MfaUsedTimestamps = ""
 	u.Email = strings.TrimSpace(u.Email)
 	u.LastActivityAt = 0
 }
@@ -702,6 +705,7 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
 	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
+	u.MfaUsedTimestamps = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.LastPasswordUpdate = 0
