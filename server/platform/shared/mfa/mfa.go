@@ -142,7 +142,7 @@ func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
 		return false, errors.Wrap(err, "unable to parse the token")
 	}
 	if !ok {
-		return false, errors.New("invalid token")
+		return false, nil
 	}
 
 	err = m.store.StoreMfaUsedTimestamps(user.Id, otpConfig.DisallowReuse)
