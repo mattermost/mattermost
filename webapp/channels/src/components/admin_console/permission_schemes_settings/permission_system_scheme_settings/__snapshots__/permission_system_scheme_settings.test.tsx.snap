@@ -432,15 +432,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
@@ -467,9 +459,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -791,15 +782,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
@@ -826,9 +809,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -1150,15 +1132,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
@@ -1185,9 +1159,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -1509,15 +1482,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
@@ -1544,9 +1509,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
