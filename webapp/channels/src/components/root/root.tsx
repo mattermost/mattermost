@@ -312,7 +312,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
-            Utils.applyTheme(this.props.theme);
+            if (!document.body.classList.contains('console__body')) {
+                Utils.applyTheme(this.props.theme);
+            }
         }
 
         if (this.props.location.pathname === '/') {

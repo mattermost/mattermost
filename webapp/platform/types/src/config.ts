@@ -38,6 +38,7 @@ export type ClientConfig = {
     CustomBrandHasBrand: string;
     CustomTermsOfServiceId: string;
     CustomTermsOfServiceReAcceptancePeriod: string;
+    CustomThemes: string;
     CustomUrlSchemes: string;
     CWSURL: string;
     CWSMock: string;
