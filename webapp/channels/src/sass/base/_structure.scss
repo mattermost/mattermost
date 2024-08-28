@@ -18,7 +18,7 @@ body {
     }
 
     &.admin-onboarding {
-        background-image: url('images/admin-onboarding-background.jpg');
+        background-image: url("images/admin-onboarding-background.jpg");
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -131,12 +131,11 @@ body.app__body #root {
         padding-bottom: 0;
         padding-right: 0;
         grid-template:
-            'announcement announcement' min-content
-            'admin-announcement admin-announcement' min-content
-            'header header' min-content
-            'lhs center'
-            'footer footer' min-content
-        ;
+            "announcement announcement" min-content
+            "admin-announcement admin-announcement" min-content
+            "header header" min-content
+            "lhs center"
+            "footer footer" min-content;
         grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
 
@@ -170,9 +169,7 @@ body.app__body #root {
         margin: 0 4px 4px 4px;
         border-radius: var(--radius-l);
         grid-area: main;
-        grid-template:
-            'lhs center rhs'
-        ;
+        grid-template: "lhs center rhs";
         grid-template-columns: min-content minmax(385px, 1fr) min-content;
 
         &:has(.backstage-body) {
@@ -181,9 +178,8 @@ body.app__body #root {
             margin: 0;
             border-radius: 0;
             grid-template:
-                'header' min-content
-                'main'
-            ;
+                "header" min-content
+                "main";
         }
 
         &:has(#playbooks-backstageRoot) {
@@ -241,11 +237,11 @@ body.app__body #root {
             padding-right: 0;
             z-index: 17;
             grid-template:
-                'announcement' min-content
-                'admin-announcement' min-content
-                'header' min-content
-                'main' auto
-                'footer' min-content / auto;
+                "announcement" min-content
+                "admin-announcement" min-content
+                "header" min-content
+                "main" auto
+                "footer" min-content / auto;
             .team-sidebar,
             .app-bar {
                 grid-area: main;
@@ -257,9 +253,7 @@ body.app__body #root {
 
             .main-wrapper {
                 margin: 0;
-                grid-template:
-                    'main'
-                ;
+                grid-template: "main";
                 padding: 0;
                 border-radius: 0;
 
@@ -290,7 +284,7 @@ body.app__body #root {
                 position: absolute;
                 width: 100%;
                 grid-area: center;
-                transition: width .25s ease-in-out;
+                transition: width 0.25s ease-in-out;
             }
 
             --columns: min-content auto min-content;
