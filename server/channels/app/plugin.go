@@ -381,12 +381,12 @@ func (ch *Channels) ShutDownPlugins() {
 func (a *App) getPluginManifests() ([]*model.Manifest, error) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get list of available plugins")
 	}
 
 	manifests := make([]*model.Manifest, len(plugins))
