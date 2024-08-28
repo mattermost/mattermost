@@ -3213,22 +3213,17 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 		manifest := manifestMap[id]
 
 		for key := range settings {
-			sanitize := false
-
 			if manifest == nil {
 				// Sanitize plugin settings for plugins that are not installed
-				sanitize = true
-			} else {
-				for _, definedSetting := range manifest.SettingsSchema.Settings {
-					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
-						sanitize = true
-						break
-					}
-				}
+				settings[key] = FakeSetting
+				continue
 			}
 
-			if sanitize {
-				settings[key] = FakeSetting
+			for _, definedSetting := range manifest.SettingsSchema.Settings {
+				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+					settings[key] = FakeSetting
+					break
+				}
 			}
 		}
 	}
