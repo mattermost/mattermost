@@ -50,6 +50,11 @@
     &__content {
         display: flex;
         flex-direction: column;
+
+        &.inline {
+            flex-direction: row;
+            gap: 24px;
+        }
     }
 
     &__fieldset-checkbox-ctr {
@@ -90,9 +95,10 @@
         line-height: 20px;
     }
 
-    // Todo: add styling for react select
-    //&__fieldset-react-select{
-    //}
+    &__fieldset-react-select {
+        max-width: 240px;
+        flex-grow: 1;
+    }
 
     &__input-checkbox {
         width: 1.6rem;

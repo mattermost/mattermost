@@ -832,7 +832,17 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line imports.Line
 			}
 		}
 
-		if data.Members != nil {
+		if data.Participants != nil {
+			for i, member := range data.Participants {
+				if _, ok := v.users[*member.Username]; !ok {
+					return &ImportValidationError{
+						ImportFileInfo: info,
+						FieldName:      fmt.Sprintf("direct_channel.members[%d]", i),
+						Err:            fmt.Errorf("reference to unknown user %q", *member.Username),
+					}
+				}
+			}
+		} else if data.Members != nil {
 			for i, member := range *data.Members {
 				if _, ok := v.users[member]; !ok {
 					return &ImportValidationError{
