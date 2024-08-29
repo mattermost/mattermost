@@ -29,12 +29,18 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         name: Measure.ChannelSwitch,
         startMark: Mark.ChannelLinkClicked,
         endMark: Mark.PostListLoaded,
+        labels: {
+            fresh: fresh.toString(),
+        },
         canFail: true,
     });
     const teamSwitch = measureAndReport({
         name: Measure.TeamSwitch,
         startMark: Mark.TeamLinkClicked,
         endMark: Mark.PostListLoaded,
+        labels: {
+            fresh: fresh.toString(),
+        },
         canFail: true,
     });
 

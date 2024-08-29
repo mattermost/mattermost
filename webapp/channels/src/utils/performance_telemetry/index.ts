@@ -36,17 +36,20 @@ export function measureAndReport({
     name,
     startMark,
     endMark,
+    labels,
     canFail = false,
 }: {
     name: string;
     startMark: string;
     endMark?: string;
+    labels?: Record<string, string>;
     canFail?: boolean;
 }): PerformanceMeasure | undefined {
     const options: PerformanceMeasureOptions = {
         start: startMark,
         end: endMark,
         detail: {
+            labels,
             report: true,
         },
     };
