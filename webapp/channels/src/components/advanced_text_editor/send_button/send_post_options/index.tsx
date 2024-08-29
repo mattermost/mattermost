@@ -60,12 +60,10 @@ export function SendPostOptions({disabled, onSelect}: Props) {
         );
 
         const nextMonday = new Date();
-        // const dayOfWeek = today.getDay();
-        // const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
-        // nextMonday.setHours(9, 0, 0, 0);
-        // nextMonday.setDate(today.getDate() + daysUntilNextMonday);
-
-        nextMonday.setDate(today.getDate() - 1);
+        const dayOfWeek = today.getDay();
+        const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
+        nextMonday.setHours(9, 0, 0, 0);
+        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
 
         const optionNextMonday = (
             <Menu.Item

@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	// TODO
 	getPendingScheduledPostsPageSize = 10
 	scheduledPostBatchWaitTime       = 1 * time.Second
 )
@@ -41,8 +40,10 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 				mlog.Err(err),
 			)
 
-			// break the loop if we can't fetch the page.
-			// Missed posts will be processed in job's next round
+			// Break the loop if we can't fetch the page.
+			// Missed posts will be processed in job's next round.
+			// Since we don't know any item's details, we can't fetch the next page as well.
+			// We could retry here but that's the same as trying in job's next round.
 			return
 		}
 
@@ -68,11 +69,18 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 			// failure to process one batch doesn't mean other batches will fail as well.
 			// Continue processing next batch. The posts that failed in this batch will be picked
-			// up when the job runs next.
+			// up when the job next runs.
 			continue
 		}
 
 		rctx.Logger().Debug("ProcessScheduledPosts: finished processing a page of pending scheduled posts.")
+
+		if len(scheduledPostsBatch) < getPendingScheduledPostsPageSize {
+			// if we got less than page size worth of scheduled posts, it indicates
+			// that we have no more pending scheduled posts. So, we can break instead of making
+			// an additional database call as we know there are going to be no records in there.
+			break
+		}
 	}
 }
 
@@ -97,6 +105,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 	}
 
 	a.handleFailedScheduledPosts(rctx, failedScheduledPosts)
+	rctx.Logger().Debug("processScheduledPostBatch finished...")
 	return nil
 }
 

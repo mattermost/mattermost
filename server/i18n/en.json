@@ -9575,6 +9575,10 @@
     "translation": "Invalid processed at time."
   },
   {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
+  },
+  {
     "id": "model.scheme.is_valid.app_error",
     "translation": "Invalid scheme."
   },

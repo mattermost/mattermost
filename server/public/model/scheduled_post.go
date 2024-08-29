@@ -48,9 +48,9 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.empty_post.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
-	//if s.ScheduledAt < GetMillis() {
-	//	return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.scheduled_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
-	//}
+	if s.ScheduledAt < GetMillis() {
+		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.scheduled_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+	}
 
 	if s.ProcessedAt < 0 {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.processed_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
@@ -70,6 +70,7 @@ func (s *ScheduledPost) PreSave() {
 	s.Draft.PreSave()
 }
 
+// ToPost converts a scheduled post toa  regular, mattermost post object.
 func (s *ScheduledPost) ToPost() (*Post, error) {
 	post := &Post{
 		UserId:    s.UserId,
@@ -83,6 +84,12 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 	for key, value := range s.GetProps() {
 		post.AddProp(key, value)
 	}
+
+	// Just adding some metadata. We don't ave any known use for this right now but,
+	// this could be useful.
+	post.AddProp("is_scheduled_post", true)
+	post.AddProp("schedule_created_at", s.CreateAt)
+	post.AddProp("intended_scheduled_time", s.ScheduledAt)
 
 	if len(s.Priority) > 0 {
 		priority, ok := s.Priority["priority"].(string)

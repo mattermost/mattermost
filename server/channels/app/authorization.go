@@ -77,7 +77,6 @@ func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, 
 	return true
 }
 
-// LOL
 func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
 	if channelID == "" {
 		return false
