@@ -9575,10 +9575,6 @@
     "translation": "Invalid processed at time."
   },
   {
-    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
-    "translation": "Invalid scheduled at time."
-  },
-  {
     "id": "model.scheme.is_valid.app_error",
     "translation": "Invalid scheme."
   },
@@ -10149,9 +10145,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
-  },
-  {
-    "id": "scheduled_post_job.process_post.convert_to_post.error",
-    "translation": "Couldn't convert scheduled post to a post for posting"
   }
 ]
