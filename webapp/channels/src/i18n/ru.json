@@ -5521,7 +5521,7 @@
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Каждую минуту} other {Каждые {count, number} минут}}",
   "user.settings.notifications.email.immediately": "Немедленно",
   "user.settings.notifications.email.never": "Никогда",
-  "user.settings.notifications.email.notifyForthreads": "Уведомлять меня об ответах в обсуждениях, за которыми я слежу",
+  "user.settings.notifications.email.notifyForthreads": "Уведомляйте меня об ответах в темах, которые я отслеживаю",
   "user.settings.notifications.email.send": "Отправлять уведомления по электронной почте",
   "user.settings.notifications.emailBatchingInfo": "Уведомления, полученные за выбранный временной промежуток, объединяются и отправляются единым письмом.",
   "user.settings.notifications.emailInfo": "Почтовые уведомления при упоминаниях и личных сообщениях начинают отправляться если вы не в сети или отошли более, чем на 5 минут.",
