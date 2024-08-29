@@ -256,8 +256,6 @@ type AppIface interface {
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
 	// plugin was already enabled.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
-	// LOL
-	SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rctx request.CTX, rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
@@ -1105,6 +1103,7 @@ type AppIface interface {
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
 	SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool
+	SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool
 	SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
