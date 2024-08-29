@@ -668,6 +668,8 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
             try {
                 await fetch(url, {
                     mode: 'no-cors',
+
+                    // @ts-expect-error AbortSignal.any exists; remove this directive when next TS upgrade
                     signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
                 });
                 onValidated(link);
