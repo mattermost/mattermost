@@ -126,6 +126,37 @@ func Test_getIPFilters(t *testing.T) {
 		require.NotNil(t, ipFilters)
 		require.Equal(t, 200, r.StatusCode)
 	})
+
+	t.Run("Feature flag and license and permission but not cloud returns 503", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDIPFILTERING")
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		ipFiltering := &mocks.IPFilteringInterface{}
+		ipFiltering.Mock.On("GetIPFilters").Return(&model.AllowedIPRanges{
+			model.AllowedIPRange{
+				CIDRBlock:   "127.0.0.1/32",
+				Description: "test",
+			},
+		}, nil)
+		ipFilteringImpl := th.App.Srv().IPFiltering
+		defer func() {
+			th.App.Srv().IPFiltering = ipFilteringImpl
+		}()
+		th.App.Srv().IPFiltering = ipFiltering
+
+		lic.Features.Cloud = model.NewPointer(false)
+
+		th.App.Srv().SetLicense(lic)
+
+		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		ipFilters, r, err := th.Client.GetIPFilters(context.Background())
+		require.Error(t, err)
+		require.Nil(t, ipFilters)
+		require.Equal(t, 501, r.StatusCode)
+	})
 }
 
 func Test_applyIPFilters(t *testing.T) {
