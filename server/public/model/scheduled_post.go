@@ -11,6 +11,7 @@ import (
 const (
 	ScheduledPostErrorUnknownError            = "unknown"
 	ScheduledPostErrorCodeChannelArchived     = "channel_archived"
+	ScheduledPostErrorCodeChannelNotFound     = "channel_not_found"
 	ScheduledPostErrorCodeUserDoesNotExist    = "user_missing"
 	ScheduledPostErrorCodeUserDeleted         = "user_deleted"
 	ScheduledPostErrorCodeNoChannelPermission = "no_channel_permission"

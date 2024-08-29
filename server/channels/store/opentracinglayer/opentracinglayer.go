@@ -8504,24 +8504,6 @@ func (s *OpenTracingLayerRoleStore) Save(role *model.Role) (*model.Role, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerScheduledPostStore) BulkUpdateScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.BulkUpdateScheduledPosts")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.ScheduledPostStore.BulkUpdateScheduledPosts(scheduledPosts)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
 func (s *OpenTracingLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.CreateScheduledPost")
@@ -8586,6 +8568,24 @@ func (s *OpenTracingLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(sch
 
 	defer span.Finish()
 	err := s.ScheduledPostStore.PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) UpdatedScheduledPost(scheduledPosts *model.ScheduledPost) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.UpdatedScheduledPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPosts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

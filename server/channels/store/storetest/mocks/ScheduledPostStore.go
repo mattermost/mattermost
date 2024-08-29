@@ -14,24 +14,6 @@ type ScheduledPostStore struct {
 	mock.Mock
 }
 
-// BulkUpdateScheduledPosts provides a mock function with given fields: scheduledPosts
-func (_m *ScheduledPostStore) BulkUpdateScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
-	ret := _m.Called(scheduledPosts)
-
-	if len(ret) == 0 {
-		panic("no return value specified for BulkUpdateScheduledPosts")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]*model.ScheduledPost) error); ok {
-		r0 = rf(scheduledPosts)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // CreateScheduledPost provides a mock function with given fields: scheduledPost
 func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	ret := _m.Called(scheduledPost)
@@ -133,6 +115,24 @@ func (_m *ScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs [
 	var r0 error
 	if rf, ok := ret.Get(0).(func([]string) error); ok {
 		r0 = rf(scheduledPostIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdatedScheduledPost provides a mock function with given fields: scheduledPosts
+func (_m *ScheduledPostStore) UpdatedScheduledPost(scheduledPosts *model.ScheduledPost) error {
+	ret := _m.Called(scheduledPosts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatedScheduledPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.ScheduledPost) error); ok {
+		r0 = rf(scheduledPosts)
 	} else {
 		r0 = ret.Error(0)
 	}

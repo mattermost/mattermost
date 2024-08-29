@@ -7667,22 +7667,6 @@ func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return result, err
 }
 
-func (s *TimerLayerScheduledPostStore) BulkUpdateScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
-	start := time.Now()
-
-	err := s.ScheduledPostStore.BulkUpdateScheduledPosts(scheduledPosts)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.BulkUpdateScheduledPosts", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	start := time.Now()
 
@@ -7743,6 +7727,22 @@ func (s *TimerLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.PermanentlyDeleteScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPosts *model.ScheduledPost) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPosts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdatedScheduledPost", success, elapsed)
 	}
 	return err
 }

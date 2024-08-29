@@ -155,6 +155,7 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 	query := s.getQueryBuilder().
 		Select(s.columns("")...).
 		From("ScheduledPosts").
+		Where(sq.Eq{"ErrorCode": ""}).
 		OrderBy("ScheduledAt DESC", "Id").
 		Limit(perPage)
 
@@ -195,6 +196,10 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 }
 
 func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	if len(scheduledPostIDs) == 0 {
+		return nil
+	}
+
 	query := s.getQueryBuilder().
 		Delete("ScheduledPosts").
 		Where(sq.Eq{"Id": scheduledPostIDs})

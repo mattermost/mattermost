@@ -9696,27 +9696,6 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 
 }
 
-func (s *RetryLayerScheduledPostStore) BulkUpdateScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
-
-	tries := 0
-	for {
-		err := s.ScheduledPostStore.BulkUpdateScheduledPosts(scheduledPosts)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 
 	tries := 0
@@ -9785,6 +9764,27 @@ func (s *RetryLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 	tries := 0
 	for {
 		err := s.ScheduledPostStore.PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPosts *model.ScheduledPost) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPosts)
 		if err == nil {
 			return nil
 		}
