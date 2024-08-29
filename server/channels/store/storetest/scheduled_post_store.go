@@ -17,6 +17,7 @@ import (
 func TestScheduledPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreateScheduledPost", func(t *testing.T) { testCreateScheduledPost(t, rctx, ss, s) })
 	t.Run("GetScheduledPosts", func(t *testing.T) { testGetScheduledPosts(t, rctx, ss, s) })
+	t.Run("PermanentlyDeleteScheduledPosts", func(t *testing.T) { testPermanentlyDeleteScheduledPosts(t, rctx, ss, s) })
 }
 
 func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -171,4 +172,82 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
 	})
+}
+
+func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	scheduledPostIDs := []string{}
+
+	scheduledPost := &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "this is a scheduled post",
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	}
+
+	createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, createdScheduledPost.Id)
+	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
+
+	scheduledPost = &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "this is a scheduled post 2",
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	}
+
+	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, createdScheduledPost.Id)
+	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
+
+	scheduledPost = &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "this is a scheduled post 3",
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	}
+
+	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, createdScheduledPost.Id)
+	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
+
+	scheduledPost = &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "this is a scheduled post 4",
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	}
+
+	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, createdScheduledPost.Id)
+	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
+
+	// verify 4 scheduled posts exist
+	scheduledPosts, err := ss.ScheduledPost().GetScheduledPosts(model.GetMillis()+50000000, "", 10)
+	assert.NoError(t, err)
+	assert.Equal(t, 4, len(scheduledPosts))
+
+	// now we'll delete all scheduled posts
+	err = ss.ScheduledPost().PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+	assert.NoError(t, err)
+
+	// now there should be no posts
+	scheduledPosts, err = ss.ScheduledPost().GetScheduledPosts(model.GetMillis()+50000000, "", 10)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(scheduledPosts))
 }
