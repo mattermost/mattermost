@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -61,9 +60,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseMultipartForm(MaxPluginMemory); err != nil {
 		if err.Error() == "http: request body too large" {
-			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.file_too_large.app_error", map[string]any{
-				"SiteURL": strings.TrimRight(c.App.GetSiteURL(), "/"),
-			}, "", http.StatusRequestEntityTooLarge)
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.file_too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
