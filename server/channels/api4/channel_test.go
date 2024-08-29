@@ -1406,22 +1406,26 @@ func TestGetAllChannels(t *testing.T) {
 	})
 
 	t.Run("verify correct sanization", func(t *testing.T) {
-		channels, resp, err := th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
+		channels, resp, err := th.SystemAdminClient.GetAllChannels(context.Background(), 0, 10000, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
-			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, "", channel.Name)
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
 		}
 
-		channels, resp, err = th.SystemAdminClient.GetAllChannels(context.Background(), 0, 10000, "")
+		channels, resp, err = th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
-			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, "", channel.Name)
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
 		}
 
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
@@ -1430,8 +1434,8 @@ func TestGetAllChannels(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
-			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, "", channel.Name)
+			require.Equal(t, "", channel.CreatorId)
+			require.Equal(t, "", channel.Name)
 		}
 	})
 }
@@ -1919,26 +1923,30 @@ func TestSearchAllChannels(t *testing.T) {
 	})
 
 	t.Run("verify correct sanization", func(t *testing.T) {
-		channels, resp, err := th.SystemManagerClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: policyChannel.Name})
+		channels, resp, err := th.SystemAdminClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
-			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, "", channel.Name)
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
 		}
 
-		channels, resp, err = th.SystemAdminClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: policyChannel.Name})
+		channels, resp, err = th.SystemManagerClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.True(t, len(channels) > 0)
 		for _, channel := range channels {
-			require.NotEqual(t, "", channel.CreatorId)
-			require.NotEqual(t, "", channel.Name)
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
 		}
 
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
-		channels, resp, err = th.SystemManagerClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: policyChannel.Name})
+		channels, resp, err = th.SystemManagerClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
 		require.NoError(t, err)
 		require.True(t, len(channels) > 0)
 		CheckOKStatus(t, resp)
