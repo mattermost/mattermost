@@ -156,6 +156,27 @@ describe('Channel Bookmarks', () => {
         cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realNextLink);
     });
 
+    it('edit link bookmark, only display name and emoji', () => {
+        // # Create link
+        const {displayName, realLink} = createLinkBookmark();
+
+        const nextDisplayName = 'Next custom display name 2';
+        const nextEmojiName = 'handshake';
+
+        // # Open edit
+        openEditModal(displayName);
+
+        // # Change link, displayname, emoji
+        editTextInput('titleInput', nextDisplayName);
+        selectEmoji(nextEmojiName);
+
+        // # Save
+        editModalSave();
+
+        // * Verify changes
+        cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realLink);
+    });
+
     it('delete bookmark', () => {
         const {displayName} = createLinkBookmark();
 

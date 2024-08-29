@@ -281,7 +281,7 @@ function ChannelBookmarkCreateModal({
                 return false;
             }
 
-            if (validatedLink) {
+            if (validatedLink || link === bookmark?.link_url) {
                 return true;
             }
         }
@@ -354,7 +354,7 @@ function ChannelBookmarkCreateModal({
     }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon]);
 
     const confirmDisabled = saving || !isValid || !hasChanges;
-    const linkLoading = checkingLink ? <LoadingSpinner/> : (!linkError && isValid && checkedIcon);
+    const linkStatus = checkingLink ? <LoadingSpinner/> : (!linkError && validatedLink && checkedIcon);
 
     return (
         <GenericModal
@@ -387,7 +387,7 @@ function ChannelBookmarkCreateModal({
                             value={link}
                             data-testid='linkInput'
                             autoFocus={true}
-                            addon={linkLoading || undefined}
+                            addon={linkStatus || undefined}
                             customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
                         />
                     </>
