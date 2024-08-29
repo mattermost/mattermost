@@ -110,7 +110,7 @@ const BookmarkItem = (({bookmark, drag, disableInteractions}: Props) => {
             {...drag.draggableProps}
             $disableInteractions={disableInteractions}
         >
-            {link && cloneElement(link, drag.dragHandleProps)}
+            {link && cloneElement(link, {...drag.dragHandleProps, role: 'link'})}
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}

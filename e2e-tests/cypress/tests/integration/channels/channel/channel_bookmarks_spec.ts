@@ -50,7 +50,7 @@ describe('Channel Bookmarks', () => {
 
         cy.findByTestId('channel-bookmarks-container').within(() => {
             // * Verify href
-            cy.findByRole('button', {name: link}).should('have.attr', 'href', realLink);
+            cy.findByRole('link', {name: link}).should('have.attr', 'href', realLink);
         });
     });
 
@@ -59,7 +59,7 @@ describe('Channel Bookmarks', () => {
 
         cy.findByTestId('channel-bookmarks-container').within(() => {
             // * Verify emoji, displayname, and href
-            cy.findByRole('button', {name: `:${emojiName}: ${displayName}`}).should('have.attr', 'href', realLink);
+            cy.findByRole('link', {name: `:${emojiName}: ${displayName}`}).should('have.attr', 'href', realLink);
         });
     });
 
@@ -68,7 +68,7 @@ describe('Channel Bookmarks', () => {
         const {file} = createFileBookmark({file: 'small-image.png'});
 
         // * Verify preview icon
-        cy.findByRole('button', {name: file}).as('link').find('.file-icon.image');
+        cy.findByRole('link', {name: file}).as('link').find('.file-icon.image');
 
         // # Open preview
         cy.get('@link').click();
@@ -117,7 +117,7 @@ describe('Channel Bookmarks', () => {
         editModalCreate();
 
         // * Verify bookmark created
-        cy.findByRole('button', {name: file});
+        cy.findByRole('link', {name: file});
     });
 
     it('create file bookmark, with emoji and custom title', () => {
@@ -125,7 +125,7 @@ describe('Channel Bookmarks', () => {
         const {file, displayName, emojiName} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smiling_face_with_3_hearts'});
 
         // * Verify emoji and custom display name
-        cy.findByRole('button', {name: `:${emojiName}: ${displayName}`}).click();
+        cy.findByRole('link', {name: `:${emojiName}: ${displayName}`}).click();
 
         // * Verify preview opened
         cy.get('.file-preview-modal').findByRole('heading', {name: file});
@@ -153,14 +153,14 @@ describe('Channel Bookmarks', () => {
         editModalSave();
 
         // * Verify changes
-        cy.findAllByRole('button', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realNextLink);
+        cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realNextLink);
     });
 
     it('delete bookmark', () => {
         const {displayName} = createLinkBookmark();
 
         // * Verify bookmark exists
-        cy.findByRole('button', {name: displayName});
+        cy.findByRole('link', {name: displayName});
 
         // # Start delete bookmark flow
         openDotMenu(displayName);
@@ -175,18 +175,19 @@ describe('Channel Bookmarks', () => {
         });
 
         // * Verify bookmark deleted
-        cy.findByRole('button', {name: displayName}).should('not.exist');
+        cy.findByRole('link', {name: displayName}).should('not.exist');
     });
 
     it('reorder bookmark', () => {
-        const {displayName: name1} = createLinkBookmark();
-        const {displayName: name2} = createLinkBookmark();
+        const {displayName: name1} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname 1'});
+        const {displayName: name2} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname 2'});
 
         // # Start reorder bookmark flow
         cy.findByTestId('channel-bookmarks-container').within(() => {
-            cy.findAllByRole('button').should('be.visible').as('fromChannelSidebarLink');
-            cy.get('@fromChannelSidebarLink').eq(0).should('contain', name1);
-            cy.get('@fromChannelSidebarLink').eq(1).should('contain', name2);
+            cy.findAllByRole('link').should('be.visible').as('bookmarks');
+            cy.get('@bookmarks').eq(-1).scrollIntoView();
+            cy.get('@bookmarks').eq(-2).should('contain', name1);
+            cy.get('@bookmarks').eq(-1).should('contain', name2);
 
             // # Perform drag using keyboard
             cy.get(`a:contains(${name1})`).
@@ -194,9 +195,10 @@ describe('Channel Bookmarks', () => {
                 trigger('keydown', {keyCode: RightArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
                 trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
 
-            cy.findAllByRole('button').should('be.visible').as('fromChannelSidebarLink');
-            cy.get('@fromChannelSidebarLink').eq(0).should('contain', name2);
-            cy.get('@fromChannelSidebarLink').eq(1).should('contain', name1);
+            // * Verify correct order
+            cy.findAllByRole('link').should('be.visible').as('bookmarks-after');
+            cy.get('@bookmarks-after').eq(-2).should('contain', name2);
+            cy.get('@bookmarks-after').eq(-1).should('contain', name1);
         });
     });
 });
@@ -214,8 +216,8 @@ function openEditModal(name: string) {
 function openDotMenu(name: string) {
     cy.findByTestId('channel-bookmarks-container').within(() => {
         // # open menu
-        cy.findByRole('button', {name}).scrollIntoView().focus().
-            parent('div').find('button').click();
+        cy.findByRole('link', {name}).scrollIntoView().focus().
+            parent('div').findByRole('button').click();
     });
 }
 

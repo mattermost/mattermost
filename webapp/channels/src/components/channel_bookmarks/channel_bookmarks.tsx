@@ -82,7 +82,7 @@ const makeItemRenderer = (bookmarks: IDMappedObjects<ChannelBookmark>, disableIn
                         key={id}
                         drag={drag}
                         isDragging={snap.isDragging}
-                        disableInteractions={disableInteractions}
+                        disableInteractions={snap.isDragging || disableInteractions}
                         bookmark={bookmarks[id]}
                     />
                 );
@@ -95,8 +95,9 @@ export default ChannelBookmarks;
 
 const Container = styled.div`
     display: flex;
-    padding: 0px 6px;
-    min-height: 40px;
+    padding: 0 6px;
+    padding-right: 0;
+    min-height: 38px;
     align-items: center;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     overflow-x: auto;
