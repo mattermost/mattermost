@@ -371,6 +371,10 @@ const useKeyHandler = (
         }
     }, [draft.message]);
 
+    useEffect(() => {
+        messageHistoryIndex.current = messageHistory.length;
+    }, [messageHistory]);
+
     // Update last channel switch at
     useEffect(() => {
         lastChannelSwitchAt.current = Date.now();

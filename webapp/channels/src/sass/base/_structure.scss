@@ -281,9 +281,10 @@ body.app__body #root {
                 width: 100%;
                 grid-area: center;
                 transition: width .25s ease-in-out;
+                border-radius: var(--radius-l);
             }
 
-            --columns: min-content auto min-content;
+            --columns: min-content 1fr min-content;
         }
 
         #sidebar-right {
