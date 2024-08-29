@@ -198,7 +198,7 @@ func TestValidateToken(t *testing.T) {
 
 		ok, err := New(&usMock).ValidateToken(u, code)
 		require.False(t, ok)
-		require.Error(t, err)
+		require.NoError(t, err)
 	})
 }
 
