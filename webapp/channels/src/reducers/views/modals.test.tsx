@@ -18,7 +18,7 @@ const TestModal = () => {
             <Modal.Body/>
         </Modal>
     );
-}
+};
 
 describe('Reducers.Modals', () => {
     test('Initial state', () => {
