@@ -38,9 +38,8 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -87,9 +86,8 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -136,9 +134,8 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -185,9 +182,8 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>

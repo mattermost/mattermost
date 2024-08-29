@@ -179,9 +179,8 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -313,9 +312,8 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
