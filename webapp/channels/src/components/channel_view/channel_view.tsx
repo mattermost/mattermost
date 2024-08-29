@@ -149,7 +149,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     </div>
                 </div>
             );
-        } else {
+        } else if (this.props.channelRoleLoaded) {
             createPost = (
                 <div
                     id='post-create'
@@ -157,6 +157,31 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
                     <AdvancedCreatePost/>
+                </div>
+            );
+        } else {
+            createPost = (
+                <div
+                    className='post-create__container'
+                    id='post-create'
+                >
+                    <div
+                        className='channel-archived__message'
+                    >
+                        <FormattedMarkdownMessage
+                            id='noRolesMessage'
+                            defaultMessage='Roles for this channel are not yet loaded. Please wait or reload the app.'
+                        />
+                        <button
+                            className='btn btn-primary channel-archived__close-btn'
+                            onClick={this.onClickCloseChannel}
+                        >
+                            <FormattedMessage
+                                id='center_panel.archived.closeChannel'
+                                defaultMessage='Close Channel'
+                            />
+                        </button>
+                    </div>
                 </div>
             );
         }

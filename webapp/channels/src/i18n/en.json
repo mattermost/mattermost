@@ -4337,6 +4337,7 @@
   "no_results.user_groups.archived.title": "No archived groups",
   "no_results.user_groups.subtitle": "Groups are a custom collection of users that can be used for mentions and invites.",
   "no_results.user_groups.title": "No groups yet",
+  "noRolesMessage": "Roles for this channel are not yet loaded. Please wait or reload the app.",
   "notification.crt": "Reply in {title}",
   "notification.dm": "Direct Message",
   "notify_all.confirm": "Confirm",

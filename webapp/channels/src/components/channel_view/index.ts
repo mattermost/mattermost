@@ -5,8 +5,9 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
-import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getDirectTeammate, getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -33,6 +34,8 @@ function mapStateToProps(state: GlobalState) {
     const enableOnboardingFlow = config.EnableOnboardingFlow === 'true';
     const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
+    const channelRoles = channel ? getMyChannelMembership(state, channel.id)?.roles || '' : '';
+    const channelRoleLoaded = channelRoles.split(' ').some((v) => Boolean(getRoles(state)[v]));
     return {
         channelId: channel ? channel.id : '',
         deactivatedChannel: channel ? isDeactivatedChannel(state, channel.id) : false,
@@ -44,6 +47,7 @@ function mapStateToProps(state: GlobalState) {
         isFirstAdmin: isFirstAdmin(state),
         enableWebSocketEventScope,
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
+        channelRoleLoaded,
     };
 }
 
