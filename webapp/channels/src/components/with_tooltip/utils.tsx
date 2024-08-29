@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {isMessageDescriptor} from 'utils/i18n';
 
-export function getAsFormattedMessage(v: string | MessageDescriptor | React.ReactElement | undefined, values?: ComponentProps<typeof FormattedMessage>['values']) {
+export function getAsFormattedMessage(v: string | MessageDescriptor | React.ReactElement | React.ReactNode | undefined, values?: ComponentProps<typeof FormattedMessage>['values']) {
     if (!v) {
         return undefined;
     }

@@ -107,6 +107,10 @@ export function getScheme(url: string): string | null {
     return match && match[1];
 }
 
+export function urlRemoveProtocol(url = '') {
+    return url.replace(/([a-z0-9+.-]+):\/\//i, '');
+}
+
 function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {
     if (intl) {
         return intl.formatMessage(message);

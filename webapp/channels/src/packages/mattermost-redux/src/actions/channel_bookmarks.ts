@@ -83,6 +83,26 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
     };
 }
 
+export function reorderBookmark(channelId: string, id: string, newOrder: number, connectionId: string) {
+    return async (dispatch: DispatchFunc) => {
+        try {
+            const bookmarks = await Client4.updateChannelBookmarkSortOrder(channelId, id, newOrder, connectionId);
+
+            dispatch({
+                type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
+                data: {channelId, bookmarks},
+            });
+        } catch (error) {
+            return {
+                data: false,
+                error,
+            };
+        }
+
+        return {data: true};
+    };
+}
+
 export function fetchChannelBookmarks(channelId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let bookmarks;

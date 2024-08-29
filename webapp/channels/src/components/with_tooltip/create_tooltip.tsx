@@ -15,7 +15,7 @@ type EmojiStyle = 'inline' | 'large' | undefined;
 
 export type CommonTooltipProps = {
     id: string;
-    title: string | MessageDescriptor | React.ReactElement;
+    title: string | MessageDescriptor | React.ReactElement | React.ReactNode;
     hint?: string | MessageDescriptor | React.ReactElement;
     shortcut?: ShortcutDefinition;
     emoji?: string;

@@ -34,6 +34,14 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
     };
 }
 
+export function reorderBookmark(channelId: string, id: string, newOrder: number) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState() as GlobalState;
+        const connectionId = getConnectionId(state);
+        return dispatch(ChannelBookmarkActions.reorderBookmark(channelId, id, newOrder, connectionId));
+    };
+}
+
 export function fetchChannelBookmarks(channelId: string) {
     return ChannelBookmarkActions.fetchChannelBookmarks(channelId);
 }
