@@ -8,6 +8,15 @@ import (
 	"net/http"
 )
 
+const (
+	ScheduledPostErrorUnknownError            = "unknown"
+	ScheduledPostErrorCodeChannelArchived     = "channel_archived"
+	ScheduledPostErrorCodeUserDoesNotExist    = "user_missing"
+	ScheduledPostErrorCodeUserDeleted         = "user_deleted"
+	ScheduledPostErrorCodeNoChannelPermission = "no_channel_permission"
+	ScheduledPostErrorNoChannelMember         = "no_channel_member"
+)
+
 type ScheduledPost struct {
 	Draft
 	Id          string `json:"id"`
@@ -102,4 +111,23 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 	}
 
 	return post, nil
+}
+
+func (s *ScheduledPost) Auditable() map[string]interface{} {
+	var metaData map[string]any
+	if s.Metadata != nil {
+		metaData = s.Metadata.Auditable()
+	}
+
+	return map[string]interface{}{
+		"id":         s.Id,
+		"create_at":  s.CreateAt,
+		"update_at":  s.UpdateAt,
+		"user_id":    s.UserId,
+		"channel_id": s.ChannelId,
+		"root_id":    s.RootId,
+		"props":      s.GetProps(),
+		"file_ids":   s.FileIds,
+		"metadata":   metaData,
+	}
 }

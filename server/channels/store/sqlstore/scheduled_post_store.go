@@ -5,13 +5,12 @@ package sqlstore
 
 import (
 	"fmt"
-	"github.com/lib/pq"
-	"sync"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+	"strings"
+	"sync"
 )
 
 type SqlScheduledPostStore struct {
@@ -28,7 +27,7 @@ func newScheduledPostStore(sqlStore *SqlStore) *SqlScheduledPostStore {
 }
 
 func (s *SqlScheduledPostStore) columns(prefix string) []string {
-	if prefix != "" {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
 		prefix = prefix + "."
 	}
 
@@ -46,6 +45,19 @@ func (s *SqlScheduledPostStore) columns(prefix string) []string {
 		prefix + "ScheduledAt",
 		prefix + "ProcessedAt",
 		prefix + "ErrorCode",
+	}
+}
+
+func (s *SqlScheduledPostStore) updateColumns() []string {
+	return []string{
+		"UpdateAt",
+		"Message",
+		"Props",
+		"FileIds",
+		"Priority",
+		"ScheduledAt",
+		"ProcessedAt",
+		"ErrorCode",
 	}
 }
 
@@ -184,11 +196,8 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 
 func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
 	query := s.getQueryBuilder().
-		Delete("ScheduledPosts")
-
-	if *s.settings.DriverName == model.DatabaseDriverPostgres {
-		query = query.Where(sq.Eq{"Id": pq.Array(scheduledPostIDs)})
-	}
+		Delete("ScheduledPosts").
+		Where(sq.Eq{"Id": scheduledPostIDs})
 
 	sql, params, err := query.ToSql()
 	if err != nil {
@@ -197,11 +206,46 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 		return errToReturn
 	}
 
-	if _, err := s.GetMasterX().Exec(sql, params); err != nil {
+	if _, err := s.GetMasterX().Exec(sql, params...); err != nil {
 		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to delete batch of scheduled posts from database")
 		s.Logger().Error(errToReturn.Error())
 		return errToReturn
 	}
 
 	return nil
+}
+
+func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+	builder := s.getQueryBuilder().
+		Update("ScheduledPosts").
+		SetMap(s.toUpdateMap(scheduledPost)).
+		Where(sq.Eq{"Id": scheduledPost.Id})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from updating scheduled posts", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from bulk updating scheduled posts")
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post")
+	}
+
+	return nil
+}
+
+func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) map[string]interface{} {
+	now := model.GetMillis()
+	return map[string]interface{}{
+		"UpdateAt":    now,
+		"Message":     scheduledPost.Message,
+		"Props":       model.StringInterfaceToJSON(scheduledPost.GetProps()),
+		"FileIds":     model.ArrayToJSON(scheduledPost.FileIds),
+		"Priority":    model.StringInterfaceToJSON(scheduledPost.Priority),
+		"ScheduledAt": scheduledPost.ScheduledAt,
+		"ProcessedAt": now,
+		"ErrorCode":   scheduledPost.ErrorCode,
+	}
 }
