@@ -149,6 +149,7 @@
     "enzyme-to-json": "3.6.2",
     "eslint-plugin-no-only-tests": "3.1.0",
     "external-remotes-plugin": "1.0.0",
+    "html-loader": "5.1.0",
     "html-webpack-plugin": "5.5.0",
     "identity-obj-proxy": "3.0.0",
     "image-webpack-loader": "8.1.0",

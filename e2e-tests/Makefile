@@ -2,18 +2,17 @@ SHELL := /bin/bash
 
 .PHONY: all run stop clean
 all: run
-run: generate-server start-server prepare-server run-test
+run: generate-server start-server run-test
 stop: stop-server stop-dashboard clean
 clean:
 	rm -fv .ci/server.yml
 	rm -fv .ci/.env.{server,dashboard,cypress,playwright}
 
-.PHONY: generate-server start-server prepare-server run-test stop-server restart-server
+.PHONY: generate-server start-server run-test stop-server restart-server
 generate-server:
 	bash ./.ci/server.generate.sh
 start-server: generate-server
 	bash ./.ci/server.start.sh
-prepare-server:
 	bash ./.ci/server.prepare.sh
 run-test:
 	bash ./.ci/server.run_test.sh

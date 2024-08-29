@@ -2,14 +2,8 @@
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial state with false 1`] = `
 <Fragment>
-  <BooleanSetting
+  <Memo(BooleanSetting)
     disabled={false}
-    falseText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="False"
-        id="admin.false"
-      />
-    }
     helpText={
       <FormattedMarkdownMessage
         defaultMessage="When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests."
@@ -25,12 +19,6 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
     }
     onChange={[Function]}
     setByEnv={false}
-    trueText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="True"
-        id="admin.true"
-      />
-    }
     value={false}
   />
   <ConfirmModal
@@ -63,14 +51,8 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial state with true 1`] = `
 <Fragment>
-  <BooleanSetting
+  <Memo(BooleanSetting)
     disabled={false}
-    falseText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="False"
-        id="admin.false"
-      />
-    }
     helpText={
       <FormattedMarkdownMessage
         defaultMessage="When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests."
@@ -86,12 +68,6 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
     }
     onChange={[Function]}
     setByEnv={false}
-    trueText={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="True"
-        id="admin.true"
-      />
-    }
     value={true}
   />
   <ConfirmModal
