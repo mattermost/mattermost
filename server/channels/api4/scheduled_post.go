@@ -5,9 +5,10 @@ package api4
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
-	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"

@@ -4,13 +4,13 @@
 package sqlstore
 
 import (
-	"fmt"
+	"strings"
+	"sync"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
-	"strings"
-	"sync"
 )
 
 type SqlScheduledPostStore struct {
@@ -45,19 +45,6 @@ func (s *SqlScheduledPostStore) columns(prefix string) []string {
 		prefix + "ScheduledAt",
 		prefix + "ProcessedAt",
 		prefix + "ErrorCode",
-	}
-}
-
-func (s *SqlScheduledPostStore) updateColumns() []string {
-	return []string{
-		"UpdateAt",
-		"Message",
-		"Props",
-		"FileIds",
-		"Priority",
-		"ScheduledAt",
-		"ProcessedAt",
-		"ErrorCode",
 	}
 }
 
@@ -172,9 +159,6 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 				},
 			})
 	}
-
-	ddd, p, _ := query.ToSql()
-	s.logger.Info(fmt.Sprintf("%s, %v", ddd, p))
 
 	var scheduledPosts []*model.ScheduledPost
 	if err := s.GetReplicaX().SelectBuilder(&scheduledPosts, query); err != nil {

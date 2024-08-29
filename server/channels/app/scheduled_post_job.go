@@ -4,15 +4,19 @@
 package app
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 const (
+	// TODO
 	getPendingScheduledPostsPageSize = 10
+	scheduledPostBatchWaitTime       = 1 * time.Second
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
@@ -23,9 +27,8 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	lastScheduledPostId := ""
 
 	for {
-		// TODO add logic to skip posts which have been tried the max umber of allowed attempts times and amrk them as errored.
-		// TODO add some delay here to not slam the database with multiple requests back after one another.
-		// TODO: dont fetch posts that have an error code set
+		// we wait some time before processing each batch to avoid hammering the database with too many requests.
+		time.Sleep(scheduledPostBatchWaitTime)
 		rctx.Logger().Debug("ProcessScheduledPosts: fetching page of pending scheduled posts...")
 
 		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetScheduledPosts(beforeTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
@@ -73,6 +76,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	}
 }
 
+// processScheduledPostBatch processes one batch
 func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
 	rctx.Logger().Debug("processScheduledPostBatch called...")
 	var failedScheduledPosts []*model.ScheduledPost
@@ -96,6 +100,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 	return nil
 }
 
+// postScheduledPost processes an individual scheduled post
 func (a *App) postScheduledPost(rctx request.CTX, rawScheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	// we'll process scheduled posts one by one.
 	// If an error occurs, we'll log it and move onto the next scheduled post
@@ -167,6 +172,7 @@ func (a *App) postScheduledPost(rctx request.CTX, rawScheduledPost *model.Schedu
 	return scheduledPost, nil
 }
 
+// canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
 func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, channel *model.Channel) (*model.ScheduledPost, bool, error) {
 	user, appErr := a.GetUser(scheduledPost.UserId)
 	if appErr != nil {
