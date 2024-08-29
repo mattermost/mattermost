@@ -336,9 +336,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -727,9 +726,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -1120,9 +1118,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -1579,9 +1576,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
