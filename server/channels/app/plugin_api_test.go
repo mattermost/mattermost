@@ -1425,14 +1425,14 @@ func TestPluginCreateBot(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	bot, err := api.CreateBot(&model.Bot{
-		Username:    model.NewRandomString(10),
+		Username:    "a" + model.NewRandomString(10),
 		DisplayName: "bot",
 		Description: "bot",
 	})
 	require.Nil(t, err)
 
 	_, err = api.CreateBot(&model.Bot{
-		Username:    model.NewRandomString(10),
+		Username:    "a" + model.NewRandomString(10),
 		OwnerId:     bot.UserId,
 		DisplayName: "bot2",
 		Description: "bot2",
@@ -2408,8 +2408,8 @@ func TestPluginServeMetrics(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		prevEnable = cfg.MetricsSettings.Enable
 		prevAddress = cfg.MetricsSettings.ListenAddress
-		cfg.MetricsSettings.Enable = model.NewBool(true)
-		cfg.MetricsSettings.ListenAddress = model.NewString(":30067")
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
+		cfg.MetricsSettings.ListenAddress = model.NewPointer(":30067")
 	})
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.MetricsSettings.Enable = prevEnable

@@ -25,9 +25,12 @@ const styles = {
         overflow: 'hidden',
     },
     reference: {
-        display: 'inline-block',
         height: 'auto',
         width: 'auto',
+        display: 'inline-block',
+        position: 'relative' as const,
+        transform: 'translateY(-100%)',
+        wordBreak: 'break-word' as const,
     },
     placeholder: {
         overflow: 'hidden',
@@ -38,6 +41,9 @@ const styles = {
         whiteSpace: 'nowrap' as const,
         background: 'none',
         borderColor: 'transparent',
+    },
+    textArea: {
+        overflowY: 'auto' as const,
     },
 };
 
@@ -168,6 +174,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 onInput={onInput}
                 value={value}
                 defaultValue={defaultValue}
+                style={styles.textArea}
             />
             <div style={styles.container}>
                 <div

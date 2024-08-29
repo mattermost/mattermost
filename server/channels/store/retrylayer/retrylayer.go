@@ -5903,6 +5903,27 @@ func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string
 
 }
 
+func (s *RetryLayerJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllByTypeAndStatusPage(c, jobType, status, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
@@ -8363,6 +8384,27 @@ func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 
 }
 
+func (s *RetryLayerPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.DeleteInvalidVisibleDmsGms()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 	tries := 0
@@ -8888,11 +8930,11 @@ func (s *RetryLayerRemoteClusterStore) Get(remoteClusterId string) (*model.Remot
 
 }
 
-func (s *RetryLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+func (s *RetryLayerRemoteClusterStore) GetAll(offset int, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.RemoteClusterStore.GetAll(filter)
+		result, err := s.RemoteClusterStore.GetAll(offset, limit, filter)
 		if err == nil {
 			return result, nil
 		}
@@ -10358,11 +10400,11 @@ func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteId string, userId 
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+func (s *RetryLayerSharedChannelStore) GetRemotes(offset int, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetRemotes(opts)
+		result, err := s.SharedChannelStore.GetRemotes(offset, limit, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -14702,11 +14744,11 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 
 }
 
-func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamID string) (int64, error) {
+func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamID string, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.WebhookStore.AnalyticsIncomingCount(teamID)
+		result, err := s.WebhookStore.AnalyticsIncomingCount(teamID, userID)
 		if err == nil {
 			return result, nil
 		}

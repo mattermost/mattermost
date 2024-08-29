@@ -112,7 +112,9 @@ func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, er
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
 
-	user.PreSave()
+	if err := user.PreSave(); err != nil {
+		return nil, err
+	}
 	if err := user.IsValid(); err != nil {
 		return nil, err
 	}

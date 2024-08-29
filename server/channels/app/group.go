@@ -40,7 +40,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *mo
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		group.MemberCount = model.NewInt(int(memberCount))
+		group.MemberCount = model.NewPointer(int(memberCount))
 	}
 
 	return group, nil
@@ -160,7 +160,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	group.MemberCount = model.NewInt(int(count))
+	group.MemberCount = model.NewPointer(int(count))
 	groupJSON, jsonErr := json.Marshal(newGroup)
 	if jsonErr != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -199,7 +199,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	updatedGroup.MemberCount = model.NewInt(int(count))
+	updatedGroup.MemberCount = model.NewPointer(int(count))
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 
 	groupJSON, err := json.Marshal(updatedGroup)
@@ -229,7 +229,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 		return nil, model.NewAppError("DeleteGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	deletedGroup.MemberCount = model.NewInt(int(count))
+	deletedGroup.MemberCount = model.NewPointer(int(count))
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 
@@ -260,7 +260,7 @@ func (a *App) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
 		return nil, model.NewAppError("RestoreGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	restoredGroup.MemberCount = model.NewInt(int(count))
+	restoredGroup.MemberCount = model.NewPointer(int(count))
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 

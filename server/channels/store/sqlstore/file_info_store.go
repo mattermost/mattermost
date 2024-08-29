@@ -514,6 +514,10 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
 		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
+		Where(sq.Or{
+			sq.Eq{"FileInfo.CreatorId": model.BookmarkFileOwner},
+			sq.NotEq{"FileInfo.PostId": ""},
+		}).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 

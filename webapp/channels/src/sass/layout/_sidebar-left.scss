@@ -1132,10 +1132,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         & span.SidebarChannelLinkLabel {
+            overflow: hidden;
             max-width: 100%;
             height: 18px;
             line-height: 18px;
             text-align: justify;
+            text-overflow: ellipsis;
             user-select: none;
             white-space: nowrap;
         }
@@ -1298,13 +1300,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         overflow: hidden;
         flex-grow: 1;
-    }
-
-    .SidebarChannelLinkLabel_wrapper > div.truncated {
-        display: block;
-        overflow: hidden;
-        width: 100%;
-        text-overflow: ellipsis;
+        gap: 8px;
     }
 
     .DirectChannel__profile-picture {

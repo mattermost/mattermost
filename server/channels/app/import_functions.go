@@ -85,8 +85,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultTeamGuestRole == nil {
 			data.DefaultTeamGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewString("Team Guest Role for Scheme"),
-				SchemeManaged: model.NewBool(true),
+				DisplayName:   model.NewPointer("Team Guest Role for Scheme"),
+				SchemeManaged: model.NewPointer(true),
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
@@ -108,8 +108,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultChannelGuestRole == nil {
 			data.DefaultChannelGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewString("Channel Guest Role for Scheme"),
-				SchemeManaged: model.NewBool(true),
+				DisplayName:   model.NewPointer("Channel Guest Role for Scheme"),
+				SchemeManaged: model.NewPointer(true),
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
@@ -536,6 +536,12 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
+	if data.CustomStatus != nil {
+		if err := user.SetCustomStatus(data.CustomStatus); err != nil {
+			return model.NewAppError("importUser", "app.import.custom_status.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
@@ -883,7 +889,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
 		}
 		if !user.IsGuest() {
-			channels[team.Id] = append(channels[team.Id], imports.UserChannelImportData{Name: model.NewString(model.DefaultChannelName)})
+			channels[team.Id] = append(channels[team.Id], imports.UserChannelImportData{Name: model.NewPointer(model.DefaultChannelName)})
 		}
 
 		teamsByID[team.Id] = team
@@ -1752,40 +1758,187 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		return nil
 	}
 
+	var members []string
+	if data.Participants != nil {
+		members = make([]string, len(data.Participants))
+		for i, member := range data.Participants {
+			members[i] = *member.Username
+		}
+	} else if data.Members != nil {
+		members = make([]string, len(*data.Members))
+		copy(members, *data.Members)
+	} else {
+		return model.NewAppError("BulkImport", "app.import.import_direct_channel.no_members.error", nil, "", http.StatusBadRequest)
+	}
+
 	var userIDs []string
-	userMap, err := a.getUsersByUsernames(*data.Members)
+	userMap, err := a.getUsersByUsernames(members)
 	if err != nil {
 		return err
 	}
-	for _, user := range *data.Members {
+	for _, user := range members {
 		userIDs = append(userIDs, userMap[strings.ToLower(user)].Id)
 	}
 
 	var channel *model.Channel
 
 	if len(userIDs) == 2 {
-		ch, err := a.createDirectChannel(rctx, userIDs[0], userIDs[1])
-		if err != nil && err.Id != store.ChannelExistsError {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
+		ch, err2 := a.createDirectChannel(rctx, userIDs[0], userIDs[1])
+		if err2 != nil && err2.Id != store.ChannelExistsError {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(rctx, userIDs)
-		if err != nil && err.Id != store.ChannelExistsError {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
+		ch, err2 := a.createGroupChannel(rctx, userIDs)
+		if err2 != nil && err2.Id != store.ChannelExistsError {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
 		channel = ch
 	}
 
+	totalMembers, err := a.GetChannelMemberCount(rctx, channel.Id)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	var ems = make([]model.ChannelMember, 0, totalMembers)
+	var page int
+
+	for int64(len(ems)) < totalMembers {
+		res, err := a.GetChannelMembersPage(rctx, channel.Id, page, 100)
+		if err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		ems = append(ems, res...)
+		page++
+	}
+
+	existingMembers := make(map[string]model.ChannelMember)
+	for _, member := range ems {
+		existingMembers[member.UserId] = member
+	}
+
+	newChannelMembers := make([]*model.ChannelMember, 0)
+	for _, member := range data.Participants {
+		m := &model.ChannelMember{
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+		if member.LastViewedAt != nil {
+			m.LastViewedAt = *member.LastViewedAt
+		}
+		if member.MsgCount != nil {
+			m.MsgCount = *member.MsgCount
+		}
+		if member.MentionCount != nil {
+			m.MentionCount = *member.MentionCount
+		}
+		if member.MentionCountRoot != nil {
+			m.MentionCountRoot = *member.MentionCountRoot
+		}
+		if member.UrgentMentionCount != nil {
+			m.UrgentMentionCount = *member.UrgentMentionCount
+		}
+		if member.MsgCountRoot != nil {
+			m.MsgCountRoot = *member.MsgCountRoot
+		}
+		if member.SchemeUser != nil {
+			m.SchemeUser = *member.SchemeUser
+		}
+		if member.SchemeAdmin != nil {
+			m.SchemeAdmin = *member.SchemeAdmin
+		}
+		if member.SchemeGuest != nil {
+			m.SchemeGuest = *member.SchemeGuest
+		}
+
+		if member.NotifyProps != nil {
+			if member.NotifyProps.Desktop != nil {
+				if value, ok := m.NotifyProps[model.DesktopNotifyProp]; !ok || value != *member.NotifyProps.Desktop {
+					m.NotifyProps[model.DesktopNotifyProp] = *member.NotifyProps.Desktop
+				}
+			}
+
+			if member.NotifyProps.MarkUnread != nil {
+				if value, ok := m.NotifyProps[model.DesktopSoundNotifyProp]; !ok || value != *member.NotifyProps.MarkUnread {
+					m.NotifyProps[model.MarkUnreadNotifyProp] = *member.NotifyProps.MarkUnread
+				}
+			}
+
+			if member.NotifyProps.Mobile != nil {
+				if value, ok := m.NotifyProps[model.PushNotifyProp]; !ok || value != *member.NotifyProps.Mobile {
+					m.NotifyProps[model.PushNotifyProp] = *member.NotifyProps.Mobile
+				}
+			}
+
+			if member.NotifyProps.Email != nil {
+				if value, ok := m.NotifyProps[model.EmailNotifyProp]; !ok || value != *member.NotifyProps.Email {
+					m.NotifyProps[model.EmailNotifyProp] = *member.NotifyProps.Email
+				}
+			}
+
+			if member.NotifyProps.IgnoreChannelMentions != nil {
+				if value, ok := m.NotifyProps[model.IgnoreChannelMentionsNotifyProp]; !ok || value != *member.NotifyProps.IgnoreChannelMentions {
+					m.NotifyProps[model.IgnoreChannelMentionsNotifyProp] = *member.NotifyProps.IgnoreChannelMentions
+				}
+			}
+
+			if member.NotifyProps.ChannelAutoFollowThreads != nil {
+				if value, ok := m.NotifyProps[model.ChannelAutoFollowThreads]; !ok || value != *member.NotifyProps.ChannelAutoFollowThreads {
+					m.NotifyProps[model.ChannelAutoFollowThreads] = *member.NotifyProps.ChannelAutoFollowThreads
+				}
+			}
+		}
+
+		u := userMap[strings.ToLower(*member.Username)]
+		if existing, ok := existingMembers[u.Id]; ok {
+			// Decide which membership is newer. We have LastViewedAt in the import data, which should
+			// give us a good idea of which membership is newer.
+			if existing.LastViewedAt > m.LastViewedAt {
+				continue
+			}
+		}
+		m.UserId = u.Id
+		m.ChannelId = channel.Id
+		newChannelMembers = append(newChannelMembers, m)
+	}
+
+	// the channel memberships are already created in the channel creation
+	// we always going to update the channel memberships
+	if len(newChannelMembers) > 0 {
+		_, nErr := a.Srv().Store().Channel().UpdateMultipleMembers(newChannelMembers)
+		if nErr != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(nErr)
+		}
+	}
+
 	var preferences model.Preferences
 
-	for _, userID := range userIDs {
-		preferences = append(preferences, model.Preference{
-			UserId:   userID,
-			Category: model.PreferenceCategoryDirectChannelShow,
-			Name:     channel.Id,
-			Value:    "true",
-		})
+	if data.ShownBy != nil {
+		for _, username := range *data.ShownBy {
+			switch channel.Type {
+			case model.ChannelTypeDirect:
+				otherUserId := userMap[strings.ToLower(username)].Id
+				for uname, user := range userMap {
+					if uname != username {
+						otherUserId = user.Id
+						break
+					}
+				}
+				preferences = append(preferences, model.Preference{
+					UserId:   userMap[strings.ToLower(username)].Id,
+					Category: model.PreferenceCategoryDirectChannelShow,
+					Name:     otherUserId,
+					Value:    "true",
+				})
+			case model.ChannelTypeGroup:
+				preferences = append(preferences, model.Preference{
+					UserId:   userMap[strings.ToLower(username)].Id,
+					Category: model.PreferenceCategoryGroupChannelShow,
+					Name:     channel.Id,
+					Value:    "true",
+				})
+			}
+		}
 	}
 
 	if data.FavoritedBy != nil {
@@ -1799,14 +1952,16 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		}
 	}
 
-	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			appErr.StatusCode = http.StatusBadRequest
-			return appErr
-		default:
-			return model.NewAppError("importDirectChannel", "app.preference.save.updating.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	if len(preferences) > 0 {
+		if err := a.Srv().Store().Preference().Save(preferences); err != nil {
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				appErr.StatusCode = http.StatusBadRequest
+				return appErr
+			default:
+				return model.NewAppError("importDirectChannel", "app.preference.save.updating.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 		}
 	}
 

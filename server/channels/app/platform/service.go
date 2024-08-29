@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -116,7 +117,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
 		Store:               sc.Store,
-		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
 		goroutineExitSignal: make(chan struct{}, 1),
@@ -136,18 +136,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
 
-	// Step 1: Cache provider.
-	// At the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	ps.cacheProvider = cache.NewProvider()
-	if err2 := ps.cacheProvider.Connect(); err2 != nil {
-		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
-	}
-
 	// Apply options, some of the options overrides the default config actually.
 	for _, option := range options {
-		if err := option(ps); err != nil {
-			return nil, fmt.Errorf("failed to apply option: %w", err)
+		if err2 := option(ps); err2 != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err2)
 		}
 	}
 
@@ -166,13 +158,39 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.configStore = configStore
 	}
 
-	// Step 2: Start logging.
-	if err := ps.initLogging(); err != nil {
-		return nil, fmt.Errorf("failed to initialize logging: %w", err)
+	// Step 1: Cache provider.
+	cacheConfig := ps.configStore.Get().CacheSettings
+	var err error
+	if *cacheConfig.CacheType == model.CacheTypeLRU {
+		ps.cacheProvider = cache.NewProvider()
+	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
+		ps.cacheProvider, err = cache.NewRedisProvider(
+			&cache.RedisOptions{
+				RedisAddr:     *cacheConfig.RedisAddress,
+				RedisPassword: *cacheConfig.RedisPassword,
+				RedisDB:       *cacheConfig.RedisDB,
+			},
+		)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("unable to create cache provider: %w", err)
 	}
 
+	// The value of res is used later, after the logger is initialized.
+	// There's a certain order of steps we need to follow in the server startup phase.
+	res, err := ps.cacheProvider.Connect()
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
+	}
+
+	// Step 2: Start logging.
+	if err2 := ps.initLogging(); err2 != nil {
+		return nil, fmt.Errorf("failed to initialize logging: %w", err2)
+	}
+	ps.Log().Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
+
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
+	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// Step 3: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())
@@ -192,6 +210,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
+	ps.cacheProvider.SetMetrics(ps.metricsIFace)
+
 	// Step 6: Store.
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
@@ -206,7 +226,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			var err error
 			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
 			if err != nil {
 				return nil, err
@@ -227,6 +246,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				ps.metricsIFace,
 				ps.clusterIFace,
 				ps.cacheProvider,
+				ps.Log(),
 			)
 			if err2 != nil {
 				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
@@ -267,7 +287,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	var err error
 	ps.Store, err = ps.newStore()
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)
@@ -279,12 +298,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	ps.sessionCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	// Note: we hardcode the session cache to LRU because the session invalidation
+	// path always iterates through the entire cache, leading to a lot of SCAN calls
+	// in case of Redis. We could potentially have a reverse mapping of userIDs to
+	// session IDs, but leaving this one for now.
+	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
+		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),

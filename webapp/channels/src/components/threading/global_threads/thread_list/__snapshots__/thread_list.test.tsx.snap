@@ -46,9 +46,10 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
       <div
         className="right-anchor"
       >
-        <SimpleTooltip
-          content="Mark all as read"
+        <WithTooltip
           id="threadListMarkRead"
+          placement="top"
+          title="Mark all as read"
         >
           <Memo(Button)
             className="Button___large Button___icon"
@@ -64,7 +65,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
               />
             </span>
           </Memo(Button)>
-        </SimpleTooltip>
+        </WithTooltip>
       </div>
     }
   />
