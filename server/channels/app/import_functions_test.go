@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2103,7 +2104,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post in apply mode.
-	time := model.GetMillis()
+	createAt := model.GetMillis()
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
@@ -2111,7 +2112,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2122,7 +2123,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
+	posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, createAt)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2139,7 +2140,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2150,7 +2151,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, createAt)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2160,7 +2161,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.False(t, postBool, "Post properties not as expected")
 
 	// Save the post with a different time.
-	newTime := time + 1
+	newTime := createAt + 1
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
@@ -2186,7 +2187,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message 2"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2197,7 +2198,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
 
 	// Test with hashtags
-	hashtagTime := time + 2
+	hashtagTime := createAt + 2
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
@@ -2505,7 +2506,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("another message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2517,7 +2518,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("another message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2554,6 +2555,166 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
 	AssertAllPostsCount(t, th.App, initialPostCount, 15, team.Id)
+
+	t.Run("Importing a post with a thread", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User:       &user2.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		followers, err := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, err)
+
+		assert.ElementsMatch(t, []string{user.Id, user2.Id}, followers)
+	})
+
+	t.Run("Importing a post with a non existent follower", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User: ptrStr("invalid.user"),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.NotNil(t, err)
+		require.Equal(t, 1, errLine)
+	})
+
+	t.Run("Importing a post with a non existent follower", func(t *testing.T) {
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User: ptrStr("invalid.user"),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.NotNil(t, err)
+		require.Equal(t, 1, errLine)
+	})
+
+	t.Run("Importing a post with new followers", func(t *testing.T) {
+		importCreate := time.Now().Add(-5 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &username,
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		followers, err := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, err)
+
+		assert.ElementsMatch(t, []string{user.Id}, followers)
+	})
 }
 
 func TestImportImportPost(t *testing.T) {
@@ -3888,6 +4049,109 @@ func TestImportImportDirectPost(t *testing.T) {
 
 		post := posts[0]
 		require.True(t, post.IsPinned)
+	})
+
+	t.Run("Importing a direct post with a thread", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     ptrStr(th.BasicUser.Username),
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       ptrStr(th.BasicUser.Username),
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User:       ptrStr(th.BasicUser2.Username),
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		followers, nErr := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, nErr)
+
+		assert.ElementsMatch(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, followers)
+	})
+
+	t.Run("Importing a direct post with new followers", func(t *testing.T) {
+		importCreate := time.Now().Add(-5 * time.Minute).UnixMilli()
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     ptrStr(th.BasicUser.Username),
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       ptrStr(th.BasicUser.Username),
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		followers, nErr := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, nErr)
+
+		assert.ElementsMatch(t, []string{th.BasicUser.Id}, followers)
 	})
 
 	// ------------------ Group Channel -------------------------
