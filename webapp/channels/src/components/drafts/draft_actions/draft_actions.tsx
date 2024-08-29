@@ -15,15 +15,13 @@ import SendDraftModal from './send_draft_modal';
 
 type Props = {
     displayName: string;
-    draftId: string;
-    onDelete: (draftId: string) => void;
+    onDelete: () => void;
     onEdit: () => void;
-    onSend: (draftId: string) => void;
+    onSend: () => void;
 }
 
 function DraftActions({
     displayName,
-    draftId,
     onDelete,
     onEdit,
     onSend,
@@ -36,10 +34,10 @@ function DraftActions({
             dialogType: DeleteDraftModal,
             dialogProps: {
                 displayName,
-                onConfirm: () => onDelete(draftId),
+                onConfirm: onDelete,
             },
         }));
-    }, [displayName]);
+    }, [dispatch, displayName, onDelete]);
 
     const handleSend = useCallback(() => {
         dispatch(openModal({
@@ -47,10 +45,10 @@ function DraftActions({
             dialogType: SendDraftModal,
             dialogProps: {
                 displayName,
-                onConfirm: () => onSend(draftId),
+                onConfirm: onSend,
             },
         }));
-    }, [displayName]);
+    }, [dispatch, displayName, onSend]);
 
     return (
         <>

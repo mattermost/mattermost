@@ -76,7 +76,7 @@ export function sendDesktopNotification(post, msgProps) {
 
         const teamId = msgProps.team_id;
 
-        let channel = makeGetChannel()(state, {id: post.channel_id});
+        let channel = makeGetChannel()(state, post.channel_id);
         const user = getCurrentUser(state);
         const userStatus = getStatusForUserId(state, user.id);
         const member = getMyChannelMember(state, post.channel_id);
