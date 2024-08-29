@@ -2875,6 +2875,22 @@
     "translation": "Error starting server, err:%v"
   },
   {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Could not fetch shared channel remotes"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Could not determine if channel is shared with the remote"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Could not invite remote to channel"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Could not uninvite remote to channel"
+  },
+  {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
