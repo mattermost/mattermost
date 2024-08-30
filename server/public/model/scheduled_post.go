@@ -16,6 +16,7 @@ const (
 	ScheduledPostErrorCodeUserDeleted         = "user_deleted"
 	ScheduledPostErrorCodeNoChannelPermission = "no_channel_permission"
 	ScheduledPostErrorNoChannelMember         = "no_channel_member"
+	ScheduledPostErrorThreadDeleted           = "thread_deleted"
 )
 
 type ScheduledPost struct {
@@ -84,12 +85,6 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 	for key, value := range s.GetProps() {
 		post.AddProp(key, value)
 	}
-
-	// Just adding some metadata. We don't ave any known use for this right now but,
-	// this could be useful.
-	post.AddProp("is_scheduled_post", true)
-	post.AddProp("schedule_created_at", s.CreateAt)
-	post.AddProp("intended_scheduled_time", s.ScheduledAt)
 
 	if len(s.Priority) > 0 {
 		priority, ok := s.Priority["priority"].(string)

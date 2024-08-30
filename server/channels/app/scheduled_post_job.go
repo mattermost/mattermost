@@ -58,13 +58,13 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 		lastScheduledPostId = scheduledPostsBatch[len(scheduledPostsBatch)-1].Id
 		beforeTime = scheduledPostsBatch[len(scheduledPostsBatch)-1].ScheduledAt
 
-		if appErr := a.processScheduledPostBatch(rctx, scheduledPostsBatch); appErr != nil {
+		if err := a.processScheduledPostBatch(rctx, scheduledPostsBatch); err != nil {
 			rctx.Logger().Error(
 				"App.ProcessScheduledPosts: failed to process scheduled posts batch",
 				mlog.Int("before_time", beforeTime),
 				mlog.String("last_scheduled_post_id", lastScheduledPostId),
 				mlog.Int("items_per_page", getPendingScheduledPostsPageSize),
-				mlog.Err(appErr),
+				mlog.Err(err),
 			)
 
 			// failure to process one batch doesn't mean other batches will fail as well.
@@ -224,6 +224,30 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		)
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 		return scheduledPost, false, errors.Wrapf(appErr, "App.canPostScheduledPost: failed to get user from database, userId: %s", scheduledPost.UserId)
+	}
+
+	if scheduledPost.RootId != "" {
+		rootPosts, _, appErr := a.GetPostsByIds([]string{scheduledPost.RootId})
+		if appErr != nil {
+			if appErr.StatusCode == http.StatusNotFound {
+				scheduledPost.ErrorCode = model.ScheduledPostErrorThreadDeleted
+			} else {
+				rctx.Logger().Error(
+					"App.canPostScheduledPost: failed to get root post",
+					mlog.String("scheduled_post_id", scheduledPost.Id),
+					mlog.String("root_post_id", scheduledPost.RootId),
+					mlog.Err(appErr),
+				)
+			}
+
+			return scheduledPost, false, nil
+		}
+
+		// you do get deleted posts from `GetPostsByIds`, so need to validate that as well
+		if len(rootPosts) == 1 && rootPosts[0].Id == scheduledPost.RootId && rootPosts[0].DeleteAt != 0 {
+			scheduledPost.ErrorCode = model.ScheduledPostErrorThreadDeleted
+			return scheduledPost, false, nil
+		}
 	}
 
 	hasPermission := a.HasPermissionToChannel(rctx, scheduledPost.UserId, scheduledPost.ChannelId, model.PermissionCreatePost)
