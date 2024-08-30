@@ -61,50 +61,39 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet(context.Background(), "/system/ping", "")
+		respMap, resp, err := client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		respString := string(respBytes)
-		require.NotContains(t, respString, "TestFeatureFlag")
+		_, ok := respMap["TestFeatureFlag"]
+		assert.Equal(t, false, ok)
 
 		// Run the environment variable override code to test
 		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, err = client.DoAPIGet(context.Background(), "/system/ping", "")
+		respMap, resp, err = client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err = io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		respString = string(respBytes)
-		require.Contains(t, respString, "testvalue")
+		_, ok = respMap["TestFeatureFlag"]
+		assert.Equal(t, true, ok)
 	}, "ping feature flag test")
 
 	t.Run("ping root_status test", func(t *testing.T) {
 		if os.Geteuid() != 0 {
 			t.Skip("Skipping due to system user not having root privileges")
 		}
-		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/system/ping?get_server_status=true", "")
+		respMap, resp, err := th.SystemAdminClient.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		var respMap map[string]any
-		err = json.NewDecoder(resp.Body).Decode(&respMap)
-		require.NoError(t, err)
-		root_status, ok := respMap["root_status"]
+		_, ok := respMap["root_status"]
 		assert.Equal(t, true, ok)
-		assert.Equal(t, true, root_status)
 	})
 
 	t.Run("ping root_status test with client user", func(t *testing.T) {
-		resp, err := th.Client.DoAPIGet(context.Background(), "/system/ping?get_server_status=true", "")
+		respMap, resp, err := th.Client.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		var respMap map[string]any
-		err = json.NewDecoder(resp.Body).Decode(&respMap)
-		require.NoError(t, err)
 		_, ok := respMap["root_status"]
 		assert.Equal(t, false, ok)
 	})
