@@ -102,13 +102,13 @@ export function makeUrlSafe(url: string, defaultUrl = ''): string {
 }
 
 export function getScheme(url: string): string | null {
-    const match = (/([a-z0-9+.-]+):/i).exec(url);
+    const match = (/^([a-z0-9+.-]+):/i).exec(url);
 
     return match && match[1];
 }
 
-export function urlRemoveProtocol(url = '') {
-    return url.replace(/([a-z0-9+.-]+):\/\//i, '');
+export function removeScheme(url = '') {
+    return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
 }
 
 function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {

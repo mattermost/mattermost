@@ -27,7 +27,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isValidUrl, parseLink, urlRemoveProtocol} from 'utils/url';
+import {isValidUrl, parseLink, removeScheme} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -105,21 +105,13 @@ function ChannelBookmarkCreateModal({
         if (!forced) {
             setValidatedLink(validatedLink);
         }
-        const parsed = urlRemoveProtocol(validatedLink);
+        const parsed = removeScheme(validatedLink);
         setParsedDisplayName(parsed);
         setDisplayName(parsed);
     });
 
     const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
         setLink(value);
-    }, []);
-
-    const handleLinkBlur: FocusEventHandler<HTMLInputElement> = useCallback(({target: {value}}) => {
-        setLink(value);
-    }, []);
-
-    const handleLinkPasted: ClipboardEventHandler<HTMLInputElement> = useCallback(({clipboardData}) => {
-        setLink(clipboardData.getData('text/plain'));
     }, []);
 
     // type === 'file'
@@ -381,8 +373,6 @@ function ChannelBookmarkCreateModal({
                             containerClassName='linkInput'
                             placeholder={formatMessage(msg.linkPlaceholder)}
                             onChange={handleLinkChange}
-                            onBlur={handleLinkBlur}
-                            onPaste={handleLinkPasted}
                             hasError={Boolean(linkError)}
                             value={link}
                             data-testid='linkInput'
@@ -650,7 +640,6 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
     useEffect(() => {
         const handler = setTimeout(async () => {
             cancel();
-
             if (!link) {
                 return;
             }
