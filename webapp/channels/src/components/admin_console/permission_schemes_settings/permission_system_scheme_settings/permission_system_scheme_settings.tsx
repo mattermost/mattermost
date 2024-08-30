@@ -6,7 +6,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {Role, RolesState} from '@mattermost/types/roles';
+import type {Role} from '@mattermost/types/roles';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -49,6 +49,18 @@ type State = {
     selectedPermission?: string;
     openRoles: Record<string, boolean>;
     urlParams: URLSearchParams;
+}
+
+type RolesState = {
+    system_admin: Role;
+    team_admin: Role;
+    channel_admin: Role;
+    playbook_admin: Role;
+    playbook_member: Role;
+    run_admin: Role;
+    run_member: Role;
+    all_users: {name: string; display_name: string; permissions: Role['permissions']};
+    guests: {name: string; display_name: string; permissions: Role['permissions']};
 }
 class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
