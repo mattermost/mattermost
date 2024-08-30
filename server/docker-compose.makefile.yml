@@ -60,6 +60,13 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: elasticsearch
+  opensearch:
+    container_name: mattermost-opensearch
+    ports:
+      - "9201:9201"
+    extends:
+        file: build/docker-compose.common.yml
+        service: opensearch
   dejavu:
     restart: 'no'
     container_name: mattermost-dejavu
@@ -92,6 +99,20 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: grafana
+  loki:
+    container_name: mattermost-loki
+    ports:
+      - "3100:3100"
+    extends:
+        file: build/docker-compose.common.yml
+        service: loki
+  promtail:
+    container_name: mattermost-promtail
+    ports:
+      - "3180:3180"
+    extends:
+        file: build/docker-compose.common.yml
+        service: promtail
 
 networks:
   mm-test:

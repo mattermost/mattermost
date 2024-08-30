@@ -106,7 +106,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -223,8 +223,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -367,7 +366,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -484,8 +483,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -628,7 +626,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -745,8 +743,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -892,7 +889,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -976,8 +973,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1120,7 +1116,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -1204,8 +1200,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1348,7 +1343,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -1465,8 +1460,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "serverError",

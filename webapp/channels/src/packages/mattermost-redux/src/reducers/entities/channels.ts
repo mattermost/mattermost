@@ -583,18 +583,24 @@ function membersInChannel(state: RelationOneToOne<Channel, Record<string, Channe
 function stats(state: RelationOneToOne<Channel, ChannelStats> = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL_STATS: {
-        const nextState = {...state};
-        const stat = action.data;
-        nextState[stat.channel_id] = stat;
+        const stat: ChannelStats = action.data;
 
-        return nextState;
+        if (isEqual(state[stat.channel_id], stat)) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [stat.channel_id]: stat,
+        };
     }
     case ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS: {
         const nextState = {...state};
         const id = action.id;
+        const receivedCount = action.count ? action.count : 1;
         const nextStat = nextState[id];
         if (nextStat) {
-            const count = nextStat.member_count + 1;
+            const count = nextStat.member_count + receivedCount;
             return {
                 ...nextState,
                 [id]: {
@@ -858,7 +864,7 @@ export function channelMemberCountsByGroup(state: any = {}, action: AnyAction) {
         action.data.forEach((group: Group) => {
             memberCountsByGroup[group.id] = {
                 group_id: group.id,
-                channel_member_count: group.channel_member_count || 0,
+                channel_member_count: group.member_count || 0,
                 channel_member_timezones_count: group.channel_member_timezones_count || 0,
             };
         });

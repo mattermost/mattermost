@@ -11,23 +11,41 @@ import (
 
 type StaticConfigService struct {
 	Cfg *model.Config
+
+	listeners map[string]func(old, current *model.Config)
 }
 
-func (s StaticConfigService) Config() *model.Config {
+func (s *StaticConfigService) Config() *model.Config {
 	return s.Cfg
 }
 
-func (StaticConfigService) AddConfigListener(func(old, current *model.Config)) string {
-	return ""
+func (s *StaticConfigService) AddConfigListener(listener func(old, current *model.Config)) string {
+	if s.listeners == nil {
+		s.listeners = make(map[string]func(old, current *model.Config))
+	}
+
+	listenerID := model.NewId()
+	s.listeners[listenerID] = listener
+	return listenerID
 }
 
-func (StaticConfigService) RemoveConfigListener(string) {
-
+func (s *StaticConfigService) RemoveConfigListener(listenerID string) {
+	delete(s.listeners, listenerID)
 }
 
-func (StaticConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey {
+func (s *StaticConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return &ecdsa.PrivateKey{}
 }
-func (StaticConfigService) PostActionCookieSecret() []byte {
+
+func (s *StaticConfigService) PostActionCookieSecret() []byte {
 	return make([]byte, 32)
+}
+
+func (s *StaticConfigService) UpdateConfig(newConfig *model.Config) {
+	oldConfig := s.Config()
+	s.Cfg = newConfig
+
+	for _, listener := range s.listeners {
+		listener(oldConfig, newConfig)
+	}
 }

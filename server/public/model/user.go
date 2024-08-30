@@ -14,6 +14,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
@@ -130,7 +132,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"locale":                     u.Locale,
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
-		"remote_id":                  u.RemoteId,
+		"remote_id":                  u.GetRemoteID(),
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -142,7 +144,26 @@ func (u *User) Auditable() map[string]interface{} {
 }
 
 func (u *User) LogClone() any {
-	return u.Auditable()
+	return map[string]interface{}{
+		"id":              u.Id,
+		"create_at":       u.CreateAt,
+		"update_at":       u.UpdateAt,
+		"delete_at":       u.DeleteAt,
+		"username":        u.Username,
+		"auth_data":       u.GetAuthData(),
+		"auth_service":    u.AuthService,
+		"email":           u.Email,
+		"email_verified":  u.EmailVerified,
+		"position":        u.Position,
+		"roles":           u.Roles,
+		"allow_marketing": u.AllowMarketing,
+		"props":           u.Props,
+		"notify_props":    u.NotifyProps,
+		"locale":          u.Locale,
+		"timezone":        u.Timezone,
+		"mfa_active":      u.MfaActive,
+		"remote_id":       u.GetRemoteID(),
+	}
 }
 
 //msgp UserMap
@@ -307,7 +328,7 @@ func (u UserSlice) FilterWithoutID(ids []string) UserSlice {
 func (u *User) DeepCopy() *User {
 	copyUser := *u
 	if u.AuthData != nil {
-		copyUser.AuthData = NewString(*u.AuthData)
+		copyUser.AuthData = NewPointer(*u.AuthData)
 	}
 	if u.Props != nil {
 		copyUser.Props = CopyStringMap(u.Props)
@@ -346,7 +367,7 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || (!IsValidEmail(u.Email) && !u.IsRemote()) {
 		return InvalidUserError("email", u.Id, u.Email)
 	}
 
@@ -376,10 +397,6 @@ func (u *User) IsValid() *AppError {
 
 	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
 		return InvalidUserError("auth_data_pwd", u.Id, *u.AuthData)
-	}
-
-	if len(u.Password) > UserPasswordMaxLength {
-		return InvalidUserError("password_limit", u.Id, "")
 	}
 
 	if !IsValidLocale(u.Locale) {
@@ -430,13 +447,13 @@ func NormalizeEmail(email string) string {
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
-func (u *User) PreSave() {
+func (u *User) PreSave() *AppError {
 	if u.Id == "" {
 		u.Id = NewId()
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = NewUsername()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -477,7 +494,15 @@ func (u *User) PreSave() {
 	}
 
 	if u.Password != "" {
-		u.Password = HashPassword(u.Password)
+		hashed, err := HashPassword(u.Password)
+		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		} else if err != nil {
+			return NewAppError("User.PreSave", "model.user.pre_save.password_hash.app_error",
+				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+		}
+		u.Password = hashed
 	}
 
 	cs := u.GetCustomStatus()
@@ -485,6 +510,8 @@ func (u *User) PreSave() {
 		cs.PreSave()
 		u.SetCustomStatus(cs)
 	}
+
+	return nil
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -631,12 +658,13 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = NewString("")
+	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
+		delete(u.Props, UserPropsKeyRemoteEmail)
 	}
 	if len(options) != 0 && !options["fullname"] {
 		u.FirstName = ""
@@ -653,10 +681,13 @@ func (u *User) Sanitize(options map[string]bool) {
 // Remove any input data from the user object that is not user controlled
 func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
-		u.AuthData = NewString("")
+		u.AuthData = NewPointer("")
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewPointer("")
+	u.CreateAt = 0
+	u.UpdateAt = 0
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -664,21 +695,25 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.Email = strings.TrimSpace(u.Email)
+	u.LastActivityAt = 0
 }
 
-func (u *User) ClearNonProfileFields() {
+func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
-	u.AuthData = NewString("")
+	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
-	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.FailedAttempts = 0
+
+	if !asAdmin {
+		u.NotifyProps = StringMap{}
+	}
 }
 
-func (u *User) SanitizeProfile(options map[string]bool) {
-	u.ClearNonProfileFields()
+func (u *User) SanitizeProfile(options map[string]bool, asAdmin bool) {
+	u.ClearNonProfileFields(asAdmin)
 
 	u.Sanitize(options)
 }
@@ -750,9 +785,8 @@ func (u *User) GetFullName() string {
 		return u.FirstName
 	} else if u.LastName != "" {
 		return u.LastName
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (u *User) getDisplayName(baseName, nameFormat string) string {
@@ -873,15 +907,16 @@ func (u *User) GetTimezoneLocation() *time.Location {
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
-	return u.RemoteId != nil && *u.RemoteId != ""
+	return SafeDereference(u.RemoteId) != ""
 }
 
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
-	if u.RemoteId != nil {
-		return *u.RemoteId
-	}
-	return ""
+	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetAuthData() string {
+	return SafeDereference(u.AuthData)
 }
 
 // GetProp fetches a prop value by name.
@@ -927,17 +962,18 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
+func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(hash)
+	return string(hash), nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
+var validUsername = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]*$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]*$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
@@ -951,7 +987,7 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	if !validUsernameChars.MatchString(s) {
+	if !validUsername.MatchString(s) {
 		return false
 	}
 
@@ -993,7 +1029,7 @@ func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s = strings.Trim(s, "-")
 
 	if !IsValidUsername(s) {
-		s = "a" + NewId()
+		s = NewUsername()
 		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}

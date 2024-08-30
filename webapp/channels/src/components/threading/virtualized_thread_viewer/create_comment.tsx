@@ -5,10 +5,8 @@ import React, {memo, forwardRef, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Posts} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
@@ -21,19 +19,15 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    focusOnMount: boolean;
     teammate?: UserProfile;
     threadId: string;
-    latestPostId: Post['id'];
     isThreadView?: boolean;
     placeholder?: string;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
-    focusOnMount,
     teammate,
     threadId,
-    latestPostId,
     isThreadView,
     placeholder,
 }: Props, ref) => {
@@ -49,7 +43,6 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     if (!channel || threadIsLimited) {
         return null;
     }
-    const rootDeleted = (rootPost as Post).state === Posts.POST_DELETED;
     const isFakeDeletedPost = rootPost.type === Constants.PostTypes.FAKE_PARENT_DELETED;
 
     const channelType = channel.type;
@@ -98,10 +91,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         >
             <AdvancedCreateComment
                 placeholder={placeholder}
-                focusOnMount={focusOnMount}
                 channelId={channel.id}
-                latestPostId={latestPostId}
-                rootDeleted={rootDeleted}
                 rootId={threadId}
                 isThreadView={isThreadView}
             />

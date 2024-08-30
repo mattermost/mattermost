@@ -23,10 +23,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	storeMocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry/mocks"
 )
@@ -87,7 +87,7 @@ func collectBatches(t *testing.T, info *[]testBatch, pchan chan testTelemetryPay
 		case result := <-pchan:
 			assertPayload(t, result, "", nil)
 			*info = append(*info, result.Batch[0])
-		case <-time.After(time.Second * 1):
+		case <-time.After(2 * time.Second):
 			return
 		}
 	}
@@ -127,7 +127,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 	select {
 	case identifyMessage := <-pchan:
 		assertPayload(t, identifyMessage, "", nil)
-	case <-time.After(time.Second * 1):
+	case <-time.After(2 * time.Second):
 		require.Fail(t, "Did not receive ID message")
 	}
 
@@ -231,7 +231,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	commandStore.On("AnalyticsCommandCount", "").Return(int64(15), nil)
 
 	webhookStore := storeMocks.WebhookStore{}
-	webhookStore.On("AnalyticsIncomingCount", "").Return(int64(16), nil)
+	webhookStore.On("AnalyticsIncomingCount", "", "").Return(int64(16), nil)
 	webhookStore.On("AnalyticsOutgoingCount", "").Return(int64(17), nil)
 
 	groupStore := storeMocks.GroupStore{}
@@ -437,7 +437,7 @@ func TestRudderTelemetry(t *testing.T) {
 			case result := <-pchan:
 				assertPayload(t, result, "", nil)
 				*info = append(*info, result.Batch[0].Event)
-			case <-time.After(time.Second * 1):
+			case <-time.After(2 * time.Second):
 				return
 			}
 		}
@@ -453,7 +453,7 @@ func TestRudderTelemetry(t *testing.T) {
 			assertPayload(t, result, "Testing Telemetry", map[string]any{
 				"hey": testValue,
 			})
-		case <-time.After(time.Second * 1):
+		case <-time.After(2 * time.Second):
 			require.Fail(t, "Did not receive telemetry")
 		}
 	})
@@ -583,7 +583,7 @@ func TestRudderTelemetry(t *testing.T) {
 		select {
 		case <-pchan:
 			require.Fail(t, "Should not send telemetry when the rudder key is not set")
-		case <-time.After(time.Second * 1):
+		case <-time.After(2 * time.Second):
 			// Did not receive telemetry
 		}
 	})
@@ -621,7 +621,7 @@ func TestRudderTelemetry(t *testing.T) {
 		select {
 		case <-pchan:
 			require.Fail(t, "Should not send telemetry when they are disabled")
-		case <-time.After(time.Second * 1):
+		case <-time.After(2 * time.Second):
 			// Did not receive telemetry
 		}
 	})

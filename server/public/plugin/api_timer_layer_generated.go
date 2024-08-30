@@ -160,6 +160,13 @@ func (api *apiTimerLayer) GetUsers(options *model.UserGetOptions) ([]*model.User
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetUsersByIds(userIDs)
+	api.recordTime(startTime, "GetUsersByIds", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetUser(userID string) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetUser(userID)
@@ -1362,5 +1369,19 @@ func (api *apiTimerLayer) UninviteRemoteFromChannel(channelID string, remoteID s
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UninviteRemoteFromChannel(channelID, remoteID)
 	api.recordTime(startTime, "UninviteRemoteFromChannel", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateUserRoles(userID, newRoles)
+	api.recordTime(startTime, "UpdateUserRoles", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPluginID() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetPluginID()
+	api.recordTime(startTime, "GetPluginID", true)
 	return _returnsA
 }

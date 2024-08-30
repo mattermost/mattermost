@@ -32,7 +32,6 @@ type State = {
     EnableExperimentalGossipEncryption: boolean;
     EnableGossipCompression: boolean;
     GossipPort: number;
-    StreamingPort: number;
     showWarning: boolean;
 } & BaseState;
 
@@ -53,8 +52,6 @@ const messages = defineMessages({
     enableGossipCompressionDesc: {id: 'admin.cluster.EnableGossipCompressionDesc', defaultMessage: 'When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.'},
     gossipPort: {id: 'admin.cluster.GossipPort', defaultMessage: 'Gossip Port:'},
     gossipPortDesc: {id: 'admin.cluster.GossipPortDesc', defaultMessage: 'The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.'},
-    streamingPort: {id: 'admin.cluster.StreamingPort', defaultMessage: 'Streaming Port:'},
-    streamingPortDesc: {id: 'admin.cluster.StreamingPortDesc', defaultMessage: 'The port used for streaming data between servers.'},
 });
 
 export const searchableStrings = [
@@ -74,8 +71,6 @@ export const searchableStrings = [
     messages.enableGossipCompressionDesc,
     messages.gossipPort,
     messages.gossipPortDesc,
-    messages.streamingPort,
-    messages.streamingPortDesc,
 ];
 
 export default class ClusterSettings extends AdminSettings<Props, State> {
@@ -87,7 +82,6 @@ export default class ClusterSettings extends AdminSettings<Props, State> {
         config.ClusterSettings.EnableExperimentalGossipEncryption = this.state.EnableExperimentalGossipEncryption;
         config.ClusterSettings.EnableGossipCompression = this.state.EnableGossipCompression;
         config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort, 8074);
-        config.ClusterSettings.StreamingPort = this.parseIntNonZero(this.state.StreamingPort, 8075);
         return config;
     };
 
@@ -102,7 +96,6 @@ export default class ClusterSettings extends AdminSettings<Props, State> {
             EnableExperimentalGossipEncryption: settings.EnableExperimentalGossipEncryption,
             EnableGossipCompression: settings.EnableGossipCompression,
             GossipPort: settings.GossipPort,
-            StreamingPort: settings.StreamingPort,
             showWarning: false,
         };
     }
@@ -273,16 +266,6 @@ export default class ClusterSettings extends AdminSettings<Props, State> {
                     value={this.state.GossipPort}
                     onChange={this.overrideHandleChange}
                     setByEnv={this.isSetByEnv('ClusterSettings.GossipPort')}
-                    disabled={this.props.isDisabled}
-                />
-                <TextSetting
-                    id='StreamingPort'
-                    label={<FormattedMessage {...messages.streamingPort}/>}
-                    placeholder={defineMessage({id: 'admin.cluster.StreamingPortEx', defaultMessage: 'E.g.: "8075"'})}
-                    helpText={<FormattedMessage {...messages.streamingPortDesc}/>}
-                    value={this.state.StreamingPort}
-                    onChange={this.overrideHandleChange}
-                    setByEnv={this.isSetByEnv('ClusterSettings.StreamingPort')}
                     disabled={this.props.isDisabled}
                 />
             </SettingsGroup>

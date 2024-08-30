@@ -14,6 +14,7 @@ import (
 
 type LineImportData struct {
 	Type          string                   `json:"type"`
+	Role          *RoleImportData          `json:"role,omitempty"`
 	Scheme        *SchemeImportData        `json:"scheme,omitempty"`
 	Team          *TeamImportData          `json:"team,omitempty"`
 	Channel       *ChannelImportData       `json:"channel,omitempty"`
@@ -84,7 +85,8 @@ type UserImportData struct {
 	TutorialStep        *string `json:"tutorial_step,omitempty"`
 	EmailInterval       *string `json:"email_interval,omitempty"`
 
-	NotifyProps *UserNotifyPropsImportData `json:"notify_props,omitempty"`
+	NotifyProps  *UserNotifyPropsImportData `json:"notify_props,omitempty"`
+	CustomStatus *model.CustomStatus        `json:"custom_status,omitempty"`
 }
 
 type UserNotifyPropsImportData struct {
@@ -121,10 +123,27 @@ type UserChannelImportData struct {
 	LastViewedAt       *int64                            `json:"last_viewed_at,omitempty"`
 }
 
+type DirectChannelMemberImportData struct {
+	Username           *string                           `json:"username"`
+	NotifyProps        *UserChannelNotifyPropsImportData `json:"notify_props,omitempty"`
+	SchemeUser         *bool                             `json:"scheme_user,omitempty"`
+	SchemeAdmin        *bool                             `json:"scheme_admin,omitempty"`
+	SchemeGuest        *bool                             `json:"scheme_guest,omitempty"`
+	MentionCount       *int64                            `json:"mention_count,omitempty"`
+	MentionCountRoot   *int64                            `json:"mention_count_root,omitempty"`
+	UrgentMentionCount *int64                            `json:"urgend_mention_count,omitempty"`
+	MsgCount           *int64                            `json:"msg_count,omitempty"`
+	MsgCountRoot       *int64                            `json:"msg_count_root,omitempty"`
+	LastViewedAt       *int64                            `json:"last_viewed_at,omitempty"`
+}
+
 type UserChannelNotifyPropsImportData struct {
-	Desktop    *string `json:"desktop"`
-	Mobile     *string `json:"mobile"`
-	MarkUnread *string `json:"mark_unread"`
+	Desktop                  *string `json:"desktop"`
+	Mobile                   *string `json:"mobile"`
+	MarkUnread               *string `json:"mark_unread"`
+	Email                    *string `json:"email,omitempty"`
+	IgnoreChannelMentions    *string `json:"ignore_channel_mentions,omitempty"`
+	ChannelAutoFollowThreads *string `json:"channel_auto_follow_threads,omitempty"`
 }
 
 type EmojiImportData struct {
@@ -168,11 +187,15 @@ type PostImportData struct {
 	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
+
+	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
 }
 
 type DirectChannelImportData struct {
-	Members     *[]string `json:"members"`
-	FavoritedBy *[]string `json:"favorited_by"`
+	Members      *[]string                        `json:"members,omitempty"`
+	Participants []*DirectChannelMemberImportData `json:"participants,omitempty"`
+	FavoritedBy  *[]string                        `json:"favorited_by,omitempty"`
+	ShownBy      *[]string                        `json:"shown_by,omitempty"`
 
 	Header *string `json:"header"`
 }
@@ -192,6 +215,8 @@ type DirectPostImportData struct {
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
+
+	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
 }
 
 type SchemeImportData struct {
@@ -208,10 +233,11 @@ type SchemeImportData struct {
 }
 
 type RoleImportData struct {
-	Name        *string   `json:"name"`
-	DisplayName *string   `json:"display_name"`
-	Description *string   `json:"description"`
-	Permissions *[]string `json:"permissions"`
+	Name          *string   `json:"name"`
+	DisplayName   *string   `json:"display_name"`
+	Description   *string   `json:"description"`
+	Permissions   *[]string `json:"permissions"`
+	SchemeManaged *bool     `json:"scheme_managed"`
 }
 
 type LineImportWorkerData struct {
@@ -232,4 +258,12 @@ type AttachmentImportData struct {
 type ComparablePreference struct {
 	Category string
 	Name     string
+}
+
+type ThreadFollowerImportData struct {
+	// User is the username of the follower. It's the general convention
+	// for import data types to name it as user for the username.
+	User           *string `json:"user"`
+	LastViewed     *int64  `json:"last_viewed,omitempty"`
+	UnreadMentions *int64  `json:"unread_mentions,omitempty"`
 }

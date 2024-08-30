@@ -3,7 +3,7 @@ package pluginapi
 import (
 	"bytes"
 	"encoding/json"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -193,8 +193,7 @@ func (s *MemoryStore) ListKeys(page int, count int, options ...ListKeysOption) (
 		return []string{}, nil
 	}
 
-	// TODO: Use slices.Sort once the toolchain got updated to go1.21
-	sort.Strings(allKeys)
+	slices.Sort(allKeys)
 
 	pageKeys := paginateSlice(allKeys, page, count)
 

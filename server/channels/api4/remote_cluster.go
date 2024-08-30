@@ -13,15 +13,24 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods(http.MethodPost)
+
+	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(getRemoteClusters)).Methods(http.MethodGet)
+	api.BaseRoutes.RemoteCluster.Handle("", api.APISessionRequired(createRemoteCluster)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/accept_invite", api.APISessionRequired(remoteClusterAcceptInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}/generate_invite", api.APISessionRequired(generateRemoteClusterInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteCluster)).Methods(http.MethodGet)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(patchRemoteCluster)).Methods(http.MethodPatch)
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRemoteCluster)).Methods(http.MethodDelete)
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -244,7 +253,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -271,6 +280,15 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("user_id")
 		return
 	}
+
+	// ensure the user being modified belongs to the remote requesting the change.
+	requesterRemoteID := c.GetRemoteID(r)
+	if user.GetRemoteID() != requesterRemoteID {
+		c.Err = model.NewAppError("remoteSetProfileImage", "api.context.remote_id_mismatch.app_error",
+			nil, "", http.StatusUnauthorized)
+		return
+	}
+
 	audit.AddEventParameterAuditable(auditRec, "user", user)
 
 	imageData := imageArray[0]
@@ -283,4 +301,366 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	ReturnStatusOK(w)
+}
+
+func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	filter := model.RemoteClusterQueryFilter{
+		ExcludeOffline: c.Params.ExcludeOffline,
+		InChannel:      c.Params.InChannel,
+		NotInChannel:   c.Params.NotInChannel,
+		Topic:          c.Params.Topic,
+		CreatorId:      c.Params.CreatorId,
+		OnlyConfirmed:  c.Params.OnlyConfirmed,
+		PluginID:       c.Params.PluginId,
+		OnlyPlugins:    c.Params.OnlyPlugins,
+		ExcludePlugins: c.Params.ExcludePlugins,
+	}
+
+	rcs, appErr := c.App.GetAllRemoteClusters(c.Params.Page, c.Params.PerPage, filter)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	for _, rc := range rcs {
+		rc.Sanitize()
+	}
+
+	b, err := json.Marshal(rcs)
+	if err != nil {
+		c.Err = model.NewAppError("getRemoteClusters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(b)
+}
+
+func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("createRemoteCluster", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	var rcWithTeamAndPassword model.RemoteClusterWithPassword
+	if jsonErr := json.NewDecoder(r.Body).Decode(&rcWithTeamAndPassword); jsonErr != nil {
+		c.SetInvalidParamWithErr("remoteCluster", jsonErr)
+		return
+	}
+
+	url := c.App.GetSiteURL()
+	if url == "" {
+		c.Err = model.NewAppError("createRemoteCluster", "api.get_site_url_error", nil, "", http.StatusUnprocessableEntity)
+		return
+	}
+
+	if rcWithTeamAndPassword.DisplayName == "" {
+		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
+	}
+
+	rc := &model.RemoteCluster{
+		Name:          rcWithTeamAndPassword.Name,
+		DisplayName:   rcWithTeamAndPassword.DisplayName,
+		SiteURL:       model.SiteURLPending + model.NewId(),
+		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
+		Token:         model.NewId(),
+		CreatorId:     c.AppContext.Session().UserId,
+	}
+
+	audit.AddEventParameterAuditable(auditRec, "remotecluster", rc)
+
+	rcSaved, appErr := c.App.AddRemoteCluster(rc)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	rcSaved.Sanitize()
+
+	password := rcWithTeamAndPassword.Password
+	if password == "" {
+		password = utils.SecureRandString(16)
+	}
+
+	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
+	if iErr != nil {
+		c.Err = iErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(rcSaved)
+	auditRec.AddEventObjectType("remotecluster")
+
+	resp := model.RemoteClusterWithInvite{RemoteCluster: rcSaved, Invite: inviteCode}
+	if rcWithTeamAndPassword.Password == "" {
+		resp.Password = password
+	}
+
+	b, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("createRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write(b)
+}
+
+func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	rcs, appErr := c.App.GetRemoteClusterService()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	var rcAcceptInvite model.RemoteClusterAcceptInvite
+	if jsonErr := json.NewDecoder(r.Body).Decode(&rcAcceptInvite); jsonErr != nil {
+		c.SetInvalidParamWithErr("remoteCluster", jsonErr)
+		return
+	}
+
+	audit.AddEventParameter(auditRec, "name", rcAcceptInvite.Name)
+	audit.AddEventParameter(auditRec, "display_name", rcAcceptInvite.DisplayName)
+
+	if rcAcceptInvite.DisplayName == "" {
+		rcAcceptInvite.DisplayName = rcAcceptInvite.Name
+	}
+
+	invite, dErr := c.App.DecryptRemoteClusterInvite(rcAcceptInvite.Invite, rcAcceptInvite.Password)
+	if dErr != nil {
+		c.Err = dErr
+		return
+	}
+
+	audit.AddEventParameter(auditRec, "site_url", invite.SiteURL)
+
+	url := c.App.GetSiteURL()
+	if url == "" {
+		c.Err = model.NewAppError("remoteClusterAcceptInvite", "api.get_site_url_error", nil, "", http.StatusUnprocessableEntity)
+		return
+	}
+
+	rc, aErr := rcs.AcceptInvitation(invite, rcAcceptInvite.Name, rcAcceptInvite.DisplayName, c.AppContext.Session().UserId, url)
+	if aErr != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptInvite", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(aErr)
+		if appErr, ok := aErr.(*model.AppError); ok {
+			c.Err = appErr
+		}
+		return
+	}
+	rc.Sanitize()
+
+	auditRec.Success()
+	auditRec.AddEventResultState(rc)
+	auditRec.AddEventObjectType("remotecluster")
+
+	b, err := json.Marshal(rc)
+	if err != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptInvite", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write(b)
+}
+
+func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("generateRemoteClusterInvite", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
+
+	props := model.MapFromJSON(r.Body)
+	password := props["password"]
+	if password == "" {
+		c.SetInvalidParam("password")
+		return
+	}
+
+	url := c.App.GetSiteURL()
+	if url == "" {
+		c.Err = model.NewAppError("generateRemoteClusterInvite", "api.get_site_url_error", nil, "", http.StatusUnprocessableEntity)
+		return
+	}
+
+	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	inviteCode, invErr := c.App.CreateRemoteClusterInvite(rc.RemoteId, url, rc.Token, password)
+	if invErr != nil {
+		c.Err = invErr
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(inviteCode))
+}
+
+func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	rc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	rc.Sanitize()
+
+	if err := json.NewEncoder(w).Encode(rc); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	var patch model.RemoteClusterPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
+		c.SetInvalidParamWithErr("remotecluster", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("patchRemoteCluster", audit.Fail)
+	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
+	audit.AddEventParameterAuditable(auditRec, "remotecluster_patch", &patch)
+	defer c.LogAuditRec(auditRec)
+
+	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddEventPriorState(orc)
+	auditRec.AddEventObjectType("remotecluster")
+
+	updatedRC, err := c.App.PatchRemoteCluster(c.Params.RemoteId, &patch)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(updatedRC)
+
+	if err := json.NewEncoder(w).Encode(updatedRC); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteRemoteCluster", audit.Fail)
+	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
+	defer c.LogAuditRec(auditRec)
+
+	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddEventPriorState(orc)
+	auditRec.AddEventObjectType("remotecluster")
+
+	deleted, err := c.App.DeleteRemoteCluster(c.Params.RemoteId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !deleted {
+		c.Err = model.NewAppError("deleteRemoteCluster", "api.remote_cluster.cluster_not_deleted", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	w.WriteHeader(http.StatusNoContent)
 }

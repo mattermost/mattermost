@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -30,8 +31,7 @@ import (
 // The mandatory fields will be checked during the initialization of the service.
 type ServiceConfig struct {
 	// Mandatory fields
-	ConfigStore *config.Store
-	Store       store.Store
+	Store store.Store
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }
@@ -135,6 +135,8 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
+	var resultLevel = mlog.LvlInfo
+	var resultMsg string
 	var err error
 	var logConfigSrc config.LogConfigSrc
 	dsn := logSettings.GetAdvancedLoggingConfig()
@@ -143,9 +145,10 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+		resultMsg = fmt.Sprintf("Loaded Advanced Logging configuration for %s: %s", name, string(dsn))
 	} else {
-		ps.logger.Debug("Advanced logging config not provided for " + name)
+		resultLevel = mlog.LvlDebug
+		resultMsg = fmt.Sprintf("Advanced logging config not provided for %s", name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
@@ -153,9 +156,15 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		return fmt.Errorf("invalid config source for %s, %w", name, err)
 	}
 
+	// this will remove any existing targets and replace with those defined in cfg.
 	if err := logger.ConfigureTargets(cfg, nil); err != nil {
 		return fmt.Errorf("invalid config for %s, %w", name, err)
 	}
+
+	if resultMsg != "" {
+		ps.Log().Log(resultLevel, resultMsg)
+	}
+
 	return nil
 }
 
@@ -298,10 +307,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range ps.LimitedClientConfig() {
-		respCfg[k] = v
-	}
+	respCfg := maps.Clone(ps.LimitedClientConfig())
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
@@ -312,10 +318,7 @@ func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range ps.clientConfig.Load().(map[string]string) {
-		respCfg[k] = v
-	}
+	respCfg := maps.Clone(ps.ClientConfig())
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
@@ -331,7 +334,6 @@ func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
 	} else {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}
-
 	return respCfg
 }
 

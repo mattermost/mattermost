@@ -6,8 +6,6 @@ import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
@@ -71,31 +69,7 @@ describe('components/RenewalLicenseCard', () => {
         isDisabled: false,
     };
 
-    test('should show Renew and Contact sales buttons when a renewal link is successfully returned', async () => {
-        const getRenewalLinkSpy = jest.spyOn(Client4, 'getRenewalLink');
-        const promise = new Promise<{renewal_link: string}>((resolve) => {
-            resolve({
-                renewal_link: 'https://testrenewallink',
-            });
-        });
-        getRenewalLinkSpy.mockImplementation(() => promise);
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLicenseCard {...props}/></Provider>);
-
-        // wait for the promise to resolve and component to update
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('button').length).toEqual(2);
-        expect(wrapper.find('button').at(0).text().includes('Renew')).toBe(true);
-        expect(wrapper.find('button').at(1).text().includes('Contact sales')).toBe(true);
-    });
-
-    test('should show only Contact sales button when a renewal link is not able to renew license', async () => {
-        const getRenewalLinkSpy = jest.spyOn(Client4, 'getRenewalLink');
-        const promise = new Promise<{renewal_link: string}>((resolve, reject) => {
-            reject(new Error('License cannot be renewed from portal'));
-        });
-        getRenewalLinkSpy.mockImplementation(() => promise);
+    test('should show Contact sales button', async () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(<Provider store={store}><RenewalLicenseCard {...props}/></Provider>);
 

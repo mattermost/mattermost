@@ -3136,14 +3136,6 @@
     "translation": "Не вдається розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Не вдалося створити масовий процесор Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Не вдалося запустити масовий процесор Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Еластичний пошук не запускається"
   },
@@ -4452,10 +4444,6 @@
     "translation": "Будь ласка, введіть дійсну адресу електронної пошти."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі."
   },
@@ -4946,10 +4934,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5526,10 +5510,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6284,10 +6264,6 @@
     "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Не знайдена кінцева точка API кластера."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": "додається файл."
   },
@@ -6800,10 +6776,6 @@
     "translation": "Запрошення від безпечного з'єднання"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не вдалося розшифрувати запрошення. Неправильний пароль або зіпсоване запрошення: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[дія]"
   },
@@ -6914,9 +6886,5 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Адміністратору вже повідомлено"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Відсутні обов’язкові поля для надсилання електронного листа про прострочення."
   }
 ]

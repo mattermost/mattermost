@@ -191,16 +191,17 @@ func testGetSharedChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	creator := model.NewId()
 	team1 := model.NewId()
 	team2 := model.NewId()
-	rid := model.NewId()
+	rid1 := model.NewId()
+	rid2 := model.NewId()
 
 	data := []model.SharedChannel{
 		{CreatorId: creator, TeamId: team1, ShareName: "test1", Home: true},
-		{CreatorId: creator, TeamId: team1, ShareName: "test2", Home: false, RemoteId: rid},
-		{CreatorId: creator, TeamId: team1, ShareName: "test3", Home: false, RemoteId: rid},
+		{CreatorId: creator, TeamId: team1, ShareName: "test2", Home: false, RemoteId: rid1},
+		{CreatorId: creator, TeamId: team1, ShareName: "test3", Home: false, RemoteId: rid2},
 		{CreatorId: creator, TeamId: team1, ShareName: "test4", Home: true},
 		{CreatorId: creator, TeamId: team2, ShareName: "test5", Home: true},
-		{CreatorId: creator, TeamId: team2, ShareName: "test6", Home: false, RemoteId: rid},
-		{CreatorId: creator, TeamId: team2, ShareName: "test7", Home: false, RemoteId: rid},
+		{CreatorId: creator, TeamId: team2, ShareName: "test6", Home: false, RemoteId: rid1},
+		{CreatorId: creator, TeamId: team2, ShareName: "test7", Home: false, RemoteId: rid2},
 		{CreatorId: creator, TeamId: team2, ShareName: "test8", Home: true},
 		{CreatorId: creator, TeamId: team2, ShareName: "test9", Home: true},
 	}
@@ -407,7 +408,7 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Nil(t, sc)
 
 		// make sure the remotes were deleted.
-		remotes, err := ss.SharedChannel().GetRemotes(model.SharedChannelRemoteFilterOpts{ChannelId: channel.Id})
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{ChannelId: channel.Id})
 		require.NoError(t, err)
 		require.Len(t, remotes, 0, "expected empty remotes list")
 
@@ -578,21 +579,29 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 
 	creator := model.NewId()
 	remoteId := model.NewId()
+	remoteId2 := model.NewId()
 
 	data := []model.SharedChannelRemote{
 		{ChannelId: channel.Id, CreatorId: creator, RemoteId: model.NewId(), IsInviteConfirmed: true},
 		{ChannelId: channel.Id, CreatorId: creator, RemoteId: model.NewId(), IsInviteConfirmed: true},
-		{ChannelId: channel.Id, CreatorId: creator, RemoteId: model.NewId(), IsInviteConfirmed: true},
+		{ChannelId: channel.Id, CreatorId: creator, RemoteId: remoteId2, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId},
 	}
+
+	// first three remotes are homed locally
+	_, scErr := shareChannel(ss, channel, true, "")
+	require.NoError(t, scErr)
 
 	for i, r := range data {
 		if r.ChannelId == "" {
 			c, err := createTestChannel(ss, rctx, "test_remotes_get2_"+strconv.Itoa(i))
 			require.NoError(t, err)
 			r.ChannelId = c.Id
+
+			// next three remotes are homed outside
+			shareChannel(ss, c, false, r.RemoteId)
 		}
 		_, err := ss.SharedChannel().SaveRemote(&r)
 		require.NoError(t, err, "error saving shared channel remote")
@@ -602,7 +611,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		opts := model.SharedChannelRemoteFilterOpts{
 			ChannelId: channel.Id,
 		}
-		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 3)
 		for _, r := range remotes {
@@ -614,7 +623,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		opts := model.SharedChannelRemoteFilterOpts{
 			ChannelId: model.NewId(),
 		}
-		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 0)
 	})
@@ -623,7 +632,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		opts := model.SharedChannelRemoteFilterOpts{
 			RemoteId: remoteId,
 		}
-		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 2) // only confirmed invitations
 		for _, r := range remotes {
@@ -636,7 +645,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		opts := model.SharedChannelRemoteFilterOpts{
 			RemoteId: model.NewId(),
 		}
-		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 0)
 	})
@@ -646,12 +655,60 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 			RemoteId:        remoteId,
 			InclUnconfirmed: true,
 		}
-		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 3)
 		for _, r := range remotes {
 			require.Equal(t, remoteId, r.RemoteId)
 		}
+	})
+
+	t.Run("Get shared channel remotes with bad options", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeHome:   true,
+			ExcludeRemote: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.Error(t, err, "error expected")
+		require.Empty(t, remotes)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from outside", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeRemote: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 3)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from home", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeHome: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 2)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from outside and by remote_id", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeRemote: true,
+			RemoteId:      remoteId2,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 1)
+	})
+
+	t.Run("Get shared channel remotes excluding shared from home including unconfirmed", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ExcludeHome:     true,
+			InclUnconfirmed: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 3)
 	})
 }
 
@@ -698,13 +755,12 @@ func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	// add remotes, and users to simulated shared channels.
-	teamId := model.NewId()
 	channel, err := createSharedTestChannel(ss, rctx, "share_test_channel", true, nil)
 	require.NoError(t, err)
 	remotes := []*model.RemoteCluster{
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_1"},
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_2"},
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_3"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), Name: "Test_Remote_1"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), Name: "Test_Remote_2"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), Name: "Test_Remote_3"},
 	}
 	for _, rc := range remotes {
 		_, err := ss.RemoteCluster().Save(rc)
@@ -870,7 +926,7 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 		Header:      name + " header",
 		Purpose:     name + "purpose",
 		CreatorId:   model.NewId(),
-		Shared:      model.NewBool(shared),
+		Shared:      model.NewPointer(shared),
 	}
 	channel, err := ss.Channel().Save(rctx, channel, 10000)
 	if err != nil {
@@ -893,19 +949,24 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 	}
 
 	if shared {
-		sc := &model.SharedChannel{
-			ChannelId: channel.Id,
-			TeamId:    channel.TeamId,
-			CreatorId: channel.CreatorId,
-			ShareName: channel.Name,
-			Home:      true,
-		}
-		_, err = ss.SharedChannel().Save(sc)
-		if err != nil {
+		if _, err := shareChannel(ss, channel, true, ""); err != nil {
 			return nil, err
 		}
 	}
 	return channel, nil
+}
+
+func shareChannel(ss store.Store, channel *model.Channel, home bool, remoteId string) (*model.SharedChannel, error) {
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		CreatorId: channel.CreatorId,
+		ShareName: channel.Name,
+		Home:      home,
+		RemoteId:  remoteId,
+	}
+
+	return ss.SharedChannel().Save(sc)
 }
 
 func clearSharedChannels(ss store.Store) error {
@@ -1022,7 +1083,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 	var users []*model.User
 	for i := 0; i < 10; i++ { // need real users
 		u := &model.User{
-			Username:          model.NewId(),
+			Username:          model.NewUsername(),
 			Email:             model.NewId() + "@example.com",
 			LastPictureUpdate: model.GetMillis(),
 		}
@@ -1094,7 +1155,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:          model.NewId(),
+		Username:          model.NewUsername(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() - 300000, // 5 mins
 	}
@@ -1102,7 +1163,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, err)
 
 	u2 := &model.User{
-		Username:          model.NewId(),
+		Username:          model.NewUsername(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() + 300000,
 	}

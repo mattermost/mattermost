@@ -121,7 +121,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 			ChannelId: channelID,
 			CreatorId: userID,
 			Home:      true,
-			RemoteId:  remoteID,
+			RemoteId:  "", // channel originates locally
 		}
 		if _, err = scs.ShareChannel(sc); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",

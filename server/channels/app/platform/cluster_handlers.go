@@ -60,7 +60,7 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 		ps.logger.Warn("Failed to decode status from JSON")
 	}
 
-	ps.statusCache.Set(status.UserId, status)
+	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
@@ -128,7 +128,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	ps.InvalidateAllCachesSkipSend()
 
-	if ps.clusterIFace != nil {
+	if ps.clusterIFace != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

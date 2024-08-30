@@ -16,7 +16,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
+import {getThread as getThreadSelector, getThreadsInChannel} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -42,9 +42,20 @@ export function fetchThreads(userId: string, teamId: string, {before = '', after
     };
 }
 
-export function getThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, extended = true} = {}): ActionFuncAsync<UserThreadList> {
-    return async (dispatch) => {
-        const response = await dispatch(fetchThreads(userId, teamId, {before, after, perPage, unread, totalsOnly: false, threadsOnly: true, extended}));
+export function getThreadsForCurrentTeam({before = '', after = '', unread = false} = {}): ActionFuncAsync<UserThreadList> {
+    return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState());
+        const teamId = getCurrentTeamId(getState());
+
+        const response = await dispatch(fetchThreads(userId, teamId, {
+            before,
+            after,
+            perPage: ThreadConstants.THREADS_PAGE_SIZE,
+            unread,
+            totalsOnly: false,
+            threadsOnly: true,
+            extended: true,
+        }));
 
         if (response.error) {
             return response;
@@ -57,7 +68,7 @@ export function getThreads(userId: string, teamId: string, {before = '', after =
         }
 
         if (userThreadList?.threads?.length) {
-            await dispatch(getMissingProfilesByIds(uniq(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
+            await dispatch(getMissingProfilesByIds(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat()));
 
             dispatch({
                 type: PostTypes.RECEIVED_POSTS,
@@ -127,7 +138,7 @@ export function getCountsAndThreadsSince(userId: string, teamId: string, since?:
         const actions = [];
 
         if (userThreadList?.threads?.length) {
-            await dispatch(getMissingProfilesByIds(uniq(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
+            await dispatch(getMissingProfilesByIds(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat()));
             actions.push({
                 type: PostTypes.RECEIVED_POSTS,
                 data: {posts: userThreadList.threads.map(({post}) => ({...post, update_at: 0}))},
@@ -237,13 +248,13 @@ export function getThread(userId: string, teamId: string, threadId: string, exte
     };
 }
 
-export function handleAllMarkedRead(dispatch: DispatchFunc, teamId: string) {
-    dispatch({
+export function handleAllMarkedRead(teamId: string) {
+    return {
         type: ThreadTypes.ALL_TEAM_THREADS_READ,
         data: {
             team_id: teamId,
         },
-    });
+    };
 }
 
 export function markAllThreadsInTeamRead(userId: string, teamId: string): ActionFuncAsync {
@@ -256,7 +267,7 @@ export function markAllThreadsInTeamRead(userId: string, teamId: string): Action
             return {error};
         }
 
-        handleAllMarkedRead(dispatch, teamId);
+        dispatch(handleAllMarkedRead(teamId));
 
         return {};
     };
@@ -384,32 +395,38 @@ export function setThreadFollow(userId: string, teamId: string, threadId: string
     };
 }
 
-export function handleAllThreadsInChannelMarkedRead(dispatch: DispatchFunc, getState: GetStateFunc, channelId: string, lastViewedAt: number) {
-    const state = getState();
-    const threadsInChannel = getThreadItemsInChannel(state, channelId);
-    const channel = getChannel(state, channelId);
-    if (channel == null) {
-        return;
-    }
-    const teamId = channel.team_id;
-    const actions = [];
+export function handleAllThreadsInChannelMarkedRead(channelId: string, lastViewedAt: number): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
 
-    for (const thread of threadsInChannel) {
-        actions.push({
-            type: ThreadTypes.READ_CHANGED_THREAD,
-            data: {
-                id: thread.id,
-                channelId,
-                teamId,
-                lastViewedAt,
-                newUnreadMentions: 0,
-                newUnreadReplies: 0,
-                isUrgent: thread.is_urgent,
-            },
-        });
-    }
+        const channel = getChannel(state, channelId);
+        if (channel == null) {
+            return {data: false};
+        }
 
-    dispatch(batchActions(actions));
+        const teamId = channel.team_id;
+        const threadsInChannel = getThreadsInChannel(state, channelId);
+
+        const actions = [];
+        for (const thread of threadsInChannel) {
+            actions.push({
+                type: ThreadTypes.READ_CHANGED_THREAD,
+                data: {
+                    id: thread.id,
+                    channelId,
+                    teamId,
+                    lastViewedAt,
+                    newUnreadMentions: 0,
+                    newUnreadReplies: 0,
+                    isUrgent: thread.is_urgent,
+                },
+            });
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data: true};
+    };
 }
 
 export function decrementThreadCounts(post: ExtendedPost): ActionFunc {
@@ -424,13 +441,16 @@ export function decrementThreadCounts(post: ExtendedPost): ActionFunc {
         const channel = getChannel(state, post.channel_id);
         const teamId = channel?.team_id || getCurrentTeamId(state);
 
-        dispatch({
-            type: ThreadTypes.DECREMENT_THREAD_COUNTS,
-            teamId,
-            replies: thread.unread_replies,
-            mentions: thread.unread_mentions,
-            channelType: channel.type,
-        });
+        if (channel) {
+            dispatch({
+                type: ThreadTypes.DECREMENT_THREAD_COUNTS,
+                teamId,
+                replies: thread.unread_replies,
+                mentions: thread.unread_mentions,
+                channelType: channel.type,
+            });
+        }
+
         return {data: true};
     };
 }

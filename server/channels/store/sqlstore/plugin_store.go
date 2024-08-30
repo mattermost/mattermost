@@ -172,9 +172,8 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 					return false, nil
 				} else if count == 1 {
 					return true, nil
-				} else {
-					return false, errors.Wrapf(err, "got too many rows when counting PluginKeyValue with pluginId=%s, key=%s, rows=%d", kv.PluginId, kv.Key, count)
 				}
+				return false, errors.Wrapf(err, "got too many rows when counting PluginKeyValue with pluginId=%s, key=%s, rows=%d", kv.PluginId, kv.Key, count)
 			}
 
 			// No rows were affected by the update, where condition was not satisfied,

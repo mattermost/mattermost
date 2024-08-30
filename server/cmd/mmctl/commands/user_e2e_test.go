@@ -19,7 +19,7 @@ import (
 func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Activate user", func(c client.Client) {
@@ -69,7 +69,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Deactivate user", func(c client.Client) {
@@ -164,18 +164,26 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		userPool = append(userPool, usr.Username)
 	}
 
+	inactivePool := []string{}
+	// create inactive users
+	for i := 0; i < 2; i++ {
+		userData := model.User{
+			Username: "fakeuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+			DeleteAt: model.GetMillis(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		userPool = append(userPool, usr.Username)
+		inactivePool = append(inactivePool, usr.Username)
+	}
+
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		var all bool
-		perpage := 5
-		team := ""
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -191,23 +199,101 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		perpage := 10
-		all := true
-		team := ""
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Require().GreaterOrEqual(len(printer.GetLines()), 14)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 16)
 		s.Len(printer.GetErrorLines(), 0)
 		for _, each := range printer.GetLines() {
 			user := each.(*model.User)
 			s.Require().Contains(userPool, user.Username)
+		}
+	})
+
+	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 2)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(inactivePool, user.Username)
+		}
+	})
+
+	// create users with team
+	for i := 0; i < 10; i++ {
+		userData := model.User{
+			Username: "teamuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		userPool = append(userPool, usr.Username)
+		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+	}
+
+	s.RunForAllClients("Get list users given team", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 10)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(userPool, user.Username)
+		}
+	})
+
+	// create inactive users with team
+	inactiveUserPool := []string{}
+
+	for i := 0; i < 10; i++ {
+		userData := model.User{
+			Username: "inactiveteamuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+			DeleteAt: model.GetMillis(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		inactiveUserPool = append(inactiveUserPool, usr.Username)
+		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+	}
+
+	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 10)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(inactiveUserPool, user.Username)
 		}
 	})
 }
@@ -284,7 +370,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Reset user mfa", func(c client.Client) {
@@ -314,7 +400,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 		}()
 
-		userMfaInactive, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: false})
+		userMfaInactive, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: false})
 		s.Require().Nil(appErr)
 
 		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{userMfaInactive.Email})
@@ -350,7 +436,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Verify user email without token", func(c client.Client) {
@@ -409,12 +495,12 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource: User id: email="+email)
+		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource \"User\" not found, id: email="+email)
 	})
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
 		printer.Clean()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("password", "somepass", "")
@@ -424,7 +510,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., failed to find User: resource: User id: username="+username)
+		s.Require().ErrorContains(err, "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., failed to find User: resource \"User\" not found, id: username="+username)
 	})
 
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
@@ -439,13 +525,13 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource: User id: email="+email)
+		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource \"User\" not found, id: email="+email)
 	})
 
 	s.Run("Should create a user but w/o system-admin privileges", func() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -464,7 +550,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForSystemAdminAndLocal("Should create new system-admin user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -483,7 +569,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForAllClients("Should create new user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -501,7 +587,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForSystemAdminAndLocal("Should create new user with the email already verified only for admin or local mode", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		username := model.NewId()
+		username := model.NewUsername()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
@@ -634,7 +720,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal("GetUser: Unable to find the user., resource: User id: "+newUser.Id, err.Error())
+		s.Require().Equal("GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id, err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -735,7 +821,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
+		s.Require().EqualError(err, "GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id)
 	})
 }
 
@@ -768,7 +854,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 	s.RunForSystemAdminAndLocal("Valid user to bot convert", func(c client.Client) {
 		printer.Clean()
 
-		user, _ := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, _ := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 
 		email := user.Email
 		cmd := &cobra.Command{}
@@ -916,7 +1002,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
@@ -928,7 +1014,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(c, nil, []string{user.Email})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		defer s.Require().Nil(s.th.App.DemoteUserToGuest(s.th.Context, user))
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -938,7 +1024,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(s.th.Client, nil, []string{user.Email})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("unable to promote guest %s: You do not have the appropriate permissions.", user.Email), printer.GetErrorLines()[0])
@@ -948,7 +1034,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
@@ -984,7 +1070,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewId(),
-		AuthData:    model.NewString("test.user.1"),
+		AuthData:    model.NewPointer("test.user.1"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -992,7 +1078,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	samlUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       "success+devone@simulator.amazonses.com",
 		Username:    "dev.one",
-		AuthData:    model.NewString("dev.one"),
+		AuthData:    model.NewPointer("dev.one"),
 		AuthService: model.UserAuthServiceSaml,
 	})
 	s.Require().Nil(appErr)
@@ -1021,7 +1107,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
-				AuthData:    model.NewString("test.user.1"),
+				AuthData:    model.NewPointer("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
 			s.Require().Nil(appErr)
@@ -1050,7 +1136,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
-				AuthData:    model.NewString("dev.one"),
+				AuthData:    model.NewPointer("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})
 			s.Require().Nil(appErr)
@@ -1073,14 +1159,14 @@ func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
 	s.T().Helper()
 
 	// Delete any existing preferences
-	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), userID)
+	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), userID)
 	s.NoError(err)
 
 	if len(preferences) == 0 {
 		return
 	}
 
-	_, err = s.th.SystemAdminClient.DeletePreferences(context.Background(), userID, preferences)
+	_, err = s.th.SystemAdminClient.DeletePreferences(context.TODO(), userID, preferences)
 	s.NoError(err)
 }
 
@@ -1091,17 +1177,17 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 	s.NoError(err)
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 	s.NoError(err)
 	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 	s.NoError(err)
 
 	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 	s.NoError(err)
 
 	s.Run("list all preferences for single user", func() {
@@ -1182,17 +1268,17 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 	s.NoError(err)
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 	s.NoError(err)
 	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 	s.NoError(err)
 
 	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 	s.NoError(err)
 
 	s.Run("get preference for single user", func() {
@@ -1251,14 +1337,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.cleanUpPreferences(s.th.BasicUser.Id)
 		s.cleanUpPreferences(s.th.BasicUser2.Id)
 
-		_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+		_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 		s.NoError(err)
-		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 		s.NoError(err)
-		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 		s.NoError(err)
 
-		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 		s.NoError(err)
 	}
 
@@ -1277,7 +1363,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 4)
 		s.Require().Equal(preference1, actualPreferencesUser1[0])
@@ -1286,7 +1372,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().Equal(preferenceNew, actualPreferencesUser1[3])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1308,7 +1394,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 4)
 		s.Require().Equal(preference1, actualPreferencesUser1[0])
@@ -1317,7 +1403,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().Equal(preferenceNew, actualPreferencesUser1[3])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 2)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1354,7 +1440,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
 		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
@@ -1362,7 +1448,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().Equal(preference3, actualPreferencesUser1[2])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1384,14 +1470,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
 		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
 		s.Require().Equal(preference2, actualPreferencesUser1[1])
 		s.Require().Equal(preference3, actualPreferencesUser1[2])
 
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preferenceUpdated2, actualPreferencesUser2[0])
@@ -1420,17 +1506,17 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 	s.NoError(err)
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 	s.NoError(err)
 	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 	s.NoError(err)
 
 	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 	s.NoError(err)
 
 	s.Run("delete non-existing preference for single user", func() {
@@ -1446,7 +1532,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
 		s.Require().Equal(preference1, actualPreferencesUser1[0])
@@ -1454,7 +1540,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().Equal(preference3, actualPreferencesUser1[2])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1471,14 +1557,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 2)
 		s.Require().Equal(preference2, actualPreferencesUser1[0])
 		s.Require().Equal(preference3, actualPreferencesUser1[1])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1495,14 +1581,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 2)
 		s.Require().Equal(preference2, actualPreferencesUser1[0])
 		s.Require().Equal(preference3, actualPreferencesUser1[1])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 0)
 	})

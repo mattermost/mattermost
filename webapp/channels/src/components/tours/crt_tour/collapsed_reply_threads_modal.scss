@@ -3,26 +3,11 @@
 
 .GenericModal.CollapsedReplyThreadsModal {
     width: 692px;
-    padding: 0 1.6rem;
-
-    .modal-content {
-        padding: 16px 15px;
-
-        @media screen and (max-width: 767px) {
-            .app__body .modal & {
-                padding: 24px;
-            }
-        }
-    }
 
     .CollapsedReplyThreadsModal__img {
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        margin-top: 40px;
-    }
-
-    .modal-footer {
-        margin-top: 20px;
+        margin-top: 22px;
     }
 }
 

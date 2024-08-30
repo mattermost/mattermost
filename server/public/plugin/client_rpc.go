@@ -196,29 +196,29 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	var methods []string
 	for i := 0; i < ifaceType.NumMethod(); i++ {
 		method := ifaceType.Method(i)
-		if m, ok := implType.MethodByName(method.Name); !ok {
+		m, ok := implType.MethodByName(method.Name)
+		if !ok {
 			continue
 		} else if m.Type.NumIn() != method.Type.NumIn()+1 {
 			continue
 		} else if m.Type.NumOut() != method.Type.NumOut() {
 			continue
-		} else {
-			match := true
-			for j := 0; j < method.Type.NumIn(); j++ {
-				if m.Type.In(j+1) != method.Type.In(j) {
-					match = false
-					break
-				}
+		}
+		match := true
+		for j := 0; j < method.Type.NumIn(); j++ {
+			if m.Type.In(j+1) != method.Type.In(j) {
+				match = false
+				break
 			}
-			for j := 0; j < method.Type.NumOut(); j++ {
-				if m.Type.Out(j) != method.Type.Out(j) {
-					match = false
-					break
-				}
+		}
+		for j := 0; j < method.Type.NumOut(); j++ {
+			if m.Type.Out(j) != method.Type.Out(j) {
+				match = false
+				break
 			}
-			if !match {
-				continue
-			}
+		}
+		if !match {
+			continue
 		}
 		if _, ok := selfType.MethodByName(method.Name); !ok {
 			continue

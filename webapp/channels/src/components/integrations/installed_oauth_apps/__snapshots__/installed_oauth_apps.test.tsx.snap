@@ -29,7 +29,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
       id="installed_oauth_apps.help"
       values={
         Object {
-          "appDirectory": <ExternalLink
+          "appDirectory": <ForwardRef
             href="https://mattermost.com/marketplace/"
             location="installed_oauth_apps"
           >
@@ -37,8 +37,8 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
               defaultMessage="App Directory"
               id="installed_oauth_apps.help.appDirectory"
             />
-          </ExternalLink>,
-          "oauthApplications": <ExternalLink
+          </ForwardRef>,
+          "oauthApplications": <ForwardRef
             href="https://mattermost.com/pl/setup-oauth-2.0"
             location="installed_oauth_apps"
           >
@@ -46,7 +46,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
               defaultMessage="OAuth 2.0 applications"
               id="installed_oauth_apps.help.oauthApplications"
             />
-          </ExternalLink>,
+          </ForwardRef>,
         }
       }
     />
@@ -85,7 +85,21 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 2`] = 
     onRegenerateSecret={[MockFunction]}
     team={
       Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
         "name": "test",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
       }
     }
   />
@@ -122,7 +136,21 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
     onRegenerateSecret={[MockFunction]}
     team={
       Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
         "name": "test",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
       }
     }
   />

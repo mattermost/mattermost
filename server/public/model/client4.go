@@ -340,10 +340,6 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
-func (c *Client4) hostedCustomerRoute() string {
-	return "/hosted_customer"
-}
-
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -572,6 +568,18 @@ func (c *Client4) exportRoute(name string) string {
 	return fmt.Sprintf(c.exportsRoute()+"/%v", name)
 }
 
+func (c *Client4) remoteClusterRoute() string {
+	return "/remotecluster"
+}
+
+func (c *Client4) sharedChannelRemotesRoute(remoteId string) string {
+	return fmt.Sprintf("%s/%s/sharedchannelremotes", c.remoteClusterRoute(), remoteId)
+}
+
+func (c *Client4) channelRemoteRoute(remoteId, channelId string) string {
+	return fmt.Sprintf("%s/%s/channels/%s", c.remoteClusterRoute(), remoteId, channelId)
+}
+
 func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
@@ -588,12 +596,32 @@ func (c *Client4) limitsRoute() string {
 	return "/limits"
 }
 
+func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var serverLimits ServerLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &serverLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&serverLimits); err != nil {
+		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &serverLimits, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }
 
 func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
 	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
+}
+
+func (c *Client4) clientPerfMetricsRoute() string {
+	return "/client_perf"
 }
 
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
@@ -682,7 +710,7 @@ func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, con
 }
 
 func (c *Client4) doUploadFile(ctx context.Context, url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, body)
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, body)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -741,7 +769,7 @@ func (c *Client4) DoEmojiUploadFile(ctx context.Context, url string, data []byte
 }
 
 func (c *Client4) DoUploadImportTeam(ctx context.Context, url string, data []byte, contentType string) (map[string]string, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, bytes.NewReader(data))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -824,6 +852,25 @@ func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Respo
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		return nil, nil, NewAppError("login", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &user, BuildResponse(r), nil
+}
+
+func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId string) (*User, *Response, error) {
+	m := make(map[string]string)
+	m["token"] = token
+	m["deviceId"] = deviceId
+	r, err := c.DoAPIPost(ctx, "/users/login/desktop_token", MapToJSON(m))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		return nil, nil, NewAppError("loginWithDesktopToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &user, BuildResponse(r), nil
 }
@@ -1094,7 +1141,7 @@ func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag stri
 	return list, BuildResponse(r), nil
 }
 
-// GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
+// GetUsersWithCustomQueryParameters returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
 	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
@@ -1107,7 +1154,7 @@ func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page in
 		return list, BuildResponse(r), nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetUsersWithCustomQueryParameters", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return list, BuildResponse(r), nil
 }
@@ -1801,7 +1848,7 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 		return nil, NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -2297,10 +2344,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewInt(0)
+		search.Page = NewPointer(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewInt(100)
+		search.PerPage = NewPointer(100)
 	}
 	buf, err := json.Marshal(search)
 	if err != nil {
@@ -2873,7 +2920,7 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -3710,6 +3757,23 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AddChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// AddChannelMembers adds users to a channel and return an array of channel members.
+func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId string, userIds []string) ([]*ChannelMember, *Response, error) {
+	requestBody := map[string]any{"user_ids": userIds, "post_root_id": postRootId}
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", StringInterfaceToJSON(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelMember
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("AddChannelMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -4599,7 +4663,7 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 
 // General/System Section
 
-// GenerateSupportPacket downloads the generated support packet
+// GenerateSupportPacket generates and downloads a Support Packet.
 func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/support_packet", "")
 	if err != nil {
@@ -4834,7 +4898,7 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 		return nil, NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -4942,6 +5006,24 @@ func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int
 	}
 	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
 		return nil, nil, NewAppError("GetIncomingWebhooks", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return iwl, BuildResponse(r), nil
+}
+
+// GetIncomingWebhooksWithCount returns a page of incoming webhooks on the system including the total count. Page counting starts at 0.
+func (c *Client4) GetIncomingWebhooksWithCount(ctx context.Context, page int, perPage int, etag string) (*IncomingWebhooksWithCount, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var iwl *IncomingWebhooksWithCount
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooksWithCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return iwl, BuildResponse(r), nil
 }
@@ -5406,7 +5488,7 @@ func (c *Client4) GetComplianceReport(ctx context.Context, reportId string) (*Co
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string) ([]byte, *Response, error) {
-	rq, err := http.NewRequest("GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
+	rq, err := http.NewRequestWithContext(ctx, "GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5810,7 +5892,7 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 		return nil, NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -5844,6 +5926,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	}
 	defer closeBody(r)
 	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
+}
+
+// Download logs as mattermost.log file
+func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, "/logs/download", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DownloadLogs", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -6007,7 +6103,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
 	url := c.URL + "/oauth/access_token"
-	rq, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
+	rq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7002,8 +7098,8 @@ func (c *Client4) GetJob(ctx context.Context, id string) (*Job, *Response, error
 }
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
-func (c *Client4) GetJobs(ctx context.Context, page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v", page, perPage), "")
+func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, page int, perPage int) ([]*Job, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v&job_type=%v&status=%v", page, perPage, jobType, status), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7070,6 +7166,23 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, "", r.StatusCode).Wrap(err)
 	}
 	return data, BuildResponse(r), nil
+}
+
+// UpdateJobStatus updates the status of a job
+func (c *Client4) UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*Response, error) {
+	buf, err := json.Marshal(map[string]any{
+		"status": status,
+		"force":  force,
+	})
+	if err != nil {
+		return nil, NewAppError("UpdateJobStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.jobsRoute()+fmt.Sprintf("/%v/status", jobId), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Roles Section
@@ -7289,7 +7402,7 @@ func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) 
 		return nil, nil, err
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.pluginsRoute(), body)
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.pluginsRoute(), body)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7350,6 +7463,36 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &m, BuildResponse(r), nil
+}
+
+// ReattachPlugin asks the server to reattach to a plugin launched by another process.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("ReattachPlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/reattach", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+// DetachPlugin detaches a previously reattached plugin.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) DetachPlugin(ctx context.Context, pluginID string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(pluginID)+"/detach", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
@@ -7658,6 +7801,19 @@ func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPa
 		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &g, BuildResponse(r), nil
+}
+
+func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMemberList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupRoute(groupID)+"/members", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ml GroupMemberList
+	if err := json.NewDecoder(r.Body).Decode(&ml); err != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ml, BuildResponse(r), nil
 }
 
 func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
@@ -8262,50 +8418,6 @@ func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response
 	return response, BuildResponse(r), nil
 }
 
-func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/payment", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var setupIntent *StripeSetupIntent
-	json.NewDecoder(r.Body).Decode(&setupIntent)
-
-	return setupIntent, BuildResponse(r), nil
-}
-
-func (c *Client4) ConfirmCustomerPayment(ctx context.Context, confirmRequest *ConfirmPaymentMethodRequest) (*Response, error) {
-	json, err := json.Marshal(confirmRequest)
-	if err != nil {
-		return nil, NewAppError("ConfirmCustomerPayment", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.cloudRoute()+"/payment/confirm", json)
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) RequestCloudTrial(ctx context.Context, cloudTrialRequest *StartCloudTrialRequest) (*Subscription, *Response, error) {
-	payload, err := json.Marshal(cloudTrialRequest)
-	if err != nil {
-		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/request-trial", payload)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var subscription *Subscription
-	json.NewDecoder(r.Body).Decode(&subscription)
-
-	return subscription, BuildResponse(r), nil
-}
-
 func (c *Client4) ValidateWorkspaceBusinessEmail(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/validate-workspace-business-email", "")
 	if err != nil {
@@ -8372,19 +8484,6 @@ func (c *Client4) GetCloudCustomer(ctx context.Context) (*CloudCustomer, *Respon
 	return cloudCustomer, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSubscriptionStatus(ctx context.Context, licenseId string) (*SubscriptionLicenseSelfServeStatusResponse, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/self-serve-status", licenseId), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var status *SubscriptionLicenseSelfServeStatusResponse
-	json.NewDecoder(r.Body).Decode(&status)
-
-	return status, BuildResponse(r), nil
-}
-
 func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/subscription", "")
 	if err != nil {
@@ -8443,23 +8542,6 @@ func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Addre
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r), nil
-}
-
-func (c *Client4) BootstrapSelfHostedSignup(ctx context.Context, req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
-	reqBytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.hostedCustomerRoute()+"/bootstrap", reqBytes)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var res *BootstrapSelfHostedSignupResponse
-	json.NewDecoder(r.Body).Decode(&res)
-
-	return res, BuildResponse(r), nil
 }
 
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
@@ -8665,10 +8747,209 @@ func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (Re
 	return rci, BuildResponse(r), nil
 }
 
+func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filter RemoteClusterQueryFilter) ([]*RemoteCluster, *Response, error) {
+	v := url.Values{}
+	if page != 0 {
+		v.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		v.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	if filter.ExcludeOffline {
+		v.Set("exclude_offline", "true")
+	}
+	if filter.InChannel != "" {
+		v.Set("in_channel", filter.InChannel)
+	}
+	if filter.NotInChannel != "" {
+		v.Set("not_in_channel", filter.NotInChannel)
+	}
+	if filter.Topic != "" {
+		v.Set("topic", filter.Topic)
+	}
+	if filter.CreatorId != "" {
+		v.Set("creator_id", filter.CreatorId)
+	}
+	if filter.OnlyConfirmed {
+		v.Set("only_confirmed", "true")
+	}
+	if filter.PluginID != "" {
+		v.Set("plugin_id", filter.PluginID)
+	}
+	if filter.OnlyPlugins {
+		v.Set("only_plugins", "true")
+	}
+	if filter.ExcludePlugins {
+		v.Set("exclude_plugins", "true")
+	}
+	url := c.remoteClusterRoute()
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rcs []*RemoteCluster
+	json.NewDecoder(r.Body).Decode(&rcs)
+
+	return rcs, BuildResponse(r), nil
+}
+
+func (c *Client4) CreateRemoteCluster(ctx context.Context, rcWithPassword *RemoteClusterWithPassword) (*RemoteClusterWithInvite, *Response, error) {
+	rcJSON, err := json.Marshal(rcWithPassword)
+	if err != nil {
+		return nil, nil, NewAppError("CreateRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.remoteClusterRoute(), string(rcJSON))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rcWithInvite RemoteClusterWithInvite
+	if err := json.NewDecoder(r.Body).Decode(&rcWithInvite); err != nil {
+		return nil, nil, NewAppError("CreateRemoteCluster", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &rcWithInvite, BuildResponse(r), nil
+}
+
+func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite *RemoteClusterAcceptInvite) (*RemoteCluster, *Response, error) {
+	rcAcceptInviteJSON, err := json.Marshal(rcAcceptInvite)
+	if err != nil {
+		return nil, nil, NewAppError("RemoteClusterAcceptInvite", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	url := fmt.Sprintf("%s/accept_invite", c.remoteClusterRoute())
+	r, err := c.DoAPIPost(ctx, url, string(rcAcceptInviteJSON))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rc RemoteCluster
+	if err := json.NewDecoder(r.Body).Decode(&rc); err != nil {
+		return nil, nil, NewAppError("RemoteClusterAcceptInvite", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &rc, BuildResponse(r), nil
+}
+
+func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteClusterId, password string) (string, *Response, error) {
+	url := fmt.Sprintf("%s/%s/generate_invite", c.remoteClusterRoute(), remoteClusterId)
+	r, err := c.DoAPIPost(ctx, url, MapToJSON(map[string]string{"password": password}))
+	if err != nil {
+		return "", BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		return "", nil, NewAppError("GenerateRemoteClusterInvite", "api.read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return string(b), BuildResponse(r), nil
+}
+
+func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) (*RemoteCluster, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rc *RemoteCluster
+	json.NewDecoder(r.Body).Decode(&rc)
+
+	return rc, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string, patch *RemoteClusterPatch) (*RemoteCluster, *Response, error) {
+	patchJSON, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("PatchRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	url := fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId)
+	r, err := c.DoAPIPatchBytes(ctx, url, patchJSON)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var rc RemoteCluster
+	if err := json.NewDecoder(r.Body).Decode(&rc); err != nil {
+		return nil, nil, NewAppError("PatchRemoteCluster", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &rc, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+	v := url.Values{}
+	if excludeHome {
+		v.Set("exclude_home", "true")
+	}
+	if excludeRemote {
+		v.Set("exclude_remote", "true")
+	}
+	if page != 0 {
+		v.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		v.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	url := c.sharedChannelRemotesRoute(remoteId)
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var scs []*SharedChannelRemote
+	json.NewDecoder(r.Body).Decode(&scs)
+
+	return scs, BuildResponse(r), nil
+}
+
+func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
+	url := fmt.Sprintf("%s/invite", c.channelRemoteRoute(remoteId, channelId))
+	r, err := c.DoAPIPost(ctx, url, "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
+	url := fmt.Sprintf("%s/uninvite", c.channelRemoteRoute(remoteId, channelId))
+	r, err := c.DoAPIPost(ctx, url, "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.permissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, err := c.DoAPIGet(ctx, url, "")
+	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
+	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}
@@ -8750,96 +9031,6 @@ func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, er
 	return usage, BuildResponse(r), err
 }
 
-func (c *Client4) SelfHostedSignupAvailable(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIGet(ctx, c.hostedCustomerRoute()+"/signup_available", "")
-
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) SelfHostedSignupCustomer(ctx context.Context, form *SelfHostedCustomerForm) (*Response, *SelfHostedSignupCustomerResponse, error) {
-	payloadBytes, err := json.Marshal(form)
-	if err != nil {
-		return nil, nil, NewAppError("SelfHostedSignupCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.hostedCustomerRoute()+"/customer", string(payloadBytes))
-
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	defer closeBody(r)
-
-	response := SelfHostedSignupCustomerResponse{}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	return BuildResponse(r), &response, nil
-}
-
-func (c *Client4) SelfHostedSignupConfirm(ctx context.Context, form *SelfHostedConfirmPaymentMethodRequest) (*Response, *SelfHostedSignupConfirmClientResponse, error) {
-	payloadBytes, err := json.Marshal(form)
-	if err != nil {
-		return nil, nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
-
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	defer closeBody(r)
-
-	response := SelfHostedSignupConfirmClientResponse{}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	defer closeBody(r)
-
-	return BuildResponse(r), &response, nil
-}
-
-func (c *Client4) GetSelfHostedInvoices(ctx context.Context) (*Response, []*Invoice, error) {
-	r, err := c.DoAPIGet(ctx, c.hostedCustomerRoute()+"/invoices", "")
-
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	defer closeBody(r)
-
-	invoices := []*Invoice{}
-	err = json.Unmarshal(data, &invoices)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	defer closeBody(r)
-
-	return BuildResponse(r), invoices, nil
-}
-
 func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/info", "")
 	if err != nil {
@@ -8894,36 +9085,6 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 	defer closeBody(r)
 
 	return BuildResponse(r), nil
-}
-
-func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*Response, error) {
-	reqBytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, NewAppError("SubmitTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.licenseRoute()+"/review", reqBytes)
-	if err != nil {
-		return BuildResponse(r), nil
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var userLimits UserLimits
-	if r.StatusCode == http.StatusNotModified {
-		return &userLimits, BuildResponse(r), nil
-	}
-	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
-		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return &userLimits, BuildResponse(r), nil
 }
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
@@ -9006,4 +9167,17 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 		return nil, nil, NewAppError("ListChannelBookmarksForChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return b, BuildResponse(r), nil
+}
+
+func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
+	buf, err := json.Marshal(report)
+	if err != nil {
+		return nil, NewAppError("SubmitClientMetrics", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	res, err := c.DoAPIPostBytes(ctx, c.clientPerfMetricsRoute(), buf)
+	if err != nil {
+		return BuildResponse(res), err
+	}
+
+	return BuildResponse(res), nil
 }

@@ -176,7 +176,7 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	}
 
 	// Embeds and image dimensions
-	firstLink, images := a.getFirstLinkAndImages(post.Message)
+	firstLink, images := a.getFirstLinkAndImages(c, post.Message)
 
 	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil {
 		if prop, ok := unsafeLinksProp.(string); ok && prop == "true" {
@@ -202,6 +202,11 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 }
 
 func removePermalinkMetadataFromPost(post *model.Post) {
+	removeEmbeddedPostsFromMetadata(post)
+	post.DelProp(model.PostPropsPreviewedPost)
+}
+
+func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return
 	}
@@ -217,8 +222,6 @@ func removePermalinkMetadataFromPost(post *model.Post) {
 	}
 
 	post.Metadata.Embeds = newEmbeds
-
-	post.DelProp(model.PostPropsPreviewedPost)
 }
 
 func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
@@ -361,7 +364,7 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 			imageURLs = append(imageURLs, embed.URL)
 
 		case model.PostEmbedMessageAttachment:
-			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(post)...)
+			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(c, post)...)
 
 		case model.PostEmbedOpengraph:
 			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
@@ -483,12 +486,12 @@ func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions 
 	return a.GetMultipleEmojiByName(c, names)
 }
 
-func (a *App) isLinkAllowedForPreview(link string) bool {
+func (a *App) isLinkAllowedForPreview(rctx request.CTX, link string) bool {
 	domains := normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
 	for _, d := range domains {
 		parsed, err := url.Parse(link)
 		if err != nil {
-			a.Log().Warn("Unable to parse the link", mlog.String("link", link), mlog.Err(err))
+			rctx.Logger().Warn("Unable to parse the link", mlog.String("link", link), mlog.Err(err))
 			// We disable link preview if link is badly formed
 			// to remain on the safe side
 			return false
@@ -496,7 +499,7 @@ func (a *App) isLinkAllowedForPreview(link string) bool {
 		// Conforming to IDNA2008 using the UTS-46 standard.
 		cleaned, err := idna.Lookup.ToASCII(parsed.Hostname())
 		if err != nil {
-			a.Log().Warn("Unable to lookup hostname to ASCII", mlog.String("hostname", parsed.Hostname()), mlog.Err(err))
+			rctx.Logger().Warn("Unable to lookup hostname to ASCII", mlog.String("hostname", parsed.Hostname()), mlog.Err(err))
 			// Same applies if compatibility processing fails.
 			return false
 		}
@@ -525,22 +528,22 @@ func normalizeDomains(domains string) []string {
 // Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
 // images of the form ![alt text](image url). Note that this does not return Markdown links of the
 // form [text](url).
-func (a *App) getFirstLinkAndImages(str string) (string, []string) {
+func (a *App) getFirstLinkAndImages(c request.CTX, str string) (string, []string) {
 	firstLink := ""
 	images := []string{}
 
 	markdown.Inspect(str, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
-			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(link) {
+			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(c, link) {
 				firstLink = link
 			}
 		case *markdown.InlineImage:
-			if link := v.Destination(); a.isLinkAllowedForPreview(link) {
+			if link := v.Destination(); a.isLinkAllowedForPreview(c, link) {
 				images = append(images, link)
 			}
 		case *markdown.ReferenceImage:
-			if link := v.ReferenceDefinition.Destination(); a.isLinkAllowedForPreview(link) {
+			if link := v.ReferenceDefinition.Destination(); a.isLinkAllowedForPreview(c, link) {
 				images = append(images, link)
 			}
 		}
@@ -551,14 +554,14 @@ func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 	return firstLink, images
 }
 
-func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
+func (a *App) getImagesInMessageAttachments(rctx request.CTX, post *model.Post) []string {
 	var images []string
 
 	for _, attachment := range post.Attachments() {
-		_, imagesInText := a.getFirstLinkAndImages(attachment.Text)
+		_, imagesInText := a.getFirstLinkAndImages(rctx, attachment.Text)
 		images = append(images, imagesInText...)
 
-		_, imagesInPretext := a.getFirstLinkAndImages(attachment.Pretext)
+		_, imagesInPretext := a.getFirstLinkAndImages(rctx, attachment.Pretext)
 		images = append(images, imagesInPretext...)
 
 		for _, field := range attachment.Fields {
@@ -566,7 +569,7 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 				continue
 			}
 			if value, ok := field.Value.(string); ok {
-				_, imagesInFieldValue := a.getFirstLinkAndImages(value)
+				_, imagesInFieldValue := a.getFirstLinkAndImages(rctx, value)
 				images = append(images, imagesInFieldValue...)
 			}
 		}
@@ -604,8 +607,8 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
-func (a *App) containsPermalink(post *model.Post) bool {
-	link, _ := a.getFirstLinkAndImages(post.Message)
+func (a *App) containsPermalink(rctx request.CTX, post *model.Post) bool {
+	link, _ := a.getFirstLinkAndImages(rctx, post.Message)
 	if link == "" {
 		return false
 	}
@@ -645,7 +648,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
-		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
+		referencedPost, appErr := a.GetSinglePost(c, referencedPostID, false)
 		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
@@ -667,7 +670,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 		}
 
 		// Get metadata for embedded post
-		if a.containsPermalink(referencedPost) {
+		if a.containsPermalink(c, referencedPost) {
 			// referencedPost contains a permalink: we don't get its metadata
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 		} else {
@@ -842,10 +845,9 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 			return og, nil, nil
 		}
 		return nil, nil, nil
-	} else {
-		// Not an image or web page with OpenGraph information
-		return nil, nil, nil
 	}
+	// Not an image or web page with OpenGraph information
+	return nil, nil, nil
 }
 
 func parseImages(body io.Reader) (*model.PostImage, error) {

@@ -5,12 +5,10 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
@@ -19,9 +17,8 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
-import {a11yFocus, localizeMessage} from 'utils/utils';
+import {a11yFocus} from 'utils/utils';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
@@ -29,7 +26,7 @@ import PerformanceDebuggingSection from './performance_debugging_section';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
+import type {PropsFromRedux} from './index';
 
 type Settings = {
     [key: string]: string | undefined;
@@ -40,38 +37,23 @@ type Settings = {
     sync_drafts: Props['syncDrafts'];
 };
 
-export type Props = {
-    currentUser: UserProfile;
-    advancedSettingsCategory: PreferenceType[];
-    sendOnCtrlEnter: string;
-    codeBlockOnCtrlEnter: string;
-    formatting: string;
-    joinLeave: string;
-    unreadScrollPosition: string;
-    syncDrafts: string;
+export type OwnProps = {
+    adminMode?: boolean;
+    user: UserProfile;
+    userPreferences?: PreferencesType;
     updateSection: (section?: string) => void;
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-    enablePreviewFeatures: boolean;
-    enableUserDeactivation: boolean;
-    syncedDraftsAreAllowed: boolean;
-    actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
-        updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
-        revokeAllSessionsForUser: (userId: string) => Promise<ActionResult>;
-    };
-};
+}
+
+export type Props = OwnProps & PropsFromRedux;
 
 type State = {
-    preReleaseFeatures: typeof PreReleaseFeatures;
     settings: Settings;
-    enabledFeatures: number;
     isSaving: boolean;
-    previewFeaturesEnabled: boolean;
     showDeactivateAccountModal: boolean;
     serverError: string;
-    preReleaseFeaturesKeys: string[];
 }
 
 export default class AdvancedSettingsDisplay extends React.PureComponent<Props, State> {
@@ -82,7 +64,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     getStateFromProps = (): State => {
-        const advancedSettings = this.props.advancedSettingsCategory;
         const settings: Settings = {
             send_on_ctrl_enter: this.props.sendOnCtrlEnter,
             code_block_ctrl_enter: this.props.codeBlockOnCtrlEnter,
@@ -92,37 +73,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             [Preferences.UNREAD_SCROLL_POSITION]: this.props.unreadScrollPosition,
         };
 
-        const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
-        delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
-        const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
-
-        let enabledFeatures = 0;
-        for (const as of advancedSettings) {
-            for (const key of preReleaseFeaturesKeys) {
-                const feature = PreReleaseFeaturesLocal[key];
-
-                if (as.name === Constants.FeatureTogglePrefix + feature.label) {
-                    settings[as.name] = as.value;
-
-                    if (as.value === 'true') {
-                        enabledFeatures += 1;
-                    }
-                }
-            }
-        }
-
         const isSaving = false;
 
-        const previewFeaturesEnabled = this.props.enablePreviewFeatures;
         const showDeactivateAccountModal = false;
 
         return {
-            preReleaseFeatures: PreReleaseFeaturesLocal,
             settings,
-            preReleaseFeaturesKeys,
-            enabledFeatures,
             isSaving,
-            previewFeaturesEnabled,
             showDeactivateAccountModal,
             serverError: '',
         };
@@ -136,35 +93,14 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
-    toggleFeature = (feature: string, checked: boolean): void => {
-        const {settings} = this.state;
-        settings[Constants.FeatureTogglePrefix + feature] = String(checked);
-
-        let enabledFeatures = 0;
-        Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0 && this.state.settings[setting] === 'true') {
-                enabledFeatures++;
-            }
-        });
-
-        this.setState({settings, enabledFeatures});
-    };
-
-    saveEnabledFeatures = (): void => {
-        const features: string[] = [];
-        Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0) {
-                features.push(setting);
-            }
-        });
-
-        this.handleSubmit(features);
-    };
-
     handleSubmit = async (settings: string[]): Promise<void> => {
+        if (!this.props.user) {
+            return;
+        }
+
         const preferences: PreferenceType[] = [];
-        const {actions, currentUser} = this.props;
-        const userId = currentUser.id;
+        const {actions, user} = this.props;
+        const userId = user.id;
 
         // this should be refactored so we can actually be certain about what type everything is
         (Array.isArray(settings) ? settings : [settings]).forEach((setting) => {
@@ -172,7 +108,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 user_id: userId,
                 category: Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 name: setting,
-                value: this.state.settings[setting],
+                value: this.state.settings[setting]!,
             });
         });
 
@@ -183,7 +119,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleDeactivateAccountSubmit = async (): Promise<void> => {
-        const userId = this.props.currentUser.id;
+        const userId = this.props.user.id;
 
         this.setState({isSaving: true});
 
@@ -224,26 +160,26 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
     // This function changes ctrl to cmd when OS is mac
     getCtrlSendText = () => {
-        const description = {
+        const description = defineMessages({
             default: {
-                id: t('user.settings.advance.sendDesc'),
+                id: 'user.settings.advance.sendDesc',
                 defaultMessage: 'When enabled, CTRL + ENTER will send the message and ENTER inserts a new line.',
             },
             mac: {
-                id: t('user.settings.advance.sendDesc.mac'),
+                id: 'user.settings.advance.sendDesc.mac',
                 defaultMessage: 'When enabled, ⌘ + ENTER will send the message and ENTER inserts a new line.',
             },
-        };
-        const title = {
+        });
+        const title = defineMessages({
             default: {
-                id: t('user.settings.advance.sendTitle'),
+                id: 'user.settings.advance.sendTitle',
                 defaultMessage: 'Send Messages on CTRL+ENTER',
             },
             mac: {
-                id: t('user.settings.advance.sendTitle.mac'),
+                id: 'user.settings.advance.sendTitle.mac',
                 defaultMessage: 'Send Messages on ⌘+ENTER',
             },
-        };
+        });
         if (isMac()) {
             return {
                 ctrlSendTitle: title.mac,
@@ -577,20 +513,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         );
     };
 
-    renderFeatureLabel(feature: string): ReactNode {
-        switch (feature) {
-        case 'MARKDOWN_PREVIEW':
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.markdown_preview'
-                    defaultMessage='Show markdown preview option in message input box'
-                />
-            );
-        default:
-            return null;
-        }
-    }
-
     renderCtrlSendSection = () => {
         const active = this.props.activeSection === 'advancedCtrlSend';
         const serverError = this.state.serverError || null;
@@ -702,79 +624,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         );
     };
 
-    renderPreviewFeaturesSection = () => {
-        const serverError = this.state.serverError || null;
-        const active = this.props.activeSection === 'advancedPreviewFeatures';
-        let max = null;
-        if (active) {
-            const inputs = [];
-
-            this.state.preReleaseFeaturesKeys.forEach((key) => {
-                const feature = this.state.preReleaseFeatures[key as keyof typeof PreReleaseFeatures];
-                inputs.push(
-                    <div key={'advancedPreviewFeatures_' + feature.label}>
-                        <div className='checkbox'>
-                            <label>
-                                <input
-                                    id={'advancedPreviewFeatures' + feature.label}
-                                    type='checkbox'
-                                    checked={this.state.settings[Constants.FeatureTogglePrefix + feature.label] === 'true'}
-                                    onChange={(e) => {
-                                        this.toggleFeature(feature.label, e.target.checked);
-                                    }}
-                                />
-                                {this.renderFeatureLabel(key)}
-                            </label>
-                        </div>
-                    </div>,
-                );
-            });
-
-            inputs.push(
-                <div key='advancedPreviewFeatures_helptext'>
-                    <br/>
-                    <FormattedMessage
-                        id='user.settings.advance.preReleaseDesc'
-                        defaultMessage="Check any pre-released features you'd like to preview. You may also need to refresh the page before the setting will take effect."
-                    />
-                </div>,
-            );
-
-            max = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.preReleaseTitle'
-                            defaultMessage='Preview Pre-release Features'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.saveEnabledFeatures}
-                    saving={this.state.isSaving}
-                    serverError={serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
-        return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                title={localizeMessage('user.settings.advance.preReleaseTitle', 'Preview Pre-release Features')}
-                describe={
-                    <FormattedMessage
-                        id='user.settings.advance.enabledFeatures'
-                        defaultMessage='{count, number} {count, plural, one {feature} other {features}} enabled'
-                        values={{count: this.state.enabledFeatures}}
-                    />
-                }
-                section={'advancedPreviewFeatures'}
-                updateSection={this.handleUpdateSection}
-                max={max}
-            />
-        );
-    };
-
     render() {
         const ctrlSendSection = this.renderCtrlSendSection();
 
@@ -784,20 +633,10 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             formattingSectionDivider = <div className='divider-light'/>;
         }
 
-        let previewFeaturesSection;
-        let previewFeaturesSectionDivider;
-        if (this.state.previewFeaturesEnabled && this.state.preReleaseFeaturesKeys.length > 0) {
-            previewFeaturesSectionDivider = (
-                <div className='divider-light'/>
-            );
-            previewFeaturesSection = this.renderPreviewFeaturesSection();
-        }
-
         let deactivateAccountSection: ReactNode = '';
         let makeConfirmationModal: ReactNode = '';
-        const currentUser = this.props.currentUser;
 
-        if (currentUser.auth_service === '' && this.props.enableUserDeactivation) {
+        if (this.props.user.auth_service === '' && this.props.enableUserDeactivation && !this.props.adminMode) {
             const active = this.props.activeSection === 'deactivateAccount';
             let max = null;
             if (active) {
@@ -929,13 +768,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         areAllSectionsInactive={this.props.activeSection === ''}
                         onUpdateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}
+                        adminMode={this.props.adminMode}
+                        userPreferences={this.props.userPreferences}
+                        userId={this.props.user.id}
                     />
-                    {previewFeaturesSectionDivider}
-                    {previewFeaturesSection}
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
+                        adminMode={this.props.adminMode}
+                        userId={this.props.user.id}
                     />
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}

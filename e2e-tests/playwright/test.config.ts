@@ -31,7 +31,6 @@ const config: TestConfig = {
     // Visual tests
     snapshotEnabled: parseBool(process.env.PW_SNAPSHOT_ENABLE, false),
     percyEnabled: parseBool(process.env.PW_PERCY_ENABLE, false),
-    percyToken: process.env.PERCY_TOKEN,
 };
 
 function parseBool(actualValue: string | undefined, defaultValue: boolean) {

@@ -1,139 +1,233 @@
 @import 'utils/mixins';
 
-.user-popover__set-custom-status-btn {
-    display: flex;
-    width: max-content;
-    align-items: center;
-    padding: 2px 0;
-    border: none;
-    background: transparent;
-    color: var(--button-bg);
-    font-size: 12px;
-    font-weight: 600;
-    gap: 6px;
-    line-height: 10px;
-}
-
-.user-profile-popover__heading {
-    font-family: Metropolis, sans-serif;
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 24px;
-    text-align: center;
-}
-
-.user-popover-last-active {
-    display: block;
-    margin: 8px 0 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    line-height: 16px;
-    text-align: center;
+.user-profile-popover-floating-overlay {
+    // 99 being the z-index of the global header
+    // 1060 being the z-index of the user group popover
+    z-index: 1070;
 }
 
 .user-profile-popover {
     width: 240px;
     max-height: calc(100vh - 240px);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
     overflow-y: auto;
 
-    .popover-title {
-        overflow: unset;
-        max-width: 110%;
-        padding: 0;
-        border-bottom: none;
-        margin-top: 8px;
-        margin-right: -8px;
-
-        &.popover-title_height {
-            overflow: visible;
-            height: 22px;
-        }
+    .user-profile-popover-title {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: end;
+        padding: 12px 8px 12px 8px;
 
         .user-popover__role {
-            padding: 0 4px;
-            margin-left: 0;
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: var(--center-channel-color-rgb);
-            font-family: Open Sans, sans-serif;
-            font-size: 10px;
-            letter-spacing: 0.02em;
-            line-height: 16px;
+            flex-grow: 1;
+            background: unset;
+            padding-inline-start: 8px;
+
+            > span {
+                height: 16px;
+                padding: 0 4px;
+                border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color-rgb);
+                font-family: Open Sans, sans-serif;
+                font-size: 10px;
+                letter-spacing: 0.2px;
+                line-height: 16px;
+                text-transform: uppercase;
+            }
+        }
+
+        .closeButtonRelativePosition {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 8px 8px 0 0;
         }
     }
 
-    .popover-content {
-        padding: 0 16px;
+    .user-profile-popover-content {
+        .user-popover-image {
+            position: relative;
+            width: 128px;
+            margin: 0 auto 8px auto;
 
-        .overflow--ellipsis {
+            #userAvatar {
+                width: 120px;
+                min-width: 120px;
+                height: 120px;
+            }
+
+            .user-popover-status {
+                position: absolute;
+                top: auto;
+                right: 8px;
+                bottom: 0;
+                display: flex;
+                width: 24px;
+                height: 24px;
+                padding: 2px;
+                border-radius: 50px;
+                background: rgba(var(--center-channel-bg-rgb), 1);
+
+                svg {
+                    width: 100%;
+                    min-height: 100%;
+                }
+            }
+        }
+
+        .user-popover-last-active {
+            display: block;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-family: "Open Sans";
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            line-height: 16px;
+            margin-block-end: 8px;
+            padding-inline-end: 16px;
+            padding-inline-start: 16px;
             text-align: center;
         }
 
-        .user-popover__subtitle {
-            margin-bottom: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            line-height: 16px;
+        .user-profile-popover__heading {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
+            padding-inline-end: 16px;
+            padding-inline-start: 16px;
+            text-align: center;
+
+            > h5 {
+                margin:0;
+                font-family: Metropolis, sans-serif;
+                font-size: 20px;
+                font-weight: 600;
+                line-height: 28px;
+                @include textEllipsis;
+            }
+
+            i.shared-user-icon {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-size: 16px;
+            }
+        }
+
+        .user-profile-popover__non-heading {
+            font-family: "Open Sans";
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 20px;
+            margin-block-end: 4px;
+            padding-inline-end: 16px;
+            padding-inline-start: 16px;
+            text-align: center;
+
+            @include textEllipsis;
+        }
+
+        hr {
+            border-color: rgba(var(--center-channel-color-rgb), 0.08);
+            margin-block-end: 16px;
+            margin-block-start: 16px;
+
+            &.user-popover__bottom-row-hr {
+                margin-block-start: 4px;
+            }
+        }
+
+        .user-profile-popover__email {
+            display: flex;
+            align-items: center;
+            margin: 0 16px 10px 16px;
+            justify-self: start;
+
+            i.icon-email-outline {
+                margin-inline-end: 8px;
+
+                &::before {
+                    margin-inline-end: 0;
+                    margin-inline-start: 0;
+                }
+            }
+
+            a {
+                font-family: "Open Sans";
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 20px;
+
+                @include textEllipsis;
+            }
+        }
+
+        .user-profile-popover-pluggables {
+            &:not(:empty) {
+                padding: 0 16px 12px 16px;
+                @include textEllipsis;
+            }
+        }
+
+        .user-popover__custom-status {
+            display: flex;
+            align-items: center;
+            font-family: "Open Sans";
+            font-size: 14px;
+
+            span.emoticon {
+                font-size: 16px;
+            }
         }
 
         .user-popover__time-status-container {
             display: flex;
             flex-direction: column;
-            margin-bottom: 8px;
+            padding: 0 16px 12px 16px;
+
+            @include textEllipsis;
+
+            .user-popover__subtitle {
+                display: flex;
+                margin-bottom: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                gap: 4px;
+                line-height: 16px;
+                @include textEllipsis;
+            }
+
+            .user-popover__subtitle-text {
+                margin: 0;
+            }
+
+            .user-popover__set-status {
+                width: fit-content;
+            }
         }
 
-        .popover__row {
+        .user-popover__bottom-row-container {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            padding: 16px;
-            gap: 12px;
+            padding: 0 16px 16px 16px;
+            margin: 0;
+            gap: 4px;
+            row-gap: 8px;
 
-            &.first {
-                border-top-color: rgba(var(--center-channel-color-rgb), 0.08);
-            }
-
-            .btn {
-                @include primary-button;
-
-                height: 32px;
-                padding: 8px 12px;
-                gap: 6px;
-
-                span {
-                    font-size: 12px;
-                    font-weight: 600;
-                    line-height: 10px;
-                }
-            }
-
-            .icon-btn {
-                width: 32px;
-                padding: 0;
-                background-color: unset;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-
-                &:hover {
-                    border-radius: 4px;
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
-                    color: rgba(var(--center-channel-color-rgb), 0.8);
-                }
-            }
-
-            .icon-btn-disabled {
-                cursor: not-allowed;
-                opacity: 0.65;
-            }
-
-            .popover_row-controlContainer {
+            .user-popover__bottom-row-end {
                 display: flex;
+                flex-wrap: wrap;
                 align-items: center;
-
-                .callButtonContainer {
-                    height: unset;
-                    margin-top: 0;
-                }
+                gap: 4px;
+                justify-items: flex-end;
+                row-gap: 4px;
             }
         }
     }

@@ -7,30 +7,14 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
   onToggle={[Function]}
   open={true}
 >
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="actions-menu-icon-tooltip"
-        placement="right"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Message actions"
-          id="post_info.tooltip.actions"
-        />
-      </Tooltip>
-    }
+  <WithTooltip
+    id="center_post_id_1_tooltip"
     placement="top"
-    rootClose={true}
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Message actions"
+        id="post_info.tooltip.actions"
+      />
     }
   >
     <button
@@ -45,7 +29,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
         className="icon icon-apps"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Post extra options"
     id="center_actions_dropdown_post_id_1"
@@ -74,30 +58,14 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
   onToggle={[Function]}
   open={true}
 >
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="actions-menu-icon-tooltip"
-        placement="right"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Message actions"
-          id="post_info.tooltip.actions"
-        />
-      </Tooltip>
-    }
+  <WithTooltip
+    id="center_post_id_1_tooltip"
     placement="top"
-    rootClose={true}
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Message actions"
+        id="post_info.tooltip.actions"
+      />
     }
   >
     <button
@@ -112,7 +80,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
         className="icon icon-apps"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Post extra options"
     id="center_actions_dropdown_post_id_1"
@@ -160,30 +128,14 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
   onToggle={[Function]}
   open={true}
 >
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="actions-menu-icon-tooltip"
-        placement="right"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Message actions"
-          id="post_info.tooltip.actions"
-        />
-      </Tooltip>
-    }
+  <WithTooltip
+    id="center_post_id_1_tooltip"
     placement="top"
-    rootClose={true}
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Message actions"
+        id="post_info.tooltip.actions"
+      />
     }
   >
     <button
@@ -198,7 +150,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
         className="icon icon-apps"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Post extra options"
     id="center_actions_dropdown_post_id_1"
@@ -206,7 +158,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     openLeft={true}
     openUp={false}
   >
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       key="visit-marketplace-permissions"
       permissions={
         Array [
@@ -243,7 +195,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
           </span>
         </button>
       </div>
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Menu>
 </MenuWrapper>
 `;

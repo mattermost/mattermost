@@ -39,15 +39,6 @@ var (
 	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 696 hours (29 days) + 23 hours, 59 mins and 59 seconds
 )
 
-const (
-	TrueUpReviewTelemetryName          = "true_up_review_sent"
-	TrueUpReviewAuthFeaturesMfa        = "multi_factor_authentication"
-	TrueUpReviewAuthFeaturesADLdap     = "ad_ldap_sign_in"
-	TrueUpReviewAuthFeaturesSaml       = "saml_sign_in"
-	TrueUpReviewAuthFeatureOpenId      = "openid_connect"
-	TrueUpReviewAuthFeatureGuestAccess = "guest_access"
-)
-
 type LicenseRecord struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
@@ -198,127 +189,127 @@ func (f *Features) ToMap() map[string]any {
 
 func (f *Features) SetDefaults() {
 	if f.FutureFeatures == nil {
-		f.FutureFeatures = NewBool(true)
+		f.FutureFeatures = NewPointer(true)
 	}
 
 	if f.Users == nil {
-		f.Users = NewInt(0)
+		f.Users = NewPointer(0)
 	}
 
 	if f.LDAP == nil {
-		f.LDAP = NewBool(*f.FutureFeatures)
+		f.LDAP = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.LDAPGroups == nil {
-		f.LDAPGroups = NewBool(*f.FutureFeatures)
+		f.LDAPGroups = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.MFA == nil {
-		f.MFA = NewBool(*f.FutureFeatures)
+		f.MFA = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.GoogleOAuth == nil {
-		f.GoogleOAuth = NewBool(*f.FutureFeatures)
+		f.GoogleOAuth = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Office365OAuth == nil {
-		f.Office365OAuth = NewBool(*f.FutureFeatures)
+		f.Office365OAuth = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.OpenId == nil {
-		f.OpenId = NewBool(*f.FutureFeatures)
+		f.OpenId = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Compliance == nil {
-		f.Compliance = NewBool(*f.FutureFeatures)
+		f.Compliance = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Cluster == nil {
-		f.Cluster = NewBool(*f.FutureFeatures)
+		f.Cluster = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Metrics == nil {
-		f.Metrics = NewBool(*f.FutureFeatures)
+		f.Metrics = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.MHPNS == nil {
-		f.MHPNS = NewBool(*f.FutureFeatures)
+		f.MHPNS = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.SAML == nil {
-		f.SAML = NewBool(*f.FutureFeatures)
+		f.SAML = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Elasticsearch == nil {
-		f.Elasticsearch = NewBool(*f.FutureFeatures)
+		f.Elasticsearch = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Announcement == nil {
-		f.Announcement = NewBool(true)
+		f.Announcement = NewPointer(true)
 	}
 
 	if f.ThemeManagement == nil {
-		f.ThemeManagement = NewBool(true)
+		f.ThemeManagement = NewPointer(true)
 	}
 
 	if f.EmailNotificationContents == nil {
-		f.EmailNotificationContents = NewBool(*f.FutureFeatures)
+		f.EmailNotificationContents = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.DataRetention == nil {
-		f.DataRetention = NewBool(*f.FutureFeatures)
+		f.DataRetention = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.MessageExport == nil {
-		f.MessageExport = NewBool(*f.FutureFeatures)
+		f.MessageExport = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.CustomPermissionsSchemes == nil {
-		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
+		f.CustomPermissionsSchemes = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.GuestAccounts == nil {
-		f.GuestAccounts = NewBool(*f.FutureFeatures)
+		f.GuestAccounts = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.GuestAccountsPermissions == nil {
-		f.GuestAccountsPermissions = NewBool(*f.FutureFeatures)
+		f.GuestAccountsPermissions = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.CustomTermsOfService == nil {
-		f.CustomTermsOfService = NewBool(*f.FutureFeatures)
+		f.CustomTermsOfService = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.IDLoadedPushNotifications == nil {
-		f.IDLoadedPushNotifications = NewBool(*f.FutureFeatures)
+		f.IDLoadedPushNotifications = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.LockTeammateNameDisplay == nil {
-		f.LockTeammateNameDisplay = NewBool(*f.FutureFeatures)
+		f.LockTeammateNameDisplay = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.EnterprisePlugins == nil {
-		f.EnterprisePlugins = NewBool(*f.FutureFeatures)
+		f.EnterprisePlugins = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.AdvancedLogging == nil {
-		f.AdvancedLogging = NewBool(*f.FutureFeatures)
+		f.AdvancedLogging = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.Cloud == nil {
-		f.Cloud = NewBool(false)
+		f.Cloud = NewPointer(false)
 	}
 
 	if f.SharedChannels == nil {
-		f.SharedChannels = NewBool(*f.FutureFeatures)
+		f.SharedChannels = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.RemoteClusterService == nil {
-		f.RemoteClusterService = NewBool(*f.FutureFeatures)
+		f.RemoteClusterService = NewPointer(*f.FutureFeatures)
 	}
 
 	if f.OutgoingOAuthConnections == nil {
-		f.OutgoingOAuthConnections = NewBool(*f.FutureFeatures)
+		f.OutgoingOAuthConnections = NewPointer(*f.FutureFeatures)
 	}
 }
 
@@ -394,12 +385,22 @@ func (l *License) HasSharedChannels() bool {
 		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
+// IsE20OrEnterprise returns true when the license is for E20 or Enterprise.
+func (l *License) IsE20OrEnterprise() bool {
+	return l.SkuShortName == LicenseShortSkuE20 || l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
 		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
-		Customer:  &Customer{},
-		Features:  &Features{},
+		Customer: &Customer{
+			Id:      "some ID",
+			Email:   "admin@example.com",
+			Name:    "Main Contact Person",
+			Company: "My awesome Company",
+		},
+		Features: &Features{},
 	}
 	ret.Features.SetDefaults()
 

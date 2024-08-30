@@ -129,6 +129,14 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if !*a.Config().EmailSettings.EnableSignUpWithEmail {
+		return "", model.NewAppError("SwitchEmailToLdap", "api.user.auth_switch.not_available.email_signup_disabled.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if !*a.Config().EmailSettings.EnableSignInWithEmail && !*a.Config().EmailSettings.EnableSignInWithUsername {
+		return "", model.NewAppError("SwitchEmailToLdap", "api.user.auth_switch.not_available.login_disabled.app_error", nil, "", http.StatusForbidden)
+	}
+
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return "", err

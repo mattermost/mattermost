@@ -19,16 +19,26 @@ const (
 )
 
 func (a *App) GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError) {
-	skipIntensiveQueries := false
-	var systemUserCount int64
+	return a.getAnalytics(rctx, name, teamID, false)
+}
+
+func (a *App) GetAnalyticsForSupportPacket(rctx request.CTX) (model.AnalyticsRows, *model.AppError) {
+	return a.getAnalytics(rctx, "standard", "", true)
+}
+
+func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupportPacket bool) (model.AnalyticsRows, *model.AppError) {
 	systemUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
-		rctx.Logger().Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
-		skipIntensiveQueries = true
+	skipIntensiveQueries := false
+	// When generating a Support Packet, always run intensive queries.
+	if !forSupportPacket {
+		if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
+			rctx.Logger().Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
+			skipIntensiveQueries = true
+		}
 	}
 
 	if name == "standard" {
@@ -231,7 +241,7 @@ func (a *App) GetAnalytics(rctx request.CTX, name string, teamID string) (model.
 		var incomingWebhookCount int64
 		g2.Go(func() error {
 			var err error
-			if incomingWebhookCount, err = a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID); err != nil {
+			if incomingWebhookCount, err = a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID, ""); err != nil {
 				return model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return nil

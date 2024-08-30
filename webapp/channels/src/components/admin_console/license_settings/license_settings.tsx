@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UsersLimits} from '@mattermost/types/limits';
+import type {ServerLimits} from '@mattermost/types/limits';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -55,7 +55,7 @@ type Props = {
         ping: () => Promise<{status: string}>;
         requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
-        getUsersLimits: () => Promise<ActionResult<UsersLimits, ServerError>>;
+        getServerLimits: () => Promise<ActionResult<ServerLimits, ServerError>>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
             data?: UsersStats;
             error?: ServerError;
@@ -196,7 +196,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.props.actions.getLicenseConfig(),
         ]);
 
-        await this.props.actions.getUsersLimits();
+        await this.props.actions.getServerLimits();
 
         this.setState({serverError: null, removing: false});
     };
@@ -394,8 +394,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     }
 
     renewLicenseCard = () => {
-        const {isDisabled} = this.props;
-
         if (isTrialLicense(this.props.license)) {
             return (
                 <TrialLicenseCard
@@ -409,7 +407,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     license={this.props.license}
                     isLicenseExpired={isLicenseExpired(this.props.license)}
                     totalUsers={this.props.totalUsers}
-                    isDisabled={isDisabled}
                 />
             );
         }

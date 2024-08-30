@@ -12,10 +12,10 @@ import (
 )
 
 func (api *API) InitAction() {
-	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
 
-	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), cookie.ChannelId, model.PermissionReadChannelContent) {
+		channel, err := c.App.GetChannel(c.AppContext, cookie.ChannelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
@@ -84,7 +89,7 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.OpenInteractiveDialog(dialog); appErr != nil {
+	if appErr := c.App.OpenInteractiveDialog(c.AppContext, dialog); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -108,7 +113,12 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	submit.UserId = c.AppContext.Session().UserId
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), submit.ChannelId, model.PermissionReadChannelContent) {
+	channel, err := c.App.GetChannel(c.AppContext, submit.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

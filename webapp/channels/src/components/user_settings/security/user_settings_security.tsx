@@ -11,6 +11,7 @@ import {Link} from 'react-router-dom';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AccessHistoryModal from 'components/access_history_modal';
@@ -22,7 +23,7 @@ import ToggleModalButton from 'components/toggle_modal_button';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {isValidPassword} from 'utils/password';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
@@ -56,7 +57,7 @@ type Props = {
     setRequireConfirm: () => void;
     canUseAccessTokens: boolean;
     enableOAuthServiceProvider: boolean;
-    enableSignUpWithEmail: boolean;
+    allowedToSwitchToEmail: boolean;
     enableSignUpWithGitLab: boolean;
     enableSignUpWithGoogle: boolean;
     enableSignUpWithOpenId: boolean;
@@ -64,7 +65,7 @@ type Props = {
     enableSaml: boolean;
     enableSignUpWithOffice365: boolean;
     experimentalEnableAuthenticationTransfer: boolean;
-    passwordConfig: ReturnType<typeof Utils.getPasswordConfig>;
+    passwordConfig: PasswordConfig;
     militaryTime: boolean;
     actions: Actions;
     intl: IntlShape;
@@ -135,7 +136,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {valid, error} = Utils.isValidPassword(
+        const {valid, error} = isValidPassword(
             newPassword,
             this.props.passwordConfig,
         );
@@ -406,7 +407,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         <div className='pb-3'>
                             <FormattedMessage
                                 id='user.settings.security.passwordOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Password cannot be updated.'
+                                defaultMessage='Login occurs through Entra ID. Password cannot be updated.'
                             />
                         </div>
                     </div>,
@@ -494,7 +495,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
-                    defaultMessage='Login done through Office 365'
+                    defaultMessage='Login done through Entra ID'
                 />
             );
         }
@@ -596,7 +597,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchOffice365'
-                                    defaultMessage='Switch to Using Office 365 SSO'
+                                    defaultMessage='Switch to Using Entra ID SSO'
                                 />
                             </Link>
                             <br/>
@@ -671,7 +672,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.enableSignUpWithEmail) {
+            } else if (this.props.allowedToSwitchToEmail) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -763,7 +764,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.office365'
-                    defaultMessage='Office 365'
+                    defaultMessage='Entra ID'
                 />
             );
         } else if (
@@ -918,7 +919,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
-                    width='full'
+                    isFullWidth={true}
                     cancelButtonText={
                         <FormattedMessage
                             id='user.settings.security.close'
@@ -966,7 +967,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
         if (
-            (this.props.enableSignUpWithEmail || user.auth_service === '') &&
+            (this.props.allowedToSwitchToEmail || user.auth_service === '') &&
             numMethods > 0 &&
             this.props.experimentalEnableAuthenticationTransfer
         ) {

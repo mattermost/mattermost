@@ -6,7 +6,7 @@ on:
       # NB: this does not support using branch names that belong to forks.
       #     In those cases, you should specify directly the commit SHA that you want to test, or
       #     some wrapper workflow that does it for you (e.g. the slash command for initiating a PR test)
-      ref:
+      commit_sha:
         type: string
         required: true
       status_check_context:
@@ -30,6 +30,13 @@ on:
         type: boolean
         required: false
         default: false
+      SERVER:
+        type: string # Valid values are: onprem, cloud
+        required: false
+        default: onprem
+      SERVER_IMAGE:
+        type: string
+        required: false
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -39,7 +46,19 @@ on:
       MM_ENV:
         type: string
         required: false
+      BRANCH:
+        type: string
+        required: false
+      BUILD_ID:
+        type: string
+        required: false
       REPORT_TYPE:
+        type: string
+        required: false
+      ROLLING_RELEASE_commit_sha:
+        type: string
+        required: false
+      ROLLING_RELEASE_SERVER_IMAGE:
         type: string
         required: false
     secrets:
@@ -57,40 +76,27 @@ on:
         required: false
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
         required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
+        required: false
 
 jobs:
-  resolve-ref:
-    runs-on: ubuntu-22.04
-    outputs:
-      commit_sha: "${{ steps.resolve-ref.outputs.commit_sha }}"
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          ref: ${{ inputs.ref }}
-          fetch-depth: 0
-      - name: ci/resolve-ref
-        id: resolve-ref
-        run: |
-          echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
-
   update-initial-status:
-    runs-on: ubuntu-22.04
-    needs:
-      - resolve-ref
+    runs-on: ubuntu-latest
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ needs.resolve-ref.outputs.commit_sha }}
+          commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: pending
 
   cypress-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -101,7 +107,7 @@ jobs:
         if: "${{ inputs.run_preflight_checks }}"
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
@@ -121,7 +127,7 @@ jobs:
           npm run check
 
   playwright-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -132,7 +138,7 @@ jobs:
         if: "${{ inputs.run_preflight_checks }}"
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
@@ -158,65 +164,43 @@ jobs:
           npm run check
 
   generate-build-variables:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
-      - resolve-ref
       - update-initial-status
+    defaults:
+      run:
+        shell: bash
     outputs:
-      workers: "${{ steps.workers.outputs.workers }}"
-      BRANCH: "${{ steps.branch.outputs.BRANCH }}"
-      BUILD_ID: "${{ steps.build-id.outputs.BUILD_ID }}"
+      workers: "${{ steps.generate.outputs.workers }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/generate-workers
-        id: workers
+      - name: ci/generate-build-variables
+        id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
-      - name: ci/generate-branch
-        id: branch
-        run: |
-          PR_LIST=$(curl -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/commits/${{ needs.resolve-ref.outputs.commit_sha }}/pulls" 2>/dev/null || echo -n "")
-          PR_NAMES_LIST=$(echo -n "$PR_LIST" | jq -r 'map(.number) | join("-")')
-          if [ -n "$PR_NAMES_LIST" ]; then
-            # This commit belongs to one or more PRs.
-            # Prefer displaying the PR names in the Automation Dashboard, instead of the branch name
-            BRANCH="server-pr-${PR_NAMES_LIST}"
-          else
-            # This commit does not belong to a PR. Use the given input ref as-is
-            BRANCH="${{ inputs.ref }}"
-          fi
-          echo "Generated branch identifier for E2E run: ${BRANCH}"
-          echo "BRANCH=${BRANCH}" >> "$GITHUB_OUTPUT"
-      - name: ci/calculate-build-id
-        id: build-id
-        run: |
-          BUILD_ID="$(git rev-parse --short=7 HEAD)-${{ github.run_id }}-${{ github.run_attempt }}-ent"
-          echo "Generated BUILD_ID for E2E run: ${BUILD_ID}"
-          echo "BUILD_ID=${BUILD_ID}" >> "$GITHUB_OUTPUT"
 
   generate-test-cycle:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
-      - generate-build-variables
+      - update-initial-status
     defaults:
       run:
         shell: bash
         working-directory: e2e-tests
+    outputs:
+      status_check_url: "${{ steps.e2e-test-gencycle.outputs.status_check_url }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -226,14 +210,23 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test-gencycle
+        id: e2e-test-gencycle
         env:
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-          BRANCH: "${{ needs.generate-build-variables.outputs.BRANCH }}"
-          BUILD_ID: "${{ needs.generate-build-variables.outputs.BUILD_ID }}"
+          BRANCH: "${{ inputs.BRANCH }}"
+          BUILD_ID: "${{ inputs.BUILD_ID }}"
           TEST_FILTER: "${{ inputs.TEST_FILTER }}"
         run: |
-          make generate-test-cycle
+          set -e -o pipefail
+          make generate-test-cycle | tee generate-test-cycle.out
+          # Extract cycle's dashboard URL, if present
+          TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p"  <generate-test-cycle.out)
+          if [ -n "$TEST_CYCLE_ID" ]; then
+            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+          else
+            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          fi
 
   test:
     continue-on-error: true # Individual runner failures shouldn't prevent the completion of an E2E run
@@ -247,11 +240,11 @@ jobs:
         # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
         # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
         #
-        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
-        os: [ubuntu-latest-8-cores]
+        #os: [ubuntu-latest, windows-2022, macos-12-xl]
+        os: [ubuntu-latest]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 60
+    timeout-minutes: 120
     needs:
       - cypress-check
       - playwright-check
@@ -264,19 +257,25 @@ jobs:
     env:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      SERVER: "${{ inputs.SERVER }}"
+      SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV }}"
-      BRANCH: "${{ needs.generate-build-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-build-variables.outputs.BUILD_ID }}"
-      CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
+      BRANCH: "${{ inputs.BRANCH }}"
+      BUILD_ID: "${{ inputs.BUILD_ID }}"
+      CI_BASE_URL: "${{ matrix.os }}-${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+      ROLLING_RELEASE_COMMIT_SHA: "${{ inputs.ROLLING_RELEASE_commit_sha }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-macos-docker
         if: runner.os == 'macos'
@@ -296,7 +295,30 @@ jobs:
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test
         run: |
+          make cloud-init
+          if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
+            echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/ && git status
+            (
+            echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
+            export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
+            export TEST_FILTER=""
+            export AUTOMATION_DASHBOARD_URL=""
+            make
+            )
+            echo "RollingRelease: asserting smoketest result has zero failures."
+            FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+            if [ "$FAILURES" -ne "0" ]; then
+              echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
+              exit 1
+            fi
+            rm -rfv cypress/results
+            echo "RollingRelease: reset the E2E test cases to the revision to test"
+            git reset --hard HEAD && git status
+            echo "RollingRelease: smoketest completed. Starting full E2E tests."
+          fi
           make
+          make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
@@ -304,30 +326,48 @@ jobs:
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
-      - name: ci/e2e-test-assert-results
-        if: ${{ inputs.testcase_failure_fatal }}
-        run: |
-          # Assert that the run contained 0 failures
-          CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
-          echo "Cypress run completed with $CYPRESS_FAILURES failures"
-          [ "$CYPRESS_FAILURES" = "0" ]
+          retention-days: 1
 
-  publish-report:
-    runs-on: ubuntu-22.04
+  report:
+    runs-on: ubuntu-latest
     needs:
-      - generate-build-variables
       - test
+      - generate-build-variables
     defaults:
       run:
         shell: bash
         working-directory: e2e-tests
+    outputs:
+      failures: "${{ steps.calculate-failures.outputs.failures }}"
     steps:
       - name: ci/checkout-repo
-        if: "${{ inputs.enable_reporting }}"
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/download-artifacts
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        with:
+          path: e2e-tests/cypress/
+          merge-multiple: true
+      - name: ci/upload-report-global
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+      - name: ci/report-calculate-failures
+        id: calculate-failures
+        run: |
+          FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+          echo "failures=${FAILURES}" >> $GITHUB_OUTPUT
+          echo "Cypress run completed with $FAILURES failures"
+      - name: ci/e2e-test-assert-results
+        if: "${{ inputs.testcase_failure_fatal }}"
+        run: |
+          # Assert that the run contained 0 failures
+          [ "${{ steps.calculate-failures.outputs.failures }}" = "0" ]
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -336,19 +376,16 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
-      - name: ci/download-artifacts
-        if: "${{ inputs.enable_reporting }}"
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
-        with:
-          path: e2e-tests/cypress/
-          merge-multiple: true
       - name: ci/publish-report
         if: "${{ inputs.enable_reporting }}"
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
+          SERVER: "${{ inputs.SERVER }}"
+          SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
-          BRANCH: "${{ needs.generate-build-variables.outputs.BRANCH }}"
-          BUILD_ID: "${{ needs.generate-build-variables.outputs.BUILD_ID }}"
+          BRANCH: "${{ inputs.BRANCH }}"
+          BUILD_ID: "${{ inputs.BUILD_ID }}"
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
@@ -356,35 +393,41 @@ jobs:
           make publish-report
 
   update-failure-final-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: failure() || cancelled()
     needs:
-      - resolve-ref
-      - publish-report
+      - generate-test-cycle
+      - test
+      - report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ needs.resolve-ref.outputs.commit_sha }}
+          commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
-          description: E2E tests for mattermost server app
+          description: |
+            Completed with ${{ needs.report.outputs.failures }} failures
           status: failure
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: success()
     needs:
-      - resolve-ref
-      - publish-report
+      - generate-test-cycle
+      - test
+      - report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ needs.resolve-ref.outputs.commit_sha }}
+          commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
-          description: E2E tests for mattermost server app
+          description: |
+            Completed with ${{ needs.report.outputs.failures }} failures
           status: success
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"

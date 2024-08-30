@@ -45,7 +45,6 @@ generate_docker_compose_file() {
 # Image hashes in this file are for amd64 systems
 # NB:  May include paths relative to the "server/build" directory, which contains the original compose file that this yaml is overriding
 
-version: "2.4"
 services:
   server:
     image: \${SERVER_IMAGE}
@@ -55,18 +54,14 @@ services:
     environment:
       MM_SERVICESETTINGS_ALLOWCORSFROM: "*"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
-      MM_PLUGINSETTINGS_ENABLED: "true"
-      MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
-      MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "true"
-      MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
+      MM_SERVICESETTINGS_ENABLESECURITYFIXALERT: "false"
       MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
-      MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
-      MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
+      MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
     network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
@@ -133,7 +128,7 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
     if [ "$MME2E_ARCHTYPE" = "arm64" ]; then
       echo '
   elasticsearch:
-    image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
+    image: mattermostdevelopment/mattermost-elasticsearch:8.9.0
     platform: linux/arm64/v8
     restart: "no"
     network_mode: host
@@ -222,7 +217,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.42.1-jammy
+    image: mcr.microsoft.com/playwright:v1.43.0-jammy
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -281,7 +276,6 @@ generate_env_files() {
 
   # Generating TEST-specific env files
   # Some are defaulted in .e2erc due to being needed to other scripts as well
-  export CI_BASE_URL="${CI_BASE_URL:-http://localhost:8065}"
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
   export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in
@@ -320,6 +314,8 @@ generate_env_files() {
     case "$SERVER" in
     cloud)
       echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
+      echo "CYPRESS_cwsURL=${CWS_URL}" >> .env.cypress
+      echo "CYPRESS_cwsAPIURL=${CWS_URL}" >> .env.cypress
       ;;
     *)
       echo "CYPRESS_serverEdition=E20" >>.env.cypress

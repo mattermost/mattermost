@@ -78,7 +78,7 @@ describe('System Console > Site Statistics', () => {
         cy.get('.admin-console__content .row').should('have.length', 4);
 
         // * Check that the title content for the stats is as expected.
-        cy.findByTestId('totalActiveUsersTitle').should('contain', 'Total Active Users');
+        cy.findByTestId('totalActiveUsersTitle').should('have.text', 'Total Activated Users');
 
         // cy.findByTestId('seatPurchasedTitle').should('contain', 'Total paid users');
         cy.findByTestId('totalTeamsTitle').should('contain', 'Total Teams');

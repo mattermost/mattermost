@@ -122,7 +122,7 @@ type ChannelForExport struct {
 
 type DirectChannelForExport struct {
 	Channel
-	Members *[]string
+	Members []*ChannelMemberForExport
 }
 
 type ChannelModeration struct {
@@ -207,7 +207,7 @@ func WithID(ID string) ChannelOption {
 func (o *Channel) DeepCopy() *Channel {
 	cCopy := *o
 	if cCopy.SchemeId != nil {
-		cCopy.SchemeId = NewString(*o.SchemeId)
+		cCopy.SchemeId = NewPointer(*o.SchemeId)
 	}
 	return &cCopy
 }

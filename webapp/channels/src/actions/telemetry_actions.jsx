@@ -10,15 +10,6 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isDevModeEnabled} from 'selectors/general';
 import store from 'stores/redux_store';
 
-const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
-const SUPPORTS_MARK = isSupported([performance.mark]);
-const SUPPORTS_MEASURE_METHODS = isSupported([
-    performance.measure,
-    performance.getEntries,
-    performance.getEntriesByName,
-    performance.clearMeasures,
-]);
-
 const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 
 export function isTelemetryEnabled(state) {
@@ -58,59 +49,37 @@ export function pageVisited(category, name) {
  *
  */
 export function clearMarks(names) {
-    if (!shouldTrackPerformance() || !SUPPORTS_CLEAR_MARKS) {
-        return;
-    }
     names.forEach((name) => performance.clearMarks(name));
 }
 
 export function mark(name) {
-    if (!shouldTrackPerformance() || !SUPPORTS_MARK) {
+    performance.mark(name);
+
+    if (!shouldTrackPerformance()) {
         return;
     }
-    performance.mark(name);
 
     initRequestCountingIfNecessary();
     updateRequestCountAtMark(name);
 }
 
 /**
- * Takes the names of two markers and invokes performance.measure on
- * them. The measured duration (ms) and the string name of the measure is
- * are returned.
+ * Takes the names of two markers and returns the number of requests sent between them.
  *
  * @param   {string} name1 the first marker
  * @param   {string} name2 the second marker
  *
- * @returns {{duration: number; requestCount: number; measurementName: string}}
- * An object containing the measured duration (in ms) between two marks, the
- * number of API requests made during that period, and the name of the measurement.
- * Returns a duration and request count of -1 if performance isn't being tracked
- * or one of the markers can't be found.
+ * @returns {number} Returns a request count of -1 if performance isn't being tracked
  *
  */
-export function measure(name1, name2) {
-    if (!shouldTrackPerformance() || !SUPPORTS_MEASURE_METHODS) {
-        return {duration: -1, requestCount: -1, measurementName: ''};
+export function countRequestsBetween(name1, name2) {
+    if (!shouldTrackPerformance()) {
+        return -1;
     }
-
-    // Check for existence of entry name to avoid DOMException
-    const performanceEntries = performance.getEntries();
-    if (![name1, name2].every((name) => performanceEntries.find((item) => item.name === name))) {
-        return {duration: -1, requestCount: -1, measurementName: ''};
-    }
-
-    const displayPrefix = '🐐 Mattermost: ';
-    const measurementName = `${displayPrefix}${name1} - ${name2}`;
-    performance.measure(measurementName, name1, name2);
-    const duration = mostRecentDurationByEntryName(measurementName);
 
     const requestCount = getRequestCountAtMark(name2) - getRequestCountAtMark(name1);
 
-    // Clean up the measures we created
-    performance.clearMeasures(measurementName);
-
-    return {duration, requestCount, measurementName};
+    return requestCount;
 }
 
 /**
@@ -152,11 +121,6 @@ export function measurePageLoadTelemetry() {
 
         trackEvent('performance', 'page_load', {duration: pageLoadTime, numOfRequest, maxAPIResourceSize, longestAPIResource, longestAPIResourceDuration});
     }, tenSeconds);
-}
-
-function mostRecentDurationByEntryName(entryName) {
-    const entriesWithName = performance.getEntriesByName(entryName);
-    return entriesWithName.map((item) => item.duration)[entriesWithName.length - 1];
 }
 
 function isSupported(checks) {

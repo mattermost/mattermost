@@ -29,7 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         channelDisplayName: '',
-        channelType: channel.type,
+        channelType: channel?.type,
     };
 }
 

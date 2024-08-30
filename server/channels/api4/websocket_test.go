@@ -465,5 +465,5 @@ func TestWebSocketUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	require.NoError(t, th.TestLogger.Flush())
-	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
+	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "URL Blocked because of CORS. Url: ")
 }

@@ -6,9 +6,9 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/pkg/errors"
 )
@@ -16,12 +16,14 @@ import (
 const (
 	broadcastAddMentions  = "add_mentions"
 	broadcastAddFollowers = "add_followers"
+	broadcastPostedAck    = "posted_ack"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	return map[string]platform.BroadcastHook{
 		broadcastAddMentions:  &addMentionsBroadcastHook{},
 		broadcastAddFollowers: &addFollowersBroadcastHook{},
+		broadcastPostedAck:    &postedAckBroadcastHook{},
 	}
 }
 
@@ -33,7 +35,7 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 		return errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
-	if len(mentions) > 0 && pUtils.Contains[string](mentions, webConn.UserId) {
+	if len(mentions) > 0 && slices.Contains(mentions, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 	}
@@ -55,7 +57,7 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 		return errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
-	if len(followers) > 0 && pUtils.Contains[string](followers, webConn.UserId) {
+	if len(followers) > 0 && slices.Contains(followers, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 	}
@@ -67,6 +69,77 @@ func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringAr
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
 		"followers": followers,
 	})
+}
+
+type postedAckBroadcastHook struct{}
+
+func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channelType model.ChannelType, usersToNotify []string) {
+	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
+		"posted_user_id": postedUserId,
+		"channel_type":   channelType,
+		"users":          usersToNotify,
+	})
+}
+
+func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	// Don't ACK unless we say to explicitly
+	if !(webConn.PostedAck && webConn.Active.Load()) {
+		return nil
+	}
+
+	postedUserId, err := getTypedArg[string](args, "posted_user_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid posted_user_id value passed to postedAckBroadcastHook")
+	}
+
+	// Don't ACK your own posts
+	if postedUserId == webConn.UserId {
+		return nil
+	}
+
+	// Add if we have mentions or followers
+	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
+	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
+		msg.Add("should_ack", true)
+		incrementWebsocketCounter(webConn)
+		return nil
+	}
+
+	channelType, err := getTypedArg[model.ChannelType](args, "channel_type")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_type value passed to postedAckBroadcastHook")
+	}
+
+	// Always ACK direct channels
+	if channelType == model.ChannelTypeDirect {
+		msg.Add("should_ack", true)
+		incrementWebsocketCounter(webConn)
+		return nil
+	}
+
+	users, err := getTypedArg[model.StringArray](args, "users")
+	if err != nil {
+		return errors.Wrap(err, "Invalid users value passed to addFollowersBroadcastHook")
+	}
+
+	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
+		msg.Add("should_ack", true)
+		incrementWebsocketCounter(webConn)
+	}
+
+	return nil
+}
+
+func incrementWebsocketCounter(wc *platform.WebConn) {
+	if wc.Platform.Metrics() == nil {
+		return
+	}
+
+	if !(wc.Platform.Config().FeatureFlags.NotificationMonitoring && *wc.Platform.Config().MetricsSettings.EnableNotificationMetrics) {
+		return
+	}
+
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding

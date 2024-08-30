@@ -46,8 +46,8 @@
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: 12px;
+            border: var(--border-default);
+            border-radius: var(--radius-l);
             background: var(--center-channel-bg);
         }
     }
@@ -150,7 +150,7 @@
         grid-row-gap: 8px;
 
         &.divider {
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-top: var(--border-light);
         }
 
         &.modal-footer--invisible {
@@ -164,6 +164,10 @@
             float: left;
             font-weight: bold;
             text-align: left;
+        }
+
+        & .btn + .btn {
+            margin-left: 8px;
         }
     }
 
@@ -260,12 +264,16 @@
         background: transparent;
 
         &.divider {
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-bottom: var(--border-light);
         }
 
         &::before,
         &::after {
             content: none;
+        }
+
+        .modal-header-back-button {
+            margin-left: -12px;
         }
 
         .btn {
@@ -279,7 +287,7 @@
             right: 18px;
             width: 40px;
             height: 40px;
-            border-radius: 4px;
+            border-radius: var(--radius-s);
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 30px;
             font-weight: 400;
@@ -310,10 +318,12 @@
         }
 
         .modal-title {
+            width: 100%;
             background: transparent;
             color: v(center-channel-color);
             font-size: 22px;
             line-height: 28px;
+            word-break: break-word;
         }
     }
 
@@ -328,8 +338,8 @@
     }
 
     .modal-content {
-        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
-        border-radius: 12px;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         background: var(--sys-center-channel-bg);
     }
 
@@ -992,7 +1002,7 @@
 
     .filter-controls {
         padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-top: var(--border-default);
 
         .filter-control__next {
             float: right;

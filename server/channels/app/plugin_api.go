@@ -246,6 +246,10 @@ func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *m
 	return api.app.GetUsersFromProfiles(options)
 }
 
+func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(usersID)
+}
+
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
 	return api.app.GetUser(userID)
 }
@@ -318,7 +322,7 @@ func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
 }
 
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	return api.app.CreateUserAccessToken(token)
+	return api.app.CreateUserAccessToken(api.ctx, token)
 }
 
 func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
@@ -683,7 +687,7 @@ func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *mode
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
-	api.app.DeleteEphemeralPost(userID, postID)
+	api.app.DeleteEphemeralPost(api.ctx, userID, postID)
 }
 
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
@@ -700,7 +704,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	post, appErr := api.app.GetSinglePost(postID, false)
+	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -849,7 +853,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
-	return api.app.OpenInteractiveDialog(dialog)
+	return api.app.OpenInteractiveDialog(api.ctx, dialog)
 }
 
 func (api *PluginAPI) RemoveTeamIcon(teamID string) *model.AppError {
@@ -948,7 +952,7 @@ func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bo
 }
 
 func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
-	return api.app.CompareAndDeletePluginKey(api.id, key, oldValue)
+	return api.app.CompareAndDeletePluginKey(api.ctx, api.id, key, oldValue)
 }
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
@@ -991,6 +995,10 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return api.app.RolesGrantPermission(roleNames, permissionId)
+}
+
+func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
+	return api.app.UpdateUserRoles(api.ctx, userID, newRoles, true)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
@@ -1207,7 +1215,7 @@ func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *mod
 }
 
 func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
-	return api.app.DeleteOAuthApp(appID)
+	return api.app.DeleteOAuthApp(api.ctx, appID)
 }
 
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
@@ -1292,11 +1300,11 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
-	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
+	return api.app.sendPushNotificationToAllSessions(api.ctx, notification, userID, "")
 }
 
 func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
-	return api.app.RegisterPluginForSharedChannels(opts)
+	return api.app.RegisterPluginForSharedChannels(api.ctx, opts)
 }
 
 func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
@@ -1334,4 +1342,8 @@ func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID s
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
+}
+
+func (api *PluginAPI) GetPluginID() string {
+	return api.id
 }

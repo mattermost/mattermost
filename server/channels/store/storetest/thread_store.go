@@ -30,13 +30,15 @@ func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
 	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
 	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
+	t.Run("SaveMultipleMemberships", func(t *testing.T) { testSaveMultipleMemberships(t, ss) })
+	t.Run("MaintainMultipleFromImport", func(t *testing.T) { testMaintainMultipleFromImport(t, rctx, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 	makeSomePosts := func(urgent bool) []*model.Post {
 		u1 := model.User{
 			Email:    MakeEmail(),
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 		}
 
 		u, err := ss.User().Save(rctx, &u1)
@@ -64,9 +66,9 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		if urgent {
 			o.Metadata = &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority:                model.NewString(model.PostPriorityUrgent),
-					RequestedAck:            model.NewBool(false),
-					PersistentNotifications: model.NewBool(false),
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck:            model.NewPointer(false),
+					PersistentNotifications: model.NewPointer(false),
 				},
 			}
 		}
@@ -188,7 +190,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts[0].RootId)
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 
@@ -207,7 +209,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
-		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 
@@ -520,7 +522,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -542,7 +544,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -607,7 +609,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -626,7 +628,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -739,9 +741,9 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		},
 	})
@@ -881,9 +883,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		},
 	})
@@ -969,7 +971,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		gm1post1,
 	}
 	for i := range allPosts {
-		updatedPost, err := ss.Post().GetSingle(allPosts[i].Id, true)
+		updatedPost, err := ss.Post().GetSingle(rctx, allPosts[i].Id, true)
 		require.NoError(t, err)
 
 		// Fix some inconsistencies with how the post store returns posts vs. how the
@@ -1200,6 +1202,75 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 				assertThreadPosts(t, threads, testCase.ExpectedThreads)
 			})
 		}
+	})
+
+	t.Run(("GetThreadMembershipsForExport"), func(t *testing.T) {
+		t.Run("Get members for thread, ensure usernames", func(t *testing.T) {
+			members, err := ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 has 1 member
+			assert.Len(t, members, 1)
+
+			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 1)
+
+			u, err := ss.User().Get(context.Background(), userIDs[0])
+			require.NoError(t, err)
+
+			assert.Equal(t, u.Username, members[0].Username)
+
+			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post2.Id)
+			require.NoError(t, err)
+
+			// team1channel1post2 has 2 members
+			assert.Len(t, members, 2)
+
+			userIDs, err = ss.Thread().GetThreadFollowers(team1channel1post2.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 2)
+
+			for i := range userIDs {
+				u, err := ss.User().Get(context.Background(), userIDs[i])
+				require.NoError(t, err)
+
+				assert.Equal(t, u.Username, members[i].Username)
+			}
+		})
+
+		t.Run("Get members for a thread, ensure only following members are exported", func(t *testing.T) {
+			createThreadMembership(user2ID, team1channel1post1.Id, false)
+
+			members, err := ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 should have 2 members
+			assert.Len(t, members, 2)
+
+			_, err = ss.Thread().MaintainMembership(user2ID, team1channel1post1.Id, store.ThreadMembershipOpts{
+				Following:             false,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: false,
+				UpdateParticipants:    true,
+			})
+			require.NoError(t, err)
+
+			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 should have 1 following member
+			assert.Len(t, members, 1)
+
+			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 1)
+
+			u, err := ss.User().Get(context.Background(), userIDs[0])
+			require.NoError(t, err)
+
+			assert.Equal(t, u.Username, members[0].Username)
+		})
 	})
 }
 
@@ -1688,5 +1759,243 @@ func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.St
 
 		require.Len(t, membershipsB, 1)
 		require.ElementsMatch(t, []*model.ThreadMembership{memB1}, membershipsB)
+	})
+}
+
+func testSaveMultipleMemberships(t *testing.T, ss store.Store) {
+	t.Run("should save multiple memberships", func(t *testing.T) {
+		memberships := []*model.ThreadMembership{
+			{
+				PostId:    model.NewId(),
+				UserId:    model.NewId(),
+				Following: true,
+			},
+			{
+				PostId:    model.NewId(),
+				UserId:    model.NewId(),
+				Following: true,
+			},
+		}
+
+		_, err := ss.Thread().SaveMultipleMemberships(memberships)
+		require.NoError(t, err)
+	})
+
+	t.Run("should return error if any of the memberships is invalid", func(t *testing.T) {
+		memberships := []*model.ThreadMembership{
+			{
+				PostId:    model.NewId(),
+				UserId:    "invalid",
+				Following: true,
+			},
+			{
+				PostId:    model.NewId(),
+				UserId:    model.NewId(),
+				Following: true,
+			},
+		}
+
+		_, err := ss.Thread().SaveMultipleMemberships(memberships)
+		require.Error(t, err)
+	})
+
+	t.Run("should not fail if the list is empty", func(t *testing.T) {
+		_, err := ss.Thread().SaveMultipleMemberships([]*model.ThreadMembership{})
+		require.NoError(t, err)
+	})
+
+	t.Run("should fail if there is a conflict", func(t *testing.T) {
+		postID := model.NewId()
+		userID := model.NewId()
+
+		memberships := []*model.ThreadMembership{
+			{
+				PostId:    postID,
+				UserId:    userID,
+				Following: true,
+			},
+			{
+				PostId:    postID,
+				UserId:    userID,
+				Following: true,
+			},
+		}
+
+		_, err := ss.Thread().SaveMultipleMemberships(memberships)
+		require.Error(t, err)
+	})
+}
+
+func testMaintainMultipleFromImport(t *testing.T, rctx request.CTX, ss store.Store) {
+	createThreadMembership := func(userID, postID string, following bool) (*model.ThreadMembership, func()) {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             following,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+
+		return mem, func() {
+			err := ss.Thread().DeleteMembershipForUser(userID, postID)
+			require.NoError(t, err)
+		}
+	}
+
+	cleanMembers := func(userIDs []string, postID string) error {
+		// clean the thread memberships
+		for _, id := range userIDs {
+			err := ss.Thread().DeleteMembershipForUser(id, postID)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	postingUserID := model.NewId()
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel1" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	rootPost1, err := ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost1.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("Should create new memberships from new list", func(t *testing.T) {
+		userAID := model.NewId()
+		userBID := model.NewId()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:    userAID,
+				PostId:    rootPost1.Id,
+				Following: true,
+			},
+			{
+				UserId:    userBID,
+				PostId:    rootPost1.Id,
+				Following: true,
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.ElementsMatch(t, followers, []string{userAID, userBID})
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should add incoming memberships from the list", func(t *testing.T) {
+		userAID := model.NewId()
+		userBID := model.NewId()
+
+		_, clean := createThreadMembership(userAID, rootPost1.Id, true)
+		defer clean()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:    userBID,
+				PostId:    rootPost1.Id,
+				Following: true,
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.ElementsMatch(t, followers, []string{userAID, userBID})
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should update memberships if they are newer", func(t *testing.T) {
+		userAID := model.NewId()
+
+		old, clean := createThreadMembership(userAID, rootPost1.Id, true)
+		defer clean()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:     userAID,
+				PostId:     rootPost1.Id,
+				Following:  true,
+				LastViewed: time.Now().Add(time.Minute).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.ElementsMatch(t, followers, []string{userAID})
+
+		updated, err := ss.Thread().GetMembershipForUser(userAID, rootPost1.Id)
+		require.NoError(t, err)
+		require.Greater(t, updated.LastViewed, old.LastViewed)
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should not update membership if incoming is not newer", func(t *testing.T) {
+		userAID := model.NewId()
+
+		_, clean := createThreadMembership(userAID, rootPost1.Id, false)
+		defer clean()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:     userAID,
+				PostId:     rootPost1.Id,
+				Following:  true,
+				LastViewed: time.Now().Add(-1 * time.Hour).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.Empty(t, followers)
+
+		m, err := ss.Thread().GetMembershipForUser(userAID, rootPost1.Id)
+		require.NoError(t, err)
+		require.False(t, m.Following)
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
 	})
 }

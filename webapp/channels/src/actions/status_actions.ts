@@ -3,6 +3,7 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
@@ -15,35 +16,45 @@ import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions'
 
 import type {GlobalState} from 'types/store';
 
-export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
+/**
+ * Adds all the visible users of the current channel i.e users who have recently posted in the current channel
+ * and users who have DMs open with the current user to the status pool for fetching their statuses.
+ */
+export function addVisibleUsersInCurrentChannelToStatusPoll(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
-        const statusesToLoad: Record<string, true> = {};
-
-        const channelId = getCurrentChannelId(state);
+        const currentUserId = getCurrentUserId(state);
+        const currentChannelId = getCurrentChannelId(state);
         const postsInChannel = getPostsInCurrentChannel(state);
+        const numberOfPostsVisibleInCurrentChannel = state.views.channel.postVisibility[currentChannelId] || 0;
 
-        if (postsInChannel) {
-            const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
+        const userIdsToFetchStatusFor = new Set<string>();
+
+        // We fetch for users who have recently posted in the current channel
+        if (postsInChannel && numberOfPostsVisibleInCurrentChannel > 0) {
+            const posts = postsInChannel.slice(0, numberOfPostsVisibleInCurrentChannel);
             for (const post of posts) {
-                if (post.user_id) {
-                    statusesToLoad[post.user_id] = true;
+                if (post.user_id && post.user_id !== currentUserId) {
+                    userIdsToFetchStatusFor.add(post.user_id);
                 }
             }
         }
 
-        const dmPrefs = getDirectShowPreferences(state);
-
-        for (const pref of dmPrefs) {
-            if (pref.value === 'true') {
-                statusesToLoad[pref.name] = true;
+        // We also fetch for users who have DMs open with the current user
+        const directShowPreferences = getDirectShowPreferences(state);
+        for (const directShowPreference of directShowPreferences) {
+            if (directShowPreference.value === 'true') {
+                // This is the other user's id in the DM
+                userIdsToFetchStatusFor.add(directShowPreference.name);
             }
         }
 
-        const currentUserId = getCurrentUserId(state);
-        statusesToLoad[currentUserId] = true;
+        // Both the users in the DM list and recent posts constitute for all the visible users in the current channel
+        const userIdsForStatus = Array.from(userIdsToFetchStatusFor);
+        if (userIdsForStatus.length > 0) {
+            dispatch(addUserIdsForStatusFetchingPoll(userIdsForStatus));
+        }
 
-        dispatch(loadStatusesByIds(Object.keys(statusesToLoad)));
         return {data: true};
     };
 }

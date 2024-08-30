@@ -3,7 +3,6 @@
 
 import React from 'react';
 
-import {CloseIcon} from '@mattermost/compass-icons/components';
 import './modal_header.scss';
 
 type Props = {
@@ -29,11 +28,8 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                 className='mm-modal-header__ctr'
                 onClick={handleClose}
             >
-                <button className='style--none mm-modal-header__close-btn'>
-                    <CloseIcon
-                        size={24}
-                        color={'currentcolor'}
-                    />
+                <button className='btn btn-icon'>
+                    <i className='icon icon-close'/>
                 </button>
             </div>
         </header>

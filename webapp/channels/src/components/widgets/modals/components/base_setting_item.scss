@@ -9,11 +9,11 @@
         padding: 0;
         margin: 0 0 8px;
         color: var(--center-channel-color);
-        font-family: 'Metropolis', sans-serif;
-        font-size: 16px;
+        font-family: "Open Sans", sans-serif;
+        font-size: 14px;
         font-style: normal;
         font-weight: 600;
-        line-height: 24px;
+        line-height: 20px;
     }
 
     &__description {
@@ -50,6 +50,11 @@
     &__content {
         display: flex;
         flex-direction: column;
+
+        &.inline {
+            flex-direction: row;
+            gap: 24px;
+        }
     }
 
     &__fieldset-checkbox-ctr {
@@ -82,6 +87,7 @@
         width: fit-content;
         flex-direction: row;
         align-items: center;
+        margin-bottom: 0;
         cursor: pointer;
         font-size: 14px;
         font-weight: 400;
@@ -89,9 +95,10 @@
         line-height: 20px;
     }
 
-    // Todo: add styling for react select
-    //&__fieldset-react-select{
-    //}
+    &__fieldset-react-select {
+        max-width: 240px;
+        flex-grow: 1;
+    }
 
     &__input-checkbox {
         width: 1.6rem;

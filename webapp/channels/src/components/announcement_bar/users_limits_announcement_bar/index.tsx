@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import {getUsersLimits} from 'mattermost-redux/selectors/entities/limits';
+import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
@@ -22,15 +22,15 @@ type Props = {
 const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-safety-limits-exceeded';
 
 function UsersLimitsAnnouncementBar(props: Props) {
-    const usersLimits = useSelector(getUsersLimits);
+    const serverLimits = useSelector(getServerLimits);
 
     const handleCTAClick = useCallback(() => {
         window.open(learnMoreExternalLink, '_blank');
     }, []);
 
     const isLicensed = props?.license?.IsLicensed === 'true';
-    const maxUsersLimit = usersLimits?.maxUsersLimit ?? 0;
-    const activeUserCount = usersLimits?.activeUserCount ?? 0;
+    const maxUsersLimit = serverLimits?.maxUsersLimit ?? 0;
+    const activeUserCount = serverLimits?.activeUserCount ?? 0;
 
     if (!shouldShowUserLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersLimit, activeUserCount})) {
         return null;
@@ -43,7 +43,10 @@ function UsersLimitsAnnouncementBar(props: Props) {
             message={
                 <FormattedMessage
                     id='users_limits_announcement_bar.copyText'
-                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_SAFETY_LIMITS_EXCEEDED'
+                    defaultMessage='User limits exceeded. Contact administrator with: {ErrorCode}'
+                    values={{
+                        ErrorCode: 'ERROR_SAFETY_LIMITS_EXCEEDED',
+                    }}
                 />
             }
             type={AnnouncementBarTypes.CRITICAL}

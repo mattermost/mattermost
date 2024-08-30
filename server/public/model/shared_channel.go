@@ -11,9 +11,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	UserPropsKeyRemoteUsername = "RemoteUsername"
+	UserPropsKeyRemoteEmail    = "RemoteEmail"
+)
+
 var (
 	ErrChannelAlreadyShared = errors.New("channel is already shared")
 	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
+	ErrChannelAlreadyExists = errors.New("channel already exists")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.
@@ -42,7 +48,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if sc.Type != ChannelTypeDirect && !IsValidId(sc.TeamId) {
+	if sc.Type != ChannelTypeDirect && sc.Type != ChannelTypeGroup && !IsValidId(sc.TeamId) {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "TeamId="+sc.TeamId, http.StatusBadRequest)
 	}
 
@@ -257,6 +263,8 @@ type SharedChannelRemoteFilterOpts struct {
 	ChannelId       string
 	RemoteId        string
 	InclUnconfirmed bool
+	ExcludeHome     bool
+	ExcludeRemote   bool
 }
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).

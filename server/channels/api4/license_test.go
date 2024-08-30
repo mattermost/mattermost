@@ -109,7 +109,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(licenseStr, nil)
 		utils.LicenseValidator = &mockLicenseValidator
 
 		licenseManagerMock := &mocks.LicenseInterface{}
@@ -131,7 +131,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		license := model.License{
 			Id: model.NewId(),
 			Features: &model.Features{
-				Users: model.NewInt(100),
+				Users: model.NewPointer(100),
 			},
 			Customer: &model.Customer{
 				Name: "Test",
@@ -144,7 +144,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseBytes, err := json.Marshal(license)
 		require.NoError(t, err)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseBytes))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseBytes), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 
 		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte(""))
@@ -177,7 +177,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(licenseStr, nil)
 
 		utils.LicenseValidator = &mockLicenseValidator
 
@@ -259,7 +259,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -275,7 +275,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -295,7 +295,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -306,7 +306,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -328,7 +328,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		validTrialRequest.Users = 100
 		defer func() { validTrialRequest.CompanyCountry = "US" }()
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -344,7 +344,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -386,10 +386,22 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("trial license invalid JSON", func(t *testing.T) {
+		// the JSON is invalid because it is missing a closing brace
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/trial-license", `{"users": 5`)
+		CheckErrorID(t, err, "api.license.request-trial.bad-request")
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+	})
+
 	t.Run("trial license user count less than current users", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -405,7 +417,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -424,7 +436,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewPointer(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -435,7 +447,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -457,118 +469,5 @@ func TestRequestTrialLicense(t *testing.T) {
 		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
-	})
-}
-
-func TestRequestRenewalLink(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	require.NotPanics(t, func() {
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = nil
-		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/renewal", "")
-		CheckErrorID(t, err, "app.license.generate_renewal_token.no_license")
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-}
-
-func TestRequestTrueUpReview(t *testing.T) {
-	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense())
-
-		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
-
-		cloud := mocks.CloudInterface{}
-		cloud.Mock.On("SubmitTrueUpReview", mock.Anything, mock.Anything).Return(nil)
-		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
-		var reviewProfile map[string]any
-		resp, err := th.Client.SubmitTrueUpReview(context.Background(), reviewProfile)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-	})
-
-	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense())
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/license/review", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
-
-		th.App.Srv().SetLicense(model.NewTestLicense())
-	})
-
-	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense())
-
-		resp, err := th.Client.DoAPIPost(context.Background(), "/license/review", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when license is nil", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.Srv().SetLicense(nil)
-
-		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/license/review", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
-	})
-}
-
-func TestTrueUpReviewStatus(t *testing.T) {
-	th := Setup(t)
-
-	defer th.TearDown()
-	th.App.Srv().SetLicense(model.NewTestLicense())
-
-	t.Run("returns 200 when status retrieved", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/review/status", "")
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-	})
-
-	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/review/status", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
-
-		th.App.Srv().SetLicense(model.NewTestLicense())
-	})
-
-	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
-		resp, err := th.Client.DoAPIGet(context.Background(), "/license/review/status", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when license is nil", func(t *testing.T) {
-		th.App.Srv().SetLicense(nil)
-
-		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/review/status", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 }

@@ -126,14 +126,8 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             type="text"
             value="fsdsdg"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="help-text-b"
@@ -144,13 +138,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="label-b"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
-            value={true}
+            value={false}
           />
           <Memo(DropdownSetting)
             disabled={false}
@@ -424,7 +412,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               ]
             }
           />
-          <MultiSelectSetting
+          <Memo(MultiSelectSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -579,14 +567,8 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               }
             }
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="help-text-l"
@@ -597,12 +579,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="label-l"
             onChange={[Function]}
             setByEnv={true}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <Memo(ColorSetting)
@@ -671,14 +647,8 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             jobType="test"
             key="Config_jobstable_undefined"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="escaped-help-text-a"
@@ -689,12 +659,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="escaped-label-a"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
         </Memo(SettingsGroup)>
@@ -705,47 +669,30 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
-    <div
-      className="error-message"
-      data-testid="errorMessage"
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
-    >
-      <FormError
-        error=""
-        errors={Array []}
-        iconClassName="fa-exclamation-triangle"
-        textClassName="has-warning"
-      />
-      <FormError
-        error={null}
-        errors={Array []}
-      />
-    </div>
-    <Overlay
-      animation={[Function]}
+    <WithTooltip
+      id="error-tooltip"
       placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
+      title=""
     >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <Memo(FormError)
+          error=""
+          iconClassName="fa-exclamation-triangle"
+          textClassName="has-warning"
+        />
+        <Memo(FormError)
+          error={null}
+        />
+      </div>
+    </WithTooltip>
   </div>
 </div>
 `;

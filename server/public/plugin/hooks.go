@@ -60,6 +60,7 @@ const (
 	PreferencesHaveChangedID                  = 42
 	OnSharedChannelsAttachmentSyncMsgID       = 43
 	OnSharedChannelsProfileImageSyncMsgID     = 44
+	GenerateSupportDataID                     = 45
 	TotalHooksID                              = iota
 )
 
@@ -382,4 +383,10 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.5
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
+
+	// GenerateSupportData is invoked when a Support Packet gets generated.
+	// It allows plugins to include their own content in the Support Packet.
+	//
+	// Minimum server version: 9.8
+	GenerateSupportData(c *Context) ([]*model.FileData, error)
 }

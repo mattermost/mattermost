@@ -48,12 +48,11 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
     submit={[MockFunction]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic Direct Message Replies"
+        defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
     }
     updateSection={[MockFunction]}
-    width="medium"
   >
     <section
       className="section-max form-horizontal "
@@ -63,16 +62,16 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Automatic Direct Message Replies"
+          defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
-            Automatic Direct Message Replies
+            Automatic direct message replies
           </span>
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-10 col-sm-offset-2"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -122,23 +121,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           >
             <hr />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "
@@ -262,12 +247,11 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
     submit={[MockFunction]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic Direct Message Replies"
+        defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
     }
     updateSection={[MockFunction]}
-    width="medium"
   >
     <section
       className="section-max form-horizontal "
@@ -277,16 +261,16 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Automatic Direct Message Replies"
+          defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
-            Automatic Direct Message Replies
+            Automatic direct message replies
           </span>
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-10 col-sm-offset-2"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -359,23 +343,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           >
             <hr />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "

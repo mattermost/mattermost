@@ -16,6 +16,7 @@ import (
 	_ "github.com/oov/psd"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 // DecoderOptions holds configuration options for an image decoder.

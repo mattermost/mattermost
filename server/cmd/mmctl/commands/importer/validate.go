@@ -58,6 +58,7 @@ type Validator struct { //nolint:govet
 	attachmentsUsed map[string]uint64
 	allFileNames    []string
 
+	roles          map[string]ImportFileInfo
 	schemes        map[string]ImportFileInfo
 	teams          map[string]ImportFileInfo
 	channels       map[ChannelTeam]ImportFileInfo
@@ -67,6 +68,8 @@ type Validator struct { //nolint:govet
 	directPosts    uint64
 	emojis         map[string]ImportFileInfo
 
+	maxPostSize int
+
 	start time.Time
 	end   time.Time
 
@@ -75,6 +78,7 @@ type Validator struct { //nolint:govet
 
 const (
 	LineTypeVersion       = "version"
+	LineTypeRole          = "role"
 	LineTypeScheme        = "scheme"
 	LineTypeTeam          = "team"
 	LineTypeChannel       = "channel"
@@ -94,6 +98,7 @@ func NewValidator(
 	serverChannels map[ChannelTeam]*model.Channel,
 	serverUsers map[string]*model.User,
 	serverEmails map[string]*model.User,
+	maxPostSize int,
 ) *Validator {
 	v := &Validator{
 		archiveName:           name,
@@ -110,15 +115,22 @@ func NewValidator(
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
 
+		roles:    map[string]ImportFileInfo{},
 		schemes:  map[string]ImportFileInfo{},
 		teams:    map[string]ImportFileInfo{},
 		channels: map[ChannelTeam]ImportFileInfo{},
 		users:    map[string]ImportFileInfo{},
 		emojis:   map[string]ImportFileInfo{},
+
+		maxPostSize: maxPostSize,
 	}
 
 	v.loadFromServer()
 	return v
+}
+
+func (v *Validator) Roles() uint64 {
+	return uint64(len(v.roles))
 }
 
 func (v *Validator) Schemes() uint64 {
@@ -388,6 +400,8 @@ func (v *Validator) validateLine(info ImportFileInfo, line imports.LineImportDat
 	switch line.Type {
 	case LineTypeVersion:
 		err = v.validateVersion(info, line)
+	case LineTypeRole:
+		err = v.validateRole(info, line)
 	case LineTypeScheme:
 		err = v.validateScheme(info, line)
 	case LineTypeTeam:
@@ -439,6 +453,37 @@ func (v *Validator) validateVersion(info ImportFileInfo, line imports.LineImport
 		}); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (v *Validator) validateRole(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "role", line.Role, func(data imports.RoleImportData) *ImportValidationError {
+		appErr := imports.ValidateRoleImportData(&data)
+		if appErr != nil {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "role",
+				Err:            appErr,
+			}
+		}
+
+		if data.Name != nil {
+			if existing, ok := v.roles[*data.Name]; ok {
+				return &ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      "role",
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
+				}
+			}
+			v.roles[*data.Name] = info
+		}
+
+		return nil
+	})
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
@@ -682,7 +727,7 @@ func (v *Validator) validateUser(info ImportFileInfo, line imports.LineImportDat
 
 func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "post", line.Post, func(data imports.PostImportData) *ImportValidationError {
-		appErr := imports.ValidatePostImportData(&data, model.PostMessageMaxRunesV1)
+		appErr := imports.ValidatePostImportData(&data, v.maxPostSize)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -787,7 +832,17 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line imports.Line
 			}
 		}
 
-		if data.Members != nil {
+		if data.Participants != nil {
+			for i, member := range data.Participants {
+				if _, ok := v.users[*member.Username]; !ok {
+					return &ImportValidationError{
+						ImportFileInfo: info,
+						FieldName:      fmt.Sprintf("direct_channel.members[%d]", i),
+						Err:            fmt.Errorf("reference to unknown user %q", *member.Username),
+					}
+				}
+			}
+		} else if data.Members != nil {
 			for i, member := range *data.Members {
 				if _, ok := v.users[member]; !ok {
 					return &ImportValidationError{
@@ -814,7 +869,7 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line imports.Line
 
 func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "direct_post", line.DirectPost, func(data imports.DirectPostImportData) *ImportValidationError {
-		appErr := imports.ValidateDirectPostImportData(&data, model.PostMessageMaxRunesV1)
+		appErr := imports.ValidateDirectPostImportData(&data, v.maxPostSize)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,

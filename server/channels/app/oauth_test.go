@@ -116,7 +116,8 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.IsOAuth = true
 	th.App.ch.srv.platform.SetSessionExpireInHours(session, 24)
 
-	session, _ = th.App.CreateSession(th.Context, session)
+	session, appErr := th.App.CreateSession(th.Context, session)
+	require.Nil(t, appErr)
 
 	accessData := &model.AccessData{}
 	accessData.Token = session.Token
@@ -128,7 +129,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	_, nErr := th.App.Srv().Store().OAuth().SaveAccessData(accessData)
 	require.NoError(t, nErr)
 
-	err = th.App.DeleteOAuthApp(a1.Id)
+	err = th.App.DeleteOAuthApp(th.Context, a1.Id)
 	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)

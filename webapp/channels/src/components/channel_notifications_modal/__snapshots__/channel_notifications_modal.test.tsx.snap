@@ -52,20 +52,11 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
-                  class="style--none mm-modal-header__close-btn"
+                  class="btn btn-icon"
                 >
-                  <svg
-                    fill="currentcolor"
-                    height="24"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                    />
-                  </svg>
+                  <i
+                    class="icon icon-close"
+                  />
                 </button>
               </div>
             </header>
@@ -76,16 +67,16 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -108,14 +99,13 @@ Object {
                           />
                           Mute channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
                       data-testid="mm-modal-generic-section-item__description"
                     >
-                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
                     </p>
                   </div>
                   <div
@@ -139,7 +129,6 @@ Object {
                           />
                           Ignore mentions for @channel, @here and @all
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
@@ -158,25 +147,21 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -235,6 +220,87 @@ Object {
                       </fieldset>
                     </div>
                   </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
+                    >
+                      Sounds
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content inline"
+                      data-testid="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            checked=""
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="desktopNotificationSoundsCheckbox"
+                            name="desktopNotificationSoundsCheckbox"
+                            type="checkbox"
+                          />
+                          Message notification sounds
+                        </label>
+                      </fieldset>
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-react-select"
+                      >
+                        <div
+                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          id="desktopNotificationSoundsSelect"
+                        >
+                          <div
+                            class="react-select__control css-yk16xz-control"
+                          >
+                            <div
+                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                            >
+                              <div
+                                class="react-select__single-value css-1uccc91-singleValue"
+                              >
+                                Bing
+                              </div>
+                              <input
+                                class="css-62g3xt-dummyInput"
+                                id="desktopNotificationSoundsSelectInputId"
+                                readonly=""
+                                tabindex="0"
+                                value=""
+                              />
+                            </div>
+                            <div
+                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                            >
+                              <div
+                                aria-hidden="true"
+                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="css-6q0nyr-Svg"
+                                  focusable="false"
+                                  height="20"
+                                  viewBox="0 0 20 20"
+                                  width="20"
+                                >
+                                  <path
+                                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
                 </div>
               </section>
               <div
@@ -244,18 +310,15 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
+                      data-testid="resetToDefaultButton-push"
                     >
                       <svg
                         fill="currentColor"
@@ -271,15 +334,15 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -302,7 +365,6 @@ Object {
                           />
                           Use the same notification settings as desktop
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                   </div>
@@ -370,12 +432,12 @@ Object {
             >
               
               <button
-                class="channel-notifications-settings-modal__cancel-btn"
+                class="btn btn-tertiary btn-md"
               >
                 Cancel
               </button>
               <button
-                class="channel-notifications-settings-modal__save-btn"
+                class="btn btn-primary btn-md"
               >
                 Save
               </button>
@@ -496,20 +558,11 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
-                  class="style--none mm-modal-header__close-btn"
+                  class="btn btn-icon"
                 >
-                  <svg
-                    fill="currentcolor"
-                    height="24"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                    />
-                  </svg>
+                  <i
+                    class="icon icon-close"
+                  />
                 </button>
               </div>
             </header>
@@ -520,16 +573,16 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -552,14 +605,13 @@ Object {
                           />
                           Mute channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
                       data-testid="mm-modal-generic-section-item__description"
                     >
-                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
                     </p>
                   </div>
                   <div
@@ -583,7 +635,6 @@ Object {
                           />
                           Ignore mentions for @channel, @here and @all
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
@@ -602,18 +653,15 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
+                    Desktop Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
+                      data-testid="resetToDefaultButton-desktop"
                     >
                       <svg
                         fill="currentColor"
@@ -629,15 +677,15 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -705,18 +753,15 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
+                      data-testid="resetToDefaultButton-push"
                     >
                       <svg
                         fill="currentColor"
@@ -732,15 +777,15 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -763,7 +808,6 @@ Object {
                           />
                           Use the same notification settings as desktop
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                   </div>
@@ -831,12 +875,12 @@ Object {
             >
               
               <button
-                class="channel-notifications-settings-modal__cancel-btn"
+                class="btn btn-tertiary btn-md"
               >
                 Cancel
               </button>
               <button
-                class="channel-notifications-settings-modal__save-btn"
+                class="btn btn-primary btn-md"
               >
                 Save
               </button>
@@ -957,20 +1001,11 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
-                  class="style--none mm-modal-header__close-btn"
+                  class="btn btn-icon"
                 >
-                  <svg
-                    fill="currentcolor"
-                    height="24"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                    />
-                  </svg>
+                  <i
+                    class="icon icon-close"
+                  />
                 </button>
               </div>
             </header>
@@ -981,16 +1016,16 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1013,14 +1048,13 @@ Object {
                           />
                           Mute channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
                       data-testid="mm-modal-generic-section-item__description"
                     >
-                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
                     </p>
                   </div>
                   <div
@@ -1044,7 +1078,6 @@ Object {
                           />
                           Ignore mentions for @channel, @here and @all
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
@@ -1063,25 +1096,21 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1140,6 +1169,87 @@ Object {
                       </fieldset>
                     </div>
                   </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
+                    >
+                      Sounds
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content inline"
+                      data-testid="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            checked=""
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="desktopNotificationSoundsCheckbox"
+                            name="desktopNotificationSoundsCheckbox"
+                            type="checkbox"
+                          />
+                          Message notification sounds
+                        </label>
+                      </fieldset>
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-react-select"
+                      >
+                        <div
+                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          id="desktopNotificationSoundsSelect"
+                        >
+                          <div
+                            class="react-select__control css-yk16xz-control"
+                          >
+                            <div
+                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                            >
+                              <div
+                                class="react-select__single-value css-1uccc91-singleValue"
+                              >
+                                Bing
+                              </div>
+                              <input
+                                class="css-62g3xt-dummyInput"
+                                id="desktopNotificationSoundsSelectInputId"
+                                readonly=""
+                                tabindex="0"
+                                value=""
+                              />
+                            </div>
+                            <div
+                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                            >
+                              <div
+                                aria-hidden="true"
+                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="css-6q0nyr-Svg"
+                                  focusable="false"
+                                  height="20"
+                                  viewBox="0 0 20 20"
+                                  width="20"
+                                >
+                                  <path
+                                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
                 </div>
               </section>
               <div
@@ -1149,18 +1259,15 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
+                      data-testid="resetToDefaultButton-push"
                     >
                       <svg
                         fill="currentColor"
@@ -1176,15 +1283,15 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1207,7 +1314,6 @@ Object {
                           />
                           Use the same notification settings as desktop
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                   </div>
@@ -1275,12 +1381,12 @@ Object {
             >
               
               <button
-                class="channel-notifications-settings-modal__cancel-btn"
+                class="btn btn-tertiary btn-md"
               >
                 Cancel
               </button>
               <button
-                class="channel-notifications-settings-modal__save-btn"
+                class="btn btn-primary btn-md"
               >
                 Save
               </button>
@@ -1401,20 +1507,11 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
-                  class="style--none mm-modal-header__close-btn"
+                  class="btn btn-icon"
                 >
-                  <svg
-                    fill="currentcolor"
-                    height="24"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                    />
-                  </svg>
+                  <i
+                    class="icon icon-close"
+                  />
                 </button>
               </div>
             </header>
@@ -1425,16 +1522,16 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1457,14 +1554,13 @@ Object {
                           />
                           Mute channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
                       data-testid="mm-modal-generic-section-item__description"
                     >
-                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
                     </p>
                   </div>
                   <div
@@ -1488,7 +1584,6 @@ Object {
                           />
                           Ignore mentions for @channel, @here and @all
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
@@ -1502,6 +1597,7 @@ Object {
               </section>
               <div
                 class="AlertBanner info AlertBanner--app"
+                data-testid="channelNotificationsMutedBanner"
               >
                 <div
                   class="AlertBanner__icon"
@@ -1540,12 +1636,12 @@ Object {
             >
               
               <button
-                class="channel-notifications-settings-modal__cancel-btn"
+                class="btn btn-tertiary btn-md"
               >
                 Cancel
               </button>
               <button
-                class="channel-notifications-settings-modal__save-btn"
+                class="btn btn-primary btn-md"
               >
                 Save
               </button>
@@ -1666,20 +1762,11 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
-                  class="style--none mm-modal-header__close-btn"
+                  class="btn btn-icon"
                 >
-                  <svg
-                    fill="currentcolor"
-                    height="24"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                    />
-                  </svg>
+                  <i
+                    class="icon icon-close"
+                  />
                 </button>
               </div>
             </header>
@@ -1690,16 +1777,16 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1722,14 +1809,13 @@ Object {
                           />
                           Mute channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
                       data-testid="mm-modal-generic-section-item__description"
                     >
-                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
                     </p>
                   </div>
                   <div
@@ -1753,7 +1839,6 @@ Object {
                           />
                           Ignore mentions for @channel, @here and @all
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
@@ -1772,25 +1857,21 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1849,6 +1930,87 @@ Object {
                       </fieldset>
                     </div>
                   </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
+                    >
+                      Sounds
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content inline"
+                      data-testid="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            checked=""
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="desktopNotificationSoundsCheckbox"
+                            name="desktopNotificationSoundsCheckbox"
+                            type="checkbox"
+                          />
+                          Message notification sounds
+                        </label>
+                      </fieldset>
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-react-select"
+                      >
+                        <div
+                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          id="desktopNotificationSoundsSelect"
+                        >
+                          <div
+                            class="react-select__control css-yk16xz-control"
+                          >
+                            <div
+                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                            >
+                              <div
+                                class="react-select__single-value css-1uccc91-singleValue"
+                              >
+                                Bing
+                              </div>
+                              <input
+                                class="css-62g3xt-dummyInput"
+                                id="desktopNotificationSoundsSelectInputId"
+                                readonly=""
+                                tabindex="0"
+                                value=""
+                              />
+                            </div>
+                            <div
+                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                            >
+                              <div
+                                aria-hidden="true"
+                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="css-6q0nyr-Svg"
+                                  focusable="false"
+                                  height="20"
+                                  viewBox="0 0 20 20"
+                                  width="20"
+                                >
+                                  <path
+                                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
                 </div>
               </section>
               <div
@@ -1858,18 +2020,15 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
+                      data-testid="resetToDefaultButton-push"
                     >
                       <svg
                         fill="currentColor"
@@ -1885,15 +2044,15 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -1916,7 +2075,6 @@ Object {
                           />
                           Use the same notification settings as desktop
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                   </div>
@@ -1928,12 +2086,12 @@ Object {
             >
               
               <button
-                class="channel-notifications-settings-modal__cancel-btn"
+                class="btn btn-tertiary btn-md"
               >
                 Cancel
               </button>
               <button
-                class="channel-notifications-settings-modal__save-btn"
+                class="btn btn-primary btn-md"
               >
                 Save
               </button>
@@ -2054,20 +2212,11 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
-                  class="style--none mm-modal-header__close-btn"
+                  class="btn btn-icon"
                 >
-                  <svg
-                    fill="currentcolor"
-                    height="24"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                    />
-                  </svg>
+                  <i
+                    class="icon icon-close"
+                  />
                 </button>
               </div>
             </header>
@@ -2078,16 +2227,16 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -2110,14 +2259,13 @@ Object {
                           />
                           Mute channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
                       data-testid="mm-modal-generic-section-item__description"
                     >
-                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
                     </p>
                   </div>
                   <div
@@ -2141,7 +2289,6 @@ Object {
                           />
                           Ignore mentions for @channel, @here and @all
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                     <p
@@ -2160,25 +2307,21 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -2237,6 +2380,87 @@ Object {
                       </fieldset>
                     </div>
                   </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
+                    >
+                      Sounds
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content inline"
+                      data-testid="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            checked=""
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="desktopNotificationSoundsCheckbox"
+                            name="desktopNotificationSoundsCheckbox"
+                            type="checkbox"
+                          />
+                          Message notification sounds
+                        </label>
+                      </fieldset>
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-react-select"
+                      >
+                        <div
+                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          id="desktopNotificationSoundsSelect"
+                        >
+                          <div
+                            class="react-select__control css-yk16xz-control"
+                          >
+                            <div
+                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                            >
+                              <div
+                                class="react-select__single-value css-1uccc91-singleValue"
+                              >
+                                Bing
+                              </div>
+                              <input
+                                class="css-62g3xt-dummyInput"
+                                id="desktopNotificationSoundsSelectInputId"
+                                readonly=""
+                                tabindex="0"
+                                value=""
+                              />
+                            </div>
+                            <div
+                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                            >
+                              <div
+                                aria-hidden="true"
+                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="css-6q0nyr-Svg"
+                                  focusable="false"
+                                  height="20"
+                                  viewBox="0 0 20 20"
+                                  width="20"
+                                >
+                                  <path
+                                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
                 </div>
               </section>
               <div
@@ -2246,18 +2470,15 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
+                      data-testid="resetToDefaultButton-push"
                     >
                       <svg
                         fill="currentColor"
@@ -2273,15 +2494,15 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -2304,7 +2525,6 @@ Object {
                           />
                           Use the same notification settings as desktop
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                   </div>
@@ -2373,21 +2593,21 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Follow all threads in this channel
                   </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
                     class="mm-modal-generic-section-item"
@@ -2410,7 +2630,6 @@ Object {
                           />
                           Automatically follow threads in this channel
                         </label>
-                        <br />
                       </fieldset>
                     </div>
                   </div>
@@ -2422,12 +2641,12 @@ Object {
             >
               
               <button
-                class="channel-notifications-settings-modal__cancel-btn"
+                class="btn btn-tertiary btn-md"
               >
                 Cancel
               </button>
               <button
-                class="channel-notifications-settings-modal__save-btn"
+                class="btn btn-primary btn-md"
               >
                 Save
               </button>

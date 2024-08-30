@@ -11,7 +11,7 @@ export default class NotificationsSettings {
 
     constructor(container: Locator) {
         this.container = container;
-        this.keysWithHighlightDesc = container.locator('#keysWithHighlightDesc');
+        this.keysWithHighlightDesc = container.locator('#keywordsAndHighlightDesc');
     }
 
     async toBeVisible() {

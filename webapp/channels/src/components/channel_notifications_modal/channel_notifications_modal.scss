@@ -9,8 +9,8 @@
         overflow: hidden;
         max-height: calc(100vh - 240px);
         flex-direction: column;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 12px;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
     }
 
@@ -21,7 +21,7 @@
 
     .modal-header {
         border: none;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: var(--border-light);
         background: none;
     }
 
@@ -31,7 +31,7 @@
         max-width: 1024px;
         min-height: 150px;
         flex-direction: column;
-        padding: 32px;
+        padding: 28px 32px;
         gap: 24px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -44,7 +44,7 @@
         align-items: center;
         justify-content: flex-end;
         padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-top: var(--border-light);
         gap: 8px;
     }
 
@@ -72,50 +72,8 @@
         color: var(--error-text);
     }
 
-    &__save-btn {
-        padding: 12px 20px 12px 20px;
-        border: none;
-        border-radius: 4px;
-        background: var(--button-bg);
-        color: var(--button-color);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-        text-transform: capitalize;
-
-        &:hover,
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
-        }
-
-        &:focus {
-            box-sizing: border-box;
-            padding: 10px 18px;
-            border: 2px solid var(--sidebar-text-active-border);
-            box-shadow: none;
-        }
-    }
-
-    &__cancel-btn {
-        padding: 12px 20px 12px 20px;
-        border: none;
-        border-radius: 4px;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-        text-transform: capitalize;
-
-        &:hover,
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
-        }
-    }
-
     &__divider {
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: var(--border-light);
     }
 
     @media screen and (max-width: 768px) {

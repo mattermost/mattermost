@@ -3,20 +3,40 @@
 
 package model
 
+type NotificationStatus string
+type NotificationType string
+type NotificationReason string
+
 const (
-	StatusBlocked     = "blocked"
-	StatusServerError = "server_error"
-	StatusNotSent     = "not_sent"
+	NotificationStatusSuccess     NotificationStatus = "success"
+	NotificationStatusError       NotificationStatus = "error"
+	NotificationStatusNotSent     NotificationStatus = "not_sent"
+	NotificationStatusUnsupported NotificationStatus = "unsupported"
 
-	TypeEmail     = "email"
-	TypeWebsocket = "websocket"
-	TypePush      = "push"
+	NotificationTypeAll       NotificationType = "all"
+	NotificationTypeEmail     NotificationType = "email"
+	NotificationTypeWebsocket NotificationType = "websocket"
+	NotificationTypePush      NotificationType = "push"
 
-	ReasonServerConfig   = "server_config"
-	ReasonUserConfig     = "user_config"
-	ReasonUserStatus     = "user_status"
-	ReasonFetchError     = "error_fetching"
-	ReasonServerError    = "server_error"
-	ReasonMissingProfile = "missing_profile"
-	ReasonPushProxyError = "push_proxy_error"
+	NotificationNoPlatform = "no_platform"
+
+	NotificationReasonFetchError                         NotificationReason = "fetch_error"
+	NotificationReasonParseError                         NotificationReason = "json_parse_error"
+	NotificationReasonPushProxyError                     NotificationReason = "push_proxy_error"
+	NotificationReasonPushProxySendError                 NotificationReason = "push_proxy_send_error"
+	NotificationReasonPushProxyRemoveDevice              NotificationReason = "push_proxy_remove_device"
+	NotificationReasonRejectedByPlugin                   NotificationReason = "rejected_by_plugin"
+	NotificationReasonSessionExpired                     NotificationReason = "session_expired"
+	NotificationReasonChannelMuted                       NotificationReason = "channel_muted"
+	NotificationReasonSystemMessage                      NotificationReason = "system_message"
+	NotificationReasonLevelSetToNone                     NotificationReason = "notify_level_none"
+	NotificationReasonNotMentioned                       NotificationReason = "not_mentioned"
+	NotificationReasonUserStatus                         NotificationReason = "user_status"
+	NotificationReasonUserIsActive                       NotificationReason = "user_is_active"
+	NotificationReasonMissingProfile                     NotificationReason = "missing_profile"
+	NotificationReasonEmailNotVerified                   NotificationReason = "email_not_verified"
+	NotificationReasonEmailSendError                     NotificationReason = "email_send_error"
+	NotificationReasonTooManyUsersInChannel              NotificationReason = "too_many_users_in_channel"
+	NotificationReasonResolvePersistentNotificationError NotificationReason = "resolve_persistent_notification_error"
+	NotificationReasonMissingThreadMembership            NotificationReason = "missing_thread_membership"
 )

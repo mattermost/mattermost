@@ -5,10 +5,9 @@ package model
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
-
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -137,7 +136,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 	}
 
 	// Validate against the columns we allow sorting for
-	if !pUtils.Contains(UserReportSortColumns, u.SortColumn) {
+	if !slices.Contains(UserReportSortColumns, u.SortColumn) {
 		return NewAppError("UserReportOptions.IsValid", "model.user_report_options.is_valid.invalid_sort_column", nil, "", http.StatusBadRequest)
 	}
 
@@ -145,7 +144,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 }
 
 func (u *UserReportQuery) ToReport() *UserReport {
-	u.ClearNonProfileFields()
+	u.ClearNonProfileFields(false)
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,
