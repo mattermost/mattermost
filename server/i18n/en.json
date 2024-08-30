@@ -6227,6 +6227,10 @@
     "translation": "You cannot update an existing Post."
   },
   {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Unable to save thread membership for post."
+  },
+  {
     "id": "app.post.search.app_error",
     "translation": "Error searching posts"
   },
@@ -6721,6 +6725,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Unable to get thread members for export."
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
@@ -9661,6 +9669,14 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
   },
   {
     "id": "model.token.is_valid.expiry",
