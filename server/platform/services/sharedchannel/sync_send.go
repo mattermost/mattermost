@@ -388,12 +388,44 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error fetching post for sync retry",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("post_id", postId),
+			mlog.Err(err),
 		)
 		return
 	}
 
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
+
+	scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg))
+}
+
+func (scs *Service) handleStatusError(userId string, task syncTask, rc *model.RemoteCluster) {
+	if task.retryMsg != nil && len(task.retryMsg.Statuses) == 1 && task.retryMsg.Statuses[0].UserId == userId {
+		// this was a retry for specific status that failed previously. Try again if within MaxRetries.
+		if task.incRetry() {
+			scs.addTask(task)
+		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error syncing status",
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("user_id", userId),
+			)
+		}
+		return
+	}
+
+	// this status failed as part of a group of statuses. Retry as an individual status.
+	status, err := scs.server.GetStore().Status().Get(userId)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error fetching status for sync retry",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("user_id", userId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	syncMsg := model.NewSyncMsg(task.channelID)
+	syncMsg.Statuses = []*model.Status{status}
 
 	scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg))
 }

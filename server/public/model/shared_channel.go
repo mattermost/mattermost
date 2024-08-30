@@ -310,6 +310,8 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+
+	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }
 
 // RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API

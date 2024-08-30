@@ -653,8 +653,18 @@ func (scs *Service) sendStatusSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Statuses = sd.statuses
 
-	// failing to set a status on the remote doesn't cause any errors
-	return scs.sendSyncMsgToRemote(msg, sd.rc, nil)
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		if len(syncResp.StatusErrors) != 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error from status(es) sync",
+				mlog.String("remote_id", sd.rc.RemoteId),
+				mlog.Array("user_ids", syncResp.StatusErrors),
+			)
+
+			for _, userID := range syncResp.StatusErrors {
+				scs.handleStatusError(userID, sd.task, sd.rc)
+			}
+		}
+	})
 }
 
 // sendProfileImageSyncData sends the collected user profile image updates to the remote cluster.
