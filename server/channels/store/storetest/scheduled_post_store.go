@@ -18,6 +18,7 @@ func TestScheduledPostStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("CreateScheduledPost", func(t *testing.T) { testCreateScheduledPost(t, rctx, ss, s) })
 	t.Run("GetScheduledPosts", func(t *testing.T) { testGetScheduledPosts(t, rctx, ss, s) })
 	t.Run("PermanentlyDeleteScheduledPosts", func(t *testing.T) { testPermanentlyDeleteScheduledPosts(t, rctx, ss, s) })
+	t.Run("UpdatedScheduledPost", func(t *testing.T) { testUpdatedScheduledPost(t, rctx, ss, s) })
 }
 
 func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -30,6 +31,10 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 
 	createdChannel, err := ss.Channel().Save(rctx, channel, 1000)
 	assert.NoError(t, err)
+
+	defer func() {
+		_ = ss.Channel().PermanentDelete(rctx, createdChannel.Id)
+	}()
 
 	t.Run("base case", func(t *testing.T) {
 		userId := model.NewId()
@@ -250,4 +255,86 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 	scheduledPosts, err = ss.ScheduledPost().GetScheduledPosts(model.GetMillis()+50000000, "", 10)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(scheduledPosts))
+}
+
+func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channel := &model.Channel{
+		TeamId:      "team_id_1",
+		Type:        model.ChannelTypeOpen,
+		Name:        "channel_name",
+		DisplayName: "Channel Name",
+	}
+
+	createdChannel, err := ss.Channel().Save(rctx, channel, 1000)
+	assert.NoError(t, err)
+
+	defer func() {
+		_ = ss.Channel().PermanentDelete(rctx, createdChannel.Id)
+	}()
+
+	t.Run("it should update only limited fields", func(t *testing.T) {
+		userId := model.NewId()
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: createdChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, createdScheduledPost.Id)
+
+		// now we'll update the scheduled post
+		updateTimestamp := model.GetMillis()
+
+		fileID1 := model.NewId()
+		fileID2 := model.NewId()
+
+		newScheduledAt := model.GetMillis() + 500000
+
+		updateSchedulePost := &model.ScheduledPost{
+			Id:          createdScheduledPost.Id,
+			ScheduledAt: newScheduledAt,
+			ErrorCode:   "test_error_code",
+			Draft: model.Draft{
+				Message:   "updated message",
+				UpdateAt:  updateTimestamp,
+				UserId:    "new_user_id", // this should not update
+				ChannelId: model.NewId(), // this should not update
+				FileIds:   []string{fileID1, fileID2},
+				Priority: model.StringInterface{
+					"priority":                 "urgent",
+					"requested_ack":            false,
+					"persistent_notifications": false,
+				},
+			},
+		}
+
+		err = ss.ScheduledPost().UpdatedScheduledPost(updateSchedulePost)
+		assert.NoError(t, err)
+
+		// now we'll get it and verify that intended fields updated and other fields did not
+		userScheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, channel.TeamId)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(userScheduledPosts))
+
+		// fields that should have changed
+		assert.Equal(t, newScheduledAt, userScheduledPosts[0].ScheduledAt)
+		assert.Equal(t, "test_error_code", userScheduledPosts[0].ErrorCode)
+		assert.Equal(t, "updated message", userScheduledPosts[0].Message)
+		assert.Equal(t, updateTimestamp, userScheduledPosts[0].UpdateAt)
+		assert.Equal(t, 2, len(userScheduledPosts[0].FileIds))
+		assert.Equal(t, "urgent", userScheduledPosts[0].Priority["priority"])
+		assert.Equal(t, false, userScheduledPosts[0].Priority["requested_ack"])
+		assert.Equal(t, false, userScheduledPosts[0].Priority["persistent_notifications"])
+
+		// fields that should not have changed. Checking them against the original value
+		assert.Equal(t, createdScheduledPost.Id, userScheduledPosts[0].Id)
+		assert.Equal(t, userId, userScheduledPosts[0].UserId)
+		assert.Equal(t, channel.Id, userScheduledPosts[0].ChannelId)
+	})
 }
