@@ -102,7 +102,7 @@ export function makeUrlSafe(url: string, defaultUrl = ''): string {
 }
 
 export function getScheme(url: string): string | null {
-    const match = (/^([a-z0-9+.-]+):/i).exec(url);
+    const match = (/^!?([a-z0-9+.-]+):/i).exec(url);
 
     return match && match[1];
 }
