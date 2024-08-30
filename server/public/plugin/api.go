@@ -1306,6 +1306,12 @@ type API interface {
 	// @tag User
 	// Minimum server version: 9.8
 	UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
+
+	// GetPluginID returns the plugin ID.
+	//
+	// @tag Plugin
+	// Minimum server version: 10.1
+	GetPluginID() string
 }
 
 var handshake = plugin.HandshakeConfig{
