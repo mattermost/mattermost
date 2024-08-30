@@ -7,7 +7,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {Role, RolesState} from '@mattermost/types/roles';
+import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,7 +25,7 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
-import {PermissionsScope, ModalIdentifiers, DocLinks} from 'utils/constants';
+import {PermissionsScope, ModalIdentifiers, DocLinks, ModeratedPermissions} from 'utils/constants';
 
 import TeamInList from './team_in_list';
 
@@ -499,8 +499,8 @@ class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComp
     };
 
     togglePermission = (roleId: string, permissions: string[]) => {
-        const roles = {...this.state.roles};
-        const role = {...roles[roleId as keyof RolesState]} as Role;
+        const roles = {...this.getStateRoles()} as RolesMap;
+        const role = {...roles[roleId]} as Role;
         const newPermissions = [...role.permissions!];
         for (const permission of permissions) {
             if (newPermissions.indexOf(permission) === -1) {
@@ -513,30 +513,20 @@ class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComp
         roles[roleId] = role;
 
         if (roleId === 'all_users') {
-            const moderatedPermissions = [
-                'create_post',
-                'upload_file',
-                'add_reaction',
-                'remove_reaction',
-                'manage_public_channel_members',
-                'manage_private_channel_members',
-                'use_channel_mentions',
-            ];
-
             const addPermissions: string[] = [];
-            for (const moderatedPermission of moderatedPermissions) {
+            for (const moderatedPermission of ModeratedPermissions) {
                 if (role.permissions.indexOf(moderatedPermission) !== -1) {
                     addPermissions.push(moderatedPermission);
                 }
             }
             if (addPermissions.length > 0) {
-                const channelAdminRole = {...roles['channel_admin' as keyof RolesState]} as Role;
+                const channelAdminRole = {...roles.channel_admin} as Role;
                 const adminPermissions = [...channelAdminRole.permissions!];
                 adminPermissions.push(...addPermissions);
                 channelAdminRole.permissions = adminPermissions;
                 roles.channel_admin = channelAdminRole;
 
-                const teamAdminRole = {...roles['team_admin' as keyof RolesState]} as Role;
+                const teamAdminRole = {...roles.team_admin} as Role;
                 const teamAdminPermissions = [...teamAdminRole.permissions!];
                 teamAdminPermissions.push(...addPermissions);
                 teamAdminRole.permissions = teamAdminPermissions;

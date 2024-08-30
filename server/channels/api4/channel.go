@@ -793,7 +793,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
-		model.PermissionSysconsoleWriteUserManagementGroups,
+		model.PermissionSysconsoleReadUserManagementGroups,
 		model.PermissionSysconsoleReadUserManagementChannels,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {

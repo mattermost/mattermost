@@ -20,7 +20,7 @@ import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 
-import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
+import {PermissionsScope, DefaultRolePermissions, DocLinks, ModeratedPermissions} from 'utils/constants';
 
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
@@ -326,30 +326,20 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         roles[roleId as keyof RolesState] = role;
 
         if (roleId === 'all_users') {
-            const moderatedPermissions = [
-                'create_post',
-                'upload_file',
-                'add_reaction',
-                'remove_reaction',
-                'manage_public_channel_members',
-                'manage_private_channel_members',
-                'use_channel_mentions',
-            ];
-
             const addPermissions: string[] = [];
-            for (const moderatedPermission of moderatedPermissions) {
+            for (const moderatedPermission of ModeratedPermissions) {
                 if (role.permissions.indexOf(moderatedPermission) !== -1) {
                     addPermissions.push(moderatedPermission);
                 }
             }
             if (addPermissions.length > 0) {
-                const channelAdminRole = {...roles['channel_admin' as keyof RolesState]} as Role;
+                const channelAdminRole = {...roles.channel_admin} as Role;
                 const adminPermissions = [...channelAdminRole.permissions!];
                 adminPermissions.push(...addPermissions);
                 channelAdminRole.permissions = adminPermissions;
                 roles.channel_admin = channelAdminRole;
 
-                const teamAdminRole = {...roles['team_admin' as keyof RolesState]} as Role;
+                const teamAdminRole = {...roles.team_admin} as Role;
                 const teamAdminPermissions = [...teamAdminRole.permissions!];
                 teamAdminPermissions.push(...addPermissions);
                 teamAdminRole.permissions = teamAdminPermissions;

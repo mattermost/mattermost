@@ -1391,6 +1391,16 @@ export const DefaultRolePermissions = {
     ],
 };
 
+export const ModeratedPermissions = [
+    Permissions.CREATE_POST,
+    Permissions.UPLOAD_FILE,
+    Permissions.ADD_REACTION,
+    Permissions.REMOVE_REACTION,
+    Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+    Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
+    Permissions.USE_CHANNEL_MENTIONS,
+];
+
 export const Locations = {
     CENTER: 'CENTER' as const,
     RHS_ROOT: 'RHS_ROOT' as const,
