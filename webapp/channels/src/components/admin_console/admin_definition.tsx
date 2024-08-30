@@ -1767,6 +1767,32 @@ const AdminDefinition: AdminDefinitionType = {
                     component: SessionLengthSettings,
                 },
             },
+            server_federation: {
+                url: 'environment/server_federation',
+                title: defineMessage({id: 'admin.sidebar.server_federation', defaultMessage: 'Server Federation'}),
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('SharedChannels')),
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                ),
+                schema: {
+                    id: 'ServerFederationSettings',
+                    name: defineMessage({id: 'admin.environment.serverFederation', defaultMessage: 'Server Federation'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ServerFederationSettings.EnableSharedChannels',
+                            label: defineMessage({id: 'admin.environment.serverFederation.enableSharedChannels.title', defaultMessage: 'Enable Shared Channels:'}),
+                            help_text: defineMessage({id: 'admin.environment.serverFederation.enableSharedChannels.desc', defaultMessage: 'Toggles Shared Channels'}),
+                            help_text_markdown: false,
+                            isHidden: it.not(it.any(
+                                it.licensedForFeature('SharedChannels'),
+                                it.licensedForSku(LicenseSkus.Enterprise),
+                                it.licensedForSku(LicenseSkus.Professional),
+                            )),
+                        },
+                    ],
+                },
+            },
             metrics: {
                 url: 'environment/performance_monitoring',
                 title: defineMessage({id: 'admin.sidebar.metrics', defaultMessage: 'Performance Monitoring'}),
@@ -6211,19 +6237,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user’s status indicator changes to "Away", when they are away from Mattermost.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.EnableSharedChannels',
-                            label: defineMessage({id: 'admin.experimental.enableSharedChannels.title', defaultMessage: 'Enable Shared Channels:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableSharedChannels.desc', defaultMessage: 'Toggles Shared Channels'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.any(
-                                it.licensedForFeature('SharedChannels'),
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.Professional),
-                            )),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
