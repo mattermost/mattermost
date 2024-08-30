@@ -3346,7 +3346,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	}
 
 	likeFields := "c.Name, c.DisplayName, c.Purpose"
-	if opts.IncludeSearchById {
+	if opts.IncludeSearchByID {
 		likeFields = likeFields + ", c.Id"
 	}
 
