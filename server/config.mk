@@ -5,7 +5,8 @@
 # Enable services to be run in docker.
 #
 # Possible options: mysql, postgres, minio, inbucket, openldap, dejavu,
-# keycloak, elasticsearch, prometheus, grafana, loki and promtail.
+# keycloak, elasticsearch, opensearch, redis, prometheus,
+# grafana, loki and promtail.
 #
 # Must be space separated names.
 #

@@ -340,7 +340,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+	// Hardcoding this to LRU because of the volume of SCAN calls in case of Redis.
+	if localCacheStore.profilesInChannelCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
 		DefaultExpiry:          ProfilesInChannelCacheSec * time.Second,

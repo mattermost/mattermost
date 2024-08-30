@@ -91,8 +91,8 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		Password:          opts.RedisPassword,
 		SelectDB:          opts.RedisDB,
 		ForceSingleClient: true,
-		CacheSizeEachConn: 16 * (1 << 20), // 16MiB local cache size
-		//TODO: look into MaxFlushDelay
+		CacheSizeEachConn: 32 * (1 << 20), // 32MiB local cache size
+		MaxFlushDelay:     250 * time.Microsecond,
 	})
 	if err != nil {
 		return nil, err
