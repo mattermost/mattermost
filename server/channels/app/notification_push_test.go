@@ -1542,9 +1542,8 @@ func TestPushNotificationRace(t *testing.T) {
 	}
 	var err error
 	s.platform, err = platform.New(
-		platform.ServiceConfig{
-			ConfigStore: memoryStore,
-		},
+		platform.ServiceConfig{},
+		platform.ConfigStore(memoryStore),
 		platform.SetFileStore(&fmocks.FileBackend{}),
 		platform.SetExportFileStore(&fmocks.FileBackend{}),
 		platform.StoreOverride(mockStore))

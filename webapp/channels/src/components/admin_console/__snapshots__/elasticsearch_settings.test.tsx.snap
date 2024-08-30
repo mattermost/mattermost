@@ -16,14 +16,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>"
@@ -44,12 +37,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -181,14 +168,8 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value="test.key"
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={true}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority."
@@ -204,12 +185,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -262,14 +237,8 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value="test"
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={true}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, sniffing finds and connects to all data nodes in your cluster automatically."
@@ -285,12 +254,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <RequestButton
@@ -468,14 +431,8 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         setByEnv={false}
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={true}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
@@ -491,22 +448,10 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={true}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
@@ -522,12 +467,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
     </Memo(SettingsGroup)>
@@ -553,9 +492,8 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -580,14 +518,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       />
     </AdminHeader>
     <Memo(SettingsGroup)>
-      <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
+      <Memo(BooleanSetting)
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>"
@@ -608,12 +539,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -745,14 +670,8 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value="test.key"
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority."
@@ -768,12 +687,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -826,14 +739,8 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value="test"
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, sniffing finds and connects to all data nodes in your cluster automatically."
@@ -849,12 +756,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <RequestButton
@@ -1031,14 +932,8 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         setByEnv={false}
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
@@ -1054,22 +949,10 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
@@ -1085,12 +968,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
     </Memo(SettingsGroup)>
@@ -1116,9 +993,8 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>

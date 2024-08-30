@@ -264,8 +264,7 @@ https://test.com/callback2"
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -568,8 +567,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "serverError",

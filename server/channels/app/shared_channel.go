@@ -137,8 +137,8 @@ func (a *App) GetSharedChannelRemoteByIds(channelID string, remoteID string) (*m
 	return a.Srv().Store().SharedChannel().GetRemoteByIds(channelID, remoteID)
 }
 
-func (a *App) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
-	return a.Srv().Store().SharedChannel().GetRemotes(opts)
+func (a *App) GetSharedChannelRemotes(page, perPage int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	return a.Srv().Store().SharedChannel().GetRemotes(page*perPage, perPage, opts)
 }
 
 // HasRemote returns whether a given channelID is present in the channel remotes or not.
