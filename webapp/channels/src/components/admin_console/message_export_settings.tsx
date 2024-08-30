@@ -110,7 +110,6 @@ export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComp
             saveNeeded: false,
             saving: false,
             serverError: null,
-            errorTooltip: false,
         };
         if (config.MessageExportSettings.GlobalRelaySettings) {
             state.globalRelayCustomerType = config.MessageExportSettings.GlobalRelaySettings.CustomerType;

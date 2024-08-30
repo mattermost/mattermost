@@ -24,6 +24,7 @@ const (
 	NotificationReasonParseError                         NotificationReason = "json_parse_error"
 	NotificationReasonPushProxyError                     NotificationReason = "push_proxy_error"
 	NotificationReasonPushProxySendError                 NotificationReason = "push_proxy_send_error"
+	NotificationReasonPushProxyRemoveDevice              NotificationReason = "push_proxy_remove_device"
 	NotificationReasonRejectedByPlugin                   NotificationReason = "rejected_by_plugin"
 	NotificationReasonSessionExpired                     NotificationReason = "session_expired"
 	NotificationReasonChannelMuted                       NotificationReason = "channel_muted"

@@ -2,9 +2,13 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
+[ -f .env.cloud ] && . .env.cloud
 
 if [ "$SERVER" != "cloud" ]; then
   mme2e_log "Skipping cloud instance initialization: operation supported only for cloud server, but running with SERVER='$SERVER'"
+  exit 0
+elif [ -n "${MM_CUSTOMER_ID:-}" ]; then
+  mme2e_log "Skipping cloud user creation: customer with ID '$MM_CUSTOMER_ID' is already configured. Please run 'make cloud-teardown' before creating a new user."
   exit 0
 fi
 

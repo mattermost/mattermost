@@ -34,6 +34,7 @@ func remoteClusterFields(prefix string) []string {
 		prefix + "Name",
 		prefix + "DisplayName",
 		prefix + "SiteURL",
+		prefix + "DefaultTeamId",
 		prefix + "CreateAt",
 		prefix + "LastPingAt",
 		prefix + "Token",
@@ -65,10 +66,10 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 	}
 
 	query := `INSERT INTO RemoteClusters
-				(RemoteId, RemoteTeamId, Name, DisplayName, SiteURL, CreateAt,
+				(RemoteId, RemoteTeamId, Name, DisplayName, SiteURL, DefaultTeamId, CreateAt,
 				LastPingAt, Token, RemoteToken, Topics, CreatorId, PluginID, Options)
 				VALUES
-				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :CreateAt,
+				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :DefaultTeamId, :CreateAt,
 				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
@@ -93,6 +94,7 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			CreatorId = :CreatorId,
 			DisplayName = :DisplayName,
 			SiteURL = :SiteURL,
+			DefaultTeamId = :DefaultTeamId,
 			Topics = :Topics,
 			PluginID = :PluginID,
 			Options = :Options

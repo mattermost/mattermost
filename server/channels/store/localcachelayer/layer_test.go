@@ -108,7 +108,7 @@ func initStores(logger mlog.LoggerIFace) {
 			if err != nil {
 				return err
 			}
-			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
+			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider(), logger)
 			if err != nil {
 				return err
 			}

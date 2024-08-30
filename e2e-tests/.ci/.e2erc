@@ -93,6 +93,7 @@ export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
 export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
 export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
 export BUILD_ID_DEFAULT=$(date +%s)
+export CI_BASE_URL_DEFAULT="localhost"
 # OS specific defaults overrides
 case $MME2E_OSTYPE in
   darwin )
@@ -111,3 +112,4 @@ export BRANCH_UNSANITIZED=${BRANCH:-$BRANCH_DEFAULT}
 export BRANCH=${BRANCH_UNSANITIZED::50} # The automation dashboard only accepts branch names up to 50 characters
 export BUILD_ID_UNSANITIZED=${BUILD_ID:-$BUILD_ID_DEFAULT}
 export BUILD_ID=${BUILD_ID_UNSANITIZED::64} # The automation dashboard only accepts build IDs up to 64 characters
+export CI_BASE_URL=${CI_BASE_URL:-$CI_BASE_URL_DEFAULT}

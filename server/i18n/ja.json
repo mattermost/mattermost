@@ -4887,7 +4887,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Blee IndexingDir が設定されている場合、Bleve インデックス有効化設定は有効でなければなりません"
+    "translation": "Bleve インデックスを有効化する場合は Bleve IndexingDir を設定しなければなりません"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
@@ -10080,5 +10080,17 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "検索バックエンドが不正です。elasticsearch または opensearch のいずれかでなければなりません。"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "リクエストを処理できませんでした。Request bodyが大きすぎます。"
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "サービス設定の最大URL長が不正です。0以上の整数でなくてはいけません。"
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "limit_visible_dms_gms の値が不正です。"
   }
 ]

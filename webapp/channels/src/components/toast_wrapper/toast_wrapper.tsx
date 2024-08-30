@@ -393,7 +393,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             width,
             onDismiss: this.hideUnreadToast,
             onClick: this.scrollToLatestMessages,
-            onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
+            onClickMessage: (
+                <FormattedMessage
+                    id='postlist.toast.scrollToBottom'
+                    defaultMessage='Jump to recents'
+                />
+            ),
             showActions: !atLatestPost || (atLatestPost && (atBottom === false)),
         };
 
@@ -410,7 +415,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             width,
             onDismiss: this.hideUnreadWithBottomStartToast,
             onClick: this.scrollToUnreadMessages,
-            onClickMessage: localizeMessage('postlist.toast.scrollToUnread', 'Jump to unreads'),
+            onClickMessage: (
+                <FormattedMessage
+                    id='postlist.toast.scrollToUnread'
+                    defaultMessage='Jump to unreads'
+                />
+            ),
             showActions: true,
             jumpDirection: 'up' as const,
         };
@@ -427,7 +437,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             const showNewMessagesToastOverrides = {
                 onDismiss: this.hideNewMessagesToast,
                 onClick: this.scrollToNewMessage,
-                onClickMessage: localizeMessage('postlist.toast.scrollToLatest', 'Jump to new messages'),
+                onClickMessage: (
+                    <FormattedMessage
+                        id='postlist.toast.scrollToLatest'
+                        defaultMessage='Jump to new messages'
+                    />
+                ),
             };
 
             return (
