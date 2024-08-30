@@ -2171,7 +2171,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
 		RootId:    postID,
-		ChannelId: metadata.ChannelId,
+		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
 		Message: fmt.Sprintf("You will be reminded about %s by @%s at %s", permalink, metadata.Username, parsedTime),
