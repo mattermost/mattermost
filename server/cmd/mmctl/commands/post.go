@@ -33,9 +33,9 @@ var PostCreateCmd = &cobra.Command{
 }
 
 var PostDeleteCmd = &cobra.Command{
-	Use:     "delete [post_id]",
+	Use:     "delete",
 	Short:   "Delete a post",
-	Example: `  post delete $POST_ID`,
+	Example: `  post delete o4frf5rp9igo3rjar8e493re9a`,
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(postDeleteCmdF),
 }
@@ -116,9 +116,10 @@ func postDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	postID := args[0]
 
 	if _, err := c.DeletePost(context.TODO(), postID); err != nil {
-		return fmt.Errorf("could not delete post: %s", err.Error())
+		return fmt.Errorf("could not delete post: %w", err)
 	}
 
+	fmt.Printf("Post with ID %s has been successfully deleted.\n", postID)
 	return nil
 }
 
