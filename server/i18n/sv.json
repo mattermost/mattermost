@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10052,5 +10052,69 @@
   {
     "id": "api.user.update_password.password_hash.app_error",
     "translation": "Det uppstod ett internt fel när lösenordet sparades."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Hittade inte instansens URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Kunde inte acceptera inbjudan till fjärrklustret"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Kunde inte avkoda base64-strängen"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Fjärrklustret har inte tagits bort"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Det gick inte att kryptera inbjudan till fjärrklustret med det angivna lösenordet"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Fjärrkluster hittades inte"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Det gick inte att dekryptera fjärrklusterinbjudan med det angivna lösenordet"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Kan inte ange anpassad status."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Kan inte hantera begäran. Request body är för stor."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache-typ måste vara antingen lru eller redis."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Kunde inte få fram webhook för teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ogiltig sök-funktion i backend. Måste vara antingen elasticsearch eller opensearch."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Ogiltigt värde för limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress måste anges för cachetypen redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB måste ha ett värde som är noll eller större."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Ogiltig maxlängd för URL för serviceinställningar. Måste vara ett heltal större än noll."
   }
 ]

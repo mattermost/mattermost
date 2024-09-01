@@ -572,6 +572,14 @@ func (c *Client4) remoteClusterRoute() string {
 	return "/remotecluster"
 }
 
+func (c *Client4) sharedChannelRemotesRoute(remoteId string) string {
+	return fmt.Sprintf("%s/%s/sharedchannelremotes", c.remoteClusterRoute(), remoteId)
+}
+
+func (c *Client4) channelRemoteRoute(remoteId, channelId string) string {
+	return fmt.Sprintf("%s/%s/channels/%s", c.remoteClusterRoute(), remoteId, channelId)
+}
+
 func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
@@ -844,6 +852,25 @@ func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Respo
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		return nil, nil, NewAppError("login", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &user, BuildResponse(r), nil
+}
+
+func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId string) (*User, *Response, error) {
+	m := make(map[string]string)
+	m["token"] = token
+	m["deviceId"] = deviceId
+	r, err := c.DoAPIPost(ctx, "/users/login/desktop_token", MapToJSON(m))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		return nil, nil, NewAppError("loginWithDesktopToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &user, BuildResponse(r), nil
 }
@@ -4993,6 +5020,24 @@ func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int
 	return iwl, BuildResponse(r), nil
 }
 
+// GetIncomingWebhooksWithCount returns a page of incoming webhooks on the system including the total count. Page counting starts at 0.
+func (c *Client4) GetIncomingWebhooksWithCount(ctx context.Context, page int, perPage int, etag string) (*IncomingWebhooksWithCount, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var iwl *IncomingWebhooksWithCount
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooksWithCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return iwl, BuildResponse(r), nil
+}
+
 // GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
 func (c *Client4) GetIncomingWebhooksForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
@@ -8853,6 +8898,57 @@ func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string
 
 func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+	v := url.Values{}
+	if excludeHome {
+		v.Set("exclude_home", "true")
+	}
+	if excludeRemote {
+		v.Set("exclude_remote", "true")
+	}
+	if page != 0 {
+		v.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		v.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	url := c.sharedChannelRemotesRoute(remoteId)
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var scs []*SharedChannelRemote
+	json.NewDecoder(r.Body).Decode(&scs)
+
+	return scs, BuildResponse(r), nil
+}
+
+func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
+	url := fmt.Sprintf("%s/invite", c.channelRemoteRoute(remoteId, channelId))
+	r, err := c.DoAPIPost(ctx, url, "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
+	url := fmt.Sprintf("%s/uninvite", c.channelRemoteRoute(remoteId, channelId))
+	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}

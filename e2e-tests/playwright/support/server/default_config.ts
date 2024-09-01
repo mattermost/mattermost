@@ -581,6 +581,7 @@ const defaultServerConfig: AdminConfig = {
         DisableAppBar: false,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
+        YoutubeReferrerPolicy: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,

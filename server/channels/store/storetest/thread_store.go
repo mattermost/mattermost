@@ -30,6 +30,8 @@ func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
 	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
 	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
+	t.Run("SaveMultipleMemberships", func(t *testing.T) { testSaveMultipleMemberships(t, ss) })
+	t.Run("MaintainMultipleFromImport", func(t *testing.T) { testMaintainMultipleFromImport(t, rctx, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1201,6 +1203,75 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			})
 		}
 	})
+
+	t.Run(("GetThreadMembershipsForExport"), func(t *testing.T) {
+		t.Run("Get members for thread, ensure usernames", func(t *testing.T) {
+			members, err := ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 has 1 member
+			assert.Len(t, members, 1)
+
+			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 1)
+
+			u, err := ss.User().Get(context.Background(), userIDs[0])
+			require.NoError(t, err)
+
+			assert.Equal(t, u.Username, members[0].Username)
+
+			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post2.Id)
+			require.NoError(t, err)
+
+			// team1channel1post2 has 2 members
+			assert.Len(t, members, 2)
+
+			userIDs, err = ss.Thread().GetThreadFollowers(team1channel1post2.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 2)
+
+			for i := range userIDs {
+				u, err := ss.User().Get(context.Background(), userIDs[i])
+				require.NoError(t, err)
+
+				assert.Equal(t, u.Username, members[i].Username)
+			}
+		})
+
+		t.Run("Get members for a thread, ensure only following members are exported", func(t *testing.T) {
+			createThreadMembership(user2ID, team1channel1post1.Id, false)
+
+			members, err := ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 should have 2 members
+			assert.Len(t, members, 2)
+
+			_, err = ss.Thread().MaintainMembership(user2ID, team1channel1post1.Id, store.ThreadMembershipOpts{
+				Following:             false,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: false,
+				UpdateParticipants:    true,
+			})
+			require.NoError(t, err)
+
+			members, err = ss.Thread().GetThreadMembershipsForExport(team1channel1post1.Id)
+			require.NoError(t, err)
+
+			// team1channel1post1 should have 1 following member
+			assert.Len(t, members, 1)
+
+			userIDs, err := ss.Thread().GetThreadFollowers(team1channel1post1.Id, true)
+			require.NoError(t, err)
+			require.Len(t, userIDs, 1)
+
+			u, err := ss.User().Get(context.Background(), userIDs[0])
+			require.NoError(t, err)
+
+			assert.Equal(t, u.Username, members[0].Username)
+		})
+	})
 }
 
 func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1688,5 +1759,243 @@ func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.St
 
 		require.Len(t, membershipsB, 1)
 		require.ElementsMatch(t, []*model.ThreadMembership{memB1}, membershipsB)
+	})
+}
+
+func testSaveMultipleMemberships(t *testing.T, ss store.Store) {
+	t.Run("should save multiple memberships", func(t *testing.T) {
+		memberships := []*model.ThreadMembership{
+			{
+				PostId:    model.NewId(),
+				UserId:    model.NewId(),
+				Following: true,
+			},
+			{
+				PostId:    model.NewId(),
+				UserId:    model.NewId(),
+				Following: true,
+			},
+		}
+
+		_, err := ss.Thread().SaveMultipleMemberships(memberships)
+		require.NoError(t, err)
+	})
+
+	t.Run("should return error if any of the memberships is invalid", func(t *testing.T) {
+		memberships := []*model.ThreadMembership{
+			{
+				PostId:    model.NewId(),
+				UserId:    "invalid",
+				Following: true,
+			},
+			{
+				PostId:    model.NewId(),
+				UserId:    model.NewId(),
+				Following: true,
+			},
+		}
+
+		_, err := ss.Thread().SaveMultipleMemberships(memberships)
+		require.Error(t, err)
+	})
+
+	t.Run("should not fail if the list is empty", func(t *testing.T) {
+		_, err := ss.Thread().SaveMultipleMemberships([]*model.ThreadMembership{})
+		require.NoError(t, err)
+	})
+
+	t.Run("should fail if there is a conflict", func(t *testing.T) {
+		postID := model.NewId()
+		userID := model.NewId()
+
+		memberships := []*model.ThreadMembership{
+			{
+				PostId:    postID,
+				UserId:    userID,
+				Following: true,
+			},
+			{
+				PostId:    postID,
+				UserId:    userID,
+				Following: true,
+			},
+		}
+
+		_, err := ss.Thread().SaveMultipleMemberships(memberships)
+		require.Error(t, err)
+	})
+}
+
+func testMaintainMultipleFromImport(t *testing.T, rctx request.CTX, ss store.Store) {
+	createThreadMembership := func(userID, postID string, following bool) (*model.ThreadMembership, func()) {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             following,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+
+		return mem, func() {
+			err := ss.Thread().DeleteMembershipForUser(userID, postID)
+			require.NoError(t, err)
+		}
+	}
+
+	cleanMembers := func(userIDs []string, postID string) error {
+		// clean the thread memberships
+		for _, id := range userIDs {
+			err := ss.Thread().DeleteMembershipForUser(id, postID)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	postingUserID := model.NewId()
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel1" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	rootPost1, err := ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost1.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("Should create new memberships from new list", func(t *testing.T) {
+		userAID := model.NewId()
+		userBID := model.NewId()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:    userAID,
+				PostId:    rootPost1.Id,
+				Following: true,
+			},
+			{
+				UserId:    userBID,
+				PostId:    rootPost1.Id,
+				Following: true,
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.ElementsMatch(t, followers, []string{userAID, userBID})
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should add incoming memberships from the list", func(t *testing.T) {
+		userAID := model.NewId()
+		userBID := model.NewId()
+
+		_, clean := createThreadMembership(userAID, rootPost1.Id, true)
+		defer clean()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:    userBID,
+				PostId:    rootPost1.Id,
+				Following: true,
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.ElementsMatch(t, followers, []string{userAID, userBID})
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should update memberships if they are newer", func(t *testing.T) {
+		userAID := model.NewId()
+
+		old, clean := createThreadMembership(userAID, rootPost1.Id, true)
+		defer clean()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:     userAID,
+				PostId:     rootPost1.Id,
+				Following:  true,
+				LastViewed: time.Now().Add(time.Minute).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.ElementsMatch(t, followers, []string{userAID})
+
+		updated, err := ss.Thread().GetMembershipForUser(userAID, rootPost1.Id)
+		require.NoError(t, err)
+		require.Greater(t, updated.LastViewed, old.LastViewed)
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should not update membership if incoming is not newer", func(t *testing.T) {
+		userAID := model.NewId()
+
+		_, clean := createThreadMembership(userAID, rootPost1.Id, false)
+		defer clean()
+
+		_, err := ss.Thread().MaintainMultipleFromImport([]*model.ThreadMembership{
+			{
+				UserId:     userAID,
+				PostId:     rootPost1.Id,
+				Following:  true,
+				LastViewed: time.Now().Add(-1 * time.Hour).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+
+		followers, err := ss.Thread().GetThreadFollowers(rootPost1.Id, true)
+		require.NoError(t, err)
+		require.Empty(t, followers)
+
+		m, err := ss.Thread().GetMembershipForUser(userAID, rootPost1.Id)
+		require.NoError(t, err)
+		require.False(t, m.Following)
+
+		// clean the thread memberships
+		err = cleanMembers(followers, rootPost1.Id)
+		require.NoError(t, err)
 	})
 }
