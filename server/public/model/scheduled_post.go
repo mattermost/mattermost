@@ -3,7 +3,21 @@
 
 package model
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
+
+const (
+	ScheduledPostErrorUnknownError            = "unknown"
+	ScheduledPostErrorCodeChannelArchived     = "channel_archived"
+	ScheduledPostErrorCodeChannelNotFound     = "channel_not_found"
+	ScheduledPostErrorCodeUserDoesNotExist    = "user_missing"
+	ScheduledPostErrorCodeUserDeleted         = "user_deleted"
+	ScheduledPostErrorCodeNoChannelPermission = "no_channel_permission"
+	ScheduledPostErrorNoChannelMember         = "no_channel_member"
+	ScheduledPostErrorThreadDeleted           = "thread_deleted"
+)
 
 type ScheduledPost struct {
 	Draft
@@ -55,4 +69,68 @@ func (s *ScheduledPost) PreSave() {
 	s.ErrorCode = ""
 
 	s.Draft.PreSave()
+}
+
+// ToPost converts a scheduled post toa  regular, mattermost post object.
+func (s *ScheduledPost) ToPost() (*Post, error) {
+	post := &Post{
+		UserId:    s.UserId,
+		ChannelId: s.ChannelId,
+		Message:   s.Message,
+		FileIds:   s.FileIds,
+		RootId:    s.RootId,
+		Metadata:  s.Metadata,
+	}
+
+	for key, value := range s.GetProps() {
+		post.AddProp(key, value)
+	}
+
+	if len(s.Priority) > 0 {
+		priority, ok := s.Priority["priority"].(string)
+		if !ok {
+			return nil, fmt.Errorf(`ScheduledPost.ToPost: priority is not a string. ScheduledPost.Priority: %v`, s.Priority)
+		}
+
+		requestedAck, ok := s.Priority["requested_ack"].(bool)
+		if !ok {
+			return nil, fmt.Errorf(`ScheduledPost.ToPost: requested_ack is not a bool. ScheduledPost.Priority: %v`, s.Priority)
+		}
+
+		persistentNotifications, ok := s.Priority["persistent_notifications"].(bool)
+		if !ok {
+			return nil, fmt.Errorf(`ScheduledPost.ToPost: persistent_notifications is not a bool. ScheduledPost.Priority: %v`, s.Priority)
+		}
+
+		if post.Metadata == nil {
+			post.Metadata = &PostMetadata{}
+		}
+
+		post.Metadata.Priority = &PostPriority{
+			Priority:                NewPointer(priority),
+			RequestedAck:            NewPointer(requestedAck),
+			PersistentNotifications: NewPointer(persistentNotifications),
+		}
+	}
+
+	return post, nil
+}
+
+func (s *ScheduledPost) Auditable() map[string]interface{} {
+	var metaData map[string]any
+	if s.Metadata != nil {
+		metaData = s.Metadata.Auditable()
+	}
+
+	return map[string]interface{}{
+		"id":         s.Id,
+		"create_at":  s.CreateAt,
+		"update_at":  s.UpdateAt,
+		"user_id":    s.UserId,
+		"channel_id": s.ChannelId,
+		"root_id":    s.RootId,
+		"props":      s.GetProps(),
+		"file_ids":   s.FileIds,
+		"metadata":   metaData,
+	}
 }

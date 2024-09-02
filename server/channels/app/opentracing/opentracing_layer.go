@@ -13913,6 +13913,21 @@ func (a *OpenTracingAppLayer) PreparePostListForClient(c request.CTX, originalLi
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) ProcessScheduledPosts(rctx request.CTX) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ProcessScheduledPosts")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.ProcessScheduledPosts(rctx)
+}
+
 func (a *OpenTracingAppLayer) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ProcessSlackAttachments")

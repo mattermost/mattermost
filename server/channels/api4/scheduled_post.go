@@ -7,6 +7,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -23,6 +26,10 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	scheduledPost.UserId = c.AppContext.Session().UserId
 
+	auditRec := c.MakeAuditRecord("createSchedulePost", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+
 	hasPermissionToCreatePostInChannel := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionCreatePost)
 	if !hasPermissionToCreatePostInChannel {
 		c.SetPermissionError(model.PermissionCreatePost)
@@ -34,6 +41,10 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(createdScheduledPost)
+	auditRec.AddEventObjectType("scheduledPost")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdScheduledPost); err != nil {

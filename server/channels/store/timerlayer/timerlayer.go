@@ -7683,6 +7683,22 @@ func (s *TimerLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 	return result, err
 }
 
+func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, lastScheduledPostId, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetPendingScheduledPosts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
 	start := time.Now()
 
@@ -7697,6 +7713,38 @@ func (s *TimerLayerScheduledPostStore) GetScheduledPostsForUser(userId string, t
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetScheduledPostsForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.PermanentlyDeleteScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdatedScheduledPost", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, error) {

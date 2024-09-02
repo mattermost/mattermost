@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -26,7 +27,7 @@ func newScheduledPostStore(sqlStore *SqlStore) *SqlScheduledPostStore {
 }
 
 func (s *SqlScheduledPostStore) columns(prefix string) []string {
-	if prefix != "" {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
 		prefix = prefix + "."
 	}
 
@@ -93,7 +94,7 @@ func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.Schedul
 
 func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error) {
 	// return scheduled posts for this user for
-	//specified team, including scheduled posts belonging to
+	// specified team, including scheduled posts belonging to
 	// DMs and GMs (DMs and GMs do not belong to any team
 
 	// We're intentionally including scheduled posts from archived channels,
@@ -135,4 +136,105 @@ func (s *SqlScheduledPostStore) getMaxMessageSize() int {
 	})
 
 	return s.maxMessageSizeCached
+}
+
+func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	query := s.getQueryBuilder().
+		Select(s.columns("")...).
+		From("ScheduledPosts").
+		Where(sq.Eq{"ErrorCode": ""}).
+		OrderBy("ScheduledAt DESC", "Id").
+		Limit(perPage)
+
+	if lastScheduledPostId == "" {
+		query = query.Where(sq.LtOrEq{"ScheduledAt": beforeTime})
+	}
+	if lastScheduledPostId != "" {
+		query = query.
+			Where(sq.Or{
+				sq.Lt{"ScheduledAt": beforeTime},
+				sq.And{
+					sq.Eq{"ScheduledAt": beforeTime},
+					sq.Gt{"Id": lastScheduledPostId},
+				},
+			})
+	}
+
+	var scheduledPosts []*model.ScheduledPost
+	if err := s.GetReplicaX().SelectBuilder(&scheduledPosts, query); err != nil {
+		mlog.Error(
+			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing",
+			mlog.Int("before_time", beforeTime),
+			mlog.String("last_scheduled_post_id", lastScheduledPostId),
+			mlog.Uint("items_per_page", perPage), mlog.Err(err),
+		)
+
+		return nil, errors.Wrapf(
+			err,
+			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing, before_time: %d, last_scheduled_post_id: %s, items_per_page: %d",
+			beforeTime, lastScheduledPostId, perPage,
+		)
+	}
+
+	return scheduledPosts, nil
+}
+
+func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	if len(scheduledPostIDs) == 0 {
+		return nil
+	}
+
+	query := s.getQueryBuilder().
+		Delete("ScheduledPosts").
+		Where(sq.Eq{"Id": scheduledPostIDs})
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to generate SQL query for permanently deleting batch of scheduled posts")
+		s.Logger().Error(errToReturn.Error())
+		return errToReturn
+	}
+
+	if _, err := s.GetMasterX().Exec(sql, params...); err != nil {
+		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to delete batch of scheduled posts from database")
+		s.Logger().Error(errToReturn.Error())
+		return errToReturn
+	}
+
+	return nil
+}
+
+func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+	builder := s.getQueryBuilder().
+		Update("ScheduledPosts").
+		SetMap(s.toUpdateMap(scheduledPost)).
+		Where(sq.Eq{"Id": scheduledPost.Id})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from updating scheduled posts", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from bulk updating scheduled posts")
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post")
+	}
+
+	return nil
+}
+
+func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) map[string]interface{} {
+	now := model.GetMillis()
+	return map[string]interface{}{
+		"UpdateAt":    now,
+		"Message":     scheduledPost.Message,
+		"Props":       model.StringInterfaceToJSON(scheduledPost.GetProps()),
+		"FileIds":     model.ArrayToJSON(scheduledPost.FileIds),
+		"Priority":    model.StringInterfaceToJSON(scheduledPost.Priority),
+		"ScheduledAt": scheduledPost.ScheduledAt,
+		"ProcessedAt": now,
+		"ErrorCode":   scheduledPost.ErrorCode,
+	}
 }
