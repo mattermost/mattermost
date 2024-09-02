@@ -14,7 +14,6 @@ import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from '
 import type {OwnProps, PropsFromRedux} from './index';
 
 const ChannelHeaderMobile = makeAsyncComponent('ChannelHeaderMobile', lazy(() => import('components/channel_header_mobile')));
-const SidebarMobileRightMenu = makeAsyncComponent('SidebarMobileRightMenu', lazy(() => import('components/sidebar_mobile_right_menu')));
 const GlobalThreads = makeAsyncComponent('GlobalThreads', lazy(() => import('components/threading/global_threads')),
     (
         <div className='app__content'>
@@ -83,7 +82,6 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                                 <ChannelHeaderMobile/>
                             </div>
                         </div>
-                        <SidebarMobileRightMenu/>
                     </>
                 )}
                 <div className='row main'>
