@@ -100,6 +100,8 @@ type Params struct {
 	OnlyConfirmed             bool
 	OnlyPlugins               bool
 	ExcludePlugins            bool
+	ExcludeHome               bool
+	ExcludeRemote             bool
 
 	//Bookmarks
 	ChannelBookmarkId string
@@ -169,6 +171,8 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.OnlyConfirmed, _ = strconv.ParseBool(query.Get("only_confirmed"))
 	params.OnlyPlugins, _ = strconv.ParseBool(query.Get("only_plugins"))
 	params.ExcludePlugins, _ = strconv.ParseBool(query.Get("exclude_plugins"))
+	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
+	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
 	params.Scope = query.Get("scope")
 

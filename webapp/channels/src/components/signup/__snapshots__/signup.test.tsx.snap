@@ -193,7 +193,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -367,7 +366,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -414,7 +412,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               icon={<LoginOffice365Icon />}
               id="office365"
               key="office365"
-              label="Office 365"
+              label="Entra ID"
               onClick={[Function]}
               url="/oauth/office365/signup"
             />
