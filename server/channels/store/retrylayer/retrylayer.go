@@ -9717,11 +9717,11 @@ func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 
 }
 
-func (s *RetryLayerScheduledPostStore) GetScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.GetScheduledPosts(beforeTime, lastScheduledPostId, perPage)
+		result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, lastScheduledPostId, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -9780,11 +9780,11 @@ func (s *RetryLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 
 }
 
-func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPosts *model.ScheduledPost) error {
+func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 
 	tries := 0
 	for {
-		err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPosts)
+		err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
 		if err == nil {
 			return nil
 		}

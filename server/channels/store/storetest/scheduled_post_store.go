@@ -16,7 +16,7 @@ import (
 
 func TestScheduledPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreateScheduledPost", func(t *testing.T) { testCreateScheduledPost(t, rctx, ss, s) })
-	t.Run("GetScheduledPosts", func(t *testing.T) { testGetScheduledPosts(t, rctx, ss, s) })
+	t.Run("GetPendingScheduledPosts", func(t *testing.T) { testGetScheduledPosts(t, rctx, ss, s) })
 	t.Run("PermanentlyDeleteScheduledPosts", func(t *testing.T) { testPermanentlyDeleteScheduledPosts(t, rctx, ss, s) })
 	t.Run("UpdatedScheduledPost", func(t *testing.T) { testUpdatedScheduledPost(t, rctx, ss, s) })
 }
@@ -101,7 +101,7 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should handle no scheduled posts exist", func(t *testing.T) {
 		apr2022 := time.Date(2100, time.April, 1, 1, 0, 0, 0, time.UTC)
-		scheduledPosts, err := ss.ScheduledPost().GetScheduledPosts(model.GetMillisForTime(apr2022), "", 10)
+		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(apr2022), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
 	})
@@ -163,17 +163,17 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 		}()
 
 		apr2022 := time.Date(2100, time.April, 1, 1, 0, 0, 0, time.UTC)
-		scheduledPosts, err := ss.ScheduledPost().GetScheduledPosts(model.GetMillisForTime(apr2022), "", 10)
+		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(apr2022), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(scheduledPosts))
 
 		mar2100midnight := time.Date(2100, time.March, 1, 0, 0, 0, 0, time.UTC)
-		scheduledPosts, err = ss.ScheduledPost().GetScheduledPosts(model.GetMillisForTime(mar2100midnight), "", 10)
+		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(mar2100midnight), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(scheduledPosts))
 
 		jan2100Midnight := time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC)
-		scheduledPosts, err = ss.ScheduledPost().GetScheduledPosts(model.GetMillisForTime(jan2100Midnight), "", 10)
+		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(jan2100Midnight), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
 	})
@@ -243,7 +243,7 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
 
 	// verify 4 scheduled posts exist
-	scheduledPosts, err := ss.ScheduledPost().GetScheduledPosts(model.GetMillis()+50000000, "", 10)
+	scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillis()+50000000, "", 10)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(scheduledPosts))
 
@@ -252,7 +252,7 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 	assert.NoError(t, err)
 
 	// now there should be no posts
-	scheduledPosts, err = ss.ScheduledPost().GetScheduledPosts(model.GetMillis()+50000000, "", 10)
+	scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillis()+50000000, "", 10)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(scheduledPosts))
 }

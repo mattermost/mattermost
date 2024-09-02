@@ -138,7 +138,7 @@ func (s *SqlScheduledPostStore) getMaxMessageSize() int {
 	return s.maxMessageSizeCached
 }
 
-func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	query := s.getQueryBuilder().
 		Select(s.columns("")...).
 		From("ScheduledPosts").
@@ -163,7 +163,7 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 	var scheduledPosts []*model.ScheduledPost
 	if err := s.GetReplicaX().SelectBuilder(&scheduledPosts, query); err != nil {
 		mlog.Error(
-			"SqlScheduledPostStore.GetScheduledPosts: failed to fetch pending scheduled posts for processing",
+			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing",
 			mlog.Int("before_time", beforeTime),
 			mlog.String("last_scheduled_post_id", lastScheduledPostId),
 			mlog.Uint("items_per_page", perPage), mlog.Err(err),
@@ -171,7 +171,7 @@ func (s *SqlScheduledPostStore) GetScheduledPosts(beforeTime int64, lastSchedule
 
 		return nil, errors.Wrapf(
 			err,
-			"SqlScheduledPostStore.GetScheduledPosts: failed to fetch pending scheduled posts for processing, before_time: %d, last_scheduled_post_id: %s, items_per_page: %d",
+			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing, before_time: %d, last_scheduled_post_id: %s, items_per_page: %d",
 			beforeTime, lastScheduledPostId, perPage,
 		)
 	}
