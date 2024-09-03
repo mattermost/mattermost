@@ -3,10 +3,6 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
-# Cleanup old containers, if any
-mme2e_log "Stopping leftover E2E containers, if any are running"
-${MME2E_DC_SERVER} down -v --remove-orphans
-
 # Wait for the required server image
 mme2e_log "Waiting for server image to be available"
 mme2e_wait_image "$SERVER_IMAGE" 4 30
