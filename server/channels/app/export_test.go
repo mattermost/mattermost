@@ -4,7 +4,9 @@
 package app
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -645,6 +648,105 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))
 	assert.Equal(t, th1.BasicUser.Username, (*posts[0].ChannelMembers)[0])
+}
+
+func TestExportPostsWithThread(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	assertThreadFollowers := func(t *testing.T, b *bytes.Buffer, postCreateAt int64, userNames []string) {
+		scanner := bufio.NewScanner(b)
+
+		usersToAssert := make([]string, 0)
+
+		for scanner.Scan() {
+			var line imports.LineImportData
+			err := json.Unmarshal(scanner.Bytes(), &line)
+			require.NoError(t, err)
+
+			switch line.Type {
+			case "post":
+				postLine := line.Post
+				require.NotNil(t, postLine)
+
+				if postLine.CreateAt != nil && *postLine.CreateAt != postCreateAt {
+					continue
+				}
+
+				for _, follower := range *postLine.ThreadFollowers {
+					if follower.User == nil {
+						require.Fail(t, "follower.User is nil")
+					}
+
+					usersToAssert = append(usersToAssert, *follower.User)
+				}
+			case "direct_post":
+				postLine := line.DirectPost
+				require.NotNil(t, postLine)
+
+				if postLine.CreateAt != nil && *postLine.CreateAt != postCreateAt {
+					continue
+				}
+
+				for _, follower := range *postLine.ThreadFollowers {
+					if follower.User == nil {
+						require.Fail(t, "follower.User is nil")
+					}
+
+					usersToAssert = append(usersToAssert, *follower.User)
+				}
+			default:
+				continue
+			}
+		}
+
+		require.ElementsMatch(t, userNames, usersToAssert)
+	}
+
+	t.Run("Export thread followers for a thread (public channel)", func(t *testing.T) {
+		thread := th1.CreatePost(th1.BasicChannel)
+		_ = th1.CreatePostReply(thread)
+
+		appErr := th1.App.UpdateThreadFollowForUser(th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
+		require.Nil(t, appErr)
+
+		member1, appErr := th1.App.GetThreadMembershipForUser(th1.BasicUser.Id, thread.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, member1)
+
+		member2, appErr := th1.App.GetThreadMembershipForUser(th1.BasicUser2.Id, thread.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, member2)
+
+		var b bytes.Buffer
+		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, err)
+
+		assertThreadFollowers(t, &b, thread.CreateAt, []string{th1.BasicUser.Username, th1.BasicUser2.Username})
+	})
+
+	t.Run("Export thread followers for a thread (direct messages)", func(t *testing.T) {
+		dmc := th1.CreateDmChannel(th1.BasicUser2)
+
+		thread := th1.CreatePost(dmc)
+		_ = th1.CreatePostReply(thread)
+
+		appErr := th1.App.UpdateThreadFollowForUser(th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
+		require.Nil(t, appErr)
+
+		member1, appErr := th1.App.GetThreadMembershipForUser(th1.BasicUser.Id, thread.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, member1)
+
+		member2, appErr := th1.App.GetThreadMembershipForUser(th1.BasicUser2.Id, thread.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, member2)
+
+		var b bytes.Buffer
+		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, err)
+		assertThreadFollowers(t, &b, thread.CreateAt, []string{th1.BasicUser.Username, th1.BasicUser2.Username})
+	})
 }
 
 func TestBulkExport(t *testing.T) {
