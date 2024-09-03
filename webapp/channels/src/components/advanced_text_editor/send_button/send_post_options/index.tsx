@@ -21,7 +21,7 @@ import './style.scss';
 
 type Props = {
     disabled?: boolean;
-    onSelect: (e: React.FormEvent, schedulingInfo: SchedulingInfo) => void;
+    onSelect: (schedulingInfo: SchedulingInfo) => void;
 }
 
 export function SendPostOptions({disabled, onSelect}: Props) {
@@ -29,20 +29,27 @@ export function SendPostOptions({disabled, onSelect}: Props) {
     const dispatch = useDispatch();
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: scheduledAt,
         };
 
-        onSelect(e, schedulingInfo);
+        onSelect(schedulingInfo);
     }, [onSelect]);
 
     const handleCloseCustomTimeModal = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL));
     }, [dispatch]);
 
-    const handleSelectCustomTime = useCallback((timestamp: number) => {
-        onSelect
-    }, []);
+    const handleSelectCustomTime = useCallback((scheduledAt: number) => {
+        const schedulingInfo: SchedulingInfo = {
+            scheduled_at: scheduledAt,
+        };
+
+        onSelect(schedulingInfo);
+    }, [onSelect]);
 
     const handleChooseCustomTime = useCallback(() => {
         dispatch(openModal({
@@ -50,9 +57,10 @@ export function SendPostOptions({disabled, onSelect}: Props) {
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 onClose: handleCloseCustomTimeModal,
+                onConfirm: handleSelectCustomTime,
             },
         }));
-    }, [dispatch, handleCloseCustomTimeModal]);
+    }, [dispatch, handleCloseCustomTimeModal, handleSelectCustomTime]);
 
     const coreMenuOptions = useMemo(() => {
         const today = new Date();
@@ -194,6 +202,7 @@ export function SendPostOptions({disabled, onSelect}: Props) {
             <Menu.Separator/>
 
             <Menu.Item
+                onClick={handleChooseCustomTime}
                 key={'choose_custom_time'}
                 labels={
                     <FormattedMessage
@@ -201,7 +210,6 @@ export function SendPostOptions({disabled, onSelect}: Props) {
                         defaultMessage='Choose a custom time'
                     />
                 }
-                onClick={handleChooseCustomTime}
             />
 
         </Menu.Container>
