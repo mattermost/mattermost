@@ -44,7 +44,7 @@ export type Params = {
     user_id?: UserProfile['id'];
 };
 
-export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps & {isDisabled: boolean};
+export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps & {isDisabled?: boolean};
 
 export type State = {
     user?: UserProfile;
@@ -450,6 +450,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
+                                            disabled={this.props.isDisabled}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.manageSettings'
