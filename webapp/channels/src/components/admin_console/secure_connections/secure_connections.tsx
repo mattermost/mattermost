@@ -28,7 +28,7 @@ export default function SecureConnections() {
             data-testid='secureConnectionsSection'
         >
             <AdminHeader>
-                <span id='secureConnections-header'>{formatMessage(messages.title)}</span>
+                <span id='secureConnections-header'>{formatMessage(messages.pageTitle)}</span>
             </AdminHeader>
             <AdminWrapper>
                 <AdminSection>
@@ -142,6 +142,7 @@ const AddMenu = (props: {buttonClassNames?: string}) => {
 };
 
 const messages = defineMessages({
+    pageTitle: ({id: 'admin.sidebar.secureConnections', defaultMessage: 'Secure Connections (Beta)'}),
     title: {id: 'admin.secure_connections.title', defaultMessage: 'Secure Connections'},
     subtitle: {id: 'admin.secure_connections.subtitle', defaultMessage: 'Secure connections with this server'},
     placeholderTitle: {id: 'admin.secure_connections.placeholder.title', defaultMessage: 'Share channels'},

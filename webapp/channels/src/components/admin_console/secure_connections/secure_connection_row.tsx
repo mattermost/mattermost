@@ -29,7 +29,7 @@ export default function SecureConnectionRow(props: Props) {
                     tagName={NumChannels}
                     id='admin.secure_connections.row.num_shared_channels'
                     defaultMessage='{num, plural, one {# shared channel} other {# shared channels}}'
-                    values={{num: 2}}
+                    values={{num: 1}}
                 /> */}
                 {isConnected(rc) ? (
                     <FormattedMessage

@@ -1919,14 +1919,14 @@ const AdminDefinition: AdminDefinitionType = {
                         it.licensedForSku(LicenseSkus.Enterprise),
                         it.licensedForSku(LicenseSkus.Professional),
 
-                        //it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)
+                        // it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)
                     )),
                 ),
 
                 isDisabled: it.any(
                     it.configIsFalse('ExperimentalSettings', 'EnableRemoteClusterService'),
 
-                    //it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)),
+                    // it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)),
                 ),
                 schema: {
                     id: 'SecureConnections',
