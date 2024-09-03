@@ -154,6 +154,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             const modalName = `Add people to ${testChannel.display_name}`;
             cy.findByRole('heading', {name: modalName});
 
+            cy.wait(TIMEOUTS.ONE_SEC);
             // * Verify the accessibility support in search input
             cy.findByRole('textbox', {name: 'Search for people or groups'}).
                 should('have.attr', 'aria-autocomplete', 'list');
