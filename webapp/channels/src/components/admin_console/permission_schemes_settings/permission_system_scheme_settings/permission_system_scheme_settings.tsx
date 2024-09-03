@@ -338,25 +338,24 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         roles[roleId as keyof RolesState] = role;
 
         if (roleId === 'all_users') {
-            const addPermissions: string[] = [];
-            for (const moderatedPermission of ModeratedPermissions) {
-                if (role.permissions.indexOf(moderatedPermission) !== -1) {
-                    addPermissions.push(moderatedPermission);
+            const channelAdminRole = {...roles.channel_admin} as Role;
+            const channelAdminPermissions = [...channelAdminRole.permissions!];
+            const teamAdminRole = {...roles.team_admin} as Role;
+            const teamAdminPermissions = [...teamAdminRole.permissions!];
+            for (const permission of permissions) {
+                if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
+                    if (channelAdminPermissions.indexOf(permission) === -1) {
+                        channelAdminPermissions.push(permission);
+                    }
+                    if (teamAdminPermissions.indexOf(permission) === -1) {
+                        teamAdminPermissions.push(permission);
+                    }
                 }
             }
-            if (addPermissions.length > 0) {
-                const channelAdminRole = {...roles.channel_admin} as Role;
-                const adminPermissions = [...channelAdminRole.permissions!];
-                adminPermissions.push(...addPermissions);
-                channelAdminRole.permissions = adminPermissions;
-                roles.channel_admin = channelAdminRole;
-
-                const teamAdminRole = {...roles.team_admin} as Role;
-                const teamAdminPermissions = [...teamAdminRole.permissions!];
-                teamAdminPermissions.push(...addPermissions);
-                teamAdminRole.permissions = teamAdminPermissions;
-                roles.team_admin = teamAdminRole;
-            }
+            channelAdminRole.permissions = channelAdminPermissions;
+            roles.channel_admin = channelAdminRole;
+            teamAdminRole.permissions = teamAdminPermissions;
+            roles.team_admin = teamAdminRole;
         }
 
         this.setState({roles, saveNeeded: true});
