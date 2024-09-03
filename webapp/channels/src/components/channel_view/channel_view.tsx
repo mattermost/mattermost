@@ -15,6 +15,8 @@ import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 
+import InputLoading from './input_loading';
+
 import type {PropsFromRedux} from './index';
 
 export type Props = PropsFromRedux & RouteComponentProps<{
@@ -26,6 +28,7 @@ type State = {
     url: string;
     focusedPostId?: string;
     deferredPostView: any;
+    waitForLoader: boolean;
 };
 
 export default class ChannelView extends React.PureComponent<Props, State> {
@@ -75,6 +78,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             channelId: props.channelId,
             focusedPostId: props.match.params.postid,
             deferredPostView: ChannelView.createDeferredPostView(),
+            waitForLoader: false,
         };
 
         this.channelViewRef = React.createRef();
@@ -82,6 +86,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     onClickCloseChannel = () => {
         this.props.goToLastViewedChannel();
+    };
+
+    onUpdateInputShowLoader = (v: boolean) => {
+        this.setState({waitForLoader: v});
     };
 
     componentDidUpdate(prevProps: Props) {
@@ -104,23 +112,19 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     className='post-create__container'
                     id='post-create'
                 >
-                    <div
-                        className='channel-archived__message'
+                    <FormattedMarkdownMessage
+                        id='create_post.deactivated'
+                        defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
+                    />
+                    <button
+                        className='btn btn-primary channel-archived__close-btn'
+                        onClick={this.onClickCloseChannel}
                     >
-                        <FormattedMarkdownMessage
-                            id='create_post.deactivated'
-                            defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
+                        <FormattedMessage
+                            id='center_panel.archived.closeChannel'
+                            defaultMessage='Close Channel'
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
-                            onClick={this.onClickCloseChannel}
-                        >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
-                        </button>
-                    </div>
+                    </button>
                 </div>
             );
         } else if (this.props.channelIsArchived) {
@@ -149,7 +153,9 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     </div>
                 </div>
             );
-        } else if (this.props.channelRoleLoaded) {
+        } else if (this.props.missingChannelRole || this.state.waitForLoader) {
+            createPost = <InputLoading updateWaitForLoader={this.onUpdateInputShowLoader}/>;
+        } else {
             createPost = (
                 <div
                     id='post-create'
@@ -157,31 +163,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
                     <AdvancedCreatePost/>
-                </div>
-            );
-        } else {
-            createPost = (
-                <div
-                    className='post-create__container'
-                    id='post-create'
-                >
-                    <div
-                        className='channel-archived__message'
-                    >
-                        <FormattedMarkdownMessage
-                            id='noRolesMessage'
-                            defaultMessage='Roles for this channel are not yet loaded. Please wait or reload the app.'
-                        />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
-                            onClick={this.onClickCloseChannel}
-                        >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
-                        </button>
-                    </div>
                 </div>
             );
         }

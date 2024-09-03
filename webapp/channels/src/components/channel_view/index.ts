@@ -5,6 +5,8 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {getCurrentChannel, getDirectTeammate, getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
@@ -25,6 +27,11 @@ function isDeactivatedChannel(state: GlobalState, channelId: string) {
     return Boolean(teammate && teammate.delete_at);
 }
 
+function isMissingChannelRoles(state: GlobalState, channel?: Channel) {
+    const channelRoles = channel ? getMyChannelMembership(state, channel.id)?.roles || '' : '';
+    return !channelRoles.split(' ').some((v) => Boolean(getRoles(state)[v]));
+}
+
 function mapStateToProps(state: GlobalState) {
     const channel = getCurrentChannel(state);
 
@@ -34,8 +41,8 @@ function mapStateToProps(state: GlobalState) {
     const enableOnboardingFlow = config.EnableOnboardingFlow === 'true';
     const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
-    const channelRoles = channel ? getMyChannelMembership(state, channel.id)?.roles || '' : '';
-    const channelRoleLoaded = channelRoles.split(' ').some((v) => Boolean(getRoles(state)[v]));
+    const missingChannelRole = isMissingChannelRoles(state, channel);
+
     return {
         channelId: channel ? channel.id : '',
         deactivatedChannel: channel ? isDeactivatedChannel(state, channel.id) : false,
@@ -47,7 +54,7 @@ function mapStateToProps(state: GlobalState) {
         isFirstAdmin: isFirstAdmin(state),
         enableWebSocketEventScope,
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
-        channelRoleLoaded,
+        missingChannelRole,
     };
 }
 
