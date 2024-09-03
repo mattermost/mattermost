@@ -105,7 +105,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
             const roundedTime = getRoundedTime(currentTime);
             handleChange(roundedTime);
         } else {
-            const dayWithTimezone = timezone ? moment.tz(day, timezone) : moment(day);
+            const dayWithTimezone = timezone ? moment(day).tz(timezone, true) : moment(day);
             handleChange(dayWithTimezone.startOf('day'));
         }
         handlePopperOpenState(false);

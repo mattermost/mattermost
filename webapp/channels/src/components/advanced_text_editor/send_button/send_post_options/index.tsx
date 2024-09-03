@@ -4,10 +4,16 @@
 import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
+import {ModalIdentifiers} from 'utils/constants';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {closeModal, openModal} from 'actions/views/modals';
+
+import ScheduledPostCustomTimeModal
+    from 'components/advanced_text_editor/send_button/custom_time_modal/custom_time_modal';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
@@ -20,6 +26,7 @@ type Props = {
 
 export function SendPostOptions({disabled, onSelect}: Props) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         const schedulingInfo: SchedulingInfo = {
@@ -28,6 +35,20 @@ export function SendPostOptions({disabled, onSelect}: Props) {
 
         onSelect(e, schedulingInfo);
     }, [onSelect]);
+
+    const handleCloseCustomTimeModal = useCallback(() => {
+        dispatch(closeModal(ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL));
+    }, [dispatch]);
+
+    const handleChooseCustomTime = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
+            dialogType: ScheduledPostCustomTimeModal,
+            dialogProps: {
+                onClose: handleCloseCustomTimeModal,
+            },
+        }));
+    }, [dispatch, handleCloseCustomTimeModal]);
 
     const coreMenuOptions = useMemo(() => {
         const today = new Date();
@@ -169,12 +190,14 @@ export function SendPostOptions({disabled, onSelect}: Props) {
             <Menu.Separator/>
 
             <Menu.Item
+                key={'choose_custom_time'}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.choose_custom_time'
                         defaultMessage='Choose a custom time'
                     />
                 }
+                onClick={handleChooseCustomTime}
             />
 
         </Menu.Container>

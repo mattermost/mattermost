@@ -18,15 +18,17 @@ import './style.scss';
 type Props = {
     onExited: () => void;
     ariaLabel: string;
-    header: string | React.ReactNode;
+    header: React.ReactNode;
+    subheading?: React.ReactNode;
     onChange?: (datTime: Moment) => void;
     onCancel?: () => void;
     onConfirm?: (dateTime: Moment) => void;
     initialTime?: Moment;
-    confirmButtonText?: string | React.ReactNode;
+    confirmButtonText?: React.ReactNode;
+    cancelButtonText?: React.ReactNode;
 };
 
-export default function DateTimePickerModal({onExited, ariaLabel, header, onConfirm, onCancel, initialTime, confirmButtonText, onChange}: Props) {
+export default function DateTimePickerModal({onExited, ariaLabel, header, onConfirm, onCancel, initialTime, confirmButtonText, onChange, cancelButtonText, subheading}: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
     const initialRoundedTime = getRoundedTime(currentTime);
@@ -68,6 +70,7 @@ export default function DateTimePickerModal({onExited, ariaLabel, header, onConf
             ariaLabel={ariaLabel}
             onExited={onExited}
             modalHeaderText={header}
+            modalSubheadingText={subheading}
             confirmButtonText={confirmButtonText}
             handleConfirm={handleConfirm}
             handleCancel={onCancel}
@@ -75,6 +78,7 @@ export default function DateTimePickerModal({onExited, ariaLabel, header, onConf
             className={'date-time-picker-modal'}
             compassDesign={true}
             keyboardEscape={false}
+            cancelButtonText={cancelButtonText}
         >
             <DateTimeInput
                 time={dateTime}

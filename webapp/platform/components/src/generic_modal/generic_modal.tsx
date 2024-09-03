@@ -12,6 +12,7 @@ export type Props = {
     className?: string;
     onExited: () => void;
     modalHeaderText?: React.ReactNode;
+    modalSubheadingText?: React.ReactNode;
     show?: boolean;
     handleCancel?: () => void;
     handleConfirm?: () => void;
@@ -204,6 +205,19 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             </>
                         )}
                     </Modal.Header>
+
+                    {
+                        this.props.modalSubheadingText &&
+                        <div className='modal-subheading-container'>
+                            <h6
+                                id='genericModalSubheading'
+                                className='modal-subheading'
+                            >
+                                {this.props.modalSubheadingText}
+                            </h6>
+                        </div>
+                    }
+
                     <Modal.Body className={classNames({divider: this.props.bodyDivider})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (

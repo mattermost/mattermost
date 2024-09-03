@@ -43,10 +43,16 @@ const ModalController = ({
     const {modalState} = modals;
     const modalOutput = [];
 
+    console.log(modalState);
+
+    console.log('AAA');
     for (const modalId in modalState) {
+        console.log('BBB ' + modalId);
         if (modalState.hasOwnProperty(modalId)) {
+            console.log('CCC ' + modalId);
             const modal = modalState[modalId];
             if (modal.open) {
+                console.log('DDD ' + modalId);
                 const modalComponent = React.createElement(modal.dialogType, Object.assign({}, modal.dialogProps, {
                     onExited: () => {
                         actions.closeModal(modalId);

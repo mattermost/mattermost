@@ -22,6 +22,11 @@
         margin-top: -40px;
     }
 
+    .modal-subheading-container {
+        padding-inline: 32px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
     .modal-body {
         max-height: 100%;
         padding: 0;
