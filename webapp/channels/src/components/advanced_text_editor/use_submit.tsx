@@ -210,11 +210,11 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
+    const handleSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (!channel) {
             return;
         }
-        e.preventDefault();
+        e?.preventDefault();
         setShowPreview(false);
         isDraftSubmitting.current = true;
 

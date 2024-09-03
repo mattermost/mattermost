@@ -20,7 +20,7 @@ type Props = {
     ariaLabel: string;
     header: React.ReactNode;
     subheading?: React.ReactNode;
-    onChange?: (datTime: Moment) => void;
+    onChange?: (dateTime: Moment) => void;
     onCancel?: () => void;
     onConfirm?: (dateTime: Moment) => void;
     initialTime?: Moment;

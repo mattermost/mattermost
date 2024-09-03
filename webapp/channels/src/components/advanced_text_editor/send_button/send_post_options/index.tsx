@@ -40,6 +40,10 @@ export function SendPostOptions({disabled, onSelect}: Props) {
         dispatch(closeModal(ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL));
     }, [dispatch]);
 
+    const handleSelectCustomTime = useCallback((timestamp: number) => {
+        onSelect
+    }, []);
+
     const handleChooseCustomTime = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
