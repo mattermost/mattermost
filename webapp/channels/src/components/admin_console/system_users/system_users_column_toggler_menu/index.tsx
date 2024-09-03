@@ -18,6 +18,7 @@ import './system_users_column_toggler.scss';
 
 interface Props {
     isMySql: boolean;
+    isDisabled?: boolean;
     allColumns: Array<Column<UserReport>>;
     visibleColumnsLength: number;
 }
@@ -106,6 +107,7 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                         defaultMessage:
                             'Open menu to select columns to display',
                     }),
+                    disabled: props.isDisabled,
                     as: 'div',
                     children: (
                         <Input

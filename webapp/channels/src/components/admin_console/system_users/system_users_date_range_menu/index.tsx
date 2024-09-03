@@ -42,6 +42,7 @@ function getEndOfLastMonth(now: Date) {
 
 type Props = {
     dateRange: ReportDuration;
+    isDisabled?: boolean;
 }
 
 export function SystemUsersDateRangeMenu(props: Props) {
@@ -90,6 +91,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                         defaultMessage:
                             'Open menu to select columns to display',
                     }),
+                    disabled: props.isDisabled,
                     as: 'div',
                     children: (
                         <Input

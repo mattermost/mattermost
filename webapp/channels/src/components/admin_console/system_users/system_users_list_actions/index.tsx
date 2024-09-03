@@ -46,11 +46,12 @@ interface Props {
     currentUser: UserProfile;
     tableId?: string;
     rowIndex: number;
+    readonly?: boolean;
     onError: (error: ServerError) => void;
     updateUser: (user: Partial<UserProfile>) => void;
 }
 
-export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onError, updateUser}: Props) {
+export function SystemUsersListAction({user, currentUser, tableId, rowIndex, readonly, onError, updateUser}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
@@ -95,6 +96,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const menuItemIdPrefix = `actionMenuItem-${tableId}-${rowIndex}`;
 
     const isCurrentUserSystemAdmin = useMemo(() => isSystemAdmin(currentUser.roles), [currentUser.roles]);
+    // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
+    const isDisabled = readonly || (!isSystemAdmin(currentUser.roles) && isSystemAdmin(user.roles));
 
     // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
     const isNonSystemAdminEditingSystemAdmin = !isCurrentUserSystemAdmin && isSystemAdmin(user.roles);
