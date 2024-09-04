@@ -20,7 +20,7 @@ type Props = {
     onConfirm: (timestamp: number) => void;
 }
 
-export default function ScheduledPostCustomTimeModal({onClose, onConfirm}: Props): React.ReactNode {
+export default function ScheduledPostCustomTimeModal({onClose, onConfirm}: Props) {
     const {formatMessage} = useIntl();
 
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>();

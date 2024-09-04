@@ -43,7 +43,7 @@ export default function DateTimePickerModal({onExited, ariaLabel, header, onConf
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     useEffect(() => {
-        function handleKeyDown(event: React.KeyboardEvent) {
+        function handleKeyDown(event: KeyboardEvent) {
             if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
                 onExited();
             }
