@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
+      BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:1.22.6
       TEST_IMAGE: migration-test-image
     defaults:
       run:
