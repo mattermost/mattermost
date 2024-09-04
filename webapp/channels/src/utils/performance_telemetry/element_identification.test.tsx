@@ -79,6 +79,7 @@ describe('identifyElementRegion', () => {
                             [channel.id]: TestHelper.getChannelMembershipMock({
                                 channel_id: channel.id,
                                 user_id: user.id,
+                                roles: 'system_admin',
                             }),
                         },
                     },
