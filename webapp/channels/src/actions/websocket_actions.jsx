@@ -20,6 +20,7 @@ import {
     AppsTypes,
     CloudTypes,
     HostedCustomerTypes,
+    ChannelBookmarkTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -39,13 +40,13 @@ import {
     getCustomEmojiForReaction,
     getPosts,
     getPostThread,
-    getMentionsAndStatusesForPosts,
     getPostThreads,
     postDeleted,
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
     getThread as fetchThread,
@@ -65,7 +66,7 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
     getChannelMembersInChannels,
@@ -74,6 +75,7 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
@@ -228,7 +230,7 @@ export function reconnect() {
         const mostRecentId = getMostRecentPostIdInChannel(state, currentChannelId);
         const mostRecentPost = getPost(state, mostRecentId);
 
-        if (appsFeatureFlagEnabled(state)) {
+        if (appsEnabled(state)) {
             dispatch(handleRefreshAppsBindings());
         }
 
@@ -241,7 +243,11 @@ export function reconnect() {
             // we can request for getPosts again when socket is connected
             dispatch(getPosts(currentChannelId));
         }
-        dispatch(StatusActions.loadStatusesForChannelAndSidebar());
+
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+        if (enabledUserStatuses) {
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPoll());
+        }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
         dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));
@@ -425,6 +431,22 @@ export function handleEvent(msg) {
 
     case SocketEvents.CHANNEL_MEMBER_UPDATED:
         handleChannelMemberUpdatedEvent(msg);
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_CREATED:
+        dispatch(handleChannelBookmarkCreated(msg));
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_UPDATED:
+        dispatch(handleChannelBookmarkUpdated(msg));
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_DELETED:
+        dispatch(handleChannelBookmarkDeleted(msg));
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_SORTED:
+        dispatch(handleChannelBookmarkSorted(msg));
         break;
 
     case SocketEvents.DIRECT_ADDED:
@@ -702,8 +724,7 @@ export function handleNewPostEvent(msg) {
         }
 
         myDispatch(handleNewPost(post, msg));
-
-        getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
+        myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -746,9 +767,7 @@ export function handleNewPostEvents(queue) {
 
         // Load the posts' threads
         myDispatch(getPostThreads(posts));
-
-        // And any other data needed for them
-        getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
+        myDispatch(batchFetchStatusesProfilesGroupsFromPosts(posts));
     };
 }
 
@@ -764,7 +783,7 @@ export function handlePostEditEvent(msg) {
     const crtEnabled = isCollapsedThreadsEnabled(getState());
     dispatch(receivedPost(post, crtEnabled));
 
-    getMentionsAndStatusesForPosts([post], dispatch, getState);
+    dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -1141,7 +1160,7 @@ export async function handleUserUpdatedEvent(msg) {
 
     if (currentUser.id === user.id) {
         if (user.update_at > currentUser.update_at) {
-            // update user to unsanitized user data recieved from websocket message
+            // update user to unsanitized user data received from websocket message
             dispatch({
                 type: UserTypes.RECEIVED_ME,
                 data: user,
@@ -1632,9 +1651,9 @@ function handleThreadReadChanged(msg) {
                 ),
             );
         } else if (msg.broadcast.channel_id) {
-            handleAllThreadsInChannelMarkedRead(doDispatch, doGetState, msg.broadcast.channel_id, msg.data.timestamp);
+            doDispatch(handleAllThreadsInChannelMarkedRead(msg.broadcast.channel_id, msg.data.timestamp));
         } else {
-            handleAllMarkedRead(doDispatch, msg.broadcast.team_id);
+            doDispatch(handleAllMarkedRead(msg.broadcast.team_id));
         }
     };
 }
@@ -1661,7 +1680,7 @@ function handleThreadUpdated(msg) {
             threadData.is_following = true;
         }
 
-        if (isThreadOpen(state, threadData.id) && !isThreadManuallyUnread(state, threadData.id)) {
+        if (isThreadOpen(state, threadData.id) && window.isActive && !isThreadManuallyUnread(state, threadData.id)) {
             lastViewedAt = Date.now();
 
             // Sometimes `Date.now()` was generating a timestamp before the
@@ -1751,5 +1770,52 @@ function handleHostedCustomerSignupProgressUpdated(msg) {
     return {
         type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
         data: msg.data.progress,
+    };
+}
+
+function handleChannelBookmarkCreated(msg) {
+    const bookmark = JSON.parse(msg.data.bookmark);
+
+    return {
+        type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+        data: bookmark,
+    };
+}
+
+function handleChannelBookmarkUpdated(msg) {
+    return async (doDispatch) => {
+        const {updated, deleted} = JSON.parse(msg.data.bookmarks);
+
+        if (updated) {
+            doDispatch({
+                type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+                data: updated,
+            });
+        }
+
+        if (deleted) {
+            doDispatch({
+                type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+                data: deleted,
+            });
+        }
+    };
+}
+
+function handleChannelBookmarkDeleted(msg) {
+    const bookmark = JSON.parse(msg.data.bookmark);
+
+    return {
+        type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+        data: bookmark,
+    };
+}
+
+function handleChannelBookmarkSorted(msg) {
+    const bookmarks = JSON.parse(msg.data.bookmarks);
+
+    return {
+        type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
+        data: {channelId: msg.broadcast.channel_id, bookmarks},
     };
 }

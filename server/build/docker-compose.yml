@@ -28,6 +28,10 @@ services:
     extends:
         file: docker-compose.common.yml
         service: elasticsearch
+  opensearch:
+    extends:
+        file: docker-compose.common.yml
+        service: opensearch
   dejavu:
     extends:
         file: docker-compose.common.yml
@@ -44,6 +48,14 @@ services:
     extends:
         file: docker-compose.common.yml
         service: grafana
+  loki:
+    extends:
+        file: docker-compose.common.yml
+        service: loki
+  promtail:
+    extends:
+        file: docker-compose.common.yml
+        service: promtail
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
@@ -56,7 +68,8 @@ services:
       - inbucket
       - openldap
       - elasticsearch
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200
+      - opensearch
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201
 
 networks:
   mm-test:

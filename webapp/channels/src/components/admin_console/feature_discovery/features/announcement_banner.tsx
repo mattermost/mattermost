@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import {LicenseSkus} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AnnouncementBannerSVG from './images/announcement_banner_svg';
 
@@ -15,17 +15,18 @@ const AnnouncementBannerFeatureDiscovery: React.FC = () => {
         <FeatureDiscovery
             featureName='announcement_banner'
             minimumSKURequiredForFeature={LicenseSkus.Professional}
-            titleID='admin.announcement_banner_feature_discovery.title'
-            titleDefault='Create custom announcement banners with Mattermost Professional'
-            copyID='admin.announcement_banner_feature_discovery.copy'
-            copyDefault={'Create announcement banners to notify all members of important information.'}
+            title={defineMessage({
+                id: 'admin.announcement_banner_feature_discovery.title',
+                defaultMessage: 'Create custom announcement banners with Mattermost Professional',
+            })}
+            copy={defineMessage({
+                id: 'admin.announcement_banner_feature_discovery.copy',
+                defaultMessage: 'Create announcement banners to notify all members of important information.',
+            })}
             learnMoreURL='https://docs.mattermost.com/administration/announcement-banner.html'
             featureDiscoveryImage={<AnnouncementBannerSVG/>}
         />
     );
 };
-
-t('admin.announcement_banner_feature_discovery.title');
-t('admin.announcement_banner_feature_discovery.copy');
 
 export default AnnouncementBannerFeatureDiscovery;

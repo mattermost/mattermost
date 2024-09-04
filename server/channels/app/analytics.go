@@ -33,7 +33,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 	}
 
 	skipIntensiveQueries := false
-	// When generating a Support packet, always run intensive queries.
+	// When generating a Support Packet, always run intensive queries.
 	if !forSupportPacket {
 		if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
 			rctx.Logger().Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
@@ -241,7 +241,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 		var incomingWebhookCount int64
 		g2.Go(func() error {
 			var err error
-			if incomingWebhookCount, err = a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID); err != nil {
+			if incomingWebhookCount, err = a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID, ""); err != nil {
 				return model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return nil

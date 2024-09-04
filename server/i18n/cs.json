@@ -728,10 +728,6 @@
     "translation": "Úloha pro export zpráv ExportFormat musí být jedna z následujících 'actiance', 'csv' nebo'globalrelay'."
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nepodařilo se vytvořit Elasticsearch dávkový procesor."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Nepodařilo se dekódovat výsledky hledání"
   },
@@ -2670,10 +2666,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch je už zastaven."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nepodařilo se spustit Elasticsearch dávkový procesor."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
@@ -5288,10 +5280,6 @@
     "translation": "Platnost Vaší licence Enterprise vypršela a některé funkce mohou být vypnuty. Obnovte licenci."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Obnovit licenci"
-  },
-  {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
     "translation": "Uživatele nelze přidat, protože doména přiřazená tomuto účtu není povolena. Další podrobnosti žádejte od svého systémového administrátora."
   },
@@ -6720,22 +6708,6 @@
     "translation": "Nemohu zapsat exportní soubor."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Chybí licence"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Tento typ licence nepodporuje tvorbu tokenu pro obnovení"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Selhalo vytvoření tokenu pro obnovení."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Chyba při získávání odkazu na obnovení licence"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Soubor nelze zapsat."
   },
@@ -7090,10 +7062,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Pozvánka ze zabezpečeného připojení"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Pozvánku se nepodařilo dešifrovat. Nesprávné heslo nebo poškozená pozvánka: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

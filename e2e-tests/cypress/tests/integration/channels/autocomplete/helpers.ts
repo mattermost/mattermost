@@ -40,15 +40,14 @@ function enableElasticSearch() {
     // # Enable elastic search via the API
     cy.apiUpdateConfig({
         ElasticsearchSettings: {
-            EnableAutocomplete: true,
             EnableIndexing: true,
             EnableSearching: true,
-            Sniff: false,
         },
     } as Cypress.AdminConfig);
 
     // # Navigate to the elastic search setting page
     cy.visit('/admin_console/environment/elasticsearch');
+    cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
 
     // * Test the connection and verify that we are successful
     cy.contains('button', 'Test Connection').click();
@@ -211,14 +210,14 @@ function startAtMention(string: string) {
     cy.get('#suggestionList').should('be.visible');
 }
 
-function verifySuggestionAtPostTextbox(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtPostTextbox(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.uiVerifyAtMentionSuggestion(user);
     });
 }
 
-function verifySuggestionAtChannelSwitcher(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.findByTestId(user.username).
             should('be.visible').

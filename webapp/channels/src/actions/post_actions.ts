@@ -40,12 +40,12 @@ import {
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
+import type {SubmitPostReturnType} from './views/create_comment';
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
@@ -106,7 +106,7 @@ export function unflagPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[]): ActionFuncAsync {
+export function createPost(post: Post, files: FileInfo[], afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         // parse message and emit emoji event
         const emojis = matchEmoticons(post.message);
@@ -115,12 +115,7 @@ export function createPost(post: Post, files: FileInfo[]): ActionFuncAsync {
             dispatch(addRecentEmojis(trimmedEmojis));
         }
 
-        let result;
-        if (UserAgent.isIosClassic()) {
-            result = await dispatch(PostActions.createPostImmediately(post, files));
-        } else {
-            result = await dispatch(PostActions.createPost(post, files));
-        }
+        const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
         if (post.root_id) {
             dispatch(storeCommentDraft(post.root_id, null));
@@ -146,23 +141,23 @@ function storeCommentDraft(rootPostId: string, draft: null): ActionFunc {
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string): ActionFunc<unknown, GlobalState> {
-    return (dispatch, getState) => {
+export function submitReaction(postId: string, action: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
         const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
 
         if (action === '+' && !isReactionAlreadyAddedToPost) {
-            dispatch(addReaction(postId, emojiName));
+            return dispatch(addReaction(postId, emojiName));
         } else if (action === '-' && isReactionAlreadyAddedToPost) {
-            dispatch(PostActions.removeReaction(postId, emojiName));
+            return dispatch(PostActions.removeReaction(postId, emojiName));
         }
-        return {data: true};
+        return {error: new Error(`unknown action ${action}`)};
     };
 }
 
-export function toggleReaction(postId: string, emojiName: string): ActionFuncAsync<unknown, GlobalState> {
+export function toggleReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
@@ -176,9 +171,9 @@ export function toggleReaction(postId: string, emojiName: string): ActionFuncAsy
     };
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFunc {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
     const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const config = getConfig(state);
         const uniqueEmojiNames = getUniqueEmojiNameReactionsForPost(state, postId) ?? [];
@@ -193,12 +188,12 @@ export function addReaction(postId: string, emojiName: string): ActionFunc {
                     onExited: () => closeModal(ModalIdentifiers.REACTION_LIMIT_REACHED),
                 },
             }));
-            return {data: false};
+            return {error: new Error('reached reaction limit')};
         }
 
-        dispatch(PostActions.addReaction(postId, emojiName));
         dispatch(addRecentEmoji(emojiName));
-        return {data: true};
+        const result = await dispatch(PostActions.addReaction(postId, emojiName));
+        return result;
     };
 }
 

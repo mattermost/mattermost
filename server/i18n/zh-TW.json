@@ -3128,14 +3128,6 @@
     "translation": "無法解碼搜尋結果"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "建立 Elasticsearch 批次處理器時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "啟動 Elasticsearch 批次處理器時失敗"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch 已停止"
   },
@@ -5516,10 +5508,6 @@
     "translation": "企業授權已過期，部份功能已被停用。請更新授權。"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "更新授權"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]。"
   },
@@ -7166,10 +7154,6 @@
   {
     "id": "api.command_remote.cluster_removed",
     "translation": "安全連線 {{.RemoteId}} {{.Result}}。"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "無法解密邀請。密碼錯誤或邀請損毀: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

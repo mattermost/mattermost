@@ -97,7 +97,7 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
         let updatedValue: PostDraft|null = null;
         if (value) {
             const timestamp = new Date().getTime();
-            const data = getGlobalItem(state, key, {});
+            const data = getGlobalItem<Partial<PostDraft>>(state, key, {});
             updatedValue = {
                 ...value,
                 createAt: data.createAt || timestamp,

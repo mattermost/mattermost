@@ -113,6 +113,9 @@ describe('Announcement Banner', () => {
                 cy.get(`a[href="${bannerEndLink}"]`).should('not.be.visible');
             });
 
+        // Go back to Channels
+        cy.get('a.backstage-navbar__back').click();
+
         // # Hover over the banner
         cy.get('@announcementBanner').trigger('mouseover');
 

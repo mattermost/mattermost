@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useRef, useState} from 'react';
-import {injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
@@ -20,9 +19,7 @@ import './progress_modal.scss';
 const MIN_PROCESSING_MILLISECONDS = 5000;
 const MAX_FAKE_PROGRESS = 95;
 
-type Props = WrappedComponentProps
-
-const DeleteWorkspaceProgressModal = (props: Props) => {
+export default function DeleteWorkspaceProgressModal() {
     const modal = React.createRef();
     const mounted = useRef(false);
     const dispatch = useDispatch();
@@ -67,11 +64,11 @@ const DeleteWorkspaceProgressModal = (props: Props) => {
             >
                 <div className='DeleteWorkspaceProgressModal'>
                     <IconMessage
-                        title={
-                            props.intl.formatMessage({
-                                id: 'admin.billing.deleteWorkspace.progressModal.title',
-                                defaultMessage: 'Deleting your workspace',
-                            })
+                        formattedTitle={
+                            <FormattedMessage
+                                id='admin.billing.deleteWorkspace.progressModal.title'
+                                defaultMessage='Deleting your workspace'
+                            />
                         }
                         icon={
                             <CreditCardSvg
@@ -89,6 +86,4 @@ const DeleteWorkspaceProgressModal = (props: Props) => {
             </FullScreenModal>
         </RootPortal>
     );
-};
-
-export default injectIntl(DeleteWorkspaceProgressModal);
+}

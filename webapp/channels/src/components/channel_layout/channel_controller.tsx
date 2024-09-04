@@ -5,15 +5,17 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
-import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
 
 import CenterChannel from 'components/channel_layout/center_channel';
 import LoadingScreen from 'components/loading_screen';
 import ProductNoticesModal from 'components/product_notices_modal';
 import ResetStatusModal from 'components/reset_status_modal';
 import Sidebar from 'components/sidebar';
+import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
@@ -40,6 +42,10 @@ export default function ChannelController(props: Props) {
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
+
+            // This cleans up the status and profile setInterval of fetching poll we use to batch requests
+            // when fetching statuses and profiles for a list of users.
+            dispatch(cleanUpStatusAndProfileFetchingPoll());
         };
     }, []);
 
@@ -47,17 +53,18 @@ export default function ChannelController(props: Props) {
         let loadStatusesIntervalId: NodeJS.Timeout;
         if (enabledUserStatuses) {
             loadStatusesIntervalId = setInterval(() => {
-                dispatch(loadStatusesForChannelAndSidebar());
+                dispatch(addVisibleUsersInCurrentChannelToStatusPoll());
             }, Constants.STATUS_INTERVAL);
         }
 
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    }, [dispatch, enabledUserStatuses]);
+    }, [enabledUserStatuses]);
 
     return (
         <>
+            <CRTPostsChannelResetWatcher/>
             <Sidebar/>
             <div
                 id='channel_view'

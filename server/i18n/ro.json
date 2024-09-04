@@ -3136,14 +3136,6 @@
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nu s-a putut crea procesorul în bloc Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nu a putut porni procesorul în bloc Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch este deja oprit."
   },
@@ -5524,10 +5516,6 @@
     "translation": "Licența dvs. Enterprise Edition a expirat și este posibil ca unele funcții să fie dezactivate. Vă rugăm să vă reînnoiți licența acum."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Reînnoiți licența acum"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{.SiteName}}] {{.SenderName}} v-a invitat să vă alăturați echipei {{.TeamDisplayName}} ca oaspete"
   },
@@ -7368,22 +7356,6 @@
     "translation": "Imposibil de scris fișierul de export."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Fără licență prezentă"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Acest tip de licență nu acceptă generarea de jetoane de reînnoire"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nu s-a putut genera un nou jeton de reînnoire."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Eroare la obținerea linkului de reînnoire a licenței"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Imposibil de scris fișierul."
   },
@@ -7778,10 +7750,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitație din clusterul de la distanță"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nu s-a putut decripta invitația. Parolă incorectă sau invitație coruptă: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

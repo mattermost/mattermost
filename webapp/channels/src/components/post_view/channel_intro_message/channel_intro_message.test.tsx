@@ -192,11 +192,11 @@ describe('components/post_view/ChannelIntroMessages', () => {
             );
             expect(screen.getByText('This is the start of your direct message history with my teammate.', {exact: false})).toBeInTheDocument();
 
-            const teammate = screen.getByLabelText('my teammate');
+            const teammate = screen.getByText('my teammate');
 
             expect(teammate).toBeInTheDocument();
             expect(teammate).toHaveTextContent('my teammate');
-            expect(teammate).toHaveClass('user-popover style--none');
+            expect(teammate).toHaveClass('style--none');
 
             const image = screen.getByRole('img');
 

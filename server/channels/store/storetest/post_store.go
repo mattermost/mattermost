@@ -180,7 +180,7 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Save(rctx, &replyPost)
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Greater(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 	})
@@ -249,9 +249,9 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		o1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("important"),
-				RequestedAck:            model.NewBool(true),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer("important"),
+				RequestedAck:            model.NewPointer(true),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		}
 
@@ -293,7 +293,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
-			storedPost, err := ss.Post().GetSingle(post.Id, false)
+			storedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
 			assert.NoError(t, err)
 			assert.Equal(t, post.ChannelId, storedPost.ChannelId)
 			assert.Equal(t, post.Message, storedPost.Message)
@@ -372,13 +372,13 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
-		storedPost, err := ss.Post().GetSingle(p3.Id, false)
+		storedPost, err := ss.Post().GetSingle(rctx, p3.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, p3.ChannelId, storedPost.ChannelId)
 		assert.Equal(t, p3.Message, storedPost.Message)
 		assert.Equal(t, p3.UserId, storedPost.UserId)
 
-		storedPost, err = ss.Post().GetSingle(p4.Id, false)
+		storedPost, err = ss.Post().GetSingle(rctx, p4.Id, false)
 		assert.Error(t, err)
 		assert.Nil(t, storedPost)
 	})
@@ -407,7 +407,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 
@@ -429,7 +429,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
-		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 	})
@@ -776,7 +776,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
-		assert.True(t, r1.HasNext)
+		assert.True(t, *r1.HasNext)
 
 		lastPostID := r1.Order[len(r1.Order)-1]
 		lastPostCreateAt := r1.Posts[lastPostID].CreateAt
@@ -793,7 +793,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
-		assert.False(t, r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Going from bottom to top now.
 		firstPostCreateAt := r1.Posts[r1.Order[1]].CreateAt
@@ -809,7 +809,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
-		assert.False(t, r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Only with CreateAt
 		opts = model.GetPostsOptions{
@@ -826,7 +826,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
-		assert.True(t, r1.HasNext)
+		assert.True(t, *r1.HasNext)
 
 		// Non-CRT mode
 		opts = model.GetPostsOptions{
@@ -839,7 +839,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
-		assert.True(t, r1.HasNext)
+		assert.True(t, *r1.HasNext)
 
 		lastPostID = r1.Order[len(r1.Order)-1]
 		lastPostCreateAt = r1.Posts[lastPostID].CreateAt
@@ -861,7 +861,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 4) // including the root post
 		require.Len(t, r1.Posts, 4)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
-		assert.False(t, r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Going from bottom to top now.
 		firstPostCreateAt = r1.Posts[r1.Order[1]].CreateAt
@@ -878,7 +878,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
-		assert.False(t, r1.HasNext)
+		assert.False(t, *r1.HasNext)
 
 		// Only with CreateAt
 		opts = model.GetPostsOptions{
@@ -893,7 +893,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
-		assert.True(t, r1.HasNext)
+		assert.True(t, *r1.HasNext)
 	})
 }
 
@@ -947,21 +947,21 @@ func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 	err = ss.Post().Delete(rctx, o4.Id, model.GetMillis(), o4.UserId)
 	require.NoError(t, err)
 
-	post, err := ss.Post().GetSingle(o1.Id, false)
+	post, err := ss.Post().GetSingle(rctx, o1.Id, false)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 	require.Equal(t, int64(1), post.ReplyCount, "wrong replyCount computed")
 
-	_, err = ss.Post().GetSingle(o2.Id, false)
+	_, err = ss.Post().GetSingle(rctx, o2.Id, false)
 	require.Error(t, err, "should not return deleted post")
 
-	post, err = ss.Post().GetSingle(o2.Id, true)
+	post, err = ss.Post().GetSingle(rctx, o2.Id, true)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, o2.CreateAt, "invalid returned post")
 	require.NotZero(t, post.DeleteAt, "DeleteAt should be non-zero")
 	require.Zero(t, post.ReplyCount, "Post without replies should return zero ReplyCount")
 
-	_, err = ss.Post().GetSingle("123", false)
+	_, err = ss.Post().GetSingle(rctx, "123", false)
 	require.Error(t, err, "Missing id should have failed")
 }
 
@@ -4061,7 +4061,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: model.NewPointer(int64(30)),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
@@ -4090,7 +4090,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(20),
+				PostDurationDays: model.NewPointer(int64(20)),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -4150,7 +4150,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: model.NewPointer(int64(30)),
 			},
 			ChannelIDs: []string{c1.Id},
 		})
@@ -4159,7 +4159,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: model.NewPointer(int64(30)),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -4280,7 +4280,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err = ss.User().Save(rctx, &u1)
@@ -4662,7 +4662,7 @@ func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store
 func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
-	remoteID := model.NewString(model.NewId())
+	remoteID := model.NewPointer(model.NewId())
 	first := model.GetMillis()
 
 	data := []*model.Post{
@@ -4681,7 +4681,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 	for i, p := range data {
 		p.UpdateAt = first + (int64(i) * 300000)
 		if p.RemoteId == nil {
-			p.RemoteId = model.NewString(model.NewId())
+			p.RemoteId = model.NewPointer(model.NewId())
 		}
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
@@ -4765,7 +4765,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
-	remoteID := model.NewString(model.NewId())
+	remoteID := model.NewPointer(model.NewId())
 	first := model.GetMillis()
 
 	data := []*model.Post{
@@ -4784,7 +4784,7 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 	for i, p := range data {
 		p.CreateAt = first + (int64(i) * 300000)
 		if p.RemoteId == nil {
-			p.RemoteId = model.NewString(model.NewId())
+			p.RemoteId = model.NewPointer(model.NewId())
 		}
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
@@ -4978,7 +4978,7 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 
 	u1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Locale:   "es",
 	}
 

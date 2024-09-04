@@ -8,13 +8,12 @@ body {
         }
 
         .error__container {
-            display: table-cell;
+            display: block;
             max-width: 800px;
             padding: 5em 0;
             margin: 0 auto;
             color: #555;
             text-align: left;
-            vertical-align: top;
         }
 
         .error__icon {

@@ -397,12 +397,14 @@ ol.markdown__list {
     >li {
         display: table-row;
         counter-increment: list;
+        word-break: break-word;
 
         &::before {
             display: table-cell;
             padding-right: 8px;
             content: counter(list) ".";
             text-align: right;
+            word-break: keep-all;
         }
     }
 }

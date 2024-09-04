@@ -121,7 +121,7 @@ func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func ldapJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JobTypeLdapSync)
+	return jobListCmdF(c, command, model.JobTypeLdapSync, "")
 }
 
 func ldapJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

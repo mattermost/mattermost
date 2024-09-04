@@ -3,7 +3,16 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import {updateThreadRead} from 'mattermost-redux/actions/threads';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
+
+import {isThreadManuallyUnread, isThreadOpen} from 'selectors/views/threads';
+
 import {ActionTypes, Threads} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 export function updateThreadLastOpened(threadId: string, lastViewedAt: number) {
     return {
@@ -39,5 +48,18 @@ export function updateThreadToastStatus(status: boolean) {
     return {
         type: ActionTypes.UPDATE_THREAD_TOAST_STATUS,
         data: status,
+    };
+}
+
+export function markThreadAsRead(threadId: string): ThunkActionFunc<void, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const currentUserId = getCurrentUserId(state);
+        const currentTeamId = getCurrentTeamId(state);
+
+        if (isThreadOpen(state, threadId) && window.isActive && !isThreadManuallyUnread(state, threadId)) {
+            // mark thread as read on the server
+            dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
+        }
     };
 }

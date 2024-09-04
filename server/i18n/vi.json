@@ -4530,10 +4530,6 @@
     "translation": "Đã xảy ra lỗi khi tham gia kênh."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Không thể khởi động bộ xử lý hàng loạt Elaticsearch"
-  },
-  {
     "id": "api.command_collapse.success",
     "translation": "Liên kết hình ảnh hiện tại bị thu gọn theo mặc định"
   },
@@ -4924,10 +4920,6 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Tin nhắn xuất từ ExportFormat được đặt từ 'globalrelay', nhưng GlobalRelaySettings đang thiếu"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Không thể tạo bộ xử lý hàng loạt Elaticsearch"
   },
   {
     "id": "api.command_me.hint",
@@ -5854,10 +5846,6 @@
     "translation": "Lệnh kho tiện ích không hỗ trợ trên thiết bị của bạn."
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Không thể giải mã lời mời. Mật khẩu không chính xác hoặc lời mời bị hỏng: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.name.help",
     "translation": "Tên kết nối an toàn"
   },
@@ -6032,10 +6020,6 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Cổng thông tin không có sẵn để đăng ký tự lưu trữ."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the license renewal link"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -6218,10 +6202,6 @@
     "translation": "Mattermost là gì?"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Gia hạn ngay bây giờ"
-  },
-  {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} đã mời bạn tham gia Kênh {{ .ChannelName }} trong Nhóm {{ .TeamDisplayName }}"
   },
@@ -6238,10 +6218,6 @@
     "translation": "Giấy phép của bạn đã đến kỳ gia hạn"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Đăng nhập vào Tài khoản khách hàng của bạn để gia hạn"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Đăng ký Mattermost của bạn sắp được gia hạn"
   },
@@ -6252,10 +6228,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Bạn có thắc mắc?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Gia hạn giấy phép ngay bây giờ"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -7398,44 +7370,12 @@
     "translation": "Không thể áp dụng giấy phép dùng thử mới. Trước đây, bạn đã đăng ký giấy phép dùng thử cho phiên bản Matter Extreme này. Nếu bạn muốn kéo dài thời gian dùng thử, vui lòng [liên hệ với nhóm bán hàng của chúng tôi](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Lỗi lấy link gia hạn giấy phép"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Không thể gia hạn giấy phép này trên cổng thông tin"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Chúng tôi không thể xử lý yêu cầu do những hạn chế đối với các quốc gia bị cấm vận. [Tìm hiểu thêm trong tài liệu của chúng tôi](https://mattermost.com/pl/limitations-for-embargoed-countries) hoặc liên hệ với legal@mattermost.com nếu có câu hỏi xung quanh các hạn chế xuất khẩu."
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Không thể tạo bản ghi trạng thái đúng"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Không thể gửi hồ sơ đánh giá thực tế tới CWS."
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Không thể lấy được bản ghi trạng thái đúng"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Đánh giá thực tế cần có giấy phép"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Đánh giá thực tế không được phép đối với các phiên bản đám mây"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Không thể lấy tổng số lượng webhook đến"
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -7516,14 +7456,6 @@
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
     "translation": "Người dùng không được phép tạo bài đăng ưu tiên hoặc thông báo liên tục."
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Không thể lấy tổng số người dùng đang hoạt động"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Không thể lấy tổng số lượng webhook gửi đi"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -7828,14 +7760,6 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "Lỗi tìm nạp bài đăng có thể truy cập lần cuối"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Không tạo được mã thông báo gia hạn mới."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Không có giấy phép hiện tại"
   },
   {
     "id": "app.member_count",
@@ -8152,10 +8076,6 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Các chỉ mục bị bỏ qua để thanh lọc không được bắt đầu bằng dấu gạch ngang."
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Loại giấy phép này không hỗ trợ tạo mã thông báo gia hạn"
   },
   {
     "id": "app.role.get_by_name.app_error",
@@ -8704,10 +8624,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Đã hết thời gian chờ phản hồi của cụm"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Giải mã CA cho Elaticsearch không thành công"
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",

@@ -276,7 +276,7 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	g.Email = MakeEmail()
 	g.Type = model.TeamOpen
 	g.AllowOpenInvite = false
-	g.GroupConstrained = model.NewBool(true)
+	g.GroupConstrained = model.NewPointer(true)
 
 	_, err = ss.Team().Save(&g)
 	require.NoError(t, err)
@@ -294,7 +294,7 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{q.Id},
 	})
@@ -368,55 +368,55 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			"Search for all 3 teams filter by allow open invite",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(true)},
 			1,
 			[]string{o.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite = false",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(false)},
 			1,
 			[]string{p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(true)},
 			1,
 			[]string{g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained = false",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite and include group constrained",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(true), GroupConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(true), GroupConstrained: model.NewPointer(true)},
 			2,
 			[]string{o.Id, g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained and not open invite",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(true), AllowOpenInvite: model.NewPointer(false)},
 			2,
 			[]string{g.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false), AllowOpenInvite: model.NewPointer(true)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite false",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false), AllowOpenInvite: model.NewPointer(false)},
 			2,
 			[]string{p.Id, o.Id},
 		},
 		{
 			"Search for teams which are not part of a data retention policy",
-			&model.TeamSearch{Term: "", ExcludePolicyConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "", ExcludePolicyConstrained: model.NewPointer(true)},
 			3,
 			[]string{o.Id, p.Id, g.Id},
 		},
@@ -700,7 +700,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	policy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		TeamIDs: []string{o.Id},
 	})
@@ -720,7 +720,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.True(t, found)
 
 	// With ExcludePolicyConstrained
-	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewBool(true)})
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewPointer(true)})
 	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
@@ -732,7 +732,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.False(t, found)
 
 	// With policy ID
-	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewBool(true)})
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewPointer(true)})
 	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
@@ -826,7 +826,7 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, err)
@@ -946,7 +946,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.S
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(false)}
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(false)}
 
 	teams, listErr := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, listErr)
@@ -1021,7 +1021,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	assert.NoError(t, err)
@@ -1096,7 +1096,7 @@ func testPublicTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewBool(true)})
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewPointer(true)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1131,7 +1131,7 @@ func testPrivateTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewBool(false)})
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewPointer(false)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1161,7 +1161,7 @@ func testTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// get the count of teams including deleted
-	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: model.NewBool(true)})
+	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: model.NewPointer(true)})
 	require.NoError(t, err)
 
 	// count including deleted should be one greater than not including deleted
@@ -1377,9 +1377,9 @@ func testTeamMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
@@ -1713,13 +1713,13 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("any not valid team member", func(t *testing.T) {
@@ -2092,7 +2092,7 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
@@ -2398,9 +2398,9 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("any not valid team member", func(t *testing.T) {
@@ -2721,13 +2721,13 @@ func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	teamID := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
@@ -2767,13 +2767,13 @@ func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
 	require.NoError(t, err)
 	teamID := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
@@ -2888,7 +2888,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 
 	for i := 0; i < maxUsersPerTeam; i++ {
 		user, err := ss.User().Save(rctx, &model.User{
-			Username: NewTestId(),
+			Username: "a" + NewTestId(),
 			Email:    MakeEmail(),
 		})
 		require.NoError(t, err)
@@ -2914,7 +2914,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.Equal(t, int(totalMemberCount), maxUsersPerTeam, "should start with 5 team members, had %v instead", totalMemberCount)
 
 	user, nErr := ss.User().Save(rctx, &model.User{
-		Username: NewTestId(),
+		Username: "a" + NewTestId(),
 		Email:    MakeEmail(),
 	})
 	require.NoError(t, nErr)
@@ -2962,7 +2962,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, nErr)
 
 	user, nErr = ss.User().Save(rctx, &model.User{
-		Username: NewTestId(),
+		Username: "a" + NewTestId(),
 		Email:    MakeEmail(),
 	})
 	require.NoError(t, nErr)
@@ -3589,7 +3589,7 @@ func testGroupSyncedTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:             NewTestId(),
 		Email:            MakeEmail(),
 		Type:             model.TeamInvite,
-		GroupConstrained: model.NewBool(true),
+		GroupConstrained: model.NewPointer(true),
 	})
 	require.NoError(t, err)
 	require.True(t, team1.IsGroupConstrained())
@@ -3609,7 +3609,7 @@ func testGroupSyncedTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
-	team2.GroupConstrained = model.NewBool(true)
+	team2.GroupConstrained = model.NewPointer(true)
 	team2, err = ss.Team().Update(team2)
 	require.NoError(t, err)
 	require.True(t, team2.IsGroupConstrained())

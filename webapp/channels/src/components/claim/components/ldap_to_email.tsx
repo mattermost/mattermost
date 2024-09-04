@@ -12,7 +12,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import LoginMfa from 'components/login/login_mfa';
 
 import {ClaimErrors} from 'utils/constants';
-import {isValidPassword, localizeMessage} from 'utils/utils';
+import {isValidPassword} from 'utils/password';
+import {localizeMessage} from 'utils/utils';
 
 import type {SubmitOptions} from './email_to_ldap';
 import ErrorLabel from './error_label';
