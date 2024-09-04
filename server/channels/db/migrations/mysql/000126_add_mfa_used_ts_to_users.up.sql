@@ -1,1 +1,1 @@
-ALTER TABLE Users ADD COLUMN MfaUsedTimestamps VARCHAR(35) NOT NULL DEFAULT '';
+ALTER TABLE Users ADD COLUMN MfaUsedTimestamps json NULL;

@@ -41,8 +41,11 @@ const (
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
+//msgp:ignore StringInterface StringSet
 type StringInterface map[string]any
 type StringSet map[string]struct{}
+
+//msgp:tuple StringArray
 type StringArray []string
 
 func (ss StringSet) Has(val string) bool {
