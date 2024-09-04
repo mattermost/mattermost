@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 )
@@ -333,7 +332,7 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.EmailVerified = true
 	user.FailedAttempts = 10
 	user.LastActivityAt = GetMillis()
-	user.MfaUsedTimestamps = model.StringArray{"1234", "4566"}
+	user.MfaUsedTimestamps = StringArray{"1234", "4566"}
 
 	user.SanitizeInput(false)
 
