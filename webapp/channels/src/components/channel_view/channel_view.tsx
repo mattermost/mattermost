@@ -112,19 +112,23 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     className='post-create__container'
                     id='post-create'
                 >
-                    <FormattedMarkdownMessage
-                        id='create_post.deactivated'
-                        defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
-                    />
-                    <button
-                        className='btn btn-primary channel-archived__close-btn'
-                        onClick={this.onClickCloseChannel}
+                    <div
+                        className='channel-archived__message'
                     >
-                        <FormattedMessage
-                            id='center_panel.archived.closeChannel'
-                            defaultMessage='Close Channel'
+                        <FormattedMarkdownMessage
+                            id='create_post.deactivated'
+                            defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
                         />
-                    </button>
+                        <button
+                            className='btn btn-primary channel-archived__close-btn'
+                            onClick={this.onClickCloseChannel}
+                        >
+                            <FormattedMessage
+                                id='center_panel.archived.closeChannel'
+                                defaultMessage='Close Channel'
+                            />
+                        </button>
+                    </div>
                 </div>
             );
         } else if (this.props.channelIsArchived) {
