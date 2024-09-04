@@ -4,8 +4,6 @@
 import type React from 'react';
 import {useCallback, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
@@ -28,6 +26,9 @@ import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import PostDeletedModal from 'components/post_deleted_modal';
 import ResetStatusModal from 'components/reset_status_modal';
+
+import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';

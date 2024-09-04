@@ -22,8 +22,8 @@ import Input from 'components/widgets/inputs/input/input';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
@@ -58,6 +58,7 @@ type Props = {
     handleChange: (date: Moment) => void;
     timezone?: string;
     setIsDatePickerOpen?: (isDatePickerOpen: boolean) => void;
+    relativeDate?: boolean;
 }
 
 const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
@@ -130,8 +131,21 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         ));
     }, []);
 
-    const formatDate = (date: Date): string => {
-        return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
+    const formatDate = (date: Moment): string => {
+        if (props.relativeDate) {
+            const now = moment();
+            const inputDate = moment(date);
+
+            if (inputDate.isSame(now, 'day')) {
+                return formatMessage({id: 'date_separator.today', defaultMessage: 'Today'});
+            } else if (inputDate.isSame(now.clone().subtract(1, 'days'), 'day')) {
+                return formatMessage({id: 'date_separator.yesterday', defaultMessage: 'Yesterday'});
+            } else if (inputDate.isSame(now.clone().add(1, 'days'), 'day')) {
+                return formatMessage({id: 'date_separator.tomorrow', defaultMessage: 'Tomorrow'});
+            }
+        }
+
+        return DateTime.fromJSDate(date.toDate()).toFormat('yyyy-MM-dd');
     };
 
     const inputIcon = (
@@ -167,7 +181,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                         datePickerProps={datePickerProps}
                     >
                         <Input
-                            value={formatDate(time.toDate())}
+                            value={formatDate(time)}
                             id='customStatus__calendar-input'
                             readOnly={true}
                             className='dateTime__calendar-input'

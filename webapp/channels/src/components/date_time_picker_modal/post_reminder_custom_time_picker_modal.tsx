@@ -4,15 +4,17 @@
 import type {Moment} from 'moment-timezone';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import {GenericModal} from '@mattermost/components';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
+
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import {getCurrentMomentForTimezone} from 'utils/timezone';
+
 import './style.scss';
 
 type Props = {
@@ -26,9 +28,12 @@ type Props = {
     initialTime?: Moment;
     confirmButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
+    bodyPrefix?: React.ReactNode;
+    bodySuffix?: React.ReactNode;
+    relativeDate?: boolean;
 };
 
-export default function DateTimePickerModal({onExited, ariaLabel, header, onConfirm, onCancel, initialTime, confirmButtonText, onChange, cancelButtonText, subheading}: Props) {
+export default function DateTimePickerModal({onExited, ariaLabel, header, onConfirm, onCancel, initialTime, confirmButtonText, onChange, cancelButtonText, subheading, bodyPrefix, bodySuffix, relativeDate}: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
     const initialRoundedTime = getRoundedTime(currentTime);
@@ -80,12 +85,17 @@ export default function DateTimePickerModal({onExited, ariaLabel, header, onConf
             keyboardEscape={false}
             cancelButtonText={cancelButtonText}
         >
+            {bodyPrefix}
+
             <DateTimeInput
                 time={dateTime}
                 handleChange={handleChange}
                 timezone={userTimezone}
                 setIsDatePickerOpen={setIsDatePickerOpen}
+                relativeDate={relativeDate}
             />
+
+            {bodySuffix}
         </GenericModal>
     );
 }

@@ -3360,6 +3360,7 @@
   "schedule_post.custom_time_modal.title": "Schedule message",
   "schedule_post.custom_time_modal.confirm_button_text": "Schedule",
   "schedule_post.custom_time_modal.cancel_button_text": "Cancel",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} for {dmUserName}",
   "create_post.deactivated": "You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.",
   "create_post.error_message": "Your message is too long. Character count: {length}/{limit}",
   "create_post.file_limit_sticky_banner.admin_message": "New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>",
