@@ -58,6 +58,8 @@ export default function DateTimePickerModal({onExited,
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
             if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
+                event.preventDefault();
+                event.stopPropagation();
                 onExited();
             }
         }
