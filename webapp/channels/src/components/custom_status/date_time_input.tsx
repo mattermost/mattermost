@@ -24,10 +24,13 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
+
+const DATE_FORMAT = 'yyyy-MM-dd';
 
 export function getRoundedTime(value: Moment) {
     const roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
@@ -132,20 +135,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     }, []);
 
     const formatDate = (date: Moment): string => {
-        if (props.relativeDate) {
-            const now = moment();
-            const inputDate = moment(date);
-
-            if (inputDate.isSame(now, 'day')) {
-                return formatMessage({id: 'date_separator.today', defaultMessage: 'Today'});
-            } else if (inputDate.isSame(now.clone().subtract(1, 'days'), 'day')) {
-                return formatMessage({id: 'date_separator.yesterday', defaultMessage: 'Yesterday'});
-            } else if (inputDate.isSame(now.clone().add(1, 'days'), 'day')) {
-                return formatMessage({id: 'date_separator.tomorrow', defaultMessage: 'Tomorrow'});
-            }
-        }
-
-        return DateTime.fromJSDate(date.toDate()).toFormat('yyyy-MM-dd');
+        return props.relativeDate ? relativeFormatDate(date, formatMessage, DATE_FORMAT) : DateTime.fromJSDate(date.toDate()).toFormat(DATE_FORMAT);
     };
 
     const inputIcon = (

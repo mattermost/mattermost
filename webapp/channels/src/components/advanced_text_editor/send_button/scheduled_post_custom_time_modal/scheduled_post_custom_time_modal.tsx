@@ -12,8 +12,8 @@ import {
     getCurrentTimezone,
 } from 'mattermost-redux/selectors/entities/timezone';
 
-import {DMUserTimezone} from 'components/advanced_text_editor/send_button/custom_time_modal/dmUserTimezone';
-import DateTimePickerModal from 'components/date_time_picker_modal/post_reminder_custom_time_picker_modal';
+import {DMUserTimezone} from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dmUserTimezone';
+import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 type Props = {
     onClose: () => void;
@@ -29,11 +29,12 @@ export default function ScheduledPostCustomTimeModal({onClose, onConfirm}: Props
     const userTimezone = useSelector(getCurrentTimezone);
     const userTimezoneLabel = generateCurrentTimezoneLabel(userTimezone);
 
-    const title = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
-    const confirmButtonText = formatMessage({id: 'schedule_post.custom_time_modal.confirm_button_text', defaultMessage: 'Confirm'});
-    const cancelButtonText = formatMessage({id: 'schedule_post.custom_time_modal.cancel_button_text', defaultMessage: 'Cancel'});
-
+    // Sets the default value of `selectedDateTime` to tomorrow, 9 AM in user's timezone.
+    // We need to do this in a useEffect instead of directly setting
+    // the default value in useState because we need to get the user's timezone from redux first.
     useEffect(() => {
+        // don't set if already set as this would override any new value set
+        // when user manually selected a date time
         if (selectedDateTime !== undefined) {
             return;
         }
@@ -55,6 +56,14 @@ export default function ScheduledPostCustomTimeModal({onClose, onConfirm}: Props
         );
     }, [selectedDateTime]);
 
+    const title = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
+    const confirmButtonText = formatMessage({id: 'schedule_post.custom_time_modal.confirm_button_text', defaultMessage: 'Confirm'});
+    const cancelButtonText = formatMessage({id: 'schedule_post.custom_time_modal.cancel_button_text', defaultMessage: 'Cancel'});
+
+    // Only render the modal after the initial datetime has been set
+    // as once you pass an initial time to it, it won't update as it's only used for setting
+    // initial, default value. So if you render it with `undefined` first, it won't
+    // ever display the intended initial datetime.
     if (!selectedDateTime) {
         return null;
     }

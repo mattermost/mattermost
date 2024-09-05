@@ -11,14 +11,13 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
-import ScheduledPostCustomTimeModal
-    from 'components/advanced_text_editor/send_button/custom_time_modal/custom_time_modal';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
 import {ModalIdentifiers} from 'utils/constants';
 
 import './style.scss';
+import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
 type Props = {
     disabled?: boolean;

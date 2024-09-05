@@ -6,7 +6,7 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {getRoundedTime} from 'components/custom_status/date_time_input';
-import DateTimePickerModal from 'components/date_time_picker_modal/post_reminder_custom_time_picker_modal';
+import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 import {toUTCUnix} from 'utils/datetime';
 import {getCurrentMomentForTimezone} from 'utils/timezone';

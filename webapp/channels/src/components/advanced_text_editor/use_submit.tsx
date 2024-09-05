@@ -119,8 +119,6 @@ const useSubmit = (
     }, [dispatch]);
 
     const doSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
-        // e?.preventDefault();
-
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -215,8 +213,6 @@ const useSubmit = (
             return;
         }
 
-        // e?.preventDefault();
-
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
@@ -245,7 +241,6 @@ const useSubmit = (
             channelTimezoneCount = data ? data.length : 0;
         }
 
-        // const onConfirm = () => doSubmit(e, submittingDraft, schedulingInfo);
         const onConfirm = () => doSubmit(submittingDraft, schedulingInfo);
         if (prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;

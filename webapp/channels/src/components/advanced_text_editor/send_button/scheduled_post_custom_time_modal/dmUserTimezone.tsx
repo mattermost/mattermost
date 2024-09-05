@@ -4,12 +4,13 @@
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-import {getDisplayName, getUserIdFromChannelName} from 'utils/utils';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
+
+import {getDisplayName, getUserIdFromChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 

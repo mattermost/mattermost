@@ -131,10 +131,8 @@ const useKeyHandler = (
             // textboxRef.current?.blur();
 
             if (withClosedCodeBlock && message) {
-                // handleSubmit(e, {...draft, message});
                 handleSubmit({...draft, message});
             } else {
-                // handleSubmit(e);
                 handleSubmit();
             }
 
