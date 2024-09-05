@@ -42,8 +42,8 @@ const InputLoading = ({
             {showMessage && (
                 <>
                     <FormattedMessage
-                        id='noRolesMessage'
-                        defaultMessage='Channel roles are not loaded yet. Please wait a moment, or try reloading the app.'
+                        id='center_panel.input.cannot_load_component'
+                        defaultMessage='Something went wrong while loading the component. Please wait a moment, or try reloading the app.'
                     />
                     <button
                         className='btn btn-tertiary channel-archived__close-btn'
