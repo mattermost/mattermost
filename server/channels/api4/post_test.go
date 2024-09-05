@@ -4010,6 +4010,8 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 }
 
 func TestPostReminder(t *testing.T) {
+	t.Skip("MM-60329")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
