@@ -87,7 +87,6 @@
                   description: An array of histogram measurements to be reported
       responses:
         "200":
-          $ref: "#/components/schemas/StatusOK"
           description: Measurements reported successfully
           content:
             application/json:
