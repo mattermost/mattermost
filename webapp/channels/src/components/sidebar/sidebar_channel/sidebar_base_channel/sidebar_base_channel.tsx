@@ -50,7 +50,6 @@ const SidebarBaseChannel = ({
 
     const channelIcon = (
         <SidebarBaseChannelIcon
-            isSharedChannel={Boolean(channel.shared)}
             channelType={channel.type}
         />
     );
@@ -70,6 +69,7 @@ const SidebarBaseChannel = ({
             ariaLabelPrefix={ariaLabelPrefix}
             channelLeaveHandler={channelLeaveHandler!}
             icon={channelIcon}
+            isSharedChannel={channel.shared}
         />
     );
 };
