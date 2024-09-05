@@ -104,9 +104,11 @@ function PanelBody({
                     </div>
                 </div>
             </div>
-            <div className={errorClass}>
-                {error}
-            </div>
+            {Boolean(error) && (
+                <div className={errorClass}>
+                    {error}
+                </div>
+            )}
         </>
     );
 }

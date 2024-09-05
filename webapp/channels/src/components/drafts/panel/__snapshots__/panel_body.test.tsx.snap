@@ -16,6 +16,8 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
   <PanelBody
     channelId="channel_id"
     displayName="display_name"
+    error=""
+    errorClass=""
     fileInfos={Array []}
     message="message"
     status="status"
@@ -213,6 +215,8 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
   <PanelBody
     channelId="channel_id"
     displayName="display_name"
+    error=""
+    errorClass=""
     fileInfos={Array []}
     message="message"
     status="status"
@@ -410,6 +414,8 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
   <PanelBody
     channelId="channel_id"
     displayName="display_name"
+    error=""
+    errorClass=""
     fileInfos={Array []}
     message="message"
     priority={
@@ -675,6 +681,8 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
   <PanelBody
     channelId="channel_id"
     displayName="display_name"
+    error=""
+    errorClass=""
     fileInfos={Array []}
     message="message"
     priority={

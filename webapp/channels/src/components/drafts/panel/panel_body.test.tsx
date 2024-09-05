@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -16,7 +17,7 @@ import type {PostDraft} from 'types/store/draft';
 import PanelBody from './panel_body';
 
 describe('components/drafts/panel/panel_body', () => {
-    const baseProps = {
+    const baseProps: ComponentProps<typeof PanelBody> = {
         channelId: 'channel_id',
         displayName: 'display_name',
         fileInfos: [] as PostDraft['fileInfos'],
@@ -25,6 +26,8 @@ describe('components/drafts/panel/panel_body', () => {
         uploadsInProgress: [] as PostDraft['uploadsInProgress'],
         userId: 'user_id' as UserProfile['id'],
         username: 'username' as UserProfile['username'],
+        error: '',
+        errorClass: '',
     };
 
     const initialState = {
