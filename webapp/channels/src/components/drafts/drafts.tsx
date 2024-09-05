@@ -11,13 +11,10 @@ import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
 
-import NoResultsIndicator from 'components/no_results_indicator';
+import DraftList from 'components/drafts/draft_list';
 import Header from 'components/widgets/header';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
-
-import DraftRow from './draft_row';
-import DraftsIllustration from './drafts_illustration';
 
 import './drafts.scss';
 
@@ -46,7 +43,7 @@ function Drafts({
         return () => {
             dispatch(unsuppressRHS);
         };
-    }, []);
+    }, [dispatch]);
 
     return (
         <div
@@ -65,32 +62,14 @@ function Drafts({
                     defaultMessage: 'Any messages you\'ve started will show here',
                 })}
             />
-            <div className='Drafts__main'>
-                {drafts.map((d) => (
-                    <DraftRow
-                        key={d.key}
-                        displayName={displayName}
-                        draft={d}
-                        isRemote={draftRemotes?.[d.key]}
-                        user={user}
-                        status={status}
-                    />
-                ))}
-                {drafts.length === 0 && (
-                    <NoResultsIndicator
-                        expanded={true}
-                        iconGraphic={DraftsIllustration}
-                        title={formatMessage({
-                            id: 'drafts.empty.title',
-                            defaultMessage: 'No drafts at the moment',
-                        })}
-                        subtitle={formatMessage({
-                            id: 'drafts.empty.subtitle',
-                            defaultMessage: 'Any messages you’ve started will show here.',
-                        })}
-                    />
-                )}
-            </div>
+
+            <DraftList
+                drafts={drafts}
+                user={user}
+                displayName={displayName}
+                draftRemotes={draftRemotes}
+                status={status}
+            />
         </div>
     );
 }
