@@ -656,7 +656,11 @@ export function setEditChannelMembers(active: boolean) {
 
 export function measureRhsOpened() {
     return () => {
-        measureAndReport(Measure.RhsLoad, Mark.PostSelected, undefined, true);
+        measureAndReport({
+            name: Measure.RhsLoad,
+            startMark: Mark.PostSelected,
+            canFail: true,
+        });
 
         performance.clearMarks(Mark.PostSelected);
     };
