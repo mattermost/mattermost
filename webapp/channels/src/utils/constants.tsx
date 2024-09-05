@@ -1391,6 +1391,8 @@ export const DefaultRolePermissions = {
     ],
 };
 
+// ModeratedPermissions are permissions that can be turned off for members and guests
+// on a per channel basis. These permissions are on by default for team/channel admins.
 export const ModeratedPermissions = [
     Permissions.CREATE_POST,
     Permissions.UPLOAD_FILE,
