@@ -1719,10 +1719,9 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
-// AttachDeviceId attaches a mobile device ID to the current session.
-func (c *Client4) AttachDeviceId(ctx context.Context, deviceId string) (*Response, error) {
-	requestBody := map[string]string{"device_id": deviceId}
-	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(requestBody))
+// AttachDeviceProps attaches a mobile device ID to the current session and other props.
+func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
+	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(newProps))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -9116,19 +9115,6 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 		return nil, NewAppError("SubmitClientMetrics", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	res, err := c.DoAPIPostBytes(ctx, c.clientPerfMetricsRoute(), buf)
-	if err != nil {
-		return BuildResponse(res), err
-	}
-
-	return BuildResponse(res), nil
-}
-
-func (c *Client4) SetExtraSessionProps(ctx context.Context, props map[string]string) (*Response, error) {
-	buf, err := json.Marshal(props)
-	if err != nil {
-		return nil, NewAppError("SetExtraSessionProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	res, err := c.DoAPIPutBytes(ctx, c.usersRoute()+"/sessions/device/extra", buf)
 	if err != nil {
 		return BuildResponse(res), err
 	}

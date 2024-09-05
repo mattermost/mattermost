@@ -1752,58 +1752,30 @@
     put:
       tags:
         - users
-      summary: Attach mobile device
+      summary: Attach mobile device and extra props to the session object
       description: >
-        Attach a mobile device id to the currently logged in session. This will
-        enable push notifications for a user, if configured by the server.
+        Attach extra props to the session object of the currently logged in session.
+
+        Adding a mobile device id will enable push notifications for a user,
+        if configured by the server.
+
+        Other props are also available, like whether the device has notifications
+        disabled and the mobile version.
 
         ##### Permissions
 
         Must be authenticated.
-      operationId: AttachDeviceId
+      operationId: AttachDeviceExtraProps
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              required:
-                - device_id
               properties:
                 device_id:
                   description: Mobile device id. For Android prefix the id with `android:`
                     and Apple with `apple:`
                   type: string
-        required: true
-      responses:
-        "200":
-          description: Device id attach successful
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-  /api/v4/users/sessions/device/extra:
-    put:
-      tags:
-        - users
-      summary: Attach extra props to the session object
-      description: >
-        Attach extra props to the session object. The props available are whether
-        the device has notifications disabled and the mobile version.
-
-        ##### Permissions
-
-        Must be authenticated.
-      operationId: SetExtraSessionProps
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
                 deviceNotificationDisabled:
                   description: Whether the mobile device has notifications disabled.
                     Accepted values are "true" or "false".
@@ -1814,7 +1786,7 @@
         required: true
       responses:
         "200":
-          description: Successfully added the prop
+          description: Device id attach successful
           content:
             application/json:
               schema:
