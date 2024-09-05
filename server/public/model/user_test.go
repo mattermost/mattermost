@@ -348,7 +348,7 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, int64(0), user.LastPictureUpdate)
 	require.Equal(t, int64(0), user.LastActivityAt)
 	require.Equal(t, 0, user.FailedAttempts)
-	require.Equal(t, "", user.MfaUsedTimestamps)
+	require.Equal(t, StringArray{}, user.MfaUsedTimestamps)
 
 	// these fields should remain intact
 	require.Equal(t, "user@example.com", user.Email)

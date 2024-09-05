@@ -506,10 +506,6 @@ func (u *User) PreSave() *AppError {
 		u.Password = hashed
 	}
 
-	if u.MfaUsedTimestamps == nil {
-		u.MfaUsedTimestamps = StringArray{}
-	}
-
 	cs := u.GetCustomStatus()
 	if cs != nil {
 		cs.PreSave()
@@ -665,7 +661,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
-	u.MfaUsedTimestamps = StringArray{}
+	u.MfaUsedTimestamps = nil
 	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
@@ -709,7 +705,7 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
 	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
-	u.MfaUsedTimestamps = StringArray{}
+	u.MfaUsedTimestamps = nil
 	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.LastPasswordUpdate = 0
