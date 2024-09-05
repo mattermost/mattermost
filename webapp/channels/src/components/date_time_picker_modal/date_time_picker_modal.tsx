@@ -33,7 +33,20 @@ type Props = {
     relativeDate?: boolean;
 };
 
-export default function DateTimePickerModal({onExited, ariaLabel, header, onConfirm, onCancel, initialTime, confirmButtonText, onChange, cancelButtonText, subheading, bodyPrefix, bodySuffix, relativeDate}: Props) {
+export default function DateTimePickerModal({onExited,
+    ariaLabel,
+    header,
+    onConfirm,
+    onCancel,
+    initialTime,
+    confirmButtonText,
+    onChange,
+    cancelButtonText,
+    subheading,
+    bodyPrefix,
+    bodySuffix,
+    relativeDate,
+}: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
     const initialRoundedTime = getRoundedTime(currentTime);
@@ -58,15 +71,11 @@ export default function DateTimePickerModal({onExited, ariaLabel, header, onConf
 
     const handleChange = useCallback((dateTime: Moment) => {
         setDateTime(dateTime);
-        if (onChange) {
-            onChange(dateTime);
-        }
+        onChange?.(dateTime);
     }, [onChange]);
 
     const handleConfirm = useCallback(() => {
-        if (onConfirm) {
-            onConfirm(dateTime);
-        }
+        onConfirm?.(dateTime);
     }, [dateTime, onConfirm]);
 
     return (

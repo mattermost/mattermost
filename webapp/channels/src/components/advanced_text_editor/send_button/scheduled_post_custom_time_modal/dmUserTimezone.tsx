@@ -10,7 +10,7 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 
-import {getDisplayName, getUserIdFromChannelName} from 'utils/utils';
+import {getDisplayNameByUser, getUserIdFromChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -29,6 +29,7 @@ export function DMUserTimezone({selectedTime}: Props) {
     const currentChannel = useSelector(getCurrentChannel);
     const dmUserId = currentChannel && currentChannel.type === 'D' ? getUserIdFromChannelName(currentChannel) : '';
     const dmUser = useSelector((state: GlobalState) => getUser(state, dmUserId));
+    const dmUserName = useSelector((state: GlobalState) => getDisplayNameByUser(state, dmUser));
 
     const dmUserTime = useMemo(() => {
         if (!dmUser) {
@@ -59,7 +60,7 @@ export function DMUserTimezone({selectedTime}: Props) {
                 defaultMessage='{dmUserTime} for {dmUserName}'
                 values={{
                     dmUserTime,
-                    dmUserName: getDisplayName(dmUser),
+                    dmUserName,
                 }}
             />
         </div>

@@ -30,6 +30,11 @@
                 color: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
+
+        p#genericModalSubheading {
+            font-size: 12px;
+            margin-block: 10px;
+        }
     }
 
     .modal-body {
