@@ -62,9 +62,9 @@ const useSubmit = (
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
     afterSubmit?: (response: SubmitPostReturnType) => void,
-    fromDraft?: boolean,
+    skipCommands?: boolean,
 ): [
-        (e?: React.FormEvent, submittingDraft?: PostDraft) => void,
+        (submittingDraft?: PostDraft) => void,
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
@@ -118,9 +118,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft) => {
-        e?.preventDefault();
-
+    const doSubmit = useCallback(async (submittingDraft = draft) => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -155,7 +153,7 @@ const useSubmit = (
 
         setServerError(null);
 
-        const ignoreSlash = fromDraft || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
+        const ignoreSlash = skipCommands || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
         const options = {ignoreSlash, afterSubmit};
 
         try {
@@ -163,20 +161,18 @@ const useSubmit = (
 
             setPostError(null);
             setServerError(null);
-            if (!fromDraft) {
-                handleDraftChange({
-                    message: '',
-                    fileInfos: [],
-                    uploadsInProgress: [],
-                    createAt: 0,
-                    updateAt: 0,
-                    channelId,
-                    rootId: postId,
-                }, {instant: true});
-            }
+            handleDraftChange({
+                message: '',
+                fileInfos: [],
+                uploadsInProgress: [],
+                createAt: 0,
+                updateAt: 0,
+                channelId,
+                rootId: postId,
+            }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {
-                if (!fromDraft && isErrorInvalidSlashCommand(err)) {
+                if (isErrorInvalidSlashCommand(err)) {
                     handleDraftChange(submittingDraft, {instant: true});
                 }
                 setServerError({
@@ -201,7 +197,7 @@ const useSubmit = (
         lastBlurAt,
         focusTextbox,
         setServerError,
-        fromDraft,
+        skipCommands,
         afterSubmit,
         postId,
         showPostDeletedModal,
@@ -224,7 +220,7 @@ const useSubmit = (
         }));
     }, [doSubmit, dispatch]);
 
-    const handleSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft) => {
+    const handleSubmit = useCallback(async (submittingDraft = draft) => {
         if (!channel) {
             return;
         }
@@ -233,7 +229,6 @@ const useSubmit = (
             return;
         }
 
-        e?.preventDefault();
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
@@ -273,7 +268,7 @@ const useSubmit = (
             return;
         }
 
-        if (!fromDraft) {
+        if (!skipCommands) {
             const status = getStatusFromSlashCommand(submittingDraft.message);
             if (userIsOutOfOffice && status) {
                 const resetStatusModalData = {
@@ -327,7 +322,7 @@ const useSubmit = (
             }
         }
 
-        await doSubmit(e, submittingDraft);
+        await doSubmit(submittingDraft);
     }, [
         doSubmit,
         draft,
@@ -337,7 +332,7 @@ const useSubmit = (
         channelMembersCount,
         dispatch,
         enableConfirmNotificationsToChannel,
-        fromDraft,
+        skipCommands,
         handleDraftChange,
         showNotifyAllModal,
         useChannelMentions,

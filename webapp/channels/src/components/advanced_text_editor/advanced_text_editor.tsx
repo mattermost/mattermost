@@ -272,6 +272,8 @@ const AdvancedTextEditor = ({
         toggleEmojiPicker,
     );
 
+    const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
+
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
     }, []);
@@ -532,7 +534,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleSubmit}
+            onSubmit={noArgumentHandleSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -657,7 +659,7 @@ const AdvancedTextEditor = ({
                     <MessageSubmitError
                         error={serverError}
                         submittedMessage={serverError.submittedMessage}
-                        handleSubmit={handleSubmit}
+                        handleSubmit={noArgumentHandleSubmit}
                     />
                 )}
                 <MsgTyping
