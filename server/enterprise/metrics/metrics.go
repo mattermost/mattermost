@@ -467,7 +467,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForChannel,
 		model.ClusterEventInvalidateCacheForChannelGuestCount,
 		model.ClusterEventInvalidateCacheForUser,
-		model.ClusterEventInvalidateCacheForUserTeams,
+		model.ClusterEventInvalidateWebConnCacheForUser,
 		model.ClusterEventClearSessionCacheForUser,
 		model.ClusterEventInvalidateCacheForRoles,
 		model.ClusterEventInvalidateCacheForRolePermissions,
