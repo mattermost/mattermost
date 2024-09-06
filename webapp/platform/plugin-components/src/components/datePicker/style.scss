@@ -1,0 +1,60 @@
+.rdp_wrapper {
+    position: absolute;
+    z-index: 999;
+    top: 44px;
+    right: 0;
+    width: auto;
+
+    .rdp {
+        padding: 12px;
+        border: 1px solid rgba(63, 67, 80, 0.08);
+        border-radius: 4px;
+        margin: 0;
+        background: white;
+        box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+    }
+}
+
+.DatePicker {
+    position: relative;
+}
+
+.rdp-day {
+    color: var(--center-channel-color);
+    cursor: pointer;
+
+    &_selected {
+        color: var(--button-color) !important;
+
+        &:focus-visible {
+            &:not([disabled]) {
+                background-color: var(--rdp-accent-color);
+            }
+        }
+
+        &:hover {
+            background-color: var(--rdp-accent-color) !important;
+            color: var(--button-color) !important;
+        }
+    }
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:active {
+        background-color: rgba(var(--button-bg-rgb), 0.12);
+        color: var(--button-bg);
+    }
+
+    &.rdp-day_disabled {
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        cursor: default;
+        opacity: unset;
+
+        &:hover {
+            background-color: transparent;
+        }
+    }
+}

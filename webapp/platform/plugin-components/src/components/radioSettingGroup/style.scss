@@ -1,0 +1,55 @@
+.RadioSettingGroup {
+    display: flex;
+
+    &.vertical {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &.horizontal {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .RadioSettingGroup_option_label {
+        justify-content: flex-start;
+        cursor: pointer;
+        font-weight: normal;
+        gap: 8px;
+
+        // TODO: when moving all this to common package, move this styling to a global, generic style file
+        input[type="radio"] {
+            display: grid;
+            width: 1.6rem;
+            height: 1.6rem;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+            border-radius: 50%;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: white;
+            color: rgba(var(--center-channel-color-rgb), 0.24);
+            cursor: pointer;
+            font: inherit;
+            place-content: center;
+
+            &:checked {
+                border-color: var(--denim-button-bg);
+            }
+
+            &:checked::before {
+                transform: scale(1);
+            }
+
+            &::before {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--denim-button-bg);
+                content: "";
+                transform: scale(0);
+                transform-origin: center center;
+                transition: 200ms transform ease-in-out;
+            }
+        }
+    }
+}

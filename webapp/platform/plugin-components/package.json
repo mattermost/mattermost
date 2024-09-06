@@ -1,0 +1,27 @@
+{
+  "name": "@mattermost/plugin-components",
+  "version": "1.0.0",
+  "description": "Package containing commonly used components that match Mattermost's UI, intended to be used in Mattermost plugin",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --mode=production",
+    "debug": "webpack --mode=development",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Harshil Sharma",
+  "dependencies": {
+    "@floating-ui/react": "^0.26.9",
+    "classnames": "^2.5.1",
+    "react": "^18.3.1",
+    "react-select": "^5.8.0",
+    "typescript": "^5.5.4"
+  },
+  "devDependencies": {
+    "@types/react-bootstrap": "^0.32.36",
+    "css-loader": "^7.1.2",
+    "sass-loader": "^16.0.1",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "webpack": "^5.94.0"
+  }
+}
