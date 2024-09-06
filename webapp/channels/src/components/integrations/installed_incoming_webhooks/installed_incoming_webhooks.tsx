@@ -92,7 +92,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = Utils.localizeMessage('installed_incoming_webhooks.unknown_channel', 'A Private Webhook');
+                displayNameA = Utils.localizeMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
 
@@ -178,7 +178,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage('installed_incoming_webhooks.search', 'Search Incoming Webhooks')}
+                searchPlaceholder={Utils.localizeMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search Incoming Webhooks'})}
                 loading={this.state.loading}
                 nextPage={this.nextPage}
                 previousPage={this.previousPage}

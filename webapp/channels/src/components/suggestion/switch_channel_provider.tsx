@@ -220,7 +220,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + Utils.localizeMessage('channel_switch_modal.deactivated', 'Deactivated'));
+            deactivated = (' - ' + Utils.localizeMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {
@@ -228,7 +228,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+                name += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
             }
             description = deactivated;
         }
@@ -546,7 +546,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         if (user.id === currentUserId && displayName) {
-            displayName += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+            displayName += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
         }
 
         return {
