@@ -161,8 +161,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         ) : null;
 
         const channelPurposeContainerAriaLabel = localizeAndFormatMessage(
-            messages.channelPurpose.id,
-            messages.channelPurpose.defaultMessage,
+            messages.channelPurpose,
             {memberCount, channelPurpose: channel.purpose || ''},
         );
 
@@ -357,7 +356,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             listContent = (
                 <div
                     className='no-channel-message'
-                    aria-label={this.state.channelSearchValue.length > 0 ? localizeAndFormatMessage(messages.noMore.id, messages.noMore.defaultMessage, {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')
+                    aria-label={this.state.channelSearchValue.length > 0 ? localizeAndFormatMessage(messages.noMore, {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')
                     }
                 >
                     <MagnifyingGlassSVG/>
@@ -546,7 +545,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         } else if (channels.length === 1) {
             channelCountLabel = localizeMessage('more_channels.count_one', '1 Result');
         } else if (channels.length > 1) {
-            channelCountLabel = localizeAndFormatMessage(messages.channelCount.id, messages.channelCount.defaultMessage, {count: channels.length});
+            channelCountLabel = localizeAndFormatMessage(messages.channelCount, {count: channels.length});
         } else {
             channelCountLabel = localizeMessage('more_channels.count_zero', '0 Results');
         }

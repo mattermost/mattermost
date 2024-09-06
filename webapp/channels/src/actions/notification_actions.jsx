@@ -20,7 +20,6 @@ import {isThreadOpen} from 'selectors/views/threads';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
@@ -225,7 +224,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         if (isCrtReply) {
-            title = Utils.localizeAndFormatMessage(t('notification.crt'), 'Reply in {title}', {title});
+            title = Utils.localizeAndFormatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
         }
 
         let notifyText = post.message;

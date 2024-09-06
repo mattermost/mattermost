@@ -1197,8 +1197,8 @@ export function localizeMessage(id: string, defaultMessage?: string) {
 /**
  * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
  */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
+export function localizeAndFormatMessage(descriptor: {id: string; defaultMessage?: string}, template: { [name: string]: any } | undefined) {
+    const base = localizeMessage(descriptor.id, descriptor.defaultMessage);
 
     if (!template) {
         return base;
