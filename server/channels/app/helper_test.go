@@ -477,6 +477,26 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 	return post
 }
 
+func (th *TestHelper) CreatePostReply(root *model.Post) *model.Post {
+	id := model.NewId()
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: root.ChannelId,
+		RootId:    root.Id,
+		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	ch, err := th.App.GetChannel(th.Context, root.ChannelId)
+	if err != nil {
+		panic(err)
+	}
+	if post, err = th.App.CreatePost(th.Context, post, ch, false, true); err != nil {
+		panic(err)
+	}
+	return post
+}
+
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {

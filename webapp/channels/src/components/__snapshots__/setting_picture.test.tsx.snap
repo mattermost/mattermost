@@ -46,8 +46,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -151,8 +150,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -266,8 +264,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -393,8 +390,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -508,8 +504,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -635,8 +630,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -790,8 +784,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -945,8 +938,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
