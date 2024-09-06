@@ -432,7 +432,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           id="saveCommand"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -1331,7 +1336,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           id="saveCommand"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

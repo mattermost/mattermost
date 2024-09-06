@@ -691,7 +691,7 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage({id: this.props.loading?.id ?? '', defaultMessage: this.props.loading?.defaultMessage as string})}
+                                spinningText={this.props.loading}
                                 onClick={this.handleSubmit}
                                 id='saveCommand'
                             >

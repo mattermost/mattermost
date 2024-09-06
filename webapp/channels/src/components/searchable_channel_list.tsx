@@ -187,7 +187,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             >
                 <LoadingWrapper
                     loading={this.state.joiningChannel === channel.id}
-                    text={localizeMessage({id: 'joinChannel.joiningButton', defaultMessage: 'Joining...'})}
+                    text={messages.joiningButton}
                 >
                     <FormattedMessage
                         id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
@@ -594,6 +594,10 @@ const messages = defineMessages({
     channelPurpose: {
         id: 'more_channels.channel_purpose',
         defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+    },
+    joiningButton: {
+        id: 'joinChannel.joiningButton',
+        defaultMessage: 'Joining...',
     },
     noMore: {
         id: 'more_channels.noMore',

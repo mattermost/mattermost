@@ -15,7 +15,7 @@ import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_ic
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants, A11yCustomEventTypes} from 'utils/constants';
-import {imageURLForUser, getDisplayName, localizeMessage} from 'utils/utils';
+import {imageURLForUser, getDisplayName} from 'utils/utils';
 
 import MultiSelectList from './multiselect_list';
 
@@ -526,7 +526,12 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 }}
                                 className={classNames('btn btn-tertiary', this.props.backButtonClass)}
                             >
-                                {this.props.backButtonText || localizeMessage({id: 'multiselect.backButton', defaultMessage: 'Back'})}
+                                {this.props.backButtonText || (
+                                    <FormattedMessage
+                                        id='multiselect.backButton'
+                                        defaultMessage='Back'
+                                    />
+                                )}
                             </button>
                         }
                         <SaveButton
