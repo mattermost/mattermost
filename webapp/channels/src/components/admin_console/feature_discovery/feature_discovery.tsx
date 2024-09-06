@@ -21,7 +21,6 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -147,10 +146,6 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         // by default we assume is not cloud, so the cta button is Start Trial (which will request a trial license)
         let ctaPrimaryButton = (
             <StartTrialBtn
-                message={Utils.localizeMessage({
-                    id: 'admin.ldap_feature_discovery.call_to_action.primary',
-                    defaultMessage: 'Start trial',
-                })}
                 telemetryId={`start_self_hosted_trial_from_${this.props.featureName}`}
                 btnClass='btn btn-primary'
                 renderAsButton={true}
