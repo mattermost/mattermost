@@ -9,8 +9,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import * as Utils from 'utils/utils';
-
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;
 };
@@ -56,7 +54,7 @@ type Props = {
 type State = {
     secret: string;
     qrCode: string;
-    error?: any | null;
+    error: React.ReactNode;
     serverError?: string;
 }
 
@@ -66,7 +64,11 @@ class Setup extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
         super(props);
 
-        this.state = {secret: '', qrCode: ''};
+        this.state = {
+            error: undefined,
+            secret: '',
+            qrCode: '',
+        };
 
         this.input = React.createRef();
     }
@@ -97,7 +99,14 @@ class Setup extends React.PureComponent<Props, State> {
         e.preventDefault();
         const code = this.input?.current?.value.replace(/\s/g, '');
         if (!code || code.length === 0) {
-            this.setState({error: Utils.localizeMessage({id: 'mfa.setup.codeError', defaultMessage: 'Please enter the code from Google Authenticator.'})});
+            this.setState({
+                error: (
+                    <FormattedMessage
+                        id='mfa.setup.codeError'
+                        defaultMessage='Please enter the code from Google Authenticator.'
+                    />
+                ),
+            });
             return;
         }
 
@@ -107,7 +116,12 @@ class Setup extends React.PureComponent<Props, State> {
             if (error) {
                 if (error.server_error_id === 'ent.mfa.activate.authenticate.app_error') {
                     this.setState({
-                        error: Utils.localizeMessage({id: 'mfa.setup.badCode', defaultMessage: 'Invalid code. If this issue persists, contact your System Administrator.'}),
+                        error: (
+                            <FormattedMessage
+                                id='mfa.setup.badCode'
+                                defaultMessage='Invalid code. If this issue persists, contact your System Administrator.'
+                            />
+                        ),
                     });
                 } else {
                     this.setState({

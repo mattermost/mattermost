@@ -14,7 +14,6 @@ import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect'
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ItemStatus} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -38,8 +37,8 @@ type State = {
     savingEnabled: boolean;
     usersToAdd: UserProfile[];
     mentionUpdatedManually: boolean;
-    mentionInputErrorText: string;
-    nameInputErrorText: string;
+    mentionInputErrorText: React.ReactNode;
+    nameInputErrorText: React.ReactNode;
     showUnknownError: boolean;
     saving: boolean;
 }
@@ -106,7 +105,15 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         const displayName = this.state.name;
 
         if (!displayName || !displayName.trim()) {
-            this.setState({nameInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.nameIsEmpty', defaultMessage: 'Name is a required field.'}), saving: false});
+            this.setState({
+                nameInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.nameIsEmpty'
+                        defaultMessage='Name is a required field.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
@@ -119,18 +126,42 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         }
 
         if (mention.length < 1) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionIsEmpty', defaultMessage: 'Mention is a required field.'}), saving: false});
+            this.setState({
+                mentionInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.mentionIsEmpty'
+                        defaultMessage='Mention is a required field.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
         if (Constants.SPECIAL_MENTIONS.includes(mention.toLowerCase())) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionReservedWord', defaultMessage: 'Mention contains a reserved word.'}), saving: false});
+            this.setState({
+                mentionInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.mentionReservedWord'
+                        defaultMessage='Mention contains a reserved word.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
         const mentionRegEx = new RegExp(/^[a-z0-9.\-_]+$/);
         if (!mentionRegEx.test(mention)) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionInvalidError', defaultMessage: 'Invalid character in mention.'}), saving: false});
+            this.setState({
+                mentionInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.mentionInvalidError'
+                        defaultMessage='Invalid character in mention.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
@@ -148,9 +179,23 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
 
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
-                this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'})});
+                this.setState({
+                    mentionInputErrorText: (
+                        <FormattedMessage
+                            id='user_groups_modal.mentionNotUnique'
+                            defaultMessage='Mention needs to be unique.'
+                        />
+                    ),
+                });
             } else if (data.error?.server_error_id === 'app.group.username_conflict') {
-                this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionUsernameConflict', defaultMessage: 'A username already exists with this name. Mention must be unique.'})});
+                this.setState({
+                    mentionInputErrorText: (
+                        <FormattedMessage
+                            id='user_groups_modal.mentionUsernameConflict'
+                            defaultMessage='A username already exists with this name. Mention must be unique.'
+                        />
+                    ),
+                });
             } else {
                 this.setState({showUnknownError: true});
             }
