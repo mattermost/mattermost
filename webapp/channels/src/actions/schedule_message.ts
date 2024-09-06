@@ -28,3 +28,13 @@ export function createSchedulePost(schedulePost: ScheduledPost): ActionFuncAsync
         }
     };
 }
+
+export default function fetchScheduledPosts(userId: string, channelId: string): ActionFuncAsync<{data?: ScheduledPost[]; error?: string}, GlobalState> {
+    return async (dispatch, getState) => {
+        let scheduledPosts: ScheduledPost[];
+
+        try {
+            scheduledPosts = await Client4.createScheduledPost()
+        }
+    }
+}

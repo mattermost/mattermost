@@ -4323,6 +4323,11 @@ export default class Client4 {
             {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
         );
     };
+
+    // get user's current team's scheduled posts
+    getScheduledPosts = (userID: string, teamId: string) => {
+        return this.doFetchWithResponse()
+    }
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

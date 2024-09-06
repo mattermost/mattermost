@@ -6419,6 +6419,14 @@
     "translation": "Cannot schedule post in an archived channel."
   },
   {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Error occurred fetching scheduled posts."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.get_team_member.error",
+    "translation": "Error occurred fetching team membership."
+  },
+  {
     "id": "app.save_scheduled_post.save.app_error",
     "translation": "Error occurred saving the scheduled post."
   },

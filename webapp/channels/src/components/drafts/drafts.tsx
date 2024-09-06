@@ -19,6 +19,7 @@ import {LhsItemType, LhsPage} from 'types/store/lhs';
 import './drafts.scss';
 import Tabs from "components/tabs/tabs";
 import Tab from "components/tabs/tab";
+import ScheduledPostList from "components/drafts/scheduled_post_list";
 
 type Props = {
     drafts: Draft[];
@@ -92,9 +93,7 @@ function Drafts({
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
-                    <div className='harshil'>
-                        <h1>{'Harshil'}</h1>
-                    </div>
+                    <ScheduledPostList/>
                 </Tab>
             </Tabs>
         </div>
