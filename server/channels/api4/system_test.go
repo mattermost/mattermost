@@ -922,12 +922,12 @@ func TestPushNotificationAck(t *testing.T) {
 			defer func() {
 				session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
 				th.Server.Store().Session().UpdateProps(session)
-				th.Server.Platform().AddSessionToCache(session)
+				th.App.ClearSessionCacheForUser(session.UserId)
 			}()
 
 			session.AddProp(model.SessionPropDeviceNotificationDisabled, tc.propValue)
 			err := th.Server.Store().Session().UpdateProps(session)
-			th.Server.Platform().AddSessionToCache(session)
+			th.App.ClearSessionCacheForUser(session.UserId)
 			assert.NoError(t, err)
 
 			handler := api.APIHandler(pushNotificationAck)

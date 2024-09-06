@@ -682,6 +682,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.App.SetExtraSessionProps(session, map[string]string{
 				model.SessionPropDeviceNotificationDisabled: "false",
 			})
+			c.App.ClearSessionCacheForUser(session.UserId)
 		}
 		if !ignoreNotificationACK {
 			c.App.CountNotificationAck(model.NotificationTypePush, ack.ClientPlatform)

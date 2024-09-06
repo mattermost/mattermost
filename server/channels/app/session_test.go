@@ -457,7 +457,7 @@ func TestSetExtraSessionProps(t *testing.T) {
 	resetSession := func(session *model.Session) {
 		session.AddProp("testProp", "")
 		th.Server.Store().Session().UpdateProps(session)
-		th.Server.Platform().AddSessionToCache(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
 	}
 	t.Run("do not update the session if there are no props", func(t *testing.T) {
 		defer resetSession(session)
@@ -479,7 +479,7 @@ func TestSetExtraSessionProps(t *testing.T) {
 		defer resetSession(session)
 		session.AddProp("testProp", "true")
 		th.Server.Store().Session().UpdateProps(session)
-		th.Server.Platform().AddSessionToCache(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
 
 		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
 		updatedSession, _ := th.App.GetSession(session.Token)
