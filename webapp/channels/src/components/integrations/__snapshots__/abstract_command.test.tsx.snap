@@ -106,12 +106,17 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+            placeholder={
+              Object {
+                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
+                "id": "add_command.trigger.placeholder",
+              }
+            }
             type="text"
             value="trigger"
           />
@@ -171,7 +176,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         >
           <OAuthConnectionAudienceInput
             onChange={[Function]}
-            placeholder="Must start with http:// or https://"
+            placeholder={
+              Object {
+                "defaultMessage": "Must start with http:// or https://",
+                "id": "add_command.url.placeholder",
+              }
+            }
             value="https://google.com/command"
           />
           <div
@@ -254,12 +264,17 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder="Username"
+            placeholder={
+              Object {
+                "defaultMessage": "Username",
+                "id": "add_command.username.placeholder",
+              }
+            }
             type="text"
             value="username"
           />
@@ -288,12 +303,17 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder="https://www.example.com/myicon.png"
+            placeholder={
+              Object {
+                "defaultMessage": "https://www.example.com/myicon.png",
+                "id": "add_command.iconUrl.placeholder",
+              }
+            }
             type="text"
             value="https://google.com/icon"
           />
@@ -353,12 +373,17 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder="Example: [Patient Name]"
+            placeholder={
+              Object {
+                "defaultMessage": "Example: [Patient Name]",
+                "id": "add_command.autocompleteHint.placeholder",
+              }
+            }
             type="text"
             value="auto_complete_hint"
           />
@@ -387,12 +412,17 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder="Example: \\"Returns search results for patient records\\""
+            placeholder={
+              Object {
+                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
+                "id": "add_command.autocompleteDescription.placeholder",
+              }
+            }
             type="text"
             value="auto_complete_desc"
           />
@@ -559,12 +589,17 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+            placeholder={
+              Object {
+                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
+                "id": "add_command.trigger.placeholder",
+              }
+            }
             type="text"
             value="trigger"
           />
@@ -624,7 +659,12 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         >
           <OAuthConnectionAudienceInput
             onChange={[Function]}
-            placeholder="Must start with http:// or https://"
+            placeholder={
+              Object {
+                "defaultMessage": "Must start with http:// or https://",
+                "id": "add_command.url.placeholder",
+              }
+            }
             value="https://google.com/command"
           />
           <div
@@ -707,12 +747,17 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder="Username"
+            placeholder={
+              Object {
+                "defaultMessage": "Username",
+                "id": "add_command.username.placeholder",
+              }
+            }
             type="text"
             value="username"
           />
@@ -741,12 +786,17 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder="https://www.example.com/myicon.png"
+            placeholder={
+              Object {
+                "defaultMessage": "https://www.example.com/myicon.png",
+                "id": "add_command.iconUrl.placeholder",
+              }
+            }
             type="text"
             value="https://google.com/icon"
           />
@@ -806,12 +856,17 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder="Example: [Patient Name]"
+            placeholder={
+              Object {
+                "defaultMessage": "Example: [Patient Name]",
+                "id": "add_command.autocompleteHint.placeholder",
+              }
+            }
             type="text"
             value="auto_complete_hint"
           />
@@ -840,12 +895,17 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder="Example: \\"Returns search results for patient records\\""
+            placeholder={
+              Object {
+                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
+                "id": "add_command.autocompleteDescription.placeholder",
+              }
+            }
             type="text"
             value="auto_complete_desc"
           />
@@ -1007,12 +1067,17 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+            placeholder={
+              Object {
+                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
+                "id": "add_command.trigger.placeholder",
+              }
+            }
             type="text"
             value=""
           />
@@ -1072,7 +1137,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         >
           <OAuthConnectionAudienceInput
             onChange={[Function]}
-            placeholder="Must start with http:// or https://"
+            placeholder={
+              Object {
+                "defaultMessage": "Must start with http:// or https://",
+                "id": "add_command.url.placeholder",
+              }
+            }
             value="https://google.com/command"
           />
           <div
@@ -1155,12 +1225,17 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder="Username"
+            placeholder={
+              Object {
+                "defaultMessage": "Username",
+                "id": "add_command.username.placeholder",
+              }
+            }
             type="text"
             value="username"
           />
@@ -1189,12 +1264,17 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder="https://www.example.com/myicon.png"
+            placeholder={
+              Object {
+                "defaultMessage": "https://www.example.com/myicon.png",
+                "id": "add_command.iconUrl.placeholder",
+              }
+            }
             type="text"
             value="https://google.com/icon"
           />
@@ -1254,12 +1334,17 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder="Example: [Patient Name]"
+            placeholder={
+              Object {
+                "defaultMessage": "Example: [Patient Name]",
+                "id": "add_command.autocompleteHint.placeholder",
+              }
+            }
             type="text"
             value="auto_complete_hint"
           />
@@ -1288,12 +1373,17 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
+          <LocalizedPlaceholderInput
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder="Example: \\"Returns search results for patient records\\""
+            placeholder={
+              Object {
+                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
+                "id": "add_command.autocompleteDescription.placeholder",
+              }
+            }
             type="text"
             value="auto_complete_desc"
           />
