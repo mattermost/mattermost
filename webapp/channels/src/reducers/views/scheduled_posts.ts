@@ -3,9 +3,10 @@
 
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
-import {ActionTypes} from 'utils/constants';
 
 import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
+
+import {ActionTypes} from 'utils/constants';
 
 function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
     switch (action.type) {

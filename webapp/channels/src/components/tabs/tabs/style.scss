@@ -1,13 +1,13 @@
 .tabs {
-    margin: 0;
     display: flex;
     width: 100%;
     flex-direction: column;
+    margin: 0;
 
     .nav-tabs {
-        padding-inline: 12px;
-        margin: 0;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: 0;
+        padding-inline: 12px;
 
         li {
             margin-right: 0;

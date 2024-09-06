@@ -12,14 +12,14 @@ import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list';
+import ScheduledPostList from 'components/drafts/scheduled_post_list';
+import Tab from 'components/tabs/tab';
+import Tabs from 'components/tabs/tabs';
 import Header from 'components/widgets/header';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
-import Tabs from "components/tabs/tabs";
-import Tab from "components/tabs/tab";
-import ScheduledPostList from "components/drafts/scheduled_post_list";
 
 type Props = {
     drafts: Draft[];

@@ -3,15 +3,16 @@
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
+import {logError} from 'mattermost-redux/actions/errors';
+import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {getConnectionId} from 'selectors/general';
 
+import {ActionTypes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
-import {ActionTypes} from "utils/constants";
-import {forceLogoutIfNecessary} from "mattermost-redux/actions/helpers";
-import {logError} from "mattermost-redux/actions/errors";
 
 export function createSchedulePost(schedulePost: ScheduledPost): ActionFuncAsync<{data?: ScheduledPost; error?: string}, GlobalState> {
     return async (dispatch, getState) => {

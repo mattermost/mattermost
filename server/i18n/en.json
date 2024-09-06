@@ -5091,6 +5091,14 @@
     "translation": "Unable to set the searchable content of the file."
   },
   {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Error occurred fetching scheduled posts."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.team_permission_error",
+    "translation": "you don't have permission for the team"
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
   },
@@ -6417,14 +6425,6 @@
   {
     "id": "app.save_scheduled_post.channel_deleted.app_error",
     "translation": "Cannot schedule post in an archived channel."
-  },
-  {
-    "id": "app.get_user_team_scheduled_posts.error",
-    "translation": "Error occurred fetching scheduled posts."
-  },
-  {
-    "id": "app.get_user_team_scheduled_posts.get_team_member.error",
-    "translation": "Error occurred fetching team membership."
   },
   {
     "id": "app.save_scheduled_post.save.app_error",
