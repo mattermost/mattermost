@@ -17,6 +17,7 @@ import Header from 'components/widgets/header';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
+import {Tab, Tabs} from "react-bootstrap";
 
 type Props = {
     drafts: Draft[];
@@ -63,13 +64,39 @@ function Drafts({
                 })}
             />
 
-            <DraftList
-                drafts={drafts}
-                user={user}
-                displayName={displayName}
-                draftRemotes={draftRemotes}
-                status={status}
-            />
+            <Tabs
+                id='draft_tabs'
+                defaultActiveKey={0}
+                // justified={true}
+                mountOnEnter={true}
+                unmountOnExit={false}
+            >
+                <Tab
+                    eventKey={0}
+                    title='Drafts'
+                    unmountOnExit={false}
+                    tabClassName='drafts_tab'
+                >
+                    <DraftList
+                        drafts={drafts}
+                        user={user}
+                        displayName={displayName}
+                        draftRemotes={draftRemotes}
+                        status={status}
+                    />
+                </Tab>
+
+                <Tab
+                    eventKey={1}
+                    title='Scheduled'
+                    unmountOnExit={false}
+                    tabClassName='drafts_tab'
+                >
+                    <div className='harshil'>
+                        <h1>{'Harshil'}</h1>
+                    </div>
+                </Tab>
+            </Tabs>
         </div>
     );
 }

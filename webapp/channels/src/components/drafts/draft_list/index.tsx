@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import type {UserProfile, UserStatus} from '@mattermost/types/lib/users';
-import type {Draft} from '@mattermost/types/src/drafts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import type {Draft} from 'selectors/drafts';
 
 import DraftRow from 'components/drafts/draft_row';
 import DraftsIllustration from 'components/drafts/drafts_illustration';
@@ -17,13 +19,14 @@ type Props = {
     displayName: string;
     draftRemotes: Record<string, boolean>;
     status: UserStatus['status'];
+    className?: string;
 }
 
-export default function DraftList({drafts, user, displayName, draftRemotes}: Props) {
+export default function DraftList({drafts, user, displayName, draftRemotes, className}: Props) {
     const {formatMessage} = useIntl();
 
     return (
-        <div className='Drafts__main'>
+        <div className={classNames('DraftList Drafts__main', className)}>
             {drafts.map((d) => (
                 <DraftRow
                     key={d.key}
