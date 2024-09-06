@@ -13,7 +13,6 @@ import './data_grid.scss';
 
 type Props = {
     onSearch: (term: string) => void;
-    placeholder?: string;
     term: string;
     extraComponent?: JSX.Element;
 
@@ -30,7 +29,6 @@ type State = {
 
 class DataGridSearch extends React.PureComponent<Props, State> {
     static defaultProps = {
-        placeholder: '',
         term: '',
     };
 
@@ -58,11 +56,6 @@ class DataGridSearch extends React.PureComponent<Props, State> {
 
     render() {
         const {filterProps} = this.props;
-
-        let {placeholder} = this.props;
-        if (!placeholder) {
-            placeholder = Utils.localizeMessage({id: 'search_bar.search', defaultMessage: 'Search'});
-        }
 
         let filter;
         if (filterProps) {
