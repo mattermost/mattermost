@@ -231,6 +231,7 @@ func AppErrorInit(t i18n.TranslateFunc) {
 	})
 }
 
+//msgp:ignore AppError
 type AppError struct {
 	Id              string `json:"id"`
 	Message         string `json:"message"`               // Message to be display to the end user without debugging information
