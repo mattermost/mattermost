@@ -6,15 +6,15 @@ import {combineReducers} from 'redux';
 import {ActionTypes} from 'utils/constants';
 
 import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
-import {groupBy} from "utils/utils";
 
 function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SCHEDULED_POSTS_RECEIVED: {
-        const scheduledPosts = action.data;
-
-        const scheduledPostsByTeamId = groupBy(scheduledPosts, 'teamId');
-
+        const {scheduledPosts, teamId} = action.data;
+        return {
+            ...state,
+            [teamId]: scheduledPosts,
+        };
     }
     default:
         return state;

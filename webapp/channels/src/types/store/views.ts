@@ -4,6 +4,7 @@
 import type {Channel} from '@mattermost/types/channels';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
+import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -222,4 +223,6 @@ export type ViewsState = {
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
     };
+
+    scheduledPosts: ScheduledPostsState;
 };

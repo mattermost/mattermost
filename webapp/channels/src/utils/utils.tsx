@@ -1661,14 +1661,3 @@ export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Grou
 export function doesCookieContainsMMUserId() {
     return document.cookie.includes('MMUSERID=');
 }
-
-export function groupBy<T extends Record<string, any>>(arr: T[], key: keyof T): Record<string, T[]> {
-    return arr.reduce((result: Record<string, T[]>, currentValue: T) => {
-        const groupKey = String(currentValue[key]); // Convert the key to string for object keys
-        if (!result[groupKey]) {
-            result[groupKey] = [];
-        }
-        result[groupKey].push(currentValue);
-        return result;
-    }, {});
-}

@@ -40,7 +40,10 @@ export default function fetchTeamScheduledPosts(teamId: string): ActionFuncAsync
             scheduledPosts = await Client4.getScheduledPosts(teamId);
             dispatch({
                 type: ActionTypes.SCHEDULED_POSTS_RECEIVED,
-                data: scheduledPosts.data,
+                data: {
+                    scheduledPosts: scheduledPosts.data,
+                    teamId,
+                },
             });
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);

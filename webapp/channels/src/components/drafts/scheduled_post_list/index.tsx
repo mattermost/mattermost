@@ -7,15 +7,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import fetchTeamScheduledPosts from 'actions/schedule_message';
+import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
 
-type Props = {
+import type {GlobalState} from 'types/store';
 
-}
-
-export default function ScheduledPostList({}: Props) {
+export default function ScheduledPostList() {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
-    // const scheduledPosts = useSelector()
+    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId));
 
     useEffect(() => {
         dispatch(fetchTeamScheduledPosts(currentTeamId));
@@ -23,7 +22,7 @@ export default function ScheduledPostList({}: Props) {
 
     return (
         <div className='harshil'>
-            <h1>{'Harshil'}</h1>
+            <h1>{`Scheduled Posts Count: ${scheduledPosts?.length}`}</h1>
         </div>
     );
 }
