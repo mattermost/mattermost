@@ -26,6 +26,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
         "url": "/team/channel/channelId",
       }
     }
+    missingChannelRole={false}
     teamUrl="/team"
     viewArchivedChannels={false}
   />
@@ -84,6 +85,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
         "url": "/team/channel/channelId",
       }
     }
+    missingChannelRole={false}
     teamUrl="/team"
     viewArchivedChannels={false}
   />
@@ -141,6 +143,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
         "url": "/team/channel/channelId",
       }
     }
+    missingChannelRole={false}
     teamUrl="/team"
     viewArchivedChannels={false}
   />
