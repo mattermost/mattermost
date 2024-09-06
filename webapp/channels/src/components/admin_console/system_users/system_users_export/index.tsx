@@ -34,6 +34,7 @@ interface Props {
     usersLenght: number;
     isDisabled?: boolean;
     usersLenght: number;
+    isDisabled?: boolean;
 }
 
 export function SystemUsersExport(props: Props) {
@@ -102,7 +103,6 @@ export function SystemUsersExport(props: Props) {
             disabled={props.isDisabled || !props.usersLenght}
             onClick={handleExport}
             className='btn btn-md btn-tertiary'
-            disabled={!props.usersLenght}
         >
             <span className='icon icon-download-outline'/>
             <FormattedMessage
