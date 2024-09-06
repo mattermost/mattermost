@@ -79,6 +79,7 @@ describe('identifyElementRegion', () => {
                             [channel.id]: TestHelper.getChannelMembershipMock({
                                 channel_id: channel.id,
                                 user_id: user.id,
+                                roles: 'system_admin',
                             }),
                         },
                     },
@@ -131,7 +132,9 @@ describe('identifyElementRegion', () => {
             },
         );
 
-        expect(identifyElementRegion(screen.getAllByText(channel.display_name)[0])).toEqual('channel_sidebar');
+        await waitFor(() => {
+            expect(identifyElementRegion(screen.getAllByText(channel.display_name)[0])).toEqual('channel_sidebar');
+        });
 
         expect(identifyElementRegion(screen.getAllByText(channel.display_name)[1])).toEqual('channel_header');
         expect(identifyElementRegion(screen.getAllByText(channel.header)[0])).toEqual('channel_header');
