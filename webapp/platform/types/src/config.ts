@@ -793,6 +793,7 @@ export type ExperimentalSettings = {
 export type AnalyticsSettings = {
     MaxUsersForStatistics: number;
 };
+
 export type CacheSettings = {
     CacheType: string;
     RedisAddress: string;
@@ -963,6 +964,7 @@ export type AdminConfig = {
     MetricsSettings: MetricsSettings;
     ExperimentalSettings: ExperimentalSettings;
     AnalyticsSettings: AnalyticsSettings;
+    CacheSettings: CacheSettings;
     ElasticsearchSettings: ElasticsearchSettings;
     BleveSettings: BleveSettings;
     DataRetentionSettings: DataRetentionSettings;
