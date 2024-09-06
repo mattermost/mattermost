@@ -324,6 +324,8 @@ export const ActionTypes = keyMirror({
 
     SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
     CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
+
+    SCHEDULED_POSTS_RECEIVED: null,
 });
 
 export const PostRequestTypes = keyMirror({

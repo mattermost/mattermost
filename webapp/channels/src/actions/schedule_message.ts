@@ -9,6 +9,9 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getConnectionId} from 'selectors/general';
 
 import type {GlobalState} from 'types/store';
+import {ActionTypes} from "utils/constants";
+import {forceLogoutIfNecessary} from "mattermost-redux/actions/helpers";
+import {logError} from "mattermost-redux/actions/errors";
 
 export function createSchedulePost(schedulePost: ScheduledPost): ActionFuncAsync<{data?: ScheduledPost; error?: string}, GlobalState> {
     return async (dispatch, getState) => {
@@ -29,12 +32,22 @@ export function createSchedulePost(schedulePost: ScheduledPost): ActionFuncAsync
     };
 }
 
-export default function fetchScheduledPosts(userId: string, channelId: string): ActionFuncAsync<{data?: ScheduledPost[]; error?: string}, GlobalState> {
+export default function fetchTeamScheduledPosts(teamId: string): ActionFuncAsync<{data?: ScheduledPost[]; error?: string}, GlobalState> {
     return async (dispatch, getState) => {
-        let scheduledPosts: ScheduledPost[];
+        let scheduledPosts;
 
         try {
-            scheduledPosts = await Client4.createScheduledPost()
+            scheduledPosts = await Client4.getScheduledPosts(teamId);
+            dispatch({
+                type: ActionTypes.SCHEDULED_POSTS_RECEIVED,
+                data: scheduledPosts.data,
+            });
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
         }
-    }
+
+        return {data: scheduledPosts};
+    };
 }

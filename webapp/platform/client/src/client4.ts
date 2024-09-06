@@ -4325,9 +4325,12 @@ export default class Client4 {
     };
 
     // get user's current team's scheduled posts
-    getScheduledPosts = (userID: string, teamId: string) => {
-        return this.doFetchWithResponse()
-    }
+    getScheduledPosts = (teamId: string) => {
+        return this.doFetchWithResponse<ScheduledPost[]>(
+            `${this.getPostsRoute()}/scheduled/team/${teamId}`,
+            {method: 'get'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

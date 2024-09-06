@@ -23,6 +23,7 @@ import posts from './posts';
 import productMenu from './product_menu';
 import rhs from './rhs';
 import rhsSuppressed from './rhs_suppressed';
+import scheduledPosts from './scheduled_posts';
 import search from './search';
 import settings from './settings';
 import statusDropdown from './status_dropdown';
@@ -57,4 +58,5 @@ export default combineReducers({
     threads,
     productMenu,
     drafts,
+    scheduledPosts,
 });

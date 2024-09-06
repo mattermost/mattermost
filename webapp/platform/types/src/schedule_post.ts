@@ -12,3 +12,7 @@ export type SchedulingInfo = {
 export type ScheduledPost = Omit<Draft, 'delete_at'> & SchedulingInfo & {
     id: string;
 }
+
+export type ScheduledPostsState = {
+    byTeamId: {[teamId: string]: ScheduledPost[]};
+}
