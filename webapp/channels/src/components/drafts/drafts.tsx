@@ -17,7 +17,8 @@ import Header from 'components/widgets/header';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
-import {Tab, Tabs} from "react-bootstrap";
+import Tabs from "components/tabs/tabs";
+import Tab from "components/tabs/tab";
 
 type Props = {
     drafts: Draft[];
@@ -67,7 +68,6 @@ function Drafts({
             <Tabs
                 id='draft_tabs'
                 defaultActiveKey={0}
-                // justified={true}
                 mountOnEnter={true}
                 unmountOnExit={false}
             >
