@@ -207,7 +207,6 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 iconToDisplay = (
                     <SharedChannelIndicator
                         className='channel-icon'
-                        channelType={channel.type}
                     />
                 );
             }

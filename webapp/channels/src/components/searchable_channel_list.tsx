@@ -133,7 +133,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             channelTypeIcon = (
                 <SharedChannelIndicator
                     className='shared-channel-icon'
-                    channelType={channel.type}
                     withTooltip={true}
                 />
             );
