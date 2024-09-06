@@ -60,7 +60,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               }
               name="policyName"
               onChange={[Function]}
-              placeholder="Policy name"
+              placeholder={
+                Object {
+                  "defaultMessage": "Policy name",
+                  "id": "admin.data_retention.custom_policy.form.input",
+                }
+              }
               type="text"
               value=""
             />
@@ -312,7 +317,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               }
               name="policyName"
               onChange={[Function]}
-              placeholder="Policy name"
+              placeholder={
+                Object {
+                  "defaultMessage": "Policy name",
+                  "id": "admin.data_retention.custom_policy.form.input",
+                }
+              }
               type="text"
               value=""
             />

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
+import {FormattedMessage, type IntlShape, defineMessage, injectIntl} from 'react-intl';
 
 import type {GroupCreateWithUserIds} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -217,7 +217,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <div className='group-name-input-wrapper'>
                             <Input
                                 type='text'
-                                placeholder={Utils.localizeMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
+                                placeholder={defineMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                                 onChange={this.updateNameState}
                                 value={this.state.name}
                                 data-testid='nameInput'
@@ -229,7 +229,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <div className='group-mention-input-wrapper'>
                             <Input
                                 type='text'
-                                placeholder={Utils.localizeMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
+                                placeholder={defineMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                                 onChange={this.updateMentionState}
                                 value={this.state.mention}
                                 maxLength={64}

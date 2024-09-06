@@ -6,7 +6,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import {isMessageDescriptor} from 'utils/i18n';
+import {formatAsComponent} from 'utils/i18n';
 
 type Props = {
     text?: React.ReactNode | MessageDescriptor;
@@ -14,13 +14,6 @@ type Props = {
 }
 const LoadingSpinner = ({text, style}: Props) => {
     const {formatMessage} = useIntl();
-
-    let renderedText;
-    if (isMessageDescriptor(text)) {
-        renderedText = formatMessage(text);
-    } else {
-        renderedText = text;
-    }
 
     return (
         <span
@@ -33,7 +26,7 @@ const LoadingSpinner = ({text, style}: Props) => {
                 className='fa fa-spinner fa-fw fa-pulse spinner'
                 title={formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
             />
-            {renderedText}
+            {formatAsComponent(text)}
         </span>
     );
 };

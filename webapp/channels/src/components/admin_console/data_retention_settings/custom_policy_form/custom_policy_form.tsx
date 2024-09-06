@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import type {
@@ -359,7 +359,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                                             this.setState({policyName: e.target.value, saveNeeded: true});
                                             this.props.actions.setNavigationBlocked(true);
                                         }}
-                                        placeholder={Utils.localizeMessage({id: 'admin.data_retention.custom_policy.form.input', defaultMessage: 'Policy name'})}
+                                        placeholder={messages.policyName}
                                         customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
                                     />
                                     <DropdownInputHybrid
@@ -535,3 +535,10 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         );
     };
 }
+
+const messages = defineMessages({
+    policyName: {
+        id: 'admin.data_retention.custom_policy.form.input',
+        defaultMessage: 'Policy name',
+    },
+});
