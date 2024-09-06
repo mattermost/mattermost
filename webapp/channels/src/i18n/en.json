@@ -3037,6 +3037,8 @@
   "center_panel.archived.closeChannel": "Close Channel",
   "center_panel.direct.closeDirectMessage": "Close Direct Message",
   "center_panel.direct.closeGroupMessage": "Close Group Message",
+  "center_panel.input.cannot_load_component": "Something went wrong while loading the component. Please wait a moment, or try reloading the app.",
+  "center_panel.reloadPage": "Reload",
   "change_url.endWithLetter": "URLs must end with a lowercase letter or number.",
   "change_url.helpText": "You can use lowercase letters, numbers, dashes, and underscores.",
   "change_url.invalidDirectMessage": "User IDs are not allowed in channel URLs.",
