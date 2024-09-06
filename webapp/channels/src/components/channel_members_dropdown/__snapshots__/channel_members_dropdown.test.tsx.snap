@@ -99,9 +99,6 @@ exports[`components/channel_members_dropdown should match snapshot for dropdown 
         defaultMessage="Shared Member"
         id="channel_members_dropdown.shared_member"
       />
-      <i
-        className="shared-user-icon icon-circle-multiple-outline"
-      />
     </span>
   </WithTooltip>
 </div>

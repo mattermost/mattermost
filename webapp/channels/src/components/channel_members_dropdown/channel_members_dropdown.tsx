@@ -154,28 +154,7 @@ export default function ChannelMembersDropdown({
     const currentRole = renderRole(isChannelAdmin, isGuest);
 
     if (user.remote_id) {
-        return (
-            <div className='more-modal__shared-actions'>
-                <WithTooltip
-                    id='sharedTooltip'
-                    placement='bottom'
-                    title={
-                        <FormattedMessage
-                            id='shared_user_indicator.tooltip'
-                            defaultMessage='From trusted organizations'
-                        />
-                    }
-                >
-                    <span>
-                        <FormattedMessage
-                            id='channel_members_dropdown.shared_member'
-                            defaultMessage='Shared Member'
-                        />
-                        <i className='shared-user-icon icon-circle-multiple-outline'/>
-                    </span>
-                </WithTooltip>
-            </div>
-        );
+        return (<></>);
     }
 
     const canMakeUserChannelMember = canChangeMemberRoles && isChannelAdmin;
