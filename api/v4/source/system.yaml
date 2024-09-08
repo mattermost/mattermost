@@ -1125,6 +1125,25 @@
         ##### License
         Requires either a E10 or E20 license.
       operationId: GenerateSupportPacket
+      parameters:
+        - name: basic_server_logs
+          in: query
+          description: |
+            Specifies whether the server should include or exclude log files. Default value is true.
+
+            __Minimum server version__: 9.8.0
+          required: false
+          schema:
+            type: boolean
+        - name: plugin_packets
+          in: query
+          description: |
+            Specifies plugin identifiers whose content should be included in the Support Packet.
+
+            __Minimum server version__: 9.8.0
+          required: false
+          schema:
+            type: string
       responses:
         "400":
           $ref: "#/components/responses/BadRequest"

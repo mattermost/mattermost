@@ -50,6 +50,11 @@ type webConnCheckMessage struct {
 	result       chan *CheckConnResult
 }
 
+type webConnCountMessage struct {
+	userID string
+	result chan int
+}
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -70,6 +75,7 @@ type Hub struct {
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
+	connCount       chan *webConnCountMessage
 	broadcastHooks  map[string]BroadcastHook
 }
 
@@ -87,6 +93,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
+		connCount:       make(chan *webConnCountMessage),
 	}
 }
 
@@ -189,11 +196,15 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
+	ps.InvalidateChannelCacheForUser(userID)
+	ps.Store.User().InvalidateProfileCacheForUser(userID)
+}
+
+func (ps *PlatformService) InvalidateChannelCacheForUser(userID string) {
 	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.ClearUserSessionCache(userID)
 
 	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
-	ps.Store.User().InvalidateProfileCacheForUser(userID)
 }
 
 func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
@@ -234,6 +245,16 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string) *CheckConnR
 		return hub.CheckConn(userID, connectionID)
 	}
 	return nil
+}
+
+// WebConnCountForUser returns the number of active websocket connections
+// for a given userID.
+func (ps *PlatformService) WebConnCountForUser(userID string) int {
+	hub := ps.GetHubForUserId(userID)
+	if hub != nil {
+		return hub.WebConnCountForUser(userID)
+	}
+	return 0
 }
 
 // Register registers a connection to the hub.
@@ -279,6 +300,19 @@ func (h *Hub) CheckConn(userID, connectionID string) *CheckConnResult {
 	case <-h.stop:
 	}
 	return nil
+}
+
+func (h *Hub) WebConnCountForUser(userID string) int {
+	req := &webConnCountMessage{
+		userID: userID,
+		result: make(chan int),
+	}
+	select {
+	case h.connCount <- req:
+		return <-req.result
+	case <-h.stop:
+	}
+	return 0
 }
 
 // Broadcast broadcasts the message to all connections in the hub.
@@ -359,7 +393,7 @@ func (h *Hub) Start() {
 				conns := connIndex.ForUser(webSessionMessage.userID)
 				var isRegistered bool
 				for _, conn := range conns {
-					if !conn.active.Load() {
+					if !conn.Active.Load() {
 						continue
 					}
 					if conn.GetSessionToken() == webSessionMessage.sessionToken {
@@ -381,13 +415,15 @@ func (h *Hub) Start() {
 					}
 				}
 				req.result <- res
+			case req := <-h.connCount:
+				req.result <- connIndex.ForUserActiveCount(req.userID)
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConn := <-h.register:
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
-				webConn.active.Store(true)
+				webConn.Active.Store(true)
 
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
@@ -402,7 +438,7 @@ func (h *Hub) Start() {
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
-				webConn.active.Store(false)
+				webConn.Active.Store(false)
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
@@ -414,13 +450,32 @@ func (h *Hub) Start() {
 				if len(conns) == 0 || areAllInactive(conns) {
 					userID := webConn.UserId
 					h.platform.Go(func() {
-						h.platform.SetStatusOffline(userID, false)
+						// If this is an HA setup, get count for this user
+						// from other nodes.
+						var clusterCnt int
+						var appErr *model.AppError
+						if h.platform.Cluster() != nil {
+							clusterCnt, appErr = h.platform.Cluster().WebConnCountForUser(userID)
+						}
+						if appErr != nil {
+							mlog.Error("Error in trying to get the webconn count from cluster", mlog.Err(appErr))
+							// We take a conservative approach
+							// and do not set status to offline in case
+							// there's an error, rather than potentially
+							// incorrectly setting status to offline.
+							return
+						}
+						// Only set to offline if there are no
+						// active connections in other nodes as well.
+						if clusterCnt == 0 {
+							h.platform.SetStatusOffline(userID, false)
+						}
 					})
 					continue
 				}
 				var latestActivity int64
 				for _, conn := range conns {
-					if !conn.active.Load() {
+					if !conn.Active.Load() {
 						continue
 					}
 					if conn.lastUserActivityAt > latestActivity {
@@ -440,7 +495,7 @@ func (h *Hub) Start() {
 				}
 			case activity := <-h.activity:
 				for _, webConn := range connIndex.ForUser(activity.userID) {
-					if !webConn.active.Load() {
+					if !webConn.Active.Load() {
 						continue
 					}
 					if webConn.GetSessionToken() == activity.sessionToken {
@@ -455,7 +510,7 @@ func (h *Hub) Start() {
 				case directMsg.conn.send <- directMsg.msg:
 				default:
 					// Don't log the warning if it's an inactive connection.
-					if directMsg.conn.active.Load() {
+					if directMsg.conn.Active.Load() {
 						mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
 							mlog.String("user_id", directMsg.conn.UserId),
 							mlog.String("conn_id", directMsg.conn.GetConnectionID()))
@@ -482,7 +537,7 @@ func (h *Hub) Start() {
 						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
 						default:
 							// Don't log the warning if it's an inactive connection.
-							if webConn.active.Load() {
+							if webConn.Active.Load() {
 								mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
 									mlog.String("user_id", webConn.UserId),
 									mlog.String("conn_id", webConn.GetConnectionID()))
@@ -544,6 +599,17 @@ func (h *Hub) Start() {
 	}
 
 	go doRecoverableStart()
+}
+
+// areAllInactive returns whether all of the connections
+// are inactive or not.
+func areAllInactive(conns []*WebConn) bool {
+	for _, conn := range conns {
+		if conn.Active.Load() {
+			return false
+		}
+	}
+	return true
 }
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
@@ -623,6 +689,17 @@ func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 	return conns
 }
 
+// ForUserActiveCount returns the number of active connections for a userID
+func (i *hubConnectionIndex) ForUserActiveCount(id string) int {
+	cnt := 0
+	for _, conn := range i.ForUser(id) {
+		if conn.Active.Load() {
+			cnt++
+		}
+	}
+	return cnt
+}
+
 // ForConnection returns the connection from its ID.
 func (i *hubConnectionIndex) ForConnection(id string) *WebConn {
 	return i.byConnectionId[id]
@@ -641,7 +718,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 		return nil
 	}
 	for _, conn := range i.ForUser(userID) {
-		if conn.GetConnectionID() == connectionID && !conn.active.Load() {
+		if conn.GetConnectionID() == connectionID && !conn.Active.Load() {
 			i.Remove(conn)
 			return conn
 		}
@@ -654,7 +731,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 func (i *hubConnectionIndex) RemoveInactiveConnections() {
 	now := model.GetMillis()
 	for conn := range i.byConnection {
-		if !conn.active.Load() && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
+		if !conn.Active.Load() && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
 			i.Remove(conn)
 		}
 	}
@@ -666,7 +743,7 @@ func (i *hubConnectionIndex) RemoveInactiveConnections() {
 func (i *hubConnectionIndex) AllActive() int {
 	cnt := 0
 	for conn := range i.byConnection {
-		if conn.active.Load() {
+		if conn.Active.Load() {
 			cnt++
 		}
 	}

@@ -58,7 +58,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelGroups should match 
     }
   }
 >
-  <Connect(GroupList)
+  <Connect(Component)
     channel={
       Object {
         "group_constrained": false,

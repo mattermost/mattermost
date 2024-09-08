@@ -106,13 +106,15 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
 
         if (this.props.commentCount > 0 && this.props.post.root_id === '') {
             commentWarning = (
-                <FormattedMessage
-                    id='delete_post.warning'
-                    defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
-                    values={{
-                        count: this.props.commentCount,
-                    }}
-                />
+                <div className='mt-2'>
+                    <FormattedMessage
+                        id='delete_post.warning'
+                        defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
+                        values={{
+                            count: this.props.commentCount,
+                        }}
+                    />
+                </div>
             );
         }
 
@@ -161,8 +163,6 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                             term: (postTerm),
                         }}
                     />
-                    <br/>
-                    <br/>
                     {commentWarning}
                 </Modal.Body>
                 <Modal.Footer>

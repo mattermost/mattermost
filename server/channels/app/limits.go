@@ -12,26 +12,26 @@ import (
 )
 
 const (
-	maxUsersLimit     = 10000
-	maxUsersHardLimit = 11000
+	maxUsersLimit     = 5_000
+	maxUsersHardLimit = 11_000
 )
 
-func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
-	if !a.shouldShowUserLimits() {
-		return &model.UserLimits{}, nil
+func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
+	var limits = &model.ServerLimits{}
+
+	if a.shouldShowUserLimits() {
+		activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
+		if appErr != nil {
+			mlog.Error("Failed to get active user count from database", mlog.String("error", appErr.Error()))
+			return nil, model.NewAppError("GetServerLimits", "app.limits.get_app_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		limits.ActiveUserCount = activeUserCount
+		limits.MaxUsersLimit = maxUsersLimit
+		limits.MaxUsersHardLimit = maxUsersHardLimit
 	}
 
-	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
-	if appErr != nil {
-		mlog.Error("Failed to get active user count from database", mlog.String("error", appErr.Error()))
-		return nil, model.NewAppError("GetUsersLimits", "app.limits.get_user_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	return &model.UserLimits{
-		ActiveUserCount:   activeUserCount,
-		MaxUsersLimit:     maxUsersLimit,
-		MaxUsersHardLimit: maxUsersHardLimit,
-	}, nil
+	return limits, nil
 }
 
 func (a *App) shouldShowUserLimits() bool {
@@ -43,7 +43,7 @@ func (a *App) shouldShowUserLimits() bool {
 }
 
 func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
-	userLimits, appErr := a.GetUserLimits()
+	userLimits, appErr := a.GetServerLimits()
 	if appErr != nil {
 		return false, appErr
 	}

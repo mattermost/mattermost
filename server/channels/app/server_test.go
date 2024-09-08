@@ -102,14 +102,14 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 	cfg := store.Get()
 	cfg.FileSettings = model.FileSettings{
-		DriverName:              model.NewString(model.ImageDriverS3),
-		AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
-		AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
-		AmazonS3Bucket:          model.NewString("nosuchbucket"),
-		AmazonS3Endpoint:        model.NewString(s3Endpoint),
-		AmazonS3Region:          model.NewString(""),
-		AmazonS3PathPrefix:      model.NewString(""),
-		AmazonS3SSL:             model.NewBool(false),
+		DriverName:              model.NewPointer(model.ImageDriverS3),
+		AmazonS3AccessKeyId:     model.NewPointer(model.MinioAccessKey),
+		AmazonS3SecretAccessKey: model.NewPointer(model.MinioSecretKey),
+		AmazonS3Bucket:          model.NewPointer("nosuchbucket"),
+		AmazonS3Endpoint:        model.NewPointer(s3Endpoint),
+		AmazonS3Region:          model.NewPointer(""),
+		AmazonS3PathPrefix:      model.NewPointer(""),
+		AmazonS3SSL:             model.NewPointer(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
@@ -304,7 +304,6 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
-	t.Skip("MM-57377")
 	// Creating a temp dir for log
 	tmpDir, err := os.MkdirTemp("", "mlog-test")
 	require.NoError(t, err, "cannot create tmp dir for log file")
@@ -317,22 +316,29 @@ func TestPanicLog(t *testing.T) {
 	logger, _ := mlog.NewLogger()
 
 	logSettings := model.NewLogSettings()
-	logSettings.EnableConsole = model.NewBool(true)
-	logSettings.ConsoleJson = model.NewBool(true)
-	logSettings.EnableFile = model.NewBool(true)
+	logSettings.EnableConsole = model.NewPointer(true)
+	logSettings.ConsoleJson = model.NewPointer(true)
+	logSettings.EnableFile = model.NewPointer(true)
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 
-	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
-	err = logger.ConfigureTargets(cfg, nil)
+	err = logger.ConfigureTargets(logCfg, nil)
 	require.NoError(t, err)
 	logger.LockConfiguration()
 
-	// Creating a server with logger
-	s, err := newServer(t)
+	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	s.Platform().SetLogger(logger)
+	store, err := config.NewStoreFromBacking(configStore, nil, false)
+	require.NoError(t, err)
+	cfg := store.Get()
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
+	store.Set(cfg)
+
+	// Creating a server with logger
+	s, err := NewServer(ConfigStore(store), SetLogger(logger))
+	require.NoError(t, err)
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
@@ -458,7 +464,7 @@ func TestSentry(t *testing.T) {
 		select {
 		case <-data:
 			require.Fail(t, "Sentry received a message, even though it's disabled!")
-		case <-time.After(time.Second):
+		case <-time.After(2 * time.Second):
 			t.Log("Sentry request didn't arrive. Good!")
 		}
 	})

@@ -17,6 +17,7 @@ import Preferences from 'mattermost-redux/constants/preferences';
 import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {TableMeta} from 'components/admin_console/list_table';
 import AlertBanner from 'components/alert_banner';
+import SharedUserIndicator from 'components/shared_user_indicator';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getDisplayName, imageURLForUser} from 'utils/utils';
@@ -258,6 +259,7 @@ function SystemUsers(props: Props) {
                     defaultMessage: 'User details',
                 }),
                 cell: (info: CellContext<UserReportWithError, null>) => {
+                    const isRemoteUser = Boolean(info.row.original?.remote_id?.length);
                     return (
                         <div>
                             <div className='profilePictureContainer'>
@@ -272,6 +274,17 @@ function SystemUsers(props: Props) {
                                 title={getDisplayName(info.row.original)}
                             >
                                 {getDisplayName(info.row.original) || ''}
+                                {isRemoteUser && (
+                                    <SharedUserIndicator
+                                        id={`sharedUserIndicator-${info.row.original.id}`}
+                                        title={formatMessage({id: 'admin.system_users.list.userIsRemote', defaultMessage: 'Remote user'})}
+                                        ariaLabel={formatMessage({id: 'admin.system_users.list.userIsRemoteAriaLabel', defaultMessage: 'This is a remote user'})}
+                                        role='img'
+                                        className='icon-12'
+                                        withTooltip={true}
+                                        placement='top'
+                                    />
+                                )}
                             </div>
                             <div
                                 className='userName'

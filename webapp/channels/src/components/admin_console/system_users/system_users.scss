@@ -1,8 +1,4 @@
-@mixin textElipsis {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+@import "sass/utils/_mixins";
 
 table.systemUsersTable {
     thead {
@@ -44,19 +40,25 @@ table.systemUsersTable {
                 }
 
                 .displayName {
+                    display: flex;
+                    align-items: center;
                     align-self: start;
                     color: var(--sys-denim-button-bg);
                     font-weight: 600;
                     grid-area: displayName;
 
-                    @include textElipsis;
+                    @include textEllipsis;
+
+                    .icon {
+                        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.8);
+                    }
                 }
 
                 .userName {
                     align-self: start;
                     grid-area: userName;
 
-                    @include textElipsis;
+                    @include textEllipsis;
                 }
 
                 .error {
@@ -64,9 +66,9 @@ table.systemUsersTable {
                     align-self: start;
                     grid-area: error;
 
-                    @include textElipsis;
+                    @include textEllipsis;
 
-                    // this need to be here, after textElipsis because
+                    // this need to be here, after textEllipsis because
                     // we need to override white-space property coming from the mixing
                     white-space: normal;
                 }

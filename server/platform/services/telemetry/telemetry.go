@@ -16,10 +16,10 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -351,7 +351,7 @@ func (ts *TelemetryService) trackActivity() {
 
 	slashCommandsCount, _ = ts.dbStore.Command().AnalyticsCommandCount("")
 
-	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount("", ""); err == nil {
 		incomingWebhooksCount = c
 	}
 
@@ -430,6 +430,7 @@ func (ts *TelemetryService) trackConfig() {
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
 		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
+		"terminate_sessions_on_password_change":                   *cfg.ServiceSettings.TerminateSessionsOnPasswordChange,
 		"session_length_web_in_hours":                             *cfg.ServiceSettings.SessionLengthWebInHours,
 		"session_length_mobile_in_hours":                          *cfg.ServiceSettings.SessionLengthMobileInHours,
 		"session_length_sso_in_hours":                             *cfg.ServiceSettings.SessionLengthSSOInHours,
@@ -455,7 +456,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
-		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
@@ -490,10 +490,10 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
 		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
-		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
+		"maximum_url_length":                                      *cfg.ServiceSettings.MaximumURLLength,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -552,18 +552,16 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 		"advanced_logging_json":    len(cfg.LogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config":  cfg.LogSettings.AdvancedLoggingConfig != nil && *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigAudit, map[string]any{
-		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
-		"advanced_logging_json":   len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != nil && *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_json": len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
 	})
 
 	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
@@ -575,7 +573,6 @@ func (ts *TelemetryService) trackConfig() {
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.NotificationLogSettings.AdvancedLoggingConfig != nil && *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigPassword, map[string]any{
@@ -759,8 +756,9 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
-		"enable":             *cfg.MetricsSettings.Enable,
-		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
+		"enable":                *cfg.MetricsSettings.Enable,
+		"block_profile_rate":    *cfg.MetricsSettings.BlockProfileRate,
+		"enable_client_metrics": *cfg.MetricsSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{
@@ -775,12 +773,12 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
+		"youtube_referrer_policy":             *cfg.ExperimentalSettings.YoutubeReferrerPolicy,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
@@ -1438,6 +1436,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"skype4business",
 		"zoom",
 		"focalboard",
+		"com.mattermost.msteams-sync",
 	}
 
 	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)

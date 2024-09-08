@@ -235,7 +235,6 @@ type AppError struct {
 	RequestId       string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth         bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
 	params          map[string]any
 	wrapped         error
@@ -370,7 +369,6 @@ func NewAppError(where string, id string, params map[string]any, details string,
 		Where:         where,
 		DetailedError: details,
 		StatusCode:    status,
-		IsOAuth:       false,
 	}
 	ap.Translate(translateFunc)
 	return ap
@@ -383,6 +381,11 @@ var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPaddin
 // without the padding.
 func NewId() string {
 	return encoding.EncodeToString(uuid.NewRandom())
+}
+
+// NewUsername is a NewId prefixed with a letter to make valid username
+func NewUsername() string {
+	return "a" + NewId()
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -845,4 +848,17 @@ func filterBlocklist(r rune) rune {
 
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+}
+
+func sliceToMapKey(s ...string) map[string]any {
+	m := make(map[string]any)
+	for i := range s {
+		m[s[i]] = struct{}{}
+	}
+
+	if len(s) != len(m) {
+		panic("duplicate keys")
+	}
+
+	return m
 }

@@ -4,10 +4,7 @@
 package email
 
 import (
-	"bytes"
-	"io"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -251,83 +248,6 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 }
 
-func TestSendCloudUpgradedEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
-
-	emailTo := "testclouduser@example.com"
-	emailToUsername := strings.Split(emailTo, "@")[0]
-
-	t.Run("SendCloudMonthlyUpgradedEmail", func(t *testing.T) {
-		verifyMailbox := func(t *testing.T) {
-			t.Helper()
-
-			var resultsMailbox mail.JSONMessageHeaderInbucket
-			err2 := mail.RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = mail.GetMailBox(emailTo)
-				return err
-			})
-			if err2 != nil {
-				t.Skipf("No email was received, maybe due load on the server: %v", err2)
-			}
-
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "You'll be billed from", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "Open Mattermost", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Len(t, resultsEmail.Attachments, 0)
-		}
-		mail.DeleteMailBox(emailTo)
-
-		// Send Update to Monthly Plan email
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false, make(map[string]io.Reader))
-		require.NoError(t, err)
-
-		verifyMailbox(t)
-	})
-
-	t.Run("SendCloudYearlyUpgradedEmail", func(t *testing.T) {
-		verifyMailbox := func(t *testing.T) {
-			t.Helper()
-
-			var resultsMailbox mail.JSONMessageHeaderInbucket
-			err2 := mail.RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = mail.GetMailBox(emailTo)
-				return err
-			})
-			if err2 != nil {
-				t.Skipf("No email was received, maybe due load on the server: %v", err2)
-			}
-
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "View your invoice", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Len(t, resultsEmail.Attachments, 1)
-		}
-		mail.DeleteMailBox(emailTo)
-
-		// Send Update to Monthly Plan email
-		var embeddedFiles = map[string]io.Reader{
-			"filename": bytes.NewReader([]byte("Test")),
-		}
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", true, embeddedFiles)
-		require.NoError(t, err)
-
-		verifyMailbox(t)
-	})
-}
-
 func TestSendCloudWelcomeEmail(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -373,7 +293,7 @@ func TestMailServiceConfig(t *testing.T) {
 		config: func() *model.Config {
 			return &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: model.NewString(""),
+					SiteURL: model.NewPointer(""),
 				},
 				EmailSettings: model.EmailSettings{
 					EnableSignUpWithEmail:             new(bool),
@@ -384,7 +304,7 @@ func TestMailServiceConfig(t *testing.T) {
 					RequireEmailVerification:          new(bool),
 					FeedbackName:                      new(string),
 					FeedbackEmail:                     new(string),
-					ReplyToAddress:                    model.NewString(configuredReplyTo),
+					ReplyToAddress:                    model.NewPointer(configuredReplyTo),
 					FeedbackOrganization:              new(string),
 					EnableSMTPAuth:                    new(bool),
 					SMTPUsername:                      new(string),

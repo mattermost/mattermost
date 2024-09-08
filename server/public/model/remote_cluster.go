@@ -6,7 +6,9 @@ package model
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"io"
@@ -48,39 +50,45 @@ func (bm *Bitmask) UnsetBit(flag Bitmask) {
 }
 
 type RemoteCluster struct {
-	RemoteId     string  `json:"remote_id"`
-	RemoteTeamId string  `json:"remote_team_id"`
-	Name         string  `json:"name"`
-	DisplayName  string  `json:"display_name"`
-	SiteURL      string  `json:"site_url"`
-	CreateAt     int64   `json:"create_at"`
-	LastPingAt   int64   `json:"last_ping_at"`
-	Token        string  `json:"token"`
-	RemoteToken  string  `json:"remote_token"`
-	Topics       string  `json:"topics"`
-	CreatorId    string  `json:"creator_id"`
-	PluginID     string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
-	Options      Bitmask `json:"options"`   // bit-flag set of options
+	RemoteId      string  `json:"remote_id"`
+	RemoteTeamId  string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
+	Name          string  `json:"name"`
+	DisplayName   string  `json:"display_name"`
+	SiteURL       string  `json:"site_url"`
+	DefaultTeamId string  `json:"default_team_id"`
+	CreateAt      int64   `json:"create_at"`
+	LastPingAt    int64   `json:"last_ping_at"`
+	Token         string  `json:"token"`
+	RemoteToken   string  `json:"remote_token"`
+	Topics        string  `json:"topics"`
+	CreatorId     string  `json:"creator_id"`
+	PluginID      string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
+	Options       Bitmask `json:"options"`   // bit-flag set of options
 }
 
 func (rc *RemoteCluster) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"remote_id":      rc.RemoteId,
-		"remote_team_id": rc.RemoteTeamId,
-		"name":           rc.Name,
-		"display_name":   rc.DisplayName,
-		"site_url":       rc.SiteURL,
-		"create_at":      rc.CreateAt,
-		"last_ping_at":   rc.LastPingAt,
-		"creator_id":     rc.CreatorId,
-		"plugin_id":      rc.PluginID,
-		"options":        rc.Options,
+		"remote_id":       rc.RemoteId,
+		"remote_team_id":  rc.RemoteTeamId,
+		"name":            rc.Name,
+		"display_name":    rc.DisplayName,
+		"site_url":        rc.SiteURL,
+		"default_team_id": rc.DefaultTeamId,
+		"create_at":       rc.CreateAt,
+		"last_ping_at":    rc.LastPingAt,
+		"creator_id":      rc.CreatorId,
+		"plugin_id":       rc.PluginID,
+		"options":         rc.Options,
 	}
 }
 
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
-		rc.RemoteId = NewId()
+		if rc.PluginID != "" {
+			rc.RemoteId = newIDFromBytes([]byte(rc.PluginID))
+		} else {
+			rc.RemoteId = NewId()
+		}
 	}
 
 	if rc.DisplayName == "" {
@@ -117,7 +125,60 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	if !IsValidId(rc.CreatorId) {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
+
+	if rc.DefaultTeamId != "" && !IsValidId(rc.DefaultTeamId) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "default_team_id="+rc.DefaultTeamId, http.StatusBadRequest)
+	}
+
 	return nil
+}
+
+func (rc *RemoteCluster) Sanitize() {
+	rc.Token = ""
+	rc.RemoteToken = ""
+}
+
+type RemoteClusterPatch struct {
+	DisplayName   *string `json:"display_name"`
+	DefaultTeamId *string `json:"default_team_id"`
+}
+
+func (rcp *RemoteClusterPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"display_name":    rcp.DisplayName,
+		"default_team_id": rcp.DefaultTeamId,
+	}
+}
+
+func (rc *RemoteCluster) Patch(patch *RemoteClusterPatch) {
+	if patch.DisplayName != nil {
+		rc.DisplayName = *patch.DisplayName
+	}
+
+	if patch.DefaultTeamId != nil {
+		rc.DefaultTeamId = *patch.DefaultTeamId
+	}
+}
+
+type RemoteClusterWithPassword struct {
+	*RemoteCluster
+	Password string `json:"password"`
+}
+
+type RemoteClusterWithInvite struct {
+	RemoteCluster *RemoteCluster `json:"remote_cluster"`
+	Invite        string         `json:"invite"`
+	Password      string         `json:"password,omitempty"`
+}
+
+func newIDFromBytes(b []byte) string {
+	hash := md5.New()
+	_, _ = hash.Write(b)
+	buf := hash.Sum(nil)
+
+	var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
+	id := encoding.EncodeToString(buf)
+	return id[:26]
 }
 
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
@@ -235,7 +296,8 @@ type RemoteClusterFrame struct {
 func (f *RemoteClusterFrame) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"remote_id": f.RemoteId,
-		"msg":       f.Msg,
+		"msg_id":    f.Msg.Id,
+		"topic":     f.Msg.Topic,
 	}
 }
 
@@ -295,7 +357,7 @@ type RemoteClusterPing struct {
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
 	RemoteId     string `json:"remote_id"`
-	RemoteTeamId string `json:"remote_team_id"`
+	RemoteTeamId string `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	SiteURL      string `json:"site_url"`
 	Token        string `json:"token"`
 }
@@ -376,6 +438,13 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	return json.Unmarshal(plain, &rci)
 }
 
+type RemoteClusterAcceptInvite struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	Invite      string `json:"invite"`
+	Password    string `json:"password"`
+}
+
 // RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll
 type RemoteClusterQueryFilter struct {
 	ExcludeOffline bool
@@ -385,5 +454,7 @@ type RemoteClusterQueryFilter struct {
 	CreatorId      string
 	OnlyConfirmed  bool
 	PluginID       string
+	OnlyPlugins    bool
+	ExcludePlugins bool
 	RequireOptions Bitmask
 }

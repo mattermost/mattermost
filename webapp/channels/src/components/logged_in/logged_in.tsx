@@ -36,7 +36,6 @@ export type Props = {
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
-        markChannelAsViewedOnServer: (channelId: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
     };
     showTermsOfService: boolean;
@@ -66,10 +65,13 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Initialize websocket
         WebSocketActions.initialize();
 
-        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
+        this.updateTimeZone();
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
+
+        // listen for the app visibility state
+        window.addEventListener('visibilitychange', this.handleVisibilityChange, false);
 
         // Listen for focused tab/window state
         window.addEventListener('focus', this.onFocusListener);
@@ -106,6 +108,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
         if (this.isValidState() && !this.props.mfaRequired) {
             BrowserStore.signalLogin();
+            DesktopApp.signalLogin();
         }
     }
 
@@ -138,6 +141,16 @@ export default class LoggedIn extends React.PureComponent<Props> {
         }
 
         return this.props.children;
+    }
+
+    private handleVisibilityChange = (): void => {
+        if (!document.hidden) {
+            this.updateTimeZone();
+        }
+    };
+
+    private updateTimeZone(): void {
+        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
     }
 
     private onFocusListener(): void {
@@ -191,7 +204,6 @@ export default class LoggedIn extends React.PureComponent<Props> {
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
         if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
             this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
-            this.props.actions.markChannelAsViewedOnServer(this.props.currentChannelId);
         }
         WebSocketActions.close();
     };

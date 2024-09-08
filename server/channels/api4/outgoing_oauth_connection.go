@@ -21,12 +21,12 @@ const (
 )
 
 func (api *API) InitOutgoingOAuthConnection() {
-	api.BaseRoutes.OutgoingOAuthConnections.Handle("", api.APISessionRequired(listOutgoingOAuthConnections)).Methods("GET")
-	api.BaseRoutes.OutgoingOAuthConnections.Handle("", api.APISessionRequired(createOutgoingOAuthConnection)).Methods("POST")
-	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(getOutgoingOAuthConnection)).Methods("GET")
-	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(updateOutgoingOAuthConnection)).Methods("PUT")
-	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods("DELETE")
-	api.BaseRoutes.OutgoingOAuthConnections.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
+	api.BaseRoutes.OutgoingOAuthConnections.Handle("", api.APISessionRequired(listOutgoingOAuthConnections)).Methods(http.MethodGet)
+	api.BaseRoutes.OutgoingOAuthConnections.Handle("", api.APISessionRequired(createOutgoingOAuthConnection)).Methods(http.MethodPost)
+	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(getOutgoingOAuthConnection)).Methods(http.MethodGet)
+	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(updateOutgoingOAuthConnection)).Methods(http.MethodPut)
+	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods(http.MethodDelete)
+	api.BaseRoutes.OutgoingOAuthConnections.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods(http.MethodPost)
 }
 
 // checkOutgoingOAuthConnectionReadPermissions checks if the user has the permissions to read outgoing oauth connections.
@@ -140,12 +140,12 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 
 	query, err := NewListOutgoingOAuthConnectionsQueryFromURLQuery(r.URL.Query())
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.input_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.input_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	if errValid := query.IsValid(); errValid != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.input_error", nil, errValid.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.input_error", nil, "", http.StatusBadRequest).Wrap(errValid)
 		return
 	}
 
@@ -155,7 +155,7 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 		// retrieve a single connection.
 		connection, err := service.GetConnectionForAudience(c.AppContext, query.Audience)
 		if err != nil {
-			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 		connections = append(connections, connection)
@@ -165,7 +165,7 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 		var errList *model.AppError
 		connections, errList = service.GetConnections(c.AppContext, query.ToFilter())
 		if errList != nil {
-			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, errList.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, "", http.StatusInternalServerError).Wrap(errList)
 			return
 		}
 	}
@@ -173,7 +173,7 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 	service.SanitizeConnections(connections)
 
 	if errJSON := json.NewEncoder(w).Encode(connections); errJSON != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, errJSON.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, "", http.StatusInternalServerError).Wrap(errJSON)
 		return
 	}
 }
@@ -192,14 +192,14 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 
 	connection, err := service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
 	service.SanitizeConnection(connection)
 
 	if err := json.NewEncoder(w).Encode(connection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 }
@@ -220,7 +220,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	var inputConnection model.OutgoingOAuthConnection
 	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.input_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.input_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -230,7 +230,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	connection, err := service.SaveConnection(c.AppContext, &inputConnection)
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -243,7 +243,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(connection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 }
@@ -270,7 +270,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	var inputConnection model.OutgoingOAuthConnection
 	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.input_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.input_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -281,7 +281,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	currentConnection, err := service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	auditRec.AddEventPriorState(currentConnection)
@@ -290,7 +290,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	connection, err := service.UpdateConnection(c.AppContext, currentConnection)
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -309,7 +309,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	service.SanitizeConnection(connection)
 
 	if err := json.NewEncoder(w).Encode(connection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 }
@@ -336,13 +336,13 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 
 	connection, err := service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.delete_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.delete_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	auditRec.AddEventPriorState(connection)
 
 	if err := service.DeleteConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.delete_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.delete_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -374,7 +374,7 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	var inputConnection *model.OutgoingOAuthConnection
 
 	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, "", http.StatusBadRequest).Wrap(err)
 		w.WriteHeader(c.Err.StatusCode)
 		return
 	}
@@ -384,7 +384,7 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 		var storedConnection *model.OutgoingOAuthConnection
 		storedConnection, err = service.GetConnection(c.AppContext, inputConnection.Id)
 		if err != nil {
-			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			w.WriteHeader(c.Err.StatusCode)
 			return
 		}
@@ -400,7 +400,7 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	// do not store the token, just check if the credentials are valid and the request can be made
 	_, err := service.RetrieveTokenForConnection(c.AppContext, inputConnection)
 	if err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, err.Error(), err.StatusCode)
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, "", err.StatusCode).Wrap(err)
 		c.Logger.Error("Failed to retrieve token while validating outgoing oauth connection", logr.Err(err))
 		resultStatusCode = err.StatusCode
 	} else {

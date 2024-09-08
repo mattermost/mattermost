@@ -21,7 +21,7 @@ import type {GlobalState} from 'types/store';
 import MemberListTeam from './member_list_team';
 
 type Props = {
-    teamId: string;
+    teamId?: string;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {

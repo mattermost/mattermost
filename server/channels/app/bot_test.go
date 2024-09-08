@@ -112,6 +112,80 @@ func TestCreateBot(t *testing.T) {
 	})
 }
 
+func TestEnsureBot(t *testing.T) {
+	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		pluginId := "pluginId"
+
+		appErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
+		require.Nil(t, appErr)
+
+		botID1, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		bot, appErr := th.App.GetBot(th.Context, botID1, true)
+		require.Nil(t, appErr)
+		assert.Equal(t, "username", bot.Username)
+		assert.Equal(t, "a bot", bot.Description)
+
+		botID2, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "another_username",
+			Description: "another bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, botID1, botID2)
+
+		bot, appErr = th.App.GetBot(th.Context, botID2, true)
+		require.Nil(t, appErr)
+		assert.Equal(t, "another_username", bot.Username)
+		assert.Equal(t, "another bot", bot.Description)
+	})
+
+	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		pluginId := "pluginId"
+
+		appErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
+		require.Nil(t, appErr)
+
+		initialBot := model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		}
+
+		botID1, err := th.App.EnsureBot(th.Context, pluginId, &initialBot)
+		require.NoError(t, err)
+
+		bot, appErr := th.App.GetBot(th.Context, botID1, true)
+		require.Nil(t, appErr)
+		assert.Equal(t, "username", bot.Username)
+		assert.Equal(t, "a bot", bot.Description)
+
+		err = th.App.Srv().Store().User().PermanentDelete(th.Context, initialBot.UserId)
+		require.NoError(t, err)
+		botID2, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "another_username",
+			Description: "another bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+		assert.NotEqual(t, botID1, botID2)
+
+		bot, appErr = th.App.GetBot(th.Context, botID2, true)
+		require.Nil(t, appErr)
+		assert.Equal(t, "another_username", bot.Username)
+		assert.Equal(t, "another bot", bot.Description)
+	})
+}
+
 func TestPatchBot(t *testing.T) {
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic()

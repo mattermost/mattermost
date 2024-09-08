@@ -11,13 +11,19 @@
 // Group: @channels @signin_authentication
 
 describe('Login page with close server', () => {
+    const oldSettings = {};
     before(() => {
-        // Disable other auth options
+        // Back up config, and disable other auth options
         const newSettings = {
             Office365Settings: {Enable: false},
             LdapSettings: {Enable: false},
             TeamSettings: {EnableOpenServer: false},
         };
+        cy.apiGetConfig((config) => {
+            Object.entries(newSettings).forEach(([key]) => {
+                oldSettings[key] = config[key];
+            });
+        });
         cy.apiUpdateConfig(newSettings);
 
         // # Create new team and users
@@ -25,6 +31,10 @@ describe('Login page with close server', () => {
             cy.apiLogout();
             cy.visit('/login');
         });
+    });
+    after(() => {
+        // Restore backed up settings
+        cy.apiAdminLogin().apiUpdateConfig(oldSettings);
     });
     it('MM-47222 Should verify access problem page can be reached', () => {
         cy.findByText('Don\'t have an account?').should('be.visible').click();

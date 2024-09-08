@@ -36,7 +36,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 	makeSomePosts := func(urgent bool) []*model.Post {
 		u1 := model.User{
 			Email:    MakeEmail(),
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 		}
 
 		u, err := ss.User().Save(rctx, &u1)
@@ -64,9 +64,9 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		if urgent {
 			o.Metadata = &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority:                model.NewString(model.PostPriorityUrgent),
-					RequestedAck:            model.NewBool(false),
-					PersistentNotifications: model.NewBool(false),
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck:            model.NewPointer(false),
+					PersistentNotifications: model.NewPointer(false),
 				},
 			}
 		}
@@ -188,7 +188,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts[0].RootId)
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 
@@ -207,7 +207,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
-		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
+		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 
@@ -520,7 +520,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -542,7 +542,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -607,7 +607,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -626,7 +626,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewInt64(20),
+			PostDurationDays: model.NewPointer(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -739,9 +739,9 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		},
 	})
@@ -881,9 +881,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		},
 	})
@@ -969,7 +969,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		gm1post1,
 	}
 	for i := range allPosts {
-		updatedPost, err := ss.Post().GetSingle(allPosts[i].Id, true)
+		updatedPost, err := ss.Post().GetSingle(rctx, allPosts[i].Id, true)
 		require.NoError(t, err)
 
 		// Fix some inconsistencies with how the post store returns posts vs. how the

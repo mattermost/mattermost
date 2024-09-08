@@ -52,7 +52,7 @@ mme2e_wait_service_healthy () {
   SERVICE_NAME=${1?}
   RETRIES_LEFT=${2:-1}
   RETRIES_INTERVAL=${3:-10}
-  mme2e_wait_command_success "${DC_COMMAND} ps ${SERVICE_NAME} | grep -q '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+  mme2e_wait_command_success "${DC_COMMAND} ps ${SERVICE_NAME} | grep -qE '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
 }
 mme2e_wait_image () {
   IMAGE_NAME=${1?}
@@ -87,12 +87,13 @@ alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
 # Default values for optional variables
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)"
 export BROWSER_DEFAULT="chrome"
-export SERVER_DEFAULT="self-hosted"
+export SERVER_DEFAULT="onprem"
 export TEST_DEFAULT="cypress"
 export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
 export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
 export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
 export BUILD_ID_DEFAULT=$(date +%s)
+export CI_BASE_URL_DEFAULT="localhost"
 # OS specific defaults overrides
 case $MME2E_OSTYPE in
   darwin )
@@ -111,3 +112,4 @@ export BRANCH_UNSANITIZED=${BRANCH:-$BRANCH_DEFAULT}
 export BRANCH=${BRANCH_UNSANITIZED::50} # The automation dashboard only accepts branch names up to 50 characters
 export BUILD_ID_UNSANITIZED=${BUILD_ID:-$BUILD_ID_DEFAULT}
 export BUILD_ID=${BUILD_ID_UNSANITIZED::64} # The automation dashboard only accepts build IDs up to 64 characters
+export CI_BASE_URL=${CI_BASE_URL:-$CI_BASE_URL_DEFAULT}

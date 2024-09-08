@@ -48,6 +48,7 @@ describe('Multi-user group header', () => {
         cy.visit(`/${testTeam.name}/channels/${groupChannel.name}`);
 
         // * no channel header is set
+        cy.get('button.header-placeholder').invoke('show').trigger('mouseover');
         cy.contains('#channelHeaderDescription button span', 'Add a channel header').should('be.visible');
 
         // # click add a channel heander

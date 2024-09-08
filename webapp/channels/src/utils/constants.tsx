@@ -8,6 +8,7 @@ import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
 import keyMirror from 'key-mirror';
+import {defineMessage, defineMessages} from 'react-intl';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -29,7 +30,6 @@ import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
 import solarizedLightIcon from 'images/themes/code_themes/solarized-light.png';
 import logoWebhook from 'images/webhook_icon.jpg';
-import {t} from 'utils/i18n';
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text' as const,
@@ -103,7 +103,6 @@ export const Preferences = {
     UNREAD_SCROLL_POSITION_START_FROM_LEFT: 'start_from_left_off',
     UNREAD_SCROLL_POSITION_START_FROM_NEWEST: 'start_from_newest',
     CATEGORY_THEME: 'theme',
-    CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     EMAIL_INTERVAL: 'email_interval',
     INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
@@ -147,7 +146,7 @@ export const Preferences = {
     DELINQUENCY_MODAL_CONFIRMED: 'delinquency_modal_confirmed',
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
-    OVERAGE_USERS_BANNER: 'overage_users_banner',
+    OVERAGE_USERS_BANNER: ReduxPreferences.CATEGORY_OVERAGE_USERS_BANNER,
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
@@ -202,6 +201,7 @@ export const ActionTypes = keyMirror({
     SET_RHS_SIZE: null,
 
     RHS_GO_BACK: null,
+    RHS_FOCUSED: null,
 
     SET_RHS_EXPANDED: null,
     TOGGLE_RHS_EXPANDED: null,
@@ -234,6 +234,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ADMIN_CONSOLE_REDUCER: null,
     REMOVED_ADMIN_CONSOLE_REDUCER: null,
     RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: null,
+    RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: null,
     RECEIVED_PLUGIN_STATS_HANDLER: null,
     RECEIVED_PLUGIN_USER_SETTINGS: null,
 
@@ -458,6 +459,9 @@ export const ModalIdentifiers = {
     EXPORT_USER_DATA_MODAL: 'export_user_data_modal',
     UPGRADE_EXPORT_DATA_MODAL: 'upgrade_export_data_modal',
     EXPORT_ERROR_MODAL: 'export_error_modal',
+    CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
+    CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
+    CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
 };
 
 export const UserStatuses = {
@@ -583,6 +587,10 @@ export const SocketEvents = {
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UNARCHIVED: 'channel_restored',
     CHANNEL_UPDATED: 'channel_updated',
+    CHANNEL_BOOKMARK_CREATED: 'channel_bookmark_created',
+    CHANNEL_BOOKMARK_DELETED: 'channel_bookmark_deleted',
+    CHANNEL_BOOKMARK_UPDATED: 'channel_bookmark_updated',
+    CHANNEL_BOOKMARK_SORTED: 'channel_bookmark_sorted',
     MULTIPLE_CHANNELS_VIEWED: 'multiple_channels_viewed',
     CHANNEL_MEMBER_UPDATED: 'channel_member_updated',
     CHANNEL_SCHEME_UPDATED: 'channel_scheme_updated',
@@ -668,11 +676,6 @@ export const CrtTutorialSteps = {
     WELCOME_POPOVER: 0,
     LIST_POPOVER: 1,
     UNREAD_POPOVER: 2,
-    FINISHED: 999,
-};
-
-export const ExploreOtherToolsTourSteps = {
-    PLAYBOOKS_TOUR: 1,
     FINISHED: 999,
 };
 
@@ -912,15 +915,51 @@ export const AnnouncementBarTypes = {
 };
 
 export const AnnouncementBarMessages = {
-    EMAIL_VERIFICATION_REQUIRED: t('announcement_bar.error.email_verification_required'),
-    EMAIL_VERIFIED: t('announcement_bar.notification.email_verified'),
-    LICENSE_EXPIRED: t('announcement_bar.error.license_expired'),
-    LICENSE_EXPIRING: t('announcement_bar.error.license_expiring'),
-    LICENSE_PAST_GRACE: t('announcement_bar.error.past_grace'),
-    PREVIEW_MODE: t('announcement_bar.error.preview_mode'),
-    WEBSOCKET_PORT_ERROR: t('channel_loader.socketError'),
-    TRIAL_LICENSE_EXPIRING: t('announcement_bar.error.trial_license_expiring'),
+    EMAIL_VERIFICATION_REQUIRED: 'announcement_bar.error.email_verification_required',
+    EMAIL_VERIFIED: 'announcement_bar.notification.email_verified',
+    LICENSE_EXPIRED: 'announcement_bar.error.license_expired',
+    LICENSE_EXPIRING: 'announcement_bar.error.license_expiring',
+    LICENSE_PAST_GRACE: 'announcement_bar.error.past_grace',
+    PREVIEW_MODE: 'announcement_bar.error.preview_mode',
+    WEBSOCKET_PORT_ERROR: 'channel_loader.socketError',
+    TRIAL_LICENSE_EXPIRING: 'announcement_bar.error.trial_license_expiring',
 };
+
+// These messages correspond to AnnouncementBarMessages above
+defineMessages({
+    emailVerificationRequired: {
+        id: 'announcement_bar.error.email_verification_required',
+        defaultMessage: 'Check your email inbox to verify the address.',
+    },
+    emailVerified: {
+        id: 'announcement_bar.notification.email_verified',
+        defaultMessage: 'Email verified',
+    },
+    licenseExpired: {
+        id: 'announcement_bar.error.license_expired',
+        defaultMessage: '{licenseSku} license is expired and some features may be disabled.',
+    },
+    licenseExpiring: {
+        id: 'announcement_bar.error.license_expiring',
+        defaultMessage: '{licenseSku} license expires on {date, date, long}.',
+    },
+    pastGrace: {
+        id: 'announcement_bar.error.past_grace',
+        defaultMessage: '{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details.',
+    },
+    previewMode: {
+        id: 'announcement_bar.error.preview_mode',
+        defaultMessage: 'Preview Mode: Email notifications have not been configured.',
+    },
+    socketError: {
+        id: 'channel_loader.socketError',
+        defaultMessage: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to [check WebSocket port](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).',
+    },
+    trialLicenseExpiring: {
+        id: 'announcement_bar.error.trial_license_expiring',
+        defaultMessage: 'There are {days} days left on your free trial.',
+    },
+});
 
 export const VerifyEmailErrors = {
     FAILED_EMAIL_VERIFICATION: 'failed_email_verification',
@@ -966,20 +1005,20 @@ export const ChannelAutoFollowThreads = {
     OFF: 'off',
 } as const;
 
-export const NotificationSections = {
-    IGNORE_CHANNEL_MENTIONS: 'ignoreChannelMentions',
-    CHANNEL_AUTO_FOLLOW_THREADS: 'channelAutoFollowThreads',
-    MARK_UNREAD: 'markUnread',
-    DESKTOP: 'desktop',
-    PUSH: 'push',
-    NONE: '',
+export const UserSettingsNotificationSections = {
+    DESKTOP_AND_MOBILE: 'desktopAndMobile',
+    DESKTOP_NOTIFICATION_SOUND: 'desktopNotificationSound',
+    EMAIL: 'email',
+    KEYWORDS_MENTIONS: 'keywordsAndMentions',
+    KEYWORDS_HIGHLIGHT: 'keywordsAndHighlight',
+    REPLY_NOTIFCATIONS: 'replyNotifications',
+    AUTO_RESPONDER: 'autoResponder',
 };
 
 export const AdvancedSections = {
     CONTROL_SEND: 'advancedCtrlSend',
     FORMATTING: 'formatting',
     JOIN_LEAVE: 'joinLeave',
-    PREVIEW_FEATURES: 'advancedPreviewFeatures',
     PERFORMANCE_DEBUGGING: 'performanceDebugging',
     SYNC_DRAFTS: 'syncDrafts',
 };
@@ -1112,6 +1151,7 @@ export const LicenseLinks = {
     EMBARGOED_COUNTRIES: 'https://mattermost.com/pl/limitations-for-embargoed-countries',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT_TEXT: 'Software Services and License Agreement',
+    UNSUPPORTED: 'https://mattermost.com/pricing/',
 };
 
 export const MattermostLink = 'https://mattermost.com/';
@@ -1394,7 +1434,6 @@ export const Constants = {
     AdminTutorialSteps,
     CrtTutorialSteps,
     CrtTutorialTriggerSteps,
-    ExploreOtherToolsTourSteps,
     CrtThreadPaneSteps,
     PostTypes,
     ErrorPageTypes,
@@ -1404,6 +1443,8 @@ export const Constants = {
     Locations,
     PostListRowListIds,
     MAX_POST_VISIBILITY: 1000000,
+    REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY: 22,
+    REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY: 6,
 
     IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_TEAM, PostTypes.LEAVE_TEAM, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_REMOVE],
 
@@ -1931,13 +1972,6 @@ export const Constants = {
         COMMAND_SUGGESTION_CHANNEL: 'channel',
         COMMAND_SUGGESTION_USER: 'user',
     },
-    FeatureTogglePrefix: 'feature_enabled_',
-    PRE_RELEASE_FEATURES: {
-        MARKDOWN_PREVIEW: {
-            label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389
-            description: 'Show markdown preview option in message input box',
-        },
-    },
     OVERLAY_TIME_DELAY_SMALL: 100,
     OVERLAY_TIME_DELAY: 400,
     OVERLAY_DEFAULT_TRIGGER: ['hover', 'focus'],
@@ -1959,7 +1993,7 @@ export const Constants = {
     MAX_USERNAME_LENGTH: 22,
     MAX_NICKNAME_LENGTH: 64,
     MIN_PASSWORD_LENGTH: 5,
-    MAX_PASSWORD_LENGTH: 64,
+    MAX_PASSWORD_LENGTH: 72,
     MAX_POSITION_LENGTH: 128,
     MIN_TRIGGER_LENGTH: 1,
     MAX_TRIGGER_LENGTH: 128,
@@ -2003,7 +2037,6 @@ export const Constants = {
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
     MENTION_SPECIAL: 'mention.special',
     MENTION_GROUPS: 'search.group',
-    DEFAULT_NOTIFICATION_DURATION: 5000,
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
@@ -2021,7 +2054,6 @@ export const Constants = {
     MAX_ATTACHMENT_FOOTER_LENGTH: 300,
     ACCEPT_STATIC_IMAGE: '.jpeg,.jpg,.png,.bmp',
     ACCEPT_EMOJI_IMAGE: '.jpeg,.jpg,.png,.gif',
-    THREADS_PAGE_SIZE: 25,
     THREADS_LOADING_INDICATOR_ITEM_ID: 'threads_loading_indicator_item_id',
     THREADS_NO_RESULTS_ITEM_ID: 'threads_no_results_item_id',
     TRIAL_MODAL_AUTO_SHOWN: 'trial_modal_auto_shown',
@@ -2068,42 +2100,24 @@ export const WindowSizes = {
 
 export const AcceptedProfileImageTypes = ['image/jpeg', 'image/png', 'image/bmp'];
 
-export const searchHintOptions = [{searchTerm: 'From:', message: {id: t('search_list_option.from'), defaultMessage: 'Messages from a user'}},
-    {searchTerm: 'In:', message: {id: t('search_list_option.in'), defaultMessage: 'Messages in a channel'}},
-    {searchTerm: 'On:', message: {id: t('search_list_option.on'), defaultMessage: 'Messages on a date'}},
-    {searchTerm: 'Before:', message: {id: t('search_list_option.before'), defaultMessage: 'Messages before a date'}},
-    {searchTerm: 'After:', message: {id: t('search_list_option.after'), defaultMessage: 'Messages after a date'}},
-    {searchTerm: '-', message: {id: t('search_list_option.exclude'), defaultMessage: 'Exclude search terms'}, additionalDisplay: '—'},
-    {searchTerm: '""', message: {id: t('search_list_option.phrases'), defaultMessage: 'Messages with phrases'}},
+export const searchHintOptions = [{searchTerm: 'From:', message: defineMessage({id: 'search_list_option.from', defaultMessage: 'Messages from a user'})},
+    {searchTerm: 'In:', message: defineMessage({id: 'search_list_option.in', defaultMessage: 'Messages in a channel'})},
+    {searchTerm: 'On:', message: defineMessage({id: 'search_list_option.on', defaultMessage: 'Messages on a date'})},
+    {searchTerm: 'Before:', message: defineMessage({id: 'search_list_option.before', defaultMessage: 'Messages before a date'})},
+    {searchTerm: 'After:', message: defineMessage({id: 'search_list_option.after', defaultMessage: 'Messages after a date'})},
+    {searchTerm: '-', message: defineMessage({id: 'search_list_option.exclude', defaultMessage: 'Exclude search terms'}), additionalDisplay: '—'},
+    {searchTerm: '""', message: defineMessage({id: 'search_list_option.phrases', defaultMessage: 'Messages with phrases'})},
 ];
 
-export const searchFilesHintOptions = [{searchTerm: 'From:', message: {id: t('search_files_list_option.from'), defaultMessage: 'Files from a user'}},
-    {searchTerm: 'In:', message: {id: t('search_files_list_option.in'), defaultMessage: 'Files in a channel'}},
-    {searchTerm: 'On:', message: {id: t('search_files_list_option.on'), defaultMessage: 'Files on a date'}},
-    {searchTerm: 'Before:', message: {id: t('search_files_list_option.before'), defaultMessage: 'Files before a date'}},
-    {searchTerm: 'After:', message: {id: t('search_files_list_option.after'), defaultMessage: 'Files after a date'}},
-    {searchTerm: 'Ext:', message: {id: t('search_files_list_option.ext'), defaultMessage: 'Files with a extension'}},
-    {searchTerm: '-', message: {id: t('search_files_list_option.exclude'), defaultMessage: 'Exclude search terms'}, additionalDisplay: '—'},
-    {searchTerm: '""', message: {id: t('search_files_list_option.phrases'), defaultMessage: 'Files with phrases'}},
+export const searchFilesHintOptions = [{searchTerm: 'From:', message: defineMessage({id: 'search_files_list_option.from', defaultMessage: 'Files from a user'})},
+    {searchTerm: 'In:', message: defineMessage({id: 'search_files_list_option.in', defaultMessage: 'Files in a channel'})},
+    {searchTerm: 'On:', message: defineMessage({id: 'search_files_list_option.on', defaultMessage: 'Files on a date'})},
+    {searchTerm: 'Before:', message: defineMessage({id: 'search_files_list_option.before', defaultMessage: 'Files before a date'})},
+    {searchTerm: 'After:', message: defineMessage({id: 'search_files_list_option.after', defaultMessage: 'Files after a date'})},
+    {searchTerm: 'Ext:', message: defineMessage({id: 'search_files_list_option.ext', defaultMessage: 'Files with a extension'})},
+    {searchTerm: '-', message: defineMessage({id: 'search_files_list_option.exclude', defaultMessage: 'Exclude search terms'}), additionalDisplay: '—'},
+    {searchTerm: '""', message: defineMessage({id: 'search_files_list_option.phrases', defaultMessage: 'Files with phrases'})},
 ];
-
-// adding these rtranslations here so the weblate CI step will not fail with empty translation strings
-t('suggestion.archive');
-t('suggestion.mention.channels');
-t('suggestion.mention.morechannels');
-t('suggestion.mention.unread.channels');
-t('suggestion.mention.unread');
-t('suggestion.mention.members');
-t('suggestion.mention.moremembers');
-t('suggestion.mention.nonmembers');
-t('suggestion.mention.private.channels');
-t('suggestion.mention.recent.channels');
-t('suggestion.mention.special');
-t('suggestion.mention.groups');
-t('suggestion.search.public');
-t('suggestion.search.group');
-t('suggestion.commands');
-t('suggestion.emoji');
 
 const {
     DONT_CLEAR,
@@ -2116,40 +2130,41 @@ const {
     CUSTOM_DATE_TIME,
 } = CustomStatusDuration;
 
-export const durationValues = {
+export const durationValues = defineMessages({
     [DONT_CLEAR]: {
-        id: t('custom_status.expiry_dropdown.dont_clear'),
+        id: 'custom_status.expiry_dropdown.dont_clear',
         defaultMessage: "Don't clear",
     },
     [THIRTY_MINUTES]: {
-        id: t('custom_status.expiry_dropdown.thirty_minutes'),
+        id: 'custom_status.expiry_dropdown.thirty_minutes',
         defaultMessage: '30 minutes',
     },
     [ONE_HOUR]: {
-        id: t('custom_status.expiry_dropdown.one_hour'),
+        id: 'custom_status.expiry_dropdown.one_hour',
         defaultMessage: '1 hour',
     },
     [FOUR_HOURS]: {
-        id: t('custom_status.expiry_dropdown.four_hours'),
+        id: 'custom_status.expiry_dropdown.four_hours',
         defaultMessage: '4 hours',
     },
     [TODAY]: {
-        id: t('custom_status.expiry_dropdown.today'),
+        id: 'custom_status.expiry_dropdown.today',
         defaultMessage: 'Today',
     },
     [THIS_WEEK]: {
-        id: t('custom_status.expiry_dropdown.this_week'),
+        id: 'custom_status.expiry_dropdown.this_week',
         defaultMessage: 'This week',
     },
     [DATE_AND_TIME]: {
-        id: t('custom_status.expiry_dropdown.date_and_time'),
+        id: 'custom_status.expiry_dropdown.date_and_time',
         defaultMessage: 'Custom Date and Time',
     },
     [CUSTOM_DATE_TIME]: {
-        id: t('custom_status.expiry_dropdown.date_and_time'),
+        id: 'custom_status.expiry_dropdown.date_and_time',
         defaultMessage: 'Custom Date and Time',
     },
-};
+});
+
 export enum ClaimErrors {
     MFA_VALIDATE_TOKEN_AUTHENTICATE = 'mfa.validate_token.authenticate.app_error',
     ENT_LDAP_LOGIN_USER_NOT_REGISTERED = 'ent.ldap.do_login.user_not_registered.app_error',

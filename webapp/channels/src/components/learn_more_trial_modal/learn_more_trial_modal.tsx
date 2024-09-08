@@ -2,25 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
 
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import Carousel from 'components/common/carousel/carousel';
 import {BtnStyle} from 'components/common/carousel/carousel_button';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import ExternalLink from 'components/external_link';
 
 import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
@@ -44,25 +40,22 @@ const LearnMoreTrialModal = (
     const [embargoed, setEmbargoed] = useState(false);
     const dispatch = useDispatch();
 
-    const [, salesLink] = useOpenSalesLink();
-
     // Cloud conditions
     const license = useSelector(getLicense);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const isCloud = license?.Cloud === 'true';
 
     const handleEmbargoError = useCallback(() => {
         setEmbargoed(true);
     }, []);
 
-    let startTrialBtnMsg = formatMessage({id: 'start_trial.modal_btn.start_free_trial', defaultMessage: 'Start free 30-day trial'});
+    const startTrialBtnMsg = formatMessage({id: 'start_trial.modal_btn.start_free_trial', defaultMessage: 'Start free 30-day trial'});
 
     // close this modal once start trial btn is clicked and trial has started successfully
     const dismissAction = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.LEARN_MORE_TRIAL_MODAL));
     }, []);
 
-    let startTrialBtn = (
+    const startTrialBtn = (
         <StartTrialBtn
             message={startTrialBtnMsg}
             handleEmbargoError={handleEmbargoError}
@@ -70,33 +63,6 @@ const LearnMoreTrialModal = (
             onClick={dismissAction}
         />
     );
-
-    // no need to check if is cloud trial or if it have had prev cloud trial because the button that show this modal takes care of that
-    if (isCloud) {
-        startTrialBtnMsg = formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'});
-        startTrialBtn = (
-            <CloudStartTrialButton
-                message={startTrialBtnMsg}
-                telemetryId={`start_cloud_trial__learn_more_modal__${launchedBy}`}
-                onClick={dismissAction}
-                extraClass={'btn btn-primary start-cloud-trial-btn'}
-            />
-        );
-        if (cloudFreeDeprecated) {
-            startTrialBtn = (
-                <ExternalLink
-                    location='learn_more_trial_modal'
-                    href={salesLink}
-                    className='btn btn-primary start-cloud-trial-btn'
-                >
-                    <FormattedMessage
-                        id='learn_more_trial_modal.contact_sales'
-                        defaultMessage='Contact sales'
-                    />
-                </ExternalLink>
-            );
-        }
-    }
 
     const handleOnClose = useCallback(() => {
         if (onClose) {
@@ -147,7 +113,7 @@ const LearnMoreTrialModal = (
         {
             id: 'systemConsole',
             title: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
-            description: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleDescription', defaultMessage: 'Use System Roles to give designated users read and/or write access to select sections of System Console.'}),
+            description: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
             svgWrapperClassName: 'personBoxSvg',
             svgElement: (
                 <SystemRolesSVG
@@ -184,6 +150,11 @@ const LearnMoreTrialModal = (
     );
 
     const headerText = formatMessage({id: 'learn_more_trial_modal.pretitle', defaultMessage: 'With Enterprise, you can...'});
+
+    if (isCloud) {
+        // Cloud users shouldn't be able to reach this modal, but in case they do, return nothing.
+        return null;
+    }
 
     return (
         <GenericModal

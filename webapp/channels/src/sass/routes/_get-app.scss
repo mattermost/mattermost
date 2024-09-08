@@ -126,9 +126,10 @@
 .get-app__preference {
     display: flex;
     margin-top: 23px;
+    cursor: pointer;
 
     > span {
-        margin-top: -2px;
+        margin-top: 1px;
         color: #000;
         font-family: "Open Sans";
         font-size: 16px;
@@ -136,27 +137,12 @@
         line-height: 22px;
         opacity: 0.8;
     }
-}
 
-.get-app__checkbox {
-    width: 18px;
-    height: 18px;
-    padding: 0;
-    border: 2px solid $dark-gray;
-    border-radius: 3px;
-    margin-right: 7px;
-    background: none;
-
-    > * {
-        pointer-events: none;
-    }
-
-    &.checked {
-        border: 0;
-
-        svg {
-            fill: #145dbf;
-        }
+    .get-app__checkbox {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        margin-right: 7px;
     }
 }
 

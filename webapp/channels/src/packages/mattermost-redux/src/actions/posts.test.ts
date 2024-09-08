@@ -14,14 +14,22 @@ import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
 import * as Actions from 'mattermost-redux/actions/posts';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {GetStateFunc} from 'mattermost-redux/types/actions';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
+import mockStore from 'tests/test_store';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 import {Preferences, Posts, RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => {
+        return {type: ''};
+    }),
+}));
 
 describe('Actions.Posts', () => {
     let store = configureStore();
@@ -79,38 +87,6 @@ describe('Actions.Posts', () => {
         // postsInChannel[channelId] should not exist as create post should not add entry to postsInChannel when it did not exist before
         // postIds in channel do not exist
         expect(!postsInChannel[channelId]).toBeTruthy();
-    });
-
-    it('maintain postReplies', async () => {
-        const channelId = TestHelper.basicChannel!.id;
-        const post = TestHelper.fakePost(channelId);
-        const postId = TestHelper.generateId();
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post, id: postId});
-
-        await store.dispatch(Actions.createPostImmediately(post));
-
-        const post2 = TestHelper.fakePostWithId(channelId);
-        post2.root_id = postId;
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, post2);
-
-        await store.dispatch(Actions.createPostImmediately(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
-
-        nock(Client4.getBaseRoute()).
-            delete(`/posts/${post2.id}`).
-            reply(200, OK_RESPONSE);
-
-        await store.dispatch(Actions.deletePost(post2));
-        await store.dispatch(Actions.removePost(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(0);
     });
 
     it('resetCreatePostRequest', async () => {
@@ -1030,10 +1006,8 @@ describe('Actions.Posts', () => {
             reply(200, OK_RESPONSE);
 
         dispatch(Actions.flagPost(post1.id));
-        const state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
     });
 
     it('unflagPost', async () => {
@@ -1061,20 +1035,15 @@ describe('Actions.Posts', () => {
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
         dispatch(Actions.flagPost(post1.id));
-        let state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
 
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
         dispatch(Actions.unflagPost(post1.id));
-        state = getState();
-        const unflagged = state.entities.preferences.myPreferences[prefKey];
-        if (unflagged) {
-            throw new Error('unexpected unflagged');
-        }
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(false);
     });
 
     it('setUnreadPost', async () => {
@@ -1560,103 +1529,6 @@ describe('Actions.Posts', () => {
         });
     });
 
-    describe('getThreadsForPosts', () => {
-        beforeAll(() => {
-            TestHelper.initBasic(Client4);
-        });
-
-        afterAll(() => {
-            TestHelper.tearDown();
-        });
-
-        let channelId = '';
-        let post1 = TestHelper.getPostMock();
-        let post2 = TestHelper.getPostMock();
-        let post3 = TestHelper.getPostMock();
-        let comment = TestHelper.getPostMock();
-
-        beforeEach(async () => {
-            store = configureStore();
-
-            channelId = TestHelper.basicChannel!.id;
-            post1 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: ''});
-            post2 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: ''});
-            comment = TestHelper.getPostMock({id: TestHelper.generateId(), root_id: post1.id, channel_id: channelId, message: ''});
-            post3 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: ''});
-
-            store.dispatch(Actions.receivedPostsInChannel({
-                order: [post2.id, post3.id],
-                posts: {[post2.id]: post2, [post3.id]: post3},
-            } as PostList, channelId));
-
-            const threadList = {
-                order: [post1.id],
-                posts: {
-                    [post1.id]: post1,
-                    [comment.id]: comment,
-                },
-            };
-
-            nock(Client4.getBaseRoute()).
-                get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=false&collapsedThreadsExtended=false&direction=down&perPage=60`).
-                reply(200, threadList);
-        });
-
-        it('handlesNull', async () => {
-            const ret = await store.dispatch(Actions.getThreadsForPosts(null as any));
-            expect(ret).toEqual({data: true});
-
-            const state: GlobalState = store.getState();
-
-            const getRequest = state.requests.posts.getPostThread;
-            if (getRequest.status === RequestStatus.FAILURE) {
-                throw new Error(JSON.stringify(getRequest.error));
-            }
-
-            const {
-                postsInChannel,
-                postsInThread,
-            } = state.entities.posts;
-
-            expect(postsInChannel[channelId]).toBeTruthy();
-            expect(postsInChannel[channelId][0].order).toEqual([post2.id, post3.id]);
-            expect(!postsInThread[post1.id]).toBeTruthy();
-
-            const found = postsInChannel[channelId].find((block) => block.order.indexOf(comment.id) !== -1);
-
-            // should not have found comment in postsInChannel
-            expect(!found).toBeTruthy();
-        });
-
-        it('pullsUpTheThreadOfAMissingPost', async () => {
-            await store.dispatch(Actions.getThreadsForPosts([comment]));
-
-            const state: GlobalState = store.getState();
-
-            const getRequest = state.requests.posts.getPostThread;
-            if (getRequest.status === RequestStatus.FAILURE) {
-                throw new Error(JSON.stringify(getRequest.error));
-            }
-
-            const {
-                posts,
-                postsInChannel,
-                postsInThread,
-            } = state.entities.posts;
-
-            expect(posts).toBeTruthy();
-            expect(postsInChannel[channelId][0].order).toEqual([post2.id, post3.id]);
-            expect(posts[post1.id]).toBeTruthy();
-            expect(postsInThread[post1.id]).toBeTruthy();
-            expect(postsInThread[post1.id]).toEqual([comment.id]);
-
-            const found = postsInChannel[channelId].find((block) => block.order.indexOf(comment.id) !== -1);
-
-            // should not have found comment in postsInChannel
-            expect(!found).toBeTruthy();
-        });
-    });
-
     describe('receivedPostsBefore', () => {
         it('Should return default false for oldest key if param does not exist', () => {
             const posts = {} as PostList;
@@ -1706,6 +1578,78 @@ describe('Actions.Posts', () => {
                 recent: true,
                 oldest: true,
             });
+        });
+    });
+});
+
+describe('getPostThreads', () => {
+    beforeAll(() => {
+        TestHelper.initBasic(Client4);
+    });
+
+    afterAll(() => {
+        TestHelper.tearDown();
+    });
+
+    const channelId = 'currentChannelId';
+    const initialState = {
+        entities: {
+            channels: {
+                currentChannelId: channelId,
+            },
+            users: {
+                currentUserId: 'currentUserId',
+                statuses: {},
+                profiles: {},
+            },
+            general: {
+                config: {},
+            },
+            posts: {
+                posts: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+    };
+
+    const post1 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: '', user_id: 'currentUserId'});
+    const comment = TestHelper.getPostMock({id: TestHelper.generateId(), root_id: post1.id, channel_id: channelId, message: '', user_id: 'currentUserId'});
+
+    it('handles null', async () => {
+        const testStore = await mockStore(initialState);
+        const ret = await testStore.dispatch(Actions.getPostThreads(null as any));
+        expect(ret).toEqual({data: true});
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+
+    it('pulls up the thread of missing root post in the same channel', async () => {
+        const testStore = await mockStore(initialState);
+        nock(Client4.getBaseRoute()).
+            get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=false&collapsedThreadsExtended=false&direction=down&perPage=60`).
+            reply(200, {
+                order: [post1.id],
+                posts: {
+                    [post1.id]: post1,
+                    [comment.id]: comment,
+                },
+            });
+
+        await testStore.dispatch(Actions.getPostThreads([comment]));
+
+        expect(testStore.getActions()[0].payload[0].type).toEqual('RECEIVED_POSTS');
+        expect(testStore.getActions()[0].payload[0].data.posts).toEqual({
+            [post1.id]: post1,
+            [comment.id]: comment,
+        });
+
+        expect(testStore.getActions()[0].payload[1].type).toEqual('RECEIVED_POSTS_IN_THREAD');
+        expect(testStore.getActions()[0].payload[1].rootId).toEqual(post1.id);
+        expect(testStore.getActions()[0].payload[1].data.posts).toEqual({
+            [post1.id]: post1,
+            [comment.id]: comment,
         });
     });
 });

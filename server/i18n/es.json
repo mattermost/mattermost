@@ -3136,14 +3136,6 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "No se pudo crear el procesador a granel de Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "No se pudo iniciar procesador a granel de Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ya fue detenido."
   },
@@ -4452,10 +4444,6 @@
     "translation": "Por favor, ingresa una dirección válida de correo electrónico."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La contraseña debe contener al menos {{.Min}} caracteres."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula."
   },
@@ -5488,10 +5476,6 @@
     "translation": "Su licencia de la Enterprise Edition ha expirado y algunas características pueden estar desactivadas. Por favor, renueve su licencia ahora."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renovar Licencia ahora"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
@@ -5758,10 +5742,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Superado el Límite del Tamaño. Intente comprobar el [tamaño máximo de página](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "Error al eliminar el equipo o las membresias de los canales"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -6426,10 +6406,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "El tiempo de espera del trabajo de sincronización AD/LDAP fue alcanzado."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "No se encontró el endpoint del API para el agrupamiento de servidores."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -7136,20 +7112,12 @@
     "translation": "Envíenos un correo electrónico en cualquier momento a "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "Falló la actualización de los avisos vistos"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Uno o más de los siguientes permisos que está intentando añadir o eliminar no está permitido"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error al obtener el enlace de renovación de la licencia"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7236,18 +7204,6 @@
     "translation": "error al seleccionar"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "No hay licencia presente"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Este tipo de licencia no soporta la generación de tokens de renovación"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Falla al generar un nuevo token de renovación."
-  },
-  {
     "id": "app.insert_error",
     "translation": "error al insertar"
   },
@@ -7286,46 +7242,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Error al obtener el endpoint desde Documento de Descubrimiento."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Su factura de Mattermost Cloud está por vencer"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "El pago de su suscripción a Mattermost Cloud está pendiente"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Para revisar su factura y añadir un método de pago, seleccione Pagar ahora."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Su factura de Mattermost Cloud para el período de facturación más reciente ha sido procesada. Sin embargo, no tenemos los detalles de su pago guardados."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Pagar ahora"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "El pago ha fallado"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Se requiere una acción: El pago de {{.Plan}} Mattermost Cloud no se ha realizado"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Para asegurar un acceso ininterrumpido a {{.Plan}} Mattermost Cloud, por favor, póngase en contacto con su institución financiera para resolver el problema subyacente o actualizar su información de pago. Una vez actualizada la información de pago, Mattermost intentará liquidar cualquier saldo pendiente."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Proporcionaron la siguiente razón:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -7512,10 +7428,6 @@
     "translation": "Error al generar la contraseña."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "No se ha podido leer el archivo adjunto durante la importación."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "No se ha podido añadir un fichero al archivo zip durante la exportación."
   },
@@ -7648,20 +7560,12 @@
     "translation": "Su suscripción a Mattermost está pendiente de renovación"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Acceda a su cuenta de cliente para renovar"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, tu suscripción caduca en {{.Days}} días. Esperamos que esté experimentando la colaboración en equipo flexible y segura que permite Mattermost. Renueva pronto para asegurarte de que tu equipo pueda seguir disfrutando de estos beneficios."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Su licencia está pendiente de renovación"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renovar ahora"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -7786,10 +7690,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Fallo en el envío de correos electrónicos de renovación de licencias"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "No se ha podido generar el enlace de renovación de la licencia"
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8132,10 +8032,6 @@
     "translation": "Invitación desde una conexión segura"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "No se ha podido descifrar la invitación. Contraseña incorrecta o invitación corrupta: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[acción]"
   },
@@ -8428,10 +8324,6 @@
     "translation": "Fallo al comprobar si el almacén de usuarios está vacío."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "No se ha enviado ningún correo electrónico con éxito"
-  },
-  {
     "id": "app.user.send_auto_response.app_error",
     "translation": "No se puede enviar la respuesta automática del usuario."
   },
@@ -8536,10 +8428,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Se ha producido un error al crear un canal directo compartido."
-  },
-  {
     "id": "app.post.marshal.app_error",
     "translation": "Error al procesar mensaje."
   },
@@ -8630,10 +8518,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "El número de IDs de mensajes recibidos ha superado el tamaño máximo de {{.MaxLength}}"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "No es posible renovar esta licencia en el portal"
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -8752,10 +8636,6 @@
     "translation": "Los ajustes de almacenamiento de archivos tienen valores sin asignar."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": " "
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Los ajustes de Búsqueda Elástica tienen valores no establecidos."
   },
@@ -8828,10 +8708,6 @@
     "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName}}"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "¡Ahora estás actualizado!"
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": " "
   },
@@ -8846,194 +8722,6 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": " "
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "La suscripción no es morosa"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "No se pudo recuperar la suscripción de la nube"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "No se puede obtener el nombre del plan actual"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "No se pudieron obtener los productos de la nube"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Tu workspace Mattermost ha sido degradado"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Para desarchivar tus datos y mantener las características de pago, actualiza tu información de pago."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Si usas características Cloud Professional o Enterprise para operaciones importantes de negocio, ya no estarán activas y experimentarás un rendimiento degradado."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Tu workspace Mattermost Cloud ha sido degradado"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Ver Planes y Precios"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Tu workspace será degradado en 15 días"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Tu espacio de trabajo será degradado a Cloud Free. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu espacio de trabajo podrían ser archivados hasta que liquides completamente tu saldo pendiente."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Este es un aviso final de que no hemos recibido el pago por tu workspace Mattermost Cloud desde {{.DelinquencyDate}}"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Degradar a Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Tu pago no se completó"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Para mantener tu plan {{.Plan}} activo, por favor contacta a tu institución financiera tan pronto como sea posible, Luego, actualiza tus detalles de pago según sea necesario."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "No pudimos procesar tu pago más reciente"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Tu workspace Mattermost será degradado en 30 días"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Free abajo."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Degradaremos tu workspace automáticamente en 30 días si no somos capaces de procesar tu pago."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Por favor actualiza pronto tu información de pago para procesar tus facturas pendientes."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Acción requerida: El workspace será degradado en 30 días"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Degradar a Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Tu workspace será degradado pronto"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Actualiza la información de tu tarjeta de crédito ahora."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "No fuimos capaces de cobrar el pago para las facturas con fecha {{.DelinquencyDate}}. Tu workspace está en riesgo de ser degradado."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Aviso: Tu {{.Plan}} Mattermost será degradado pronto"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Tu workspace será degradado pronto"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "si no se toma ninguna medida, tu workspace será degradado y los siguientes datos serán archivados:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Tienes tiempo para mantener activo tu {{.Plan}} Mattermost pero necesitarás resolver los problemas con tu método de pago."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Actúa para mantener las característica de tu {{.Plan}} Mattermost"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Ver toda la documentación de límites."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Historial de mensajes"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Archivos"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Pago no recibido"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Por favor contacta a tu institución financiera para resolver cualquier problema. Luego, actualiza los detalles de pago como sean necesarios."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu espacio de trabajo está en riesgo de ser degradado a Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "El pago está atrasado para tu Mattermost {{.Plan}}."
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Actualizar pago"
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
@@ -9062,10 +8750,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "los miembros {{.UsersNum}} del espacio de trabajo {{.WorkspaceName}} han solicitado comenzar la prueba Enterprise para acceder a: "
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Campos faltantes requeridos para enviar el correo electrónico de morosidad."
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -9280,18 +8964,6 @@
     "translation": "El tamaño de la página es inválido o demasiado grande."
   },
   {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "No se pudo obtener el conteo total de usuarios activos"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "No se pudo obtener el conteo total de webhooks entrantes"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "No se pudo obtener el conteo total de webhooks salientes"
-  },
-  {
     "id": "api.payload.parse.error",
     "translation": "Ha ocurrido un error al analizar el payload."
   },
@@ -9306,10 +8978,6 @@
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
     "translation": "Las publicaciones de notificación persistente deben tener Prioridad Urgente."
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "El servidor CWS falló al eliminar el espacio de trabajo."
   },
   {
     "id": "api.server.cws.disabled",
@@ -9330,5 +8998,25 @@
   {
     "id": "api.server.cws.health_check.app_error",
     "translation": "El servidor CWS no está disponible."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Tu licencia no soporta marcadores de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "El usuario no tiene permitido crear un marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Error al crear el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Error al crear el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Error al eliminar el marcador de canal."
   }
 ]

@@ -29,7 +29,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -55,7 +55,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -113,7 +113,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -134,7 +134,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -144,7 +144,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -165,7 +165,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -175,7 +175,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -196,7 +196,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -231,40 +231,30 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -299,7 +289,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -325,7 +315,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -383,7 +373,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -404,7 +394,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -414,7 +404,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -435,7 +425,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -445,7 +435,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -466,7 +456,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -501,40 +491,30 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -569,7 +549,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -595,7 +575,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -653,7 +633,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -674,7 +654,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -684,7 +664,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -705,7 +685,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -715,7 +695,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -736,7 +716,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -771,40 +751,30 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -839,7 +809,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -865,7 +835,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -923,7 +893,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -944,7 +914,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -954,7 +924,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -975,7 +945,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -985,7 +955,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -1006,7 +976,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -1041,40 +1011,30 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
+      <WithTooltip
+        id="error-tooltip"
         placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
+        title=""
       >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <FormError
+            error={null}
+            errors={Array []}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>

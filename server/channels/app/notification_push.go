@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/mattermost/server/public/plugin"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -24,8 +25,12 @@ import (
 )
 
 type notificationType string
-type notifyPropsReason string
-type statusReason string
+
+type pushJWTClaims struct {
+	AckId    string `json:"ack_id"`
+	DeviceId string `json:"device_id"`
+	jwt.RegisteredClaims
+}
 
 const (
 	notificationTypeClear       notificationType = "clear"
@@ -33,13 +38,7 @@ const (
 	notificationTypeUpdateBadge notificationType = "update_badge"
 	notificationTypeDummy       notificationType = "dummy"
 
-	NotifyPropsReasonChannelMuted  notifyPropsReason = "channel_muted"
-	NotifyPropsReasonSystemMessage notifyPropsReason = "system_message"
-	NotifyPropsReasonSetToNone     notifyPropsReason = "notify_props_set_to_note"
-	NotifyPropsReasonSetToMention  notifyPropsReason = "notify_props_set_to_mention_and_was_not_mentioned"
-
-	StatusReasonDNDOrOOO statusReason = "status_is_dnd_or_ooo"
-	StatusReasonIsActive statusReason = "user_is_active_on_channel"
+	notificationErrorRemoveDevice = "device was reported as removed"
 )
 
 type PushNotificationsHub struct {
@@ -87,16 +86,16 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 		return appErr
 	}
 
-	return a.sendPushNotificationToAllSessions(msg, user.Id, "")
+	return a.sendPushNotificationToAllSessions(c, msg, user.Id, "")
 }
 
-func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
+func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
 	rejectionReason := ""
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {
-			mlog.Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			rctx.Logger().Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
 			return false
 		}
 		if replacementNotification != nil {
@@ -107,32 +106,36 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 	if rejectionReason != "" {
 		// Notifications rejected by a plugin should not be considered errors
-		a.NotificationsLog().Info("Notification rejected by plugin",
-			mlog.String("type", model.TypePush),
-			mlog.String("status", model.StatusNotSent),
-			mlog.String("reason", rejectionReason),
+		// This is likely normal operation so no need for metrics here
+		a.NotificationsLog().Debug("Notification rejected by plugin",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("status", model.NotificationStatusNotSent),
+			mlog.String("reason", model.NotificationReasonRejectedByPlugin),
+			mlog.String("rejection_reason", rejectionReason),
 			mlog.String("user_id", userID),
 		)
 		return nil
 	}
 
-	sessions, err := a.getMobileAppSessions(userID)
-	if err != nil {
+	sessions, appErr := a.getMobileAppSessions(userID)
+	if appErr != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Failed to send mobile app sessions",
-			mlog.String("type", model.TypePush),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonFetchError),
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonFetchError),
 			mlog.String("user_id", userID),
-			mlog.Err(err),
+			mlog.Err(appErr),
 		)
-		return err
+		return appErr
 	}
 
 	if msg == nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Failed to parse push notification",
-			mlog.String("type", model.TypePush),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonServerError),
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonParseError),
 			mlog.String("user_id", userID),
 		)
 		return model.NewAppError(
@@ -147,10 +150,11 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
+			a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonSessionExpired, model.NotificationNoPlatform)
 			a.NotificationsLog().Debug("Session expired or skipped",
-				mlog.String("type", model.TypePush),
-				mlog.String("status", model.StatusNotSent),
-				mlog.String("reason", model.ReasonUserStatus),
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("status", model.NotificationStatusNotSent),
+				mlog.String("reason", model.NotificationReasonSessionExpired),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
 			)
@@ -161,13 +165,36 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
+		signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
+			AckId:    tmpMessage.AckId,
+			DeviceId: tmpMessage.DeviceId,
+		}).SignedString(a.AsymmetricSigningKey())
 
-		err := a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
+			a.NotificationsLog().Error("Notification error",
+				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("type", tmpMessage.Type),
+				mlog.String("userId", session.UserId),
+				mlog.String("postId", tmpMessage.PostId),
+				mlog.String("channelId", tmpMessage.ChannelId),
+				mlog.String("deviceId", tmpMessage.DeviceId),
+				mlog.String("status", err.Error()),
+			)
+			continue
+		}
+		tmpMessage.Signature = signature
+
+		err = a.sendToPushProxy(tmpMessage, session)
+		if err != nil {
+			reason := model.NotificationReasonPushProxySendError
+			if err.Error() == notificationErrorRemoveDevice {
+				reason = model.NotificationReasonPushProxyRemoveDevice
+			}
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
 			a.NotificationsLog().Error("Failed to send to push proxy",
-				mlog.String("type", model.TypePush),
-				mlog.String("status", model.StatusNotSent),
-				mlog.String("reason", model.ReasonPushProxyError),
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("status", model.NotificationStatusNotSent),
+				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
 				mlog.String("user_id", session.UserId),
@@ -178,7 +205,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		}
 
 		a.NotificationsLog().Trace("Notification sent to push proxy",
-			mlog.String("type", model.TypePush),
+			mlog.String("type", model.NotificationTypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
@@ -188,6 +215,10 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 		if a.Metrics() != nil {
 			a.Metrics().IncrementPostSentPush()
+		}
+
+		if msg.Type == model.PushTypeMessage {
+			a.CountNotification(model.NotificationTypePush, tmpMessage.Platform)
 		}
 	}
 
@@ -311,7 +342,7 @@ func (a *App) clearPushNotificationSync(c request.CTX, currentSessionId, userID,
 		IsCRTEnabled:     isCRTEnabled,
 	}
 
-	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
+	return a.sendPushNotificationToAllSessions(c, msg, userID, currentSessionId)
 }
 
 func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID string) {
@@ -341,7 +372,7 @@ func (a *App) updateMobileAppBadgeSync(c request.CTX, userID string) *model.AppE
 		ContentAvailable: 1,
 		Badge:            badgeCount,
 	}
-	return a.sendPushNotificationToAllSessions(msg, userID, "")
+	return a.sendPushNotificationToAllSessions(c, msg, userID, "")
 }
 
 func (a *App) UpdateMobileAppBadge(userID string) {
@@ -465,6 +496,10 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("response returned error code: %d", resp.StatusCode)
+	}
+
 	var pushResponse model.PushResponse
 	if err := json.NewDecoder(resp.Body).Decode(&pushResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode from JSON: %w", err)
@@ -477,7 +512,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	msg.ServerId = a.TelemetryId()
 
 	a.NotificationsLog().Trace("Notification will be sent",
-		mlog.String("type", model.TypePush),
+		mlog.String("type", model.NotificationTypePush),
 		mlog.String("ack_id", msg.AckId),
 		mlog.String("push_type", msg.Type),
 		mlog.String("user_id", session.UserId),
@@ -494,7 +529,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	case model.PushStatusRemove:
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
-		return errors.New("device was reported as removed")
+		return errors.New(notificationErrorRemoveDevice)
 	case model.PushStatusFail:
 		return errors.New(pushResponse[model.PushStatusErrorMsg])
 	}
@@ -507,7 +542,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	}
 
 	a.NotificationsLog().Trace("Notification successfully received",
-		mlog.String("type", model.TypePush),
+		mlog.String("type", model.NotificationTypePush),
 		mlog.String("ack_id", ack.Id),
 		mlog.String("push_type", ack.NotificationType),
 		mlog.String("post_id", ack.PostId),
@@ -537,6 +572,10 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("response returned error code: %d", resp.StatusCode)
+	}
+
 	// Reading the body to completion.
 	_, err = io.Copy(io.Discard, resp.Body)
 	return err
@@ -553,25 +592,25 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
 	if notifyPropsAllowedReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason, model.NotificationNoPlatform)
 		a.NotificationsLog().Debug("Notification not sent - notify props",
-			mlog.String("type", model.TypePush),
+			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", model.StatusNotSent),
-			mlog.String("reason", model.ReasonUserConfig),
-			mlog.String("notify_props_reason", notifyPropsAllowedReason),
+			mlog.String("status", model.NotificationStatusNotSent),
+			mlog.String("reason", notifyPropsAllowedReason),
 			mlog.String("sender_id", post.UserId),
 			mlog.String("receiver_id", user.Id),
 		)
 		return false
 	}
 
-	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId); statusAllowedReason != "" {
+	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId, false); statusAllowedReason != "" {
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusAllowedReason, model.NotificationNoPlatform)
 		a.NotificationsLog().Debug("Notification not sent - status",
-			mlog.String("type", model.TypePush),
+			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", model.StatusNotSent),
-			mlog.String("reason", model.ReasonUserConfig),
-			mlog.String("status_reason", statusAllowedReason),
+			mlog.String("status", model.NotificationStatusNotSent),
+			mlog.String("reason", statusAllowedReason),
 			mlog.String("sender_id", post.UserId),
 			mlog.String("receiver_id", user.Id),
 			mlog.String("receiver_status", status.Status),
@@ -582,7 +621,7 @@ func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps mo
 	return true
 }
 
-func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) notifyPropsReason {
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) model.NotificationReason {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
@@ -600,19 +639,19 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 
 	// If the channel is muted do not send push notifications
 	if channelNotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention {
-		return NotifyPropsReasonChannelMuted
+		return model.NotificationReasonChannelMuted
 	}
 
 	if post.IsSystemMessage() {
-		return NotifyPropsReasonSystemMessage
+		return model.NotificationReasonSystemMessage
 	}
 
 	if notify == model.ChannelNotifyNone {
-		return NotifyPropsReasonSetToNone
+		return model.NotificationReasonLevelSetToNone
 	}
 
 	if notify == model.ChannelNotifyMention && !wasMentioned {
-		return NotifyPropsReasonSetToMention
+		return model.NotificationReasonNotMentioned
 	}
 
 	if (notify == model.ChannelNotifyAll) &&
@@ -623,14 +662,18 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	return ""
 }
 
-func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string) statusReason {
+func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string, isCRT bool) model.NotificationReason {
 	// If User status is DND or OOO return false right away
 	if status.Status == model.StatusDnd || status.Status == model.StatusOutOfOffice {
-		return StatusReasonDNDOrOOO
+		return model.NotificationReasonUserStatus
 	}
 
 	pushStatus, ok := userNotifyProps[model.PushStatusNotifyProp]
-	if (pushStatus == model.StatusOnline || !ok) && (status.ActiveChannel != channelID || model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout) {
+	sendOnlineNotification := status.ActiveChannel != channelID || //We are in a different channel
+		model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout || //It has been a while since we were last active on this channel
+		isCRT //Is CRT, so being active in a channel doesn't mean you are seeing thread activity
+
+	if (pushStatus == model.StatusOnline || !ok) && sendOnlineNotification {
 		return ""
 	}
 
@@ -642,7 +685,7 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 		return ""
 	}
 
-	return StatusReasonIsActive
+	return model.NotificationReasonUserIsActive
 }
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
@@ -689,11 +732,12 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 
 	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, msg.Platform)
 		a.NotificationsLog().Error("Failed to send test notification to push proxy",
-			mlog.String("type", model.TypePush),
+			mlog.String("type", model.NotificationTypePush),
 			mlog.String("push_type", msg.Type),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonPushProxyError),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonPushProxySendError),
 			mlog.String("device_id", msg.DeviceId),
 			mlog.Err(err),
 		)
@@ -704,11 +748,12 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 	case model.PushStatusRemove:
 		return "false"
 	case model.PushStatusFail:
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxyError, msg.Platform)
 		a.NotificationsLog().Error("Push proxy failed to send test notification",
-			mlog.String("type", model.TypePush),
+			mlog.String("type", model.NotificationTypePush),
 			mlog.String("push_type", msg.Type),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonPushProxyError),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonPushProxyError),
 			mlog.String("device_id", msg.DeviceId),
 			mlog.Err(errors.New(pushResponse[model.PushStatusErrorMsg])),
 		)

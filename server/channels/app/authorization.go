@@ -82,7 +82,7 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 		return false
 	}
 
-	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, session.UserId, true, true)
 	var channelRoles []string
 	if err == nil {
 		if roles, ok := ids[channelID]; ok {
@@ -134,7 +134,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		return true
 	}
 
-	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, session.UserId, true, true)
 	var channelRoles []string
 	for _, channelID := range channelIDs {
 		if err == nil {
@@ -266,7 +266,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 	// We call GetAllChannelMembersForUser instead of just getting
 	// a single member from the DB, because it's cache backed
 	// and this is a very frequent call.
-	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(askingUserId, true, true)
+	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, askingUserId, true, true)
 	var channelRoles []string
 	if err == nil {
 		if roles, ok := ids[channelID]; ok {
@@ -371,6 +371,14 @@ func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Se
 	return nil
 }
 
+func (a *App) SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool {
+	if session.IsUnrestricted() {
+		return true
+	}
+
+	return a.HasPermissionToReadChannel(c, session.UserId, channel)
+}
+
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
 	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
 		return false
@@ -381,6 +389,21 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 
 	if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 		return a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel)
+	}
+
+	return false
+}
+
+func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, channel *model.Channel) bool {
+	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
+		return false
+	}
+	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
+		return true
+	}
+
+	if channel.Type == model.ChannelTypeOpen {
+		return a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionListTeamChannels)
 	}
 
 	return false

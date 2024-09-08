@@ -87,6 +87,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         EnableSignUpWithGoogle,
         EnableSignUpWithOpenId,
         EnableOpenServer,
+        EnableUserCreation,
         LdapLoginFieldName,
         GitLabButtonText,
         GitLabButtonColor,
@@ -105,7 +106,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
     const currentUser = useSelector(getCurrentUser);
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
-    const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
+    const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => (experimentalPrimaryTeam ? getMyTeamMember(state, experimentalPrimaryTeam.id) : undefined));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
 
     const loginIdInput = useRef<HTMLInputElement>(null);
@@ -125,10 +126,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableCustomBrand = EnableCustomBrand === 'true';
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
+    const enableUserCreation = EnableUserCreation === 'true';
     const enableSaml = EnableSaml === 'true';
     const enableSignInWithEmail = EnableSignInWithEmail === 'true';
     const enableSignInWithUsername = EnableSignInWithUsername === 'true';
-    const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
+    const enableSignUpWithEmail = enableUserCreation && EnableSignUpWithEmail === 'true';
     const enableSignUpWithGitLab = EnableSignUpWithGitLab === 'true';
     const enableSignUpWithGoogle = EnableSignUpWithGoogle === 'true';
     const enableSignUpWithOffice365 = EnableSignUpWithOffice365 === 'true';
@@ -184,7 +186,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 id: 'office365',
                 url,
                 icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }
@@ -252,7 +254,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const showSessionExpiredNotificationIfNeeded = useCallback(() => {
         if (sessionExpired && !closeSessionExpiredNotification!.current) {
-            showNotification({
+            dispatch(showNotification({
                 title: siteName,
                 body: formatMessage({
                     id: 'login.session_expired.notification',
@@ -267,7 +269,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         closeSessionExpiredNotification.current = undefined;
                     }
                 },
-            }).then((closeNotification) => {
+            })).then(({callback: closeNotification}) => {
                 closeSessionExpiredNotification.current = closeNotification;
             }).catch(() => {
                 // Ignore the failure to display the notification.
@@ -666,7 +668,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             history.push(redirectTo);
         } else if (team) {
             history.push(`/${team.name}`);
-        } else if (experimentalPrimaryTeamMember.team_id) {
+        } else if (experimentalPrimaryTeamMember?.team_id) {
             // Only set experimental team if user is on that team
             history.push(`/${ExperimentalPrimaryTeam}`);
         } else if (onboardingFlowEnabled) {
@@ -745,7 +747,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (ForgotPasswordLink) {
             return (
                 <div className='login-body-card-form-link'>
-                    <ExternalLink href={ForgotPasswordLink}>
+                    <ExternalLink
+                        location='login_page'
+                        href={ForgotPasswordLink}
+                    >
                         {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
                     </ExternalLink>
                 </div>

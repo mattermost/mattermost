@@ -336,10 +336,6 @@
     "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака и поне една малка буква."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Невалидна длъжност: не трябва да е по-дълга от 128 знака."
   },
@@ -1792,10 +1788,6 @@
     "translation": "Не могат да се получат всички потребители, използващи AD/LDAP."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "грешка при изтриване на членство в екип или канал"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "Профил с това потребителско име вече съществува. Моля, свържете се с вашия администратор."
   },
@@ -1892,20 +1884,12 @@
     "translation": "Elasticsearch вече е спрян."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Неуспешно стартиране на групов процесор Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Неуспешен анализ на версията на сървъра Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Неуспешно получаване версията на сървъра Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Неуспешно създаване на групов процесор Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -2150,10 +2134,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Конфигурацията на клъстера се промени за id = {{.id}}. Клъстерът може да стане нестабилен и се изисква рестартиране. За да сте сигурни, че клъстерът е конфигуриран правилно, трябва незабавно да извършите допълнителен рестарт."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Крайната точка на клъстер API не е намерена."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -2966,18 +2946,6 @@
   {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Ново директно съобщение от {{.SenderDisplayName}} на {{.Day}} {{.Month}}, {{.Year}}"
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Няма наличен лиценз"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Този тип лиценз не поддържа генериране на маркери за подновяване"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Неуспешно генериране на нов маркер за подновяване."
   },
   {
     "id": "app.job.update.app_error",
@@ -3888,52 +3856,8 @@
     "translation": "Корпоративния лиценз е изтекъл и някои функции може да бъдат забранени. Моля, подновете го."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Подновяване на лиценза"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Преглед на съобщението"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Вашата Mattermost Cloud фактура е дължима"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Плащането се дължи за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "За да прегледате фактурата си и да добавите начин на плащане, изберете Плати сега."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Вашата фактура за Mattermost Cloud за последния период на фактуриране е обработена. Ние обаче не разполагаме с вашите данни за плащане."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Плати сега"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Неуспешно плащане"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Изисква се действие: Неуспешно плащане за Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "За да осигурите непрекъснат абонамент за Mattermost Cloud, моля, свържете се с вашата финансова институция, за да отстраните проблема или актуализирайте данните си за плащане. След като се актуализира информацията за плащане, Mattermost ще се опита да уреди неплатеното салдо."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Посочена е следната причина:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Вашата финансова институция отказа плащане от вашата {{.CardBrand}} **** {{.LastFour}}, свързана с вашето работно пространство в Mattermost Cloud."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -4054,10 +3978,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "Деактивирахте профила си на {{.SiteURL}}."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -5264,10 +5184,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Не можете да получите пробен лиценз, моля опитайте отново или се свържете със support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Грешка при получаване на връзката за подновяване на лиценза"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -7636,10 +7552,6 @@
     "translation": "Неуспешно свързване с smtp сървър"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Неуспешно четене на прикачения файл при вноса."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Неуспешно добавяне на файл в zip архива при износа."
   },
@@ -7666,10 +7578,6 @@
   {
     "id": "api.export.export_not_found.app_error",
     "translation": "Неуспешно търсене на износния файл."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Няма успешно изпратена ел.поща"
   },
   {
     "id": "mfa.deactivate.app_error",
@@ -8052,10 +7960,6 @@
     "translation": "Покана от защитена връзка"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не може да дешифрира поканата. Неправилна парола или повредена покана: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[действие]"
   },
@@ -8126,10 +8030,6 @@
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": "Не мога да получа общите ИН на екипите."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Срещната е грешка при създаването на директен споделен канал."
   },
   {
     "id": "app.notification.footer.title",
@@ -8460,10 +8360,6 @@
     "translation": "Вашият абонамент за Mattermost подлежи на подновяване"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Влезте в клиентския си профил, за да подновите"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, абонаментът Ви изтича след {{.Days}} дни. Надяваме се, че ще се насладите на гъвкавото и сигурно екипно сътрудничество, което Mattermost позволява. Подновете абонамента си скоро, за да гарантирате, че екипът Ви ще продължи да се възползва от тези предимства."
   },
@@ -8472,16 +8368,8 @@
     "translation": "Лицензът Ви подлежи на подновяване"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Поднови сега"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Неуспешно изпращане на ел.поща за подновяване на лиценза"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Неуспешно генериране връзката за подновяване на лиценза"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",

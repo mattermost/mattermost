@@ -5,21 +5,14 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 type Props = {
     timeLimit: number;
     onClick: () => void;
     isDisabled: boolean | undefined;
 }
-export default function EditPostTimeLimitButton(props: Props) {
-    let messageID;
-    if (props.timeLimit === Constants.UNSET_POST_EDIT_TIME_LIMIT) {
-        messageID = t('edit_post.time_limit_button.no_limit');
-    } else {
-        messageID = t('edit_post.time_limit_button.for_n_seconds');
-    }
 
+export default function EditPostTimeLimitButton(props: Props) {
     return (
         <button
             type='button'
@@ -28,10 +21,18 @@ export default function EditPostTimeLimitButton(props: Props) {
             disabled={props.isDisabled}
         >
             <i className='fa fa-gear'/>
-            <FormattedMessage
-                id={messageID}
-                values={{n: props.timeLimit}}
-            />
+            {props.timeLimit === Constants.UNSET_POST_EDIT_TIME_LIMIT ? (
+                <FormattedMessage
+                    id='edit_post.time_limit_button.no_limit'
+                    defaultMessage='Anytime'
+                />
+            ) : (
+                <FormattedMessage
+                    id='edit_post.time_limit_button.for_n_seconds'
+                    defaultMessage='For {n} seconds'
+                    values={{n: props.timeLimit}}
+                />
+            )}
         </button>
     );
 }

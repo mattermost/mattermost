@@ -68,6 +68,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T932 Users - Change a user\'s password', () => {
         // # Search for the user.
         cy.findByPlaceholderText('Search users').type(testUser.email).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', testUser.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -160,7 +161,7 @@ describe('System Console > User Management > Users', () => {
 
         // * Verify the appropriate error is returned.
         cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').
-            and('contain', 'Must be 5-64 characters long.');
+            and('contain', 'Must be 5-72 characters long.');
     });
 
     it('MM-T936 Users - System admin changes own password - Blank fields', () => {
@@ -188,7 +189,7 @@ describe('System Console > User Management > Users', () => {
 
         // * Verify the appropriate error is returned.
         cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').
-            and('contain', 'Must be 5-64 characters long.');
+            and('contain', 'Must be 5-72 characters long.');
     });
 
     it('MM-T937 Users - System admin changes own password - Successfully changed', () => {

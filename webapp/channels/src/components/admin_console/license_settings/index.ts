@@ -7,7 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {uploadLicense, removeLicense, getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
-import {getUsersLimits} from 'mattermost-redux/actions/limits';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
@@ -43,7 +43,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             requestTrialLicense,
             openModal,
             getFilteredUsersStats,
-            getUsersLimits,
+            getServerLimits,
         }, dispatch),
     };
 }

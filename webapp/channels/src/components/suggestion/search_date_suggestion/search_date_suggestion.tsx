@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Locale} from 'date-fns';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {DayPicker} from 'react-day-picker';
 
 import Constants from 'utils/constants';
@@ -20,66 +20,63 @@ type Props = SuggestionProps<never> & {
     preventClose?: () => void;
 }
 
-export default class SearchDateSuggestion extends React.PureComponent<Props> {
-    private loadedLocales: Record<string, Locale> = {};
+const IconLeft = () => {
+    return (
+        <i className='icon icon-chevron-left'/>
+    );
+};
 
-    state = {
-        datePickerFocused: false,
-    };
+const IconRight = () => {
+    return (
+        <i className='icon icon-chevron-right'/>
+    );
+};
 
-    handleDayClick = (day: Date) => {
+const DAY_PICKER_ICONS = {IconRight, IconLeft};
+
+const SearchDateSuggestion = ({
+    currentDate,
+    handleEscape,
+    locale,
+    preventClose,
+    matchedPretext,
+    onClick,
+}: Props) => {
+    let loadedLocales: Record<string, Locale> = {};
+    loadedLocales = Utils.getDatePickerLocalesForDateFns(locale, loadedLocales);
+    const [datePickerFocused, setDatePickerFocused] = useState(false);
+
+    const handleDayClick = useCallback((day: Date) => {
         const dayString = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate())).toISOString().split('T')[0];
-        this.props.onClick(dayString, this.props.matchedPretext);
-    };
+        onClick(dayString, matchedPretext);
+    }, [onClick, matchedPretext]);
 
-    handleKeyDown = (e: KeyboardEvent) => {
-        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) && document.activeElement?.id === 'searchBox') {
-            this.setState({datePickerFocused: true});
-        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
-            this.props.handleEscape?.();
-        }
-    };
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) && document.activeElement?.id === 'searchBox') {
+                setDatePickerFocused(true);
+            } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+                handleEscape?.();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleEscape]);
 
-    componentDidMount() {
-        document.addEventListener('keydown', this.handleKeyDown);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleKeyDown);
-    }
-
-    iconLeft = () => {
-        return (
-            <i className='icon icon-chevron-left'/>
-        );
-    };
-
-    iconRight = () => {
-        return (
-            <i className='icon icon-chevron-right'/>
-        );
-    };
-
-    render() {
-        const locale: string = this.props.locale;
-
-        this.loadedLocales = Utils.getDatePickerLocalesForDateFns(locale, this.loadedLocales);
-
-        return (
-            <DayPicker
-                onDayClick={this.handleDayClick}
-                showOutsideDays={true}
-                mode={'single'}
-                locale={this.loadedLocales[locale]}
-                initialFocus={this.state.datePickerFocused}
-                onMonthChange={this.props.preventClose}
-                id='searchDatePicker'
-                selected={this.props.currentDate}
-                components={{
-                    IconRight: this.iconRight,
-                    IconLeft: this.iconLeft,
-                }}
-            />
-        );
-    }
-}
+    return (
+        <DayPicker
+            onDayClick={handleDayClick}
+            showOutsideDays={true}
+            mode={'single'}
+            locale={loadedLocales[locale]}
+            initialFocus={datePickerFocused}
+            onMonthChange={preventClose}
+            id='searchDatePicker'
+            selected={currentDate}
+            components={DAY_PICKER_ICONS}
+        />
+    );
+};
+export default React.memo(SearchDateSuggestion);

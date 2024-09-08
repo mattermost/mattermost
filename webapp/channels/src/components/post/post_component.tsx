@@ -22,7 +22,6 @@ import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
-import OverlayTrigger from 'components/overlay_trigger';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
@@ -37,9 +36,9 @@ import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
-import Tooltip from 'components/tooltip';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
@@ -55,7 +54,7 @@ import PostUserProfile from './user_profile';
 
 export type Props = {
     post: Post;
-    currentTeam: Team;
+    currentTeam?: Team;
     team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
@@ -92,7 +91,6 @@ export type Props = {
     actions: {
         markPostAsUnread: (post: Post, location: string) => void;
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
-        setActionsMenuInitialisationState: (viewed: Record<string, boolean>) => void;
         selectPost: (post: Post) => void;
         selectPostFromRightHandSideSearch: (post: Post) => void;
         removePost: (post: Post) => void;
@@ -128,7 +126,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
-    const teamId = props.team?.id || props.currentTeam.id;
+    const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
     const [a11yActive, setA11y] = useState(false);
@@ -391,12 +389,12 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam.id === teamId) {
+        if (props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -593,17 +591,15 @@ const PostComponent = (props: Props): JSX.Element => {
                                 }
                                 {priority}
                                 {post.props && post.props.card &&
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='top'
-                                        overlay={
-                                            <Tooltip>
-                                                <FormattedMessage
-                                                    id='post_info.info.view_additional_info'
-                                                    defaultMessage='View additional info'
-                                                />
-                                            </Tooltip>
+                                    <WithTooltip
+                                        id='post_info.info.view_additional_info'
+                                        title={
+                                            <FormattedMessage
+                                                id='post_info.info.view_additional_info'
+                                                defaultMessage='View additional info'
+                                            />
                                         }
+                                        placement='top'
                                     >
                                         <button
                                             className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
@@ -617,7 +613,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                                 aria-hidden='true'
                                             />
                                         </button>
-                                    </OverlayTrigger>
+                                    </WithTooltip>
                                 }
                                 {visibleMessage}
                             </div>

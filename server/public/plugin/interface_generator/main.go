@@ -511,7 +511,10 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 		})
 	}
 	templateResult := &bytes.Buffer{}
-	hooksTemplate.Execute(templateResult, &templateParams)
+	err = hooksTemplate.Execute(templateResult, &templateParams)
+	if err != nil {
+		panic(err)
+	}
 
 	formatted, err := imports.Process("", templateResult.Bytes(), nil)
 	if err != nil {
@@ -565,7 +568,10 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 		}
 
 		templateResult := &bytes.Buffer{}
-		parsedTemplate.Execute(templateResult, &templateParams)
+		err = parsedTemplate.Execute(templateResult, &templateParams)
+		if err != nil {
+			panic(err)
+		}
 
 		formatted, err := imports.Process("", templateResult.Bytes(), nil)
 		if err != nil {

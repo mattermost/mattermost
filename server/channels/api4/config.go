@@ -30,12 +30,12 @@ const (
 )
 
 func (api *API) InitConfig() {
-	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(getConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(updateConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(getConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config", api.APISessionRequired(updateConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
 }
 
 func init() {
@@ -62,7 +62,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if jsonErr != nil {
-			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			return
 		}
 		w.Write(js)
@@ -98,7 +98,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.ReloadConfig(); err != nil {
-		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -258,7 +258,9 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		config = c.App.Srv().Platform().ClientConfigWithComputed()
 	}
 
-	w.Write([]byte(model.MapToJSON(config)))
+	if err := json.NewEncoder(w).Encode(config); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {

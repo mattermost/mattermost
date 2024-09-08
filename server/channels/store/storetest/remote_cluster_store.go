@@ -31,7 +31,7 @@ func makeSiteURL() string {
 	return "www.example.com/" + model.NewId()
 }
 
-func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",
@@ -145,7 +145,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterDelete(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote",
@@ -167,7 +167,7 @@ func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGet(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("Get", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote_2",
@@ -192,7 +192,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGetByPluginID(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGetByPluginID(t *testing.T, _ request.CTX, ss store.Store) {
 	const pluginID = "com.acme.bogus.plugin"
 
 	t.Run("GetByPluginID", func(t *testing.T) {
@@ -217,7 +217,7 @@ func testRemoteClusterGetByPluginID(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 }
 
-func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGetAll(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	userId := model.NewId()
@@ -230,11 +230,16 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		{Name: "another_online_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), LastPingAt: now, Topics: ""},
 		{Name: "another_offline_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), LastPingAt: pingLongAgo, Topics: " shared "},
 		{Name: "brand_new_offline_remote", CreatorId: userId, SiteURL: "", LastPingAt: 0, Topics: " bogus shared stuff "},
+		{Name: "offline_plugin_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), PluginID: model.NewId(), LastPingAt: 0, Topics: " pluginshare "},
+		{Name: "online_plugin_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), PluginID: model.NewId(), LastPingAt: now, Topics: " pluginshare "},
 	}
 
 	idsAll := make([]string, 0)
 	idsOnline := make([]string, 0)
 	idsShareTopic := make([]string, 0)
+	idsPlugin := make([]string, 0)
+	idsNotPlugin := make([]string, 0)
+	idsConfirmed := make([]string, 0)
 
 	for _, item := range data {
 		online := item.LastPingAt == now
@@ -247,11 +252,19 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		if strings.Contains(saved.Topics, " shared ") {
 			idsShareTopic = append(idsShareTopic, saved.RemoteId)
 		}
+		if item.PluginID != "" {
+			idsPlugin = append(idsPlugin, saved.RemoteId)
+		} else {
+			idsNotPlugin = append(idsNotPlugin, saved.RemoteId)
+		}
+		if item.SiteURL != "" {
+			idsConfirmed = append(idsConfirmed, saved.RemoteId)
+		}
 	}
 
 	t.Run("GetAll", func(t *testing.T) {
 		filter := model.RemoteClusterQueryFilter{}
-		remotes, err := ss.RemoteCluster().GetAll(filter)
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure all the test data remotes were returned.
 		ids := getIds(remotes)
@@ -262,7 +275,7 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		filter := model.RemoteClusterQueryFilter{
 			ExcludeOffline: true,
 		}
-		remotes, err := ss.RemoteCluster().GetAll(filter)
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure all the online remotes were returned.
 		ids := getIds(remotes)
@@ -273,7 +286,7 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		filter := model.RemoteClusterQueryFilter{
 			Topic: "shared",
 		}
-		remotes, err := ss.RemoteCluster().GetAll(filter)
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure only correct topic returned
 		ids := getIds(remotes)
@@ -285,7 +298,7 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 			ExcludeOffline: true,
 			Topic:          "shared",
 		}
-		remotes, err := ss.RemoteCluster().GetAll(filter)
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure only online remotes were returned.
 		ids := getIds(remotes)
@@ -299,7 +312,7 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		filter := model.RemoteClusterQueryFilter{
 			CreatorId: userId,
 		}
-		remotes, err := ss.RemoteCluster().GetAll(filter)
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure only correct creator returned
 		assert.Len(t, remotes, 3)
@@ -312,13 +325,47 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		filter := model.RemoteClusterQueryFilter{
 			OnlyConfirmed: true,
 		}
-		remotes, err := ss.RemoteCluster().GetAll(filter)
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure only confirmed returned
-		assert.Len(t, remotes, 4)
 		for _, rc := range remotes {
 			assert.NotEmpty(t, rc.SiteURL)
 		}
+		// make sure all confirmed returned
+		ids := getIds(remotes)
+		assert.ElementsMatch(t, ids, idsConfirmed)
+	})
+
+	t.Run("GetAll only plugins", func(t *testing.T) {
+		filter := model.RemoteClusterQueryFilter{
+			OnlyPlugins: true,
+		}
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		// make sure only plugin remotes returned
+		for _, rc := range remotes {
+			assert.NotEmpty(t, rc.PluginID)
+			assert.True(t, rc.IsPlugin())
+		}
+		// make sure all the plugin remotes were returned.
+		ids := getIds(remotes)
+		assert.ElementsMatch(t, ids, idsPlugin)
+	})
+
+	t.Run("GetAll excluding plugins", func(t *testing.T) {
+		filter := model.RemoteClusterQueryFilter{
+			ExcludePlugins: true,
+		}
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		// make sure only non plugin remotes returned
+		for _, rc := range remotes {
+			assert.Empty(t, rc.PluginID)
+			assert.False(t, rc.IsPlugin())
+		}
+		// make sure all of the non plugin remotes were returned.
+		ids := getIds(remotes)
+		assert.ElementsMatch(t, ids, idsNotPlugin)
 	})
 }
 
@@ -383,7 +430,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		filter := model.RemoteClusterQueryFilter{
 			InChannel: channel1.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 2, "channel 1 should have 2 remote clusters")
 		ids := getIds(list)
@@ -397,7 +444,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 			ExcludeOffline: true,
 			InChannel:      channel1.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 1, "channel 1 should have 1 online remote clusters")
 		ids := getIds(list)
@@ -408,7 +455,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		filter := model.RemoteClusterQueryFilter{
 			InChannel: channel2.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 3, "channel 2 should have 3 remote clusters")
 		ids := getIds(list)
@@ -420,7 +467,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 			ExcludeOffline: true,
 			InChannel:      channel2.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 2, "channel 2 should have 2 online remote clusters")
 		ids := getIds(list)
@@ -431,7 +478,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		filter := model.RemoteClusterQueryFilter{
 			InChannel: channel3.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Empty(t, list, "channel 3 should have 0 remote clusters")
 	})
@@ -492,7 +539,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		filter := model.RemoteClusterQueryFilter{
 			NotInChannel: channel1.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 3, "channel 1 should have 3 remote clusters that are not already members")
 		ids := getIds(list)
@@ -503,7 +550,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		filter := model.RemoteClusterQueryFilter{
 			NotInChannel: channel2.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 3, "channel 2 should have 3 remote clusters that are not already members")
 		ids := getIds(list)
@@ -514,7 +561,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		filter := model.RemoteClusterQueryFilter{
 			NotInChannel: channel3.Id,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 4, "channel 3 should have 4 remote clusters that are not already members")
 		ids := getIds(list)
@@ -525,7 +572,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		filter := model.RemoteClusterQueryFilter{
 			NotInChannel: model.NewId(),
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		require.Len(t, list, 5, "should have 5 remote clusters that are not already members")
 		ids := getIds(list)
@@ -542,7 +589,7 @@ func getIds(remotes []*model.RemoteCluster) []string {
 	return ids
 }
 
-func testRemoteClusterGetByTopic(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGetByTopic(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	rcData := []*model.RemoteCluster{
@@ -577,7 +624,7 @@ func testRemoteClusterGetByTopic(t *testing.T, rctx request.CTX, ss store.Store)
 		filter := model.RemoteClusterQueryFilter{
 			Topic: tt.topic,
 		}
-		list, err := ss.RemoteCluster().GetAll(filter)
+		list, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		if tt.expectError {
 			assert.Errorf(t, err, "expected error for topic=%s", tt.topic)
 		} else {
@@ -587,7 +634,7 @@ func testRemoteClusterGetByTopic(t *testing.T, rctx request.CTX, ss store.Store)
 	}
 }
 
-func testRemoteClusterUpdateTopics(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterUpdateTopics(t *testing.T, _ request.CTX, ss store.Store) {
 	remoteId := model.NewId()
 	rc := &model.RemoteCluster{
 		DisplayName: "Blap Inc",
@@ -625,7 +672,7 @@ func testRemoteClusterUpdateTopics(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func clearRemoteClusters(ss store.Store) error {
-	list, err := ss.RemoteCluster().GetAll(model.RemoteClusterQueryFilter{})
+	list, err := ss.RemoteCluster().GetAll(0, 999999, model.RemoteClusterQueryFilter{})
 	if err != nil {
 		return err
 	}

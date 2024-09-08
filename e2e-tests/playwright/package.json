@@ -15,12 +15,12 @@
         "postinstall": "script/post_install.sh"
     },
     "dependencies": {
-        "@axe-core/playwright": "4.8.5",
-        "@percy/cli": "1.28.1",
-        "@percy/playwright": "1.0.4",
-        "@playwright/test": "1.42.1",
+        "@axe-core/playwright": "4.9.0",
+        "@percy/cli": "1.28.3",
+        "@percy/playwright": "1.0.5",
+        "@playwright/test": "1.43.1",
         "async-wait-until": "2.0.12",
-        "axe-core": "4.8.4",
+        "axe-core": "4.9.0",
         "chalk": "4.1.2",
         "deepmerge": "4.3.1",
         "dotenv": "16.4.5",
@@ -35,6 +35,6 @@
         "cross-env": "7.0.3",
         "eslint": "8.57.0",
         "prettier": "3.2.5",
-        "typescript": "5.4.2"
+        "typescript": "5.4.5"
     }
 }

@@ -59,14 +59,14 @@ services:
       timeout: 10s
       retries: 3
   minio:
-    image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
+    image: "minio/minio:RELEASE.2024-06-22T05-26-45Z"
     command: "server /data"
     networks:
       - mm-test
     environment:
-      MINIO_ACCESS_KEY: minioaccesskey
-      MINIO_SECRET_KEY: miniosecretkey
-      MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+      MINIO_ROOT_USER: minioaccesskey
+      MINIO_ROOT_PASSWORD: miniosecretkey
+      MINIO_KMS_SECRET_KEY: my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw=
   inbucket:
     image: "inbucket/inbucket:stable"
     restart: always
@@ -87,7 +87,7 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
-    image: "mattermostdevelopment/mattermost-elasticsearch:7.17.10"
+    image: "mattermostdevelopment/mattermost-elasticsearch:8.9.0"
     networks:
       - mm-test
     environment:
@@ -98,34 +98,71 @@ services:
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
+      xpack.security.enabled: "false"
+      action.destructive_requires_name: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  opensearch:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.opensearch
+    networks:
+      - mm-test
+    environment:
+      http.host: "0.0.0.0"
+      http.port: 9201
+      http.cors.enabled: "true"
+      http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+      http.cors.allow-credentials: "true"
+      transport.host: "127.0.0.1"
+      discovery.type: single-node
+      plugins.security.disabled: "true"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     networks:
       - mm-test
   keycloak:
-    image: "jboss/keycloak:10.0.2"
+    image: "quay.io/keycloak/keycloak:23.0.7"
     restart: always
-    environment:
-      KEYCLOAK_USER: mmuser
-      KEYCLOAK_PASSWORD: mostest
-      DB_VENDOR: h2
-      KEYCLOAK_IMPORT: /setup/realm.json
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     networks:
       - mm-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak:/setup"
+     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
   prometheus:
     image: "prom/prometheus:v2.46.0"
+    user: root
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - mm-test
   grafana:
-    image: "grafana/grafana:10.0.3"
+    image: "grafana/grafana:10.4.2"
     volumes:
-     - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
-     - "./docker/grafana/provisioning:/etc/grafana/provisioning"
-     - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
+      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
+      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+      - mm-test
+  loki:
+    image: "grafana/loki:3.0.0"
+    networks:
+      - mm-test
+  promtail:
+    image: "grafana/promtail:3.0.0"
+    volumes:
+      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../logs:/logs"
+    command: -config.file=/etc/promtail/docker-config.yaml
     networks:
       - mm-test

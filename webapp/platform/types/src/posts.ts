@@ -221,3 +221,10 @@ export type PostInfo = {
     team_display_name: string;
     has_joined_team: boolean;
 }
+
+export type NotificationStatus = 'error' | 'not_sent' | 'unsupported' | 'success';
+export type NotificationResult = {
+    status: NotificationStatus;
+    reason?: string;
+    data?: string;
+}

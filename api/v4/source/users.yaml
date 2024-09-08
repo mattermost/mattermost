@@ -142,6 +142,10 @@
                   type: string
                 nickname:
                   type: string
+                position:
+                  type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 auth_data:
                   description: Service-specific authentication data, such as email address.
                   type: string
@@ -195,8 +199,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of users per page. There is a maximum limit of 200 users
-            per page.
+          description: The number of users per page.
           schema:
             type: integer
             default: 60
@@ -912,6 +915,8 @@
                   type: string
                 position:
                   type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 props:
                   type: object
                 notify_props:
@@ -2613,16 +2618,16 @@
             type: string
         - name: page
           in: query
-          description: Page specifies which part of the results to return, by PageSize.
+          description: Page specifies which part of the results to return, by perPage.
           required: false
           schema:
             type: integer
-        - name: pageSize
+        - name: per_page
           in: query
-          description: PageSize specifies the size of the returned chunk of results.
-          required: false
+          description: The size of the returned chunk of results.
           schema:
-           type: integer
+            type: integer
+            default: 60
       responses:
         "200":
           description: User's uploads retrieval successful
@@ -2782,18 +2787,17 @@
           default: false
       - name: page
         in: query
-        description: Page specifies which part of the results to return, by PageSize.
+        description: Page specifies which part of the results to return, by per_page.
         required: false
         schema:
           type: integer
           default: 0
-      - name: pageSize
+      - name: per_page
         in: query
-        description: PageSize specifies the size of the returned chunk of results.
-        required: false
+        description: The size of the returned chunk of results.
         schema:
-         default: 30
-         type: integer
+          type: integer
+          default: 60
       - name: totalsOnly
         in: query
         description: Setting this to true will only return the total counts.
@@ -3140,7 +3144,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of policies per page. There is a maximum limit of 200 per page.
+          description: The number of policies per page.
           schema:
             type: integer
             default: 60
@@ -3190,7 +3194,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of policies per page. There is a maximum limit of 200 per page.
+          description: The number of policies per page.
           schema:
             type: integer
             default: 60
@@ -3233,8 +3237,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of users per page. There is a maximum limit of 200 users
-            per page.
+          description: The number of users per page.
           schema:
             type: integer
             default: 60

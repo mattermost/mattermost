@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -14,6 +15,12 @@ import mockStore from 'tests/test_store';
 
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {
+        return {type: ''};
+    }),
+}));
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    addUserIdsForStatusFetchingPoll: jest.fn(() => {
         return {type: ''};
     }),
 }));
@@ -76,20 +83,21 @@ describe('actions/status_actions', () => {
         },
     };
 
-    describe('loadStatusesForChannelAndSidebar', () => {
+    describe('addUserIdsForStatusAndProfileFetchingPoll', () => {
         test('load statuses with posts in channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id2', 'user_id3']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalled();
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id2', 'user_id3']);
         });
 
         test('load statuses with empty channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id3']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id3']);
         });
 
         test('load statuses with empty channel and no users in sidebar', () => {
@@ -97,8 +105,8 @@ describe('actions/status_actions', () => {
             state.entities.channels.currentChannelId = 'channel_id2';
             state.entities.preferences.myPreferences = {};
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).not.toHaveBeenCalled();
         });
     });
 

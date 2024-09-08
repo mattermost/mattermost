@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -146,8 +147,14 @@ func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
+func (c *ClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
+	return nil, nil
+}
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
 func (c *ClusterMock) HealthScore() int { return 0 }
+func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
+}

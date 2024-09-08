@@ -28,6 +28,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -40,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
@@ -66,7 +68,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
@@ -304,11 +305,13 @@ func NewServer(options ...Option) (*Server, error) {
 	model.AppErrorInit(i18n.T)
 
 	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "seen_pending_post_ids",
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -322,7 +325,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
+		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
 	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
 	if err2 != nil {
@@ -497,6 +500,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 func (s *Server) runJobs() {
 	s.runLicenseExpirationCheckJob()
+
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
@@ -528,6 +532,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runConfigCleanupJob(s)
+	})
+	s.Go(func() {
+		runCloudUserCountReportJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -1233,6 +1240,13 @@ func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
 
+// Reports activated user count to the CWS every 24 hours
+func runCloudUserCountReportJob(s *Server) {
+	model.CreateRecurringTask("Report user count for cloud subscription", func() {
+		s.doReportUserCountForCloudSubscriptionJob()
+	}, time.Hour*24)
+}
+
 func doTokenCleanup(s *Server) {
 	expiry := model.GetMillis() - model.MaxTokenExipryTime
 
@@ -1296,16 +1310,6 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
-	if appErr != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
-	if err != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	// we want to at least have one email sent out to an admin
 	countNotOks := 0
 
@@ -1315,13 +1319,10 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 			name = user.Username
 		}
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaTitle := T("api.templates.license_up_for_renewal_subtitle_two")
-		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsRenewable {
-			ctaTitle = ""
-			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
-			ctaLink = "https://mattermost.com/contact-sales/"
-		}
+
+		ctaTitle := ""
+		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
+		ctaLink := "https://mattermost.com/contact-sales/"
 
 		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, ctaTitle, ctaLink, ctaText, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
@@ -1346,6 +1347,26 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	return nil
 }
 
+func (s *Server) doReportUserCountForCloudSubscriptionJob() {
+	s.LoadLicense()
+
+	if !s.License().IsCloud() {
+		return
+	}
+
+	mlog.Debug("Reporting daily user count for cloud subscription.")
+
+	appInstance := New(ServerConnector(s.Channels()))
+
+	_, err := appInstance.SendSubscriptionHistoryEvent("")
+
+	if err != nil {
+		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
+	}
+
+	mlog.Debug("Daily user count reported for cloud subscription.")
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 
@@ -1365,8 +1386,6 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		appInstance := New(ServerConnector(s.Channels()))
-		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 
@@ -1389,18 +1408,6 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
-	if appErr != nil {
-		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr).Error())
-		return
-	}
-
-	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
-	if err != nil {
-		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err).Error())
-		return
-	}
-
 	//send email to admin(s)
 	for _, user := range users {
 		user := user
@@ -1410,11 +1417,8 @@ func (s *Server) doLicenseExpirationCheck() {
 		}
 
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaText := T("api.templates.remove_expired_license.body.renew_button")
-		if !status.IsRenewable {
-			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
-			ctaLink = "https://mattermost.com/contact-sales/"
-		}
+		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
+		ctaLink := "https://mattermost.com/contact-sales/"
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
@@ -1632,6 +1636,11 @@ func (s *Server) initJobs() {
 		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil,
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteDmsPreferencesMigration,
+		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
 
 	s.platform.Jobs = s.Jobs
 }

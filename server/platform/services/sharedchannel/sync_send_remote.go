@@ -107,6 +107,10 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)
 		}
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Auto-invited remote to channel (BitflagOptionAutoInvited)",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("channel_id", task.channelID),
+		)
 	} else if err != nil {
 		return err
 	}
@@ -266,7 +270,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
 	count := len(posts)
-	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
+	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
 	cache := postsSliceToMap(posts)
 
@@ -280,7 +284,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		}
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
-		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
+		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
 	sd.resultNextCursor = nextCursor
@@ -289,7 +293,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	return nil
 }
 
-func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64) []*model.Post {
+func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64, logger mlog.LoggerIFace) []*model.Post {
 	// Append the posts individually, checking for root posts that might appear later in the list.
 	// This is due to the UpdateAt collision handling algorithm where the order of posts is not based
 	// on UpdateAt or CreateAt when the posts have the same UpdateAt value. Here we are guarding
@@ -298,7 +302,7 @@ func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostSt
 	// happens during load testing or bulk imports.
 	for _, p := range posts {
 		if p.RootId != "" {
-			root, err := postStore.GetSingle(p.RootId, true)
+			root, err := postStore.GetSingle(request.EmptyContext(logger), p.RootId, true)
 			if err == nil {
 				if (root.CreateAt >= timestamp || root.UpdateAt >= timestamp) && !containsPost(dest, root) {
 					dest = append(dest, root)

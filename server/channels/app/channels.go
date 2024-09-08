@@ -110,8 +110,8 @@ func NewChannels(s *Server) (*Channels, error) {
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
 	}
-	if samlInterfaceNew != nil {
-		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
+	if samlInterface != nil {
+		ch.Saml = samlInterface(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}

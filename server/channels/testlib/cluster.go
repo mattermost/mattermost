@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -63,6 +64,10 @@ func (c *FakeClusterInterface) QueryLogs(page, perPage int) (map[string][]string
 	return make(map[string][]string), nil
 }
 
+func (c *FakeClusterInterface) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
+	return nil, nil
+}
+
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
@@ -102,4 +107,8 @@ func (c *FakeClusterInterface) ClearMessages() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.messages = nil
+}
+
+func (c *FakeClusterInterface) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
 }

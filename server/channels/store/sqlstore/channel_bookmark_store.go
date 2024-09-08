@@ -4,15 +4,15 @@
 package sqlstore
 
 import (
+	"slices"
 	"strconv"
 
 	sq "github.com/mattermost/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-
-	"github.com/pkg/errors"
 )
 
 type SqlChannelBookmarkStore struct {
@@ -262,7 +262,7 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 	}
 
 	bookmarks = utils.RemoveElementFromSliceAtIndex(bookmarks, currentIndex)
-	bookmarks = utils.InsertElementToSliceAtIndex(bookmarks, current, int(newIndex))
+	bookmarks = slices.Insert(bookmarks, int(newIndex), current)
 	caseStmt := sq.Case()
 	query := s.getQueryBuilder().
 		Update("ChannelBookmarks")
@@ -317,7 +317,6 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 			From("ChannelBookmarks").
 			Where(sq.And{
 				sq.Eq{"Id": bookmarkId},
-				sq.Eq{"DeleteAt": 0},
 			})
 
 		fileQuery, fileArgs, fileErr := s.getQueryBuilder().

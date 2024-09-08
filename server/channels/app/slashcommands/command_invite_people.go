@@ -75,7 +75,7 @@ func (*InvitePeopleProvider) DoCommand(a *app.App, c request.CTX, args *model.Co
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.no_email")}
 	}
 
-	if err := a.InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
+	if err := a.InviteNewUsersToTeam(c, emailList, args.TeamId, args.UserId); err != nil {
 		c.Logger().Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.fail")}
 	}

@@ -2,92 +2,62 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
+import type {ChangeEvent} from 'react';
 import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {searchProfiles} from 'mattermost-redux/actions/users';
+
+import {openModal} from 'actions/views/modals';
+import {setPopoverSearchTerm} from 'actions/views/search';
 
 import {QuickInput} from 'components/quick_input/quick_input';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
 import UserGroupsModal from 'components/user_groups_modal';
 import ViewUserGroupModal from 'components/view_user_group_modal';
-import Popover from 'components/widgets/popover';
 
-import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
+import Constants, {A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {shouldFocusMainTextbox} from 'utils/post_utils';
 
-import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import {Load} from './constants';
-import useShouldClose from './useShouldClose';
 
 import './user_group_popover.scss';
 
 export type Props = {
-
-    /**
-     * The group corresponding to the parent popover
-     */
     group: Group;
-
-    /**
-     * Function to call if parent popover should be hidden
-     */
     hide: () => void;
-
-    /**
-     * Function to call if focus should be returned to triggering element
-     */
     returnFocus: () => void;
-
-    /**
-     * Function to call to show a profile popover and hide parent popover
-     */
-    showUserOverlay: (user: UserProfile) => void;
-
-    /**
-     * @internal
-     */
-    searchTerm: string;
-
-    actions: {
-        setPopoverSearchTerm: (term: string) => void;
-        searchProfiles: (term: string, options: any) => Promise<ActionResult>;
-        openModal: <P>(modalData: ModalData<P>) => void;
-    };
 }
 
 const UserGroupPopover = ({
-    actions,
     group,
     hide,
     returnFocus,
-    searchTerm,
-    showUserOverlay,
 }: Props) => {
     const {formatMessage} = useIntl();
-
     const closeRef = useRef<HTMLButtonElement>(null);
+
+    const dispatch = useDispatch();
+
+    const searchTerm = useSelector((state: GlobalState) => state.views.search.popoverSearch);
 
     const [searchState, setSearchState] = useState(Load.DONE);
 
-    const shouldClose = useShouldClose();
-
     const doSearch = useCallback(debounce(async (term) => {
-        const res = await actions.searchProfiles(term, {in_group_id: group.id});
+        const res = await dispatch(searchProfiles(term, {in_group_id: group.id}));
         if (res.data) {
             setSearchState(Load.DONE);
         } else {
             setSearchState(Load.FAILED);
         }
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfiles]);
+    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), []);
 
     useEffect(() => {
         // Focus the close button when the popover first opens
@@ -102,9 +72,9 @@ const UserGroupPopover = ({
 
         // Unset the popover search term on mount and unmount
         // This is to prevent some odd rendering issues when quickly opening and closing popovers
-        actions.setPopoverSearchTerm('');
+        dispatch(setPopoverSearchTerm(''));
         return () => {
-            actions.setPopoverSearchTerm('');
+            dispatch(setPopoverSearchTerm(''));
         };
     }, []);
 
@@ -118,26 +88,20 @@ const UserGroupPopover = ({
         }
     }, [searchTerm, doSearch]);
 
-    useEffect(() => {
-        if (shouldClose) {
-            hide();
-        }
-    }, [hide, shouldClose]);
-
     const openGroupsModal = () => {
-        actions.openModal({
+        dispatch(openModal({
             modalId: ModalIdentifiers.USER_GROUPS,
             dialogType: UserGroupsModal,
             dialogProps: {
                 backButtonAction: openGroupsModal,
                 onExited: returnFocus,
             },
-        });
+        }));
     };
 
     const openViewGroupModal = () => {
         hide();
-        actions.openModal({
+        dispatch(openModal({
             modalId: ModalIdentifiers.VIEW_USER_GROUP,
             dialogType: ViewUserGroupModal,
             dialogProps: {
@@ -146,7 +110,7 @@ const UserGroupPopover = ({
                 backButtonAction: openViewGroupModal,
                 onExited: returnFocus,
             },
-        });
+        }));
     };
 
     const handleClose = () => {
@@ -154,106 +118,81 @@ const UserGroupPopover = ({
         returnFocus();
     };
 
-    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        actions.setPopoverSearchTerm(event.target.value);
+    const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
+        dispatch(setPopoverSearchTerm(event.target.value));
     };
 
     const handleClear = () => {
-        actions.setPopoverSearchTerm('');
+        dispatch(setPopoverSearchTerm(''));
     };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (shouldFocusMainTextbox(e, document.activeElement)) {
-            hide();
-        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
-            returnFocus();
-        }
-    };
-
-    const tabCatcher = (
-        <span
-            tabIndex={0}
-            onFocus={(e) => {
-                (e.relatedTarget as HTMLElement)?.focus();
-            }}
-        />
-    );
 
     return (
-        <Popover
-            id='user-group-popover'
-        >
-            {tabCatcher}
-            <Body
-                role='dialog'
-                aria-modal={true}
-                onKeyDown={handleKeyDown}
-                className={A11yClassNames.POPUP}
-                aria-label={group.display_name}
-            >
-                <Header>
-                    <Heading>
-                        <Title
-                            className='overflow--ellipsis text-nowrap'
-                        >
-                            {group.display_name}
-                        </Title>
-                        <CloseButton
-                            className='btn btn-sm btn-compact btn-icon'
-                            aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
-                            onClick={handleClose}
-                            ref={closeRef}
-                        >
-                            <i
-                                className='icon icon-close'
-                            />
-                        </CloseButton>
-                    </Heading>
-                    <Subtitle>
-                        <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
-                        <Dot>{'•'}</Dot>
-                        <FormattedMessage
-                            id='user_group_popover.memberCount'
-                            defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
-                            values={{
-                                member_count: group.member_count,
-                            }}
-                            tagName={NoShrink}
+        <Body>
+            <Header>
+                <Heading>
+                    <Title
+                        className='overflow--ellipsis text-nowrap'
+                    >
+                        {group.display_name}
+                    </Title>
+                    <CloseButton
+                        className='btn btn-sm btn-compact btn-icon'
+                        aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close user group popover'})}
+                        onClick={handleClose}
+                        ref={closeRef}
+                    >
+                        <i
+                            className='icon icon-close'
                         />
-                    </Subtitle>
-                    <HeaderButton
-                        aria-label={`${group.display_name} @${group.name} ${formatMessage({id: 'user_group_popover.memberCount', defaultMessage: '{member_count} {member_count, plural, one {Member} other {Members}}'}, {member_count: group.member_count})} ${formatMessage({id: 'user_group_popover.openGroupModal', defaultMessage: 'View full group info'})}`}
-                        onClick={openViewGroupModal}
-                        className='user-group-popover_header-button'
+                    </CloseButton>
+                </Heading>
+                <Subtitle>
+                    <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
+                    <Dot>{'•'}</Dot>
+                    <FormattedMessage
+                        id='user_group_popover.memberCount'
+                        defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
+                        values={{
+                            member_count: group.member_count,
+                        }}
+                        tagName={NoShrink}
                     />
-                </Header>
-                {group.member_count > 10 ? (
-                    <SearchBar>
-                        <MagnifyIcon/>
-                        <QuickInput
-                            type='text'
-                            className='user-group-popover_search-bar'
-                            placeholder={formatMessage({id: 'user_group_popover.searchGroupMembers', defaultMessage: 'Search members'})}
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            clearable={true}
-                            onClear={handleClear}
-                        />
-                    </SearchBar>
-                ) : null}
-                <GroupMemberList
-                    group={group}
-                    hide={hide}
-                    searchState={searchState}
-                    showUserOverlay={showUserOverlay}
+                </Subtitle>
+                <HeaderButton
+                    aria-label={`${group.display_name} @${group.name} ${formatMessage({id: 'user_group_popover.memberCount', defaultMessage: '{member_count} {member_count, plural, one {Member} other {Members}}'}, {member_count: group.member_count})} ${formatMessage({id: 'user_group_popover.openGroupModal', defaultMessage: 'View full group info'})}`}
+                    onClick={openViewGroupModal}
+                    className='user-group-popover_header-button'
                 />
-            </Body>
-            {tabCatcher}
-        </Popover>);
+            </Header>
+            {group.member_count > 10 ? (
+                <SearchBar>
+                    <MagnifyIcon/>
+                    <QuickInput
+                        type='text'
+                        className='user-group-popover_search-bar'
+                        placeholder={formatMessage({id: 'user_group_popover.searchGroupMembers', defaultMessage: 'Search members'})}
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        clearable={true}
+                        onClear={handleClear}
+                    />
+                </SearchBar>
+            ) : null}
+            <GroupMemberList
+                group={group}
+                hide={hide}
+                searchState={searchState}
+            />
+        </Body>
+    );
 };
 
 const Body = styled.div`
     width: 264px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
 `;
 
 const Header = styled.div`

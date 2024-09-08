@@ -123,7 +123,7 @@ describe('Team Settings', () => {
         // * Check that the display name of the team the user was invited to is being correctly displayed
         cy.uiGetLHSHeader().findByText(testTeam.display_name);
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        // * Check that the 'Town Square' channel title is visible
+        cy.get('h2.channel-intro__title').should('be.visible').should('have.text', 'Town Square');
     });
 });

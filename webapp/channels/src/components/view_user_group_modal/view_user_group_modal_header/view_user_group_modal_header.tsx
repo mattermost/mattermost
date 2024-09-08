@@ -161,20 +161,24 @@ const ViewUserGroupModalHeader = ({
 
     return (
         <Modal.Header closeButton={true}>
-            <button
-                type='button'
-                className='modal-header-back-button btn btn-icon'
-                aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                onClick={goBack}
-            >
-                <i
-                    className='icon icon-arrow-left'
-                />
-            </button>
-            {modalTitle()}
-            {addPeopleButton()}
-            {restoreGroupButton()}
-            {subMenuButton()}
+            <div className='d-flex align-items-center'>
+                <button
+                    type='button'
+                    className='modal-header-back-button btn btn-icon'
+                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                    onClick={goBack}
+                >
+                    <i
+                        className='icon icon-arrow-left'
+                    />
+                </button>
+                {modalTitle()}
+            </div>
+            <div className='d-flex align-items-center'>
+                {addPeopleButton()}
+                {restoreGroupButton()}
+                {subMenuButton()}
+            </div>
         </Modal.Header>
     );
 };

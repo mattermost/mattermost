@@ -57,7 +57,7 @@ func TestDoUploadFile(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
@@ -67,7 +67,7 @@ func TestDoUploadFile(t *testing.T) {
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
 	assert.Equal(t, value, info1.Path, "stored file at incorrect path")
 
-	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
@@ -77,7 +77,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
 	assert.Equal(t, value, info2.Path, "stored file at incorrect path")
 
-	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
@@ -87,7 +87,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
 	assert.Equal(t, value, info3.Path, "stored file at incorrect path")
 
-	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data)
+	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
@@ -97,7 +97,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
 	assert.Equal(t, value, info4.Path, "stored file at incorrect path")
 
-	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data)
+	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
@@ -327,7 +327,10 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 
 			file := r.File[0]
 			assert.Equal(t, "file1", file.Name)
-			assert.GreaterOrEqual(t, file.Modified, time.Now().Add(-1*time.Second))
+			now := time.Now().Truncate(time.Second) // Files are stored with a second precision
+			// Confirm that the file was created in the last 10 seconds
+			assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
+			assert.GreaterOrEqual(t, now, file.Modified)
 
 			fr, err := file.Open()
 			require.NoError(t, err)
@@ -355,7 +358,7 @@ func TestCopyFileInfos(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
@@ -653,7 +656,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Files: &model.FilesLimits{
-				TotalStorage: model.NewInt64(1),
+				TotalStorage: model.NewPointer(int64(1)),
 			},
 		}, nil)
 

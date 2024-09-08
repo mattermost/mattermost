@@ -9,12 +9,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 // RemoveStringFromSlice removes the first occurrence of a from slice.
@@ -32,7 +32,7 @@ func RemoveStringsFromSlice(slice []string, strings ...string) []string {
 	newSlice := []string{}
 
 	for _, item := range slice {
-		if !pUtils.Contains(strings, item) {
+		if !slices.Contains(strings, item) {
 			newSlice = append(newSlice, item)
 		}
 	}
@@ -87,17 +87,8 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
-func InsertElementToSliceAtIndex[T comparable](slice []T, element T, index int) []T {
-	if len(slice) == index {
-		return append(slice, element)
-	}
-	slice = append(slice[:index+1], slice[index:]...)
-	slice[index] = element
-	return slice
-}
-
-func RemoveElementFromSliceAtIndex[T comparable](slice []T, index int) []T {
-	return append(slice[:index], slice[index+1:]...)
+func RemoveElementFromSliceAtIndex[S ~[]E, E any](slice S, index int) S {
+	return slices.Delete(slice, index, index+1)
 }
 
 func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
@@ -252,24 +243,11 @@ func RoundOffToZeroes(n float64) int64 {
 	return firstDigit * tens
 }
 
-func MinInt(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-func MaxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // RoundOffToZeroesResolution truncates off at most minResolution zero places.
 // It implicitly sets the lowest minResolution to 0.
 // e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
 func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
-	resolution := MaxInt(0, minResolution)
+	resolution := max(0, minResolution)
 	if n >= -9 && n <= 9 {
 		if resolution == 0 {
 			return int64(n)
@@ -278,7 +256,7 @@ func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	}
 
 	zeroes := int(math.Log10(math.Abs(n)))
-	resolution = MinInt(zeroes, resolution)
+	resolution = min(zeroes, resolution)
 	tens := int64(math.Pow10(resolution))
 	significantDigits := int64(n) / tens
 	return significantDigits * tens

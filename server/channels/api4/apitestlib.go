@@ -95,7 +95,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	memoryConfig.SetDefaults()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	memoryConfig.ServiceSettings.EnableLocalMode = model.NewPointer(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
@@ -355,6 +355,25 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, nil, options)
+	th.InitLogin()
+	return th
+}
+
+func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+	searchEngine := mainHelper.GetSearchEngine()
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -847,7 +866,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
 	patch := []*model.ChannelModerationPatch{{
 		Name:  &name,
-		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(val)},
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(val)},
 	}}
 
 	channel, err := th.App.GetChannel(th.Context, channelId)
@@ -962,10 +981,10 @@ func (th *TestHelper) GenerateTestEmail() string {
 func (th *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        model.NewString("n-" + id),
+		Name:        model.NewPointer("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)
@@ -1067,6 +1086,11 @@ func CheckCreatedStatus(tb testing.TB, resp *model.Response) {
 	checkHTTPStatus(tb, resp, http.StatusCreated)
 }
 
+func CheckNoContentStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNoContent)
+}
+
 func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusForbidden)
@@ -1085,6 +1109,11 @@ func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
 func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusBadRequest)
+}
+
+func CheckUnprocessableEntityStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusUnprocessableEntity)
 }
 
 func CheckNotImplementedStatus(tb testing.TB, resp *model.Response) {

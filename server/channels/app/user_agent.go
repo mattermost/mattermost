@@ -159,11 +159,3 @@ func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 
 	return browserNames[uasurfer.BrowserUnknown]
 }
-
-// min should be replaced by to go 1.21 built-in generic function, see MM-57356.
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

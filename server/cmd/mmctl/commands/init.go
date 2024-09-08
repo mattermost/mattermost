@@ -26,8 +26,6 @@ import (
 )
 
 const (
-	perPage = 200
-
 	shellCompletionMaxItems = 50 // Maximum number of items that will be loaded and shown in shell completion.
 	shellCompleteTimeout    = 5 * time.Second
 )
