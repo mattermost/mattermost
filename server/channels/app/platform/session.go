@@ -60,7 +60,9 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 
 		toPass := make([]any, 0, len(keys))
 		for i := 0; i < len(keys); i++ {
-			var session *model.Session
+			// This always needs to be a pointer to a value.
+			// Otherwise the msp unmarshaler will fail to work.
+			var session model.Session
 			toPass = append(toPass, &session)
 		}
 
@@ -72,7 +74,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 				}
 				continue
 			}
-			gotSession := *(toPass[i].(**model.Session))
+			gotSession := toPass[i].(*model.Session)
 			if gotSession == nil {
 				ps.logger.Warn("Found nil session in ClearUserSessionCacheLocal. This is not expected")
 				continue
