@@ -3043,6 +3043,8 @@
   "center_panel.archived.closeChannel": "Stäng kanalen",
   "center_panel.direct.closeDirectMessage": "Stäng direktmeddelande",
   "center_panel.direct.closeGroupMessage": "Stäng gruppmeddelande",
+  "center_panel.input.cannot_load_component": "Något gick fel när komponenten laddades. Vänta en stund eller försök att ladda om appen.",
+  "center_panel.reloadPage": "Ladda om",
   "change_url.endWithLetter": "URLer måste avslutas med en gemen eller en siffra.",
   "change_url.helpText": "Du kan använda gemener, siffror, streck och understreck.",
   "change_url.invalidDirectMessage": "User ID är inte tillåtet i en URL för en kanal.",
