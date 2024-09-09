@@ -23,9 +23,12 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
 
     if (!enableInlineLatex || katex === undefined) {
         return (
-            <span className='post-body--code inline-tex'>
+            <div
+                className='post-body--code inline-tex'
+                data-testid='latex-disabled'
+            >
                 {'$' + content + '$'}
-            </span>
+            </div>
         );
     }
 
@@ -41,19 +44,23 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
         const html = katex.renderToString(content, katexOptions);
 
         return (
-            <span
+            <div
                 className='post-body--code inline-tex'
+                data-testid='latex-enabled'
                 dangerouslySetInnerHTML={{__html: html}}
             />
         );
     } catch (e) {
         return (
-            <span className='post-body--code inline-tex'>
+            <div
+                className='post-body--code inline-tex'
+                data-testid='latex-error'
+            >
                 <FormattedMessage
                     id='katex.error'
-                    defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
+                    defaultMessage='Could not compile your Latex code. Please review the syntax and try again.'
                 />
-            </span>
+            </div>
         );
     }
 };
