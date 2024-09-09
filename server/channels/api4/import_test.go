@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -120,7 +119,7 @@ func TestImportInLocalMode(t *testing.T) {
 	job := &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
-			"import_file": path.Join(testsDir, "import_test.zip"),
+			"import_file": filepath.Join(testsDir, "import_test.zip"),
 			"local_mode":  "true",
 		},
 	}
