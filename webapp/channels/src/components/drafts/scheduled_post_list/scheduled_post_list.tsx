@@ -1,28 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import React from 'react';
+import {useIntl} from 'react-intl';
 
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
-import fetchTeamScheduledPosts from 'actions/schedule_message';
-import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
+import DraftsIllustration from 'components/drafts/drafts_illustration';
+import ScheduledPostItem from 'components/drafts/scheduled_post/scheduled_post';
+import NoResultsIndicator from 'components/no_results_indicator';
 
-import type {GlobalState} from 'types/store';
+type Props = {
+    scheduledPosts: ScheduledPost[];
+}
 
-export default function ScheduledPostList() {
-    const dispatch = useDispatch();
-    const currentTeamId = useSelector(getCurrentTeamId);
-    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId));
-
-    useEffect(() => {
-        dispatch(fetchTeamScheduledPosts(currentTeamId));
-    }, [currentTeamId, dispatch]);
+export default function ScheduledPostList({scheduledPosts}: Props) {
+    const {formatMessage} = useIntl();
 
     return (
-        <div className='harshil'>
-            <h1>{`Scheduled Posts Count: ${scheduledPosts?.length}`}</h1>
+        <div className='ScheduledPostList'>
+            {
+                scheduledPosts.map((schedulePost) => (
+                    <ScheduledPostItem
+                        key={schedulePost.id}
+                        scheduledPost={schedulePost}
+                    />
+                ))
+            }
+            {
+                scheduledPosts.length === 0 && (
+                    <NoResultsIndicator
+                        expanded={true}
+                        iconGraphic={DraftsIllustration}
+                        title={formatMessage({
+                            id: 'Schedule_post.empty_state.title',
+                            defaultMessage: 'No scheduled posts at the moment',
+                        })}
+                        subtitle={formatMessage({
+                            id: 'Schedule_post.empty_state.subtitle',
+                            defaultMessage: 'Any message you\'ve scheduled will show here.',
+                        })}
+                    />
+                )
+            }
         </div>
     );
 }

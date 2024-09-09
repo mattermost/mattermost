@@ -3,10 +3,12 @@
 
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
@@ -21,6 +23,9 @@ import Header from 'components/widgets/header';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
+import type {GlobalState} from "types/store";
+import {getScheduledPostsByTeam} from "selectors/scheduled_posts";
+import fetchTeamScheduledPosts from "actions/schedule_message";
 
 type Props = {
     drafts: Draft[];
@@ -45,6 +50,13 @@ function Drafts({
     const match: match<{team: string}> = useRouteMatch();
     const isDraftsTab = useRouteMatch('/:team/drafts');
     const isScheduledPostsTab = useRouteMatch('/:team/scheduled_posts');
+
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId));
+
+    useEffect(() => {
+        dispatch(fetchTeamScheduledPosts(currentTeamId));
+    }, [currentTeamId, dispatch]);
 
     useEffect(() => {
         // sets the active tab based on the URL.
@@ -133,7 +145,9 @@ function Drafts({
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
-                    <ScheduledPostList/>
+                    <ScheduledPostList
+                        scheduledPosts={scheduledPosts || []}
+                    />
                 </Tab>
             </Tabs>
         </div>

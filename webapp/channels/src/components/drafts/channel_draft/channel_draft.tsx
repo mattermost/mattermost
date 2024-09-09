@@ -25,6 +25,7 @@ import DraftTitle from '../draft_title';
 import Panel from '../panel/panel';
 import PanelBody from '../panel/panel_body';
 import Header from '../panel/panel_header';
+import DraftListItem from "components/drafts/list_item/list_item";
 
 type Props = {
     channel?: Channel;
@@ -112,47 +113,21 @@ function ChannelDraft({
     }
 
     return (
-        <Panel onClick={handleOnEdit}>
-            {({hover}) => (
-                <>
-                    <Header
-                        hover={hover}
-                        actions={(
-                            <DraftActions
-                                channelDisplayName={channel.display_name}
-                                channelType={channel.type}
-                                channelName={channel.name}
-                                userId={user.id}
-                                draftId={draftId}
-                                onDelete={handleOnDelete}
-                                onEdit={handleOnEdit}
-                                onSend={handleOnSend}
-                            />
-                        )}
-                        title={(
-                            <DraftTitle
-                                channel={channel}
-                                type={type}
-                                userId={user.id}
-                            />
-                        )}
-                        timestamp={value.updateAt}
-                        remote={isRemote || false}
-                    />
-                    <PanelBody
-                        channelId={channelId}
-                        displayName={displayName}
-                        fileInfos={value.fileInfos}
-                        message={value.message}
-                        status={status}
-                        priority={value.metadata?.priority}
-                        uploadsInProgress={value.uploadsInProgress}
-                        userId={user.id}
-                        username={user.username}
-                    />
-                </>
-            )}
-        </Panel>
+        <DraftListItem
+            type={type}
+            draftId={draftId}
+            user={user}
+            showPriority={true}
+            handleOnEdit={handleOnEdit}
+            handleOnDelete={handleOnDelete}
+            handleOnSend={handleOnSend}
+            value={value}
+            channelId={channelId}
+            displayName={displayName}
+            isRemote={isRemote || false}
+            channel={channel}
+            status={status}
+        />
     );
 }
 
