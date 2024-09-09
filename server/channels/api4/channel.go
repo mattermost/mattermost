@@ -795,6 +795,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
 		model.PermissionSysconsoleWriteUserManagementGroups,
 		model.PermissionSysconsoleReadUserManagementChannels,
+		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
 		c.SetPermissionError(permissions...)
@@ -1273,7 +1274,9 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(),
 		[]*model.Permission{
 			model.PermissionSysconsoleWriteUserManagementGroups,
-			model.PermissionSysconsoleReadUserManagementChannels}) {
+			model.PermissionSysconsoleReadUserManagementChannels,
+			model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+		}) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
