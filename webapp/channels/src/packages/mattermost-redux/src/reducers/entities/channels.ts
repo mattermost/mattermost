@@ -583,11 +583,16 @@ function membersInChannel(state: RelationOneToOne<Channel, Record<string, Channe
 function stats(state: RelationOneToOne<Channel, ChannelStats> = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL_STATS: {
-        const nextState = {...state};
-        const stat = action.data;
-        nextState[stat.channel_id] = stat;
+        const stat: ChannelStats = action.data;
 
-        return nextState;
+        if (isEqual(state[stat.channel_id], stat)) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [stat.channel_id]: stat,
+        };
     }
     case ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS: {
         const nextState = {...state};

@@ -65,6 +65,37 @@ func TestIsValid(t *testing.T) {
 						Default: "thedefault",
 					},
 				},
+				Sections: []*PluginSettingsSection{
+					{
+						Key:      "section1",
+						Title:    "section title",
+						Subtitle: "section subtitle",
+						Settings: []*PluginSetting{
+							{
+								Key:         "section1setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+							{
+								Key:         "section1setting2",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+						Header: "section header",
+						Footer: "section footer",
+					},
+					{
+						Key: "section2",
+						Settings: []*PluginSetting{
+							{
+								Key:         "section2setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+					},
+				},
 			},
 		}, false},
 	}
@@ -76,29 +107,6 @@ func TestIsValid(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestGetPluginIdReturnsCorrectId(t *testing.T) {
-	testCases := []struct {
-		Title       string
-		Id          string
-		manifest    *Manifest
-		ExpectEqual bool
-	}{
-		{"Ids are Different", "not-same.com.company.test", &Manifest{Id: "com.company.test"}, false},
-		{"Ids are the same", "com.company.test", &Manifest{Id: "com.company.test"}, true},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Title, func(t *testing.T) {
-			id := tc.manifest.GetPluginID()
-			if tc.ExpectEqual {
-				assert.Equal(t, tc.Id, id)
-			} else {
-				assert.NotEqual(t, tc.Id, id)
 			}
 		})
 	}
@@ -119,6 +127,62 @@ func TestIsValidSettingsSchema(t *testing.T) {
 			err := tc.settingsSchema.isValid()
 			if tc.ExpectError {
 				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestPluginSettingsSectionIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		Section       PluginSettingsSection
+		ExpectedError string
+	}{
+		"missing key": {
+			Section: PluginSettingsSection{
+				Settings: []*PluginSetting{
+					{
+						Type:        "custom",
+						Placeholder: "some Text",
+					},
+				},
+			},
+			ExpectedError: "invalid empty Key",
+		},
+		"invalid setting": {
+			Section: PluginSettingsSection{
+				Key: "sectionKey",
+				Settings: []*PluginSetting{
+					{
+						Type: "invalid",
+					},
+				},
+			},
+			ExpectedError: "invalid setting type: invalid",
+		},
+		"valid empty": {
+			Section: PluginSettingsSection{
+				Key:      "sectionKey",
+				Settings: []*PluginSetting{},
+			},
+		},
+		"valid": {
+			Section: PluginSettingsSection{
+				Key: "sectionKey",
+				Settings: []*PluginSetting{
+					{
+						Type:        "custom",
+						Placeholder: "some Text",
+					},
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := test.Section.IsValid()
+			if test.ExpectedError != "" {
+				assert.EqualError(t, err, test.ExpectedError)
 			} else {
 				assert.NoError(t, err)
 			}

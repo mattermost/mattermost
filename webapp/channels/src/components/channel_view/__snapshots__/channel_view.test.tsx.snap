@@ -8,7 +8,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
   <FileUploadOverlay
     overlayType="center"
   />
-  <withRouter(Connect(injectIntl(ChannelHeader)))
+  <ChannelHeader
     channelId="channelId"
     channelIsArchived={true}
     deactivatedChannel={false}
@@ -16,6 +16,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -25,11 +26,9 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
         "url": "/team/channel/channelId",
       }
     }
+    missingChannelRole={false}
     teamUrl="/team"
     viewArchivedChannels={false}
-  />
-  <ChannelBookmarks
-    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -68,7 +67,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
   <FileUploadOverlay
     overlayType="center"
   />
-  <withRouter(Connect(injectIntl(ChannelHeader)))
+  <ChannelHeader
     channelId="channelId"
     channelIsArchived={false}
     deactivatedChannel={true}
@@ -76,6 +75,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -85,11 +85,9 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
         "url": "/team/channel/channelId",
       }
     }
+    missingChannelRole={false}
     teamUrl="/team"
     viewArchivedChannels={false}
-  />
-  <ChannelBookmarks
-    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -127,7 +125,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
   <FileUploadOverlay
     overlayType="center"
   />
-  <withRouter(Connect(injectIntl(ChannelHeader)))
+  <ChannelHeader
     channelId="channelId"
     channelIsArchived={false}
     deactivatedChannel={false}
@@ -135,6 +133,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     enableWebSocketEventScope={false}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
+    isChannelBookmarksEnabled={false}
     isCloud={false}
     isFirstAdmin={false}
     location={Object {}}
@@ -144,11 +143,9 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
         "url": "/team/channel/channelId",
       }
     }
+    missingChannelRole={false}
     teamUrl="/team"
     viewArchivedChannels={false}
-  />
-  <ChannelBookmarks
-    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -158,9 +155,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     data-testid="post-create"
     id="post-create"
   >
-    <Connect(AdvancedCreatePost)
-      getChannelView={[Function]}
-    />
+    <AdvancedCreatePost />
   </div>
 </div>
 `;

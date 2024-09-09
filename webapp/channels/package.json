@@ -93,12 +93,11 @@
     "smooth-scroll-into-view-if-needed": "1.1.33",
     "stream-browserify": "3.0.0",
     "styled-components": "5.3.6",
-    "stylelint": "13.13.1",
     "timezones.json": "1.6.1",
     "tinycolor2": "1.4.2",
     "turndown": "7.1.1",
     "typescript": "5.3.3",
-    "web-vitals": "3.5.2",
+    "web-vitals": "4.2.0",
     "zen-observable": "0.9.0"
   },
   "devDependencies": {
@@ -150,6 +149,7 @@
     "enzyme-to-json": "3.6.2",
     "eslint-plugin-no-only-tests": "3.1.0",
     "external-remotes-plugin": "1.0.0",
+    "html-loader": "5.1.0",
     "html-webpack-plugin": "5.5.0",
     "identity-obj-proxy": "3.0.0",
     "image-webpack-loader": "8.1.0",

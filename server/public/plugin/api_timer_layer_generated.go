@@ -1379,9 +1379,9 @@ func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User,
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
+func (api *apiTimerLayer) GetPluginID() string {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GenerateSupportMetadata(pluginMeta)
-	api.recordTime(startTime, "GenerateSupportMetadata", _returnsB == nil)
-	return _returnsA, _returnsB
+	_returnsA := api.apiImpl.GetPluginID()
+	api.recordTime(startTime, "GetPluginID", true)
+	return _returnsA
 }

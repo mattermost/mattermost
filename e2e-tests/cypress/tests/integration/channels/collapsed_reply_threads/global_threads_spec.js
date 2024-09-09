@@ -7,6 +7,7 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+// Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
@@ -68,7 +69,7 @@ describe('Collapsed Reply Threads', () => {
         });
     });
 
-    it('MM-T4379 Display: Click to open threads)', () => {
+    it('MM-T4379 Display: Click to open threads', () => {
         cy.uiWaitUntilMessagePostedIncludes(rootPost.data.message);
 
         // # Get the root post
@@ -183,7 +184,7 @@ describe('Collapsed Reply Threads', () => {
             cy.reload(true);
 
             // * There should be a single thread item with no reply
-            cy.get('article.ThreadItem').should('have.lengthOf', 1);
+            cy.get('article.ThreadItem').should('have.lengthOf', 0);
 
             // * The reply post should not exist anymore
             cy.get(`#rhsPost_${replyPost1.id}`).should('not.exist');
@@ -361,7 +362,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#mark-all-threads-as-read-modal').should('exist');
 
             // # Click cancel button
-            cy.get('button.cancel').contains('Cancel').click();
+            cy.get('.btn-tertiary').contains('Cancel').click();
 
             // * Verify mark_all_threads_as_read_modal is closed
             cy.get('#mark-all-threads-as-read-modal').should('not.exist');
@@ -411,5 +412,103 @@ describe('Collapsed Reply Threads', () => {
 
         // # Cleanup for next test
         cy.apiDeletePost(rootPost.id);
+    });
+
+    it('CRT - Threads list keyboard navigation', () => {
+        // # Post a few messages as another user and then reply to each one as the current user to follow them
+        let firstRoot;
+        let firstReply;
+        let secondRoot;
+        let secondReply;
+        let thirdRoot;
+        let thirdReply;
+
+        cy.postMessageAs({sender: user1, message: messages.ROOT + '1', channelId: testChannel.id}).then((post) => {
+            firstRoot = post;
+
+            cy.postMessageAs({sender: user2, message: messages.REPLY1 + '1', channelId: testChannel.id, rootId: firstRoot.id}).then((reply) => {
+                firstReply = reply;
+            });
+        }).then(() => {
+            cy.postMessageAs({sender: user1, message: messages.ROOT + '1', channelId: testChannel.id}).then((post) => {
+                secondRoot = post;
+
+                cy.postMessageAs({sender: user2, message: messages.REPLY1 + '1', channelId: testChannel.id, rootId: secondRoot.id}).then((reply) => {
+                    secondReply = reply;
+                });
+            });
+        }).then(() => {
+            cy.postMessageAs({sender: user1, message: messages.ROOT + '1', channelId: testChannel.id}).then((post) => {
+                thirdRoot = post;
+
+                cy.postMessageAs({sender: user2, message: messages.REPLY1 + '1', channelId: testChannel.id, rootId: thirdRoot.id}).then((reply) => {
+                    thirdReply = reply;
+                });
+            });
+        }).then(() => {
+            // # Click on the Threads item in the LHS
+            cy.get('a').contains('Threads').click();
+
+            // * There should be a three threads in the threads list
+            cy.get('article.ThreadItem').should('have.lengthOf', 3);
+
+            // * No thread should be selected at first
+            cy.contains('Catch up on your threads').should('be.visible');
+
+            // # Press the down arrow
+            cy.get('body').type('{downArrow}');
+
+            // * The third thread should be visible since it's the most recent one
+            cy.contains('Catch up on your threads').should('not.exist');
+            cy.get(`#rhsPost_${thirdRoot.id}`).should('be.visible');
+            cy.get(`#rhsPost_${thirdReply.id}`).should('be.visible');
+
+            // * The comment box should not be focused
+            cy.focused().should('not.have.id', 'reply_textbox');
+
+            // # Press the down arrow again
+            cy.get('body').type('{downArrow}');
+
+            // * The second thread should be visible
+            cy.get(`#rhsPost_${secondRoot.id}`).should('be.visible');
+            cy.get(`#rhsPost_${secondReply.id}`).should('be.visible');
+
+            // * The comment box should still not be focused
+            cy.focused().should('not.have.id', 'reply_textbox');
+
+            // # Press the down arrow again
+            cy.get('body').type('{downArrow}');
+
+            // * The first thread should be visible
+            cy.get(`#rhsPost_${firstRoot.id}`).should('be.visible');
+            cy.get(`#rhsPost_${firstReply.id}`).should('be.visible');
+
+            // * The comment box should still not be focused
+            cy.focused().should('not.have.id', 'reply_textbox');
+
+            // # Press the up arrow
+            cy.get('body').type('{upArrow}');
+
+            // * The second thread should be visible
+            cy.get(`#rhsPost_${secondRoot.id}`).should('be.visible');
+            cy.get(`#rhsPost_${secondReply.id}`).should('be.visible');
+
+            // * The comment box should still not be focused
+            cy.focused().should('not.have.id', 'reply_textbox');
+
+            // # Type something
+            cy.get('body').type('something');
+
+            // * The comment box should be focused and have received that input
+            cy.focused().should('have.id', 'reply_textbox').
+                should('contain.text', 'something');
+
+            // # Press the up arrow again
+            cy.get('body').type('{upArrow}');
+
+            // * The second thread should still be visible because focus is now in the comment box
+            cy.get(`#rhsPost_${secondRoot.id}`).should('be.visible');
+            cy.get(`#rhsPost_${secondReply.id}`).should('be.visible');
+        });
     });
 });

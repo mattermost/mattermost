@@ -188,6 +188,10 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save message');
                 cy.focused().tab();
 
+                // * Verify focus is on the actions button
+                cy.get(`#CENTER_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
+                cy.focused().tab();
+
                 // * Verify focus is on the comment button
                 cy.get(`#CENTER_commentIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'reply');
                 cy.focused().tab();
@@ -232,6 +236,10 @@ describe('Verify Accessibility Support in Post', () => {
 
                 // * Verify focus is on the more button
                 cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
+                cy.focused().tab({shift: true});
+
+                // * Verify focus is on the actions button
+                cy.get(`#RHS_COMMENT_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the save icon
@@ -333,8 +341,9 @@ function verifyPostLabel(elementId, username, labelSuffix) {
     // * Verify reader reads out the post correctly
     cy.get('@lastPost').then((el) => {
         // # Get the post time
-        cy.wrap(el).find('time.post__time').invoke('text').then((time) => {
-            const expectedLabel = `At ${time} ${Cypress.dayjs().format('dddd, MMMM D')}, ${username} ${labelSuffix}`;
+        cy.wrap(el).find('time.post__time').invoke('attr', 'datetime').then((time) => {
+            const parsedTime = Cypress.dayjs(time);
+            const expectedLabel = `At ${parsedTime.format('h:mm A dddd, MMMM D')}, ${username} ${labelSuffix}`;
             cy.wrap(el).should('have.attr', 'aria-label', expectedLabel);
         });
     });

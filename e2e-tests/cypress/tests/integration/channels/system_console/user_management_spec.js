@@ -185,6 +185,7 @@ describe('User Management', () => {
 
             // # Search for the user.
             cy.get('#input_searchTerm').clear().type(gitlabUser.email).wait(TIMEOUTS.HALF_SEC);
+            cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', gitlabUser.email);
 
             // # Open actions menu.
             cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -233,11 +234,29 @@ describe('User Management', () => {
         cy.url().should('include', '/admin_console/about/license');
     });
 
+    it('Admin cannot access Manage User Settings option on a unlicensed instance', () => {
+        // # Login as sysadmin.
+        cy.apiLogin(sysadmin);
+        cy.visit('/admin_console/user_management/users');
+        cy.intercept('**api/v4/reports/users?**').as('getUserList');
+        cy.get('#input_searchTerm').clear().type(testUser.id);
+        cy.wait('@getUserList');
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('have.text', testUser.email).as('userRow');
+        cy.get('#actionMenuButton-systemUsersTable-0 > span').click();
+        cy.get('ul#actionMenu-systemUsersTable-0').should('be.visible').find('li').should('not.contain.text', 'Manage User Settings');
+        cy.get('@userRow').click({force: true});
+        cy.get('.manageUserSettingsBtn').
+            should('be.visible').
+            should('contain.text', 'Manage User Settings').
+            should('have.class', 'disabled');
+    });
+
     function resetUserEmail(oldEmail, newEmail, errorMsg) {
         cy.visit('/admin_console/user_management/users');
 
         // # Search for the user.
         cy.get('#input_searchTerm').clear().type(oldEmail).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', oldEmail);
 
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Update email').click().wait(TIMEOUTS.HALF_SEC);

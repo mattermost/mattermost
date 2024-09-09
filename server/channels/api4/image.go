@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitImage() {
-	api.BaseRoutes.Image.Handle("", api.APISessionRequiredTrustRequester(getImage)).Methods("GET")
+	api.BaseRoutes.Image.Handle("", api.APISessionRequiredTrustRequester(getImage)).Methods(http.MethodGet)
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -37,10 +37,17 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		parsedURL.Host = siteURL.Host
 	}
 
-	// in case image proxy is enabled and we are fetching a remote image (NOT static or served by plugins), pass request to proxy
-	if *c.App.Config().ImageProxySettings.Enable && parsedURL.Host != siteURL.Host {
-		c.App.ImageProxy().GetImage(w, r, parsedURL.String())
-	} else {
-		http.Redirect(w, r, parsedURL.String(), http.StatusFound)
+	if *c.App.Config().ImageProxySettings.Enable {
+		// in case image proxy is enabled and we are fetching a remote image (NOT static or served by plugins), pass request to proxy
+		if parsedURL.Host != siteURL.Host {
+			c.App.ImageProxy().GetImage(w, r, parsedURL.String())
+		} else {
+			// Otherwise we redirect.
+			http.Redirect(w, r, parsedURL.String(), http.StatusFound)
+		}
+		return
 	}
+
+	// When proxy disabled this endpoint should fail as we don't support redirecting to external images any longer (MM-54477).
+	c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest)
 }

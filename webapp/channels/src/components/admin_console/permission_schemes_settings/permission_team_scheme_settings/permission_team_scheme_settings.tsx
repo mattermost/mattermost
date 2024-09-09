@@ -606,9 +606,9 @@ class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComp
                                 <span>
                                     <FormattedMessage
                                         id='admin.permissions.teamScheme.introBanner'
-                                        defaultMessage='<linkTeamOverride>Team Override Schemes</linkTeamOverride> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>.'
+                                        defaultMessage='<linkOverrideTeam>Team Override Schemes</linkOverrideTeam> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>.'
                                         values={{
-                                            linkTeamOverride: (msg: React.ReactNode) => (
+                                            linkOverrideTeam: (msg: React.ReactNode) => (
                                                 <ExternalLink
                                                     href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_team_scheme_settings'

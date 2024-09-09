@@ -24,7 +24,7 @@ func (a *App) NotifySessionsExpired() error {
 	// Get all mobile sessions that expired within the last hour.
 	sessions, err := a.ch.srv.Store().Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Cannot get sessions expired",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),
@@ -47,11 +47,15 @@ func (a *App) NotifySessionsExpired() error {
 
 		errPush := a.sendToPushProxy(tmpMessage, session)
 		if errPush != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError)
+			reason := model.NotificationReasonPushProxySendError
+			if errPush.Error() == notificationErrorRemoveDevice {
+				reason = model.NotificationReasonPushProxyRemoveDevice
+			}
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
 			a.NotificationsLog().Error("Failed to send to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
-				mlog.String("reason", model.NotificationReasonPushProxySendError),
+				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
 				mlog.String("user_id", session.UserId),

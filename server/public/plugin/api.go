@@ -1307,12 +1307,11 @@ type API interface {
 	// Minimum server version: 9.8
 	UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
 
-	// GenerateSupportMetadata generates the metadata for a support packet.
-	// pluginMeta should contain the values that plugin wants to insert into a standard support packet metadata.
+	// GetPluginID returns the plugin ID.
 	//
-	// @tag Metadata
-	// Minimum server version: 9.10
-	GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error)
+	// @tag Plugin
+	// Minimum server version: 10.1
+	GetPluginID() string
 }
 
 var handshake = plugin.HandshakeConfig{
