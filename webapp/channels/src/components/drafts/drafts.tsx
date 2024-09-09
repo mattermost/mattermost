@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
+import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
@@ -38,6 +39,29 @@ function Drafts({
 }: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
+    const [activeTab, setActiveTab] = useState<number>();
+
+    const history = useHistory();
+    const match: match<{team: string}> = useRouteMatch();
+    const isDraftsTab = useRouteMatch('/:team/drafts');
+    const isScheduledPostsTab = useRouteMatch('/:team/scheduled_posts');
+
+    useEffect(() => {
+        // sets the active tab based on the URL.
+        // This is in an effect to allow changing tabs when performing
+        // browser back and forward navigations.
+        let tab: number;
+
+        if (isDraftsTab) {
+            tab = 0;
+        } else if (isScheduledPostsTab) {
+            tab = 1;
+        } else {
+            tab = 0;
+        }
+
+        setActiveTab(tab);
+    }, [match]);
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
@@ -47,6 +71,21 @@ function Drafts({
             dispatch(unsuppressRHS);
         };
     }, [dispatch]);
+
+    const handleSwitchTabs = useCallback((key) => {
+        switch (key) {
+        case 0:
+            if (!isDraftsTab) {
+                history.push(`/${match.params.team}/drafts`);
+            }
+            break;
+        case 1:
+            if (!isScheduledPostsTab) {
+                history.push(`/${match.params.team}/scheduled_posts`);
+            }
+            break;
+        }
+    }, [history, isDraftsTab, isScheduledPostsTab, match]);
 
     return (
         <div
@@ -68,9 +107,10 @@ function Drafts({
 
             <Tabs
                 id='draft_tabs'
-                defaultActiveKey={0}
+                activeKey={activeTab}
                 mountOnEnter={true}
                 unmountOnExit={false}
+                onSelect={handleSwitchTabs}
             >
                 <Tab
                     eventKey={0}
