@@ -22,7 +22,6 @@ const SidebarBaseChannelIcon = ({
         return (
             <SharedChannelIndicator
                 className='icon'
-                channelType={channelType}
                 withTooltip={true}
             />
         );
