@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
-import type {ThreadsState, UserThread} from '@mattermost/types/threads';
+import type {ThreadsState, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
 import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
 
 import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -283,6 +283,14 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
             return handleReceivedThread(state, action, extra);
         }
         return state;
+    case ThreadTypes.RECEIVED_THREADS:
+        return handleReceiveThreads(state, {
+            ...action,
+            data: {
+                ...action.data,
+                threads: action.data.threads.filter((thread: UserThreadWithPost) => thread.unread_replies > 0 || thread.unread_mentions > 0),
+            },
+        });
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_UNREAD_THREADS:

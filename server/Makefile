@@ -154,10 +154,12 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
+PLUGIN_PACKAGES += mattermost-plugin-ai-v1.0.0
 PLUGIN_PACKAGES += focalboard-v8.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.3
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
