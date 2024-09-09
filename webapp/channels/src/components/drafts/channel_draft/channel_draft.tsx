@@ -115,7 +115,7 @@ function ChannelDraft({
     return (
         <DraftListItem
             type={type}
-            draftId={draftId}
+            itemId={draftId}
             user={user}
             showPriority={true}
             handleOnEdit={handleOnEdit}

@@ -19,6 +19,8 @@ type Props = {
 }
 
 function DraftRow({draft, user, status, displayName, isRemote}: Props) {
+    console.log({username: user.username});
+
     switch (draft.type) {
     case 'channel':
         return (

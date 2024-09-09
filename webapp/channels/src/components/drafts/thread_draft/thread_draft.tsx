@@ -87,7 +87,7 @@ function ThreadDraft({
     return (
         <DraftListItem
             type={type}
-            draftId={draftId}
+            itemId={draftId}
             user={user}
             showPriority={false}
             handleOnEdit={handleOnEdit}

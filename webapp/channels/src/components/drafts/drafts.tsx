@@ -10,6 +10,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import fetchTeamScheduledPosts from 'actions/schedule_message';
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
@@ -23,9 +24,9 @@ import Header from 'components/widgets/header';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
-import type {GlobalState} from "types/store";
-import {getScheduledPostsByTeam} from "selectors/scheduled_posts";
-import fetchTeamScheduledPosts from "actions/schedule_message";
+import type {GlobalState} from 'types/store';
+
+import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
 
 type Props = {
     drafts: Draft[];
@@ -147,6 +148,9 @@ function Drafts({
                 >
                     <ScheduledPostList
                         scheduledPosts={scheduledPosts || []}
+                        user={user}
+                        displayName={displayName}
+                        status={status}
                     />
                 </Tab>
             </Tabs>

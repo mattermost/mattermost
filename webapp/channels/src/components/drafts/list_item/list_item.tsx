@@ -13,17 +13,19 @@ import PanelBody from 'components/drafts/panel/panel_body';
 import Header from 'components/drafts/panel/panel_header';
 
 import type {PostDraft} from 'types/store/draft';
+import {ScheduledPost} from "@mattermost/types/schedule_post";
 
 type Props = {
+    kind: 'draft' | 'scheduledPost';
     type: 'channel' | 'thread';
-    draftId: string;
+    itemId: string;
     channel: Channel;
     user: UserProfile;
     showPriority: boolean;
     handleOnEdit: () => void;
     handleOnDelete: (id: string) => void;
     handleOnSend: (id: string) => void;
-    value: PostDraft;
+    item: PostDraft | ScheduledPost;
     channelId: string;
     displayName: string;
     isRemote?: boolean;
@@ -31,14 +33,15 @@ type Props = {
 }
 
 export default function DraftListItem({
+    kind,
     handleOnEdit,
     channel,
     user,
-    draftId,
+    itemId,
     handleOnDelete,
     handleOnSend,
     type,
-    value,
+    item,
     isRemote,
     channelId,
     displayName,
@@ -57,7 +60,7 @@ export default function DraftListItem({
                                 channelType={channel.type}
                                 channelName={channel.name}
                                 userId={user.id}
-                                draftId={draftId}
+                                itemId={itemId}
                                 onDelete={handleOnDelete}
                                 onEdit={handleOnEdit}
                                 onSend={handleOnSend}
@@ -70,17 +73,17 @@ export default function DraftListItem({
                                 userId={user.id}
                             />
                         )}
-                        timestamp={value.updateAt}
+                        timestamp={kind === 'draft' ? (item as PostDraft).updateAt : (item as ScheduledPost).scheduled_at}
                         remote={isRemote || false}
                     />
                     <PanelBody
                         channelId={channelId}
                         displayName={displayName}
-                        fileInfos={value.fileInfos}
-                        message={value.message}
+                        fileInfos={item.fileInfos}
+                        message={item.message}
                         status={status}
-                        priority={showPriority ? value.metadata?.priority : undefined}
-                        uploadsInProgress={value.uploadsInProgress}
+                        priority={showPriority ? item.metadata?.priority : undefined}
+                        uploadsInProgress={item.uploadsInProgress}
                         userId={user.id}
                         username={user.username}
                     />
