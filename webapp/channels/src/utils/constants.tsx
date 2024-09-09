@@ -1401,6 +1401,14 @@ export const ModeratedPermissions = [
     Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
     Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
     Permissions.USE_CHANNEL_MENTIONS,
+    Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL,
+    Permissions.EDIT_BOOKMARK_PUBLIC_CHANNEL,
+    Permissions.DELETE_BOOKMARK_PUBLIC_CHANNEL,
+    Permissions.ORDER_BOOKMARK_PUBLIC_CHANNEL,
+    Permissions.ADD_BOOKMARK_PRIVATE_CHANNEL,
+    Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
+    Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
+    Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
 ];
 
 export const Locations = {
