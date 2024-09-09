@@ -69,7 +69,7 @@ const MarketplaceModal = ({
     const installedListing = useSelector(getInstalledListing);
     const pluginStatuses = useSelector((state: GlobalState) => state.entities.admin.pluginStatuses);
     const hasFirstAdminVisitedMarketplace = useSelector(getFirstAdminVisitMarketplaceStatus);
-    const isStreamlinedMarketplaceEnabled = !useSelector(streamlinedMarketplaceEnabled);
+    const isStreamlinedMarketplaceEnabled = useSelector(streamlinedMarketplaceEnabled);
     const license = useSelector(getLicense);
     const isCloud = isCloudLicense(license);
 
