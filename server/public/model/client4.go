@@ -625,9 +625,22 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 	defer closeBody(r)
 	var createdScheduledPost ScheduledPost
 	if err := json.NewDecoder(r.Body).Decode(&createdScheduledPost); err != nil {
-		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("CreateScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &createdScheduledPost, BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string) ([]*ScheduledPost, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/schedule/team/"+teamId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var scheduledPosts []*ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&scheduledPosts); err != nil {
+		return nil, nil, NewAppError("GetUserScheduledPosts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return scheduledPosts, BuildResponse(r), nil
 }
 
 func (c *Client4) bookmarksRoute(channelId string) string {
