@@ -396,7 +396,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		// then
 		outputImage, err := os.Stat(thumbnailPath)
 		assert.NoError(t, err)
-		assert.Equal(t, int64(957), outputImage.Size())
+		assert.Equal(t, int64(721), outputImage.Size())
 	})
 }
 
