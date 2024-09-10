@@ -1566,7 +1566,7 @@
   "admin.password.enableForgotLink.title": "Включить ссылку \"Забыли пароль\":",
   "admin.password.lowercase": "Хотя бы одна строчная буква",
   "admin.password.minimumLength": "Минимальная длина пароля:",
-  "admin.password.minimumLengthDescription": "Минимальное количество символов требуемых для пароля. Целое число от {min} до {max}.",
+  "admin.password.minimumLengthDescription": "Минимальное количество символов, требуемых для пароля. Целое число от {min} до {max}.",
   "admin.password.minimumLengthExample": "Например: \"5\"",
   "admin.password.number": "Как минимум одно число",
   "admin.password.preview": "Ошибка предварительного просмотра",
