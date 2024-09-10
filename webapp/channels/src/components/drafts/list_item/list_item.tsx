@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import DraftActions from 'components/drafts/draft_actions';
@@ -13,7 +14,6 @@ import PanelBody from 'components/drafts/panel/panel_body';
 import Header from 'components/drafts/panel/panel_header';
 
 import type {PostDraft} from 'types/store/draft';
-import {ScheduledPost} from "@mattermost/types/schedule_post";
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
@@ -48,6 +48,9 @@ export default function DraftListItem({
     showPriority,
     status,
 }: Props) {
+    const timestamp = kind === 'draft' ? (item as PostDraft).updateAt : (item as ScheduledPost).scheduled_at;
+    const fileInfos = kind === 'draft' ? (item as PostDraft).fileInfos : [];
+
     return (
         <Panel onClick={handleOnEdit}>
             {({hover}) => (
@@ -73,13 +76,13 @@ export default function DraftListItem({
                                 userId={user.id}
                             />
                         )}
-                        timestamp={kind === 'draft' ? (item as PostDraft).updateAt : (item as ScheduledPost).scheduled_at}
+                        timestamp={timestamp}
                         remote={isRemote || false}
                     />
                     <PanelBody
                         channelId={channelId}
                         displayName={displayName}
-                        fileInfos={item.fileInfos}
+                        fileInfos={fileInfos}
                         message={item.message}
                         status={status}
                         priority={showPriority ? item.metadata?.priority : undefined}

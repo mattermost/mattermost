@@ -114,6 +114,7 @@ function ChannelDraft({
 
     return (
         <DraftListItem
+            kind='draft'
             type={type}
             itemId={draftId}
             user={user}
@@ -121,7 +122,7 @@ function ChannelDraft({
             handleOnEdit={handleOnEdit}
             handleOnDelete={handleOnDelete}
             handleOnSend={handleOnSend}
-            value={value}
+            item={value}
             channelId={channelId}
             displayName={displayName}
             isRemote={isRemote || false}
