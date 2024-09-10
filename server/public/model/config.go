@@ -3247,6 +3247,7 @@ func (w *WranglerSettings) IsValid() *AppError {
 type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels       *bool
 	EnableRemoteClusterService *bool
+	DisableSharedChannelsStatusSync *bool
 	MaxPostsPerSync            *int
 }
 
@@ -3265,6 +3266,10 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 		} else {
 			c.EnableRemoteClusterService = NewPointer(false)
 		}
+	}
+
+	if c.DisableSharedChannelsStatusSync == nil {
+		c.DisableSharedChannelsStatusSync = NewPointer(false)
 	}
 
 	if c.MaxPostsPerSync == nil {

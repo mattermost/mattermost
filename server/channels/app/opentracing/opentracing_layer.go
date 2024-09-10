@@ -15305,6 +15305,21 @@ func (a *OpenTracingAppLayer) SaveAdminNotifyData(data *model.NotifyAdminData) (
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SaveAndBroadcastStatus(status *model.Status) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAndBroadcastStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SaveAndBroadcastStatus(status)
+}
+
 func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveBrandImage")
