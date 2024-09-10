@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "@axe-core/playwright": "4.9.0",
-        "@percy/cli": "1.28.3",
+        "@percy/cli": "1.28.8",
         "@percy/playwright": "1.0.5",
         "@playwright/test": "1.43.1",
         "async-wait-until": "2.0.12",
