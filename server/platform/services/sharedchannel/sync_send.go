@@ -109,7 +109,7 @@ func (scs *Service) NotifyUserStatusChanged(status *model.Status) {
 		return
 	}
 
-	if *scs.server.Config().ExperimentalSettings.DisableSharedChannelsStatusSync {
+	if *scs.server.Config().ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync {
 		return
 	}
 

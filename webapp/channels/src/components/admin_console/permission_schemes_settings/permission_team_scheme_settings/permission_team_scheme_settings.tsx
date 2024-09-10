@@ -25,7 +25,7 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
-import {PermissionsScope, ModalIdentifiers, DocLinks} from 'utils/constants';
+import {PermissionsScope, ModalIdentifiers, DocLinks, ModeratedPermissions} from 'utils/constants';
 
 import TeamInList from './team_in_list';
 
@@ -500,40 +500,37 @@ class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComp
 
     togglePermission = (roleId: string, permissions: string[]) => {
         const roles = {...this.getStateRoles()} as RolesMap;
-        let role = null;
-        if (roles.team_admin.name === roleId) {
-            role = {...roles.team_admin};
-        } else if (roles.channel_admin.name === roleId) {
-            role = {...roles.channel_admin};
-        } else if (roles.all_users.name === roleId) {
-            role = {...roles.all_users};
-        } else if (roles.guests.name === roleId) {
-            role = {...roles.guests};
-        } else if (roles.playbook_admin.name === roleId) {
-            role = {...roles.playbook_admin};
+        const role = {...roles[roleId]} as Role;
+        const newPermissions = [...role.permissions];
+        for (const permission of permissions) {
+            if (newPermissions.indexOf(permission) === -1) {
+                newPermissions.push(permission);
+            } else {
+                newPermissions.splice(newPermissions.indexOf(permission), 1);
+            }
         }
+        role.permissions = newPermissions;
+        roles[roleId] = role;
 
-        if (role) {
-            const newPermissions = [...role.permissions];
+        if (roleId === 'all_users') {
+            const channelAdminRole = {...roles.channel_admin} as Role;
+            const channelAdminPermissions = [...channelAdminRole.permissions!];
+            const teamAdminRole = {...roles.team_admin} as Role;
+            const teamAdminPermissions = [...teamAdminRole.permissions!];
             for (const permission of permissions) {
-                if (newPermissions.indexOf(permission) === -1) {
-                    newPermissions.push(permission);
-                } else {
-                    newPermissions.splice(newPermissions.indexOf(permission), 1);
+                if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
+                    if (channelAdminPermissions.indexOf(permission) === -1) {
+                        channelAdminPermissions.push(permission);
+                    }
+                    if (teamAdminPermissions.indexOf(permission) === -1) {
+                        teamAdminPermissions.push(permission);
+                    }
                 }
             }
-            role.permissions = newPermissions;
-            if (roles.team_admin.name === roleId) {
-                roles.team_admin = role;
-            } else if (roles.channel_admin.name === roleId) {
-                roles.channel_admin = role;
-            } else if (roles.all_users.name === roleId) {
-                roles.all_users = role;
-            } else if (roles.guests.name === roleId) {
-                roles.guests = role;
-            } else if (roles.playbook_admin.name === roleId) {
-                roles.playbook_admin = role;
-            }
+            channelAdminRole.permissions = channelAdminPermissions;
+            roles.channel_admin = channelAdminRole;
+            teamAdminRole.permissions = teamAdminPermissions;
+            roles.team_admin = teamAdminRole;
         }
 
         this.setState({roles, saveNeeded: true});
