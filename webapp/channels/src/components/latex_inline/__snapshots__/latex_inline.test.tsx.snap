@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/LatexInline error in katex 1`] = `
-<div
+<span
   class="post-body--code inline-tex"
   data-testid="latex-enabled"
 >
@@ -12,194 +12,120 @@ exports[`components/LatexInline error in katex 1`] = `
   >
     \`\`\`latex e^{i\\pi + 1 = 0\`\`\`
   </span>
-</div>
+</span>
 `;
 
 exports[`components/LatexInline latex is disabled 1`] = `
-<div
+<span
   class="post-body--code inline-tex"
   data-testid="latex-disabled"
 >
-  $\`\`\`latex e^{i\\pi} + 1 = 0\`\`\`$
-</div>
+  $e^{i\\pi} + 1 = 0$
+</span>
 `;
 
 exports[`components/LatexInline should match snapshot 1`] = `
-<div
-  class="post-body--code inline-tex"
-  data-testid="latex-enabled"
->
+<div>
   <span
-    class="katex"
+    class="post-body--code inline-tex"
+    data-testid="latex-enabled"
   >
     <span
-      class="katex-mathml"
-    >
-      <math
-        xmlns="http://www.w3.org/1998/Math/MathML"
-      >
-        <semantics>
-          <mrow>
-            <mi
-              mathvariant="normal"
-            >
-              ‘
-            </mi>
-            <mi
-              mathvariant="normal"
-            >
-              ‘
-            </mi>
-            <mi
-              mathvariant="normal"
-            >
-              ‘
-            </mi>
-            <mi>
-              l
-            </mi>
-            <mi>
-              a
-            </mi>
-            <mi>
-              t
-            </mi>
-            <mi>
-              e
-            </mi>
-            <mi>
-              x
-            </mi>
-            <msup>
-              <mi>
-                e
-              </mi>
-              <mrow>
-                <mi>
-                  i
-                </mi>
-                <mi>
-                  π
-                </mi>
-              </mrow>
-            </msup>
-            <mo>
-              +
-            </mo>
-            <mn>
-              1
-            </mn>
-            <mo>
-              =
-            </mo>
-            <mn>
-              0
-            </mn>
-            <mi
-              mathvariant="normal"
-            >
-              ‘
-            </mi>
-            <mi
-              mathvariant="normal"
-            >
-              ‘
-            </mi>
-            <mi
-              mathvariant="normal"
-            >
-              ‘
-            </mi>
-          </mrow>
-          <annotation
-            encoding="application/x-tex"
-          >
-            \`\`\`latex e^{i\\pi} + 1 = 0\`\`\`
-          </annotation>
-        </semantics>
-      </math>
-    </span>
-    <span
-      aria-hidden="true"
-      class="katex-html"
+      class="katex"
     >
       <span
-        class="base"
+        class="katex-mathml"
+      >
+        <math
+          xmlns="http://www.w3.org/1998/Math/MathML"
+        >
+          <semantics>
+            <mrow>
+              <msup>
+                <mi>
+                  e
+                </mi>
+                <mrow>
+                  <mi>
+                    i
+                  </mi>
+                  <mi>
+                    π
+                  </mi>
+                </mrow>
+              </msup>
+              <mo>
+                +
+              </mo>
+              <mn>
+                1
+              </mn>
+              <mo>
+                =
+              </mo>
+              <mn>
+                0
+              </mn>
+            </mrow>
+            <annotation
+              encoding="application/x-tex"
+            >
+              e^{i\\pi} + 1 = 0
+            </annotation>
+          </semantics>
+        </math>
+      </span>
+      <span
+        aria-hidden="true"
+        class="katex-html"
       >
         <span
-          class="strut"
-          style="height:0.908em;vertical-align:-0.0833em;"
-        />
-        <span
-          class="mord"
-        >
-          ‘‘‘
-        </span>
-        <span
-          class="mord mathnormal"
-          style="margin-right:0.01968em;"
-        >
-          l
-        </span>
-        <span
-          class="mord mathnormal"
-        >
-          a
-        </span>
-        <span
-          class="mord mathnormal"
-        >
-          t
-        </span>
-        <span
-          class="mord mathnormal"
-        >
-          e
-        </span>
-        <span
-          class="mord mathnormal"
-        >
-          x
-        </span>
-        <span
-          class="mord"
+          class="base"
         >
           <span
-            class="mord mathnormal"
-          >
-            e
-          </span>
+            class="strut"
+            style="height:0.908em;vertical-align:-0.0833em;"
+          />
           <span
-            class="msupsub"
+            class="mord"
           >
             <span
-              class="vlist-t"
+              class="mord mathnormal"
+            >
+              e
+            </span>
+            <span
+              class="msupsub"
             >
               <span
-                class="vlist-r"
+                class="vlist-t"
               >
                 <span
-                  class="vlist"
-                  style="height:0.8247em;"
+                  class="vlist-r"
                 >
                   <span
-                    style="top:-3.063em;margin-right:0.05em;"
+                    class="vlist"
+                    style="height:0.8247em;"
                   >
                     <span
-                      class="pstrut"
-                      style="height:2.7em;"
-                    />
-                    <span
-                      class="sizing reset-size6 size3 mtight"
+                      style="top:-3.063em;margin-right:0.05em;"
                     >
                       <span
-                        class="mord mtight"
+                        class="pstrut"
+                        style="height:2.7em;"
+                      />
+                      <span
+                        class="sizing reset-size6 size3 mtight"
                       >
                         <span
-                          class="mord mathnormal mtight"
-                          style="margin-right:0.03588em;"
+                          class="mord mtight"
                         >
-                          iπ
+                          <span
+                            class="mord mathnormal mtight"
+                            style="margin-right:0.03588em;"
+                          >
+                            iπ
+                          </span>
                         </span>
                       </span>
                     </span>
@@ -208,58 +134,58 @@ exports[`components/LatexInline should match snapshot 1`] = `
               </span>
             </span>
           </span>
+          <span
+            class="mspace"
+            style="margin-right:0.2222em;"
+          />
+          <span
+            class="mbin"
+          >
+            +
+          </span>
+          <span
+            class="mspace"
+            style="margin-right:0.2222em;"
+          />
         </span>
         <span
-          class="mspace"
-          style="margin-right:0.2222em;"
-        />
-        <span
-          class="mbin"
+          class="base"
         >
-          +
+          <span
+            class="strut"
+            style="height:0.6444em;"
+          />
+          <span
+            class="mord"
+          >
+            1
+          </span>
+          <span
+            class="mspace"
+            style="margin-right:0.2778em;"
+          />
+          <span
+            class="mrel"
+          >
+            =
+          </span>
+          <span
+            class="mspace"
+            style="margin-right:0.2778em;"
+          />
         </span>
         <span
-          class="mspace"
-          style="margin-right:0.2222em;"
-        />
-      </span>
-      <span
-        class="base"
-      >
-        <span
-          class="strut"
-          style="height:0.6444em;"
-        />
-        <span
-          class="mord"
+          class="base"
         >
-          1
-        </span>
-        <span
-          class="mspace"
-          style="margin-right:0.2778em;"
-        />
-        <span
-          class="mrel"
-        >
-          =
-        </span>
-        <span
-          class="mspace"
-          style="margin-right:0.2778em;"
-        />
-      </span>
-      <span
-        class="base"
-      >
-        <span
-          class="strut"
-          style="height:0.6944em;"
-        />
-        <span
-          class="mord"
-        >
-          0‘‘‘
+          <span
+            class="strut"
+            style="height:0.6444em;"
+          />
+          <span
+            class="mord"
+          >
+            0
+          </span>
         </span>
       </span>
     </span>
