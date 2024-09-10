@@ -1,27 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/LatexInline error in katex 1`] = `
-<span
-  class="post-body--code inline-tex"
-  data-testid="latex-enabled"
->
+<div>
   <span
-    class="katex-error"
-    style="color:#cc0000"
-    title="ParseError: KaTeX parse error: Expected '}', got 'EOF' at end of input: …i\\\\pi + 1 = 0\`\`\`"
+    class="post-body--code inline-tex"
+    data-testid="latex-enabled"
   >
-    \`\`\`latex e^{i\\pi + 1 = 0\`\`\`
+    <span
+      class="katex-error"
+      style="color:#cc0000"
+      title="ParseError: KaTeX parse error: Expected '}', got 'EOF' at end of input: e^{i\\\\pi + 1 = 0"
+    >
+      e^{i\\pi + 1 = 0
+    </span>
   </span>
-</span>
+</div>
 `;
 
 exports[`components/LatexInline latex is disabled 1`] = `
-<span
-  class="post-body--code inline-tex"
-  data-testid="latex-disabled"
->
-  $e^{i\\pi} + 1 = 0$
-</span>
+<div>
+  <span
+    class="post-body--code inline-tex"
+    data-testid="latex-disabled"
+  >
+    $e^{i\\pi} + 1 = 0$
+  </span>
+</div>
 `;
 
 exports[`components/LatexInline should match snapshot 1`] = `

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 
@@ -31,21 +31,27 @@ describe('components/LatexInline', () => {
             enableInlineLatex: false,
         };
 
-        render(<LatexInline {...props}/>);
-        const wrapper = await screen.findAllByTestId('latex-disabled');
-        expect(wrapper.length).toBe(1);
-        expect(wrapper.at(0)).toMatchSnapshot();
+        let container;
+
+        await act(async () => {
+            const result = render(withIntl(<LatexInline {...props}/>));
+            container = result.container;
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('error in katex', async () => {
         const props = {
-            content: '```latex e^{i\\pi + 1 = 0```',
+            content: 'e^{i\\pi + 1 = 0',
             enableInlineLatex: true,
         };
 
-        render(withIntl(<LatexInline {...props}/>));
-        const wrapper = await screen.findAllByTestId('latex-enabled');
-        expect(wrapper.length).toBe(1);
-        expect(wrapper.at(0)).toMatchSnapshot();
+        let container;
+
+        await act(async () => {
+            const result = render(withIntl(<LatexInline {...props}/>));
+            container = result.container;
+        });
+        expect(container).toMatchSnapshot();
     });
 });
