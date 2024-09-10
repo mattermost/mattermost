@@ -12,7 +12,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   confirmButtonClass="btn btn-primary"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Yes, set my status to \\"Online\\""
+      defaultMessage="Set status to \\"Online\\""
       id="modal.manual_status.button_online"
     />
   }
@@ -43,13 +43,13 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
   confirmButtonClass="btn btn-primary"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Yes, set my status to \\"Online\\""
+      defaultMessage="Set status to \\"Online\\""
       id="modal.manual_status.button_online"
     />
   }
   message={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Would you like to switch your status to \\"Online\\" and disable Automatic Replies?"
+      defaultMessage="Would you like to switch your status to \\"Online\\" and disable automatic replies?"
       id="modal.manual_status.auto_responder.message_online"
     />
   }
