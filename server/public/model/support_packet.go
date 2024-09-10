@@ -8,6 +8,10 @@ import (
 	"io"
 )
 
+const (
+	SupportPacketErrorFile = "warning.txt"
+)
+
 type SupportPacket struct {
 	/* Build information */
 

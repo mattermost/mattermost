@@ -157,6 +157,7 @@ describe('components/signup/Signup', () => {
             EnableSignUpWithGoogle: 'true',
             EnableSignUpWithOpenId: 'true',
             EnableOpenServer: 'true',
+            EnableUserCreation: 'true',
             LdapLoginFieldName: '',
             GitLabButtonText: '',
             GitLabButtonColor: '',
@@ -181,6 +182,16 @@ describe('components/signup/Signup', () => {
 
     it('should match snapshot for all signup options enabled with isLicensed disabled', () => {
         mockLicense = {IsLicensed: 'false', Cloud: 'false'};
+
+        const wrapper = shallow(
+            <Signup/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should match snapshot for all signup options enabled with EnableUserCreaton disabled', () => {
+        mockConfig.EnableUserCreation = 'false';
 
         const wrapper = shallow(
             <Signup/>,

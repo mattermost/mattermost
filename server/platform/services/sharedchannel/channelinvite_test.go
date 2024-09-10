@@ -62,7 +62,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{Name: "test"}
+		remoteCluster := &model.RemoteCluster{Name: "test", DefaultTeamId: model.NewId()}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -93,8 +93,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
-			Guests:  model.NewBool(false),
-			Members: model.NewBool(false),
+			Guests:  model.NewPointer(false),
+			Members: model.NewPointer(false),
 		}
 
 		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
@@ -144,9 +144,15 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		channel := &model.Channel{
 			Id: invitation.ChannelId,
 		}
+		mockTeamStore := mocks.TeamStore{}
+		team := &model.Team{
+			Id: model.NewId(),
+		}
 
 		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
+		mockTeamStore.On("GetAllPage", 0, 1, mock.Anything).Return([]*model.Team{team}, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("Team").Return(&mockTeamStore)
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
@@ -175,7 +181,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false},
 			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false},
 			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false},
-			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewString("bogus")}, &model.User{Id: model.NewId()}, true, false},
+			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewPointer("bogus")}, &model.User{Id: model.NewId()}, true, false},
 		}
 
 		for _, tc := range testCases {

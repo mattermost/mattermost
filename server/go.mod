@@ -1,8 +1,8 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.21.0
+go 1.22.0
 
-toolchain go1.21.8
+toolchain go1.22.6
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -55,6 +55,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/client_model v0.6.1
+	github.com/redis/rueidis v1.0.41
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.11.0
 	github.com/rudderlabs/analytics-go v3.3.3+incompatible
@@ -72,7 +73,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	github.com/wiggin77/merror v1.0.5
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
-	github.com/yuin/goldmark v1.7.4
+	github.com/yuin/goldmark v1.4.13
 	golang.org/x/crypto v0.25.0
 	golang.org/x/image v0.18.0
 	golang.org/x/net v0.27.0

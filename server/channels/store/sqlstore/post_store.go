@@ -677,7 +677,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		list.AddPost(p)
 		list.AddOrder(p.Id)
 	}
-	list.HasNext = hasNext
+	list.HasNext = &hasNext
 
 	return list, nil
 }
@@ -828,7 +828,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
-		pl.HasNext = hasNext
+		pl.HasNext = &hasNext
 	}
 	return pl, nil
 }
@@ -1156,7 +1156,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
 		if p.IsFollowing != nil {
-			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
+			p.Post.IsFollowing = model.NewPointer(*p.IsFollowing)
 		}
 		for _, userID := range p.ThreadParticipants {
 			participant, ok := usersMap[userID]

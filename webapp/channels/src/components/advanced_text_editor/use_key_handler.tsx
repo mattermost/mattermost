@@ -5,17 +5,17 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getLatestReplyablePostId} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
-import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
+import {replyToLatestPostInChannel} from 'actions/views/rhs';
+import {getIsRhsExpanded} from 'selectors/rhs';
 
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 
-import Constants, {Locations, Preferences} from 'utils/constants';
+import Constants, {A11yClassNames, Locations, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
@@ -53,13 +53,13 @@ const useKeyHandler = (
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const messageHistory = useSelector((state: GlobalState) => state.entities.posts.messagesHistory.messages);
+    const rhsExpanded = useSelector(getIsRhsExpanded);
 
     const timeoutId = useRef<number>();
     const messageHistoryIndex = useRef(messageHistory.length);
     const lastChannelSwitchAt = useRef(0);
     const isNonFormattedPaste = useRef(false);
 
-    const latestReplyablePostId = useSelector((state: GlobalState) => (postId ? '' : getLatestReplyablePostId(state)));
     const replyToLastPost = useCallback((e: React.KeyboardEvent) => {
         if (postId) {
             return;
@@ -70,10 +70,9 @@ const useKeyHandler = (
         if (replyBox) {
             replyBox.focus();
         }
-        if (latestReplyablePostId) {
-            dispatch(selectPostFromRightHandSideSearchByPostId(latestReplyablePostId));
-        }
-    }, [latestReplyablePostId, dispatch, postId]);
+
+        dispatch(replyToLatestPostInChannel(channelId));
+    }, [dispatch, postId, channelId]);
 
     const onEditLatestPost = useCallback((e: React.KeyboardEvent) => {
         e.preventDefault();
@@ -364,6 +363,41 @@ const useKeyHandler = (
         };
     }, [location, draft.message, caretPosition]);
 
+    const reactToLastMessage = useCallback((e: KeyboardEvent) => {
+        e.preventDefault();
+
+        const noModalsAreOpen = document.getElementsByClassName(A11yClassNames.MODAL).length === 0;
+        const noPopupsDropdownsAreOpen = document.getElementsByClassName(A11yClassNames.POPUP).length === 0;
+
+        // Block keyboard shortcut react to last message when :
+        // - RHS is completely expanded
+        // - Any dropdown/popups are open
+        // - Any modals are open
+        if (!rhsExpanded && noModalsAreOpen && noPopupsDropdownsAreOpen) {
+            dispatch(emitShortcutReactToLastPostFrom(Locations.CENTER));
+        }
+    }, [dispatch, rhsExpanded]);
+
+    useEffect(() => {
+        const documentKeyHandler = (e: KeyboardEvent) => {
+            const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
+            const lastMessageReactionKeyCombo = ctrlOrMetaKeyPressed && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
+            if (lastMessageReactionKeyCombo) {
+                reactToLastMessage(e);
+            }
+        };
+
+        if (!postId) {
+            document.addEventListener('keydown', documentKeyHandler);
+        }
+
+        return () => {
+            if (!postId) {
+                document.removeEventListener('keydown', documentKeyHandler);
+            }
+        };
+    }, [postId, reactToLastMessage]);
+
     // Reset history index
     useEffect(() => {
         if (messageHistoryIndex.current === messageHistory.length) {
@@ -373,6 +407,10 @@ const useKeyHandler = (
             messageHistoryIndex.current = messageHistory.length;
         }
     }, [draft.message]);
+
+    useEffect(() => {
+        messageHistoryIndex.current = messageHistory.length;
+    }, [messageHistory]);
 
     // Update last channel switch at
     useEffect(() => {

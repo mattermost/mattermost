@@ -4715,11 +4715,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4887,7 +4887,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Blee IndexingDir が設定されている場合、Bleve インデックス有効化設定は有効でなければなりません"
+    "translation": "Bleve インデックスを有効化する場合は Bleve IndexingDir を設定しなければなりません"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
@@ -10080,5 +10080,37 @@
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "検索バックエンドが不正です。elasticsearch または opensearch のいずれかでなければなりません。"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "リクエストを処理できませんでした。Request bodyが大きすぎます。"
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "サービス設定の最大URL長が不正です。0以上の整数でなくてはいけません。"
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "limit_visible_dms_gms の値が不正です。"
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "キャッシュタイプはlruかredisでなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "キャッシュタイプがredisの場合、RedisAddressを指定する必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DBは0以上の値でなくてはなりません。"
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "ウェブフックを取得できませんでした teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}。"
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "OAuth または SAML ユーザではありません。"
   }
 ]

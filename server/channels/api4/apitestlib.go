@@ -95,7 +95,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	memoryConfig.SetDefaults()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	memoryConfig.ServiceSettings.EnableLocalMode = model.NewPointer(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
@@ -866,7 +866,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
 	patch := []*model.ChannelModerationPatch{{
 		Name:  &name,
-		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(val)},
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(val)},
 	}}
 
 	channel, err := th.App.GetChannel(th.Context, channelId)
@@ -981,10 +981,10 @@ func (th *TestHelper) GenerateTestEmail() string {
 func (th *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        model.NewString("n-" + id),
+		Name:        model.NewPointer("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)

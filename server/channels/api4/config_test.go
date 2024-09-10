@@ -178,8 +178,8 @@ func TestUpdateConfig(t *testing.T) {
 		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
 			//Revert the change
 			badcfg := cfg.Clone()
-			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+			badcfg.PasswordSettings.MinimumLength = model.NewPointer(4)
+			badcfg.PasswordSettings.MinimumLength = model.NewPointer(4)
 			_, resp, err = client.UpdateConfig(context.Background(), badcfg)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
@@ -496,11 +496,11 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 
 	timeoutVal := *cfg.ServiceSettings.ReadTimeout
-	cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal + 1)
+	cfg.ServiceSettings.ReadTimeout = model.NewPointer(timeoutVal + 1)
 	cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 	require.NoError(t, err)
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
+		cfg.ServiceSettings.ReadTimeout = model.NewPointer(timeoutVal)
 	})
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
 
@@ -642,7 +642,7 @@ func TestPatchConfig(t *testing.T) {
 
 	// Ensure ConsoleLevel is set to DEBUG
 	config := model.Config{LogSettings: model.LogSettings{
-		ConsoleLevel: model.NewString("DEBUG"),
+		ConsoleLevel: model.NewPointer("DEBUG"),
 	}}
 	_, _, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
 	require.NoError(t, err)
@@ -663,7 +663,7 @@ func TestPatchConfig(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
 		config := model.Config{LogSettings: model.LogSettings{
-			ConsoleLevel: model.NewString("INFO"),
+			ConsoleLevel: model.NewPointer("INFO"),
 		}}
 
 		updatedConfig, _, _ := th.SystemAdminClient.PatchConfig(context.Background(), &config)
@@ -675,7 +675,7 @@ func TestPatchConfig(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
 		config := model.Config{LogSettings: model.LogSettings{
-			ConsoleLevel: model.NewString("INFO"),
+			ConsoleLevel: model.NewPointer("INFO"),
 		}}
 
 		oldConfig, _, _ := th.LocalClient.GetConfig(context.Background())
@@ -690,7 +690,7 @@ func TestPatchConfig(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("check if config is valid", func(t *testing.T) {
 			config := model.Config{PasswordSettings: model.PasswordSettings{
-				MinimumLength: model.NewInt(4),
+				MinimumLength: model.NewPointer(4),
 			}}
 
 			_, response, err := client.PatchConfig(context.Background(), &config)
@@ -713,12 +713,12 @@ func TestPatchConfig(t *testing.T) {
 			assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
 
 			states := make(map[string]*model.PluginState)
-			states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewBool(false)}
+			states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewPointer(false)}
 			config := model.Config{PasswordSettings: model.PasswordSettings{
-				Lowercase:     model.NewBool(true),
-				MinimumLength: model.NewInt(15),
+				Lowercase:     model.NewPointer(true),
+				MinimumLength: model.NewPointer(15),
 			}, LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewString("INFO"),
+				ConsoleLevel: model.NewPointer("INFO"),
 			},
 				TeamSettings: model.TeamSettings{
 					ExperimentalDefaultChannels: []string{"another-channel"},
@@ -746,7 +746,7 @@ func TestPatchConfig(t *testing.T) {
 
 		t.Run("should sanitize config", func(t *testing.T) {
 			config := model.Config{PasswordSettings: model.PasswordSettings{
-				Symbol: model.NewBool(true),
+				Symbol: model.NewPointer(true),
 			}}
 
 			updatedConfig, _, err := client.PatchConfig(context.Background(), &config)
@@ -757,7 +757,7 @@ func TestPatchConfig(t *testing.T) {
 
 		t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
 			config := model.Config{PluginSettings: model.PluginSettings{
-				EnableUploads: model.NewBool(true),
+				EnableUploads: model.NewPointer(true),
 			}}
 
 			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
@@ -810,7 +810,7 @@ func TestPatchConfig(t *testing.T) {
 		nonEmptyURL := "http://localhost"
 		config := model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewString(nonEmptyURL),
+				SiteURL: model.NewPointer(nonEmptyURL),
 			},
 		}
 		updatedConfig, _, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
@@ -820,7 +820,7 @@ func TestPatchConfig(t *testing.T) {
 		// Check that the Site URL can't be cleared
 		config = model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewString(""),
+				SiteURL: model.NewPointer(""),
 			},
 		}
 		_, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)

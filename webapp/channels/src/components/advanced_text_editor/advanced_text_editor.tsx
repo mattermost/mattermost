@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -18,14 +18,15 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 
 import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
@@ -65,6 +66,8 @@ import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
 
+const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
+
 function isDraftEmpty(draft: PostDraft) {
     return draft.message === '' && draft.fileInfos.length === 0 && draft.uploadsInProgress.length === 0;
 }
@@ -79,14 +82,20 @@ type Props = {
     postId: string;
     isThreadView?: boolean;
     placeholder?: string;
+
+    /**
+     * Used by plugins to act after the post is made
+     */
+    afterSubmit?: (response: SubmitPostReturnType) => void;
 }
 
-const AdvanceTextEditor = ({
+const AdvancedTextEditor = ({
     location,
     channelId,
     postId,
     isThreadView = false,
     placeholder,
+    afterSubmit,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -244,7 +253,7 @@ const AdvanceTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck);
+    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -660,4 +669,4 @@ const AdvanceTextEditor = ({
     );
 };
 
-export default AdvanceTextEditor;
+export default AdvancedTextEditor;

@@ -9,7 +9,6 @@ import {matchPath, useLocation} from 'react-router-dom';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
@@ -22,6 +21,7 @@ import {
 } from 'actions/views/onboarding_tasks';
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {setStatusDropdown} from 'actions/views/status_dropdown';
+import {getOnboardingTaskPreferences} from 'selectors/onboarding';
 
 import Channels from 'components/common/svg_images_components/channels_svg';
 import Gears from 'components/common/svg_images_components/gears_svg';
@@ -45,8 +45,6 @@ import type {GlobalState} from 'types/store';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
 import {generateTelemetryTag} from './utils';
-
-const getCategory = makeGetCategory();
 
 const useGetTaskDetails = () => {
     const {formatMessage} = useIntl();
@@ -145,7 +143,7 @@ export const useTasksList = () => {
 };
 
 export const useTasksListWithStatus = () => {
-    const dataInDb = useSelector((state: GlobalState) => getCategory(state, OnboardingTaskCategory));
+    const dataInDb = useSelector(getOnboardingTaskPreferences);
     const tasksList = useTasksList();
     const getTaskDetails = useGetTaskDetails();
     return useMemo(() =>
