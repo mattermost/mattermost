@@ -10,8 +10,8 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import DraftsIllustration from 'components/drafts/drafts_illustration';
 import ScheduledPostItem from 'components/drafts/scheduled_post/scheduled_post';
 import NoResultsIndicator from 'components/no_results_indicator';
-import {useSelector} from "react-redux";
-import {getChannel} from "mattermost-redux/actions/channels";
+
+import './style.scss';
 
 type Props = {
     scheduledPosts: ScheduledPost[];

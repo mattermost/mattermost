@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {useIntl} from 'react-intl';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
@@ -27,6 +27,7 @@ import './drafts.scss';
 import type {GlobalState} from 'types/store';
 
 import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
+import {Badge} from "@mui/base";
 
 type Props = {
     drafts: Draft[];
@@ -100,6 +101,38 @@ function Drafts({
         }
     }, [history, isDraftsTab, isScheduledPostsTab, match]);
 
+    const draftTabHeading = useMemo(() => {
+        return (
+            <div className='drafts_tab_title'>
+                <FormattedMessage
+                    id='drafts.heading'
+                    defaultMessage='Drafts'
+                />
+
+                <Badge
+                    className='badge'
+                    badgeContent={drafts.length}
+                />
+            </div>
+        );
+    }, [drafts.length]);
+
+    const scheduledPostsTabHeading = useMemo(() => {
+        return (
+            <div className='drafts_tab_title'>
+                <FormattedMessage
+                    id='schedule_post.tab.heading'
+                    defaultMessage='Scheduled'
+                />
+
+                <Badge
+                    className='badge'
+                    badgeContent={scheduledPosts?.length}
+                />
+            </div>
+        );
+    }, [scheduledPosts?.length]);
+
     return (
         <div
             id='app-content'
@@ -127,7 +160,7 @@ function Drafts({
             >
                 <Tab
                     eventKey={0}
-                    title='Drafts'
+                    title={draftTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
@@ -142,7 +175,7 @@ function Drafts({
 
                 <Tab
                     eventKey={1}
-                    title='Scheduled'
+                    title={scheduledPostsTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >

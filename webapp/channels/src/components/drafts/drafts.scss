@@ -34,6 +34,32 @@
         margin-bottom: 20px;
     }
 
+    #draft_tabs {
+        .nav.nav-tabs {
+            .drafts_tab {
+                .badge {
+                    height: 14px;
+                    font-size: 11px;
+                    background: rgba(var(--center-channel-color-rgb), 0.2);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    display: inline-block;
+                    margin-left: 6px;
+                    position: relative;
+                    top: -2px;
+                }
+
+                &.active {
+                    .badge {
+                        background: rgba(var(--button-bg-rgb), 0.08);
+                        color: var(--button-bg);
+                    }
+                }
+            }
+        }
+    }
+
+    span.MuiBadge-badge {top: -2px;position: relative;}
+
     @media screen and (max-width: 768px) {
         grid-template-rows: 0 1fr;
 
