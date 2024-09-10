@@ -24,8 +24,8 @@ var (
 
 func setupForSharedChannels(tb testing.TB) *TestHelper {
 	th := SetupConfig(tb, func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
-		*cfg.ExperimentalSettings.EnableSharedChannels = true
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
