@@ -27,7 +27,8 @@ import './drafts.scss';
 import type {GlobalState} from 'types/store';
 
 import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
-import {Badge} from "@mui/base";
+
+import {Badge} from '@mui/base';
 
 type Props = {
     drafts: Draft[];
