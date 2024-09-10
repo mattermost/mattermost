@@ -3043,6 +3043,8 @@
   "center_panel.archived.closeChannel": "Закрыть канал",
   "center_panel.direct.closeDirectMessage": "Закрыть личные сообщения",
   "center_panel.direct.closeGroupMessage": "Закрыть сообщения группы",
+  "center_panel.input.cannot_load_component": "Что-то пошло не так при загрузке компонента. Пожалуйста, подожди немного или попробуй перезагрузить приложение.",
+  "center_panel.reloadPage": "Обновить",
   "change_url.endWithLetter": "URL-адреса должны заканчиваться строчной буквой или цифрой.",
   "change_url.helpText": "Вы можете использовать строчные буквы, цифры, точки, тире и подчеркивания.",
   "change_url.invalidDirectMessage": "Идентификаторы пользователей не разрешены в URL-адресах каналов.",
