@@ -3739,7 +3739,7 @@
   "login.terms_rejected": "Před vstupem na {siteName} musíte souhlasit s podmínkami použití. Další podrobnosti Vám poskytne správce systému.",
   "login.title": "Přihlaste se ke svému účtu",
   "login.userNotFound": "Nelze najít účet s daným přihlašovacím jménem nebo heslem.",
-  "login.username": "Uživatelské jméno",
+  "login.username": "Uživatelské Jméno",
   "login.verified": " E-mail ověřen",
   "login_mfa.saving": "Přihlašování…",
   "login_mfa.submit": "Odeslat",
