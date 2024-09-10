@@ -3043,6 +3043,8 @@
   "center_panel.archived.closeChannel": "Zamknij Kanał",
   "center_panel.direct.closeDirectMessage": "Zamknij Wiadomość Bezpośrednią",
   "center_panel.direct.closeGroupMessage": "Zamknij Wiadomość Grupową",
+  "center_panel.input.cannot_load_component": "Coś poszło nie tak podczas ładowania komponentu. Poczekaj chwilę lub spróbuj ponownie załadować aplikację.",
+  "center_panel.reloadPage": "Wczytaj ponownie",
   "change_url.endWithLetter": "Adres URL musi kończyć się na literę lub cyfrę.",
   "change_url.helpText": "Możesz używać małych liter, liczb, kropek, myślników, oraz podkreśleń.",
   "change_url.invalidDirectMessage": "Identyfikatory użytkowników nie są dozwolone w adresach URL kanałów.",
