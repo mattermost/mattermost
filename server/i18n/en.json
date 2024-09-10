@@ -2449,6 +2449,10 @@
     "translation": "Unable to open file in multipart/form request."
   },
   {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
+  },
+  {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request."
   },
