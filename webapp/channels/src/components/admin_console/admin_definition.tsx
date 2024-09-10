@@ -1767,32 +1767,6 @@ const AdminDefinition: AdminDefinitionType = {
                     component: SessionLengthSettings,
                 },
             },
-            server_federation: {
-                url: 'environment/server_federation',
-                title: defineMessage({id: 'admin.sidebar.server_federation', defaultMessage: 'Server Federation'}),
-                isHidden: it.any(
-                    it.not(it.licensedForFeature('SharedChannels')),
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                ),
-                schema: {
-                    id: 'ServerFederationSettings',
-                    name: defineMessage({id: 'admin.environment.serverFederation', defaultMessage: 'Server Federation'}),
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'ServerFederationSettings.EnableSharedChannels',
-                            label: defineMessage({id: 'admin.environment.serverFederation.enableSharedChannels.title', defaultMessage: 'Enable Shared Channels:'}),
-                            help_text: defineMessage({id: 'admin.environment.serverFederation.enableSharedChannels.desc', defaultMessage: 'Toggles Shared Channels'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.any(
-                                it.licensedForFeature('SharedChannels'),
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.Professional),
-                            )),
-                        },
-                    ],
-                },
-            },
             metrics: {
                 url: 'environment/performance_monitoring',
                 title: defineMessage({id: 'admin.sidebar.metrics', defaultMessage: 'Performance Monitoring'}),
