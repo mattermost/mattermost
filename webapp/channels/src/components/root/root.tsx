@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
-import React from 'react';
+import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -13,42 +13,31 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
-import AccessProblem from 'components/access_problem';
-import AnnouncementBarController from 'components/announcement_bar';
-import AppBar from 'components/app_bar/app_bar';
 import {makeAsyncComponent} from 'components/async_load';
-import CloudEffects from 'components/cloud_effects';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
 import InitialLoadingScreen from 'components/initial_loading_screen';
-import MobileViewWatcher from 'components/mobile_view_watcher';
-import ModalController from 'components/modal_controller';
-import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
+import LoggedIn from 'components/logged_in';
+import LoggedInRoute from 'components/logged_in_route';
+import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
-import SidebarRight from 'components/sidebar_right';
-import SidebarRightMenu from 'components/sidebar_right_menu';
-import SystemNotice from 'components/system_notice';
-import TeamSidebar from 'components/team_sidebar';
-import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
+import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
-import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
 import {PageLoadContext} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
-import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
+import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
+import {applyTheme, isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
@@ -59,68 +48,36 @@ import type {PropsFromRedux} from './index';
 
 import 'plugins/export.js';
 
-const LazyErrorPage = React.lazy(() => import('components/error_page'));
-const LazyLogin = React.lazy(() => import('components/login/login'));
-const LazyAdminConsole = React.lazy(() => import('components/admin_console'));
-const LazyLoggedIn = React.lazy(() => import('components/logged_in'));
-const LazyPasswordResetSendLink = React.lazy(() => import('components/password_reset_send_link'));
-const LazyPasswordResetForm = React.lazy(() => import('components/password_reset_form'));
-const LazySignup = React.lazy(() => import('components/signup/signup'));
-const LazyTermsOfService = React.lazy(() => import('components/terms_of_service'));
-const LazyShouldVerifyEmail = React.lazy(() => import('components/should_verify_email/should_verify_email'));
-const LazyDoVerifyEmail = React.lazy(() => import('components/do_verify_email/do_verify_email'));
-const LazyClaimController = React.lazy(() => import('components/claim'));
-const LazyLinkingLandingPage = React.lazy(() => import('components/linking_landing_page'));
-const LazySelectTeam = React.lazy(() => import('components/select_team'));
-const LazyAuthorize = React.lazy(() => import('components/authorize'));
-const LazyCreateTeam = React.lazy(() => import('components/create_team'));
-const LazyMfa = React.lazy(() => import('components/mfa/mfa_controller'));
-const LazyPreparingWorkspace = React.lazy(() => import('components/preparing_workspace'));
-const LazyTeamController = React.lazy(() => import('components/team_controller'));
-const LazyOnBoardingTaskList = React.lazy(() => import('components/onboarding_tasklist'));
-
-const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
-const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
-const TermsOfService = makeAsyncComponent('TermsOfService', LazyTermsOfService);
-const Login = makeAsyncComponent('LoginController', LazyLogin);
-const AdminConsole = makeAsyncComponent('AdminConsole', LazyAdminConsole);
-const LoggedIn = makeAsyncComponent('LoggedIn', LazyLoggedIn);
-const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', LazyPasswordResetSendLink);
-const PasswordResetForm = makeAsyncComponent('PasswordResetForm', LazyPasswordResetForm);
-const Signup = makeAsyncComponent('SignupController', LazySignup);
-const ShouldVerifyEmail = makeAsyncComponent('ShouldVerifyEmail', LazyShouldVerifyEmail);
-const DoVerifyEmail = makeAsyncComponent('DoVerifyEmail', LazyDoVerifyEmail);
-const ClaimController = makeAsyncComponent('ClaimController', LazyClaimController);
-const LinkingLandingPage = makeAsyncComponent('LinkingLandingPage', LazyLinkingLandingPage);
-const SelectTeam = makeAsyncComponent('SelectTeam', LazySelectTeam);
-const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
-const Mfa = makeAsyncComponent('Mfa', LazyMfa);
-const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', LazyPreparingWorkspace);
-const TeamController = makeAsyncComponent('TeamController', LazyTeamController);
-const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardingTaskList);
-
-type LoggedInRouteProps = {
-    component: React.ComponentType<RouteComponentProps<any>>;
-    path: string | string[];
-    theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
-};
-
-function LoggedInRoute(props: LoggedInRouteProps) {
-    const {component: Component, theme, ...rest} = props;
-    return (
-        <Route
-            {...rest}
-            render={(routeProps) => (
-                <LoggedIn {...routeProps}>
-                    {theme && <CompassThemeProvider theme={theme}>
-                        <OnBoardingTaskList/>
-                    </CompassThemeProvider>}
-                    <Component {...(routeProps)}/>
-                </LoggedIn>
-            )}
-        />
-    );
-}
+const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => import('components/mobile_view_watcher')));
+const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
+const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
+const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
+const AccessProblem = makeAsyncComponent('AccessProblem', lazy(() => import('components/access_problem')));
+const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', lazy(() => import('components/password_reset_send_link')));
+const PasswordResetForm = makeAsyncComponent('PasswordResetForm', lazy(() => import('components/password_reset_form')));
+const Signup = makeAsyncComponent('SignupController', lazy(() => import('components/signup/signup')));
+const ShouldVerifyEmail = makeAsyncComponent('ShouldVerifyEmail', lazy(() => import('components/should_verify_email/should_verify_email')));
+const DoVerifyEmail = makeAsyncComponent('DoVerifyEmail', lazy(() => import('components/do_verify_email/do_verify_email')));
+const ClaimController = makeAsyncComponent('ClaimController', lazy(() => import('components/claim')));
+const TermsOfService = makeAsyncComponent('TermsOfService', lazy(() => import('components/terms_of_service')));
+const LinkingLandingPage = makeAsyncComponent('LinkingLandingPage', lazy(() => import('components/linking_landing_page')));
+const AdminConsole = makeAsyncComponent('AdminConsole', lazy(() => import('components/admin_console')));
+const SelectTeam = makeAsyncComponent('SelectTeam', lazy(() => import('components/select_team')));
+const Authorize = makeAsyncComponent('Authorize', lazy(() => import('components/authorize')));
+const CreateTeam = makeAsyncComponent('CreateTeam', lazy(() => import('components/create_team')));
+const Mfa = makeAsyncComponent('Mfa', lazy(() => import('components/mfa/mfa_controller')));
+const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', lazy(() => import('components/preparing_workspace')));
+const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
+const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => import('components/preparing_workspace/launching_workspace')));
+const CompassThemeProvider = makeAsyncComponent('CompassThemeProvider', lazy(() => import('components/compass_theme_provider/compass_theme_provider')));
+const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
+const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController', lazy(() => import('components/announcement_bar')));
+const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
+const CloudEffects = makeAsyncComponent('CloudEffects', lazy(() => import('components/cloud_effects')));
+const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('components/team_sidebar')));
+const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
+const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
+const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 
 const noop = () => {};
 
@@ -138,31 +95,12 @@ export default class Root extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        // Redux
         setUrl(getSiteURL());
 
         // Disable auth header to enable CSRF check
         Client4.setAuthHeader = false;
 
         setSystemEmojis(new Set(EmojiIndicesByAlias.keys()));
-
-        // Force logout of all tabs if one tab is logged out
-        window.addEventListener('storage', this.handleLogoutLoginSignal);
-
-        // Prevent drag and drop files from navigating away from the app
-        document.addEventListener('drop', (e) => {
-            if (e.dataTransfer && e.dataTransfer.items.length > 0 && e.dataTransfer.items[0].kind === 'file') {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-
-        document.addEventListener('dragover', (e) => {
-            if (!Utils.isTextDroppableEvent(e) && !document.body.classList.contains('focalboard-body')) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
 
         this.state = {
             shouldMountAppRoutes: false,
@@ -251,23 +189,23 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.showLandingPageIfNecessary();
 
-        Utils.applyTheme(this.props.theme);
+        applyTheme(this.props.theme);
     };
 
     private showLandingPageIfNecessary = () => {
         // We have nothing to redirect to if we're already on Desktop App
         // Chromebook has no Desktop App to switch to
-        if (UserAgent.isDesktopApp() || UserAgent.isChromebook()) {
+        if (isDesktopApp() || isChromebook()) {
             return;
         }
 
         // Nothing to link to if we've removed the Android App download link
-        if (UserAgent.isAndroidWeb() && !this.props.androidDownloadLink) {
+        if (isAndroidWeb() && !this.props.androidDownloadLink) {
             return;
         }
 
         // Nothing to link to if we've removed the iOS App download link
-        if (UserAgent.isIosWeb() && !this.props.iosDownloadLink) {
+        if (isIosWeb() && !this.props.iosDownloadLink) {
             return;
         }
 
@@ -312,7 +250,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
-            Utils.applyTheme(this.props.theme);
+            applyTheme(this.props.theme);
         }
 
         if (this.props.location.pathname === '/') {
@@ -384,6 +322,20 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     };
 
+    handleDropEvent = (e: DragEvent) => {
+        if (e.dataTransfer && e.dataTransfer.items.length > 0 && e.dataTransfer.items[0].kind === 'file') {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+
+    handleDragOverEvent = (e: DragEvent) => {
+        if (!isTextDroppableEvent(e) && !document.body.classList.contains('focalboard-body')) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
@@ -394,10 +346,20 @@ export default class Root extends React.PureComponent<Props, State> {
 
         measurePageLoadTelemetry();
         trackSelectorMetrics();
+
+        // Force logout of all tabs if one tab is logged out
+        window.addEventListener('storage', this.handleLogoutLoginSignal);
+
+        // Prevent drag and drop files from navigating away from the app
+        document.addEventListener('drop', this.handleDropEvent);
+
+        document.addEventListener('dragover', this.handleDragOverEvent);
     }
 
     componentWillUnmount() {
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
+        document.removeEventListener('drop', this.handleDropEvent);
+        document.removeEventListener('dragover', this.handleDragOverEvent);
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
@@ -600,7 +562,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         </div>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
-                        <SidebarRightMenu/>
+                        <SidebarMobileRightMenu/>
                     </CompassThemeProvider>
                 </Switch>
             </RootProvider>

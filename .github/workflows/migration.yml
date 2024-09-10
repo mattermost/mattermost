@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
       TEST_IMAGE: migration-test-image
     defaults:
       run:
@@ -15,6 +14,10 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ./server
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Run docker compose
         run: |
           cd build
@@ -29,6 +32,8 @@ jobs:
           docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "mysql -u root -pmostest -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
           docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
       - name: Build test image
+        env:
+          BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
           echo -e "FROM $BUILD_IMAGE\n\nRUN apt update && \
             apt remove -y pgloader && \
