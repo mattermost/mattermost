@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect} from 'react';
+import React, {memo, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
@@ -51,6 +51,24 @@ function DraftsLink() {
         dispatch(fetchTeamScheduledPosts(teamId));
     }, [teamId, dispatch]);
 
+    const pencilIcon = useMemo(() => {
+        return (
+            <i
+                data-testid='draftIcon'
+                className='icon icon-draft-indicator icon-pencil-outline'
+            />
+        );
+    }, []);
+
+    const scheduleIcon = useMemo(() => {
+        return (
+            <i
+                data-testid='scheduledPostIcon'
+                className='icon icon-draft-indicator icon-clock-send-outline'
+            />
+        );
+    }, []);
+
     if (!itemsExist && !urlMatches) {
         return null;
     }
@@ -70,10 +88,7 @@ function DraftsLink() {
                     className='SidebarLink sidebar-item'
                     tabIndex={0}
                 >
-                    <i
-                        data-testid='draftIcon'
-                        className='icon icon-pencil-outline'
-                    />
+                    {pencilIcon}
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
                             <FormattedMessage
@@ -82,9 +97,21 @@ function DraftsLink() {
                             />
                         </span>
                     </div>
-                    {draftCount > 0 && (
-                        <ChannelMentionBadge unreadMentions={draftCount}/>
-                    )}
+                    {
+                        draftCount > 0 &&
+                        <ChannelMentionBadge
+                            unreadMentions={draftCount}
+                            icon={pencilIcon}
+                        />
+                    }
+
+                    {
+                        teamScheduledPostCount > 0 &&
+                        <ChannelMentionBadge
+                            unreadMentions={teamScheduledPostCount}
+                            icon={scheduleIcon}
+                        />
+                    }
                 </NavLink>
                 <DraftsTourTip/>
             </li>

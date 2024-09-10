@@ -7,15 +7,17 @@ import React from 'react';
 type Props = {
     unreadMentions: number;
     hasUrgent?: boolean;
+    icon?: React.ReactNode;
 };
 
-export default function ChannelMentionBadge({unreadMentions, hasUrgent}: Props) {
+export default function ChannelMentionBadge({unreadMentions, hasUrgent, icon}: Props) {
     if (unreadMentions > 0) {
         return (
             <span
                 id='unreadMentions'
                 className={classNames({badge: true, urgent: hasUrgent})}
             >
+                {icon}
                 {unreadMentions}
             </span>
         );
