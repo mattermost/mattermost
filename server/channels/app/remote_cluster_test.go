@@ -15,7 +15,7 @@ import (
 
 func setupRemoteCluster(tb testing.TB) *TestHelper {
 	return SetupConfig(tb, func(cfg *model.Config) {
-		*cfg.ServerFederationSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 	})
 }
 

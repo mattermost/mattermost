@@ -138,7 +138,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
-	if *cfg.ServerFederationSettings.EnableRemoteClusterService || *cfg.ServerFederationSettings.EnableSharedChannels {
+	if *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService || *cfg.ConnectedWorkspacesSettings.EnableSharedChannels {
 		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	}
 	if enterprise {

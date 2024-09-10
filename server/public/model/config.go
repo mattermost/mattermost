@@ -1068,8 +1068,8 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ServerFederationSettings.EnableSharedChannels`
-	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ServerFederationSettings.EnableRemoteClusterService`
+	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
+	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
 	DisableAppBar                                         *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
@@ -3242,25 +3242,25 @@ func (w *WranglerSettings) IsValid() *AppError {
 	return nil
 }
 
-type ServerFederationSettings struct {
+type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels       *bool
 	EnableRemoteClusterService *bool
 }
 
-func (s *ServerFederationSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
-	if s.EnableSharedChannels == nil {
+func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
+	if c.EnableSharedChannels == nil {
 		if isUpdate && e.EnableSharedChannels != nil {
-			s.EnableSharedChannels = e.EnableSharedChannels
+			c.EnableSharedChannels = e.EnableSharedChannels
 		} else {
-			s.EnableSharedChannels = NewPointer(false)
+			c.EnableSharedChannels = NewPointer(false)
 		}
 	}
 
-	if s.EnableRemoteClusterService == nil {
+	if c.EnableRemoteClusterService == nil {
 		if isUpdate && e.EnableRemoteClusterService != nil {
-			s.EnableRemoteClusterService = e.EnableRemoteClusterService
+			c.EnableRemoteClusterService = e.EnableRemoteClusterService
 		} else {
-			s.EnableRemoteClusterService = NewPointer(false)
+			c.EnableRemoteClusterService = NewPointer(false)
 		}
 	}
 }
@@ -3520,50 +3520,50 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 //	    Product bool `access:write_restrictable`
 //	}
 type Config struct {
-	ServiceSettings           ServiceSettings
-	TeamSettings              TeamSettings
-	ClientRequirements        ClientRequirements
-	SqlSettings               SqlSettings
-	LogSettings               LogSettings
-	ExperimentalAuditSettings ExperimentalAuditSettings
-	NotificationLogSettings   NotificationLogSettings
-	PasswordSettings          PasswordSettings
-	FileSettings              FileSettings
-	EmailSettings             EmailSettings
-	RateLimitSettings         RateLimitSettings
-	PrivacySettings           PrivacySettings
-	SupportSettings           SupportSettings
-	AnnouncementSettings      AnnouncementSettings
-	ThemeSettings             ThemeSettings
-	GitLabSettings            SSOSettings
-	GoogleSettings            SSOSettings
-	Office365Settings         Office365Settings
-	OpenIdSettings            SSOSettings
-	LdapSettings              LdapSettings
-	ComplianceSettings        ComplianceSettings
-	LocalizationSettings      LocalizationSettings
-	SamlSettings              SamlSettings
-	NativeAppSettings         NativeAppSettings
-	CacheSettings             CacheSettings
-	ClusterSettings           ClusterSettings
-	MetricsSettings           MetricsSettings
-	ExperimentalSettings      ExperimentalSettings
-	AnalyticsSettings         AnalyticsSettings
-	ElasticsearchSettings     ElasticsearchSettings
-	BleveSettings             BleveSettings
-	DataRetentionSettings     DataRetentionSettings
-	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings
-	PluginSettings            PluginSettings
-	DisplaySettings           DisplaySettings
-	GuestAccountsSettings     GuestAccountsSettings
-	ImageProxySettings        ImageProxySettings
-	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
-	ImportSettings            ImportSettings // telemetry: none
-	ExportSettings            ExportSettings
-	WranglerSettings          WranglerSettings
-	ServerFederationSettings  ServerFederationSettings
+	ServiceSettings             ServiceSettings
+	TeamSettings                TeamSettings
+	ClientRequirements          ClientRequirements
+	SqlSettings                 SqlSettings
+	LogSettings                 LogSettings
+	ExperimentalAuditSettings   ExperimentalAuditSettings
+	NotificationLogSettings     NotificationLogSettings
+	PasswordSettings            PasswordSettings
+	FileSettings                FileSettings
+	EmailSettings               EmailSettings
+	RateLimitSettings           RateLimitSettings
+	PrivacySettings             PrivacySettings
+	SupportSettings             SupportSettings
+	AnnouncementSettings        AnnouncementSettings
+	ThemeSettings               ThemeSettings
+	GitLabSettings              SSOSettings
+	GoogleSettings              SSOSettings
+	Office365Settings           Office365Settings
+	OpenIdSettings              SSOSettings
+	LdapSettings                LdapSettings
+	ComplianceSettings          ComplianceSettings
+	LocalizationSettings        LocalizationSettings
+	SamlSettings                SamlSettings
+	NativeAppSettings           NativeAppSettings
+	CacheSettings               CacheSettings
+	ClusterSettings             ClusterSettings
+	MetricsSettings             MetricsSettings
+	ExperimentalSettings        ExperimentalSettings
+	AnalyticsSettings           AnalyticsSettings
+	ElasticsearchSettings       ElasticsearchSettings
+	BleveSettings               BleveSettings
+	DataRetentionSettings       DataRetentionSettings
+	MessageExportSettings       MessageExportSettings
+	JobSettings                 JobSettings
+	PluginSettings              PluginSettings
+	DisplaySettings             DisplaySettings
+	GuestAccountsSettings       GuestAccountsSettings
+	ImageProxySettings          ImageProxySettings
+	CloudSettings               CloudSettings  // telemetry: none
+	FeatureFlags                *FeatureFlags  `access:"*_read" json:",omitempty"`
+	ImportSettings              ImportSettings // telemetry: none
+	ExportSettings              ExportSettings
+	WranglerSettings            WranglerSettings
+	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3680,7 +3680,7 @@ func (o *Config) SetDefaults() {
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
 	o.WranglerSettings.SetDefaults()
-	o.ServerFederationSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
+	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 }
 
 func (o *Config) IsValid() *AppError {
