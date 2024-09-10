@@ -57,5 +57,9 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 		scheduledPosts = []*model.ScheduledPost{}
 	}
 
+	for _, scheduledPost := range scheduledPosts {
+		a.prepareDraftWithFileInfos(rctx, userId, &scheduledPost.Draft)
+	}
+
 	return scheduledPosts, nil
 }
