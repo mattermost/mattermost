@@ -1076,6 +1076,7 @@ type ExperimentalSettings struct {
 	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
+	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1125,6 +1126,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
 		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewPointer(int64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds))
+	}
+
+	if s.YoutubeReferrerPolicy == nil {
+		s.YoutubeReferrerPolicy = NewBool(false)
 	}
 }
 

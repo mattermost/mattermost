@@ -74,6 +74,14 @@ func TestGetPreferences(t *testing.T) {
 	_, resp, err = client.GetPreferences(context.Background(), th.BasicUser2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		prefs, resp, err := c.GetPreferences(context.Background(), user1.Id)
+		require.NotNil(t, prefs)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
@@ -134,6 +142,14 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	_, resp, err = client.GetPreferencesByCategory(context.Background(), th.BasicUser2.Id, category)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferencesByCategory API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		prefs, resp, err := c.GetPreferencesByCategory(context.Background(), user1.Id, category)
+		require.NotNil(t, prefs)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
@@ -192,6 +208,14 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferenceByCategoryAndName API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		pref, resp, err := c.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
+		require.NotNil(t, pref)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferences(t *testing.T) {
@@ -255,6 +279,21 @@ func TestUpdatePreferences(t *testing.T) {
 	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// UpdatePreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		preferences := model.Preferences{
+			{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    "true",
+			},
+		}
+		resp, err := c.UpdatePreferences(context.Background(), user1.Id, preferences)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferencesOverload(t *testing.T) {
@@ -623,6 +662,25 @@ func TestDeletePreferences(t *testing.T) {
 	resp, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// DeletePreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// Creating Test Data
+		var preferences model.Preferences
+		preference := model.Preference{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryCustomStatus,
+			Name:     model.NewId(),
+			Value:    "true",
+		}
+		preferences = append(preferences, preference)
+		c.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+
+		// Delete Prefrerences Operation
+		resp, err = c.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestDeletePreferencesOverload(t *testing.T) {
