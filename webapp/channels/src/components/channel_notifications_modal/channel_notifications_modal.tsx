@@ -71,7 +71,18 @@ export default function ChannelNotificationsModal(props: Props) {
     }, []);
 
     function handleUseSameMobileSettingsAsDesktopCheckboxChange() {
-        setDesktopAndMobileSettingDifferent(!desktopAndMobileSettingsDifferent);
+        const newValueOfSettings = {...settings};
+        const newValueOfDesktopAndMobileSettingsDifferent = !desktopAndMobileSettingsDifferent;
+
+        if (newValueOfDesktopAndMobileSettingsDifferent === false) {
+            newValueOfSettings.push = settings.desktop;
+            newValueOfSettings.push_threads = settings.desktop_threads;
+        } else {
+            newValueOfSettings.push = getInitialValuesOfChannelNotifyProps('push', props.currentUser.notify_props, props.channelMember?.notify_props);
+            newValueOfSettings.push_threads = getInitialValuesOfChannelNotifyProps('push_threads', props.currentUser.notify_props, props.channelMember?.notify_props);
+        }
+        setSettings(newValueOfSettings);
+        setDesktopAndMobileSettingDifferent(newValueOfDesktopAndMobileSettingsDifferent);
     }
 
     function handleResetToDefaultClicked(channelNotifyPropsDefaultedToUserNotifyProps: ChannelMembership['notify_props'], sectionName: SectionName) {
@@ -663,8 +674,21 @@ export function createChannelNotifyPropsFromSelectedSettings(
     // If desktop and mobile settings are checked to be same, then same settings should be applied to push and push_threads
     // as that of desktop and desktop_threads
     if (desktopAndMobileSettingsDifferent === false) {
-        channelNotifyProps.push = channelNotifyProps.desktop;
-        channelNotifyProps.push_threads = channelNotifyProps.desktop_threads;
+        // If desktop is set to default, it means it is synced to the user's notification settings.
+        // Since we checked the box to use the same settings for mobile, we need to set channel's mobile to match channel's desktop.
+        // Setting mobile to default would sync it to the user's notification settings, which we want to avoid.
+        if (channelNotifyProps.desktop === NotificationLevels.DEFAULT) {
+            channelNotifyProps.push = userNotifyProps.desktop;
+        } else {
+            // Otherwise, we should use the CHANNEL's desktop setting as is to match mobile settings
+            channelNotifyProps.push = channelNotifyProps.desktop;
+        }
+
+        if (channelNotifyProps.desktop_threads === NotificationLevels.DEFAULT) {
+            channelNotifyProps.push_threads = userNotifyProps.desktop_threads;
+        } else {
+            channelNotifyProps.push_threads = channelNotifyProps.desktop_threads;
+        }
     }
 
     if (collapsedReplyThreads === false) {

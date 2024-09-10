@@ -21,29 +21,29 @@ describe('ChannelNotificationsModal', () => {
             id: 'channel_id',
             display_name: 'channel_display_name',
         }),
-        channelMember: {
-            notify_props: {
-                desktop: NotificationLevels.ALL,
-                desktop_sound: 'on',
-                desktop_notification_sound: 'Bing',
-                mark_unread: NotificationLevels.ALL,
-                push: NotificationLevels.ALL,
-                ignore_channel_mentions: IgnoreChannelMentions.DEFAULT,
-                desktop_threads: NotificationLevels.ALL,
-                push_threads: NotificationLevels.ALL,
-            },
-        } as unknown as ChannelMembership,
         currentUser: TestHelper.getUserMock({
             id: 'current_user_id',
             notify_props: {
                 desktop: NotificationLevels.ALL,
+                desktop_threads: NotificationLevels.MENTION,
                 desktop_sound: 'true',
                 desktop_notification_sound: 'Bing',
-                desktop_threads: NotificationLevels.MENTION,
-                push_threads: NotificationLevels.MENTION,
                 push: NotificationLevels.MENTION,
+                push_threads: NotificationLevels.MENTION,
             } as UserNotifyProps,
         }),
+        channelMember: {
+            notify_props: {
+                desktop: NotificationLevels.ALL,
+                desktop_threads: NotificationLevels.ALL,
+                desktop_sound: 'on',
+                desktop_notification_sound: 'Bing',
+                push: NotificationLevels.ALL,
+                push_threads: NotificationLevels.ALL,
+                mark_unread: NotificationLevels.ALL,
+                ignore_channel_mentions: IgnoreChannelMentions.DEFAULT,
+            },
+        } as unknown as ChannelMembership,
         sendPushNotifications: true,
         actions: {
             updateChannelNotifyProps: jest.fn().mockImplementation(() => Promise.resolve({data: true})),
@@ -75,22 +75,22 @@ describe('ChannelNotificationsModal', () => {
                 'current_user_id',
                 'channel_id',
                 {
-                    channel_auto_follow_threads: 'off',
-                    desktop_threads: 'all',
-                    push_threads: 'all',
                     desktop: 'default',
-                    desktop_notification_sound: 'default',
+                    desktop_threads: 'all',
                     desktop_sound: 'default',
-                    ignore_channel_mentions: 'off',
+                    desktop_notification_sound: 'default',
+                    push: 'all',
+                    push_threads: 'all',
                     mark_unread: 'mention',
-                    push: 'default',
+                    ignore_channel_mentions: 'off',
+                    channel_auto_follow_threads: 'off',
                 },
             ),
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should Ignore mentions for @channel, @here and @all', async () => {
+    test('should save correctly for \'Ignore mentions for @channel, @here and @all\'', async () => {
         const wrapper = renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
@@ -105,14 +105,14 @@ describe('ChannelNotificationsModal', () => {
                 'channel_id',
                 {
                     desktop: 'default',
-                    channel_auto_follow_threads: 'off',
                     desktop_threads: 'all',
-                    push_threads: 'all',
-                    desktop_notification_sound: 'default',
                     desktop_sound: 'default',
-                    ignore_channel_mentions: 'on',
+                    desktop_notification_sound: 'default',
+                    push: 'all',
+                    push_threads: 'all',
                     mark_unread: 'all',
-                    push: 'default',
+                    ignore_channel_mentions: 'on',
+                    channel_auto_follow_threads: 'off',
                 },
             ),
         );
@@ -168,7 +168,7 @@ describe('ChannelNotificationsModal', () => {
     test('should disable message notification sound if option is unchecked', async () => {
         renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
-        // Since the default value is on, we will uncheck the checkbox
+        // Since the default value is checked, we will uncheck the checkbox
         fireEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
         expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
 
@@ -179,14 +179,14 @@ describe('ChannelNotificationsModal', () => {
                 'channel_id',
                 {
                     desktop: 'default',
-                    channel_auto_follow_threads: 'off',
                     desktop_threads: 'all',
-                    push_threads: 'all',
-                    desktop_notification_sound: 'default',
-                    ignore_channel_mentions: 'off',
-                    mark_unread: 'all',
-                    push: 'default',
                     desktop_sound: 'off',
+                    desktop_notification_sound: 'default',
+                    push: 'all',
+                    push_threads: 'all',
+                    mark_unread: 'all',
+                    ignore_channel_mentions: 'off',
+                    channel_auto_follow_threads: 'off',
                 },
             );
         });
@@ -227,14 +227,14 @@ describe('ChannelNotificationsModal', () => {
                 'channel_id',
                 {
                     desktop: 'default',
-                    channel_auto_follow_threads: 'off',
                     desktop_threads: 'all',
-                    push_threads: 'all',
-                    desktop_notification_sound: 'default',
                     desktop_sound: 'default',
-                    ignore_channel_mentions: 'off',
+                    desktop_notification_sound: 'default',
+                    push: 'all',
+                    push_threads: 'all',
                     mark_unread: 'all',
-                    push: 'default',
+                    ignore_channel_mentions: 'off',
+                    channel_auto_follow_threads: 'off',
                 },
             ),
         );
@@ -317,7 +317,7 @@ describe('ChannelNotificationsModal', () => {
                     desktop_sound: 'default',
                     ignore_channel_mentions: 'off',
                     mark_unread: 'all',
-                    push: 'default',
+                    push: 'all',
                 },
             ),
         );
@@ -647,7 +647,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
             },
         }).notify_props;
         const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, false);
-        expect(channelNotifyProps1.push).toEqual('default');
+        expect(channelNotifyProps1.push).toEqual('all');
 
         const userNotifyProps2 = TestHelper.getUserMock({
             notify_props: {
