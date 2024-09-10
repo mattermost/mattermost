@@ -6,3 +6,7 @@ import type {GlobalState} from 'types/store';
 export function getScheduledPostsByTeam(state: GlobalState, teamId: string) {
     return state.views.scheduledPosts.byTeamId[teamId];
 }
+
+export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string) {
+    return state.views.scheduledPosts.byTeamId[teamId]?.length || 0;
+}

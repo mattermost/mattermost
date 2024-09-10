@@ -8,6 +8,8 @@ import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
+import {PreviousViewedTypes} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
 import {getThreadCounts, getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -30,9 +32,6 @@ import LocalStorageStore from 'stores/local_storage_store';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
-import {PreviousViewedTypes} from 'utils/constants';
-import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
-
 import type {GlobalState} from 'types/store/index';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
@@ -44,6 +43,7 @@ import {useThreadRouting} from '../hooks';
 import ThreadViewer from '../thread_viewer';
 
 import './global_threads.scss';
+import {getScheduledPostsByTeamCount} from 'selectors/scheduled_posts';
 
 const GlobalThreads = () => {
     const {formatMessage} = useIntl();
@@ -60,6 +60,8 @@ const GlobalThreads = () => {
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
+
+    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, currentTeamId));
 
     useEffect(() => {
         dispatch(suppressRHS);
@@ -90,7 +92,7 @@ const GlobalThreads = () => {
         }
     }, [currentTeamId, selectedThreadId, threadIdentifier]);
 
-    const isEmptyList = isEmpty(threadIds) && isEmpty(unreadThreadIds);
+    const isEmptyList = isEmpty(threadIds) && isEmpty(unreadThreadIds) && teamScheduledPostCount === 0;
 
     const [isLoading, setLoading] = useState(isEmptyList);
 

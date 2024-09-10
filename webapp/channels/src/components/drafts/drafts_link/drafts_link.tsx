@@ -9,13 +9,19 @@ import {NavLink, useRouteMatch} from 'react-router-dom';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import fetchTeamScheduledPosts from 'actions/schedule_message';
 import {getDrafts} from 'actions/views/drafts';
+import scheduled_posts from 'reducers/views/scheduled_posts';
 import {makeGetDraftsCount} from 'selectors/drafts';
+import {getScheduledPostsByTeamCount} from 'selectors/scheduled_posts';
 
 import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 
 import './drafts_link.scss';
+import type {GlobalState} from 'types/store';
+
+import {SCHEDULED_POST_URL_SUFFIX} from 'components/drafts/drafts';
 
 const getDraftsCount = makeGetDraftsCount();
 
@@ -23,11 +29,17 @@ function DraftsLink() {
     const dispatch = useDispatch();
 
     const syncedDraftsAllowedAndEnabled = useSelector(syncedDraftsAreAllowedAndEnabled);
-    const count = useSelector(getDraftsCount);
+    const draftCount = useSelector(getDraftsCount);
     const teamId = useSelector(getCurrentTeamId);
+    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId));
+
+    const itemsExist = draftCount > 0 || teamScheduledPostCount > 0;
 
     const {url} = useRouteMatch();
     const isDraftUrlMatch = useRouteMatch('/:team/drafts');
+    const isScheduledPostUrlMatch = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
+
+    const urlMatches = isDraftUrlMatch || isScheduledPostUrlMatch;
 
     useEffect(() => {
         if (syncedDraftsAllowedAndEnabled) {
@@ -35,7 +47,11 @@ function DraftsLink() {
         }
     }, [teamId, syncedDraftsAllowedAndEnabled]);
 
-    if (!count && !isDraftUrlMatch) {
+    useEffect(() => {
+        dispatch(fetchTeamScheduledPosts(teamId));
+    }, [teamId, dispatch]);
+
+    if (!itemsExist && !urlMatches) {
         return null;
     }
 
@@ -66,8 +82,8 @@ function DraftsLink() {
                             />
                         </span>
                     </div>
-                    {count > 0 && (
-                        <ChannelMentionBadge unreadMentions={count}/>
+                    {draftCount > 0 && (
+                        <ChannelMentionBadge unreadMentions={draftCount}/>
                     )}
                 </NavLink>
                 <DraftsTourTip/>

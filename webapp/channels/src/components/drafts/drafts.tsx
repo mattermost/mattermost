@@ -10,7 +10,6 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import fetchTeamScheduledPosts from 'actions/schedule_message';
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
@@ -29,6 +28,8 @@ import type {GlobalState} from 'types/store';
 import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
 
 import {Badge} from '@mui/base';
+
+export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
 type Props = {
     drafts: Draft[];
@@ -52,14 +53,10 @@ function Drafts({
     const history = useHistory();
     const match: match<{team: string}> = useRouteMatch();
     const isDraftsTab = useRouteMatch('/:team/drafts');
-    const isScheduledPostsTab = useRouteMatch('/:team/scheduled_posts');
+    const isScheduledPostsTab = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
 
     const currentTeamId = useSelector(getCurrentTeamId);
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId));
-
-    useEffect(() => {
-        dispatch(fetchTeamScheduledPosts(currentTeamId));
-    }, [currentTeamId, dispatch]);
 
     useEffect(() => {
         // sets the active tab based on the URL.
@@ -96,7 +93,7 @@ function Drafts({
             break;
         case 1:
             if (!isScheduledPostsTab) {
-                history.push(`/${match.params.team}/scheduled_posts`);
+                history.push(`/${match.params.team}/${SCHEDULED_POST_URL_SUFFIX}`);
             }
             break;
         }
