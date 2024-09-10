@@ -51,6 +51,7 @@ var (
 		"modal_content",
 		"other",
 	)
+	AcceptedTrueFalseLabels = sliceToMapKey("true", "false")
 )
 
 type MetricSample struct {
