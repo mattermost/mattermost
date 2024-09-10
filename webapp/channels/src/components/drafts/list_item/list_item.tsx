@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
@@ -48,8 +49,23 @@ export default function DraftListItem({
     showPriority,
     status,
 }: Props) {
-    const timestamp = kind === 'draft' ? (item as PostDraft).updateAt : (item as ScheduledPost).scheduled_at;
-    const fileInfos = kind === 'draft' ? (item as PostDraft).fileInfos : [];
+    let timestamp: number;
+    let fileInfos: FileInfo[];
+    let uploadsInProgress: string[];
+
+    if (kind === 'draft') {
+        const draft = item as PostDraft;
+
+        timestamp = draft.updateAt;
+        fileInfos = draft.fileInfos;
+        uploadsInProgress = draft.uploadsInProgress;
+    } else {
+        const scheduledPost = item as ScheduledPost;
+
+        timestamp = scheduledPost.scheduled_at;
+        fileInfos = scheduledPost.metadata?.files || [];
+        uploadsInProgress = [];
+    }
 
     return (
         <Panel onClick={handleOnEdit}>
@@ -86,7 +102,7 @@ export default function DraftListItem({
                         message={item.message}
                         status={status}
                         priority={showPriority ? item.metadata?.priority : undefined}
-                        uploadsInProgress={item.uploadsInProgress}
+                        uploadsInProgress={uploadsInProgress}
                         userId={user.id}
                         username={user.username}
                     />

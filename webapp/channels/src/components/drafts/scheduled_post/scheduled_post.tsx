@@ -29,14 +29,15 @@ export default function ScheduledPostItem({scheduledPost, user, displayName, sta
 
     return (
         <DraftListItem
+            kind='scheduledPost'
             type={scheduledPost.root_id ? 'thread' : 'channel'}
             itemId={scheduledPost.id}
             user={user}
             showPriority={true}
-            handleOnEdit={handleOnEdit}
-            handleOnDelete={handleOnDelete}
-            handleOnSend={handleOnSend}
-            value={value}
+            handleOnEdit={() => {}}
+            handleOnDelete={() => {}}
+            handleOnSend={() => {}}
+            item={scheduledPost}
             channelId={scheduledPost.channel_id}
             displayName={displayName}
             isRemote={false}

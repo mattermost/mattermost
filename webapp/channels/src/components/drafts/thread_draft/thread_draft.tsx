@@ -86,6 +86,7 @@ function ThreadDraft({
 
     return (
         <DraftListItem
+            kind='draft'
             type={type}
             itemId={draftId}
             user={user}
@@ -93,7 +94,7 @@ function ThreadDraft({
             handleOnEdit={handleOnEdit}
             handleOnDelete={handleOnDelete}
             handleOnSend={handleOnSend}
-            value={value}
+            item={value}
             channelId={channel.id}
             displayName={displayName}
             isRemote={isRemote || false}
