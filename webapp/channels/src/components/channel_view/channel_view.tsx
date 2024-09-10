@@ -12,6 +12,8 @@ import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 
+import InputLoading from './input_loading';
+
 import type {PropsFromRedux} from './index';
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
@@ -28,6 +30,7 @@ type State = {
     url: string;
     focusedPostId?: string;
     deferredPostView: any;
+    waitForLoader: boolean;
 };
 
 export default class ChannelView extends React.PureComponent<Props, State> {
@@ -77,6 +80,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             channelId: props.channelId,
             focusedPostId: props.match.params.postid,
             deferredPostView: ChannelView.createDeferredPostView(),
+            waitForLoader: false,
         };
 
         this.channelViewRef = React.createRef();
@@ -84,6 +88,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     onClickCloseChannel = () => {
         this.props.goToLastViewedChannel();
+    };
+
+    onUpdateInputShowLoader = (v: boolean) => {
+        this.setState({waitForLoader: v});
     };
 
     componentDidUpdate(prevProps: Props) {
@@ -151,6 +159,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     </div>
                 </div>
             );
+        } else if (this.props.missingChannelRole || this.state.waitForLoader) {
+            createPost = <InputLoading updateWaitForLoader={this.onUpdateInputShowLoader}/>;
         } else {
             createPost = (
                 <div
