@@ -148,7 +148,7 @@ export function setThreadRead(post: Post): ActionFunc<boolean, GlobalState> {
         const thread = getThread(state, post.root_id);
 
         // mark a thread as read (when the user is viewing the thread)
-        if (thread && isThreadOpen(state, thread.id)) {
+        if (thread && isThreadOpen(state, thread.id) && window.isActive) {
             // update the new messages line (when there are no previous unreads)
             if (thread.last_reply_at < getThreadLastViewedAt(state, thread.id)) {
                 dispatch(updateThreadLastOpened(thread.id, post.create_at));

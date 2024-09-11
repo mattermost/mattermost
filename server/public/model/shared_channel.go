@@ -263,6 +263,8 @@ type SharedChannelRemoteFilterOpts struct {
 	ChannelId       string
 	RemoteId        string
 	InclUnconfirmed bool
+	ExcludeHome     bool
+	ExcludeRemote   bool
 }
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
@@ -273,6 +275,7 @@ type SyncMsg struct {
 	Users     map[string]*User `json:"users,omitempty"`
 	Posts     []*Post          `json:"posts,omitempty"`
 	Reactions []*Reaction      `json:"reactions,omitempty"`
+	Statuses  []*Status        `json:"statuses,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
@@ -309,6 +312,8 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+
+	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }
 
 // RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API

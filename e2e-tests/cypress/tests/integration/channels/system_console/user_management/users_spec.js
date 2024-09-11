@@ -68,6 +68,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T932 Users - Change a user\'s password', () => {
         // # Search for the user.
         cy.findByPlaceholderText('Search users').type(testUser.email).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', testUser.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);

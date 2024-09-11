@@ -164,7 +164,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestID := model.NewId()
-	var statusCode string
+	var rateLimitExceeded bool
 	defer func() {
 		responseLogFields := []mlog.Field{
 			mlog.String("method", r.Method),
@@ -175,11 +175,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if c.AppContext.Session() != nil {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
+
+		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
 			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
 		}
 		mlog.Debug("Received HTTP request", responseLogFields...)
+
+		if !rateLimitExceeded {
+			h.recordMetrics(c, r, now, statusCode)
+		}
 	}()
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
@@ -302,8 +309,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w) {
-			return
+		if c.App.Srv().RateLimiter != nil {
+			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w)
+			if rateLimitExceeded {
+				return
+			}
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
@@ -382,8 +392,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleContextError(c, w, r)
 		return
 	}
+}
 
-	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+func (h Handler) recordMetrics(c *Context, r *http.Request, now time.Time, statusCode string) {
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
@@ -491,8 +502,8 @@ func GetOriginClient(r *http.Request) OriginClient {
 	return OriginClientWeb
 }
 
-// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
-// a CSRF check occurred and whether or not it succeeded.
+// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether
+// a CSRF check occurred and whether it succeeded.
 func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
 	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
@@ -506,19 +517,11 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 
-			sid := ""
-			userId := ""
-
-			if session != nil {
-				sid = session.Id
-				userId = session.UserId
-			}
-
 			fields := []mlog.Field{
 				mlog.String("path", r.URL.Path),
 				mlog.String("ip", r.RemoteAddr),
-				mlog.String("session_id", sid),
-				mlog.String("user_id", userId),
+				mlog.String("session_id", session.Id),
+				mlog.String("user_id", session.UserId),
 			}
 
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {

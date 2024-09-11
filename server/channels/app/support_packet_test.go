@@ -193,6 +193,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
+		*cfg.NotificationLogSettings.FileLocation = dir
 	})
 
 	logLocation := config.GetLogFileLocation(dir)

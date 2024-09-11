@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect} from 'react';
+import React, {lazy, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
@@ -10,10 +10,9 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 
 import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
 
+import {makeAsyncComponent} from 'components/async_load';
 import CenterChannel from 'components/channel_layout/center_channel';
 import LoadingScreen from 'components/loading_screen';
-import ProductNoticesModal from 'components/product_notices_modal';
-import ResetStatusModal from 'components/reset_status_modal';
 import Sidebar from 'components/sidebar';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
@@ -21,6 +20,9 @@ import UnreadsStatusHandler from 'components/unreads_status_handler';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import {isInternetExplorer, isEdge} from 'utils/user_agent';
+
+const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
+const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
 
 const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
 

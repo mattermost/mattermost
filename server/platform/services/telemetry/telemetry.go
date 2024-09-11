@@ -42,49 +42,50 @@ const (
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
-	TrackConfigService           = "config_service"
-	TrackConfigTeam              = "config_team"
-	TrackConfigClientReq         = "config_client_requirements"
-	TrackConfigSQL               = "config_sql"
-	TrackConfigLog               = "config_log"
-	TrackConfigAudit             = "config_audit"
-	TrackConfigNotificationLog   = "config_notifications_log"
-	TrackConfigFile              = "config_file"
-	TrackConfigRate              = "config_rate"
-	TrackConfigEmail             = "config_email"
-	TrackConfigPrivacy           = "config_privacy"
-	TrackConfigTheme             = "config_theme"
-	TrackConfigOAuth             = "config_oauth"
-	TrackConfigLDAP              = "config_ldap"
-	TrackConfigCompliance        = "config_compliance"
-	TrackConfigLocalization      = "config_localization"
-	TrackConfigSAML              = "config_saml"
-	TrackConfigPassword          = "config_password"
-	TrackConfigCluster           = "config_cluster"
-	TrackConfigMetrics           = "config_metrics"
-	TrackConfigSupport           = "config_support"
-	TrackConfigNativeApp         = "config_nativeapp"
-	TrackConfigExperimental      = "config_experimental"
-	TrackConfigAnalytics         = "config_analytics"
-	TrackConfigAnnouncement      = "config_announcement"
-	TrackConfigElasticsearch     = "config_elasticsearch"
-	TrackConfigPlugin            = "config_plugin"
-	TrackConfigDataRetention     = "config_data_retention"
-	TrackConfigMessageExport     = "config_message_export"
-	TrackConfigDisplay           = "config_display"
-	TrackConfigGuestAccounts     = "config_guest_accounts"
-	TrackConfigImageProxy        = "config_image_proxy"
-	TrackConfigBleve             = "config_bleve"
-	TrackConfigExport            = "config_export"
-	TrackConfigWrangler          = "config_wrangler"
-	TrackFeatureFlags            = "config_feature_flags"
-	TrackPermissionsGeneral      = "permissions_general"
-	TrackPermissionsSystemScheme = "permissions_system_scheme"
-	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
-	TrackPermissionsSystemRoles  = "permissions_system_roles"
-	TrackElasticsearch           = "elasticsearch"
-	TrackGroups                  = "groups"
-	TrackChannelModeration       = "channel_moderation"
+	TrackConfigService             = "config_service"
+	TrackConfigTeam                = "config_team"
+	TrackConfigClientReq           = "config_client_requirements"
+	TrackConfigSQL                 = "config_sql"
+	TrackConfigLog                 = "config_log"
+	TrackConfigAudit               = "config_audit"
+	TrackConfigNotificationLog     = "config_notifications_log"
+	TrackConfigFile                = "config_file"
+	TrackConfigRate                = "config_rate"
+	TrackConfigEmail               = "config_email"
+	TrackConfigPrivacy             = "config_privacy"
+	TrackConfigTheme               = "config_theme"
+	TrackConfigOAuth               = "config_oauth"
+	TrackConfigLDAP                = "config_ldap"
+	TrackConfigCompliance          = "config_compliance"
+	TrackConfigLocalization        = "config_localization"
+	TrackConfigSAML                = "config_saml"
+	TrackConfigPassword            = "config_password"
+	TrackConfigCluster             = "config_cluster"
+	TrackConfigMetrics             = "config_metrics"
+	TrackConfigSupport             = "config_support"
+	TrackConfigNativeApp           = "config_nativeapp"
+	TrackConfigExperimental        = "config_experimental"
+	TrackConfigAnalytics           = "config_analytics"
+	TrackConfigAnnouncement        = "config_announcement"
+	TrackConfigElasticsearch       = "config_elasticsearch"
+	TrackConfigPlugin              = "config_plugin"
+	TrackConfigDataRetention       = "config_data_retention"
+	TrackConfigMessageExport       = "config_message_export"
+	TrackConfigDisplay             = "config_display"
+	TrackConfigGuestAccounts       = "config_guest_accounts"
+	TrackConfigImageProxy          = "config_image_proxy"
+	TrackConfigBleve               = "config_bleve"
+	TrackConfigExport              = "config_export"
+	TrackConfigWrangler            = "config_wrangler"
+	TrackConfigConnectedWorkspaces = "config_connected_workspaces"
+	TrackFeatureFlags              = "config_feature_flags"
+	TrackPermissionsGeneral        = "permissions_general"
+	TrackPermissionsSystemScheme   = "permissions_system_scheme"
+	TrackPermissionsTeamSchemes    = "permissions_team_schemes"
+	TrackPermissionsSystemRoles    = "permissions_system_roles"
+	TrackElasticsearch             = "elasticsearch"
+	TrackGroups                    = "groups"
+	TrackChannelModeration         = "channel_moderation"
 
 	TrackActivity = "activity"
 	TrackLicense  = "license"
@@ -351,7 +352,7 @@ func (ts *TelemetryService) trackActivity() {
 
 	slashCommandsCount, _ = ts.dbStore.Command().AnalyticsCommandCount("")
 
-	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount("", ""); err == nil {
 		incomingWebhooksCount = c
 	}
 
@@ -552,18 +553,16 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 		"advanced_logging_json":    len(cfg.LogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config":  cfg.LogSettings.AdvancedLoggingConfig != nil && *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigAudit, map[string]any{
-		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
-		"advanced_logging_json":   len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != nil && *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_json": len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
 	})
 
 	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
@@ -575,7 +574,6 @@ func (ts *TelemetryService) trackConfig() {
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.NotificationLogSettings.AdvancedLoggingConfig != nil && *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigPassword, map[string]any{
@@ -776,11 +774,10 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
+		"youtube_referrer_policy":             *cfg.ExperimentalSettings.YoutubeReferrerPolicy,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
@@ -891,6 +888,12 @@ func (ts *TelemetryService) trackConfig() {
 		"move_thread_from_private_channel_enable":        cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable,
 		"move_thread_from_direct_message_channel_enable": cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable,
 		"move_thread_from_group_message_channel_enable":  cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable,
+	})
+
+	ts.SendTelemetry(TrackConfigConnectedWorkspaces, map[string]any{
+		"enable_shared_channels":              *cfg.ConnectedWorkspacesSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
 	})
 
 	// Convert feature flags to map[string]any for sending

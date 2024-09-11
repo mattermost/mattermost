@@ -1657,3 +1657,7 @@ export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Grou
 
     return aSortString.localeCompare(bSortString);
 }
+
+export function doesCookieContainsMMUserId() {
+    return document.cookie.includes('MMUSERID=');
+}
