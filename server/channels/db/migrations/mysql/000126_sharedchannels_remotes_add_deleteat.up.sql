@@ -1,20 +1,5 @@
 SET @preparedStatement = (SELECT IF(
     (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'RemoteClusters'
-        AND table_schema = DATABASE()
-        AND column_name = 'DeleteAt'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE RemoteClusters ADD DeleteAt bigint(20) DEFAULT 0;'
-));
-
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
         WHERE table_name = 'RemoteClusters'
         AND table_schema = DATABASE()
@@ -27,6 +12,21 @@ SET @preparedStatement = (SELECT IF(
 PREPARE removeIndexIfExists FROM @preparedStatement;
 EXECUTE removeIndexIfExists;
 DEALLOCATE PREPARE removeIndexIfExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'RemoteClusters'
+        AND table_schema = DATABASE()
+        AND column_name = 'DeleteAt'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE RemoteClusters ADD DeleteAt bigint(20) DEFAULT 0;'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 SET @preparedStatement = (SELECT IF(
     (
