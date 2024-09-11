@@ -62,7 +62,6 @@ func TestHumanizeJsonError(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual := utils.HumanizeJSONError(testCase.Err, testCase.Data)
 			if testCase.ExpectedErr == "" {
@@ -222,7 +221,6 @@ func TestNewHumanizedJSONError(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual := utils.NewHumanizedJSONError(testCase.Err, testCase.Data, testCase.Offset)
 			if testCase.Expected != nil && actual.Err != nil {
@@ -291,7 +289,6 @@ func TestIsJSONEmpty(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			empty := utils.IsEmptyJSON(testCase.Data)
 			assert.Equal(t, testCase.Empty, empty)
@@ -348,7 +345,6 @@ func TestStringPtrToJSON(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			j := utils.StringPtrToJSON(testCase.Ptr)
 			assert.Equal(t, testCase.Expect, j)
