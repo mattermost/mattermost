@@ -11,11 +11,16 @@ import {ActionTypes} from 'utils/constants';
 function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SCHEDULED_POSTS_RECEIVED: {
-        const {scheduledPosts, teamId} = action.data;
-        return {
-            ...state,
-            [teamId]: scheduledPosts,
-        };
+        const {scheduledPostsByTeamId} = action.data;
+        const newState = {...state};
+
+        Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
+            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+                newState[teamId] = scheduledPostsByTeamId[teamId];
+            }
+        });
+
+        return newState;
     }
     default:
         return state;

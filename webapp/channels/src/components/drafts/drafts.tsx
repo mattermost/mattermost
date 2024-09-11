@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
@@ -48,7 +48,6 @@ function Drafts({
 }: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
-    const [activeTab, setActiveTab] = useState<number>();
 
     const history = useHistory();
     const match: match<{team: string}> = useRouteMatch();
@@ -56,24 +55,7 @@ function Drafts({
     const isScheduledPostsTab = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
 
     const currentTeamId = useSelector(getCurrentTeamId);
-    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId));
-
-    useEffect(() => {
-        // sets the active tab based on the URL.
-        // This is in an effect to allow changing tabs when performing
-        // browser back and forward navigations.
-        let tab: number;
-
-        if (isDraftsTab) {
-            tab = 0;
-        } else if (isScheduledPostsTab) {
-            tab = 1;
-        } else {
-            tab = 0;
-        }
-
-        setActiveTab(tab);
-    }, [match]);
+    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
@@ -130,6 +112,8 @@ function Drafts({
             </div>
         );
     }, [scheduledPosts?.length]);
+
+    const activeTab = isDraftsTab ? 0 : 1;
 
     return (
         <div

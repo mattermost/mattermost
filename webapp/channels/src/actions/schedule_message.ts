@@ -33,17 +33,16 @@ export function createSchedulePost(schedulePost: ScheduledPost): ActionFuncAsync
     };
 }
 
-export default function fetchTeamScheduledPosts(teamId: string): ActionFuncAsync<{data?: ScheduledPost[]; error?: string}, GlobalState> {
+export default function fetchTeamScheduledPosts(teamId: string, includeDirectChannels: boolean): ActionFuncAsync<{data?: {[key: string]: ScheduledPost[]}; error?: string}, GlobalState> {
     return async (dispatch, getState) => {
         let scheduledPosts;
 
         try {
-            scheduledPosts = await Client4.getScheduledPosts(teamId);
+            scheduledPosts = await Client4.getScheduledPosts(teamId, includeDirectChannels);
             dispatch({
                 type: ActionTypes.SCHEDULED_POSTS_RECEIVED,
                 data: {
-                    scheduledPosts: scheduledPosts.data,
-                    teamId,
+                    scheduledPostsByTeamId: scheduledPosts.data,
                 },
             });
         } catch (error) {
