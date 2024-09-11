@@ -215,8 +215,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		}
 
 		if license.HasSharedChannels() {
-			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
-			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
+			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ConnectedWorkspacesSettings.EnableSharedChannels)
+			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 		}
 
 		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
@@ -302,6 +302,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+	props["AppsPluginEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable && c.PluginSettings.PluginStates[model.PluginIdApps] != nil && c.PluginSettings.PluginStates[model.PluginIdApps].Enable)
 
 	props["PasswordMinimumLength"] = strconv.Itoa(*c.PasswordSettings.MinimumLength)
 	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)

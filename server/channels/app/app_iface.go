@@ -819,7 +819,7 @@ type AppIface interface {
 	GetSharedChannel(channelID string) (*model.SharedChannel, error)
 	GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error)
 	GetSharedChannelRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error)
-	GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
+	GetSharedChannelRemotes(page, perPage int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error)
 	GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, *model.AppError)
 	GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error)
@@ -1059,6 +1059,7 @@ type AppIface interface {
 	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
+	SaveAndBroadcastStatus(status *model.Status)
 	SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)

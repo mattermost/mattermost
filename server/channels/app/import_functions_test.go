@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2103,7 +2104,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post in apply mode.
-	time := model.GetMillis()
+	createAt := model.GetMillis()
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
@@ -2111,7 +2112,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2122,7 +2123,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
+	posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, createAt)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2139,7 +2140,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2150,7 +2151,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, createAt)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2160,7 +2161,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.False(t, postBool, "Post properties not as expected")
 
 	// Save the post with a different time.
-	newTime := time + 1
+	newTime := createAt + 1
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
@@ -2186,7 +2187,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message 2"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2197,7 +2198,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
 
 	// Test with hashtags
-	hashtagTime := time + 2
+	hashtagTime := createAt + 2
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
@@ -2505,7 +2506,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("another message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2517,7 +2518,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("another message"),
-				CreateAt: &time,
+				CreateAt: &createAt,
 			},
 		},
 		LineNumber: 1,
@@ -2554,6 +2555,166 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
 	AssertAllPostsCount(t, th.App, initialPostCount, 15, team.Id)
+
+	t.Run("Importing a post with a thread", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User:       &user2.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		followers, err := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, err)
+
+		assert.ElementsMatch(t, []string{user.Id, user2.Id}, followers)
+	})
+
+	t.Run("Importing a post with a non existent follower", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User: ptrStr("invalid.user"),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.NotNil(t, err)
+		require.Equal(t, 1, errLine)
+	})
+
+	t.Run("Importing a post with a non existent follower", func(t *testing.T) {
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User: ptrStr("invalid.user"),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.NotNil(t, err)
+		require.Equal(t, 1, errLine)
+	})
+
+	t.Run("Importing a post with new followers", func(t *testing.T) {
+		importCreate := time.Now().Add(-5 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &username,
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       &user.Username,
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		followers, err := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, err)
+
+		assert.ElementsMatch(t, []string{user.Id}, followers)
+	})
 }
 
 func TestImportImportPost(t *testing.T) {
@@ -3161,6 +3322,7 @@ func TestImportImportPost(t *testing.T) {
 func TestImportImportDirectChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	user3 := th.CreateUser()
 
 	// Check how many channels are in the database.
 	directChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
@@ -3169,161 +3331,363 @@ func TestImportImportDirectChannel(t *testing.T) {
 	groupChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
 	require.NoError(t, err, "Failed to get group channel count.")
 
-	// Do an invalid channel in dry-run mode.
-	data := imports.DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-		},
-		Header: ptrStr("Channel Header"),
+	// We need to generate the dataset twice to test the same data with different formats.
+	generateDataset := func(data imports.DirectChannelImportData) map[string]imports.DirectChannelImportData {
+		members := make([]string, len(data.Participants))
+		for i, member := range data.Participants {
+			members[i] = *member.Username
+		}
+
+		return map[string]imports.DirectChannelImportData{
+			"Participants": data,
+			"Members": {
+				Members: &members,
+			},
+		}
 	}
-	err = th.App.importDirectChannel(th.Context, &data, true)
-	require.Error(t, err)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Invalid channel in dry-run mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+			Header: ptrStr("Channel Header"),
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				err = th.App.importDirectChannel(th.Context, &data, true)
+				require.Error(t, err)
 
-	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
-	data.Members = &[]string{
-		model.NewId(),
-		model.NewId(),
-	}
-	appErr := th.App.importDirectChannel(th.Context, &data, true)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Valid DIRECT channel with a nonexistent member in dry-run mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, true)
+				require.Nil(t, appErr)
 
-	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
-	data.Members = &[]string{
-		model.NewId(),
-		model.NewId(),
-		model.NewId(),
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, true)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Valid GROUP channel with a nonexistent member in dry-run mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, true)
+				require.Nil(t, appErr)
 
-	// Do an invalid channel in apply mode.
-	data.Members = &[]string{
-		model.NewId(),
-	}
-	err = th.App.importDirectChannel(th.Context, &data, false)
-	require.Error(t, err)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Invalid channel in apply mode", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				err = th.App.importDirectChannel(th.Context, &data, false)
+				require.Error(t, err)
 
-	// Do a valid DIRECT channel.
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that one more DIRECT channel is in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("Valid DIRECT channel ", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Do the same DIRECT channel again.
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that one more DIRECT channel is in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+				// Do the same DIRECT channel again.
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Update the channel's HEADER
-	data.Header = ptrStr("New Channel Header 2")
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+				// Update the channel's HEADER
+				data.Header = ptrStr("New Channel Header 2")
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Get the channel to check that the header was updated.
-	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	require.Nil(t, appErr)
-	require.Equal(t, channel.Header, *data.Header)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
-	// Do a GROUP channel with an extra invalid member.
-	user3 := th.CreateUser()
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-		user3.Username,
-		model.NewId(),
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.NotNil(t, appErr)
+				// Get the channel to check that the header was updated.
+				channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+				require.Nil(t, appErr)
+				require.Equal(t, channel.Header, *data.Header)
+			})
+		}
+	})
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+	t.Run("GROUP channel with an extra invalid member", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+				{
+					Username: model.NewString(user3.Username),
+				},
+				{
+					Username: model.NewString(model.NewId()),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.NotNil(t, appErr)
 
-	// Do a valid GROUP channel.
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-		user3.Username,
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
+			})
+		}
+	})
 
-	// Check that one more GROUP channel is in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
+	t.Run("Valid GROUP channel", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+				{
+					Username: model.NewString(user3.Username),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Do the same DIRECT channel again.
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that one more GROUP channel is in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
+				// Do the same DIRECT channel again.
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Update the channel's HEADER
-	data.Header = ptrStr("New Channel Header 3")
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
-	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
+				// Update the channel's HEADER
+				data.Header = ptrStr("New Channel Header 3")
+				appErr = th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
 
-	// Get the channel to check that the header was updated.
-	userIDs := []string{
-		th.BasicUser.Id,
-		th.BasicUser2.Id,
-		user3.Id,
-	}
-	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
-	require.Equal(t, appErr.Id, store.ChannelExistsError)
-	require.Equal(t, channel.Header, *data.Header)
+				// Check that no more channels are in the DB.
+				AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
-	// Import a channel with some favorites.
-	data.Members = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-	}
-	data.FavoritedBy = &[]string{
-		th.BasicUser.Username,
-		th.BasicUser2.Username,
-	}
-	appErr = th.App.importDirectChannel(th.Context, &data, false)
-	require.Nil(t, appErr)
+				// Get the channel to check that the header was updated.
+				userIDs := []string{
+					th.BasicUser.Id,
+					th.BasicUser2.Id,
+					user3.Id,
+				}
+				channel, appErr := th.App.createGroupChannel(th.Context, userIDs)
+				require.Equal(t, appErr.Id, store.ChannelExistsError)
+				require.Equal(t, channel.Header, *data.Header)
+			})
+		}
+	})
 
-	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	require.Nil(t, appErr)
-	checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
-	checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+	t.Run("Import a channel with some favorites", func(t *testing.T) {
+		dataset := generateDataset(imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+		})
+		for name, data := range dataset {
+			t.Run(name, func(t *testing.T) {
+				data.FavoritedBy = &[]string{
+					th.BasicUser.Username,
+					th.BasicUser2.Username,
+				}
+				appErr := th.App.importDirectChannel(th.Context, &data, false)
+				require.Nil(t, appErr)
+
+				channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+				require.Nil(t, appErr)
+				checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+				checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+			})
+		}
+	})
+
+	t.Run("Import a DM channel and user last view should be imported", func(t *testing.T) {
+		lastView := model.GetMillis()
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username:     model.NewString(th.BasicUser.Username),
+					LastViewedAt: ptrInt64(lastView),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+		}
+
+		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		require.Nil(t, appErr)
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, members, 2)
+
+		for _, member := range members {
+			if member.UserId == th.BasicUser.Id {
+				require.Equal(t, member.LastViewedAt, lastView)
+			}
+		}
+	})
+
+	t.Run("Import a DM channel and preserve if the channel was shown to users", func(t *testing.T) {
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+			},
+			ShownBy: &[]string{
+				th.BasicUser.Username,
+			},
+		}
+
+		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		require.Nil(t, appErr)
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, members, 2)
+
+		for _, member := range members {
+			if member.UserId == th.BasicUser.Id {
+				checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryDirectChannelShow, th.BasicUser2.Id, "true")
+			}
+		}
+	})
+
+	t.Run("Import a GM channel and preserve if the channel was shown to users", func(t *testing.T) {
+		data := imports.DirectChannelImportData{
+			Participants: []*imports.DirectChannelMemberImportData{
+				{
+					Username: model.NewString(th.BasicUser.Username),
+				},
+				{
+					Username: model.NewString(th.BasicUser2.Username),
+				},
+				{
+					Username: model.NewString(user3.Username),
+				},
+			},
+			ShownBy: &[]string{
+				th.BasicUser.Username,
+			},
+		}
+
+		appErr := th.App.importDirectChannel(th.Context, &data, false)
+		require.Nil(t, appErr)
+
+		channel, appErr := th.App.GetGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.Nil(t, appErr)
+
+		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+		require.Nil(t, appErr)
+		require.Len(t, members, 3)
+
+		for _, member := range members {
+			if member.UserId == th.BasicUser.Id {
+				checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryGroupChannelShow, channel.Id, "true")
+			}
+		}
+	})
 }
 
 func TestImportImportDirectPost(t *testing.T) {
@@ -3332,9 +3696,13 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Create the DIRECT channel.
 	channelData := imports.DirectChannelImportData{
-		Members: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
+		Participants: []*imports.DirectChannelMemberImportData{
+			{
+				Username: model.NewString(th.BasicUser.Username),
+			},
+			{
+				Username: model.NewString(th.BasicUser2.Username),
+			},
 		},
 	}
 	appErr := th.App.importDirectChannel(th.Context, &channelData, false)
@@ -3683,15 +4051,124 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.True(t, post.IsPinned)
 	})
 
+	t.Run("Importing a direct post with a thread", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Thread Message"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     ptrStr(th.BasicUser.Username),
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       ptrStr(th.BasicUser.Username),
+						LastViewed: ptrInt64(model.GetMillis()),
+					}, {
+						User:       ptrStr(th.BasicUser2.Username),
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		followers, nErr := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, nErr)
+
+		assert.ElementsMatch(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, followers)
+	})
+
+	t.Run("Importing a direct post with new followers", func(t *testing.T) {
+		importCreate := time.Now().Add(-5 * time.Minute).UnixMilli()
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				DirectPost: &imports.DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Hello"),
+					CreateAt: ptrInt64(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:     ptrStr(th.BasicUser.Username),
+						Message:  ptrStr("Reply"),
+						CreateAt: ptrInt64(model.GetMillis()),
+					}},
+					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
+						User:       ptrStr(th.BasicUser.Username),
+						LastViewed: ptrInt64(model.GetMillis()),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		followers, nErr := th.App.Srv().Store().Thread().GetThreadFollowers(resultPosts[0].Id, true)
+		require.NoError(t, nErr)
+
+		assert.ElementsMatch(t, []string{th.BasicUser.Id}, followers)
+	})
+
 	// ------------------ Group Channel -------------------------
 
 	// Create the GROUP channel.
 	user3 := th.CreateUser()
 	channelData = imports.DirectChannelImportData{
-		Members: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
+		Participants: []*imports.DirectChannelMemberImportData{
+			{
+				Username: model.NewString(th.BasicUser.Username),
+			},
+			{
+				Username: model.NewString(th.BasicUser2.Username),
+			},
+			{
+				Username: model.NewString(user3.Username),
+			},
 		},
 	}
 	appErr = th.App.importDirectChannel(th.Context, &channelData, false)

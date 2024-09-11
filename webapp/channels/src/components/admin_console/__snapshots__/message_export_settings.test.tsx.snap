@@ -146,9 +146,8 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -417,9 +416,8 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -574,9 +572,8 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>
@@ -845,9 +842,8 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         <div
           className="error-message"
         >
-          <FormError
+          <Memo(FormError)
             error={null}
-            errors={Array []}
           />
         </div>
       </WithTooltip>

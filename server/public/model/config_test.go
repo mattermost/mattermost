@@ -1950,3 +1950,37 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
+	t.Run("if the config is new, default values should be established", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
+
+	t.Run("if the config is being updated and server federation settings had no values, experimental settings values should be migrated", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		c.ConnectedWorkspacesSettings = ConnectedWorkspacesSettings{}
+		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+
+		c.SetDefaults()
+		require.True(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
+
+	t.Run("if the config is being updated and server federation settings already have values, they should not change", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		c.ConnectedWorkspacesSettings.EnableSharedChannels = NewPointer(false)
+		c.ConnectedWorkspacesSettings.EnableRemoteClusterService = NewPointer(true)
+		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+
+		c.SetDefaults()
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
+		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
+}
