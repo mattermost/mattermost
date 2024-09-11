@@ -101,7 +101,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			existingScr.UpdateAt = curTime
 			existingScr.LastPostCreateAt = curTime
 			existingScr.LastPostUpdateAt = curTime
-			if _, sErr := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
+			if _, sErr := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); sErr != nil {
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
 				return
 			}
