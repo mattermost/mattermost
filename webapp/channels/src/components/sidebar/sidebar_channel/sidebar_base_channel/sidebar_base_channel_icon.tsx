@@ -5,27 +5,15 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import SharedChannelIndicator from 'components/shared_channel_indicator';
-
 import Constants from 'utils/constants';
 
 type Props = {
-    isSharedChannel: boolean;
     channelType: ChannelType;
 }
 
 const SidebarBaseChannelIcon = ({
-    isSharedChannel,
     channelType,
 }: Props) => {
-    if (isSharedChannel) {
-        return (
-            <SharedChannelIndicator
-                className='icon'
-                withTooltip={true}
-            />
-        );
-    }
     if (channelType === Constants.OPEN_CHANNEL) {
         return (
             <i className='icon icon-globe'/>
