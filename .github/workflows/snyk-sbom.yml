@@ -18,7 +18,7 @@ jobs:
           node-version: '22.6.0'
 
       - name: Install Snyk CLI
-        run: npm install -g snyk@1.1292.2
+        run: npm install -g snyk@1.1293.0
 
       - name: Generate SBOM
         run: snyk sbom --format=cyclonedx1.5+json --all-projects > sbom.json
@@ -26,9 +26,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload SBOM
-        uses: Shopify/upload-to-release@c77c9b3e5d288adaef98a7007bf92340ec6ce03b # v2.0.0
-        with:
-          name: sbom.json
-          path: sbom.json
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          content-type: application/json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" sbom.json
