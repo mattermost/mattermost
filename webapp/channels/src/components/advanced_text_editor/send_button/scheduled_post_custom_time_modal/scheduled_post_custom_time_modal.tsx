@@ -4,23 +4,23 @@
 import moment from 'moment';
 import type {Moment} from 'moment-timezone';
 import React, {useCallback, useMemo, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {
     DMUserTimezone,
-} from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dmUserTimezone';
+} from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 type Props = {
     channelId: string;
-    onClose: () => void;
+    onExited: () => void;
     onConfirm: (timestamp: number) => void;
 }
 
-export default function ScheduledPostCustomTimeModal({channelId, onClose, onConfirm}: Props) {
+export default function ScheduledPostCustomTimeModal({channelId, onExited, onConfirm}: Props) {
     const {formatMessage} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
@@ -43,24 +43,37 @@ export default function ScheduledPostCustomTimeModal({channelId, onClose, onConf
         );
     }, [selectedDateTime]);
 
-    const title = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
-    const confirmButtonText = formatMessage({id: 'schedule_post.custom_time_modal.confirm_button_text', defaultMessage: 'Confirm'});
-    const cancelButtonText = formatMessage({id: 'schedule_post.custom_time_modal.cancel_button_text', defaultMessage: 'Cancel'});
+    const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
     return (
         <DateTimePickerModal
             initialTime={selectedDateTime}
-            header={title}
+            header={
+                <FormattedMessage
+                    id='schedule_post.custom_time_modal.title'
+                    defaultMessage='Schedule message'
+                />
+            }
             subheading={userTimezoneLabel}
-            confirmButtonText={confirmButtonText}
-            cancelButtonText={cancelButtonText}
-            ariaLabel={title}
-            onExited={onClose}
-            onCancel={onClose}
+            confirmButtonText={
+                <FormattedMessage
+                    id='schedule_post.custom_time_modal.confirm_button_text'
+                    defaultMessage='Confirm'
+                />
+            }
+            cancelButtonText={
+                <FormattedMessage
+                    id='schedule_post.custom_time_modal.cancel_button_text'
+                    defaultMessage='Cancel'
+                />
+            }
+            ariaLabel={label}
+            onExited={onExited}
             onConfirm={handleOnConfirm}
             onChange={setSelectedDateTime}
             bodySuffix={bodySuffix}
             relativeDate={true}
+            onCancel={onExited}
         />
     );
 }

@@ -5,7 +5,7 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
@@ -14,7 +14,7 @@ import {getDisplayNameByUser, getUserIdFromChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import './dmUserTimezone.scss';
+import './dm_user_timezone.scss';
 
 type Props = {
     channelId: string;

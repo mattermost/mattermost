@@ -12,7 +12,7 @@ export type Props = {
     className?: string;
     onExited: () => void;
     modalHeaderText?: React.ReactNode;
-    modalSubheadingText?: React.ReactNode;
+    modalSubheaderText?: React.ReactNode;
     show?: boolean;
     handleCancel?: () => void;
     handleConfirm?: () => void;
@@ -207,13 +207,13 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             )}
 
                             {
-                                this.props.modalSubheadingText &&
+                                this.props.modalSubheaderText &&
                                 <div className='modal-subheading-container'>
                                     <p
                                         id='genericModalSubheading'
                                         className='modal-subheading'
                                     >
-                                        {this.props.modalSubheadingText}
+                                        {this.props.modalSubheaderText}
                                     </p>
                                 </div>
                             }

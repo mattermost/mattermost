@@ -9,7 +9,7 @@ import {useDispatch} from 'react-redux';
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
-import {closeModal, openModal} from 'actions/views/modals';
+import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
@@ -40,10 +40,6 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
         onSelect(schedulingInfo);
     }, [onSelect]);
 
-    const handleCloseCustomTimeModal = useCallback(() => {
-        dispatch(closeModal(ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL));
-    }, [dispatch]);
-
     const handleSelectCustomTime = useCallback((scheduledAt: number) => {
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: scheduledAt,
@@ -58,11 +54,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 channelId,
-                onClose: handleCloseCustomTimeModal,
                 onConfirm: handleSelectCustomTime,
             },
         }));
-    }, [dispatch, handleCloseCustomTimeModal, handleSelectCustomTime]);
+    }, [channelId, dispatch, handleSelectCustomTime]);
 
     const coreMenuOptions = useMemo(() => {
         const today = new Date();

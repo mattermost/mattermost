@@ -18,7 +18,7 @@ import {getCurrentMomentForTimezone} from 'utils/timezone';
 import './style.scss';
 
 type Props = {
-    onExited: () => void;
+    onExited?: () => void;
     ariaLabel: string;
     header: React.ReactNode;
     subheading?: React.ReactNode;
@@ -60,7 +60,7 @@ export default function DateTimePickerModal({onExited,
             if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
                 event.preventDefault();
                 event.stopPropagation();
-                onExited();
+                onExited?.();
             }
         }
 
@@ -86,7 +86,7 @@ export default function DateTimePickerModal({onExited,
             ariaLabel={ariaLabel}
             onExited={onExited}
             modalHeaderText={header}
-            modalSubheadingText={subheading}
+            modalSubheaderText={subheading}
             confirmButtonText={confirmButtonText}
             handleConfirm={handleConfirm}
             handleCancel={onCancel}
