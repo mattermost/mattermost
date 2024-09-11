@@ -69,8 +69,21 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := map[string][]*model.ScheduledPost{}
+	response[teamId] = scheduledPosts
+
+	if r.URL.Query().Get("includeDirectChannels") == "true" {
+		directChannelScheduledPosts, appErr := c.App.GetUserTeamScheduledPosts(c.AppContext, userId, "")
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		response["directChannels"] = directChannelScheduledPosts
+	}
+
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(scheduledPosts); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		mlog.Error("failed to encode scheduled posts to return API response", mlog.Err(err))
 		return
 	}

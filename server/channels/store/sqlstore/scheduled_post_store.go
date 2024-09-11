@@ -94,7 +94,9 @@ func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.Schedul
 
 func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error) {
 	// return scheduled posts for this user for
-	// specified team, including scheduled posts belonging to
+	// specified team.
+	//
+	//An empty teamId fetches scheduled posts belonging to
 	// DMs and GMs (DMs and GMs do not belong to any team
 
 	// We're intentionally including scheduled posts from archived channels,
@@ -107,10 +109,9 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 		Select(s.columns("sp")...).
 		From("ScheduledPosts AS sp").
 		InnerJoin("Channels as c on sp.ChannelId = c.Id").
-		Where(sq.Eq{"sp.UserId": userId}).
-		Where(sq.Or{
-			sq.Eq{"c.TeamId": teamId},
-			sq.Eq{"c.TeamId": ""},
+		Where(sq.Eq{
+			"sp.UserId": userId,
+			"c.TeamId":  teamId,
 		}).
 		OrderBy("sp.CreateAt DESC")
 

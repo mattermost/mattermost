@@ -14,10 +14,10 @@ import type {GlobalState} from 'types/store';
 export default function ScheduledPostList() {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
-    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId));
+    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
     useEffect(() => {
-        dispatch(fetchTeamScheduledPosts(currentTeamId));
+        dispatch(fetchTeamScheduledPosts(currentTeamId, true));
     }, [currentTeamId, dispatch]);
 
     return (

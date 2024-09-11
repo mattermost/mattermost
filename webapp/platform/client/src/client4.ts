@@ -4325,9 +4325,9 @@ export default class Client4 {
     };
 
     // get user's current team's scheduled posts
-    getScheduledPosts = (teamId: string) => {
-        return this.doFetchWithResponse<ScheduledPost[]>(
-            `${this.getPostsRoute()}/scheduled/team/${teamId}`,
+    getScheduledPosts = (teamId: string, includeDirectChannels: boolean) => {
+        return this.doFetchWithResponse<{[key: string]: ScheduledPost[]}>(
+            `${this.getPostsRoute()}/scheduled/team/${teamId}?includeDirectChannels=${includeDirectChannels}`,
             {method: 'get'},
         );
     };
