@@ -32,9 +32,9 @@ function ChannelBookmarks({
         return null;
     }
 
-    const handleOnDragEnd: ComponentProps<typeof DragDropContext>['onDragEnd'] = async ({source, destination, draggableId}) => {
+    const handleOnDragEnd: ComponentProps<typeof DragDropContext>['onDragEnd'] = ({source, destination, draggableId}) => {
         if (destination) {
-            await reorder(draggableId, source.index, destination.index);
+            reorder(draggableId, source.index, destination.index);
         }
     };
 

@@ -87,7 +87,7 @@ function ChannelBookmarkCreateModal({
     }, [handleKeyDown]);
 
     // type === 'link'
-    const [icon] = useState(bookmark?.image_url);
+    const icon = bookmark?.image_url;
     const [link, setLinkInner] = useState(bookmark?.link_url ?? '');
     const prevLink = useRef(link);
     const [validatedLink, setValidatedLink] = useState<string>();
@@ -110,7 +110,8 @@ function ChannelBookmarkCreateModal({
         setDisplayName(parsed);
     });
 
-    const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
+    const handleLinkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const {value} = e.target;
         setLink(value);
     }, []);
 
@@ -346,7 +347,15 @@ function ChannelBookmarkCreateModal({
     }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon]);
 
     const confirmDisabled = saving || !isValid || !hasChanges;
-    const linkStatus = checkingLink ? <LoadingSpinner/> : (!linkError && validatedLink && checkedIcon);
+
+    let linkStatusIndicator;
+    if (checkingLink) {
+        // loading
+        linkStatusIndicator = <LoadingSpinner/>;
+    } else if (validatedLink && !linkError) {
+        // validated
+        linkStatusIndicator = checkedIcon;
+    }
 
     return (
         <GenericModal
@@ -377,7 +386,7 @@ function ChannelBookmarkCreateModal({
                             value={link}
                             data-testid='linkInput'
                             autoFocus={true}
-                            addon={linkStatus || undefined}
+                            addon={linkStatusIndicator}
                             customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
                         />
                     </>

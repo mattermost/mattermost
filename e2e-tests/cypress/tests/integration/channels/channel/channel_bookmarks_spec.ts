@@ -238,7 +238,7 @@ function openDotMenu(name: string) {
     cy.findByTestId('channel-bookmarks-container').within(() => {
         // # open menu
         cy.findByRole('link', {name}).scrollIntoView().focus().
-            parent('div').findByRole('button').click();
+            parent('div').findByRole('button', {name: 'Bookmark menu'}).click();
     });
 }
 

@@ -199,7 +199,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     children,
     isFile,
     onClick,
-    ...props
+    ...otherProps
 }, ref) => {
     const siteURL = getSiteURL();
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
@@ -209,7 +209,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     if (prefixed || openInNewTab) {
         return (
             <StyledExternalLink
-                {...props}
+                {...otherProps}
                 href={prefixed ? href.substring(1) : href}
                 rel='noopener noreferrer'
                 target='_blank'
@@ -224,7 +224,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     if (href.startsWith(siteURL) && !isFile) {
         return (
             <StyledLink
-                {...props}
+                {...otherProps}
                 to={href.slice(siteURL.length)}
                 ref={ref}
             >
@@ -235,7 +235,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
 
     return (
         <StyledAnchor
-            {...props}
+            {...otherProps}
             href={href}
             ref={ref}
             onClick={onClick}

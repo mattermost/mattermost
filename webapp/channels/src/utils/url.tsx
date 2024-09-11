@@ -107,7 +107,7 @@ export function getScheme(url: string): string | null {
     return match && match[1];
 }
 
-export function removeScheme(url = '') {
+export function removeScheme(url: string) {
     return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
 }
 
