@@ -885,6 +885,64 @@ func TestPushNotificationAck(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, resp.Code)
 		assert.NotNil(t, resp.Body)
 	})
+
+	ttcc := []struct {
+		name          string
+		propValue     string
+		platform      string
+		expectedValue string
+	}{
+		{
+			name:          "should set session prop device notification disabled to false if an ack is sent from iOS",
+			propValue:     "true",
+			platform:      "ios",
+			expectedValue: "false",
+		},
+		{
+			name:          "no change if empty",
+			propValue:     "",
+			platform:      "ios",
+			expectedValue: "",
+		},
+		{
+			name:          "no change if false",
+			propValue:     "false",
+			platform:      "ios",
+			expectedValue: "false",
+		},
+		{
+			name:          "no change on Android",
+			propValue:     "true",
+			platform:      "android",
+			expectedValue: "true",
+		},
+	}
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
+				th.Server.Store().Session().UpdateProps(session)
+				th.App.ClearSessionCacheForUser(session.UserId)
+			}()
+
+			session.AddProp(model.SessionPropDeviceNotificationDisabled, tc.propValue)
+			err := th.Server.Store().Session().UpdateProps(session)
+			th.App.ClearSessionCacheForUser(session.UserId)
+			assert.NoError(t, err)
+
+			handler := api.APIHandler(pushNotificationAck)
+			resp := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+			req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+			req.Body = io.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "platform": "%s", "post_id":"%s", "type": "%s"}`, tc.platform, th.BasicPost.Id, model.PushTypeMessage)))
+
+			handler.ServeHTTP(resp, req)
+			updatedSession, _ := th.App.GetSession(th.Client.AuthToken)
+			assert.Equal(t, tc.expectedValue, updatedSession.Props[model.SessionPropDeviceNotificationDisabled])
+			storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+			assert.Equal(t, tc.expectedValue, storeSession.Props[model.SessionPropDeviceNotificationDisabled])
+		})
+	}
 }
 
 func TestCompleteOnboarding(t *testing.T) {
