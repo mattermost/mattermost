@@ -139,6 +139,7 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         (
                             <SharedIcon>
                                 <SharedChannelIndicator
+                                    channelType={'O'}
                                     withTooltip={true}
                                 />
                             </SharedIcon>

@@ -206,6 +206,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             const sharedChannelIcon = channel.shared ? (
                 <SharedChannelIndicator
                     className='channel-icon'
+                    channelType={channel.type}
                     withTooltip={true}
                 />
             ) : null;
