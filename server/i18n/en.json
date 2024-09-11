@@ -6491,6 +6491,10 @@
     "translation": "Unable to update existing session."
   },
   {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
+  },
+  {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
   },
