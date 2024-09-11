@@ -86,17 +86,10 @@ const RoleChooser = styled.div`
     }
 `;
 
-const SharedIcon = styled.i`
-    width: 16px;
-    height: 20px;
+const SharedIcon = styled.span`
     margin: 0 0 0 4px;
-    color: rgba(61, 60, 64, 0.75);
     font-size: 16px;
     line-height: 20px;
-
-    &::before {
-        margin: 0;
-    }
 `;
 
 interface Props {
