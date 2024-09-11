@@ -58,11 +58,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             cmdLength = msg.length;
         }
         const cmd = msg.substring(0, cmdLength).toLowerCase();
-        if (cmd === '/code') {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trimEnd();
-        } else {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
-        }
+        msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
 
         // Add track event for certain slash commands
         const commandsWithTelemetry = [
