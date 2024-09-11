@@ -537,9 +537,10 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 		c.Err = invErr
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(inviteCode))
+	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -663,6 +664,5 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Header()["Content-Type"] = nil
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
