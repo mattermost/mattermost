@@ -1727,10 +1727,9 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
-// AttachDeviceId attaches a mobile device ID to the current session.
-func (c *Client4) AttachDeviceId(ctx context.Context, deviceId string) (*Response, error) {
-	requestBody := map[string]string{"device_id": deviceId}
-	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(requestBody))
+// AttachDeviceProps attaches a mobile device ID to the current session and other props.
+func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
+	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(newProps))
 	if err != nil {
 		return BuildResponse(r), err
 	}
