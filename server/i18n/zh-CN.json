@@ -3130,14 +3130,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "创建 Elasticsearch 批量处理器失败。"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "开始 Elasticsearch 批量处理器失败。"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "ElasticSearch 已停止。"
   },
@@ -5218,10 +5210,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您以访客加入团队 {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "立刻续订许可证"
-  },
-  {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "您的企业许可证已过期并且部分功能已停用。请立刻续订您的许可证。"
   },
@@ -5779,11 +5767,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 16.2+"
+    "translation": "版本 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5791,11 +5779,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 118+"
+    "translation": "版本 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 118+"
+    "translation": "版本 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7350,22 +7338,6 @@
     "translation": "无法使用户批量进行索引。"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "许可证不存在"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "这种类型的许可证不支持续订令牌生成"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "无法生成新的续订令牌。"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "获取许可证续订链接时出错"
-  },
-  {
     "id": "ent.compliance.global_relay.write_file.appError",
     "translation": "无法写入全局中继文件。"
   },
@@ -7942,10 +7914,6 @@
     "translation": "来自安全连接的邀请"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "无法解密邀请。错误的密码或破损的邀请：{{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[操作]"
   },
@@ -8114,10 +8082,6 @@
     "translation": "未能为续订电子邮件发送许可证"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "无法生成许可证续订链接"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "已存在具有相同网址的安全连接。"
   },
@@ -8282,10 +8246,6 @@
     "translation": "现有安全连接 ID。请参阅 `secure-connection`命令以添加安全连接。"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "立刻续订"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "这消息包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
   },
@@ -8404,10 +8364,6 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "您的 Mattermost 订阅即将需要续订"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "登录您的客户帐户进行续订"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
@@ -8556,10 +8512,6 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "提醒"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "无法在门户上续订此许可证"
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -8802,18 +8754,6 @@
     "translation": "CWS 服务器不可用。"
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "无法获得传出 Webhook 总数"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "无法获得传入 Webhook 总数"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "无法获得活跃用户总数"
-  },
-  {
     "id": "api.drafts.disabled.app_error",
     "translation": "草稿功能已被禁用。"
   },
@@ -8912,10 +8852,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "无法打开 Elasticsearch CA 文件"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "解码 Elasticsearch CA 失败"
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -9050,32 +8986,12 @@
     "translation": "联系销售"
   },
   {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "云实例不允许真实性评估"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "真实性评估需要许可证"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "无法获取真实的状态记录"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "无法创建真实的状态记录"
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "无效的用于试用的商务邮箱"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "未提供自助托管引导的组织名称。"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "向 CWS 提交 true up 评审配置文件失败。"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -10078,7 +9994,123 @@
     "translation": "获取用户计数失败"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "获取消息计数失败"
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "使用此 URL 的团队已存在。"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "无法关闭 zip 文件"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "无法找到导出文件以开始导出。"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "设置了无效的状态"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "您没有管理此任务类型的权限"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "无法更新任务状态。设置了无效的状态"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "判断系统管理员账号数量时出错。"
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "无法降级最后一个系统管理员。"
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "无法判断该用户名是否已存在"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "向缓冲区写入日志时发生错误"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "在保存密码时发生了内部错误。"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "无法取得实例 URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "无法接受远程集群的邀请"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "无法解码 base64 字符串"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "远程阵列并未删除"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "无法通过给定的密码加密远程阵列的邀请"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "远程阵列未找到"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "无法通过给定的密码解密远程阵列的邀请"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "无法设定自定义状态。"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "在保存密码时发生了内部错误。"
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "密码长度不能超过 72 个字符。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "搜索后端无效。必须是 elasticsearch 或 opensearch。"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "无法处理请求。请求体过大。"
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "limit_visible_dms_gms 的值无效。"
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "缓存类型必须为 lru 或 redis。"
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "必须为 redis 缓存类型指定 RedisAddress。"
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB 的值必须大于或等于 0。"
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "服务设置的最大 URL 长度无效。必须为大于 0 的整数。"
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "无法获取 teamID={{.TeamID}}, userID={{.UserID}} 的 webhook，err={{.Error}}。"
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "用户不是 OAuth 或 SAML 用户。"
   }
 ]

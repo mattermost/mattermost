@@ -18,7 +18,7 @@ import MobileChannelHeaderDropdownAnimation from './mobile_channel_header_dropdo
 
 type Props = {
     user: UserProfile;
-    channel: Channel;
+    channel?: Channel;
     teammateId: string | null;
     teammateIsBot?: boolean;
     teammateStatus?: string;
@@ -36,6 +36,10 @@ const MobileChannelHeaderDropdown = ({
     const intl = useIntl();
 
     const getChannelTitle = () => {
+        if (!channel) {
+            return '';
+        }
+
         if (channel.type === Constants.DM_CHANNEL) {
             if (user.id === teammateId) {
                 return (

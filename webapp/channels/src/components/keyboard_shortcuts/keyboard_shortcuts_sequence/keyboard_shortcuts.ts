@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MessageDescriptor} from 'react-intl';
-
-import {t} from 'utils/i18n';
+import {defineMessage, defineMessages, type MessageDescriptor} from 'react-intl';
 
 export type KeyboardShortcutDescriptor =
 	| MessageDescriptor
@@ -11,511 +9,511 @@ export type KeyboardShortcutDescriptor =
 
 const callsKBShortcuts = {
     global: {
-        callsJoinCall: {
+        callsJoinCall: defineMessages({
             default: {
-                id: t('shortcuts.calls.join_call'),
+                id: 'shortcuts.calls.join_call',
                 defaultMessage: 'Join call in current channel:\tCtrl|Alt|S',
             },
             mac: {
-                id: t('shortcuts.calls.join_call.mac'),
+                id: 'shortcuts.calls.join_call.mac',
                 defaultMessage: 'Join call in current channel:\t⌘|⌥|S',
             },
-        },
+        }),
     },
     widget: {
-        callsMuteToggle: {
+        callsMuteToggle: defineMessages({
             default: {
-                id: t('shortcuts.calls.mute_toggle'),
+                id: 'shortcuts.calls.mute_toggle',
                 defaultMessage: 'Mute or unmute:\tCtrl|Shift|Space',
             },
             mac: {
-                id: t('shortcuts.calls.mute_toggle.mac'),
+                id: 'shortcuts.calls.mute_toggle.mac',
                 defaultMessage: 'Mute or unmute:\t⌘|Shift|Space',
             },
-        },
-        callsRaiseHandToggle: {
+        }),
+        callsRaiseHandToggle: defineMessages({
             default: {
-                id: t('shortcuts.calls.raise_hand_toggle'),
+                id: 'shortcuts.calls.raise_hand_toggle',
                 defaultMessage: 'Raise or lower hand:\tCtrl|Shift|Y',
             },
             mac: {
-                id: t('shortcuts.calls.raise_hand_toggle.mac'),
+                id: 'shortcuts.calls.raise_hand_toggle.mac',
                 defaultMessage: 'Raise or lower hand:\t⌘|Shift|Y',
             },
-        },
-        callsShareScreenToggle: {
+        }),
+        callsShareScreenToggle: defineMessages({
             default: {
-                id: t('shortcuts.calls.share_screen_toggle'),
+                id: 'shortcuts.calls.share_screen_toggle',
                 defaultMessage: 'Share or unshare the screen:\tCtrl|Shift|E',
             },
             mac: {
-                id: t('shortcuts.calls.share_screen_toggle.mac'),
+                id: 'shortcuts.calls.share_screen_toggle.mac',
                 defaultMessage: 'Share or unshare the screen:\t⌘|Shift|E',
             },
-        },
-        callsParticipantsListToggle: {
+        }),
+        callsParticipantsListToggle: defineMessages({
             default: {
-                id: t('shortcuts.calls.participants_list_toggle'),
+                id: 'shortcuts.calls.participants_list_toggle',
                 defaultMessage: 'Show or hide participants list:\tAlt|P\tCtrl|Shift|P',
             },
             mac: {
-                id: t('shortcuts.calls.participants_list_toggle.mac'),
+                id: 'shortcuts.calls.participants_list_toggle.mac',
                 defaultMessage: 'Show or hide participants list:\t⌥|P\t⌘|Shift|P',
             },
-        },
-        callsLeaveCall: {
+        }),
+        callsLeaveCall: defineMessages({
             default: {
-                id: t('shortcuts.calls.leave_call'),
+                id: 'shortcuts.calls.leave_call',
                 defaultMessage: 'Leave current call:\tCtrl|Shift|L',
             },
             mac: {
-                id: t('shortcuts.calls.leave_call.mac'),
+                id: 'shortcuts.calls.leave_call.mac',
                 defaultMessage: 'Leave current call:\t⌘|Shift|L',
             },
-        },
+        }),
     },
     popout: {
-        callsPushToTalk: {
+        callsPushToTalk: defineMessages({
             default: {
-                id: t('shortcuts.calls.push_to_talk'),
+                id: 'shortcuts.calls.push_to_talk',
                 defaultMessage: 'Hold to unmute (push to talk):\tSpace',
             },
-        },
+        }),
     },
 };
 
 export const KEYBOARD_SHORTCUTS = {
-    mainHeader: {
+    mainHeader: defineMessages({
         default: {
-            id: t('shortcuts.header'),
+            id: 'shortcuts.header',
             defaultMessage: 'Keyboard shortcuts\tCtrl|/',
         },
         mac: {
-            id: t('shortcuts.header.mac'),
+            id: 'shortcuts.header.mac',
             defaultMessage: 'Keyboard shortcuts\t⌘|/',
         },
-    },
-    navPrev: {
+    }),
+    navPrev: defineMessages({
         default: {
-            id: t('shortcuts.nav.prev'),
+            id: 'shortcuts.nav.prev',
             defaultMessage: 'Previous channel:\tAlt|Up',
         },
         mac: {
-            id: t('shortcuts.nav.prev.mac'),
+            id: 'shortcuts.nav.prev.mac',
             defaultMessage: 'Previous channel:\t⌥|Up',
         },
-    },
-    navNext: {
+    }),
+    navNext: defineMessages({
         default: {
-            id: t('shortcuts.nav.next'),
+            id: 'shortcuts.nav.next',
             defaultMessage: 'Next channel:\tAlt|Down',
         },
         mac: {
-            id: t('shortcuts.nav.next.mac'),
+            id: 'shortcuts.nav.next.mac',
             defaultMessage: 'Next channel:\t⌥|Down',
         },
-    },
-    navUnreadPrev: {
+    }),
+    navUnreadPrev: defineMessages({
         default: {
-            id: t('shortcuts.nav.unread_prev'),
+            id: 'shortcuts.nav.unread_prev',
             defaultMessage: 'Previous unread channel:\tAlt|Shift|Up',
         },
         mac: {
-            id: t('shortcuts.nav.unread_prev.mac'),
+            id: 'shortcuts.nav.unread_prev.mac',
             defaultMessage: 'Previous unread channel:\t⌥|Shift|Up',
         },
-    },
-    navUnreadNext: {
+    }),
+    navUnreadNext: defineMessages({
         default: {
-            id: t('shortcuts.nav.unread_next'),
+            id: 'shortcuts.nav.unread_next',
             defaultMessage: 'Next unread channel:\tAlt|Shift|Down',
         },
         mac: {
-            id: t('shortcuts.nav.unread_next.mac'),
+            id: 'shortcuts.nav.unread_next.mac',
             defaultMessage: 'Next unread channel:\t⌥|Shift|Down',
         },
-    },
-    teamNavPrev: {
+    }),
+    teamNavPrev: defineMessages({
         default: {
-            id: t('shortcuts.team_nav.prev'),
+            id: 'shortcuts.team_nav.prev',
             defaultMessage: 'Previous team:\tCtrl|Alt|Up',
         },
         mac: {
-            id: t('shortcuts.team_nav.prev.mac'),
+            id: 'shortcuts.team_nav.prev.mac',
             defaultMessage: 'Previous team:\t⌘|⌥|Up',
         },
-    },
-    teamNavNext: {
+    }),
+    teamNavNext: defineMessages({
         default: {
-            id: t('shortcuts.team_nav.next'),
+            id: 'shortcuts.team_nav.next',
             defaultMessage: 'Next team:\tCtrl|Alt|Down',
         },
         mac: {
-            id: t('shortcuts.team_nav.next.mac'),
+            id: 'shortcuts.team_nav.next.mac',
             defaultMessage: 'Next team:\t⌘|⌥|Down',
         },
-    },
-    teamNavSwitcher: {
+    }),
+    teamNavSwitcher: defineMessages({
         default: {
-            id: t('shortcuts.team_nav.switcher'),
+            id: 'shortcuts.team_nav.switcher',
             defaultMessage: 'Navigate to a specific team:\tCtrl|Alt|[1-9]',
         },
         mac: {
-            id: t('shortcuts.team_nav.switcher.mac'),
+            id: 'shortcuts.team_nav.switcher.mac',
             defaultMessage: 'Navigate to a specific team:\t⌘|⌥|[1-9]',
         },
-    },
-    navSwitcher: {
+    }),
+    navSwitcher: defineMessages({
         default: {
-            id: t('shortcuts.nav.switcher'),
+            id: 'shortcuts.nav.switcher',
             defaultMessage: 'Quick channel navigation:\tCtrl|K',
         },
         mac: {
-            id: t('shortcuts.nav.switcher.mac'),
+            id: 'shortcuts.nav.switcher.mac',
             defaultMessage: 'Quick channel navigation:\t⌘|K',
         },
-    },
-    navDMMenu: {
+    }),
+    navDMMenu: defineMessages({
         default: {
-            id: t('shortcuts.nav.direct_messages_menu'),
+            id: 'shortcuts.nav.direct_messages_menu',
             defaultMessage: 'Direct messages menu:\tCtrl|Shift|K',
         },
         mac: {
-            id: t('shortcuts.nav.direct_messages_menu.mac'),
+            id: 'shortcuts.nav.direct_messages_menu.mac',
             defaultMessage: 'Direct messages menu:\t⌘|Shift|K',
         },
-    },
-    navSettings: {
+    }),
+    navSettings: defineMessages({
         default: {
-            id: t('shortcuts.nav.settings'),
+            id: 'shortcuts.nav.settings',
             defaultMessage: 'Settings:\tCtrl|Shift|A',
         },
         mac: {
-            id: t('shortcuts.nav.settings.mac'),
+            id: 'shortcuts.nav.settings.mac',
             defaultMessage: 'Settings:\t⌘|Shift|A',
         },
-    },
-    navMentions: {
+    }),
+    navMentions: defineMessages({
         default: {
-            id: t('shortcuts.nav.recent_mentions'),
+            id: 'shortcuts.nav.recent_mentions',
             defaultMessage: 'Recent mentions:\tCtrl|Shift|M',
         },
         mac: {
-            id: t('shortcuts.nav.recent_mentions.mac'),
+            id: 'shortcuts.nav.recent_mentions.mac',
             defaultMessage: 'Recent mentions:\t⌘|Shift|M',
         },
-    },
-    navFocusCenter: {
+    }),
+    navFocusCenter: defineMessages({
         default: {
-            id: t('shortcuts.nav.focus_center'),
+            id: 'shortcuts.nav.focus_center',
             defaultMessage: 'Set focus to input field:\tCtrl|Shift|L',
         },
         mac: {
-            id: t('shortcuts.nav.focus_center.mac'),
+            id: 'shortcuts.nav.focus_center.mac',
             defaultMessage: 'Set focus to input field:\t⌘|Shift|L',
         },
-    },
-    navOpenCloseSidebar: {
+    }),
+    navOpenCloseSidebar: defineMessages({
         default: {
-            id: t('shortcuts.nav.open_close_sidebar'),
+            id: 'shortcuts.nav.open_close_sidebar',
             defaultMessage: 'Open or close the right sidebar:\tCtrl|.',
         },
         mac: {
-            id: t('shortcuts.nav.open_close_sidebar.mac'),
+            id: 'shortcuts.nav.open_close_sidebar.mac',
             defaultMessage: 'Open or close the right sidebar:\t⌘|.',
         },
-    },
-    navExpandSidebar: {
+    }),
+    navExpandSidebar: defineMessages({
         default: {
-            id: t('shortcuts.nav.expand_sidebar'),
+            id: 'shortcuts.nav.expand_sidebar',
             defaultMessage: 'Expand the right sidebar:\tCtrl|Shift|.',
         },
         mac: {
-            id: t('shortcuts.nav.expand_sidebar.mac'),
+            id: 'shortcuts.nav.expand_sidebar.mac',
             defaultMessage: 'Expand the right sidebar:\t⌘|Shift|.',
         },
-    },
-    navOpenChannelInfo: {
+    }),
+    navOpenChannelInfo: defineMessages({
         default: {
-            id: t('shortcuts.nav.open_channel_info'),
+            id: 'shortcuts.nav.open_channel_info',
             defaultMessage: 'View channel info:\tCtrl|Alt|I',
         },
         mac: {
-            id: t('shortcuts.nav.open_channel_info.mac'),
+            id: 'shortcuts.nav.open_channel_info.mac',
             defaultMessage: 'View channel info:\t⌘|Shift|I',
         },
-    },
-    navToggleUnreads: {
+    }),
+    navToggleUnreads: defineMessages({
         default: {
-            id: t('shortcuts.nav.toggle_unreads'),
+            id: 'shortcuts.nav.toggle_unreads',
             defaultMessage: 'Toggle unread/all channels:\tCtrl|Shift|U',
         },
         mac: {
-            id: t('shortcuts.nav.toggle_unreads.mac'),
+            id: 'shortcuts.nav.toggle_unreads.mac',
             defaultMessage: 'Toggle unread/all channels:\t⌘|Shift|U',
         },
-    },
-    msgEdit: {
-        id: t('shortcuts.msgs.edit'),
+    }),
+    msgEdit: defineMessage({
+        id: 'shortcuts.msgs.edit',
         defaultMessage: 'Edit last message in channel:\tUp',
-    },
-    msgReply: {
-        id: t('shortcuts.msgs.reply'),
+    }),
+    msgReply: defineMessage({
+        id: 'shortcuts.msgs.reply',
         defaultMessage: 'Reply to last message in channel:\tShift|Up',
-    },
-    msgReprintPrev: {
+    }),
+    msgReprintPrev: defineMessages({
         default: {
-            id: t('shortcuts.msgs.reprint_prev'),
+            id: 'shortcuts.msgs.reprint_prev',
             defaultMessage: 'Reprint previous message:\tCtrl|Up',
         },
         mac: {
-            id: t('shortcuts.msgs.reprint_prev.mac'),
+            id: 'shortcuts.msgs.reprint_prev.mac',
             defaultMessage: 'Reprint previous message:\t⌘|Up',
         },
-    },
-    msgReprintNext: {
+    }),
+    msgReprintNext: defineMessages({
         default: {
-            id: t('shortcuts.msgs.reprint_next'),
+            id: 'shortcuts.msgs.reprint_next',
             defaultMessage: 'Reprint next message:\tCtrl|Down',
         },
         mac: {
-            id: t('shortcuts.msgs.reprint_next.mac'),
+            id: 'shortcuts.msgs.reprint_next.mac',
             defaultMessage: 'Reprint next message:\t⌘|Down',
         },
-    },
-    msgCompUsername: {
-        id: t('shortcuts.msgs.comp.username'),
+    }),
+    msgCompUsername: defineMessage({
+        id: 'shortcuts.msgs.comp.username',
         defaultMessage: 'Username:\t@|[a-z]|Tab',
-    },
-    msgCompChannel: {
-        id: t('shortcuts.msgs.comp.channel'),
+    }),
+    msgCompChannel: defineMessage({
+        id: 'shortcuts.msgs.comp.channel',
         defaultMessage: 'Channel:\t~|[a-z]|Tab',
-    },
-    msgCompEmoji: {
-        id: t('shortcuts.msgs.comp.emoji'),
+    }),
+    msgCompEmoji: defineMessage({
+        id: 'shortcuts.msgs.comp.emoji',
         defaultMessage: 'Emoji:\t:|[a-z]|Tab',
-    },
-    msgLastReaction: {
+    }),
+    msgLastReaction: defineMessages({
         default: {
-            id: t('shortcuts.msgs.comp.last_reaction'),
+            id: 'shortcuts.msgs.comp.last_reaction',
             defaultMessage: 'React to last message:\tCtrl|Shift|\u29F5',
         },
         mac: {
-            id: t('shortcuts.msgs.comp.last_reaction.mac'),
+            id: 'shortcuts.msgs.comp.last_reaction.mac',
             defaultMessage: 'React to last message:\t⌘|Shift|\u29F5',
         },
-    },
-    msgMarkdownBold: {
+    }),
+    msgMarkdownBold: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.bold'),
+            id: 'shortcuts.msgs.markdown.bold',
             defaultMessage: 'Bold:\tCtrl|B',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.bold.mac'),
+            id: 'shortcuts.msgs.markdown.bold.mac',
             defaultMessage: 'Bold:\t⌘|B',
         },
-    },
-    msgMarkdownCode: {
+    }),
+    msgMarkdownCode: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.code'),
+            id: 'shortcuts.msgs.markdown.code',
             defaultMessage: 'Code',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.code.mac'),
+            id: 'shortcuts.msgs.markdown.code.mac',
             defaultMessage: 'Code',
         },
-    },
-    msgMarkdownStrike: {
+    }),
+    msgMarkdownStrike: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.strike'),
+            id: 'shortcuts.msgs.markdown.strike',
             defaultMessage: 'Strikethrough:\tCtrl|Shift|X',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.strike.mac'),
+            id: 'shortcuts.msgs.markdown.strike.mac',
             defaultMessage: 'Strikethrough:\t⌘|Shift|X',
         },
-    },
-    msgMarkdownH3: {
+    }),
+    msgMarkdownH3: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.h3'),
+            id: 'shortcuts.msgs.markdown.h3',
             defaultMessage: 'Heading',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.h3.mac'),
+            id: 'shortcuts.msgs.markdown.h3.mac',
             defaultMessage: 'Heading',
         },
-    },
-    msgMarkdownQuote: {
+    }),
+    msgMarkdownQuote: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.quote'),
+            id: 'shortcuts.msgs.markdown.quote',
             defaultMessage: 'Quote',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.quote.mac'),
+            id: 'shortcuts.msgs.markdown.quote.mac',
             defaultMessage: 'Quote',
         },
-    },
-    msgMarkdownOl: {
+    }),
+    msgMarkdownOl: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.ordered'),
+            id: 'shortcuts.msgs.markdown.ordered',
             defaultMessage: 'Numbered List',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.ordered.mac'),
+            id: 'shortcuts.msgs.markdown.ordered.mac',
             defaultMessage: 'Numbered List',
         },
-    },
-    msgMarkdownUl: {
+    }),
+    msgMarkdownUl: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.unordered'),
+            id: 'shortcuts.msgs.markdown.unordered',
             defaultMessage: 'Bulleted List',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.unordered.mac'),
+            id: 'shortcuts.msgs.markdown.unordered.mac',
             defaultMessage: 'Bulleted List',
         },
-    },
-    msgShowFormatting: {
+    }),
+    msgShowFormatting: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.formatting.show'),
+            id: 'shortcuts.msgs.markdown.formatting.show',
             defaultMessage: 'Show Formatting:\tCtrl|Alt|T',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.formatting.show.mac'),
+            id: 'shortcuts.msgs.markdown.formatting.show.mac',
             defaultMessage: 'Show Formatting:\t⌘|⌥|T',
         },
-    },
-    msgHideFormatting: {
+    }),
+    msgHideFormatting: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.formatting.hide'),
+            id: 'shortcuts.msgs.markdown.formatting.hide',
             defaultMessage: 'Hide Formatting:\tCtrl|Alt|T',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.formatting.hide.mac'),
+            id: 'shortcuts.msgs.markdown.formatting.hide.mac',
             defaultMessage: 'Hide Formatting:\t⌘|⌥|T',
         },
-    },
-    msgShowEmojiPicker: {
+    }),
+    msgShowEmojiPicker: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.emoji'),
+            id: 'shortcuts.msgs.markdown.emoji',
             defaultMessage: 'Emoji / Gif picker:\tCtrl|Shift|E',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.emoji.mac'),
+            id: 'shortcuts.msgs.markdown.emoji.mac',
             defaultMessage: 'Emoji / Gif picker:\t⌘|Shift|E',
         },
-    },
-    msgMarkdownPreview: {
+    }),
+    msgMarkdownPreview: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.preview'),
+            id: 'shortcuts.msgs.markdown.preview',
             defaultMessage: 'Show/Hide Preview:\tCtrl|Alt|P',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.preview.mac'),
+            id: 'shortcuts.msgs.markdown.preview.mac',
             defaultMessage: 'Show/Hide Preview:\t⌘|Shift|P',
         },
-    },
-    msgMarkdownItalic: {
+    }),
+    msgMarkdownItalic: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.italic'),
+            id: 'shortcuts.msgs.markdown.italic',
             defaultMessage: 'Italic:\tCtrl|I',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.italic.mac'),
+            id: 'shortcuts.msgs.markdown.italic.mac',
             defaultMessage: 'Italic:\t⌘|I',
         },
-    },
-    msgMarkdownLink: {
+    }),
+    msgMarkdownLink: defineMessages({
         default: {
-            id: t('shortcuts.msgs.markdown.link'),
+            id: 'shortcuts.msgs.markdown.link',
             defaultMessage: 'Link:\tCtrl|Alt|K',
         },
         mac: {
-            id: t('shortcuts.msgs.markdown.link.mac'),
+            id: 'shortcuts.msgs.markdown.link.mac',
             defaultMessage: 'Link:\t⌘|⌥|K',
         },
-    },
-    filesUpload: {
+    }),
+    filesUpload: defineMessages({
         default: {
-            id: t('shortcuts.files.upload'),
+            id: 'shortcuts.files.upload',
             defaultMessage: 'Upload files:\tCtrl|U',
         },
         mac: {
-            id: t('shortcuts.files.upload.mac'),
+            id: 'shortcuts.files.upload.mac',
             defaultMessage: 'Upload files:\t⌘|U',
         },
-    },
-    browserChannelPrev: {
+    }),
+    browserChannelPrev: defineMessages({
         default: {
-            id: t('shortcuts.browser.channel_prev'),
+            id: 'shortcuts.browser.channel_prev',
             defaultMessage: 'Back in history:\tAlt|Left',
         },
         mac: {
-            id: t('shortcuts.browser.channel_prev.mac'),
+            id: 'shortcuts.browser.channel_prev.mac',
             defaultMessage: 'Back in history:\t⌘|[',
         },
-    },
-    browserChannelNext: {
+    }),
+    browserChannelNext: defineMessages({
         default: {
-            id: t('shortcuts.browser.channel_next'),
+            id: 'shortcuts.browser.channel_next',
             defaultMessage: 'Forward in history:\tAlt|Right',
         },
         mac: {
-            id: t('shortcuts.browser.channel_next.mac'),
+            id: 'shortcuts.browser.channel_next.mac',
             defaultMessage: 'Forward in history:\t⌘|]',
         },
-    },
-    browserFontIncrease: {
+    }),
+    browserFontIncrease: defineMessages({
         default: {
-            id: t('shortcuts.browser.font_increase'),
+            id: 'shortcuts.browser.font_increase',
             defaultMessage: 'Zoom in:\tCtrl|+',
         },
         mac: {
-            id: t('shortcuts.browser.font_increase.mac'),
+            id: 'shortcuts.browser.font_increase.mac',
             defaultMessage: 'Zoom in:\t⌘|+',
         },
-    },
-    browserFontDecrease: {
+    }),
+    browserFontDecrease: defineMessages({
         default: {
-            id: t('shortcuts.browser.font_decrease'),
+            id: 'shortcuts.browser.font_decrease',
             defaultMessage: 'Zoom out:\tCtrl|-',
         },
         mac: {
-            id: t('shortcuts.browser.font_decrease.mac'),
+            id: 'shortcuts.browser.font_decrease.mac',
             defaultMessage: 'Zoom out:\t⌘|-',
         },
-    },
-    browserHighlightPrev: {
-        id: t('shortcuts.browser.highlight_prev'),
+    }),
+    browserHighlightPrev: defineMessage({
+        id: 'shortcuts.browser.highlight_prev',
         defaultMessage: 'Highlight text to the previous line:\tShift|Up',
-    },
-    browserHighlightNext: {
-        id: t('shortcuts.browser.highlight_next'),
+    }),
+    browserHighlightNext: defineMessage({
+        id: 'shortcuts.browser.highlight_next',
         defaultMessage: 'Highlight text to the next line:\tShift|Down',
-    },
-    browserNewline: {
-        id: t('shortcuts.browser.newline'),
+    }),
+    browserNewline: defineMessage({
+        id: 'shortcuts.browser.newline',
         defaultMessage: 'Create a new line:\tShift|Enter',
-    },
-    msgSearchChannel: {
+    }),
+    msgSearchChannel: defineMessages({
         default: {
-            id: t('shortcuts.msgs.search_channel'),
+            id: 'shortcuts.msgs.search_channel',
             defaultMessage: 'In channel:\tCtrl|F',
         },
         mac: {
-            id: t('shortcuts.msgs.search_channel.mac'),
+            id: 'shortcuts.msgs.search_channel.mac',
             defaultMessage: 'In channel:\t⌘|F',
         },
-    },
-    msgPostPriority: {
+    }),
+    msgPostPriority: defineMessages({
         default: {
-            id: t('shortcuts.msgs.formatting_bar.post_priority'),
+            id: 'shortcuts.msgs.formatting_bar.post_priority',
             defaultMessage: 'Message priority',
         },
         mac: {
-            id: t('shortcuts.msgs.formatting_bar.post_priority'),
+            id: 'shortcuts.msgs.formatting_bar.post_priority',
             defaultMessage: 'Message priority',
         },
-    },
+    }),
     calls: callsKBShortcuts,
 };

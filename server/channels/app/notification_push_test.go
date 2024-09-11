@@ -441,12 +441,14 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 	away := &model.Status{UserId: userID, Status: model.StatusAway, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	online := &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	dnd := &model.Status{UserId: userID, Status: model.StatusDnd, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	activeOnChannel := &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelID}
 
 	tt := []struct {
 		name              string
 		userNotifySetting string
 		status            *model.Status
 		channelID         string
+		isCRT             bool
 		expected          model.NotificationReason
 	}{
 		{
@@ -490,6 +492,21 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 			status:            online,
 			channelID:         "",
 			expected:          model.NotificationReasonUserIsActive,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is online and active within the channel",
+			userNotifySetting: model.StatusOnline,
+			status:            activeOnChannel,
+			channelID:         channelID,
+			expected:          model.NotificationReasonUserIsActive,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is online and active within a thread in the channel",
+			userNotifySetting: model.StatusOnline,
+			status:            activeOnChannel,
+			channelID:         channelID,
+			expected:          "",
+			isCRT:             true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd with channel",
@@ -623,7 +640,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			userNotifyProps := make(map[string]string)
 			userNotifyProps["push_status"] = tc.userNotifySetting
-			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID))
+			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID, tc.isCRT))
 		})
 	}
 }
@@ -1525,9 +1542,8 @@ func TestPushNotificationRace(t *testing.T) {
 	}
 	var err error
 	s.platform, err = platform.New(
-		platform.ServiceConfig{
-			ConfigStore: memoryStore,
-		},
+		platform.ServiceConfig{},
+		platform.ConfigStore(memoryStore),
 		platform.SetFileStore(&fmocks.FileBackend{}),
 		platform.SetExportFileStore(&fmocks.FileBackend{}),
 		platform.StoreOverride(mockStore))

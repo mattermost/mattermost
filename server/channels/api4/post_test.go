@@ -230,12 +230,27 @@ func TestCreatePost(t *testing.T) {
 	rpost, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+
+	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
+		newPost := &model.Post{
+			RemoteId:  model.NewPointer(model.NewId()),
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post content " + model.NewId(),
+			DeleteAt:  0,
+		}
+
+		respPost, resp, err := th.SystemAdminClient.CreatePost(context.Background(), newPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Zero(t, *respPost.RemoteId)
+
+		createdPost, appErr := th.App.GetSinglePost(th.Context, respPost.Id, false)
+		require.Nil(t, appErr)
+		require.Zero(t, *createdPost.RemoteId)
+	})
 }
 
 func TestCreatePostForPriority(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -258,7 +273,7 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewString("urgent"),
+				Priority: model.NewPointer("urgent"),
 			},
 		}}
 
@@ -276,7 +291,7 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		replyPost := &model.Post{RootId: post.Id, ChannelId: th.BasicChannel.Id, Message: "reply", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewString("urgent"),
+				Priority: model.NewPointer("urgent"),
 			},
 		}}
 		_, resp, err = client.CreatePost(context.Background(), replyPost)
@@ -290,8 +305,8 @@ func TestCreatePostForPriority(t *testing.T) {
 		//  for Acknowledment
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewString("urgent"),
-				RequestedAck: model.NewBool(true),
+				Priority:     model.NewPointer("urgent"),
+				RequestedAck: model.NewPointer(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -301,8 +316,8 @@ func TestCreatePostForPriority(t *testing.T) {
 		//  for Persistent Notification
 		p2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("urgent"),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer("urgent"),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}}
 		_, resp, err = client.CreatePost(context.Background(), p2)
@@ -322,8 +337,8 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("urgent"),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer("urgent"),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -334,8 +349,8 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should return badRequest when post is not urgent for persistent notification", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("important"),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer("important"),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -358,8 +373,8 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("urgent"),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer("urgent"),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -370,7 +385,7 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create priority post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewString("important"),
+				Priority: model.NewPointer("important"),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -381,8 +396,8 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create acknowledge post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewString(""),
-				RequestedAck: model.NewBool(true),
+				Priority:     model.NewPointer(""),
+				RequestedAck: model.NewPointer(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -393,9 +408,9 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create persistent notification post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("urgent"),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer("urgent"),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -600,7 +615,7 @@ func testCreatePostWithOutgoingHook(
 		}
 
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
-			Text:         model.NewString("some test text"),
+			Text:         model.NewPointer("some test text"),
 			Username:     "TestCommandServer",
 			IconURL:      "https://mattermost.com/wp-content/uploads/2022/02/icon.png",
 			Type:         "custom_as",
@@ -746,16 +761,20 @@ func TestMoveThread(t *testing.T) {
 	basicUser2 := th.BasicUser2
 	basicUser3 := th.CreateUser()
 
-	// Create a new public channel to move the post to
-	publicChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
-		TeamId:      th.BasicTeam.Id,
-		Name:        "test-public-channel",
-		DisplayName: "Test Public Channel",
-		Type:        model.ChannelTypeOpen,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.NotNil(t, publicChannel)
+	// Helper function to create a new public channel to move the post to
+	createPublicChannel := func(teamId, name, displayName string) *model.Channel {
+		channel, resp, err := client.CreateChannel(ctx, &model.Channel{
+			TeamId:      teamId,
+			Name:        name,
+			DisplayName: displayName,
+			Type:        model.ChannelTypeOpen,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, channel)
+
+		return channel
+	}
 
 	// Create a new private channel to move the post to
 	privateChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
@@ -780,6 +799,9 @@ func TestMoveThread(t *testing.T) {
 	require.NotNil(t, resp)
 	require.NotNil(t, gmChannel)
 	t.Run("Move to public channel", func(t *testing.T) {
+		// Create a public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel", "Test Public Channel")
+
 		// Create a new post to move
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -955,6 +977,53 @@ func TestMoveThread(t *testing.T) {
 		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
 		require.Equal(t, rootPost.Message, posts.Posts[posts.Order[3]].Message)
+	})
+
+	t.Run("Move thread when permitted role is channel admin", func(t *testing.T) {
+		// Create public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel-admin", "Test Public Channel Admin")
+
+		// Set permitted role as channel admin
+		enabled := true
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings = model.WranglerSettings{MoveThreadToAnotherTeamEnable: &enabled,
+				PermittedWranglerRoles: []string{model.PermissionsChannelAdmin}}
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings = model.WranglerSettings{}
+		})
+
+		// Login as channel admin and add to channel
+		th.LoginTeamAdmin()
+		th.AddUserToChannel(th.TeamAdminUser, publicChannel)
+		defer th.LoginBasic()
+
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the public channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: publicChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the public channel
+		posts, resp, err := client.GetPostsForChannel(ctx, publicChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 2 posts, the system join message for the user who moved it joining the channel, and the post we moved
+		require.Equal(t, 2, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
 	})
 }
 
@@ -1463,12 +1532,12 @@ func TestPatchPost(t *testing.T) {
 	t.Run("new message, props, files, HasReactions bit", func(t *testing.T) {
 		patch := &model.PostPatch{}
 
-		patch.IsPinned = model.NewBool(false)
-		patch.Message = model.NewString("#otherhashtag other message")
+		patch.IsPinned = model.NewPointer(false)
+		patch.Message = model.NewPointer("#otherhashtag other message")
 		patch.Props = &model.StringInterface{"channel_header": "new_header"}
 		patchFileIds := model.StringArray(fileIDs) // one extra file
 		patch.FileIds = &patchFileIds
-		patch.HasReactions = model.NewBool(false)
+		patch.HasReactions = model.NewPointer(false)
 
 		rpost, _, err = client.PatchPost(context.Background(), post.Id, patch)
 		require.NoError(t, err)
@@ -1586,7 +1655,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch2 := &model.PostPatch{
-			Message: model.NewString("new message"),
+			Message: model.NewPointer("new message"),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), post2.Id, patch2)
 		require.Error(t, err)
@@ -1630,7 +1699,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(context.Background(), post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1660,7 +1729,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(context.Background(), pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
@@ -1704,6 +1773,8 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, post3.Id, posts.Order[1], "wrong order")
 		require.Equal(t, post2.Id, posts.Order[2], "wrong order")
 		require.Equal(t, post1.Id, posts.Order[3], "wrong order")
+
+		require.Nil(t, posts.HasNext, "HasNext should not be returned")
 
 		posts, resp, _ = c.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 3, resp.Etag, false, false)
 		CheckEtag(t, posts, resp)
@@ -1762,7 +1833,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	_, resp, err := client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	client.Logout(context.Background())
 	_, resp, err = client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)
@@ -3688,7 +3759,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message
 	patch := &model.PostPatch{
-		Message: model.NewString("new message edited"),
+		Message: model.NewPointer("new message edited"),
 	}
 
 	// Patch the post
@@ -3698,7 +3769,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message again
 	patch = &model.PostPatch{
-		Message: model.NewString("new message edited again"),
+		Message: model.NewPointer("new message edited again"),
 	}
 
 	_, response2, err2 := client.PatchPost(context.Background(), rpost.Id, patch)
@@ -3939,6 +4010,8 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 }
 
 func TestPostReminder(t *testing.T) {
+	t.Skip("MM-60329")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

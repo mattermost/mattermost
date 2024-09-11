@@ -38,7 +38,7 @@ describe('Settings > Display > Theme > Custom Theme Colors', () => {
             cy.get('#centerChannelStyles').click({force: true}).wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
 
             // # Select custom code theme
-            cy.get('#codeThemeSelect').scrollIntoView().should('be.visible').select(theme.name);
+            cy.get('#codeThemeSelect').should('be.visible').scrollIntoView().select(theme.name);
 
             // * Verify that the setting changes in the background?
             verifyLastPostStyle(theme);

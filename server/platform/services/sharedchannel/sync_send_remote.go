@@ -35,6 +35,7 @@ type syncData struct {
 	profileImages map[string]*model.User
 	posts         []*model.Post
 	reactions     []*model.Reaction
+	statuses      []*model.Status
 	attachments   []attachment
 
 	resultRepeat     bool
@@ -66,6 +67,13 @@ func (sd *syncData) isCursorChanged() bool {
 
 	return sd.scr.LastPostCreateAt != sd.resultNextCursor.LastPostCreateAt || sd.scr.LastPostCreateID != sd.resultNextCursor.LastPostCreateID ||
 		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
+}
+
+func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
+	sd.users = msg.Users
+	sd.posts = msg.Posts
+	sd.reactions = msg.Reactions
+	sd.statuses = msg.Statuses
 }
 
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
@@ -115,21 +123,30 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return err
 	}
 
+	sd := newSyncData(task, rc, scr)
+
 	// if this is retrying a failed msg, just send it again.
 	if task.retryMsg != nil {
-		sd := newSyncData(task, rc, scr)
-		sd.users = task.retryMsg.Users
-		sd.posts = task.retryMsg.Posts
-		sd.reactions = task.retryMsg.Reactions
+		sd.setDataFromMsg(task.retryMsg)
 		return scs.sendSyncData(sd)
 	}
 
-	sd := newSyncData(task, rc, scr)
+	// if this has an already existing msg, just send it right away
+	if task.existingMsg != nil {
+		sd.setDataFromMsg(task.existingMsg)
+		return scs.sendSyncData(sd)
+	}
+
+	// if we don't have a channelID at this point, we cannot fetch new
+	// data from the database
+	if task.channelID == "" {
+		return fmt.Errorf("task doesn't have prefetched data nor a channel ID set")
+	}
 
 	// schedule another sync if the repeat flag is set at some point.
 	defer func(rpt *bool) {
 		if *rpt {
-			scs.addTask(newSyncTask(task.channelID, task.remoteID, nil))
+			scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, nil))
 		}
 	}(&sd.resultRepeat)
 
@@ -270,7 +287,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
 	count := len(posts)
-	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
+	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
 	cache := postsSliceToMap(posts)
 
@@ -284,7 +301,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		}
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
-		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
+		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
 	sd.resultNextCursor = nextCursor
@@ -293,7 +310,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	return nil
 }
 
-func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64) []*model.Post {
+func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64, logger mlog.LoggerIFace) []*model.Post {
 	// Append the posts individually, checking for root posts that might appear later in the list.
 	// This is due to the UpdateAt collision handling algorithm where the order of posts is not based
 	// on UpdateAt or CreateAt when the posts have the same UpdateAt value. Here we are guarding
@@ -302,7 +319,7 @@ func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostSt
 	// happens during load testing or bulk imports.
 	for _, p := range posts {
 		if p.RootId != "" {
-			root, err := postStore.GetSingle(p.RootId, true)
+			root, err := postStore.GetSingle(request.EmptyContext(logger), p.RootId, true)
 			if err == nil {
 				if (root.CreateAt >= timestamp || root.UpdateAt >= timestamp) && !containsPost(dest, root) {
 					dest = append(dest, root)
@@ -516,6 +533,13 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		}
 	}
 
+	// send statuses
+	if len(sd.statuses) != 0 {
+		if err := scs.sendStatusSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send status sync data: %w", err))
+		}
+	}
+
 	// send user profile images
 	if len(sd.profileImages) != 0 {
 		scs.sendProfileImageSyncData(sd)
@@ -620,6 +644,25 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 				mlog.String("remote_id", sd.rc.RemoteId),
 				mlog.Array("reaction_posts", syncResp.ReactionErrors),
 			)
+		}
+	})
+}
+
+// sendStatusSyncData sends the collected status updates to the remote cluster.
+func (scs *Service) sendStatusSyncData(sd *syncData) error {
+	msg := model.NewSyncMsg(sd.task.channelID)
+	msg.Statuses = sd.statuses
+
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		if len(syncResp.StatusErrors) != 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error from status(es) sync",
+				mlog.String("remote_id", sd.rc.RemoteId),
+				mlog.Array("user_ids", syncResp.StatusErrors),
+			)
+
+			for _, userID := range syncResp.StatusErrors {
+				scs.handleStatusError(userID, sd.task, sd.rc)
+			}
 		}
 	})
 }

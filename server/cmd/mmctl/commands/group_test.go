@@ -154,7 +154,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 				PerPage: 10,
 			},
 		}
-		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(true)}
+		teamPatch := model.TeamPatch{GroupConstrained: model.NewPointer(true)}
 
 		s.client.
 			EXPECT().
@@ -191,7 +191,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 				PerPage: 10,
 			},
 		}
-		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(true)}
+		teamPatch := model.TeamPatch{GroupConstrained: model.NewPointer(true)}
 
 		s.client.
 			EXPECT().
@@ -223,7 +223,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 		printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
-		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
+		teamPatch := model.TeamPatch{GroupConstrained: model.NewPointer(false)}
 
 		s.client.
 			EXPECT().
@@ -269,7 +269,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 		printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
-		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
+		teamPatch := model.TeamPatch{GroupConstrained: model.NewPointer(false)}
 		mockError := errors.New("patchteam error")
 
 		s.client.
@@ -302,7 +302,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
-		mockGroup := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString(groupName)}}
+		mockGroup := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewPointer(groupName)}}
 		mockGroups := []*model.GroupWithSchemeAdmin{mockGroup}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -348,8 +348,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
 		mockGroups := []*model.GroupWithSchemeAdmin{
-			{Group: model.Group{Name: model.NewString("group1")}},
-			{Group: model.Group{Name: model.NewString("group2")}},
+			{Group: model.Group{Name: model.NewPointer("group1")}},
+			{Group: model.Group{Name: model.NewPointer("group2")}},
 		}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -761,7 +761,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
-		team := &model.Team{Id: teamID, GroupConstrained: model.NewBool(true)}
+		team := &model.Team{Id: teamID, GroupConstrained: model.NewPointer(true)}
 
 		s.client.
 			EXPECT().
@@ -784,7 +784,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
-		team := &model.Team{Id: teamID, GroupConstrained: model.NewBool(false)}
+		team := &model.Team{Id: teamID, GroupConstrained: model.NewPointer(false)}
 
 		s.client.
 			EXPECT().
@@ -872,7 +872,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		cmd := &cobra.Command{}
 
 		team := &model.Team{Id: teamID}
-		channel := &model.Channel{Id: channelID, GroupConstrained: model.NewBool(true)}
+		channel := &model.Channel{Id: channelID, GroupConstrained: model.NewPointer(true)}
 
 		s.client.
 			EXPECT().
@@ -904,7 +904,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		cmd := &cobra.Command{}
 
 		team := &model.Team{Id: teamID}
-		channel := &model.Channel{Id: channelID, GroupConstrained: model.NewBool(false)}
+		channel := &model.Channel{Id: channelID, GroupConstrained: model.NewPointer(false)}
 
 		s.client.
 			EXPECT().
@@ -968,7 +968,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString("group-name")}}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewPointer("group-name")}}
 		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -997,7 +997,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewBool(true)}).
+			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewPointer(true)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1117,7 +1117,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString("group-name")}}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewPointer("group-name")}}
 		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		mockError := errors.New("mock error")
 		groupOpts := &model.GroupSearchOpts{
@@ -1147,7 +1147,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewBool(true)}).
+			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewPointer(true)}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1266,7 +1266,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString("group-name")}}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewPointer("group-name")}}
 		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		mockError := errors.New("mock error")
 		groupOpts := &model.GroupSearchOpts{
@@ -1302,7 +1302,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewBool(true)}).
+			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewPointer(true)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1337,7 +1337,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewBool(false)}).
+			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewPointer(false)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1436,7 +1436,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewBool(false)}).
+			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewPointer(false)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1531,7 +1531,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewBool(false)}).
+			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: model.NewPointer(false)}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

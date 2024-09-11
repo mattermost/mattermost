@@ -15,9 +15,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import VirtualizedThreadViewer from './virtualized_thread_viewer';
 
-// Needed for apply markdown to properly work down the line
-global.ResizeObserver = require('resize-observer-polyfill');
-
 type Props = ComponentProps<typeof VirtualizedThreadViewer>;
 function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
     const channel = TestHelper.getChannelMock();
@@ -39,6 +36,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         isMobileView: false,
         isThreadView: false,
         newMessagesSeparatorActions: [],
+        measureRhsOpened: jest.fn(),
     };
 
     const state: DeepPartial<GlobalState> = {

@@ -18,7 +18,7 @@ body {
     }
 
     &.admin-onboarding {
-        background-image: url('images/admin-onboarding-background.jpg');
+        background-image: url("images/admin-onboarding-background.jpg");
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -87,78 +87,189 @@ body {
 }
 
 /* stylelint-disable -- grid-template indentation */
+
+body.app__body {
+    background-color: var(--sidebar-header-bg);
+}
+
+body.admin-onboarding #root {
+    &.channel-view {
+        display: flex;
+        background-color: transparent;
+    }
+}
+
+.app__body {
+    #root.channel-view {
+        &:has(.backstage-body) {
+            background-color: $bg--gray;
+        }
+    }
+}
+
 #root,
 body.app__body #root {
     display: grid;
     overflow: hidden;
+    min-height: 100%;
 
-    --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto) min-content;
+    --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
-        'announcement announcement announcement announcement announcement' min-content
-        'header header header header header' min-content
-        'team-sidebar lhs center rhs app-sidebar'
-        'footer footer footer footer footer' min-content
-        / var(--columns);
-    ;
+        "announcement announcement announcement" min-content
+        "admin-announcement admin-announcement admin-announcement" min-content
+        "header header header" min-content
+        "team-sidebar main app-sidebar"
+        "footer footer footer" min-content / var(--columns);
 
     > :only-child {
-        grid-area: center;
+        grid-area: main;
         width: 100%;
     }
 
+    &.console__root {
+        background-color: inherit;
+        padding-bottom: 0;
+        padding-right: 0;
+        grid-template:
+            "announcement announcement" min-content
+            "admin-announcement admin-announcement" min-content
+            "header header" min-content
+            "lhs center"
+            "footer footer" min-content;
+        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
+    }
+
+    &.container-fluid {
+        background: none;
+        display: block;
+    }
 
     .announcement-bar {
         grid-area: announcement;
     }
 
+    .announcement-bar.admin-announcement {
+        grid-area: admin-announcement;
+    }
+
     #global-header {
         grid-area: header;
     }
+
     .team-sidebar {
         grid-area: team-sidebar;
     }
+
+    .main-wrapper {
+        position: relative;
+        display: grid;
+        overflow: hidden;
+        background-color: var(--sidebar-bg);
+        border: var(--border-light);
+        margin: 0 4px 4px 4px;
+        border-radius: var(--radius-l);
+        grid-area: main;
+        grid-template: "lhs center rhs";
+        grid-template-columns: min-content minmax(385px, 1fr) min-content;
+
+        &:has(.backstage-body) {
+            background: inherit;
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            grid-template:
+                "header" min-content
+                "main";
+        }
+
+        &:has(#playbooks-backstageRoot) {
+            margin: 0;
+            border-radius: 0;
+        }
+    }
+
+    &:has(.app-bar) {
+        .main-wrapper {
+            margin-right: 0;
+        }
+    }
+
+    &:has(.team-sidebar) {
+        .main-wrapper {
+            margin-left: 0;
+        }
+    }
+
     #SidebarContainer {
         grid-area: lhs;
     }
+
     #channel_view,
     .product-wrapper {
         grid-area: center;
-        overflow: hidden;
+        overflow: visible;
     }
+
+    .product-wrapper {
+        overflow: auto;
+    }
+
     .sidebar--right--width-holder {
         grid-area: rhs;
     }
+
     #sidebar-right {
-        grid-area: rhs;
+        top: 0;
+        right: 0;
 
         @media screen and (min-width: 768px) {
             position: absolute;
-            right: 0;
         }
     }
+
     .app-bar {
         grid-area: app-sidebar;
     }
 
     &:not(.console__root) {
         @media screen and (max-width: 768px) {
+            padding-bottom: 0;
+            padding-right: 0;
+            z-index: 17;
             grid-template:
-                'announcement' min-content
-                'header' min-content
-                'center'
-                'footer' min-content
-                / auto
-            ;
+                "announcement" min-content
+                "admin-announcement" min-content
+                "header" min-content
+                "main" auto
+                "footer" min-content / auto;
             .team-sidebar,
-            #SidebarContainer,
-            #channel_view,
-            .product-wrapper,
-            #sidebar-right,
             .app-bar {
-                grid-area: center;
+                grid-area: main;
             }
+
             #SidebarContainer.move--right {
                 position: relative;
+            }
+
+            .main-wrapper {
+                margin: 0;
+                grid-template: "main";
+                padding: 0;
+                border-radius: 0;
+
+                #channel_view,
+                #SidebarContainer,
+                .product-wrapper,
+                #sidebar-right {
+                    grid-area: main;
+                    border-radius: 0;
+                }
+
+                .channel-view {
+                    border-radius: 0;
+                    border: none;
+                    box-shadow: none;
+                }
             }
         }
     }
@@ -168,12 +279,18 @@ body.app__body #root {
             .sidebar--right--width-holder {
                 display: none;
             }
+
             #sidebar-right {
-                position: relative;
+                position: absolute;
                 width: 100%;
+                grid-area: center;
+                transition: width 0.25s ease-in-out;
+                border-radius: var(--radius-l);
             }
-            --columns: min-content min-content 0 1fr min-content;
+
+            --columns: min-content 1fr min-content;
         }
+
         #sidebar-right {
             transition: none;
         }
@@ -183,7 +300,19 @@ body.app__body #root {
 /* stylelint-enable -- grid-template indentation */
 
 #channel_view.channel-view {
+    overflow: hidden;
+    border-radius: var(--radius-l);
+    border-left: var(--border-light);
     background: var(--center-channel-bg);
+    box-shadow: var(--elevation-1);
+}
+
+.rhs-open #channel_view.channel-view,
+.rhs-open-expanded #channel_view.channel.view {
+    @media screen and (min-width: 1200px) {
+        padding-right: 20px;
+        margin-right: -20px;
+    }
 }
 
 img {

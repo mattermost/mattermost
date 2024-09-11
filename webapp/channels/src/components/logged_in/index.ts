@@ -48,11 +48,14 @@ const getChannelURLAction = (channelId: string, teamId: string, url: string): Th
     const state = getState();
 
     if (url && isPermalinkURL(url)) {
-        return getHistory().push(url);
+        getHistory().push(url);
+        return;
     }
 
     const channel = getChannel(state, channelId);
-    return getHistory().push(getChannelURL(state, channel, teamId));
+    if (channel) {
+        getHistory().push(getChannelURL(state, channel, teamId));
+    }
 };
 
 function mapDispatchToProps(dispatch: Dispatch) {

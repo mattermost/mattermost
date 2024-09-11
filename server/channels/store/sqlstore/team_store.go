@@ -546,16 +546,16 @@ func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int
 // SearchOpen returns from the database a list of public teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
-	opts.TeamType = model.NewString("O")
-	opts.AllowOpenInvite = model.NewBool(true)
+	opts.TeamType = model.NewPointer("O")
+	opts.AllowOpenInvite = model.NewPointer(true)
 	return s.SearchAll(opts)
 }
 
 // SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
-	opts.TeamType = model.NewString("O")
-	opts.AllowOpenInvite = model.NewBool(false)
+	opts.TeamType = model.NewPointer("O")
+	opts.AllowOpenInvite = model.NewPointer(false)
 	return s.SearchAll(opts)
 }
 
@@ -945,7 +945,7 @@ func (s SqlTeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (
 }
 
 // GetMember returns a single member of the team that matches the teamId and userId provided as parameters.
-func (s SqlTeamStore) GetMember(ctx request.CTX, teamId string, userId string) (*model.TeamMember, error) {
+func (s SqlTeamStore) GetMember(rctx request.CTX, teamId string, userId string) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.UserId": userId})
@@ -956,7 +956,7 @@ func (s SqlTeamStore) GetMember(ctx request.CTX, teamId string, userId string) (
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.DBXFromContext(ctx.Context()).Get(&dbMember, queryString, args...)
+	err = s.DBXFromContext(rctx.Context()).Get(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))

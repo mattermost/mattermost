@@ -17,12 +17,6 @@ type State = {
     reactedClass: 'Reaction--reacted' | 'Reaction--reacting' | 'Reaction--unreacted' | 'Reaction--unreacting';
 };
 
-declare module 'react-bootstrap/lib/OverlayTrigger' {
-    interface OverlayTriggerProps {
-        shouldUpdatePosition?: boolean;
-    }
-}
-
 type Props = {
 
     /*

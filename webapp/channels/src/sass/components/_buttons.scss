@@ -21,6 +21,10 @@
     }
 }
 
+.rounded-button {
+    border-radius: 50%;
+}
+
 button {
     .unread-badge {
         display: inline-block;
@@ -129,7 +133,7 @@ button {
     }
 
     & + .btn {
-        margin-left: 8px !important;
+        margin-left: 8px;
     }
 
     &.btn-full {

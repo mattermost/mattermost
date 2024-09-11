@@ -87,30 +87,17 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
         <div
           className="input-group input-group--limit"
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="urlTooltip"
-              >
-                fake-channel/channels
-              </Tooltip>
-            }
+          <WithTooltip
+            id="renameChannelModalShortUrlTooltip"
             placement="top"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
-            }
+            title="fake-channel/channels"
           >
             <span
               className="input-group-addon"
             >
               fake-channel/channels/
             </span>
-          </OverlayTrigger>
+          </WithTooltip>
           <input
             aria-label="rename channel"
             className="form-control"

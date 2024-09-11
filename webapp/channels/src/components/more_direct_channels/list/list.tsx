@@ -3,12 +3,16 @@
 
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import MultiSelect from 'components/multiselect/multiselect';
+import {openModal} from 'actions/views/modals';
 
-import Constants from 'utils/constants';
+import MultiSelect from 'components/multiselect/multiselect';
+import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import ListItem from '../list_item';
 import {optionValue} from '../types';
@@ -23,6 +27,7 @@ type Props = {
     handleDelete: (values: OptionValue[]) => void;
     handlePageChange: (page: number, prevPage: number) => void;
     handleSubmit: (values?: OptionValue[]) => void;
+    handleHide: () => void;
     isExistingChannel: boolean;
     loading: boolean;
     options: Option[];
@@ -57,9 +62,17 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         );
     }, [props.selectedItemRef]);
 
+    const dispatch = useDispatch();
+
     const handleSubmitImmediatelyOn = useCallback((value: OptionValue) => {
         return value.id === props.currentUserId || Boolean(value.delete_at);
     }, [props.currentUserId]);
+
+    const handleCreateChannel = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        e.preventDefault();
+        props.handleHide();
+        dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
+    };
 
     const intl = useIntl();
 
@@ -80,6 +93,37 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
                 />
             );
         }
+    }
+
+    let remainingText;
+    if (MAX_SELECTABLE_VALUES > props.values.length) {
+        remainingText = (
+            <FormattedMessage
+                id={'multiselect.numPeopleRemaining'}
+                defaultMessage={'Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '}
+                values={{
+                    num: MAX_SELECTABLE_VALUES - props.values.length,
+                }}
+            />
+        );
+    } else {
+        remainingText = (
+            <FormattedMessage
+                id={'multiselect.maxPeople'}
+                defaultMessage={'Use ↑↓ to browse, ↵ to select. You can\'t add more than {num} people. Please <a>create a channel</a> to include more people.'}
+                values={{
+                    num: MAX_SELECTABLE_VALUES,
+                    a: (chunks: React.ReactNode) => {
+                        return (
+                            <a
+                                href='#'
+                                onClick={(e) => handleCreateChannel(e)}
+                            >{chunks}</a>
+                        );
+                    },
+                }}
+            />
+        );
     }
 
     const options = useMemo(() => {
@@ -104,15 +148,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             handleSubmit={props.handleSubmit}
             noteText={note}
             maxValues={MAX_SELECTABLE_VALUES}
-            numRemainingText={
-                <FormattedMessage
-                    id='multiselect.numPeopleRemaining'
-                    defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
-                    values={{
-                        num: MAX_SELECTABLE_VALUES - props.values.length,
-                    }}
-                />
-            }
+            numRemainingText={remainingText}
             buttonSubmitText={
                 <FormattedMessage
                     id='multiselect.go'

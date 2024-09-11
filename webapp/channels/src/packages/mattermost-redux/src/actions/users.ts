@@ -21,9 +21,16 @@ import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+
+// Delay requests for missing profiles for up to 100ms to allow for simulataneous requests to be batched
+const missingProfilesWait = 100;
+
+export const maxUserIdsPerProfilesRequest = 100; // users ids per 'users/ids' request
+export const maxUserIdsPerStatusesRequest = 200; // users ids per 'users/status/ids'request
 
 export function generateMfaSecret(userId: string) {
     return bindClientFunc({
@@ -152,49 +159,61 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
     };
 }
 
-export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<UserProfile[]> {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const {profiles} = state.entities.users;
-        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
-        const missingIds: string[] = [];
-        userIds.forEach((id) => {
-            if (!profiles[id]) {
-                missingIds.push(id);
-            }
-        });
-
-        if (missingIds.length > 0) {
-            if (enabledUserStatuses) {
-                dispatch(getStatusesByIds(missingIds));
-            }
-            return dispatch(getProfilesByIds(missingIds));
+export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Array<UserProfile['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.missingStatusLoader) {
+            loaders.missingStatusLoader = new DelayedDataLoader<UserProfile['id']>({
+                fetchBatch: (userIds) => dispatch(getStatusesByIds(userIds)),
+                maxBatchSize: maxUserIdsPerProfilesRequest,
+                wait: missingProfilesWait,
+            });
         }
 
-        return {data: []};
+        if (!loaders.missingProfileLoader) {
+            loaders.missingProfileLoader = new DelayedDataLoader<UserProfile['id']>({
+                fetchBatch: (userIds) => dispatch(getProfilesByIds(userIds)),
+                maxBatchSize: maxUserIdsPerProfilesRequest,
+                wait: missingProfilesWait,
+            });
+        }
+
+        const state = getState();
+
+        const missingIds = userIds.filter((id) => !selectUser(state, id));
+
+        if (missingIds.length > 0) {
+            if (getIsUserStatusesConfigEnabled(state)) {
+                loaders.missingStatusLoader.queue(missingIds);
+            }
+
+            await loaders.missingProfileLoader.queueAndWait(missingIds);
+        }
+
+        return {
+            data: missingIds,
+        };
     };
 }
 
-export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<UserProfile[]> {
-    return async (dispatch, getState) => {
-        const {profiles} = getState().entities.users;
-
-        const usernameProfiles = Object.values(profiles).reduce((acc, profile: any) => {
-            acc[profile.username] = profile;
-            return acc;
-        }, {} as Record<string, UserProfile>);
-        const missingUsernames: string[] = [];
-        usernames.forEach((username) => {
-            if (!usernameProfiles[username]) {
-                missingUsernames.push(username);
-            }
-        });
-
-        if (missingUsernames.length > 0) {
-            return dispatch(getProfilesByUsernames(missingUsernames));
+export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<Array<UserProfile['username']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.missingUsernameLoader) {
+            loaders.missingUsernameLoader = new DelayedDataLoader<UserProfile['username']>({
+                fetchBatch: (usernames) => dispatch(getProfilesByUsernames(usernames)),
+                maxBatchSize: maxUserIdsPerProfilesRequest,
+                wait: missingProfilesWait,
+            });
         }
 
-        return {data: []};
+        const usersByUsername = getUsersByUsername(getState());
+
+        const missingUsernames = usernames.filter((username) => !usersByUsername[username]);
+
+        if (missingUsernames.length > 0) {
+            await loaders.missingUsernameLoader.queueAndWait(missingUsernames);
+        }
+
+        return {data: missingUsernames};
     };
 }
 
@@ -595,9 +614,9 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
             return {data: []};
         }
 
-        let recievedStatuses: UserStatus[];
+        let receivedStatuses: UserStatus[];
         try {
-            recievedStatuses = await Client4.getStatusesByIds(userIds);
+            receivedStatuses = await Client4.getStatusesByIds(userIds);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -609,11 +628,11 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
         const isManualStatuses: Record<UserProfile['id'], UserStatus['manual']> = {};
         const lastActivity: Record<UserProfile['id'], UserStatus['last_activity_at']> = {};
 
-        for (const recievedStatus of recievedStatuses) {
-            statuses[recievedStatus.user_id] = recievedStatus?.status ?? '';
-            dndEndTimes[recievedStatus.user_id] = recievedStatus?.dnd_end_time ?? 0;
-            isManualStatuses[recievedStatus.user_id] = recievedStatus?.manual ?? false;
-            lastActivity[recievedStatus.user_id] = recievedStatus?.last_activity_at ?? 0;
+        for (const receivedStatus of receivedStatuses) {
+            statuses[receivedStatus.user_id] = receivedStatus?.status ?? '';
+            dndEndTimes[receivedStatus.user_id] = receivedStatus?.dnd_end_time ?? 0;
+            isManualStatuses[receivedStatus.user_id] = receivedStatus?.manual ?? false;
+            lastActivity[receivedStatus.user_id] = receivedStatus?.last_activity_at ?? 0;
         }
 
         dispatch(batchActions([
@@ -637,7 +656,7 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
         'BATCHING_STATUSES',
         ));
 
-        return {data: recievedStatuses};
+        return {data: receivedStatuses};
     };
 }
 

@@ -31,7 +31,7 @@ export type Props = Attrs & {
     isCollapsedThreadsEnabled: boolean;
     appsEnabled: boolean;
     userThread?: UserThread | null;
-    channel: Channel | null;
+    channel?: Channel;
     selected?: Post | FakePost;
     currentUserId: string;
     currentTeamId: string;

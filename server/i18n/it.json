@@ -3136,14 +3136,6 @@
     "translation": "Impossibile decodificare i risultati della ricerca"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Impossibile creare il processore massivo Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Impossibile avviare il processore massivo Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch è già fermo."
   },
@@ -5612,10 +5604,6 @@
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Rinnova licenza"
-  },
-  {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "La licenza enterprise è scaduta e alcune funzionalità possono essere disabilitate. Rinnovare la licenza."
   },
@@ -6972,10 +6960,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": " "
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": " "
   },
@@ -7017,10 +7001,6 @@
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
     "translation": " "
   },
   {
@@ -7265,7 +7245,7 @@
   },
   {
     "id": "api.cloud.request_error",
-    "translation": " "
+    "translation": "Errore nell'elaborazione della richiesta a CWS."
   },
   {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
@@ -7385,14 +7365,10 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": " "
+    "translation": "Il testo immesso supera il limite di caratteri. Lo scopo del canale è limitato a {{.MaxLength}} caratteri."
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": " "
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
     "translation": " "
   },
   {
@@ -7481,10 +7457,6 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": " "
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
     "translation": " "
   },
   {
@@ -7628,10 +7600,6 @@
     "translation": " "
   },
   {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens_delete.error",
     "translation": " "
   },
@@ -7692,10 +7660,6 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": " "
-  },
-  {
     "id": "app.notification.body.thread_channel.subTitle",
     "translation": " "
   },
@@ -7709,10 +7673,6 @@
   },
   {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
     "translation": " "
   },
   {
@@ -8037,7 +7997,7 @@
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": " "
+    "translation": "Errore impostando lo stato."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -8213,7 +8173,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": " "
+    "translation": "Il testo immesso supera il limite di caratteri. L'intestazione del canale è limitata a {{.MaxLength}} caratteri."
   },
   {
     "id": "api.templates.welcome_body.info1",
@@ -8329,10 +8289,6 @@
   },
   {
     "id": "app.user.permanent_delete.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
     "translation": " "
   },
   {
@@ -8525,10 +8481,6 @@
   },
   {
     "id": "bleveengine.create_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": " "
   },
   {
@@ -8765,10 +8717,14 @@
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": " "
+    "translation": "Errore nella cancellazione dello stato."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": " "
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parametri di input non validi."
   }
 ]

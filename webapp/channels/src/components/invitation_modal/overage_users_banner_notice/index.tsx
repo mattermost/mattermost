@@ -10,7 +10,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
@@ -42,9 +42,8 @@ const OverageUsersBannerNotice = () => {
     const isGovSku = getIsGovSku(license);
     const seatsPurchased = parseInt(license.Users, 10);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const getPreferencesCategory = makeGetCategory();
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
-    const overagePreferences = useSelector((state: GlobalState) => getPreferencesCategory(state, Preferences.OVERAGE_USERS_BANNER));
+    const overagePreferences = useSelector(getOverageBannerPreferences);
     const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
 
     const {
@@ -97,11 +96,12 @@ const OverageUsersBannerNotice = () => {
 
                         return (
                             <ExternalLink
+                                location='overage_users_banner'
                                 className='overage_users_banner__button'
                                 href={LicenseLinks.CONTACT_SALES}
                                 onClick={handleClick}
                             >
-                                {cta}
+                                <FormattedMessage {...cta}/>
                             </ExternalLink>
                         );
                     },

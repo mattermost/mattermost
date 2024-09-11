@@ -462,7 +462,7 @@ func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int
 	}
 
 	for _, channel := range channels {
-		channel.PolicyID = model.NewString(policyId)
+		channel.PolicyID = model.NewPointer(policyId)
 	}
 
 	return channels, nil

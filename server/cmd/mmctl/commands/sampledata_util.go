@@ -394,10 +394,17 @@ func createPost(team string, channel string, allUsers []string, createAt int64) 
 
 func createDirectChannel(members []string) imports.LineImportData {
 	header := fake.Sentence()
+	var p []*imports.DirectChannelMemberImportData
+
+	for _, m := range members {
+		p = append(p, &imports.DirectChannelMemberImportData{
+			Username: model.NewString(m),
+		})
+	}
 
 	channel := imports.DirectChannelImportData{
-		Members: &members,
-		Header:  &header,
+		Participants: p,
+		Header:       &header,
 	}
 	return imports.LineImportData{
 		Type:          "direct_channel",

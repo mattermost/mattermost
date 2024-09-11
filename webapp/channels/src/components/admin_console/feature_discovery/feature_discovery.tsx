@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import type {AnalyticsState} from '@mattermost/types/admin';
@@ -30,11 +31,8 @@ type Props = {
     featureName: string;
     minimumSKURequiredForFeature: LicenseSkus;
 
-    titleID: string;
-    titleDefault: string;
-
-    copyID: string;
-    copyDefault: string;
+    title: MessageDescriptor;
+    copy: MessageDescriptor;
 
     learnMoreURL: string;
 
@@ -54,7 +52,6 @@ type Props = {
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
-    cloudFreeDeprecated: boolean;
 }
 
 type State = {
@@ -230,10 +227,8 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
     render() {
         const {
-            titleID,
-            titleDefault,
-            copyID,
-            copyDefault,
+            title,
+            copy,
             learnMoreURL,
             featureDiscoveryImage,
             isCloud,
@@ -312,14 +307,12 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         data-testid='featureDiscovery_title'
                     >
                         <FormattedMessage
-                            id={titleID}
-                            defaultMessage={titleDefault}
+                            {...title}
                         />
                     </div>
                     <div className='FeatureDiscovery_copy'>
                         <FormattedMessage
-                            id={copyID}
-                            defaultMessage={copyDefault}
+                            {...copy}
                         />
                     </div>
                     {this.props.prevTrialLicense?.IsLicensed === 'true' ? this.renderPostTrialCta() : this.renderStartTrial(learnMoreURL, gettingTrialError)}

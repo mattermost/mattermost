@@ -22,7 +22,7 @@ export const MuiMenuStyled = styled(MuiMenu, {
             backgroundColor: 'var(--center-channel-bg)',
             boxShadow: `${
                 asSubMenu ? 'var(--elevation-5)' : 'var(--elevation-4)'
-            }, 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16) inset`,
+            }, 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset`,
             minWidth: '114px',
             maxWidth: '496px',
             maxHeight: '80vh',

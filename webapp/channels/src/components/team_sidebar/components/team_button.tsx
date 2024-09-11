@@ -13,6 +13,8 @@ import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
+import {Mark} from 'utils/performance_telemetry';
+
 const messages = defineMessages({
     nameUndefined: {
         id: 'team.button.name_undefined',
@@ -59,7 +61,7 @@ export default function TeamButton({
     const {formatMessage} = useIntl();
 
     const handleSwitch = useCallback((e: React.MouseEvent) => {
-        mark('TeamLink#click');
+        mark(Mark.TeamLinkClicked);
         e.preventDefault();
         switchTeam(url);
 
