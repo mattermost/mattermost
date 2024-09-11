@@ -298,9 +298,8 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         />
       </div>
     </div>
-    <FormError
+    <Memo(FormError)
       error="error"
-      errors={Array []}
     />
     <div
       className="item-details__row"

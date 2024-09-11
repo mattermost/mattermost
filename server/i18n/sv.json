@@ -10116,5 +10116,9 @@
   {
     "id": "model.config.is_valid.max_url_length.app_error",
     "translation": "Ogiltig maxlängd för URL för serviceinställningar. Måste vara ett heltal större än noll."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Ditt konto är inte ett OAuth eller SAML-konto."
   }
 ]
