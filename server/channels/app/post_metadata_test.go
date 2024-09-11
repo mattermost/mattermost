@@ -1472,7 +1472,6 @@ func TestGetEmojiNamesForString(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			emojis := getEmojiNamesForString(testCase.Input)
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
@@ -1568,7 +1567,6 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions)
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
@@ -2829,7 +2827,6 @@ func TestContainsPermalink(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual := th.App.containsPermalink(th.Context, testCase.Post)
 			assert.Equal(t, testCase.Expected, actual)

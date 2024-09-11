@@ -291,6 +291,29 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	return nil
 }
 
+func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	changed := false
+	for k, v := range newProps {
+		if session.Props[k] == v {
+			continue
+		}
+
+		session.AddProp(k, v)
+		changed = true
+	}
+
+	if !changed {
+		return nil
+	}
+
+	err := a.Srv().Store().Session().UpdateProps(session)
+	if err != nil {
+		return model.NewAppError("SetExtraSessionProps", "app.session.set_extra_session_prop.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
