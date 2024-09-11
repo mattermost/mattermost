@@ -203,14 +203,13 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 );
             }
 
-            if (channel.shared) {
-                iconToDisplay = (
-                    <SharedChannelIndicator
-                        className='channel-icon'
-                        channelType={channel.type}
-                    />
-                );
-            }
+            const sharedChannelIcon = channel.shared ? (
+                <SharedChannelIndicator
+                    className='channel-icon'
+                    channelType={channel.type}
+                    withTooltip={true}
+                />
+            ) : null;
 
             return {
                 cells: {
@@ -224,6 +223,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                             <span className='TeamList_channelDisplayName'>
                                 {channel.display_name}
                             </span>
+                            {sharedChannelIcon}
                         </span>
                     ),
                     team: (
