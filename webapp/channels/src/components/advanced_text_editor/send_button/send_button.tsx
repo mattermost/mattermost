@@ -21,9 +21,10 @@ import './style.scss';
 type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
+    channelId: string;
 }
 
-const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     const {formatMessage} = useIntl();
 
     const sendMessage = useCallback((e?: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
@@ -88,6 +89,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
             <SendPostOptions
                 disabled={disabled}
                 onSelect={handleSubmit}
+                channelId={channelId}
             />
         </div>
     );

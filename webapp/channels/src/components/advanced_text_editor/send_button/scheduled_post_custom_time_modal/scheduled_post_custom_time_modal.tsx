@@ -15,11 +15,12 @@ import {
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 type Props = {
+    channelId: string;
     onClose: () => void;
     onConfirm: (timestamp: number) => void;
 }
 
-export default function ScheduledPostCustomTimeModal({onClose, onConfirm}: Props) {
+export default function ScheduledPostCustomTimeModal({channelId, onClose, onConfirm}: Props) {
     const {formatMessage} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
@@ -35,7 +36,10 @@ export default function ScheduledPostCustomTimeModal({onClose, onConfirm}: Props
 
     const bodySuffix = useMemo(() => {
         return (
-            <DMUserTimezone selectedTime={selectedDateTime?.toDate()}/>
+            <DMUserTimezone
+                channelId={channelId}
+                selectedTime={selectedDateTime?.toDate()}
+            />
         );
     }, [selectedDateTime]);
 

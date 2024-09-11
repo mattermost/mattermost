@@ -20,11 +20,12 @@ import './style.scss';
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
 type Props = {
+    channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
 }
 
-export function SendPostOptions({disabled, onSelect}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -56,6 +57,7 @@ export function SendPostOptions({disabled, onSelect}: Props) {
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
+                channelId,
                 onClose: handleCloseCustomTimeModal,
                 onConfirm: handleSelectCustomTime,
             },

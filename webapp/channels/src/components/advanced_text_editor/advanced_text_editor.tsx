@@ -436,6 +436,7 @@ const AdvancedTextEditor = ({
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
+            channelId={channelId}
         />
     );
 

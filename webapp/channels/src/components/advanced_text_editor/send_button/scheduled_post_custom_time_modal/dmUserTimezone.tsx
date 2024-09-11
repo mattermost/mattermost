@@ -5,7 +5,7 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
@@ -17,6 +17,7 @@ import type {GlobalState} from 'types/store';
 import './dmUserTimezone.scss';
 
 type Props = {
+    channelId: string;
     selectedTime?: Date;
 }
 
@@ -25,9 +26,9 @@ const DATE_RANGES = [
     RelativeRanges.TOMORROW_TITLE_CASE,
 ];
 
-export function DMUserTimezone({selectedTime}: Props) {
-    const currentChannel = useSelector(getCurrentChannel);
-    const dmUserId = currentChannel && currentChannel.type === 'D' ? getUserIdFromChannelName(currentChannel) : '';
+export function DMUserTimezone({channelId, selectedTime}: Props) {
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
+    const dmUserId = channel && channel.type === 'D' ? getUserIdFromChannelName(channel) : '';
     const dmUser = useSelector((state: GlobalState) => getUser(state, dmUserId));
     const dmUserName = useSelector((state: GlobalState) => getDisplayNameByUser(state, dmUser));
 
@@ -49,7 +50,7 @@ export function DMUserTimezone({selectedTime}: Props) {
         );
     }, [dmUser, selectedTime]);
 
-    if (!currentChannel || currentChannel.type !== 'D') {
+    if (!channel || channel.type !== 'D') {
         return null;
     }
 
