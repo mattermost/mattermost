@@ -7354,5 +7354,397 @@
   {
     "id": "basic_security_check.url.too_long_error",
     "translation": "URL adresa je příliš dlouhá"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Velikost nahraného pluginu překračuje limit. Tento limit lze změnit v System Console pod položkou Úložiště souborů > Maximální velikost souboru"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Tvoje licence nepodporuje záložky kanálů."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Uživatel nemá oprávnění vytvořit záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepodařilo se vytvořit záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Vytvoření záložky kanálu se nezdařilo."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Smazání záložky kanálu se nezdařilo."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepodařilo se smazat záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Nepodařilo se odstranit záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Aktualizace záložky kanálu se nezdařila."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Nepodařilo se upravit záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat pořadí záložky kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Nepodařilo se upravit pořadí záložky kanálu."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' nebo 'N'. Výchozí hodnota je 'N'"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Tento kanál již není sdílen."
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Nelze zrušit sdílení tohoto kanálu: {{.Error}}."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Nepodařilo se znovu načíst konfiguraci."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Neplatné vstupní parametry."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Došlo k chybě při vytváření odchozího OAuth připojení."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Došlo k chybě při odstraňování odchozího OAuth připojení."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Nebylo možné zpracovat požadavek kvůli omezením pro embargoované země. Zjistěte více v naší dokumentaci nebo se obraťte na legal@mattermost.com s dotazy ohledně exportních omezení."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Došlo k chybě při analýze datového obsahu."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Odvolává pozvání zabezpečeného připojení z tohoto sdíleného kanálu"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Nepodařilo se porovnat konfigurace"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Nepodařilo se přijmout pozvání do vzdáleného clusteru"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Nepodařilo se dekódovat řetězec base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Vzdálený cluster nebyl smazán"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Nepodařilo se dešifrovat pozvání do vzdáleného clusteru pomocí zadaného hesla"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Vzdálený cluster nebyl nalezen"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Nelze pozvat externího uživatele do kanálu: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Zruší sdílení aktuálního kanálu"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Neznámá akce {{.Action}}. Dostupné akce: {{.Actions}}"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Nepodařilo se aktualizovat překlady serveru."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Došlo k chybě při zobrazování seznamu odchozích OAuth připojení."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Neplatné id."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "Uživatelé @{{.Usernames}} a @{{.LastUsername}} nebyli upozorněni na toto zmínění, protože nejsou členy tohoto týmu."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "Uživatel @{{.Username}} nebyl upozorněn na toto zmínění, protože není členem tohoto týmu."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Při získávání zabezpečeného připojení došlo k chybě."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Neplatná aktualizace členství kanálu: Host nemůže být povýšen na člena týmu nebo administrátora týmu. Nejprve jej prosím převeďte na uživatele."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Neplatná aktualizace členství kanálu: Host nemůže být přiřazen k jednotlivým kanálům; systémový administrátor musí uživatele povýšit nebo degradovat na/z hosta."
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Musíte zadat platné ID zabezpečeného připojení pro pozvání."
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanál bude sdílen v režimu pouze pro čtení"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Nelze sdílet tento kanál: {{.Error}}"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Nepodařilo se porovnat konfigurace"
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Chyba při kódování JSON."
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Při získávání IP adresy klienta došlo k chybě"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "Filtrování IP adres není na tomto serveru k dispozici"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Neplatné vstupní parametry."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Došlo k chybě při aktualizaci odchozího OAuth připojení."
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Funkce vyžaduje upgrade na edici Enterprise."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "API koncový bod vyžaduje licenci"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Pokud nebudete automaticky přesměrováni, klikněte prosím na <a href='{{.Link}}'>odkaz</a>"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Trvalé oznámení musí mít alespoň 1 příjemce."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Uživatel nemá oprávnění vytvářet prioritní příspěvky nebo trvalá oznámení."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Ověření trvalého oznámení selhalo."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Pouze základní příspěvky mohou mít prioritu."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Trvalé oznámení musí mít prioritu „Urgent“."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Počet přijatých ID příspěvků překročil maximální velikost {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " odpověděl na vlákno."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Nepodařilo se zpracovat tělo požadavku."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Odpovědět v {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Odpovědět v Přímé Zprávě"
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Při mazání zabezpečeného připojení došlo k chybě."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Zabezpečené připojení se stejnou URL již existuje."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Při aktualizaci zabezpečeného připojení došlo k chybě."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Nelze získat tolik rolí podle názvu. Lze požadovat pouze {{.MaxNames}} rolí najednou."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Vaše pracovní prostor je připraven k použití!"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, druhé patro, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Připomínka"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost je flexibilní, open source platforma pro zasílání zpráv, která umožňuje bezpečnou týmovou spolupráci."
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Zjistit více"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Co je Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Byli jste pozváni jako host, abyste spolupracovali s týmem"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} vás pozval(a) k připojení k kanálu {{ .ChannelName }} na týmu {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a) k připojení k kanálu {{ .ChannelName }} na týmu {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} vás pozval(a) k připojení k {{ .ChannelsLen }} kanálům na týmu {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Přesouvání vláken je deaktivováno"
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Při ukládání zabezpečeného připojení došlo k chybě."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Zabezpečené připojení již bylo přidáno."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Služba vzdáleného clusteru není povolena."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Začněte spolupracovat se svým týmem na Mattermostu"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " odpověděl na vlákno, které sledujete."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Chybí display_name v těle požadavku"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Chybí team_id v těle požadavku"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Zabezpečené připojení {{.RemoteId}} bylo odvoláno."
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "ID zabezpečeného připojení, které má být odvoláno."
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Služba sdílených kanálů je deaktivována."
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Při načítání IP filtrů došlo k chybě"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Odchozí OAuth připojení nejsou na tomto serveru k dispozici."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Nemáte oprávnění k přesunutí tohoto vlákna."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Trvalé oznámení může mít maximálně {{.MaxRecipients}} příjemců."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Automatické doplňování kanálů nelze povolit, protože schéma indexu kanálů je zastaralé. Doporučuje se znovu generovat index kanálů. Další informace naleznete v poznámkách k verzím Mattermostu"
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Pozvánka vypršela."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Při aplikaci IP filtrů došlo k chybě"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Nepodařilo se použít novou zkušební licenci. Na této instanci Mattermostu již byla dříve aplikována zkušební licence. Pokud si přejete prodloužit zkušební období, prosím kontaktujte náš obchodní tým."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Neplatné téma."
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Nepodařilo se zašifrovat pozvání do vzdáleného clusteru pomocí zadaného hesla"
   }
 ]
