@@ -605,7 +605,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		require.Zero(t, initialRC.DeleteAt)
 
 		resp, err := th.SystemAdminClient.DeleteRemoteCluster(context.Background(), rc.RemoteId)
-		CheckNoContentStatus(t, resp)
+		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
 		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId)
