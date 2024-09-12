@@ -52,6 +52,30 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		return err
 	}
 
+	// if the remote is not currently online, we store the invite to
+	// send it when the connection is restored
+	if !rc.IsOnline() {
+		if len(options) > 0 {
+			// pending invites with options are currently not supported
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, model.ErrOfflineRemote))
+			return model.ErrOfflineRemote
+		}
+
+		scr := &model.SharedChannelRemote{
+			ChannelId:         sc.ChannelId,
+			CreatorId:         userId,
+			RemoteId:          rc.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: false,
+		}
+		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
+			return err
+		}
+
+		return nil
+	}
+
 	invite := channelInviteMsg{
 		ChannelId:   channel.Id,
 		ReadOnly:    sc.ReadOnly,
@@ -89,18 +113,20 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 
 		curTime := model.GetMillis()
 		if existingScr != nil {
-			if existingScr.DeleteAt == 0 {
+			if existingScr.DeleteAt == 0 && existingScr.IsInviteConfirmed {
 				// the shared channel remote exists and is not
 				// deleted, nothing to do here
 				return
 			}
 
-			// the shared channel remote was deleted in the past, so
-			// with the new invite we restore it
+			// the shared channel remote was deleted in the past or
+			// pending confirmation, so with the new invite we restore
+			// it
 			existingScr.DeleteAt = 0
 			existingScr.UpdateAt = curTime
 			existingScr.LastPostCreateAt = curTime
 			existingScr.LastPostUpdateAt = curTime
+			existingScr.IsInviteConfirmed = true
 			if _, sErr := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); sErr != nil {
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
 				return
