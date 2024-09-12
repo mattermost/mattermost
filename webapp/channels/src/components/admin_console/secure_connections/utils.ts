@@ -2,11 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {LocationDescriptor} from 'history';
-import {useEffect, useState} from 'react';
+import {Duration} from 'luxon';
+import React, {useEffect, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
+import styled, {css} from 'styled-components';
 
 import type {ClientError} from '@mattermost/client';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch} from '@mattermost/types/remote_clusters';
+import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {PartialExcept} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
@@ -23,8 +27,7 @@ import SecureConnectionDeleteModal from './secure_connection_delete_modal';
 export const useRemoteClusters = () => {
     const [remoteClusters, setRemoteClusters] = useState<RemoteCluster[]>();
     const [loadingState, setLoadingState] = useState<boolean | ClientError>(true);
-
-    const isLoading = loadingState === true;
+    const loading = isPendingState(loadingState);
 
     const fetch = async () => {
         setLoadingState(true);
@@ -41,7 +44,7 @@ export const useRemoteClusters = () => {
         fetch();
     }, []);
 
-    return [remoteClusters, {isLoading, fetch}] as const;
+    return [remoteClusters, {loading, fetch}] as const;
 };
 
 export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteCluster?: RemoteCluster) => {
@@ -49,8 +52,8 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
 
     const [currentRemoteCluster, setCurrentRemoteCluster] = useState<RemoteCluster | undefined>(initRemoteCluster);
     const [patch, setPatch] = useState<Partial<RemoteClusterPatch>>({});
-    const [loading, setLoading] = useState<boolean | ClientError>(editing && !currentRemoteCluster);
-    const [saving, setSaving] = useState<boolean | ClientError>(false);
+    const [loading, setLoading] = useState<TLoadingState>(editing && !currentRemoteCluster);
+    const [saving, setSaving] = useState<TLoadingState>(false);
 
     const hasChanges = Object.keys(patch).length > 0;
 
@@ -115,7 +118,7 @@ const makePassword = () => {
 
 export const useRemoteClusterCreate = () => {
     const dispatch = useDispatch();
-    const [saving, setSaving] = useState<boolean | ClientError>(false);
+    const [saving, setSaving] = useState<TLoadingState>(false);
 
     const promptCreate = (patch: RemoteClusterPatch) => {
         return new Promise<RemoteCluster | undefined>((resolve, reject) => {
@@ -153,12 +156,12 @@ export const useRemoteClusterCreate = () => {
         });
     };
 
-    return {promptCreate, saving} as const;
+    return {promptCreate, saving};
 };
 
 export const useRemoteClusterCreateInvite = (remoteCluster: RemoteCluster) => {
     const dispatch = useDispatch();
-    const [saving, setSaving] = useState<boolean | ClientError>(false);
+    const [saving, setSaving] = useState<TLoadingState>(false);
 
     const promptCreateInvite = () => {
         return new Promise<RemoteCluster>((resolve, reject) => {
@@ -191,7 +194,7 @@ export const useRemoteClusterCreateInvite = (remoteCluster: RemoteCluster) => {
 
 export const useRemoteClusterAcceptInvite = () => {
     const dispatch = useDispatch();
-    const [saving, setSaving] = useState<boolean | ClientError>(false);
+    const [saving, setSaving] = useState<TLoadingState>(false);
 
     const promptAcceptInvite = () => {
         return new Promise<RemoteCluster>((resolve, reject) => {
@@ -242,6 +245,57 @@ export const useRemoteClusterDelete = (rc: RemoteCluster) => {
     return {promptDelete} as const;
 };
 
+export const useSharedChannelRemotes = (remoteId: string) => {
+    const [sharedChannelRemotes, setSharedChannelRemotes] = useState<SharedChannelRemote[]>();
+    const [loadingState, setLoadingState] = useState<TLoadingState>(true);
+    const [filter, setFilter] = useState<'home' | 'remote'>('remote');
+
+    const loading = isPendingState(loadingState);
+    const error = !loading && loadingState;
+
+    const fetch = async () => {
+        setLoadingState(true);
+        try {
+            const data = await Client4.getSharedChannelRemotes(remoteId, 'home');
+            setSharedChannelRemotes(data?.length ? data : undefined);
+            setLoadingState(false);
+        } catch (err) {
+            setLoadingState(err);
+        }
+    };
+
+    useEffect(() => {
+        fetch();
+    }, [filter]);
+
+    return [sharedChannelRemotes, {loading, error, fetch, setFilter}] as const;
+};
+
+export const useSharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
+    const [sharedChannelRemotes, setSharedChannelRemotes] = useState<SharedChannelRemote[]>();
+    const [loadingState, setLoadingState] = useState<TLoadingState>(true);
+
+    const loading = isPendingState(loadingState);
+    const error = !loading && loadingState;
+
+    const fetch = async () => {
+        setLoadingState(true);
+        try {
+            const data = await Client4.getSharedChannelRemotes(remoteId, filter);
+            setSharedChannelRemotes(data?.length ? data : undefined);
+            setLoadingState(false);
+        } catch (err) {
+            setLoadingState(err);
+        }
+    };
+
+    useEffect(() => {
+        fetch();
+    }, [filter]);
+
+    return [sharedChannelRemotes, {loading, error, fetch}] as const;
+};
+
 export const getEditLocation = (rc: RemoteCluster): LocationDescriptor<RemoteCluster> => {
     return {pathname: `/admin_console/environment/secure_connections/${rc.remote_id}`, state: rc};
 };
@@ -251,8 +305,12 @@ export const getCreateLocation = (): LocationDescriptor<RemoteCluster> => {
 };
 
 const SiteURLPendingPrefix = 'pending_';
-export const isPending = (remoteCluster: RemoteCluster) => remoteCluster.site_url.startsWith(SiteURLPendingPrefix);
-export const isConnected = (remoteCluster: RemoteCluster) => !isPending(remoteCluster);
+const RemoteClusterOfflineAfter = Duration.fromObject({minute: 5}).milliseconds;
+export const isConfirmed = (rc: RemoteCluster) => rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix);
+export const isConnected = (rc: RemoteCluster) => rc.last_ping_at > Date.now() - RemoteClusterOfflineAfter;
 
-export const isPendingState = <T extends boolean | unknown>(x: T) => x === true;
-export const isErrorState = <T extends boolean | unknown>(x: T) => Boolean(typeof x !== 'boolean' && x);
+type TLoadingState<TError = ClientError> = boolean | TError;
+
+export const isPendingState = <TError, T extends TLoadingState<TError>>(x: T) => x === true;
+export const isErrorState = <TError, T extends TLoadingState<TError>>(x: T) => Boolean(!isPendingState(x) && x);
+

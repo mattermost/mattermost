@@ -28,8 +28,9 @@ import {
     PlaceholderParagraph,
     Input,
     FormField,
+    ConnectionStatusLabel,
 } from './controls';
-import {getEditLocation, isErrorState, isPendingState, useRemoteClusterCreate, useRemoteClusterEdit} from './utils';
+import {getEditLocation, isErrorState, isPendingState, useRemoteClusterCreate, useRemoteClusterEdit, useSharedChannelRemotes} from './utils';
 
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
 
@@ -48,8 +49,6 @@ export default function SecureConnectionDetail(props: Props) {
     const {state: initRemoteCluster, ...location} = useLocation<RemoteCluster | undefined>();
     const history = useHistory();
     const dispatch = useDispatch();
-
-    const sharedChannelsRows = placeholder;
 
     const [remoteCluster, {applyPatch, save, currentRemoteCluster, hasChanges, loading, saving, patch}] = useRemoteClusterEdit(remoteId, initRemoteCluster);
 
@@ -117,6 +116,7 @@ export default function SecureConnectionDetail(props: Props) {
                                 defaultMessage='Connection name and other permissions'
                             />
                         </hgroup>
+                        {currentRemoteCluster && <ConnectionStatusLabel rc={currentRemoteCluster}/>}
                     </SectionHeader>
                     <SectionContent $compact={true}>
                         {isPendingState(loading) ? (
@@ -144,29 +144,33 @@ export default function SecureConnectionDetail(props: Props) {
                         )}
                     </SectionContent>
                 </AdminSection>
-                <AdminSection data-testid='shared_channels_section'>
-                    <SectionHeader>
-                        <hgroup>
-                            <FormattedMessage
-                                tagName={SectionHeading}
-                                id='admin.secure_connections.details.shared_channels.title'
-                                defaultMessage='Shared Channels'
-                            />
-                            <FormattedMessage
-                                id='admin.secure_connections.details.shared_channels.subtitle'
-                                defaultMessage="A list of all the channels shared with your organization and channels you're sharing externally."
-                            />
-                        </hgroup>
-                        <AddChannelsButton>
-                            <PlusIcon size={18}/>
-                            <FormattedMessage
-                                id='admin.secure_connections.details.shared_channels.add_channels.button'
-                                defaultMessage='Add Channels'
-                            />
-                        </AddChannelsButton>
-                    </SectionHeader>
-                    <SectionContent>{sharedChannelsRows}</SectionContent>
-                </AdminSection>
+                {!isCreating && (
+                    <AdminSection data-testid='shared_channels_section'>
+                        <SectionHeader>
+                            <hgroup>
+                                <FormattedMessage
+                                    tagName={SectionHeading}
+                                    id='admin.secure_connections.details.shared_channels.title'
+                                    defaultMessage='Shared Channels'
+                                />
+                                <FormattedMessage
+                                    id='admin.secure_connections.details.shared_channels.subtitle'
+                                    defaultMessage="A list of all the channels shared with your organization and channels you're sharing externally."
+                                />
+                            </hgroup>
+                            <AddChannelsButton>
+                                <PlusIcon size={18}/>
+                                <FormattedMessage
+                                    id='admin.secure_connections.details.shared_channels.add_channels.button'
+                                    defaultMessage='Add Channels'
+                                />
+                            </AddChannelsButton>
+                        </SectionHeader>
+                        <SectionContent>
+                            <SharedChannelRemotes remoteId={remoteId}/>
+                        </SectionContent>
+                    </AdminSection>
+                )}
             </AdminWrapper>
 
             <SaveChangesPanel
@@ -183,6 +187,28 @@ export default function SecureConnectionDetail(props: Props) {
                 savingMessage={formatMessage({id: 'admin.secure_connections.saving_changes', defaultMessage: 'Saving secure connection…'})}
                 isDisabled={props.disabled}
             />
+        </div>
+    );
+}
+
+function SharedChannelRemotes(props: {remoteId: string}) {
+    const [remotes, {loading}] = useSharedChannelRemotes(props.remoteId);
+
+    if (loading) {
+        return <LoadingScreen/>;
+    }
+
+    if (!remotes) {
+        return placeholder;
+    }
+
+    return (
+        <div>
+            {remotes.map((remote) => {
+                return (
+                    <div key={remote.id}>{remote.channel_id}</div>
+                );
+            })}
         </div>
     );
 }

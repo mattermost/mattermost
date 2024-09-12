@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropsWithChildren, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import styled, {css} from 'styled-components';
+
+import type {RemoteCluster} from '@mattermost/types/remote_clusters';
+
+import {isConfirmed, isConnected} from './utils';
 
 export const SectionHeading = styled.h3`
     &&& {
@@ -155,3 +160,54 @@ export const Button = styled.button.attrs({className: 'btn btn-secondary'})`
     margin: -1px -2px;
 `;
 
+export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
+    if (!isConfirmed(rc)) {
+        return (
+            <FormattedMessage
+                tagName={PendingConnectionLabel}
+                id='...pending'
+                defaultMessage='Connection Pending'
+            />
+        );
+    }
+
+    if (!isConnected(rc)) {
+        return (
+            <FormattedMessage
+                tagName={OfflineConnectionLabel}
+                id='...offline'
+                defaultMessage='Offline'
+            />
+        );
+    }
+
+    return (
+        <FormattedMessage
+            tagName={ConnectedLabel}
+            id='...connected'
+            defaultMessage='Connected'
+        />
+    );
+};
+
+const labelStyle = css`
+    font-size: 12px;
+    color: white;
+    border-radius: 4px;
+    padding: 2px 4px;
+`;
+
+const ConnectedLabel = styled.strong`
+    ${labelStyle};
+    background-color: #3DB887;
+`;
+
+const PendingConnectionLabel = styled.strong`
+    ${labelStyle};
+    background-color: #F5AB00;
+`;
+
+const OfflineConnectionLabel = styled.strong`
+    ${labelStyle};
+    background-color: #C43133;
+`;

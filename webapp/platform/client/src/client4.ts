@@ -117,6 +117,7 @@ import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/type
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -2129,6 +2130,35 @@ export default class Client4 {
         return this.doFetch<string>(
             `${this.getRemoteClusterRoute(remoteId)}/generate_invite`,
             {method: 'POST', body: JSON.stringify(remoteCluster)},
+        );
+    };
+
+    // Shared Channels Routes
+
+    getSharedChannelRemotes = (remoteId: string, filter?: 'home' | 'remote') => {
+        let parameters = {};
+
+        if (filter) {
+            parameters = filter === 'home' ? {exclude_remote: true} : {exclude_home: true};
+        }
+
+        return this.doFetch<SharedChannelRemote[]>(
+            `${this.getRemoteClusterRoute(remoteId)}${buildQueryString(parameters)}/sharedchannelremotes`,
+            {method: 'GET'},
+        );
+    };
+
+    getSharedChannelsInvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<SharedChannelRemote[]>(
+            `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
+            {method: 'POST'},
+        );
+    };
+
+    getSharedChannelsUninvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<RemoteCluster[]>(
+            `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/uninvite`,
+            {method: 'POST'},
         );
     };
 

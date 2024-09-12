@@ -5,14 +5,15 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
-import styled, {css} from 'styled-components';
+import styled from 'styled-components';
 
 import {DotsHorizontalIcon, CodeTagsIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import * as Menu from 'components/menu';
 
-import {isConnected, getEditLocation, useRemoteClusterDelete, useRemoteClusterCreateInvite} from './utils';
+import {ConnectionStatusLabel} from './controls';
+import {getEditLocation, useRemoteClusterDelete, useRemoteClusterCreateInvite} from './utils';
 
 type Props = {
     remoteCluster: RemoteCluster;
@@ -21,29 +22,12 @@ type Props = {
 
 export default function SecureConnectionRow(props: Props) {
     const {remoteCluster: rc} = props;
+
     return (
         <RowLink to={getEditLocation(rc)}>
             <Title>{rc.display_name}</Title>
             <Detail>
-                {/* <FormattedMessage
-                    tagName={NumChannels}
-                    id='admin.secure_connections.row.num_shared_channels'
-                    defaultMessage='{num, plural, one {# shared channel} other {# shared channels}}'
-                    values={{num: 1}}
-                /> */}
-                {isConnected(rc) ? (
-                    <FormattedMessage
-                        tagName={ConnectedLabel}
-                        id='...connected'
-                        defaultMessage='Connected'
-                    />
-                ) : (
-                    <FormattedMessage
-                        tagName={PendingConnectionLabel}
-                        id='...pending'
-                        defaultMessage='Connection Pending'
-                    />
-                )}
+                <ConnectionStatusLabel rc={rc}/>
                 <RowMenu {...props}/>
             </Detail>
         </RowLink>
@@ -153,25 +137,4 @@ const Detail = styled.div`
     display: flex;
     gap: 20px;
     align-items: center;
-`;
-
-const NumChannels = styled.span`
-
-`;
-
-const labelStyle = css`
-    font-size: 12px;
-    color: white;
-    border-radius: 4px;
-    padding: 2px 4px;
-`;
-
-const ConnectedLabel = styled.strong`
-    ${labelStyle};
-    background-color: #3DB887;
-`;
-
-const PendingConnectionLabel = styled.strong`
-    ${labelStyle};
-    background-color: #F5AB00;
 `;

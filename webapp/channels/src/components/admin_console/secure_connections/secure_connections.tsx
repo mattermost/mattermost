@@ -20,7 +20,7 @@ import type {SearchableStrings} from '../types';
 
 export default function SecureConnections() {
     const {formatMessage} = useIntl();
-    const [remoteClusters, {isLoading, fetch}] = useRemoteClusters();
+    const [remoteClusters, {loading, fetch}] = useRemoteClusters();
 
     return (
         <div
@@ -28,14 +28,14 @@ export default function SecureConnections() {
             data-testid='secureConnectionsSection'
         >
             <AdminHeader>
-                <span id='secureConnections-header'>{formatMessage(messages.pageTitle)}</span>
+                <span id='secureConnections-header'>{formatMessage(msg.pageTitle)}</span>
             </AdminHeader>
             <AdminWrapper>
                 <AdminSection>
                     <SectionHeader>
                         <hgroup>
-                            <SectionHeading>{formatMessage(messages.title)}</SectionHeading>
-                            <FormattedMessage {...messages.subtitle}/>
+                            <SectionHeading>{formatMessage(msg.title)}</SectionHeading>
+                            <FormattedMessage {...msg.subtitle}/>
                         </hgroup>
                         <AddMenu/>
                     </SectionHeader>
@@ -47,7 +47,7 @@ export default function SecureConnections() {
                                 onDeleteSuccess={fetch}
                             />
                         );
-                    }) ?? (isLoading ? <LoadingScreen/> : <Placeholder/>)}
+                    }) ?? (loading ? <LoadingScreen/> : <Placeholder/>)}
                 </AdminSection>
             </AdminWrapper>
         </div>
@@ -72,11 +72,11 @@ const Placeholder = () => {
                 <hgroup>
                     <FormattedMessage
                         tagName={PlaceholderHeading}
-                        {...messages.placeholderTitle}
+                        {...msg.placeholderTitle}
                     />
                     <FormattedMessage
                         tagName={'p'}
-                        {...messages.placeholderSubtitle}
+                        {...msg.placeholderSubtitle}
                     />
                 </hgroup>
                 <AddMenu buttonClassNames='btn-tertiary'/>
@@ -112,7 +112,7 @@ const AddMenu = (props: {buttonClassNames?: string}) => {
                 disabled,
                 children: (
                     <>
-                        <FormattedMessage {...messages.addConnection}/>
+                        <FormattedMessage {...msg.addConnection}/>
                         {!disabled && (
                             <i
                                 aria-hidden='true'
@@ -124,24 +124,24 @@ const AddMenu = (props: {buttonClassNames?: string}) => {
             }}
             menu={{
                 id: menuId,
-                'aria-label': formatMessage(messages.menuAriaLabel),
+                'aria-label': formatMessage(msg.menuAriaLabel),
             }}
         >
             <Menu.Item
                 id={`${menuId}-add_connection`}
-                labels={<FormattedMessage {...messages.createConnection}/>}
+                labels={<FormattedMessage {...msg.createConnection}/>}
                 onClick={handleCreate}
             />
             <Menu.Item
                 id={`${menuId}-accept_invitation`}
-                labels={<FormattedMessage {...messages.acceptInvitation}/>}
+                labels={<FormattedMessage {...msg.acceptInvitation}/>}
                 onClick={handleAccept}
             />
         </Menu.Container>
     );
 };
 
-const messages = defineMessages({
+const msg = defineMessages({
     pageTitle: ({id: 'admin.sidebar.secureConnections', defaultMessage: 'Secure Connections (Beta)'}),
     title: {id: 'admin.secure_connections.title', defaultMessage: 'Secure Connections'},
     subtitle: {id: 'admin.secure_connections.subtitle', defaultMessage: 'Secure connections with this server'},
@@ -153,4 +153,4 @@ const messages = defineMessages({
     acceptInvitation: {id: 'admin.secure_connections.menu.accept_invitation', defaultMessage: 'Accept an invitation'},
 });
 
-export const searchableStrings: SearchableStrings = Object.values(messages);
+export const searchableStrings: SearchableStrings = Object.values(msg);
