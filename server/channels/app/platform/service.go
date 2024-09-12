@@ -169,6 +169,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				RedisAddr:     *cacheConfig.RedisAddress,
 				RedisPassword: *cacheConfig.RedisPassword,
 				RedisDB:       *cacheConfig.RedisDB,
+				DisableCache:  *cacheConfig.DisableClientCache,
 			},
 		)
 	}

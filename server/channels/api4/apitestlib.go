@@ -110,6 +110,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 			redisHost = "redis"
 		}
 		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
+		*memoryConfig.CacheSettings.DisableClientCache = true
 		*memoryConfig.CacheSettings.RedisDB = 0
 	}
 	if updateConfig != nil {

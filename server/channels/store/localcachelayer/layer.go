@@ -527,7 +527,10 @@ func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, val
 }
 
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
-	cache.Purge()
+	err := cache.Purge()
+	if err != nil {
+		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
 	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
