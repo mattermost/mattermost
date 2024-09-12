@@ -13,8 +13,6 @@ import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
-import {TOMORROW_TITLE_CASE} from "components/timestamp/relative_ranges";
-import {getTimeFormat} from "components/post_view/post_time/post_time";
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',

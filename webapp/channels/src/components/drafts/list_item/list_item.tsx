@@ -15,6 +15,8 @@ import Panel from 'components/drafts/panel/panel';
 import PanelBody from 'components/drafts/panel/panel_body';
 import Header from 'components/drafts/panel/panel_header';
 
+import './style.scss';
+
 import type {PostDraft} from 'types/store/draft';
 
 type Props = {
@@ -71,6 +73,7 @@ export default function DraftListItem({
     let fileInfos: FileInfo[];
     let uploadsInProgress: string[];
     let actions: React.ReactNode;
+    let panelClassName = '';
 
     if (kind === 'draft') {
         const draft = item as PostDraft;
@@ -86,10 +89,17 @@ export default function DraftListItem({
         fileInfos = scheduledPost.metadata?.files || [];
         uploadsInProgress = [];
         actions = scheduledPostActions;
+
+        if (scheduledPost.error_code) {
+            panelClassName = 'scheduled_post_error';
+        }
     }
 
     return (
-        <Panel onClick={handleOnEdit}>
+        <Panel
+            onClick={handleOnEdit}
+            className={panelClassName}
+        >
             {({hover}) => (
                 <>
                     <Header

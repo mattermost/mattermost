@@ -3,4 +3,13 @@
 
 .ScheduledPostList {
     padding: 24px;
+
+    .scheduledPostListErrorIndicator {
+        font-weight: bold;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding-block: 10px;
+        margin-bottom: 16px;
+    }
 }
