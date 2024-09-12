@@ -1787,7 +1787,6 @@ func TestSearchPostsForUser(t *testing.T) {
 		for k, v := range resultsWithPrefix.Posts {
 			assert.Equal(t, v, resultsWithoutPrefix.Posts[k], "post at %s was different", k)
 		}
-
 	})
 
 	t.Run("should return the same results if there is an 'at' in the user", func(t *testing.T) {
@@ -1809,7 +1808,6 @@ func TestSearchPostsForUser(t *testing.T) {
 		for k, v := range resultsWithPrefix.Posts {
 			assert.Equal(t, v, resultsWithoutPrefix.Posts[k], "post at %s was different", k)
 		}
-
 	})
 }
 
