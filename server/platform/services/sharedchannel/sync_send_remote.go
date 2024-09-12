@@ -119,6 +119,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("channel_id", task.channelID),
 		)
+	} else if err == nil && scr.DeleteAt != 0 {
+		// if SharedChannelRemote is deleted, regardless of the autoinvite flag, do nothing
+		return nil
 	} else if err != nil {
 		return err
 	}
