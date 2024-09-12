@@ -1674,7 +1674,7 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 
 func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 	var count int64
-	err := us.GetReplicaX().Get(&count, "SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0")
+	err := us.GetReplicaX().Get(&count, "SELECT COUNT(Id) FROM Users LEFT JOIN Bots ON Users.ID = Bots.UserId WHERE DeleteAt > 0 AND Bots.UserId IS NULL")
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count inactive Users")
 	}
