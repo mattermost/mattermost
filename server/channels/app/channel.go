@@ -1642,7 +1642,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 	}
 
 	if user.DeleteAt > 0 {
-		return nil, model.NewAppError("AddChannelMember", "app.channel.add_member.deleted_user.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("AddChannelMember", "app.channel.add_member.deleted_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	var userRequestor *model.User
