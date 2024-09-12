@@ -29,7 +29,7 @@ export default function ScheduledPostList({scheduledPosts, user, displayName}: P
     return (
         <div className='ScheduledPostList'>
             {
-                scheduledPostsHasError &&
+                scheduledPostsHasError > 0 &&
                 <AlertBanner
                     mode='danger'
                     className='scheduledPostListErrorIndicator'
