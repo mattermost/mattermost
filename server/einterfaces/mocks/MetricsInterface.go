@@ -298,9 +298,9 @@ func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method s
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
-// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed
+func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, fresh string, elapsed float64) {
+	_m.Called(platform, agent, fresh, elapsed)
 }
 
 // ObserveClientCumulativeLayoutShift provides a mock function with given fields: platform, agent, elapsed
@@ -333,9 +333,9 @@ func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent 
 	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed
+func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, fresh string, elapsed float64) {
+	_m.Called(platform, agent, fresh, elapsed)
 }
 
 // ObserveClientTimeToFirstByte provides a mock function with given fields: platform, agent, elapsed

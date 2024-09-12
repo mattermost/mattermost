@@ -170,7 +170,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 
 func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error {
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
-	if err != nil || scr.ChannelId != channelID {
+	if err != nil || scr.ChannelId != channelID || scr.DeleteAt != 0 {
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.channel_remote_id_not_exists",
 			map[string]any{"RemoteId": remoteID}, "", http.StatusInternalServerError)
 	}
