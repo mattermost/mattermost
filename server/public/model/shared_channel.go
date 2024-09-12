@@ -264,7 +264,7 @@ type SharedChannelRemoteFilterOpts struct {
 	ChannelId          string
 	RemoteId           string
 	IncludeUnconfirmed bool
-	OnlyUnconfirmed    bool
+	ExcludeConfirmed   bool
 	ExcludeHome        bool
 	ExcludeRemote      bool
 	IncludeDeleted     bool

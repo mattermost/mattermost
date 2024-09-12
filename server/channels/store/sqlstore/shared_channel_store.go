@@ -495,11 +495,9 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 		query = query.Where(sq.Eq{"scr.RemoteId": opts.RemoteId})
 	}
 
-	if opts.OnlyUnconfirmed {
+	if opts.ExcludeConfirmed {
 		query = query.Where(sq.Eq{"scr.IsInviteConfirmed": false})
-	}
-
-	if !opts.OnlyUnconfirmed && !opts.IncludeUnconfirmed {
+	} else if !opts.IncludeUnconfirmed {
 		query = query.Where(sq.Eq{"scr.IsInviteConfirmed": true})
 	}
 

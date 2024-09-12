@@ -161,8 +161,8 @@ func (scs *Service) SendPendingInvitesForRemote(rc *model.RemoteCluster) {
 	)
 
 	opts := model.SharedChannelRemoteFilterOpts{
-		RemoteId:        rc.RemoteId,
-		OnlyUnconfirmed: true,
+		RemoteId:         rc.RemoteId,
+		ExcludeConfirmed: true,
 	}
 	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
 	if err != nil {
