@@ -8,11 +8,13 @@ import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
 
-import Timestamp from 'components/timestamp';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
+import {TOMORROW_TITLE_CASE} from "components/timestamp/relative_ranges";
+import {getTimeFormat} from "components/post_view/post_time/post_time";
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',
@@ -21,7 +23,16 @@ const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'],
 };
 
+const SCHEDULED_POST_TIME_RANGES = [
+    RelativeRanges.TODAY_TITLE_CASE,
+    RelativeRanges.YESTERDAY_TITLE_CASE,
+    RelativeRanges.TOMORROW_TITLE_CASE,
+];
+
+const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
+
 type Props = {
+    kind: 'draft' | 'scheduledPost';
     actions: React.ReactNode;
     hover: boolean;
     timestamp: number;
@@ -29,7 +40,7 @@ type Props = {
     title: React.ReactNode;
 };
 
-function PanelHeader({actions, hover, timestamp, remote, title}: Props) {
+function PanelHeader({kind, actions, hover, timestamp, remote, title}: Props) {
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -55,18 +66,43 @@ function PanelHeader({actions, hover, timestamp, remote, title}: Props) {
                         </div>
                     )}
                     <div className='PanelHeader__timestamp'>
-                        {Boolean(timestamp) && (
-                            <Timestamp
-                                value={new Date(timestamp)}
-                                {...TIMESTAMP_PROPS}
-                            />
-                        )}
+                        {
+                            Boolean(timestamp) && kind === 'draft' && (
+                                <Timestamp
+                                    value={new Date(timestamp)}
+                                    {...TIMESTAMP_PROPS}
+                                />
+                            )
+                        }
+
+                        {
+                            Boolean(timestamp) && kind === 'scheduledPost' && (
+                                <FormattedMessage
+                                    id='scheduled_post.panel.header.time'
+                                    defaultMessage='Send on {scheduledDateTime}'
+                                    values={{
+                                        scheduledDateTime: (
+                                            <Timestamp
+                                                value={timestamp}
+                                                ranges={SCHEDULED_POST_TIME_RANGES}
+                                                useSemanticOutput={false}
+                                                useTime={scheduledPostTimeFormat}
+                                            />
+                                        ),
+                                    }}
+                                />
+                            )
+                        }
                     </div>
-                    <Tag
-                        variant={'danger'}
-                        uppercase={true}
-                        text={'draft'}
-                    />
+
+                    {
+                        kind === 'draft' &&
+                        <Tag
+                            variant={'danger'}
+                            uppercase={true}
+                            text={'draft'}
+                        />
+                    }
                 </div>
             </div>
         </header>

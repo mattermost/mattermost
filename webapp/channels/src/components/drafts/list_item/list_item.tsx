@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
@@ -9,6 +9,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import DraftActions from 'components/drafts/draft_actions';
+import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import DraftTitle from 'components/drafts/draft_title';
 import Panel from 'components/drafts/panel/panel';
 import PanelBody from 'components/drafts/panel/panel_body';
@@ -49,9 +50,27 @@ export default function DraftListItem({
     showPriority,
     status,
 }: Props) {
+    const draftActions = useMemo(() => (
+        <DraftActions
+            channelDisplayName={channel.display_name}
+            channelType={channel.type}
+            channelName={channel.name}
+            userId={user.id}
+            itemId={itemId}
+            onDelete={handleOnDelete}
+            onEdit={handleOnEdit}
+            onSend={handleOnSend}
+        />
+    ), [channel.display_name, channel.name, channel.type, handleOnDelete, handleOnEdit, handleOnSend, itemId, user.id]);
+
+    const scheduledPostActions = useMemo(() => (
+        <ScheduledPostActions/>
+    ), []);
+
     let timestamp: number;
     let fileInfos: FileInfo[];
     let uploadsInProgress: string[];
+    let actions: React.ReactNode;
 
     if (kind === 'draft') {
         const draft = item as PostDraft;
@@ -59,12 +78,14 @@ export default function DraftListItem({
         timestamp = draft.updateAt;
         fileInfos = draft.fileInfos;
         uploadsInProgress = draft.uploadsInProgress;
+        actions = draftActions;
     } else {
         const scheduledPost = item as ScheduledPost;
 
         timestamp = scheduledPost.scheduled_at;
         fileInfos = scheduledPost.metadata?.files || [];
         uploadsInProgress = [];
+        actions = scheduledPostActions;
     }
 
     return (
@@ -72,19 +93,9 @@ export default function DraftListItem({
             {({hover}) => (
                 <>
                     <Header
+                        kind={kind}
                         hover={hover}
-                        actions={(
-                            <DraftActions
-                                channelDisplayName={channel.display_name}
-                                channelType={channel.type}
-                                channelName={channel.name}
-                                userId={user.id}
-                                itemId={itemId}
-                                onDelete={handleOnDelete}
-                                onEdit={handleOnEdit}
-                                onSend={handleOnSend}
-                            />
-                        )}
+                        actions={actions}
                         title={(
                             <DraftTitle
                                 type={type}
