@@ -1,0 +1,34 @@
+name: Migration-assist Sync
+on:
+  push:
+    branches:
+      - master
+      - MM-60510
+    # paths:
+    #  - "server/channels/db/**"
+
+jobs:
+  check:
+    name: Check if migration-assist have been synced
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Checkout migration-assist project
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: mattermost/migration-assist
+          ref: MM-60000
+          path: migration-assist
+      - name: Compare migration-assist with mattermost
+        run: |
+          diff --brief --recursive channels/db/migrations/postgres /home/runner/work/mattermost/mattermost/migration-assist/queries/migrations/postgres 
+      - name: Check if not synced
+        if: ${{ failure() }}
+        run:
+          echo "Migration-assist has not been synced with mattermost"
+          exit 1
+
