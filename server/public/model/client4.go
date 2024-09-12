@@ -8781,6 +8781,9 @@ func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filt
 	if filter.ExcludePlugins {
 		v.Set("exclude_plugins", "true")
 	}
+	if filter.IncludeDeleted {
+		v.Set("include_deleted", "true")
+	}
 	url := c.remoteClusterRoute()
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -8894,13 +8897,16 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote, includeDeleted bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
 	v := url.Values{}
 	if excludeHome {
 		v.Set("exclude_home", "true")
 	}
 	if excludeRemote {
 		v.Set("exclude_remote", "true")
+	}
+	if includeDeleted {
+		v.Set("include_deleted", "true")
 	}
 	if page != 0 {
 		v.Set("page", fmt.Sprintf("%d", page))

@@ -325,6 +325,7 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 		PluginID:       c.Params.PluginId,
 		OnlyPlugins:    c.Params.OnlyPlugins,
 		ExcludePlugins: c.Params.ExcludePlugins,
+		IncludeDeleted: c.Params.IncludeDeleted,
 	}
 
 	rcs, appErr := c.App.GetAllRemoteClusters(c.Params.Page, c.Params.PerPage, filter)
