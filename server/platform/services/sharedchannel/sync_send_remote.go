@@ -280,12 +280,13 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		LastPostCreateAt: sd.scr.LastPostCreateAt,
 		LastPostCreateID: sd.scr.LastPostCreateID,
 	}
+	maxPostsPerSync := *scs.server.Config().ConnectedWorkspacesSettings.MaxPostsPerSync
 
 	// Fetch all newly created posts first. This is to ensure that post order is preserved for sync targets
 	// that cannot set the CreateAt timestamp for incoming posts (e.g. MS Teams).  If we simply used UpdateAt
 	// then posts could get out of order. For example: p1 created, p2 created, p1 updated... sync'ing on UpdateAt
 	// would order the posts p2, p1.
-	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, MaxPostsPerSync)
+	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, maxPostsPerSync)
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
@@ -295,10 +296,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	cache := postsSliceToMap(posts)
 
 	// Fill remaining batch capacity with updated posts.
-	if len(posts) < MaxPostsPerSync {
+	if len(posts) < maxPostsPerSync {
 		options.SinceCreateAt = false
 		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
-		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
+		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, maxPostsPerSync-len(posts))
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
@@ -308,7 +309,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	}
 
 	sd.resultNextCursor = nextCursor
-	sd.resultRepeat = count >= MaxPostsPerSync
+	sd.resultRepeat = count >= maxPostsPerSync
 
 	return nil
 }
