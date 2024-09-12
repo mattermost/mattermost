@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useMemo} from 'react';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
@@ -11,22 +11,24 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import fetchTeamScheduledPosts from 'actions/schedule_message';
 import {getDrafts} from 'actions/views/drafts';
-import scheduled_posts from 'reducers/views/scheduled_posts';
 import {makeGetDraftsCount} from 'selectors/drafts';
 import {getScheduledPostsByTeamCount} from 'selectors/scheduled_posts';
 
 import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 
-import './drafts_link.scss';
 import type {GlobalState} from 'types/store';
 
 import {SCHEDULED_POST_URL_SUFFIX} from 'components/drafts/drafts';
+
+import './drafts_link.scss';
 
 const getDraftsCount = makeGetDraftsCount();
 
 function DraftsLink() {
     const dispatch = useDispatch();
+
+    const initialScheduledPostsLoaded = useRef(false);
 
     const syncedDraftsAllowedAndEnabled = useSelector(syncedDraftsAreAllowedAndEnabled);
     const draftCount = useSelector(getDraftsCount);
@@ -45,11 +47,13 @@ function DraftsLink() {
         if (syncedDraftsAllowedAndEnabled) {
             dispatch(getDrafts(teamId));
         }
-    }, [teamId, syncedDraftsAllowedAndEnabled]);
+    }, [teamId, syncedDraftsAllowedAndEnabled, dispatch]);
 
     useEffect(() => {
-        dispatch(fetchTeamScheduledPosts(teamId));
-    }, [teamId, dispatch]);
+        const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
+        dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
+        initialScheduledPostsLoaded.current = true;
+    }, [teamId]);
 
     const pencilIcon = useMemo(() => {
         return (

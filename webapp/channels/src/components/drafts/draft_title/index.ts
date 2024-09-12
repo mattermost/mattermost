@@ -34,8 +34,6 @@ function makeMapStateToProps() {
             membersCount = getMemberCount(state, channel);
         }
 
-        console.log({teammateId, channel});
-
         if (channel.type === Constants.DM_CHANNEL) {
             teammateId = getUserIdFromChannelName(userId, channel.name);
             teammate = getUser(state, teammateId);

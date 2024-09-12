@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ActionTypes} from 'utils/constants';
+
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {logError} from 'mattermost-redux/actions/errors';
@@ -9,8 +11,6 @@ import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {getConnectionId} from 'selectors/general';
-
-import {ActionTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 

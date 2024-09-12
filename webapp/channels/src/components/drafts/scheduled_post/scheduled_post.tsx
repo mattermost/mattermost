@@ -7,7 +7,7 @@ import {useSelector} from 'react-redux';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import DraftListItem from 'components/drafts/list_item/list_item';
 
@@ -20,8 +20,10 @@ type Props = {
     status: UserStatus['status'];
 }
 
+const getChannel = makeGetChannel();
+
 export default function ScheduledPostItem({scheduledPost, user, displayName, status}: Props) {
-    const channel = useSelector((state: GlobalState) => getChannel(state, scheduledPost.channel_id));
+    const channel = useSelector((state: GlobalState) => getChannel(state, {id: scheduledPost.channel_id}));
 
     if (!channel) {
         return null;

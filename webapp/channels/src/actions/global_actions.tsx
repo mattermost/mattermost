@@ -1,7 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import WebSocketClient from 'client/web_websocket_client';
 import {batchActions} from 'redux-batched-actions';
+import {getHistory} from 'utils/browser_history';
+import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
+import * as Utils from 'utils/utils';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -28,6 +34,7 @@ import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/acti
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
+import fetchTeamScheduledPosts from 'actions/schedule_message';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
@@ -40,13 +47,6 @@ import LocalStorageStore from 'stores/local_storage_store';
 import store from 'stores/redux_store';
 
 import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
-
-import WebSocketClient from 'client/web_websocket_client';
-import {getHistory} from 'utils/browser_history';
-import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
-import DesktopApp from 'utils/desktop_api';
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -372,6 +372,7 @@ export async function redirectUserToDefaultTeam() {
     if (team && team.delete_at === 0) {
         const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
         if (channel) {
+            dispatch(fetchTeamScheduledPosts(team.id, true));
             dispatch(selectChannel(channel.id));
             getHistory().push(`/${team.name}/channels/${channel.name}`);
             return;
