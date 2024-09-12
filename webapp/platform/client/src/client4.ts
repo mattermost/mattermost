@@ -1971,7 +1971,6 @@ export default class Client4 {
             analyticsData.persistent_notifications = post.metadata.priority.persistent_notifications;
             this.trackEvent('api', 'api_posts_create', analyticsData);
         }
-        
         return result;
     };
 
