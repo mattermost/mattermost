@@ -169,6 +169,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
+            labels: entry.detail.labels,
             timestamp: Date.now(),
         });
     }

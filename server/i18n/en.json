@@ -2449,6 +2449,10 @@
     "translation": "Unable to open file in multipart/form request."
   },
   {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
+  },
+  {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request."
   },
@@ -6485,6 +6489,10 @@
   {
     "id": "app.session.save.existing.app_error",
     "translation": "Unable to update existing session."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
   },
   {
     "id": "app.session.update_device_id.app_error",
