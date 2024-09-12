@@ -89,6 +89,10 @@ type PluginSetting struct {
 	// and the opposite environment is running the plugin, the setting will be hidden in the admin console UI.
 	// Note that this functionality is entirely client-side, so the plugin needs to handle the case of invalid submissions.
 	Hosting string `json:"hosting"`
+
+	// If true, the setting is sanitized before showing it in the System Console or returning it via the API.
+	// This is useful for settings that contain sensitive information.
+	Secret bool `json:"secret"`
 }
 
 type PluginSettingsSection struct {

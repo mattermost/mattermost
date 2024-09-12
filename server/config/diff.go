@@ -60,21 +60,24 @@ var configSensitivePaths = map[string]bool{
 // Sanitize replaces sensitive config values in the diff with asterisks filled strings.
 func (cd ConfigDiffs) Sanitize() ConfigDiffs {
 	if len(cd) == 1 {
+		// PluginSettings.Plugins gets sanitized anyway, so there is no need to use the plugin manifests here.
+		var pluginManifests []*model.Manifest
+
 		cfgPtr, ok := cd[0].BaseVal.(*model.Config)
 		if ok {
-			cfgPtr.Sanitize()
+			cfgPtr.Sanitize(pluginManifests)
 		}
 		cfgPtr, ok = cd[0].ActualVal.(*model.Config)
 		if ok {
-			cfgPtr.Sanitize()
+			cfgPtr.Sanitize(pluginManifests)
 		}
 		cfgVal, ok := cd[0].BaseVal.(model.Config)
 		if ok {
-			cfgVal.Sanitize()
+			cfgVal.Sanitize(pluginManifests)
 		}
 		cfgVal, ok = cd[0].ActualVal.(model.Config)
 		if ok {
-			cfgVal.Sanitize()
+			cfgVal.Sanitize(pluginManifests)
 		}
 	}
 
