@@ -8,7 +8,11 @@ import Action from 'components/drafts/draft_actions/action';
 
 import './style.scss';
 
-function ScheduledPostActions() {
+type Props = {
+    hasError?: boolean;
+}
+
+function ScheduledPostActions({hasError}: Props) {
     return (
         <div className='ScheduledPostActions'>
             <Action
@@ -24,44 +28,51 @@ function ScheduledPostActions() {
                 onClick={() => {}}
             />
 
-            <Action
-                icon='icon-pencil-outline'
-                id='delete'
-                name='delete'
-                tooltipText={(
-                    <FormattedMessage
-                        id='scheduled_post.action.edit'
-                        defaultMessage='Edit scheduled post'
-                    />
-                )}
-                onClick={() => {}}
-            />
+            {
+                !hasError && (
+                    <React.Fragment>
+                        <Action
+                            icon='icon-pencil-outline'
+                            id='delete'
+                            name='delete'
+                            tooltipText={(
+                                <FormattedMessage
+                                    id='scheduled_post.action.edit'
+                                    defaultMessage='Edit scheduled post'
+                                />
+                            )}
+                            onClick={() => {}}
+                        />
 
-            <Action
-                icon='icon-clock-send-outline'
-                id='delete'
-                name='delete'
-                tooltipText={(
-                    <FormattedMessage
-                        id='scheduled_post.action.rescheduled'
-                        defaultMessage='Reschedule post'
-                    />
-                )}
-                onClick={() => {}}
-            />
+                        <Action
+                            icon='icon-clock-send-outline'
+                            id='delete'
+                            name='delete'
+                            tooltipText={(
+                                <FormattedMessage
+                                    id='scheduled_post.action.rescheduled'
+                                    defaultMessage='Reschedule post'
+                                />
+                            )}
+                            onClick={() => {}}
+                        />
 
-            <Action
-                icon='icon-send-outline'
-                id='delete'
-                name='delete'
-                tooltipText={(
-                    <FormattedMessage
-                        id='scheduled_post.action.send_now'
-                        defaultMessage='Send now'
-                    />
-                )}
-                onClick={() => {}}
-            />
+                        <Action
+                            icon='icon-send-outline'
+                            id='delete'
+                            name='delete'
+                            tooltipText={(
+                                <FormattedMessage
+                                    id='scheduled_post.action.send_now'
+                                    defaultMessage='Send now'
+                                />
+                            )}
+                            onClick={() => {}}
+                        />
+                    </React.Fragment>
+                )
+            }
+
         </div>
     );
 }

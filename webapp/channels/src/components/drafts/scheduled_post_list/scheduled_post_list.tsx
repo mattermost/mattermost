@@ -7,10 +7,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import AlertBanner from 'components/alert_banner';
 import DraftsIllustration from 'components/drafts/drafts_illustration';
 import ScheduledPostItem from 'components/drafts/scheduled_post/scheduled_post';
 import NoResultsIndicator from 'components/no_results_indicator';
-import AlertBanner from 'components/alert_banner';
 
 import './style.scss';
 

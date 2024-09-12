@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
@@ -66,14 +66,15 @@ export default function DraftListItem({
     ), [channel.display_name, channel.name, channel.type, handleOnDelete, handleOnEdit, handleOnSend, itemId, user.id]);
 
     const scheduledPostActions = useMemo(() => (
-        <ScheduledPostActions/>
-    ), []);
+        <ScheduledPostActions hasError={Boolean((item as ScheduledPost).error_code)}/>
+    ), [item]);
 
     let timestamp: number;
     let fileInfos: FileInfo[];
     let uploadsInProgress: string[];
     let actions: React.ReactNode;
     let panelClassName = '';
+    let errorCode = '';
 
     if (kind === 'draft') {
         const draft = item as PostDraft;
@@ -92,6 +93,7 @@ export default function DraftListItem({
 
         if (scheduledPost.error_code) {
             panelClassName = 'scheduled_post_error';
+            errorCode = scheduledPost.error_code;
         }
     }
 
@@ -115,6 +117,7 @@ export default function DraftListItem({
                         )}
                         timestamp={timestamp}
                         remote={isRemote || false}
+                        errorCode={errorCode}
                     />
                     <PanelBody
                         channelId={channelId}

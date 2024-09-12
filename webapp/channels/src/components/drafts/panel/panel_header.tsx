@@ -13,6 +13,7 @@ import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
+import ScheduledPostErrorCodeTag from "components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag";
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',
@@ -36,9 +37,10 @@ type Props = {
     timestamp: number;
     remote: boolean;
     title: React.ReactNode;
+    errorCode: string;
 };
 
-function PanelHeader({kind, actions, hover, timestamp, remote, title}: Props) {
+function PanelHeader({kind, actions, hover, timestamp, remote, title, errorCode}: Props) {
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -100,6 +102,10 @@ function PanelHeader({kind, actions, hover, timestamp, remote, title}: Props) {
                             uppercase={true}
                             text={'draft'}
                         />
+                    }
+
+                    {
+                        kind === 'scheduledPost' && errorCode && <ScheduledPostErrorCodeTag errorCode={errorCode}/>
                     }
                 </div>
             </div>
