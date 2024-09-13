@@ -159,11 +159,15 @@ func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
 	return count > 0, nil
 }
 
-func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) Get(remoteId string, includeDeleted bool) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("")...).
 		From("RemoteClusters").
 		Where(sq.Eq{"RemoteId": remoteId})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -272,7 +276,7 @@ func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClus
 }
 
 func (s sqlRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
-	rc, err := s.Get(remoteClusterid)
+	rc, err := s.Get(remoteClusterid, false)
 	if err != nil {
 		return nil, err
 	}
