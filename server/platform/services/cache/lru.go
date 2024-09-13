@@ -221,6 +221,7 @@ func (l *LRU) get(key string, value any) error {
 		*v = &u
 		return err
 	case *map[string]*model.User:
+		panic("reached *map[string]*model.User which should not have happened")
 		var u model.UserMap
 		_, err := u.UnmarshalMsg(val)
 		*v = u
