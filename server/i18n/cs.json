@@ -4145,43 +4145,43 @@
   },
   {
     "id": "api.command_open.name",
-    "translation": "Otevřít"
+    "translation": "otevřít"
   },
   {
     "id": "api.command_online.success",
-    "translation": "Nyní jste připojen"
+    "translation": "Nyní jste online"
   },
   {
     "id": "api.command_online.name",
-    "translation": "Připojen"
+    "translation": "dostupný"
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Nastavení stavu online"
+    "translation": "Nastavit svůj stav na dostupný"
   },
   {
     "id": "api.command_offline.success",
-    "translation": "Nyní jste odpojen"
+    "translation": "Nyní jste nedostupný"
   },
   {
     "id": "api.command_offline.name",
-    "translation": "Odpojen"
+    "translation": "nedostupný"
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Změna stavu na nepřítomný"
+    "translation": "Nastavit svůj stav na nedostupný"
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "Tento kanál již není nadále ztlumen."
+    "translation": "Tento kanál již není ztlumen."
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} již není nadále ztlumen."
+    "translation": "{{.Channel}} již není ztlumen."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "Nebudete dostávat upozornění pro tento kanál, dokud je ztlumení zapnuto."
+    "translation": "Nebudete dostávat upozornění na tento kanál, dokud nebude vypnuto ztlumení kanálu."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -4189,15 +4189,15 @@
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Nelze ztlumit kanál {{.Channel}}, protože nejste člen."
+    "translation": "Nelze ztlumit kanál {{.Channel}}, protože nejste členem."
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nelze najít kanál {{.Channel}}. Použijte prosím [název kanálu](https://about.mattermost.com/default-channel-handle-documentation) k identifikaci kanálů."
+    "translation": "Zadaný kanál nebyl nalezen. Použijte prosím [identifikátor kanálu](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) k určení kanálů."
   },
   {
     "id": "api.command_mute.name",
-    "translation": "Ztlumit"
+    "translation": "ztlumit"
   },
   {
     "id": "api.command_mute.hint",
@@ -4205,11 +4205,11 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Nelze najít kanál {{.Channel}}. Použijte prosím [název kanálu](https://about.mattermost.com/default-channel-handle-documentation) k identifikaci kanálů."
+    "translation": "Kanál {{.Channel}} nebyl nalezen. Použijte prosím [identifikátor kanálu](https://about.mattermost.com/default-channel-handle-documentation) k identifikaci kanálů."
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Vypne emailové a push upozornění pro aktuální kanál nebo specifický [channel]."
+    "translation": "Vypne desktopová, e-mailová a push upozornění pro aktuální kanál nebo zadaný [kanál]."
   },
   {
     "id": "api.command_msg.permission.app_error",
@@ -4229,19 +4229,19 @@
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Chyba při odesílání zprávy uživateli."
+    "translation": "Při odesílání zprávy uživateli došlo k chybě."
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "Chyba při odesílání přímé zprávy."
+    "translation": "Při vytváření přímé zprávy došlo k chybě."
   },
   {
     "id": "api.command_msg.desc",
-    "translation": "Poslat uživateli zprávu"
+    "translation": "Poslat uživateli přímou zprávu"
   },
   {
     "id": "api.command_me.name",
-    "translation": "O mně"
+    "translation": "mě"
   },
   {
     "id": "api.command_me.hint",
@@ -4253,7 +4253,7 @@
   },
   {
     "id": "api.command_logout.name",
-    "translation": "Odhlásit"
+    "translation": "odhlásit"
   },
   {
     "id": "api.command_logout.desc",
@@ -4265,7 +4265,7 @@
   },
   {
     "id": "api.command_leave.fail.app_error",
-    "translation": "Při odcházení z kanálu došlo k chybě."
+    "translation": "Při opouštění kanálu došlo k chybě."
   },
   {
     "id": "api.command_leave.desc",
@@ -4277,7 +4277,7 @@
   },
   {
     "id": "api.command_join.name",
-    "translation": "Připojit se"
+    "translation": "připojit se"
   },
   {
     "id": "api.command_join.missing.app_error",
@@ -4285,19 +4285,19 @@
   },
   {
     "id": "api.command_join.list.app_error",
-    "translation": "Došlo k chybě při získávání seznamu kanálů."
+    "translation": "Při výpisu kanálů došlo k chybě."
   },
   {
     "id": "api.command_join.hint",
-    "translation": "~[channel]"
+    "translation": "~[kanál]"
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Došlo k chybě při vstupu do kanálu."
+    "translation": "Při připojování k kanálu došlo k chybě."
   },
   {
     "id": "api.command_join.desc",
-    "translation": "Vstoupit do veřejného kanálu"
+    "translation": "Připojit se k veřejnému kanálu"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -4857,23 +4857,23 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "Poskytovaná role je řízena schématem, a proto ji nelze uplatnit přímo na člena kanálu."
+    "translation": "Poskytnutá role je řízena schématem, a proto ji nelze přímo přiřadit členu kanálu."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Neplatná aktualizace členství v kanále: Uživatel může být návštěvník nebo uživatel, ale ne obojí."
+    "translation": "Neplatná aktualizace člena kanálu: Uživatel musí být buď host, nebo uživatel, ale nemůže být obojí."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Neplatná zemněna členství kanálu: Nelze ručně přidat nebo odebrat roli návštěvníka."
+    "translation": "Neplatná aktualizace člena kanálu: Role hosta nemůžete ručně přidávat ani odebírat."
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Typ kanálu nelze změnit."
+    "translation": "Typ kanálu nelze aktualizovat."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Pokus o neplatnou aktualizaci výchozího kanálu {{.Channel}}."
+    "translation": "Pokoušeli jsme se provést neplatnou aktualizaci výchozího kanálu {{.Channel}}."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -4881,19 +4881,19 @@
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "Uživatel {{.Username}} vyjmul kanál z archivu."
+    "translation": "Uživatel {{.Username}} obnovil kanál z archivu."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Nelze archivovat kanál. Kanál není archivován."
+    "translation": "Kanál nelze obnovit z archivu. Kanál není archivován."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Nelze přejmenovat skupinový kanál."
+    "translation": "Kanál skupinových zpráv nemůžete přejmenovat."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "Nelze přejmenovat kanál přímách zpráv."
+    "translation": "Kanál přímých zpráv nelze přejmenovat."
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
@@ -4901,7 +4901,7 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Kvůli omezením skupiny nelze odebrat následující členy: {{ .UserIDs }}"
+    "translation": "Odebrání členství v kanálu bylo odepřeno následujícím uživatelům z důvodu skupinových omezení: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -4909,11 +4909,11 @@
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Nelze odebrat uživatele z kanálu s omezenou skupinou."
+    "translation": "Nelze odebrat uživatele z kanálu omezeného skupinou."
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Uživatel nemohl být odebrán z kanálu."
+    "translation": "Nelze odebrat uživatele z kanálu."
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -4921,7 +4921,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Nepodařilo se odeslat zprávu o vstupu/odchodu do/z kanálu"
+    "translation": "Nepodařilo se odeslat zprávu o připojení/opuštění"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
@@ -4937,7 +4937,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "%s odstranil záhlaví kanálu (was: %s)"
+    "translation": "%s odstranil záhlaví kanálu (byl: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
@@ -4945,7 +4945,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s aktualizován zobrazovaný název kanálu z: %s do: %s"
+    "translation": "%s aktualizoval zobrazovaný název kanálu z: %s do: %s"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -4953,15 +4953,15 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Nepodařilo se odeslat displayname aktualizace zprávy"
+    "translation": "Nepodařilo se odeslat zprávu o aktualizaci zobrazovaného jména"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Chyba při updatu zprávy."
+    "translation": "Odeslání zprávy o aktualizaci ochrany soukromí kanálu se nezdařilo."
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Nepodařilo se aktualizovat kanál."
+    "translation": "Aktualizace kanálu se nezdařila."
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
@@ -4973,7 +4973,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Jste poslední člen, místo odcházení zkuste odebrat soukromý kanál."
+    "translation": "Zůstali jste jediným členem, zkuste soukromý kanál odebrat místo opuštění."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -4993,7 +4993,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v se pripojil ke kanálu jako host."
+    "translation": "%v se připojil ke kanálu jako host."
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
@@ -5001,7 +5001,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Nelze smazat přímou nebo skupinovou zprávu v kanálu"
+    "translation": "Nelze smazat kanál přímých nebo skupinových zprávu"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
@@ -5021,11 +5021,11 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Skupinové kanály musí mít alespoň 3 a maximálně 8 členů."
+    "translation": "Skupinové kanály musí mít alespoň 3, ale ne víc než 8 členů."
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Neplatná ID uživatele pro vytvoření přímého kanálu."
+    "translation": "Neplatné ID uživatele pro vytvoření přímého kanálu."
   },
   {
     "id": "api.channel.create_default_channels.town_square",
@@ -5065,15 +5065,15 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Nepodařilo se přidat uživatele do kanálu."
+    "translation": "Přidání uživatele do kanálu se nezdařilo."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Kvůli omezením skupiny nelze přidat následující členy: {{ .UserIDs }}"
+    "translation": "Členství v kanálu bylo odepřeno následujícím uživatelům z důvodu skupinových omezení:{{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Chyba při přidávání členů do kanálu."
+    "translation": "Chyba při přidávání člena(ů) do kanálu."
   },
   {
     "id": "api.channel.add_member.added",
@@ -5081,11 +5081,11 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v přidán % do kanálu uživatelem %v."
+    "translation": "%v přidán % do kanálu jako host, uživatelem %v."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Přidejte mě prosím do týmů a kanálů, ve kterých chcete abych pracoval. Pro tuto akci využijte prohlížeč nebo aplikaci Mattermost Desktop."
+    "translation": "Přidejte mě prosím do týmů a kanálů, ve kterých chcete abych interagoval. Pro tuto akci využijte prohlížeč nebo aplikaci Mattermost Desktop."
   },
   {
     "id": "api.bot.create_disabled",
@@ -5093,15 +5093,15 @@
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "Nepodařilo se nahrát soubor, je příliš velký."
+    "translation": "Nepodařilo se nahrát soubor. Soubor je příliš velký."
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Nelze nahrát obrázek. Ukládání snímků není nakonfigurováno."
+    "translation": "Nelze nahrát obrázek. Ukládání obrázků není nakonfigurováno."
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Nelze zpracovat vícedílné formuláře."
+    "translation": "Nelze zpracovat vícedílný formulář."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -5109,7 +5109,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Prázdný array pod 'image' v žádosti."
+    "translation": "Prázdné pole pod 'image' v požadavku."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -5149,7 +5149,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Nastala chyba při sestavování metadat služby."
+    "translation": "Nastala chyba při sestavování metadat poskytovatele služby."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
@@ -5157,11 +5157,11 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "V XML chybí uzel popisující key deskroptory poskytovatele identity."
+    "translation": "Chybějící uzel popisovače klíče poskytovatele identity v XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "V XML chybí uzel popisující SSO deskriptory poskytovatele identity."
+    "translation": "Chybí uzel deskriptorů jednotného přihlášení poskytovatele identity v XML."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -5169,7 +5169,7 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Selhalo parsování matadat informací obdržených od Identitiy providera pro certifikát."
+    "translation": "Při analýze informací metadat přijatých od poskytovatele identity pro certifikát došlo k chybě."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -5185,7 +5185,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Chyba při čtení logovacího souboru."
+    "translation": "Chyba při čtení souboru protokolu."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
@@ -5341,7 +5341,7 @@
   },
   {
     "id": "api.channel.move_channel.type.invalid",
-    "translation": "Kanály přímých či skupinových zpráv nelze přesunout"
+    "translation": "Nelze přesunout kanály přímých nebo skupinových zpráv"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -5389,7 +5389,7 @@
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Chyba při rozboru multipart požadavku"
+    "translation": "Chyba při analýze víceformátového požadavku"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
@@ -6885,7 +6885,7 @@
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Pozvánka nemohla být dekódována: {{.Error}}"
+    "translation": "Nepodařilo se dekódovat pozvání: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -6893,11 +6893,11 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Zabezpečené spojení nebylo přidáno: {{.Error}}"
+    "translation": "Nepodařilo se přidat zabezpečené připojení: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
-    "translation": "Pozvánka nebyla přijata: {{.Error}}"
+    "translation": "Pozvání se nepodařilo přijmout: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept.help",
@@ -6905,7 +6905,7 @@
   },
   {
     "id": "api.command_remote.accept_invitation",
-    "translation": "Pozvánka přijata a potvrzena.\nSiteURL: {{.SiteURL}}"
+    "translation": "Pozvánka přijata a potvrzena.\nURL webu: {{.SiteURL}}"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -6921,7 +6921,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
-    "translation": "Chyba při zneplatnění vyrovnávací paměti cache"
+    "translation": "Chyba při zneplatnění mezipaměti"
   },
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
@@ -6949,15 +6949,15 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Zobrazovaný název zabezpečeného připojení"
+    "translation": "Název pro zobrazení zabezpečeného připojení"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Zobrazovaný název zabezpečeného připojení"
+    "translation": "Název zobrazení zabezpečeného připojení"
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Pozvat zabezpečené připojení pro komunikaci mezi instancemi Mattermost."
+    "translation": "Pozvěte zabezpečená připojení pro komunikaci mezi instancemi Mattermost."
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -7001,11 +7001,11 @@
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Nebyla nalezena žádná zabezpečená připojení."
+    "translation": "Žádná zabezpečená připojení nebyla nalezena."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Zabezpečené připojení | Zobrazované jméno | ID připojení | Adresa URL webu | Přijatá pozvánka | Online | Poslední ping |"
+    "translation": "| Zabezpečené připojení | Zobrazované jméno | ID připojení | Adresa URL webu | Přijatá pozvánka | Online | Poslední odezva|"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -7017,7 +7017,7 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Zobrazovaný název zabezpečeného připojení"
+    "translation": "Jedinečný název pro zabezpečené připojení"
   },
   {
     "id": "api.command_remote.name.help",
@@ -7025,7 +7025,7 @@
   },
   {
     "id": "api.command_remote.name",
-    "translation": "zabezpečené připojení"
+    "translation": "zabezpečené-připojení"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -7053,7 +7053,7 @@
   },
   {
     "id": "api.command_remote.invitation_created",
-    "translation": "Vytvořená pozvánka."
+    "translation": "Pozvánka vytvořena."
   },
   {
     "id": "api.command_remote.invitation.hint",
@@ -7085,7 +7085,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+    "translation": "Nejste oprávněni aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
   },
   {
     "id": "api.command_custom_status.clear.success",
@@ -7097,7 +7097,7 @@
   },
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+    "translation": "Nemáte dovoleno aktualizovat název, zobrazené jméno a účel přímých nebo skupinových zpráv."
   },
   {
     "id": "api.command_custom_status.desc",
@@ -7129,15 +7129,15 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
-    "translation": "Do tohoto kanálu můžete přidat uživatele {{.FirstUser}} a {{.Others}} další, jakmile budou členy týmu **{{.Team}}**."
+    "translation": "Můžete přidat {{.FirstUser}} a {{.Others}} ostatní do tohoto kanálu, jakmile budou členy týmu {{.Team}}."
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Odebere zabezpečené připojení"
+    "translation": "Odstraní zabezpečené připojení"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Nelze odebrat zabezpečené připojení: {{.Error}}"
+    "translation": "Nelze odstranit zabezpečené připojení: {{.Error}}"
   },
   {
     "id": "api.command_exportlink.desc",
@@ -7513,7 +7513,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.guest.app_error",
-    "translation": "Neplatná aktualizace členství kanálu: Host nemůže být povýšen na člena týmu nebo administrátora týmu. Nejprve jej prosím převeďte na uživatele."
+    "translation": "Neplatná aktualizace člena kanálu: Host nemůže být povýšen na člena týmu nebo administrátora týmu, nejprve ho prosím povyšte na uživatele."
   },
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
@@ -7902,5 +7902,85 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "Uživatel není OAuth nebo SAML uživatel."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Nepodařilo se smazat záložku."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Nepodařilo se získat záložku."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Nepodařilo se seřadit záložku. Záložka nebyla nalezena."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Seznam správců je prázdný."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Nepodařilo se aktualizovat existující záložku."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Profilový obrázek musí být nastaven prostřednictvím poskytovatele přihlášení uživatele."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Nelze načíst příspěvky pro archivovaný kanál"
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Nelze získat potvrzení pro příspěvek."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Nelze získat potvrzení."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Nelze přidat uživatele jako člena kanálu."
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Vaše schéma indexu kanálu Elasticsearch je zastaralé. Doporučuje se znovu vytvořit index kanálu.\nChcete-li problém vyřešit, klikněte na tlačítko `Rebuild Channels Index` v [sekce Elasticsearch v systémové konzole]{{.ElasticsearchSection}}.\nDalší informace najdete v seznamu změn Mattermost."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Nepodařilo se uložit záložku."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Nepodařilo se aktualizovat záložku."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Nepodařilo se seřadit záložku."
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Nelze spočítat naléhavé příspěvky od daného data."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Nelze načíst uživatele pro archivovaný kanál"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Nepodařilo se zpracovat požadavek"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Nelze uložit potvrzení pro příspěvek."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Nelze smazat potvrzení."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Nepodařilo se seřadit záložku. Vstup je neplatný."
   }
 ]
