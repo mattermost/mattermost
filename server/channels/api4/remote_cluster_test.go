@@ -242,7 +242,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.NotZero(t, rcWithInvite.Password)
 		require.Len(t, rcWithInvite.Password, 16)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamNoPassword.Name, rc.Name)
 
@@ -266,7 +266,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		// by the endpoint
 		require.Zero(t, rcWithInvite.Password)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamAndPassword.Name, rc.Name)
 
@@ -599,7 +599,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 
 	t.Run("should correctly delete the remote cluster", func(t *testing.T) {
 		// ensure the remote cluster is not deleted
-		initialRC, appErr := th.App.GetRemoteCluster(rc.RemoteId)
+		initialRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, false)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, initialRC)
 		require.Zero(t, initialRC.DeleteAt)
@@ -608,7 +608,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
-		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId)
+		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, deletedRC)
 		require.NotZero(t, deletedRC.DeleteAt)

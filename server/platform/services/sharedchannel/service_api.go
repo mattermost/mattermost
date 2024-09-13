@@ -134,7 +134,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 		}
 	}
 
-	rc, err := rcStore.Get(remoteID)
+	rc, err := rcStore.Get(remoteID, false)
 	if err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.remote_id_invalid.error",
 			map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)

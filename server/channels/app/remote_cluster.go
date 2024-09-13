@@ -117,7 +117,7 @@ func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *
 }
 
 func (a *App) PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.GetRemoteCluster(rcId)
+	rc, err := a.GetRemoteCluster(rcId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +152,8 @@ func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError
 	return deleted, nil
 }
 
-func (a *App) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store().RemoteCluster().Get(remoteClusterId)
+func (a *App) GetRemoteCluster(remoteClusterId string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteClusterId, includeDeleted)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
