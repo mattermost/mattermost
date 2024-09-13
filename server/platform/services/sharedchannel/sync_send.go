@@ -339,12 +339,9 @@ func (scs *Service) processTask(task syncTask) error {
 			remotesMap[r.RemoteId] = r
 		}
 	} else {
-		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID)
+		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
 			return err
-		}
-		if rc.DeleteAt != 0 {
-			return fmt.Errorf("Processing task for a deleted remote cluster '%s'", task.remoteID)
 		}
 		if !rc.IsOnline() {
 			return fmt.Errorf("Failed updating shared channel '%s' for offline remote cluster '%s'", task.channelID, rc.DisplayName)
