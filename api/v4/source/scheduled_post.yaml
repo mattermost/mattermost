@@ -76,7 +76,7 @@
       operationId: GetUserScheduledPosts
       parameters:
         - name: includeDirectChannels
-          in: path
+          in: query
           description: Whether to include scheduled posts from DMs an GMs or not. Default is false
           required: false
           schema:
