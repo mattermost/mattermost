@@ -5103,10 +5103,6 @@
     "translation": "Error occurred fetching scheduled posts."
   },
   {
-    "id": "app.get_user_team_scheduled_posts.team_permission_error",
-    "translation": "You don't have permission for the team"
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
   },
