@@ -244,6 +244,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool) {
 	if online {
 		// when a previously offline remote comes back online force a sync.
+		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
 	}
 
