@@ -4,10 +4,9 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import fetchTeamScheduledPosts from 'mattermost-redux/actions/scheduled_posts';
+import {getScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import fetchTeamScheduledPosts from 'actions/schedule_message';
-import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
 
 import type {GlobalState} from 'types/store';
 

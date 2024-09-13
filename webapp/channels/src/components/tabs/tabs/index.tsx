@@ -12,9 +12,9 @@ type Props = {
     children?: React.ReactNode;
     id?: string;
     activeKey?: any;
-    mountOnEnter?: boolean | undefined;
-    unmountOnExit?: boolean | undefined;
-    onSelect?: SelectCallback | undefined;
+    mountOnEnter?: boolean;
+    unmountOnExit?: boolean;
+    onSelect?: SelectCallback;
     className?: string;
 }
 

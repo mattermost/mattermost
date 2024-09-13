@@ -1,38 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
-import type {GroupChannel} from '@mattermost/types/groups';
-import type {Post} from '@mattermost/types/posts';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
-
-import {SearchTypes} from 'mattermost-redux/action_types';
-import {getMyChannelMember} from 'mattermost-redux/actions/channels';
-import * as PostActions from 'mattermost-redux/actions/posts';
-import * as ThreadActions from 'mattermost-redux/actions/threads';
-import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
-import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
-
-import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
-import {createSchedulePost} from 'actions/schedule_message';
-import * as StorageActions from 'actions/storage';
-import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
-import {removeDraft} from 'actions/views/drafts';
-import {closeModal, openModal} from 'actions/views/modals';
-import * as RhsActions from 'actions/views/rhs';
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
-import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
-import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
-import {getGlobalItem} from 'selectors/storage';
-
-import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
-
 import {
     ActionTypes,
     Constants,
@@ -42,6 +10,45 @@ import {
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
+
+import type {FileInfo} from '@mattermost/types/files';
+import type {GroupChannel} from '@mattermost/types/groups';
+import type {Post} from '@mattermost/types/posts';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
+
+import {SearchTypes} from 'mattermost-redux/action_types';
+import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+import * as PostActions from 'mattermost-redux/actions/posts';
+import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
+import * as ThreadActions from 'mattermost-redux/actions/threads';
+import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {
+    DispatchFunc,
+    ActionFunc,
+    ActionFuncAsync,
+    ThunkActionFunc,
+    GetStateFunc,
+} from 'mattermost-redux/types/actions';
+import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
+
+import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
+import * as StorageActions from 'actions/storage';
+import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
+import {removeDraft} from 'actions/views/drafts';
+import {closeModal, openModal} from 'actions/views/modals';
+import * as RhsActions from 'actions/views/rhs';
+import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {getConnectionId} from 'selectors/general';
+import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
+import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
+import {getGlobalItem} from 'selectors/storage';
+
+import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
 
 import type {GlobalState} from 'types/store';
 
@@ -138,10 +145,12 @@ export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePo
 }
 
 export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
-    return async (dispatch) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch(addRecentEmojisForMessage(scheduledPost.message));
 
-        const result = await dispatch(createSchedulePost(scheduledPost));
+        const state = getState() as GlobalState;
+        const connectionId = getConnectionId(state);
+        const result = await dispatch(createSchedulePost(scheduledPost, connectionId));
 
         if (scheduledPost.root_id) {
             dispatch(storeCommentDraft(scheduledPost.root_id, null));
@@ -149,7 +158,10 @@ export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): Actio
             dispatch(storeDraft(scheduledPost.channel_id, null));
         }
 
-        return result;
+        return {
+            created: !result.error && result.data,
+            error: result.error,
+        };
     };
 }
 

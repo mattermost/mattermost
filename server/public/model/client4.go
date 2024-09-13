@@ -630,8 +630,11 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 	return &createdScheduledPost, BuildResponse(r), nil
 }
 
-func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string) ([]*ScheduledPost, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/schedule/team/"+teamId, "")
+func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) ([]*ScheduledPost, *Response, error) {
+	query := url.Values{}
+	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
+
+	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+query.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
