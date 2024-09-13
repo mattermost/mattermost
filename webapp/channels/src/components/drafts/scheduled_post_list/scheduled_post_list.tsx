@@ -5,7 +5,9 @@ import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import fetchTeamScheduledPosts from 'mattermost-redux/actions/scheduled_posts';
-import {getScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {
+    makeGetScheduledPostsByTeam,
+} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import type {GlobalState} from 'types/store';
@@ -13,6 +15,7 @@ import type {GlobalState} from 'types/store';
 export default function ScheduledPostList() {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
+    const getScheduledPostsByTeam = makeGetScheduledPostsByTeam();
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
     useEffect(() => {

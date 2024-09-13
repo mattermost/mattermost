@@ -4,13 +4,22 @@
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {GlobalState} from '@mattermost/types/store';
 
-export function getScheduledPostsByTeam(state: GlobalState, teamId: string, includeDirectChannels: boolean): ScheduledPost[] {
-    const teamScheduledPosts = state.entities.scheduledPosts.byTeamId[teamId] || [];
-    let directChannelScheduledPosts: ScheduledPost[] = [];
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-    if (includeDirectChannels) {
-        directChannelScheduledPosts = state.entities.scheduledPosts.byTeamId.directChannels || [];
-    }
+export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: string, includeDirectChannels: boolean) => ScheduledPost[] {
+    return createSelector(
+        'makeGetScheduledPostsByTeam',
+        (state: GlobalState, teamId: string, includeDirectChannels: boolean) => includeDirectChannels,
+        (state: GlobalState, teamId: string) => state.entities.scheduledPosts.byTeamId[teamId],
+        (state: GlobalState) => state.entities.scheduledPosts.byTeamId.directChannels,
+        (includeDirectChannels: boolean, teamScheduledPosts: ScheduledPost[], directChannelScheduledPosts: ScheduledPost[]) => {
+            const team = teamScheduledPosts || [];
+            const direct = directChannelScheduledPosts || [];
+            if (!includeDirectChannels) {
+                return team;
+            }
 
-    return [...teamScheduledPosts, ...directChannelScheduledPosts];
+            return [...team, ...direct];
+        },
+    );
 }

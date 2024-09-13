@@ -5104,7 +5104,7 @@
   },
   {
     "id": "app.get_user_team_scheduled_posts.team_permission_error",
-    "translation": "you don't have permission for the team"
+    "translation": "You don't have permission for the team"
   },
   {
     "id": "app.group.crud_permission",
