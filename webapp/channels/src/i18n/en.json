@@ -2490,6 +2490,7 @@
   "admin.system_users.list.actions.menu.deactivate": "Deactivate",
   "admin.system_users.list.actions.menu.demoteToGuest": "Demote to guest",
   "admin.system_users.list.actions.menu.dropdownAriaLabel": "User actions menu",
+  "admin.system_users.list.actions.menu.managedByLdap": "Managed by LDAP",
   "admin.system_users.list.actions.menu.manageRoles": "Manage roles",
   "admin.system_users.list.actions.menu.manageSettings": "Manage user settings",
   "admin.system_users.list.actions.menu.manageTeams": "Manage teams",
