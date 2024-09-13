@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback, useEffect} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
@@ -72,10 +72,12 @@ function Drafts({
             <Header
                 level={2}
                 className='Drafts__header'
-                heading={formatMessage({
-                    id: 'drafts.heading',
-                    defaultMessage: 'Drafts',
-                })}
+                heading={(
+                    <FormattedMessage
+                        id='drafts.heading'
+                        defaultMessage='Drafts'
+                    />
+                )}
                 subtitle={formatMessage({
                     id: 'drafts.subtitle',
                     defaultMessage: 'Any messages you\'ve started will show here',
@@ -91,7 +93,12 @@ function Drafts({
             >
                 <Tab
                     eventKey={0}
-                    title='Drafts'
+                    title={(
+                        <FormattedMessage
+                            id='drafts.heading'
+                            defaultMessage='Drafts'
+                        />
+                    )}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
@@ -106,7 +113,12 @@ function Drafts({
 
                 <Tab
                     eventKey={1}
-                    title='Scheduled'
+                    title={(
+                        <FormattedMessage
+                            id='drafts.heading'
+                            defaultMessage='Drafts'
+                        />
+                    )}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
