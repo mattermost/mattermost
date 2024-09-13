@@ -116,9 +116,10 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 	}
 
 	filter := model.SharedChannelRemoteFilterOpts{
-		RemoteId:      c.Params.RemoteId,
-		ExcludeHome:   c.Params.ExcludeHome,
-		ExcludeRemote: c.Params.ExcludeRemote,
+		RemoteId:       c.Params.RemoteId,
+		ExcludeHome:    c.Params.ExcludeHome,
+		ExcludeRemote:  c.Params.ExcludeRemote,
+		IncludeDeleted: c.Params.IncludeDeleted,
 	}
 	sharedChannelRemotes, err := c.App.GetSharedChannelRemotes(c.Params.Page, c.Params.PerPage, filter)
 	if err != nil {
@@ -153,7 +154,7 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil {
+	if rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil || rc.DeleteAt != 0 {
 		c.SetInvalidRemoteIdError(c.Params.RemoteId)
 		return
 	}
@@ -200,7 +201,7 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil {
+	if rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil || rc.DeleteAt != 0 {
 		c.SetInvalidRemoteIdError(c.Params.RemoteId)
 		return
 	}

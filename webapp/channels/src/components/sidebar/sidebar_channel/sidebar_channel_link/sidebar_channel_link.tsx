@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 import WithTooltip from 'components/with_tooltip';
 
@@ -61,6 +62,7 @@ type Props = {
     hasUrgent: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    isSharedChannel?: boolean;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -223,6 +225,13 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             />
         ) : null;
 
+        const sharedChannelIcon = this.props.isSharedChannel ? (
+            <SharedChannelIndicator
+                className='icon'
+                withTooltip={true}
+            />
+        ) : null;
+
         const content = (
             <>
                 <SidebarChannelIcon
@@ -238,6 +247,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                         pluggableName='SidebarChannelLinkLabel'
                         channel={this.props.channel}
                     />
+                    {sharedChannelIcon}
                 </div>
                 <ChannelPencilIcon id={channel.id}/>
                 <ChannelMentionBadge
