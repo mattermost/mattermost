@@ -3505,6 +3505,9 @@ components:
         create_at:
           description: Time in milliseconds that the remote cluster was created
           type: integer
+        delete_at:
+          description: Time in milliseconds that the remote cluster record was deleted
+          type: integer
         last_ping_at:
           description: Time in milliseconds when the last ping to the remote cluster was run
           type: integer
@@ -3552,6 +3555,9 @@ components:
           type: integer
         update_at:
           description: Time in milliseconds that the shared channel remote record was last updated
+          type: integer
+        delete_at:
+          description: Time in milliseconds that the shared chanenl remote record was deleted
           type: integer
         is_invite_accepted:
           description: Indicates if the invite has been accepted by the remote

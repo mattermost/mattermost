@@ -3154,7 +3154,6 @@
   "channel_members_dropdown.make_channel_members": "Make Channel Members",
   "channel_members_dropdown.menuAriaLabel": "Change the role of channel member",
   "channel_members_dropdown.remove_from_channel": "Remove from Channel",
-  "channel_members_dropdown.shared_member": "Shared Member",
   "channel_members_modal.addNew": " Add Members",
   "channel_members_modal.members": " Members",
   "channel_members_rhs.action_bar.add_button": "Add",
