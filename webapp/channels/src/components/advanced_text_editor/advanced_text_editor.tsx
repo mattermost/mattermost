@@ -303,6 +303,13 @@ const AdvancedTextEditor = ({
         });
     }, [draft, handleDraftChange, serverError]);
 
+    const handleSubmitEvent = useCallback((e: React.FormEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        handleSubmit();
+    }, [handleSubmit]);
+
     /**
      * by getting the value directly from the textbox we eliminate all unnecessary
      * re-renders for the FormattingBar component. The previous method of always passing
@@ -422,13 +429,14 @@ const AdvancedTextEditor = ({
         previousDraft.current = draft;
     }, [draft]);
 
-    const handleSubmitPostAndScheduledMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => handleSubmit(e, undefined, schedulingInfo), [handleSubmit]);
+    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
 
     const disableSendButton = Boolean(readOnlyChannel || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
+            channelId={channelId}
         />
     );
 
@@ -535,7 +543,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmitEvent}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -660,7 +668,7 @@ const AdvancedTextEditor = ({
                     <MessageSubmitError
                         error={serverError}
                         submittedMessage={serverError.submittedMessage}
-                        handleSubmit={handleSubmit}
+                        handleSubmit={handleSubmitEvent}
                     />
                 )}
                 <MsgTyping

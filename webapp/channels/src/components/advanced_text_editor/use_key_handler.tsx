@@ -41,7 +41,7 @@ const useKeyHandler = (
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
-    handleSubmit: (e: React.FormEvent, submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
+    handleSubmit: (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
     emitTypingEvent: () => void,
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,
@@ -131,9 +131,9 @@ const useKeyHandler = (
             // textboxRef.current?.blur();
 
             if (withClosedCodeBlock && message) {
-                handleSubmit(e, {...draft, message});
+                handleSubmit({...draft, message});
             } else {
-                handleSubmit(e);
+                handleSubmit();
             }
 
             // setTimeout(() => {
