@@ -2764,7 +2764,7 @@ type NativeAppSettings struct {
 	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser  bool     `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser  *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2782,6 +2782,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.AppCustomURLSchemes == nil {
 		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
+	}
+
+	if s.MobileExternalBrowser == nil {
+		s.MobileExternalBrowser = NewPointer(false)
 	}
 }
 

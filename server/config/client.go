@@ -294,7 +294,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
-	props["MobileExternalBrowser"] = strconv.FormatBool(c.NativeAppSettings.MobileExternalBrowser)
+	props["MobileExternalBrowser"] = strconv.FormatBool(*c.NativeAppSettings.MobileExternalBrowser)
 
 	props["DiagnosticId"] = telemetryID
 	props["TelemetryId"] = telemetryID
