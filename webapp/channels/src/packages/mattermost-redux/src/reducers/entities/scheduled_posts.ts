@@ -6,7 +6,7 @@ import {combineReducers} from 'redux';
 
 import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
 
-import {ScheduledPostTypes} from 'mattermost-redux/action_types';
+import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 
 function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
     switch (action.type) {
@@ -22,6 +22,8 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
 
         return newState;
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
