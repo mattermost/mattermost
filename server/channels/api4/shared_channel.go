@@ -110,7 +110,7 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 		return
 	}
 
-	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil {
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, true); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -154,7 +154,7 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil || rc.DeleteAt != 0 {
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false); appErr != nil {
 		c.SetInvalidRemoteIdError(c.Params.RemoteId)
 		return
 	}
@@ -201,7 +201,7 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil || rc.DeleteAt != 0 {
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false); appErr != nil {
 		c.SetInvalidRemoteIdError(c.Params.RemoteId)
 		return
 	}
