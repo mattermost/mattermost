@@ -1,16 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    ActionTypes,
-    Constants,
-    ModalIdentifiers,
-    RHSStates,
-    StoragePrefixes,
-} from 'utils/constants';
-import {matchEmoticons} from 'utils/emoticons';
-import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
-
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
@@ -49,6 +39,16 @@ import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/r
 import {getGlobalItem} from 'selectors/storage';
 
 import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
+
+import {
+    ActionTypes,
+    Constants,
+    ModalIdentifiers,
+    RHSStates,
+    StoragePrefixes,
+} from 'utils/constants';
+import {matchEmoticons} from 'utils/emoticons';
+import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 

@@ -211,6 +211,9 @@ const state: GlobalState = {
                 teamsLoaded: false,
             },
         },
+        scheduledPosts: {
+            byTeamId: {},
+        },
     },
     errors: [],
     requests: {
