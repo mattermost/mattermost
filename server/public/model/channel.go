@@ -356,26 +356,13 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	return otherUserId
 }
 
-func (o *Channel) Sanitize() {
-	// the only properties that are not cleared.
-	// Id, TeamId, Type, DisplayName
-	o.CreateAt = 0
-	o.UpdateAt = 0
-	o.DeleteAt = 0
-	o.Name = ""
-	o.Header = ""
-	o.Purpose = ""
-	o.LastPostAt = 0
-	o.TotalMsgCount = 0
-	o.ExtraUpdateAt = 0
-	o.CreatorId = ""
-	o.SchemeId = nil
-	o.Props = nil
-	o.GroupConstrained = nil
-	o.Shared = nil
-	o.TotalMsgCountRoot = 0
-	o.PolicyID = nil
-	o.LastRootPostAt = 0
+func (o *Channel) Sanitize() Channel {
+	return Channel{
+		Id:          o.Id,
+		TeamId:      o.TeamId,
+		Type:        o.Type,
+		DisplayName: o.DisplayName,
+	}
 }
 
 func (t ChannelType) MarshalJSON() ([]byte, error) {

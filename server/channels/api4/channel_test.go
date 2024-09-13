@@ -1405,7 +1405,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.True(t, found)
 	})
 
-	t.Run("verify correct sanization", func(t *testing.T) {
+	t.Run("verify correct sanitization", func(t *testing.T) {
 		channels, resp, err := th.SystemAdminClient.GetAllChannels(context.Background(), 0, 10000, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -1922,7 +1922,7 @@ func TestSearchAllChannels(t *testing.T) {
 		require.True(t, found)
 	})
 
-	t.Run("verify correct sanization", func(t *testing.T) {
+	t.Run("verify correct sanitization", func(t *testing.T) {
 		channels, resp, err := th.SystemAdminClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)

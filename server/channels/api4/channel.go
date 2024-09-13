@@ -823,7 +823,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels = SanitizeChannels(c, channels)
+	channels = sanitizeAllChannelsResponse(c, channels)
 
 	if c.Params.IncludeTotalCount {
 		totalCount, err := c.App.GetAllChannelsCount(c.AppContext, opts)
@@ -846,13 +846,13 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SanitizeChannels(c *Context, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
+func sanitizeAllChannelsResponse(c *Context, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
 		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
 		model.PermissionSysconsoleReadUserManagementChannels,
 	}) {
 		for _, channel := range channels {
-			channel.Channel.Sanitize()
+			channel.Channel = channel.Channel.Sanitize()
 		}
 	}
 	return channels
@@ -1308,7 +1308,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels = SanitizeChannels(c, channels)
+	channels = sanitizeAllChannelsResponse(c, channels)
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 	if props.Page != nil && props.PerPage != nil {
