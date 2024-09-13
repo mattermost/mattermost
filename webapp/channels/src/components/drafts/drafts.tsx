@@ -115,8 +115,8 @@ function Drafts({
                     eventKey={1}
                     title={(
                         <FormattedMessage
-                            id='drafts.heading'
-                            defaultMessage='Drafts'
+                            id='schedule_post.tab.title'
+                            defaultMessage='Scheduled'
                         />
                     )}
                     unmountOnExit={false}
