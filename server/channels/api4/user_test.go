@@ -283,7 +283,7 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 			ruser.Email = th.GenerateTestEmail()
 			ruser.Password = tc.Password
 			ruser.Username = GenerateTestUsername()
-			if _, resp, err := th.Client.CreateUser(&ruser); tc.ExpectedError == "" {
+			if _, resp, err := th.Client.CreateUser(context.Background(), &ruser); tc.ExpectedError == "" {
 				assert.NoError(t, err)
 			} else {
 				CheckErrorID(t, err, tc.ExpectedError)
