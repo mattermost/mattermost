@@ -121,6 +121,36 @@ func (_m *SessionStore) GetLRUSessions(c request.CTX, userID string, limit uint6
 	return r0, r1
 }
 
+// GetMobileVersions provides a mock function with given fields:
+func (_m *SessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMobileVersions")
+	}
+
+	var r0 []*model.MobileVersionMetric
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.MobileVersionMetric, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []*model.MobileVersionMetric); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.MobileVersionMetric)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSessions provides a mock function with given fields: c, userID
 func (_m *SessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
 	ret := _m.Called(c, userID)

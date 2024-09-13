@@ -164,6 +164,24 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
+	query, args, err := me.getQueryBuilder().
+		Select("COUNT(userid), SPLIT_PART(deviceid, ':', 1) AS platform, COALESCE(props->>'mobile_version','N/A') AS version").
+		From("sessions").
+		GroupBy("platform", "version").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "sessions_tosql")
+	}
+
+	versions := []*model.MobileVersionMetric{}
+	err = me.GetReplicaX().Select(&versions, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed get mobile versions")
+	}
+	return versions, nil
+}
+
 func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {
 	now := model.GetMillis()
 	builder := me.getQueryBuilder().

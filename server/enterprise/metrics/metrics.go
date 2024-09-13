@@ -215,6 +215,7 @@ type MetricsInterfaceImpl struct {
 	MobileClientLoadDuration          *prometheus.HistogramVec
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
+	MobileClientVersionGauge          *prometheus.GaugeVec
 }
 
 func init() {
@@ -1335,6 +1336,17 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
+	m.MobileClientVersionGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_versions",
+			Help:      "The number of mobile devices in each version",
+		},
+		[]string{"version", "platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientVersionGauge)
+
 	return m
 }
 
@@ -1848,6 +1860,14 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platfor
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientVersions(version string, platform string, value float64) {
+	mi.MobileClientVersionGauge.With(prometheus.Labels{"version": version, "platform": platform}).Set(value)
+}
+
+func (mi *MetricsInterfaceImpl) ClearMobileClientVersions() {
+	mi.MobileClientVersionGauge.Reset()
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

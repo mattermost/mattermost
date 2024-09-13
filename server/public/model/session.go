@@ -39,6 +39,12 @@ const (
 //msgp:tuple StringMap
 type StringMap map[string]string
 
+type MobileVersionMetric struct {
+	Version  string
+	Platform string
+	Count    float64
+}
+
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
