@@ -206,7 +206,7 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 				Number:        model.NewBool(false),
 				Symbol:        model.NewBool(false),
 			},
-			ExpectedError: "model.user.is_valid.pwd.app_error",
+			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
 		},
 		"TooLong": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
@@ -216,7 +216,7 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 				Number:    model.NewBool(false),
 				Symbol:    model.NewBool(false),
 			},
-			ExpectedError: "model.user.is_valid.pwd.app_error",
+			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
 		},
 		"MissingLower": {
 			Password: "AAAAAAAAAAASD123!@#",
