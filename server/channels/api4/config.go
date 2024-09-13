@@ -205,7 +205,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&diffs)
 
-	newCfg.Sanitize()
+	c.App.SanitizedConfig(newCfg)
 
 	cfg, err = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
@@ -355,7 +355,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(&diffs)
 
-	newCfg.Sanitize()
+	c.App.SanitizedConfig(newCfg)
 
 	auditRec.Success()
 
