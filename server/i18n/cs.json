@@ -7746,5 +7746,161 @@
   {
     "id": "api.remote_cluster.encrypt_invite_error",
     "translation": "Nepodařilo se zašifrovat pozvání do vzdáleného clusteru pomocí zadaného hesla"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Odkaz pro resetování hesla vyprší za 24 hodin."
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Klikněte na tlačítko níže pro obnovení hesla. Pokud jste o reset nepožádali, tento e-mail můžete ignorovat."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Ke stažení"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Děkujeme, že jste se připojili. "
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Pokud jste to nebyli vy, můžete tento e-mail ignorovat."
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Nepodařilo se odstranit token při zneplatňování tokenů pro obnovení hesla"
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Pole '{{.Field}}' musí být nastaveno prostřednictvím poskytovatele přihlášení uživatele."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Přenos autentizace není k dispozici, protože registrace e-mailem je zakázána."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Přenos autentizace není k dispozici, protože není povoleno ani přihlášení e-mailem, ani přihlášení pomocí uživatelského jména."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Nelze vytvořit uživatele. Server překročil bezpečný limit uživatelů. Kontaktujte svého správce s chybovým kódem: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Došlo k interní chybě při ukládání hesla."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Pokud jste o to nežádali vy, můžete tento e-mail bez obav ignorovat."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "E-mailová adresa v tokenu se neshoduje s e-mailovou adresou v údajích o uživateli."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, vaše předplatné vyprší za {{.Days}} dnů. Doufáme, že si užíváte flexibilní a bezpečnou týmovou spolupráci, kterou Mattermost nabízí. Obnovte jej co nejdříve, aby váš tým mohl nadále využívat tyto výhody."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Klikněte níže pro ověření své e-mailové adresy."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "Odpověď SAML je příliš dlouhá"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Vaše předplatné služby Mattermost čeká na obnovení"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Otázky?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Potřebujete pomoc nebo máte dotazy? Napište nám na "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Děkujeme, že jste se připojili "
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Klikněte níže pro ověření své e-mailové adresy."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "Není uživatelem LDAP"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Nepodařilo se odstranit token při zneplatňování tokenů pro ověření e-mailu"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Nepodařilo se získat tokeny podle typu při zneplatňování tokenů pro ověření e-mailu"
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Pole '{{.Field}}' musí být nastaveno prostřednictvím poskytovatele přihlášení uživatele."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Nepodařilo se odeslat uvítací e-mail na cloud"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Kontrola limitů obrázku selhala. Rozlišení je příliš vysoké."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Stáhněte si desktopové a mobilní aplikace"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Chyba při zpracování."
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Nepodařilo se nahrát soubor. Soubor je příliš velký."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Chyba při ověřování, zda má uživatel vlastní profilový obrázek."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Přihlášení se nezdařilo, protože vzdálení uživatelé nemají povoleno se přihlásit."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Chyba při získávání rolí během ověřování."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Nepodařilo se získat tokeny podle typu při zneplatňování tokenů pro obnovení hesla"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Nepodařilo se zpracovat token při zneplatňování tokenů pro ověření e-mailu"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Nepodařilo se zpracovat token při zneplatňování tokenů pro obnovení hesla"
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Uživatel není OAuth nebo SAML uživatel."
   }
 ]
