@@ -46,6 +46,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, rctx, ss, s) })
 	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, rctx, ss, s) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, rctx, ss) })
+	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t, rctx, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, rctx, ss) })
 	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, rctx, ss) })
 	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, rctx, ss) })
@@ -4486,6 +4487,39 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX,
 	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
 	require.Equal(t, count, newCount-1, "Expected 1 more inactive users but found otherwise.")
+}
+
+func testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+
+	count, err := ss.User().AnalyticsGetInactiveUsersCount()
+	require.NoError(t, err)
+
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.DeleteAt = model.GetMillis()
+	_, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+	_, nErr := ss.Bot().Save(&model.Bot{
+		UserId:   u2.Id,
+		Username: u2.Username,
+		OwnerId:  u2.Id,
+	})
+	require.NoError(t, nErr)
+	u2.IsBot = true
+
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u2.Id)) }()
+
+	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
+	require.NoError(t, err)
+	require.Equal(t, count, newCount, "Expected same inactive users but found otherwise.")
 }
 
 func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, rctx request.CTX, ss store.Store) {
