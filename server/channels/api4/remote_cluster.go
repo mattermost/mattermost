@@ -325,6 +325,7 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 		PluginID:       c.Params.PluginId,
 		OnlyPlugins:    c.Params.OnlyPlugins,
 		ExcludePlugins: c.Params.ExcludePlugins,
+		IncludeDeleted: c.Params.IncludeDeleted,
 	}
 
 	rcs, appErr := c.App.GetAllRemoteClusters(c.Params.Page, c.Params.PerPage, filter)
@@ -538,7 +539,9 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(inviteCode))
+	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -662,5 +665,5 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
