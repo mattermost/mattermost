@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -257,8 +258,17 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 
 func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channel) {
 	scs.platform.InvalidateCacheForChannel(channel)
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
-	messageWs.Add("channel_id", channel.Id)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
+	channelJSON, err := json.Marshal(channel)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+	messageWs.Add("channel", string(channelJSON))
+
 	scs.app.Publish(messageWs)
 }
 
