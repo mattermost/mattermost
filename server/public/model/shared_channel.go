@@ -110,6 +110,7 @@ type SharedChannelRemote struct {
 	CreatorId         string `json:"creator_id"`
 	CreateAt          int64  `json:"create_at"`
 	UpdateAt          int64  `json:"update_at"`
+	DeleteAt          int64  `json:"delete_at"`
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
@@ -265,6 +266,7 @@ type SharedChannelRemoteFilterOpts struct {
 	InclUnconfirmed bool
 	ExcludeHome     bool
 	ExcludeRemote   bool
+	IncludeDeleted  bool
 }
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
