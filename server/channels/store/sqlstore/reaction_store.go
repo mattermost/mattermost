@@ -357,7 +357,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to retrieve rows affected")
+		return 0, errors.Wrap(err, "unable to retrieve rows affected")
 	}
 
 	return rowsAffected, nil
