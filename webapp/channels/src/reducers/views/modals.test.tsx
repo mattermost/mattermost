@@ -2,22 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { Modal } from 'react-bootstrap';
 
-import { modalState as modalStateReducer } from 'reducers/views/modals';
+import {Modal} from 'react-bootstrap';
 
-import { ActionTypes, ModalIdentifiers } from 'utils/constants';
+import {modalState as modalStateReducer} from 'reducers/views/modals';
+
+import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
 const TestModal = () => {
-  return (
-    <Modal
-      show={true}
-      onHide={jest.fn()}
-    >
-      <Modal.Header closeButton={true} />
-      <Modal.Body />
-    </Modal>
-  );
+    return (
+        <Modal
+            show={true}
+            onHide={jest.fn()}
+        >
+            <Modal.Header closeButton={true}/>
+            <Modal.Body/>
+        </Modal>
+    );
 };
 
 describe('Reducers.Modals', () => {

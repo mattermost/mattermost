@@ -30,10 +30,20 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 
 	// if plugin is already registered then treat this as an update.
 	if rc != nil {
-		rctx.Logger().Debug("Plugin already registered for Shared Channels",
-			mlog.String("plugin_id", opts.PluginID),
-			mlog.String("remote_id", rc.RemoteId),
-		)
+		// plugin was deleted at some point
+		if rc.DeleteAt != 0 {
+			rctx.Logger().Debug("Restoring plugin registration for Shared Channels",
+				mlog.String("plugin_id", opts.PluginID),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+
+			rc.DeleteAt = 0
+		} else {
+			rctx.Logger().Debug("Plugin already registered for Shared Channels",
+				mlog.String("plugin_id", opts.PluginID),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+		}
 
 		rc.DisplayName = opts.Displayname
 		rc.Options = opts.GetOptionFlags()
@@ -80,6 +90,11 @@ func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
 		return err
+	}
+
+	if rc.DeleteAt != 0 {
+		// plugin already unregistered, nothing to do
+		return nil
 	}
 
 	_, appErr := a.DeleteRemoteCluster(rc.RemoteId)

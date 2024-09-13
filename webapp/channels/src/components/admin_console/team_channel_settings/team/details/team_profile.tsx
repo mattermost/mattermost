@@ -71,7 +71,6 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     hint={defineMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
                     placement='bottom'
                 >
-                    {/* OverlayTrigger doesn't play nicely with `disabled` buttons, because the :hover events don't fire. This is a workaround to ensure the popover appears see: https://github.com/react-bootstrap/react-bootstrap/issues/1588*/}
                     <div
                         className={'disabled-overlay-wrapper'}
                     >

@@ -196,25 +196,32 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
-	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.ClearUserSessionCache(userID)
-
-	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
+	ps.InvalidateChannelCacheForUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
 }
 
-func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
-	ps.invalidateWebConnSessionCacheForUser(userID)
-	ps.Store.Team().InvalidateAllTeamIdsForUser(userID)
-
+func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
+	ps.invalidateWebConnSessionCacheForUserSkipClusterSend(userID)
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.ClusterEventInvalidateCacheForUserTeams,
+			Event:    model.ClusterEventInvalidateWebConnCacheForUser,
 			SendType: model.ClusterSendBestEffort,
 			Data:     []byte(userID),
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
+}
+
+func (ps *PlatformService) InvalidateChannelCacheForUser(userID string) {
+	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
+	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
+}
+
+func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
+	ps.invalidateWebConnSessionCacheForUser(userID)
+	// This method has its own cluster broadcast hidden inside localcachelayer.
+	ps.Store.Team().InvalidateAllTeamIdsForUser(userID)
 }
 
 // UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
