@@ -305,10 +305,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
 
     const getManagedByLDAPText = (managedByLDAP: boolean) => {
         return managedByLDAP ? {
-            trailingElements: `(${formatMessage({
+            trailingElements: formatMessage({
                 id: 'admin.system_users.list.actions.menu.managedByLdap',
                 defaultMessage: 'Managed by LDAP',
-            })})`,
+            }),
         } : {};
     };
 
