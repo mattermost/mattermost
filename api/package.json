@@ -7,7 +7,7 @@
     "@redocly/cli": "^1.13.0",
     "swagger-cli": "4.0.4",
     "sync-fetch": "0.4.1",
-    "yaml": "2.1.1"
+    "yaml": "2.2.2"
   },
   "overrides": {
     "node-fetch": {
