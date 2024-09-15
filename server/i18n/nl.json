@@ -10172,5 +10172,9 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "Kan lidmaatschap voor dit draadje niet opslaan voor bericht."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "De grootte van de geüploade plugin overschrijdt de limiet. Deze limiet kan worden gewijzigd in de Systeemconsole via Bestandsopslag > Maximale bestandsgrootte"
   }
 ]
