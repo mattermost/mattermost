@@ -64,7 +64,7 @@ const useSubmit = (
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
     afterSubmit?: (response: SubmitPostReturnType) => void,
 ): [
-        (e: React.FormEvent, submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
+        (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
@@ -118,9 +118,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (e?: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
-        e?.preventDefault();
-
+    const doSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -210,11 +208,11 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
+    const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (!channel) {
             return;
         }
-        e.preventDefault();
+
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
@@ -243,7 +241,7 @@ const useSubmit = (
             channelTimezoneCount = data ? data.length : 0;
         }
 
-        const onConfirm = () => doSubmit(e, submittingDraft, schedulingInfo);
+        const onConfirm = () => doSubmit(submittingDraft, schedulingInfo);
         if (prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;
             return;
@@ -309,7 +307,7 @@ const useSubmit = (
             }
         }
 
-        await doSubmit(e, submittingDraft, schedulingInfo);
+        await doSubmit(submittingDraft, schedulingInfo);
     }, [
         doSubmit,
         draft,

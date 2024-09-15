@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Badge} from '@mui/base';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -8,6 +9,7 @@ import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
@@ -20,14 +22,10 @@ import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 import Header from 'components/widgets/header';
 
+import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
-import type {GlobalState} from 'types/store';
-
-import {getScheduledPostsByTeam} from 'selectors/scheduled_posts';
-
-import {Badge} from '@mui/base';
 
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
@@ -55,6 +53,7 @@ function Drafts({
     const isScheduledPostsTab = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
 
     const currentTeamId = useSelector(getCurrentTeamId);
+    const getScheduledPostsByTeam = makeGetScheduledPostsByTeam();
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
     useEffect(() => {
@@ -123,10 +122,12 @@ function Drafts({
             <Header
                 level={2}
                 className='Drafts__header'
-                heading={formatMessage({
-                    id: 'drafts.heading',
-                    defaultMessage: 'Drafts',
-                })}
+                heading={(
+                    <FormattedMessage
+                        id='drafts.heading'
+                        defaultMessage='Drafts'
+                    />
+                )}
                 subtitle={formatMessage({
                     id: 'drafts.subtitle',
                     defaultMessage: 'Any messages you\'ve started will show here',
@@ -142,7 +143,7 @@ function Drafts({
             >
                 <Tab
                     eventKey={0}
-                    title={draftTabHeading}
+                    title={scheduledPostsTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
@@ -157,7 +158,7 @@ function Drafts({
 
                 <Tab
                     eventKey={1}
-                    title={scheduledPostsTabHeading}
+                    title={draftTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >

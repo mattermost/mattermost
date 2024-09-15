@@ -38,14 +38,14 @@
         .nav.nav-tabs {
             .drafts_tab {
                 .badge {
-                    height: 14px;
-                    font-size: 11px;
-                    background: rgba(var(--center-channel-color-rgb), 0.2);
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    display: inline-block;
-                    margin-left: 6px;
                     position: relative;
                     top: -2px;
+                    display: inline-block;
+                    height: 14px;
+                    margin-left: 6px;
+                    background: rgba(var(--center-channel-color-rgb), 0.2);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    font-size: 11px;
                 }
 
                 &.active {
@@ -58,7 +58,7 @@
         }
     }
 
-    span.MuiBadge-badge {top: -2px;position: relative;}
+    span.MuiBadge-badge {position: relative;top: -2px;}
 
     @media screen and (max-width: 768px) {
         grid-template-rows: 0 1fr;

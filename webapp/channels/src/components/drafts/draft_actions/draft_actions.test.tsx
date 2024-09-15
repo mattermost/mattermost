@@ -13,6 +13,7 @@ describe('components/drafts/draft_actions', () => {
     const baseProps = {
         displayName: '',
         draftId: '',
+        itemId: '',
         onDelete: jest.fn(),
         onEdit: jest.fn(),
         onSend: jest.fn(),

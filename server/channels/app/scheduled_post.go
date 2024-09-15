@@ -43,13 +43,6 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 }
 
 func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError) {
-	if teamId != "" {
-		hasPermissionToTeam := a.HasPermissionToTeam(rctx, userId, teamId, model.PermissionViewTeam)
-		if !hasPermissionToTeam {
-			return nil, model.NewAppError("App.GetUserTeamScheduledPosts", "app.get_user_team_scheduled_posts.team_permission_error", map[string]any{"user_id": userId, "team_id": teamId}, "", http.StatusForbidden)
-		}
-	}
-
 	scheduledPosts, err := a.Srv().Store().ScheduledPost().GetScheduledPostsForUser(userId, teamId)
 	if err != nil {
 		return nil, model.NewAppError("App.GetUserTeamScheduledPosts", "app.get_user_team_scheduled_posts.error", map[string]any{"user_id": userId, "team_id": teamId}, "", http.StatusInternalServerError)

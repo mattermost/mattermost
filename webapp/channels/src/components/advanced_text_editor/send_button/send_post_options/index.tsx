@@ -4,30 +4,60 @@
 import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {openModal} from 'actions/views/modals';
+
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
+import {ModalIdentifiers} from 'utils/constants';
+
 import './style.scss';
+import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
 type Props = {
+    channelId: string;
     disabled?: boolean;
-    onSelect: (e: React.FormEvent, schedulingInfo: SchedulingInfo) => void;
+    onSelect: (schedulingInfo: SchedulingInfo) => void;
 }
 
-export function SendPostOptions({disabled, onSelect}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: scheduledAt,
         };
 
-        onSelect(e, schedulingInfo);
+        onSelect(schedulingInfo);
     }, [onSelect]);
+
+    const handleSelectCustomTime = useCallback((scheduledAt: number) => {
+        const schedulingInfo: SchedulingInfo = {
+            scheduled_at: scheduledAt,
+        };
+
+        onSelect(schedulingInfo);
+    }, [onSelect]);
+
+    const handleChooseCustomTime = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
+            dialogType: ScheduledPostCustomTimeModal,
+            dialogProps: {
+                channelId,
+                onConfirm: handleSelectCustomTime,
+            },
+        }));
+    }, [channelId, dispatch, handleSelectCustomTime]);
 
     const coreMenuOptions = useMemo(() => {
         const today = new Date();
@@ -169,6 +199,8 @@ export function SendPostOptions({disabled, onSelect}: Props) {
             <Menu.Separator/>
 
             <Menu.Item
+                onClick={handleChooseCustomTime}
+                key={'choose_custom_time'}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.choose_custom_time'

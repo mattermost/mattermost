@@ -6,11 +6,11 @@ import {combineReducers} from 'redux';
 
 import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
 
-import {ActionTypes} from 'utils/constants';
+import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 
 function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
     switch (action.type) {
-    case ActionTypes.SCHEDULED_POSTS_RECEIVED: {
+    case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
 
@@ -22,6 +22,8 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
 
         return newState;
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }

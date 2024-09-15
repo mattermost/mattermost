@@ -3,23 +3,40 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {TabsProps} from 'react-bootstrap';
 import {Tabs as ReactBootstrapTabs} from 'react-bootstrap';
+import type {SelectCallback} from 'react-bootstrap';
 
 import './style.scss';
 
-type Props = TabsProps & {
+type Props = {
     children?: React.ReactNode;
+    id?: string;
+    activeKey?: any;
+    mountOnEnter?: boolean;
+    unmountOnExit?: boolean;
+    onSelect?: SelectCallback;
+    className?: string;
 }
 
-export default function Tabs(props: Props) {
-    const className = classNames('tabs', props.className);
+export default function Tabs({
+    children,
+    id,
+    activeKey,
+    unmountOnExit,
+    onSelect,
+    className,
+    mountOnEnter,
+}: Props) {
     return (
         <ReactBootstrapTabs
-            {...props}
-            className={className}
+            id={id}
+            activeKey={activeKey}
+            unmountOnExit={unmountOnExit}
+            onSelect={onSelect}
+            className={classNames('tabs', className)}
+            mountOnEnter={mountOnEnter}
         >
-            {props.children}
+            {children}
         </ReactBootstrapTabs>
     );
 }

@@ -15,14 +15,9 @@ import {makeOnSubmit} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPost} from 'actions/views/rhs';
 
-import type {PostDraft} from 'types/store/draft';
+import DraftListItem from 'components/drafts/list_item/list_item';
 
-import DraftActions from '../draft_actions';
-import DraftTitle from '../draft_title';
-import Panel from '../panel/panel';
-import PanelBody from '../panel/panel_body';
-import Header from '../panel/panel_header';
-import DraftListItem from "components/drafts/list_item/list_item";
+import type {PostDraft} from 'types/store/draft';
 
 type Props = {
     channel?: Channel;

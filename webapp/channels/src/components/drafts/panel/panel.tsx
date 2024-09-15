@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useState} from 'react';
-import {makeIsEligibleForClick} from 'utils/utils';
-import './panel.scss';
 import classNames from 'classnames';
+import React, {memo, useState} from 'react';
+
+import {makeIsEligibleForClick} from 'utils/utils';
+
+import './panel.scss';
 
 type Props = {
     children: ({hover}: {hover: boolean}) => React.ReactNode;

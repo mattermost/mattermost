@@ -8,12 +8,12 @@ import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
 
+import ScheduledPostErrorCodeTag from 'components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
-import ScheduledPostErrorCodeTag from "components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag";
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',

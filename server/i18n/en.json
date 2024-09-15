@@ -1339,7 +1339,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -3759,6 +3759,10 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "Unable to upload file. File is too large."
   },
@@ -5097,10 +5101,6 @@
   {
     "id": "app.get_user_team_scheduled_posts.error",
     "translation": "Error occurred fetching scheduled posts."
-  },
-  {
-    "id": "app.get_user_team_scheduled_posts.team_permission_error",
-    "translation": "you don't have permission for the team"
   },
   {
     "id": "app.group.crud_permission",
@@ -6505,6 +6505,10 @@
   {
     "id": "app.session.save.existing.app_error",
     "translation": "Unable to update existing session."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
   },
   {
     "id": "app.session.update_device_id.app_error",

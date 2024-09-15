@@ -22,6 +22,21 @@
         margin-top: -40px;
     }
 
+    .modal-header {
+        .GenericModal__header__text_container {
+            margin-top: 8px;
+
+            .modal-subheading-container {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+        }
+
+        p#genericModalSubheading {
+            font-size: 12px;
+            margin-block: 10px;
+        }
+    }
+
     .modal-body {
         max-height: 100%;
         padding: 0;

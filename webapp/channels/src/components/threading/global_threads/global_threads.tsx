@@ -8,11 +8,10 @@ import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
-import {PreviousViewedTypes} from 'utils/constants';
-import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
 import {getThreadCounts, getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getScheduledPostsByTeamCount} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getThreadOrderInCurrentTeam,
     getUnreadThreadOrderInCurrentTeam,
@@ -32,6 +31,9 @@ import LocalStorageStore from 'stores/local_storage_store';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
+import {PreviousViewedTypes} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+
 import type {GlobalState} from 'types/store/index';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
@@ -43,7 +45,6 @@ import {useThreadRouting} from '../hooks';
 import ThreadViewer from '../thread_viewer';
 
 import './global_threads.scss';
-import {getScheduledPostsByTeamCount} from 'selectors/scheduled_posts';
 
 const GlobalThreads = () => {
     const {formatMessage} = useIntl();

@@ -60,6 +60,11 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	teamId := c.Params.TeamId
 	userId := c.AppContext.Session().UserId
 
@@ -82,7 +87,6 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		response["directChannels"] = directChannelScheduledPosts
 	}
 
-	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		mlog.Error("failed to encode scheduled posts to return API response", mlog.Err(err))
 		return
