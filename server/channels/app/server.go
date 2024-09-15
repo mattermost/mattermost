@@ -100,7 +100,7 @@ type Server struct {
 	Router *mux.Router
 
 	Server      *http.Server
-	ListenAddr  *net.TCPAddr
+	ListenAddr  net.Addr
 	RateLimiter *RateLimiter
 
 	localModeServer *http.Server
@@ -952,11 +952,15 @@ func (s *Server) Start() error {
 		}
 	}
 
-	listener, err := net.Listen("tcp", addr)
+	protocol := "tcp"
+	if strings.HasPrefix(addr, "/") {
+		protocol = "unix"
+	}
+	listener, err := net.Listen(protocol, addr)
 	if err != nil {
 		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
-	s.ListenAddr = listener.Addr().(*net.TCPAddr)
+	s.ListenAddr = listener.Addr()
 
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
