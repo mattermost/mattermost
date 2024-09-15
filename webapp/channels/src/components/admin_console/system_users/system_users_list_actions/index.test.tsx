@@ -22,7 +22,6 @@ jest.mock('mattermost-redux/selectors/entities/roles_helpers', () => ({
 
 jest.mock('mattermost-redux/selectors/entities/common', () => {
     const {TestHelper} = jest.requireActual('utils/test_helper');
-
     const currentUser = TestHelper.getUserMock({
         id: 'other_user_id',
         roles: 'system_admin',
@@ -38,9 +37,6 @@ jest.mock('mattermost-redux/selectors/entities/common', () => {
 describe('SystemUsersListAction Component', () => {
     const onError = jest.fn();
     const updateUser = jest.fn();
-    beforeEach(() => {
-        (haveISystemPermission as jest.Mock).mockImplementation(() => true);
-    });
 
     const currentUser = TestHelper.getUserMock({
         id: 'other_user_id',
@@ -51,6 +47,14 @@ describe('SystemUsersListAction Component', () => {
     const user = Object.assign(TestHelper.getUserMock(), {auth_service: 'email'}) as UserProfile;
     const ldapUser = {...user, auth_service: Constants.LDAP_SERVICE} as UserProfile;
     const deactivatedLDAPUser = {...user, auth_service: Constants.LDAP_SERVICE, delete_at: 12345} as UserProfile;
+
+    beforeEach(() => {
+        (haveISystemPermission as jest.Mock).mockImplementation(() => true);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
     const renderComponent = (authServiceUser: UserProfile) => {
         renderWithContext(
@@ -65,103 +69,47 @@ describe('SystemUsersListAction Component', () => {
         );
     };
 
+    const openMenuAndFindItem = async (buttonText: string, itemText: RegExp) => {
+        const menuButton = screen.getByText(buttonText);
+        await userEvent.click(menuButton);
+        await waitFor(() => {
+            expect(screen.getByRole('menuitem', {name: itemText})).toBeInTheDocument();
+        });
+        return screen.findByRole('menuitem', {name: itemText});
+    };
+
+    const verifyDisabledMenuItem = (menuItem: HTMLElement, disabledText: RegExp) => {
+        expect(menuItem).toHaveAttribute('aria-disabled', 'true');
+        expect(menuItem).toHaveClass('Mui-disabled');
+        expect(within(menuItem).getByText(disabledText)).toBeInTheDocument();
+    };
+
     test('Deactivate button is disabled and contains the Managed by LDAP text when user authmethod is LDAP', async () => {
         renderComponent(ldapUser);
 
-        // Find and click the menu button to open the menu
-        const menuButton = screen.getByText('Member');
+        const deactivateMenuItem = await openMenuAndFindItem('Member', /deactivate/i);
 
-        await userEvent.click(menuButton);
-        expect(
-            await screen.findByRole('menuitem', {name: /deactivate/i}),
-        ).toBeInTheDocument();
-
-        // screen.debug();
-
-        userEvent.click(menuButton);
-
-        // Wait for the menu to open and find the "Activate" menu item
-        await waitFor(() => {
-            expect(screen.getByRole('menuitem', {name: /deactivate/i})).toBeInTheDocument();
-        });
-
-        // Verify the "Deactivate" menu item is present
-        const deactivateMenuItem = await screen.findByRole('menuitem', {name: /deactivate/i});
-
-        // Check if the aria-disabled is true
-        expect(deactivateMenuItem).toHaveAttribute('aria-disabled', 'true');
-
-        // Check if the class includes 'Mui-disabled'
-        expect(deactivateMenuItem).toHaveClass('Mui-disabled');
-
-        // Check if the trailing element contains "Managed by LDAP"
-        expect(within(deactivateMenuItem).getByText(/Managed by LDAP/i)).toBeInTheDocument();
+        // Verify that the item is disabled and contains "Managed by LDAP"
+        verifyDisabledMenuItem(deactivateMenuItem, /Managed by LDAP/i);
     });
 
     test('Activate button is disabled and contains the Managed by LDAP text when user authmethod is LDAP', async () => {
         renderComponent(deactivatedLDAPUser);
 
-        // Find and click the menu button to open the menu
-        const menuButton = screen.getByText('Deactivated');
+        const activateMenuItem = await openMenuAndFindItem('Deactivated', /activate/i);
 
-        await userEvent.click(menuButton);
-        expect(
-            await screen.findByRole('menuitem', {name: /activate/i}),
-        ).toBeInTheDocument();
-
-        // screen.debug();
-
-        userEvent.click(menuButton);
-
-        // Wait for the menu to open and find the "Activate" menu item
-        await waitFor(() => {
-            expect(screen.getByRole('menuitem', {name: /activate/i})).toBeInTheDocument();
-        });
-
-        // Verify the "Activate" menu item is present
-        const activateMenuItem = await screen.findByRole('menuitem', {name: /activate/i});
-
-        // Check if the aria-disabled is true
-        expect(activateMenuItem).toHaveAttribute('aria-disabled', 'true');
-
-        // Check if the class includes 'Mui-disabled'
-        expect(activateMenuItem).toHaveClass('Mui-disabled');
-
-        // Check if the trailing element contains "Managed by LDAP"
-        expect(within(activateMenuItem).getByText(/Managed by LDAP/i)).toBeInTheDocument();
+        // Verify that the item is disabled and contains "Managed by LDAP"
+        verifyDisabledMenuItem(activateMenuItem, /Managed by LDAP/i);
     });
 
-    test('element is enabled and that DO NOT contain the Managed by LDAP text when user authmethod is NOT LDAP', async () => {
+    test('element is enabled and does NOT contain the Managed by LDAP text when user authmethod is NOT LDAP', async () => {
         renderComponent(user);
 
-        // Find and click the menu button to open the menu
-        const menuButton = screen.getByText('Member');
+        const deactivateMenuItem = await openMenuAndFindItem('Member', /deactivate/i);
 
-        await userEvent.click(menuButton);
-        expect(
-            await screen.findByRole('menuitem', {name: /deactivate/i}),
-        ).toBeInTheDocument();
-
-        // screen.debug();
-
-        userEvent.click(menuButton);
-
-        // Wait for the menu to open and find the "Activate" menu item
-        await waitFor(() => {
-            expect(screen.getByRole('menuitem', {name: /deactivate/i})).toBeInTheDocument();
-        });
-
-        // Verify the "Deactivate" menu item is present
-        const deactivateMenuItem = await screen.findByRole('menuitem', {name: /deactivate/i});
-
-        // Check if the aria-disabled is true
+        // Check if the item is enabled and does NOT contain "Managed by LDAP"
         expect(deactivateMenuItem).not.toHaveAttribute('aria-disabled', 'true');
-
-        // Check if the class includes 'Mui-disabled'
         expect(deactivateMenuItem).not.toHaveClass('Mui-disabled');
-
-        // Check if the trailing element does NOT contain "Managed by LDAP"
         expect(within(deactivateMenuItem).queryByText(/Managed by LDAP/i)).not.toBeInTheDocument();
     });
 });
-
