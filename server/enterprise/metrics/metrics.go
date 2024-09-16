@@ -1341,9 +1341,9 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
 			Name:      "mobile_versions",
-			Help:      "The number of mobile devices in each version",
+			Help:      "The number of mobile devices in each version and whether they have the notifications disabled",
 		},
-		[]string{"version", "platform"},
+		[]string{"version", "platform", "notificationsDisabled"},
 	)
 	m.Registry.MustRegister(m.MobileClientVersionGauge)
 
@@ -1862,8 +1862,8 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform s
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientVersions(version string, platform string, value float64) {
-	mi.MobileClientVersionGauge.With(prometheus.Labels{"version": version, "platform": platform}).Set(value)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientVersions(version string, platform string, value float64, notificationDisabled string) {
+	mi.MobileClientVersionGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
 }
 
 func (mi *MetricsInterfaceImpl) ClearMobileClientVersions() {

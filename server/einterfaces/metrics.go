@@ -119,5 +119,5 @@ type MetricsInterface interface {
 	ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64)
 	ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64)
 	ClearMobileClientVersions()
-	ObserveMobileClientVersions(version string, platform string, value float64)
+	ObserveMobileClientVersions(version string, platform string, value float64, notificationDisabled string)
 }

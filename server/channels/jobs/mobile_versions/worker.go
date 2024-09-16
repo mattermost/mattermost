@@ -32,7 +32,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() 
 
 		metrics.ClearMobileClientVersions()
 		for _, v := range versions {
-			metrics.ObserveMobileClientVersions(v.Version, v.Platform, v.Count)
+			metrics.ObserveMobileClientVersions(v.Version, v.Platform, v.Count, v.NotificationDisabled)
 		}
 
 		return nil

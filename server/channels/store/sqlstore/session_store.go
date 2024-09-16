@@ -166,9 +166,13 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 
 func (me SqlSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
 	query, args, err := me.getQueryBuilder().
-		Select("COUNT(userid), SPLIT_PART(deviceid, ':', 1) AS platform, COALESCE(props->>'mobile_version','N/A') AS version").
+		Select(fmt.Sprintf(
+			"COUNT(userid), SPLIT_PART(deviceid, ':', 1) AS platform, COALESCE(props->>'%s','N/A') AS version, COALESCE(props->>'%s','false') as notificationDisabled",
+			model.SessionPropMobileVersion,
+			model.SessionPropDeviceNotificationDisabled,
+		)).
 		From("sessions").
-		GroupBy("platform", "version").
+		GroupBy("platform", "version", "notificationsDisabled").
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")

@@ -40,9 +40,10 @@ const (
 type StringMap map[string]string
 
 type MobileVersionMetric struct {
-	Version  string
-	Platform string
-	Count    float64
+	Version              string
+	Platform             string
+	Count                float64
+	NotificationDisabled string
 }
 
 // Session contains the user session details.
