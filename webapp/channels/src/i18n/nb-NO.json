@@ -453,7 +453,6 @@
   "admin.experimental.emailBatchingInterval.example": "F.eks.: \"30\"",
   "admin.experimental.emailBatchingInterval.title": "E-postbatchingsintervall:",
   "admin.experimental.enableOnboardingFlow.title": "Aktiver onboarding:",
-  "admin.experimental.enableSharedChannels.title": "Aktiver delte kanaler:",
   "admin.experimental.enableTutorial.title": "Aktiver veiledning:",
   "admin.experimental.enableUserDeactivation.title": "Aktiver kontodeaktivering:",
   "admin.experimental.enableUserTypingMessages.title": "Aktiver bruker skriver meldinger:",
