@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedule_post';
+import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
 
 import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 

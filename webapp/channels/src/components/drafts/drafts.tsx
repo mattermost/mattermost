@@ -50,6 +50,7 @@ function Drafts({
     const history = useHistory();
     const match: match<{team: string}> = useRouteMatch();
     const isDraftsTab = useRouteMatch('/:team/drafts');
+
     const isScheduledPostsTab = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
 
     const currentTeamId = useSelector(getCurrentTeamId);
@@ -66,35 +67,12 @@ function Drafts({
     }, [dispatch]);
 
     const handleSwitchTabs = useCallback((key) => {
-        switch (key) {
-        case 0:
-            if (!isDraftsTab) {
-                history.push(`/${match.params.team}/drafts`);
-            }
-            break;
-        case 1:
-            if (!isScheduledPostsTab) {
-                history.push(`/${match.params.team}/${SCHEDULED_POST_URL_SUFFIX}`);
-            }
-            break;
+        if (key === 0 && isScheduledPostsTab) {
+            history.push(`/${match.params.team}/drafts`);
+        } else if (key === 1 && isDraftsTab) {
+            history.push(`/${match.params.team}/scheduled_posts`);
         }
     }, [history, isDraftsTab, isScheduledPostsTab, match]);
-
-    const draftTabHeading = useMemo(() => {
-        return (
-            <div className='drafts_tab_title'>
-                <FormattedMessage
-                    id='drafts.heading'
-                    defaultMessage='Drafts'
-                />
-
-                <Badge
-                    className='badge'
-                    badgeContent={drafts.length}
-                />
-            </div>
-        );
-    }, [drafts.length]);
 
     const scheduledPostsTabHeading = useMemo(() => {
         return (
@@ -104,13 +82,35 @@ function Drafts({
                     defaultMessage='Scheduled'
                 />
 
-                <Badge
-                    className='badge'
-                    badgeContent={scheduledPosts?.length}
-                />
+                {
+                    scheduledPosts?.length > 0 &&
+                    <Badge
+                        className='badge'
+                        badgeContent={scheduledPosts.length}
+                    />
+                }
             </div>
         );
     }, [scheduledPosts?.length]);
+
+    const draftTabHeading = useMemo(() => {
+        return (
+            <div className='drafts_tab_title'>
+                <FormattedMessage
+                    id='drafts.heading'
+                    defaultMessage='Drafts'
+                />
+
+                {
+                    drafts.length > 0 &&
+                    <Badge
+                        className='badge'
+                        badgeContent={drafts.length}
+                    />
+                }
+            </div>
+        );
+    }, [drafts?.length]);
 
     const activeTab = isDraftsTab ? 0 : 1;
 

@@ -23,6 +23,7 @@ export function createSchedulePost(schedulePost: ScheduledPost, teamId: string, 
             });
 
             return {data: createdPost};
+
         } catch (error) {
             return {
                 error,
