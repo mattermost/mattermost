@@ -3470,6 +3470,7 @@
   "dnd_custom_time_picker_modal.defaultMsg": "Disable notifications until",
   "dnd_custom_time_picker_modal.submitButton": "Disable Notifications",
   "dnd_custom_time_picker_modal.time": "Time",
+  "draft.send.error": "There has been an error while sending this draft: {error}",
   "drafts.actions.delete": "Delete draft",
   "drafts.actions.edit": "Edit draft",
   "drafts.actions.send": "Send draft",

@@ -20,11 +20,11 @@
     }
 
     .draftError {
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        padding: 0 16px;
+        display: flex;
         min-height: 40px;
         align-items: center;
-        display: flex;
+        padding: 0 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         color: var(--error-text);
     }
 }
