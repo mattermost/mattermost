@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {SchemaMigration} from '@mattermost/types/admin';
@@ -11,7 +11,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import './migrations_table.scss';
 
-export type Props = {
+type Props = {
     createHelpText: React.ReactElement;
     className?: string;
     actions: {
@@ -19,72 +19,68 @@ export type Props = {
     };
 }
 
-type State = {
-    migrations: SchemaMigration[];
-}
+const MigrationsTable = ({
+    createHelpText,
+    className,
+    actions,
+}: Props) => {
+    const [migrations, setMigrations] = useState<SchemaMigration[]>([]);
 
-class MigrationsTable extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            migrations: [],
-        };
-    }
+    useEffect(() => {
+        async function handleGetAppliedSchemaMigrations() {
+            const result: ActionResult = await actions.getAppliedSchemaMigrations();
+            if (result.data) {
+                setMigrations(result.data);
+            }
+        }
 
-    componentDidMount() {
-        this.props.actions.getAppliedSchemaMigrations().then((result) => {
-            this.setState({
-                migrations: result.data,
-            });
-        });
-    }
+        handleGetAppliedSchemaMigrations();
+    }, []);
 
-    render() {
-        const items = this.state.migrations.map((migration) => {
-            return (
-                <tr
-                    key={migration.version}
-                >
-                    <td className='whitespace--nowrap'>{migration.version}</td>
-                    <td className='whitespace--nowrap'>{migration.name}</td>
-                </tr>
-            );
-        });
-
+    const items = useMemo(() => migrations.map((migration) => {
         return (
-            <div className={classNames('MigrationsTable', 'migrations-table__panel', this.props.className)}>
-                <div className='help-text'>
-                    {this.props.createHelpText}
-                </div>
-                <div className='migrations-table__table'>
-                    <table
-                        className='table'
-                        data-testid='migrationsTable'
-                    >
-                        <thead>
-                            <tr>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.database.migrations_table.version'
-                                        defaultMessage='Version'
-                                    />
-                                </th>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.database.migrations_table.name'
-                                        defaultMessage='Name'
-                                    />
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <tr
+                key={migration.version}
+            >
+                <td className='whitespace--nowrap'>{migration.version}</td>
+                <td className='whitespace--nowrap'>{migration.name}</td>
+            </tr>
         );
-    }
-}
+    }), [migrations]);
 
-export default MigrationsTable;
+    return (
+        <div className={classNames('MigrationsTable', 'migrations-table__panel', className)}>
+            <div className='help-text'>
+                {createHelpText}
+            </div>
+            <div className='migrations-table__table'>
+                <table
+                    className='table'
+                    data-testid='migrationsTable'
+                >
+                    <thead>
+                        <tr>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.database.migrations_table.version'
+                                    defaultMessage='Version'
+                                />
+                            </th>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.database.migrations_table.name'
+                                    defaultMessage='Name'
+                                />
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+export default React.memo(MigrationsTable);

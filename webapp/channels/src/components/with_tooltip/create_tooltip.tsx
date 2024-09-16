@@ -20,7 +20,6 @@ export type CommonTooltipProps = {
     shortcut?: ShortcutDefinition;
     emoji?: string;
     emojiStyle?: EmojiStyle;
-    shouldUpdatePosition?: boolean;
 }
 
 export function createTooltip(commonTooltipProps: CommonTooltipProps) {

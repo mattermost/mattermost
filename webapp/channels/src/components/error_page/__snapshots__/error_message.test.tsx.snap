@@ -129,7 +129,7 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
           "link": <ErrorLink
             message={
               Object {
-                "defaultMessage": "Office 365",
+                "defaultMessage": "Entra ID",
                 "id": "error.oauth_missing_code.office365.link",
               }
             }

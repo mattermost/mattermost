@@ -36,14 +36,26 @@ describe('PerformanceReporter', () => {
         performance.mark('testMarkA');
         performance.mark('testMarkB');
 
-        measureAndReport('testMeasureA', 'testMarkA', 'testMarkB');
+        measureAndReport({
+            name: 'testMeasureA',
+            startMark: 'testMarkA',
+            endMark: 'testMarkB',
+        });
 
         await waitForObservations();
 
         performance.mark('testMarkC');
 
-        measureAndReport('testMeasureB', 'testMarkA', 'testMarkC');
-        measureAndReport('testMeasureC', 'testMarkB', 'testMarkC');
+        measureAndReport({
+            name: 'testMeasureB',
+            startMark: 'testMarkA',
+            endMark: 'testMarkC',
+        });
+        measureAndReport({
+            name: 'testMeasureC',
+            startMark: 'testMarkB',
+            endMark: 'testMarkC',
+        });
 
         await waitForObservations();
 
