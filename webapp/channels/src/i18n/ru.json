@@ -989,7 +989,7 @@
   "admin.experimental.samlSettingsLoginButtonTextColor.title": "Цвет текста кнопки входа SAML:",
   "admin.experimental.threadAutoFollow.desc": "Эта настройка должна быть включена для того, чтобы включить функцию обсуждения тем. Когда эта настройка включена, пользователь автоматически следит за темами, которые он начинает, в которых участвует или в которых его упоминают. В базу данных добавляется новая таблица `Threads`, которая отслеживает обсуждения и участников обсуждений, а таблица `ThreadMembership` отслеживает обсуждения для каждого пользователя и состояние прочитанности или непрочитанности каждого обсуждения. При значении \"нет\" все операции бэкенда, поддерживающие обсуждения в потоках, отключаются.",
   "admin.experimental.threadAutoFollow.title": "Автоматически подписываться на обсуждения",
-  "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.desc": "Время ожидания в миллисекундах между отправкой событий вебсокета \"пользователь печатает\".",
+  "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.desc": "Время ожидания в миллисекундах между отправкой событий \"пользователь печатает\".",
   "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example": "Например: \"5000\"",
   "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.title": "Тайм-аут ввода пользователя:",
   "admin.experimental.useChannelInEmailNotifications.desc": "При значении \"да\" название канала и команды появляется в строках темы электронного уведомления. Полезно для серверов, использующих только одну команду. При значении \"нет\" в строке темы уведомления по электронной почте отображается только имя команды.",
