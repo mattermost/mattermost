@@ -99,6 +99,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
 	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss) })
+	t.Run("MfaUsedTimestamps", func(t *testing.T) { testMfaUsedTimestamps(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6563,4 +6564,25 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, userReport, 11)
 	})
+}
+
+func testMfaUsedTimestamps(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{
+		Email:    "ben@invalid.mattermost.com",
+		Username: "u1" + model.NewId(),
+	})
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	tss, err := ss.User().GetMfaUsedTimestamps(u1.Id)
+	require.NoError(t, err)
+	require.Empty(t, tss)
+
+	err = ss.User().StoreMfaUsedTimestamps(u1.Id, []int{1, 2, 3})
+	require.NoError(t, err)
+
+	tss, err = ss.User().GetMfaUsedTimestamps(u1.Id)
+	require.NoError(t, err)
+	require.Equal(t, []int{1, 2, 3}, tss)
 }
