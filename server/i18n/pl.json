@@ -10162,5 +10162,9 @@
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
     "translation": "Nie można zaprosić zdalnego do kanału"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Rozmiar przesłanej wtyczki przekracza limit. Limit ten można zmienić w konsoli systemowej poprzez Magazyn plików > Maksymalny rozmiar pliku"
   }
 ]
