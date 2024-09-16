@@ -8,8 +8,8 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import AlertBanner from 'components/alert_banner';
-import NoScheduledPostsIllustration from 'components/drafts/scheduled_post_list/empty_scheduled_post_list_illustration';
 import ScheduledPostItem from 'components/drafts/scheduled_post/scheduled_post';
+import NoScheduledPostsIllustration from 'components/drafts/scheduled_post_list/empty_scheduled_post_list_illustration';
 import NoResultsIndicator from 'components/no_results_indicator';
 
 import './style.scss';

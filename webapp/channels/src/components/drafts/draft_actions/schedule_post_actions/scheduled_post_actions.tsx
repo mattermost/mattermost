@@ -3,10 +3,7 @@
 
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import './style.scss';
 import {useDispatch} from 'react-redux';
-import {ModalIdentifiers} from 'utils/constants';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
@@ -16,6 +13,10 @@ import ScheduledPostCustomTimeModal
     from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 import Action from 'components/drafts/draft_actions/action';
 
+import {ModalIdentifiers} from 'utils/constants';
+
+import './style.scss';
+
 type Props = {
     scheduledPost: ScheduledPost;
 }
@@ -23,6 +24,8 @@ type Props = {
 function ScheduledPostActions({scheduledPost}: Props) {
     const dispatch = useDispatch();
 
+    // this is temporary. Will be removed in upcoming PR.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleConfirmRescheduledPost = useCallback((timestamp: number) => {
         // TODO: will add the API call in a later PR.
     }, []);
