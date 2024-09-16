@@ -26,8 +26,6 @@ describe('components/drafts/panel/panel_body', () => {
         uploadsInProgress: [] as PostDraft['uploadsInProgress'],
         userId: 'user_id' as UserProfile['id'],
         username: 'username' as UserProfile['username'],
-        error: '',
-        errorClass: '',
     };
 
     const initialState = {
