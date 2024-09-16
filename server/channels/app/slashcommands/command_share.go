@@ -248,12 +248,9 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 		}()
 	}
 
-	rc, appErr := a.GetRemoteCluster(remoteID)
+	rc, appErr := a.GetRemoteCluster(remoteID, false)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
-	}
-	if rc.DeleteAt != 0 {
-		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": "entity is deleted"}))
 	}
 
 	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId, true); err != nil {
