@@ -202,16 +202,18 @@ export function performSearch(terms: string, isMentionSearch?: boolean): ThunkAc
         }
 
         if (isMentionSearch) {
-            // Username should be quoted to allow specific search
-            // in case username is made with multiple words splitted by dashes or other symbols.
+            // Username and FirstName should be quoted to allow specific search
+            // in case the name is made with multiple words splitted by dashes or other symbols.
             const user = getCurrentUser(getState());
             const termsArr = searchTerms.split(' ').filter((t) => Boolean(t && t.trim()));
-            const username = '@' + user.username;
-            const quotedUsername = `"${username}"`;
+            const atUsername = '@' + user.username;
             for (let i = 0; i < termsArr.length; i++) {
-                if (termsArr[i] === username) {
-                    termsArr[i] = quotedUsername;
-                    break;
+                if (termsArr[i] === atUsername) {
+                    termsArr[i] = `"${atUsername}"`;
+                } else if (termsArr[i] === user.username) {
+                    termsArr[i] = `"${user.username}"`;
+                } else if (termsArr[i] === user.first_name) {
+                    termsArr[i] = `"${user.first_name}"`;
                 }
             }
             searchTerms = termsArr.join(' ');
