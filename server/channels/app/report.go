@@ -86,6 +86,7 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 }
 
 func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
+	fmt.Printf("\n\n\n Los putos datos: %#v \n\n\n \n\n\n", job)
 	requestingUserId := job.Data["requesting_user_id"]
 	if requestingUserId == "" {
 		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.missing_user_id", nil, "", http.StatusInternalServerError)
@@ -198,14 +199,18 @@ func (a *App) GetUserCountForReport(filter *model.UserReportOptions) (*int64, *m
 	return &count, nil
 }
 
-func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError {
+func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOptions, startAt int64, endAt int64) *model.AppError {
 	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.license_error", nil, "", http.StatusBadRequest)
 	}
 
 	options := map[string]string{
 		"requesting_user_id": rctx.Session().UserId,
-		"date_range":         dateRange,
+		"date_range":         ro.DateRange,
+		"role":               ro.Role,
+		"team":               ro.Team,
+		"hide_active":        strconv.FormatBool(ro.HideActive),
+		"hide_Inactive":      strconv.FormatBool(ro.HideInactive),
 		"start_at":           strconv.FormatInt(startAt, 10),
 		"end_at":             strconv.FormatInt(endAt, 10),
 	}
@@ -258,7 +263,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 		T := i18n.GetUserTranslations(user.Locale)
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   T("app.report.start_users_batch_export.started_export", map[string]string{"DateRange": getTranslatedDateRange(dateRange)}),
+			Message:   T("app.report.start_users_batch_export.started_export", map[string]string{"DateRange": getTranslatedDateRange(ro.DateRange)}),
 			Type:      model.PostTypeDefault,
 			UserId:    systemBot.UserId,
 		}

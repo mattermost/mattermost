@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -28,6 +29,7 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	baseOptions := fillReportingBaseOptions(r.URL.Query())
 	options, err := fillUserReportOptions(r.URL.Query())
+
 	if err != nil {
 		c.Err = err
 		return
@@ -80,13 +82,22 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dateRange := r.URL.Query().Get("date_range")
+	baseOptions := fillReportingBaseOptions(r.URL.Query())
+	options, err := fillUserReportOptions(r.URL.Query())
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+	options.ReportingBaseOptions = baseOptions
+	dateRange := options.ReportingBaseOptions.DateRange
 	if dateRange == "" {
 		dateRange = "all_time"
 	}
+	fmt.Printf("\n\n\n *****The date range: %v are as follow: %#v \n\n", dateRange, options)
 
 	startAt, endAt := model.GetReportDateRange(dateRange, time.Now())
-	if err := c.App.StartUsersBatchExport(c.AppContext, dateRange, startAt, endAt); err != nil {
+	if err := c.App.StartUsersBatchExport(c.AppContext, options, startAt, endAt); err != nil {
 		c.Err = err
 		return
 	}
@@ -136,7 +147,6 @@ func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.
 	}
 
 	return &model.UserReportOptions{
-
 		Team:         teamFilter,
 		Role:         values.Get("role_filter"),
 		HasNoTeam:    values.Get("has_no_team") == "true",
