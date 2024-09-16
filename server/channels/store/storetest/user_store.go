@@ -4476,7 +4476,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX,
 
 	count, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
-
+	require.Equal(t, count, 0, "No users should have been inactive yet")
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.DeleteAt = model.GetMillis()
