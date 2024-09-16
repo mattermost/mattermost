@@ -16,6 +16,24 @@ type Cache struct {
 	mock.Mock
 }
 
+// Decrement provides a mock function with given fields: key, val
+func (_m *Cache) Decrement(key string, val int) error {
+	ret := _m.Called(key, val)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Decrement")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int) error); ok {
+		r0 = rf(key, val)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: key, value
 func (_m *Cache) Get(key string, value interface{}) error {
 	ret := _m.Called(key, value)
@@ -67,6 +85,24 @@ func (_m *Cache) GetMulti(keys []string, values []interface{}) []error {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]error)
 		}
+	}
+
+	return r0
+}
+
+// Increment provides a mock function with given fields: key, val
+func (_m *Cache) Increment(key string, val int) error {
+	ret := _m.Called(key, val)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Increment")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int) error); ok {
+		r0 = rf(key, val)
+	} else {
+		r0 = ret.Error(0)
 	}
 
 	return r0
