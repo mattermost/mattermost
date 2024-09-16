@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -93,6 +92,16 @@ type Params struct {
 	FilterHasMember           string
 	IncludeChannelMemberCount string
 	OutgoingOAuthConnectionID string
+	ExcludeOffline            bool
+	InChannel                 string
+	NotInChannel              string
+	Topic                     string
+	CreatorId                 string
+	OnlyConfirmed             bool
+	OnlyPlugins               bool
+	ExcludePlugins            bool
+	ExcludeHome               bool
+	ExcludeRemote             bool
 
 	//Bookmarks
 	ChannelBookmarkId string
@@ -126,7 +135,11 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.FileId = props["file_id"]
 	params.Filename = query.Get("filename")
 	params.UploadId = props["upload_id"]
-	params.PluginId = props["plugin_id"]
+	if val, ok := props["plugin_id"]; ok {
+		params.PluginId = val
+	} else {
+		params.PluginId = query.Get("plugin_id")
+	}
 	params.CommandId = props["command_id"]
 	params.HookId = props["hook_id"]
 	params.ReportId = props["report_id"]
@@ -150,6 +163,16 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.RemoteId = props["remote_id"]
 	params.InvoiceId = props["invoice_id"]
 	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
+	params.ExcludeOffline, _ = strconv.ParseBool(query.Get("exclude_offline"))
+	params.InChannel = query.Get("in_channel")
+	params.NotInChannel = query.Get("not_in_channel")
+	params.Topic = query.Get("topic")
+	params.CreatorId = query.Get("creator_id")
+	params.OnlyConfirmed, _ = strconv.ParseBool(query.Get("only_confirmed"))
+	params.OnlyPlugins, _ = strconv.ParseBool(query.Get("only_plugins"))
+	params.ExcludePlugins, _ = strconv.ParseBool(query.Get("exclude_plugins"))
+	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
+	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
 	params.Scope = query.Get("scope")
 
@@ -167,7 +190,15 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	params.TimeRange = query.Get("time_range")
 	params.Permanent, _ = strconv.ParseBool(query.Get("permanent"))
-	params.PerPage = getPerPageFromQuery(query)
+
+	val, err := strconv.Atoi(query.Get("per_page"))
+	if err != nil || val < 0 {
+		params.PerPage = PerPageDefault
+	} else if val > PerPageMaximum {
+		params.PerPage = PerPageMaximum
+	} else {
+		params.PerPage = val
+	}
 
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
 		params.LogsPerPage = LogsPerPageDefault
@@ -252,21 +283,4 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	return params
-}
-
-// getPerPageFromQuery returns the PerPage value from the given query.
-// This function should be removed and the support for `pageSize`
-// should be dropped after v1.46 of the mobile app is no longer supported
-// https://mattermost.atlassian.net/browse/MM-38131
-func getPerPageFromQuery(query url.Values) int {
-	val, err := strconv.Atoi(query.Get("per_page"))
-	if err != nil {
-		val, err = strconv.Atoi(query.Get("pageSize"))
-	}
-	if err != nil || val < 0 {
-		return PerPageDefault
-	} else if val > PerPageMaximum {
-		return PerPageMaximum
-	}
-	return val
 }

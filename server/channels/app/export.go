@@ -469,6 +469,11 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
+			// Adding custom status
+			if cs := user.GetCustomStatus(); cs != nil {
+				userLine.User.CustomStatus = cs
+			}
+
 			// Do the Team Memberships.
 			members, err := a.buildUserTeamAndChannelMemberships(ctx, user.Id, includeArchivedChannels)
 			if err != nil {
@@ -602,6 +607,15 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 				return nil, err
 			}
 
+			followers, err := a.buildThreadFollowers(ctx, post.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(followers) > 0 {
+				postLine.Post.ThreadFollowers = &followers
+			}
+
 			if withAttachments && len(replyAttachments) > 0 {
 				attachments = append(attachments, replyAttachments...)
 			}
@@ -667,6 +681,21 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	}
 
 	return replies, attachments, nil
+}
+
+func (a *App) buildThreadFollowers(_ request.CTX, postID string) ([]imports.ThreadFollowerImportData, *model.AppError) {
+	var followers []imports.ThreadFollowerImportData
+
+	threadFollowers, nErr := a.Srv().Store().Thread().GetThreadMembershipsForExport(postID)
+	if nErr != nil {
+		return nil, model.NewAppError("buildThreadFollowers", "app.thread.get_threadmembers_for_export.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	for _, member := range threadFollowers {
+		followers = append(followers, *ImportFollowerFromThreadMember(member))
+	}
+
+	return followers, nil
 }
 
 func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
@@ -810,7 +839,7 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 			afterId = channel.Id
 
 			// Skip if there are no active members in the channel
-			if len(*channel.Members) == 0 {
+			if len(channel.Members) == 0 {
 				continue
 			}
 
@@ -824,7 +853,12 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 				return err
 			}
 
-			channelLine := ImportLineFromDirectChannel(channel, favoritedBy)
+			shownBy, err := a.buildShownByList(channel)
+			if err != nil {
+				return err
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel, favoritedBy, shownBy)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -855,6 +889,55 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 	}
 
 	return userIDs, nil
+}
+
+func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string, *model.AppError) {
+	shownBy := make([]string, 0)
+	switch channel.Type {
+	case model.ChannelTypeGroup:
+		for _, member := range channel.Members {
+			prefs, err := a.Srv().Store().Preference().GetCategory(member.UserId, model.PreferenceCategoryGroupChannelShow)
+			if err != nil {
+				return nil, model.NewAppError("buildShownByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			for i := range prefs {
+				if prefs[i].Name == channel.Id && prefs[i].Value == "true" {
+					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
+					if err != nil {
+						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+					}
+
+					shownBy = append(shownBy, user.Username)
+				}
+			}
+		}
+	case model.ChannelTypeDirect:
+		for i, member := range channel.Members {
+			otherMember := member // in case it's a channel with self
+			if len(channel.Members) == 2 {
+				// since the are only two members, the other member is should be the remainder of i+1/2
+				otherMember = channel.Members[(i+1)%2]
+			}
+			prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryDirectChannelShow, otherMember.UserId)
+			if err != nil {
+				return nil, model.NewAppError("buildShownByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			for _, pref := range prefs {
+				if pref.Value == "true" && pref.UserId == member.UserId {
+					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
+					if err != nil {
+						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+					}
+
+					shownBy = append(shownBy, user.Username)
+				}
+			}
+		}
+	}
+
+	return shownBy, nil
 }
 
 func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
@@ -919,6 +1002,16 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments
 			}
+
+			followers, err := a.buildThreadFollowers(ctx, post.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(followers) > 0 {
+				postLine.DirectPost.ThreadFollowers = &followers
+			}
+
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return nil, err
 			}

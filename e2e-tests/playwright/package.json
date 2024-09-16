@@ -15,18 +15,18 @@
         "postinstall": "script/post_install.sh"
     },
     "dependencies": {
-        "@axe-core/playwright": "4.9.0",
-        "@percy/cli": "1.28.3",
-        "@percy/playwright": "1.0.5",
-        "@playwright/test": "1.43.1",
+        "@axe-core/playwright": "4.10.0",
+        "@percy/cli": "1.29.3",
+        "@percy/playwright": "1.0.6",
+        "@playwright/test": "1.46.1",
         "async-wait-until": "2.0.12",
-        "axe-core": "4.9.0",
+        "axe-core": "4.10.0",
         "chalk": "4.1.2",
         "deepmerge": "4.3.1",
         "dotenv": "16.4.5",
         "form-data": "4.0.0",
         "isomorphic-unfetch": "4.0.2",
-        "uuid": "9.0.1"
+        "uuid": "10.0.0"
     },
     "devDependencies": {
         "@types/uuid": "9.0.8",

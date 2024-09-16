@@ -7,10 +7,9 @@ import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ItemStatus} from 'utils/constants';
+import {ItemStatus} from 'utils/constants';
 
 import './input.scss';
 
@@ -19,7 +18,7 @@ export enum SIZE {
     LARGE = 'large',
 }
 
-export type CustomMessageInputType = {type: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
+export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
     required?: boolean;
@@ -143,17 +142,13 @@ const Input = React.forwardRef((
             onMouseDown={handleOnClear}
             onTouchEnd={handleOnClear}
         >
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id='inputClearTooltip'
+                title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
                 placement='bottom'
-                overlay={(
-                    <Tooltip id={'InputClearTooltip'}>
-                        {clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
-                    </Tooltip>
-                )}
             >
                 <CloseCircleIcon size={18}/>
-            </OverlayTrigger>
+            </WithTooltip>
         </div>
     ) : null;
 
@@ -225,14 +220,15 @@ const Input = React.forwardRef((
             </fieldset>
             {customInputLabel && (
                 <div className={`Input___customMessage Input___${customInputLabel.type}`}>
-                    <i
-                        className={classNames(`icon ${customInputLabel.type}`, {
-                            'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
-                            'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
-                            'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
-                            'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
-                        })}
-                    />
+                    {customInputLabel.type && (
+                        <i
+                            className={classNames(`icon ${customInputLabel.type}`, {
+                                'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
+                                'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
+                                'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
+                                'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
+                            })}
+                        />)}
                     <span>{customInputLabel.value}</span>
                 </div>
             )}

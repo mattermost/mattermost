@@ -24,9 +24,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// CallsEnabled controls whether or not the Calls plugin should be enabled
-	CallsEnabled bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
@@ -35,8 +32,6 @@ type FeatureFlags struct {
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
-
-	CloudReverseTrial bool
 
 	EnableExportDirectDownload bool
 
@@ -57,21 +52,17 @@ type FeatureFlags struct {
 	NotificationMonitoring bool
 
 	ExperimentalAuditSettingsSystemConsoleUI bool
-
-	ClientMetrics bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = true
+	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.CallsEnabled = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
-	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
@@ -80,10 +71,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
 	f.ChannelBookmarks = false
-	f.WebSocketEventScope = false
+	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.ClientMetrics = false
 }
 
 // ToMap returns the feature flags as a map[string]string

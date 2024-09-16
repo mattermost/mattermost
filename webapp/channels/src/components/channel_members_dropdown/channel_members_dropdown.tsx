@@ -12,8 +12,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -155,32 +153,7 @@ export default function ChannelMembersDropdown({
     const currentRole = renderRole(isChannelAdmin, isGuest);
 
     if (user.remote_id) {
-        const sharedTooltip = (
-            <Tooltip id='sharedTooltip'>
-                <FormattedMessage
-                    id='shared_user_indicator.tooltip'
-                    defaultMessage='From trusted organizations'
-                />
-            </Tooltip>
-        );
-
-        return (
-            <div className='more-modal__shared-actions'>
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='bottom'
-                    overlay={sharedTooltip}
-                >
-                    <span>
-                        <FormattedMessage
-                            id='channel_members_dropdown.shared_member'
-                            defaultMessage='Shared Member'
-                        />
-                        <i className='shared-user-icon icon-circle-multiple-outline'/>
-                    </span>
-                </OverlayTrigger>
-            </div>
-        );
+        return (<></>);
     }
 
     const canMakeUserChannelMember = canChangeMemberRoles && isChannelAdmin;

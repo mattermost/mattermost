@@ -8,8 +8,8 @@ import (
 )
 
 func (api *API) InitGroupLocal() {
-	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups", api.APILocal(getGroupsByChannelLocal)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups", api.APILocal(getGroupsByTeamLocal)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups", api.APILocal(getGroupsByChannelLocal)).Methods(http.MethodGet)
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups", api.APILocal(getGroupsByTeamLocal)).Methods(http.MethodGet)
 }
 
 func getGroupsByChannelLocal(c *Context, w http.ResponseWriter, r *http.Request) {

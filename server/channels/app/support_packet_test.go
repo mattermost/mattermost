@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
+	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
@@ -38,7 +40,7 @@ func TestCreatePluginsFile(t *testing.T) {
 	// Plugins off in settings so no fileData and we get a warning instead
 	fileData, err = th.App.createPluginsFile(th.Context)
 	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed to get plugin list for support package")
+	assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
 }
 
 func TestGenerateSupportPacketYaml(t *testing.T) {
@@ -46,8 +48,8 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	defer th.TearDown()
 
 	licenseUsers := 100
-	license := model.NewTestLicense()
-	license.Features.Users = model.NewInt(licenseUsers)
+	license := model.NewTestLicense("ldap")
+	license.Features.Users = model.NewPointer(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
 	generateSupportPacket := func(t *testing.T) *model.SupportPacket {
@@ -66,7 +68,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	}
 
 	t.Run("Happy path", func(t *testing.T) {
-		// Happy path where we have a support packet yaml file without any warnings
+		// Happy path where we have a Support Packet yaml file without any warnings
 		packet := generateSupportPacket(t)
 
 		/* Build information */
@@ -124,7 +126,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewInt(1)
+			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
 		})
 
 		for i := 0; i < 5; i++ {
@@ -148,6 +150,34 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, "mock", packet.FileDriver)
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
 	})
+
+	t.Run("no LDAP vendor info", func(t *testing.T) {
+		ldapMock := &emocks.LdapInterface{}
+		ldapMock.On(
+			"GetVendorNameAndVendorVersion",
+			mock.AnythingOfType("*request.Context"),
+		).Return("", "", nil)
+		th.App.Channels().Ldap = ldapMock
+
+		packet := generateSupportPacket(t)
+
+		assert.Equal(t, "unknown", packet.LdapVendorName)
+		assert.Equal(t, "unknown", packet.LdapVendorVersion)
+	})
+
+	t.Run("found LDAP vendor info", func(t *testing.T) {
+		ldapMock := &emocks.LdapInterface{}
+		ldapMock.On(
+			"GetVendorNameAndVendorVersion",
+			mock.AnythingOfType("*request.Context"),
+		).Return("some vendor", "v1.0.0", nil)
+		th.App.Channels().Ldap = ldapMock
+
+		packet := generateSupportPacket(t)
+
+		assert.Equal(t, "some vendor", packet.LdapVendorName)
+		assert.Equal(t, "v1.0.0", packet.LdapVendorVersion)
+	})
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
@@ -163,6 +193,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
+		*cfg.NotificationLogSettings.FileLocation = dir
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
@@ -177,13 +208,14 @@ func TestGenerateSupportPacket(t *testing.T) {
 	}
 	genMockLogFiles()
 
-	t.Run("generate support packet with logs", func(t *testing.T) {
+	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: true,
 		})
 		var rFileNames []string
 		testFiles := []string{
 			"support_packet.yaml",
+			"metadata.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"mattermost.log",
@@ -201,13 +233,14 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.ElementsMatch(t, testFiles, rFileNames)
 	})
 
-	t.Run("generate support packet without logs", func(t *testing.T) {
+	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: false,
 		})
 
 		testFiles := []string{
 			"support_packet.yaml",
+			"metadata.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"cpu.prof",
@@ -237,6 +270,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 		testFiles := []string{
 			"support_packet.yaml",
+			"metadata.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"cpu.prof",
@@ -293,96 +327,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 }
 
-func TestGetNotificationsLog(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Disable notifications file setting in config so we should get an warning
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = false
-	})
-
-	fileData, err := th.App.getNotificationsLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
-
-	dir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(dir)
-		assert.NoError(t, err)
-	})
-
-	// Enable notifications file but point to an empty directory to get an error trying to read the file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = true
-		*cfg.LogSettings.FileLocation = dir
-	})
-
-	logLocation := config.GetNotificationsLogFileLocation(dir)
-
-	// There is no notifications.log file yet, so this fails
-	fileData, err = th.App.getNotificationsLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed read notifcation log file at path "+logLocation)
-
-	// Happy path where we have file and no error
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile(logLocation, d1, 0777)
-	require.NoError(t, err)
-
-	fileData, err = th.App.getNotificationsLog(th.Context)
-	assert.NoError(t, err)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "notifications.log", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-}
-
-func TestGetMattermostLog(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// disable mattermost log file setting in config so we should get an warning
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.LogSettings.EnableFile = false
-	})
-
-	fileData, err := th.App.getMattermostLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
-
-	dir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(dir)
-		assert.NoError(t, err)
-	})
-
-	// Enable log file but point to an empty directory to get an error trying to read the file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.LogSettings.EnableFile = true
-		*cfg.LogSettings.FileLocation = dir
-	})
-
-	logLocation := config.GetLogFileLocation(dir)
-
-	// There is no mattermost.log file yet, so this fails
-	fileData, err = th.App.getMattermostLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed read mattermost log file at path "+logLocation)
-
-	// Happy path where we get a log file and no warning
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile(logLocation, d1, 0777)
-	require.NoError(t, err)
-
-	fileData, err = th.App.getMattermostLog(th.Context)
-	require.NoError(t, err)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "mattermost.log", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-}
-
 func TestCreateSanitizedConfigFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -393,4 +337,25 @@ func TestCreateSanitizedConfigFile(t *testing.T) {
 	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.NoError(t, err)
+}
+
+func TestCreateSupportPacketMetadata(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Happy path", func(t *testing.T) {
+		fileData, err := th.App.createSupportPacketMetadata(th.Context)
+		require.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "metadata.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		metadate, err := model.ParsePacketMetadata(fileData.Body)
+		assert.NoError(t, err)
+		require.NotNil(t, metadate)
+		assert.Equal(t, model.SupportPacketType, metadate.Type)
+		assert.Equal(t, model.CurrentVersion, metadate.ServerVersion)
+		assert.NotEmpty(t, metadate.ServerID)
+		assert.NotEmpty(t, metadate.GeneratedAt)
+	})
 }
