@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -94,7 +93,6 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	if dateRange == "" {
 		dateRange = "all_time"
 	}
-	fmt.Printf("\n\n\n *****The date range: %v are as follow: %#v \n\n", dateRange, options)
 
 	startAt, endAt := model.GetReportDateRange(dateRange, time.Now())
 	if err := c.App.StartUsersBatchExport(c.AppContext, options, startAt, endAt); err != nil {

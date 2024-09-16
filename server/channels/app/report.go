@@ -216,7 +216,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOption
 	}
 
 	// Check for existing job
-	// TODO: Maybe make this a reusable function?
+	// TODO: Maybe make this a reusable function? // here, check for matches with the other fields too, role, team and bool
 	pendingJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, model.JobTypeExportUsersToCSV, model.JobStatusPending)
 	if err != nil {
 		return err

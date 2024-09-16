@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {ReportDuration} from '@mattermost/types/reports';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -39,12 +40,16 @@ export function SystemUsersExport(props: Props) {
 
     const skipDialog = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_REPORTING, Preferences.HIDE_BATCH_EXPORT_CONFIRM_MODAL, '')) === 'true';
     const tableFilterProps = useSelector(getAdminConsoleUserManagementTableProperties);
+    const tableOptionsToUserReport = convertTableOptionsToUserReportOptions(tableFilterProps);
+    if (tableOptionsToUserReport.date_range === undefined) {
+        tableOptionsToUserReport.date_range = ReportDuration.AllTime;
+    }
 
     const license = useSelector(getLicense);
     const isLicensed = license.IsLicensed === 'true' && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise);
 
     async function doExport(checked?: boolean) {
-        const {error} = await dispatch(startUsersBatchExport(convertTableOptionsToUserReportOptions(tableFilterProps)));
+        const {error} = await dispatch(startUsersBatchExport(tableOptionsToUserReport));
         if (error) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.EXPORT_ERROR_MODAL,
