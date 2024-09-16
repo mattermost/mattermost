@@ -84,7 +84,6 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 
 		toPass := make([]any, 0, len(keys))
 		for i := 0; i < len(keys); i++ {
-			// Note: keep https://github.com/mattermost/mattermost/pull/27830 in mind.
 			var userMap model.UserMap
 			toPass = append(toPass, &userMap)
 		}
