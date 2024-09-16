@@ -17,6 +17,9 @@ import (
 func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
 	if session != nil {
 		session.Id = ""
+		// Once the session is retrieved from the pool, all existing prop fields are cleared.
+		// To avoid a race between clearing the props and accessing it, clear the props maps before returning it to the pool.
+		clear(session.Props)
 		ps.sessionPool.Put(session)
 	}
 }
