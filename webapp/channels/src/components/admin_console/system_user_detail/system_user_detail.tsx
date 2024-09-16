@@ -322,6 +322,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
+    getManagedByLdapText = () => {
+        if (this.state.user?.auth_service !== Constants.LDAP_SERVICE) {
+            return null;
+        }
+        return (
+            <>
+                {' '}
+                <FormattedMessage
+                    id='admin.user_item.managedByLdap'
+                    defaultMessage='(Managed By LDAP)'
+                />
+            </>
+        );
+    };
+
     render() {
         return (
             <div className='SystemUserDetail wrapper--fixed'>
@@ -411,12 +426,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id='admin.user_item.makeActive'
                                                 defaultMessage='Activate'
                                             />
-                                            {this.state.user?.auth_service === Constants.LDAP_SERVICE && (
-                                                <FormattedMessage
-                                                    id='admin.user_item.managedByLdap'
-                                                    defaultMessage='(Managed By LDAP)'
-                                                />)
-                                            }
+                                            {this.getManagedByLdapText()}
                                         </button>
                                     )}
                                     {this.state.user?.delete_at === 0 && (
@@ -429,12 +439,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id='admin.user_item.deactivate'
                                                 defaultMessage='Deactivate'
                                             />
-                                            {this.state.user?.auth_service === Constants.LDAP_SERVICE && (
-                                                <FormattedMessage
-                                                    id='admin.user_item.managedByLdap'
-                                                    defaultMessage='(Managed By LDAP)'
-                                                />)
-                                            }
+                                            {this.getManagedByLdapText()}
                                         </button>
                                     )}
 
