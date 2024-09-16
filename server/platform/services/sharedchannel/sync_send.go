@@ -150,6 +150,61 @@ func (scs *Service) NotifyUserStatusChanged(status *model.Status) {
 	}
 }
 
+func (scs *Service) SendPendingInvitesForRemote(rc *model.RemoteCluster) {
+	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
+		return
+	}
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing pending invites for remote after reconnection",
+		mlog.String("remote", rc.DisplayName),
+		mlog.String("remoteId", rc.RemoteId),
+	)
+
+	opts := model.SharedChannelRemoteFilterOpts{
+		RemoteId:         rc.RemoteId,
+		ExcludeConfirmed: true,
+	}
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes for pending invites",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, scr := range scrs {
+		channel, err := scs.server.GetStore().Channel().Get(scr.ChannelId, true)
+		if err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch channel for pending invite",
+				mlog.String("remote_id", scr.RemoteId),
+				mlog.String("channel_id", scr.ChannelId),
+				mlog.String("sharedchannelremote_id", scr.Id),
+				mlog.Err(err),
+			)
+			continue
+		}
+
+		if err := scs.SendChannelInvite(channel, scr.CreatorId, rc); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to send pending invite",
+				mlog.String("remote_id", scr.RemoteId),
+				mlog.String("channel_id", scr.ChannelId),
+				mlog.String("sharedchannelremote_id", scr.Id),
+				mlog.Err(err),
+			)
+			continue
+		}
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Pending invite sent",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("channel_id", scr.ChannelId),
+			mlog.String("sharedchannelremote_id", scr.Id),
+		)
+	}
+}
+
 // ForceSyncForRemote causes all channels shared with the remote to be synchronized.
 func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
@@ -327,9 +382,10 @@ func (scs *Service) processTask(task syncTask) error {
 			remotesMap[r.RemoteId] = r
 		}
 
-		// add all remotes that have the autoinvited option.
+		// add all confirmed remotes that have the autoinvited option.
 		filter = model.RemoteClusterQueryFilter{
 			RequireOptions: model.BitflagOptionAutoInvited,
+			OnlyConfirmed:  true,
 		}
 		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 		if err != nil {
@@ -339,12 +395,9 @@ func (scs *Service) processTask(task syncTask) error {
 			remotesMap[r.RemoteId] = r
 		}
 	} else {
-		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID)
+		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
 			return err
-		}
-		if rc.DeleteAt != 0 {
-			return fmt.Errorf("Processing task for a deleted remote cluster '%s'", task.remoteID)
 		}
 		if !rc.IsOnline() {
 			return fmt.Errorf("Failed updating shared channel '%s' for offline remote cluster '%s'", task.channelID, rc.DisplayName)
