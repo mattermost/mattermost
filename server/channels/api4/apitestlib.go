@@ -212,7 +212,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
-	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+	if *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService || *cfg.ConnectedWorkspacesSettings.EnableSharedChannels {
 		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	}
 	if enterprise {

@@ -65,6 +65,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("user_count", len(syncMsg.Users)),
 		mlog.Int("post_count", len(syncMsg.Posts)),
 		mlog.Int("reaction_count", len(syncMsg.Reactions)),
+		mlog.Int("status_count", len(syncMsg.Statuses)),
 	)
 
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
@@ -173,6 +174,10 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 				syncResp.ReactionsLastUpdateAt = reaction.UpdateAt
 			}
 		}
+	}
+
+	for _, status := range syncMsg.Statuses {
+		scs.app.SaveAndBroadcastStatus(status)
 	}
 
 	response.SetPayload(syncResp)

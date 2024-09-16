@@ -53,6 +53,8 @@ import type {ViewsState} from 'types/store/views';
 const currentChannelId = '123';
 const currentTeamId = '321';
 const currentUserId = 'user123';
+const currentUsername = 'user-name';
+const currentUserFirstName = 'first-name';
 const pluggableId = 'pluggableId';
 const previousSelectedPost = {
     id: 'post123',
@@ -102,6 +104,8 @@ describe('rhs view actions', () => {
                 currentUserId,
                 profiles: {
                     user123: {
+                        username: currentUsername,
+                        first_name: currentUserFirstName,
                         timezone: {
                             useAutomaticTimezone: true,
                             automaticTimezone: '',
@@ -214,22 +218,50 @@ describe('rhs view actions', () => {
     });
 
     describe('performSearch', () => {
-        const terms = '@here test search';
+        // timezone offset in seconds
+        const timeZoneOffset = getBrowserUtcOffset() * 60;
 
         test('it dispatches searchPosts correctly', () => {
+            const terms = '@here test search';
             store.dispatch(performSearch(terms, false));
-
-            // timezone offset in seconds
-            const timeZoneOffset = getBrowserUtcOffset() * 60;
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
+        });
 
+        test('it dispatches searchFiles correctly', () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        filesSearchExtFilter: ['txt', 'jpeg'],
+                    },
+                } as ViewsState,
+            });
+
+            const terms = '@here test search';
+            store.dispatch(performSearch(terms, false));
+
+            const filesExtTerms = '@here test search ext:txt ext:jpeg';
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms: filesExtTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test('it dispatches searchPosts correctly for Recent Mentions', () => {
+            const terms = `@here test search ${currentUsername} @${currentUsername} ${currentUserFirstName}`;
             store.dispatch(performSearch(terms, true));
-            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+
+            const mentionsQuotedTerms = `@here test search "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}"`;
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());

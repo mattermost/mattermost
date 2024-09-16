@@ -212,7 +212,12 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
 	}
-	json.Unmarshal(b, &trialRequest)
+
+	err = json.Unmarshal(b, &trialRequest)
+	if err != nil {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 
 	var appErr *model.AppError
 	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
