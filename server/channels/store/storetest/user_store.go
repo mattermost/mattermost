@@ -4472,7 +4472,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX,
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) })
 
 	count, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
@@ -4482,7 +4482,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX,
 	u2.DeleteAt = model.GetMillis()
 	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) })
 
 	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
@@ -4494,7 +4494,7 @@ func testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t *testing.T, rctx re
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) })
 
 	count, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
@@ -4504,9 +4504,9 @@ func testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t *testing.T, rctx re
 	u2.DeleteAt = model.GetMillis()
 	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
 
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) })
+
 	_, nErr := ss.Bot().Save(&model.Bot{
 		UserId:   u2.Id,
 		Username: u2.Username,
@@ -4515,7 +4515,7 @@ func testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t *testing.T, rctx re
 	require.NoError(t, nErr)
 	u2.IsBot = true
 
-	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u2.Id)) }()
+	t.Cleanup(func() { require.NoError(t, ss.Bot().PermanentDelete(u2.Id)) })
 
 	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
