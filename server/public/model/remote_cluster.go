@@ -33,6 +33,8 @@ const (
 
 var (
 	validRemoteNameChars = regexp.MustCompile(`^[a-zA-Z0-9\.\-\_]+$`)
+
+	ErrOfflineRemote = errors.New("remote is offline")
 )
 
 type Bitmask uint32
@@ -57,6 +59,7 @@ type RemoteCluster struct {
 	SiteURL       string  `json:"site_url"`
 	DefaultTeamId string  `json:"default_team_id"`
 	CreateAt      int64   `json:"create_at"`
+	DeleteAt      int64   `json:"delete_at"`
 	LastPingAt    int64   `json:"last_ping_at"`
 	Token         string  `json:"token"`
 	RemoteToken   string  `json:"remote_token"`
@@ -75,6 +78,7 @@ func (rc *RemoteCluster) Auditable() map[string]interface{} {
 		"site_url":        rc.SiteURL,
 		"default_team_id": rc.DefaultTeamId,
 		"create_at":       rc.CreateAt,
+		"delete_at":       rc.DeleteAt,
 		"last_ping_at":    rc.LastPingAt,
 		"creator_id":      rc.CreatorId,
 		"plugin_id":       rc.PluginID,
@@ -271,6 +275,7 @@ func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 		Name:        rc.Name,
 		DisplayName: rc.DisplayName,
 		CreateAt:    rc.CreateAt,
+		DeleteAt:    rc.DeleteAt,
 		LastPingAt:  rc.LastPingAt,
 	}
 }
@@ -284,6 +289,7 @@ type RemoteClusterInfo struct {
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	CreateAt    int64  `json:"create_at"`
+	DeleteAt    int64  `json:"delete_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
 }
 
@@ -457,4 +463,5 @@ type RemoteClusterQueryFilter struct {
 	OnlyPlugins    bool
 	ExcludePlugins bool
 	RequireOptions Bitmask
+	IncludeDeleted bool
 }

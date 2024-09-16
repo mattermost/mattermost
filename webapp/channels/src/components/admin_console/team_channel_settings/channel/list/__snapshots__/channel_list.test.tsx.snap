@@ -979,8 +979,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               className="group-name overflow--ellipsis row-content"
               data-testid="channel-display-name"
             >
-              <SharedChannelIndicator
-                channelType="O"
+              <GlobeIcon
                 className="channel-icon"
               />
               <span
@@ -988,6 +987,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               >
                 DN
               </span>
+              <SharedChannelIndicator
+                className="channel-icon"
+                withTooltip={true}
+              />
             </span>,
             "team": <span
               className="group-description row-content"

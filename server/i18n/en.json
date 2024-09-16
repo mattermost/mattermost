@@ -1339,7 +1339,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -2447,6 +2447,10 @@
   {
     "id": "api.plugin.upload.file.app_error",
     "translation": "Unable to open file in multipart/form request."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -3753,6 +3757,10 @@
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
   },
   {
     "id": "api.upload.create.upload_too_large.app_error",
@@ -6485,6 +6493,10 @@
   {
     "id": "app.session.save.existing.app_error",
     "translation": "Unable to update existing session."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
   },
   {
     "id": "app.session.update_device_id.app_error",

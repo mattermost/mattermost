@@ -535,7 +535,7 @@ type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
-	Get(remoteClusterID string) (*model.RemoteCluster, error)
+	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
 	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
 	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error)

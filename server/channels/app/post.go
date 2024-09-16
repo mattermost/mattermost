@@ -1467,9 +1467,11 @@ func (a *App) deletePostFiles(c request.CTX, postID string) {
 }
 
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
-	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
+	cleanChannelName := strings.TrimLeft(channelName, "~")
+
+	if strings.HasPrefix(cleanChannelName, "@") && strings.Contains(cleanChannelName, ",") {
 		var userIDs []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
+		users, err := a.GetUsersByUsernames(strings.Split(cleanChannelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -1484,8 +1486,8 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		return channel, nil
 	}
 
-	if strings.HasPrefix(channelName, "@") && !strings.Contains(channelName, ",") {
-		user, err := a.GetUserByUsername(channelName[1:])
+	if strings.HasPrefix(cleanChannelName, "@") && !strings.Contains(cleanChannelName, ",") {
+		user, err := a.GetUserByUsername(cleanChannelName[1:])
 		if err != nil {
 			return nil, err
 		}
@@ -1496,7 +1498,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		return channel, nil
 	}
 
-	channel, err := a.GetChannelByName(c, channelName, teamID, includeDeleted)
+	channel, err := a.GetChannelByName(c, cleanChannelName, teamID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1556,7 +1558,7 @@ func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, 
 
 func (a *App) convertUserNameToUserIds(c request.CTX, usernames []string) []string {
 	for idx, username := range usernames {
-		user, err := a.GetUserByUsername(username)
+		user, err := a.GetUserByUsername(strings.TrimLeft(username, "@"))
 		if err != nil {
 			c.Logger().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
 			continue
