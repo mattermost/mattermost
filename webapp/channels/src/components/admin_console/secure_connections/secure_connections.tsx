@@ -142,9 +142,9 @@ const AddMenu = (props: {buttonClassNames?: string}) => {
 };
 
 const msg = defineMessages({
-    pageTitle: ({id: 'admin.sidebar.secureConnections', defaultMessage: 'Secure Connections (Beta)'}),
-    title: {id: 'admin.secure_connections.title', defaultMessage: 'Secure Connections'},
-    subtitle: {id: 'admin.secure_connections.subtitle', defaultMessage: 'Secure connections with this server'},
+    pageTitle: {id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'},
+    title: {id: 'admin.secure_connections.title', defaultMessage: 'Connected Workspaces'},
+    subtitle: {id: 'admin.secure_connections.subtitle', defaultMessage: 'Connected workspaces with this server'},
     placeholderTitle: {id: 'admin.secure_connections.placeholder.title', defaultMessage: 'Share channels'},
     placeholderSubtitle: {id: 'admin.secure_connections.placeholder.subtitle', defaultMessage: 'Connecting with an external organization allows you to share channels with them'},
     addConnection: {id: 'admin.secure_connections.menu.add_connection', defaultMessage: 'Add a connection'},

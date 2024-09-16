@@ -2,27 +2,37 @@
 // See LICENSE.txt for license information.
 
 import type {LocationDescriptor} from 'history';
-import {Duration} from 'luxon';
-import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {DateTime, Interval} from 'luxon';
+import {useCallback, useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux';
-import styled, {css} from 'styled-components';
 
 import type {ClientError} from '@mattermost/client';
+import type {Channel} from '@mattermost/types/channels';
+import type {StatusOK} from '@mattermost/types/client4';
+import type {ServerError} from '@mattermost/types/errors';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch} from '@mattermost/types/remote_clusters';
 import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
-import type {PartialExcept} from '@mattermost/types/utilities';
+import type {PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
+import {ChannelTypes} from 'mattermost-redux/action_types';
+import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 
+import type {GlobalState} from 'types/store';
+
 import SecureConnectionAcceptInviteModal from './secure_connection_accept_invite_modal';
 import SecureConnectionCreateInviteModal from './secure_connection_create_invite_modal';
 import SecureConnectionDeleteModal from './secure_connection_delete_modal';
+import SharedChannelsAddModal from './shared_channels_add_modal';
+import SharedChannelsRemoveModal from './shared_channels_remove_modal';
 
 export const useRemoteClusters = () => {
     const [remoteClusters, setRemoteClusters] = useState<RemoteCluster[]>();
@@ -246,9 +256,8 @@ export const useRemoteClusterDelete = (rc: RemoteCluster) => {
 };
 
 export const useSharedChannelRemotes = (remoteId: string) => {
-    const [sharedChannelRemotes, setSharedChannelRemotes] = useState<SharedChannelRemote[]>();
+    const [remotes, setRemotes] = useState<RelationOneToOne<Channel, SharedChannelRemote>>();
     const [loadingState, setLoadingState] = useState<TLoadingState>(true);
-    const [filter, setFilter] = useState<'home' | 'remote'>('remote');
 
     const loading = isPendingState(loadingState);
     const error = !loading && loadingState;
@@ -256,44 +265,171 @@ export const useSharedChannelRemotes = (remoteId: string) => {
     const fetch = async () => {
         setLoadingState(true);
         try {
-            const data = await Client4.getSharedChannelRemotes(remoteId, 'home');
-            setSharedChannelRemotes(data?.length ? data : undefined);
+            const data = await Client4.getSharedChannelRemotes(remoteId, '', true);
+
+            setRemotes(data?.reduce<typeof remotes>((state, remote) => {
+                state![remote.channel_id] = remote;
+
+                return state;
+            }, {}));
             setLoadingState(false);
-        } catch (err) {
-            setLoadingState(err);
+        } catch (error) {
+            setLoadingState(error);
         }
     };
 
     useEffect(() => {
         fetch();
-    }, [filter]);
+    }, [remoteId]);
 
-    return [sharedChannelRemotes, {loading, error, fetch, setFilter}] as const;
+    return [remotes, {loading, error, fetch}] as const;
 };
 
-export const useSharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
-    const [sharedChannelRemotes, setSharedChannelRemotes] = useState<SharedChannelRemote[]>();
+export type SharedChannelRemoteRow = SharedChannelRemote & Pick<Channel, 'display_name'> & {team_display_name: string};
+export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'home' | 'remote' | undefined}) => {
+    const [sharedChannelRemotes, setSharedChannelRemotes] = useState<SharedChannelRemoteRow[]>();
     const [loadingState, setLoadingState] = useState<TLoadingState>(true);
+    const dispatch = useDispatch();
 
     const loading = isPendingState(loadingState);
     const error = !loading && loadingState;
 
-    const fetch = async () => {
-        setLoadingState(true);
-        try {
-            const data = await Client4.getSharedChannelRemotes(remoteId, filter);
-            setSharedChannelRemotes(data?.length ? data : undefined);
-            setLoadingState(false);
-        } catch (err) {
-            setLoadingState(err);
+    const fetch = useCallback(async () => {
+        if (opts.filter === undefined) {
+            // wait for a filter
+            return;
         }
-    };
+
+        setLoadingState(true);
+        dispatch<ActionFuncAsync<SharedChannelRemoteRow[], GlobalState>>(async (dispatch, getState) => {
+            const collected: SharedChannelRemoteRow[] = [];
+            let missing: string[] = [];
+
+            try {
+                const data = await Client4.getSharedChannelRemotes(remoteId, opts.filter);
+                let state = getState();
+                let getMyChannelsOnce: undefined | ((remote: SharedChannelRemote) => Promise<Channel | undefined>) = async (firstNotFound: SharedChannelRemote) => {
+                    const channels = await Client4.getAllTeamsChannels();
+                    dispatch({
+                        type: ChannelTypes.RECEIVED_ALL_CHANNELS,
+                        data: channels,
+                    });
+                    state = getState();
+
+                    getMyChannelsOnce = undefined; // once-only
+
+                    // return triggering not-found remote
+                    return getChannel(state, firstNotFound.channel_id);
+                };
+
+                for (const remote of data) {
+                    let channel = getChannel(state, remote.channel_id);
+
+                    if (!channel) {
+                        // eslint-disable-next-line no-await-in-loop
+                        channel = await getMyChannelsOnce?.(remote);
+
+                        if (!channel) {
+                            // still no channel, continue and find remaining missing channels
+                            missing?.push(remote.channel_id);
+                            break;
+                        }
+                    }
+
+                    const team = getTeam(state, channel.team_id);
+                    collected.push({...remote, display_name: channel.display_name, team_display_name: team?.display_name ?? ''});
+                }
+
+                if (missing.length) {
+                    // fetch missing channels individually
+                    // TODO: performance; consider adding sharedchannelremotes search param to api/v4/channels
+                    await Promise.allSettled(missing.map((id) => dispatch(fetchChannel(id))));
+                    missing = [];
+                    state = getState();
+
+                    // resume where we left off
+                    for (const remote of data.slice(collected.length)) {
+                        const channel = getChannel(state, remote.channel_id);
+
+                        if (!channel) {
+                            missing?.push(remote.channel_id);
+                            continue;
+                        }
+                        const team = getTeam(state, channel.team_id);
+                        collected.push({...remote, display_name: channel.display_name, team_display_name: team?.display_name ?? ''});
+                    }
+                }
+
+                setSharedChannelRemotes(collected.length ? collected : undefined);
+                setLoadingState(false);
+            } catch (error) {
+                setLoadingState(error);
+                return {error};
+            }
+
+            return {data: collected};
+        });
+    }, [remoteId, opts.filter]);
 
     useEffect(() => {
         fetch();
-    }, [filter]);
+    }, [remoteId, opts.filter]);
 
     return [sharedChannelRemotes, {loading, error, fetch}] as const;
+};
+
+export const useSharedChannelsRemove = (remoteId: string) => {
+    const dispatch = useDispatch();
+    const promptRemove = (channelId: string) => {
+        return new Promise((resolve, reject) => {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.SHARED_CHANNEL_REMOTE_UNINVITE,
+                dialogType: SharedChannelsRemoveModal,
+                dialogProps: {
+                    onConfirm: () => Client4.sharedChannelRemoteUninvite(remoteId, channelId).then(resolve, reject),
+                },
+            }));
+        });
+    };
+
+    return {promptRemove};
+};
+
+export type SharedChannelsAddResult = {
+    data: {[channel_id: string]: PromiseSettledResult<StatusOK>};
+    errors: {[channel_id: string]: ServerError};
+}
+export const useSharedChannelsAdd = (remoteId: string) => {
+    const dispatch = useDispatch();
+    const promptAdd = () => {
+        return new Promise((resolve) => {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.SHARED_CHANNEL_REMOTE_INVITE,
+                dialogType: SharedChannelsAddModal,
+                dialogProps: {
+                    remoteId,
+                    onConfirm: async (channels: Channel[]) => {
+                        const result: SharedChannelsAddResult = {data: {}, errors: {}};
+                        const {data, errors} = result;
+
+                        const requests = channels.map(({id}) => Client4.sharedChannelRemoteInvite(remoteId, id));
+                        (await Promise.allSettled(requests)).forEach((r, i) => {
+                            if (r.status === 'rejected' && r.reason.server_error_id) {
+                                errors[channels[i].id] = r.reason;
+                            } else if (r.status === 'fulfilled') {
+                                data[channels[i].id] = r;
+                            }
+                        });
+
+                        resolve(result);
+                        return result;
+                    },
+                },
+            }));
+        });
+    };
+
+    return {promptAdd};
 };
 
 export const getEditLocation = (rc: RemoteCluster): LocationDescriptor<RemoteCluster> => {
@@ -305,9 +441,8 @@ export const getCreateLocation = (): LocationDescriptor<RemoteCluster> => {
 };
 
 const SiteURLPendingPrefix = 'pending_';
-const RemoteClusterOfflineAfter = Duration.fromObject({minute: 5}).milliseconds;
 export const isConfirmed = (rc: RemoteCluster) => rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix);
-export const isConnected = (rc: RemoteCluster) => rc.last_ping_at > Date.now() - RemoteClusterOfflineAfter;
+export const isConnected = (rc: RemoteCluster) => Interval.before(DateTime.now(), {minutes: 5}).contains(DateTime.fromMillis(rc.last_ping_at));
 
 type TLoadingState<TError = ClientError> = boolean | TError;
 

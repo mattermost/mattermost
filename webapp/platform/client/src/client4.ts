@@ -26,7 +26,7 @@ import type {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
     Address,
@@ -1952,9 +1952,9 @@ export default class Client4 {
         );
     };
 
-    searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): Promise<ChannelsWithTotalCount>;
-    searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): Promise<ChannelWithTeamData[]>;
-    searchAllChannels(term: string, opts: ChannelSearchOpts = {}) {
+    searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts & OptsSignalExt): Promise<ChannelsWithTotalCount>;
+    searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> & OptsSignalExt | undefined): Promise<ChannelWithTeamData[]>;
+    searchAllChannels(term: string, opts: ChannelSearchOpts & OptsSignalExt = {}) {
         const body = {
             term,
             ...opts,
@@ -1968,7 +1968,7 @@ export default class Client4 {
         }
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}/search${buildQueryString(queryParams)}`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'post', body: JSON.stringify(body), signal: opts.signal},
         );
     }
 
@@ -2135,28 +2135,34 @@ export default class Client4 {
 
     // Shared Channels Routes
 
-    getSharedChannelRemotes = (remoteId: string, filter?: 'home' | 'remote') => {
-        let parameters = {};
+    getSharedChannelRemotes = (remoteId: string, filter?: 'home' | 'remote' | '', includeDeleted = false) => {
+        const parameters: {[key: string]: boolean | string} = {};
 
-        if (filter) {
-            parameters = filter === 'home' ? {exclude_remote: true} : {exclude_home: true};
+        if (filter === 'home') {
+            parameters.exclude_remote = true;
+        } else if (filter === 'remote') {
+            parameters.exclude_home = true;
+        }
+
+        if (includeDeleted) {
+            parameters.include_deleted = true;
         }
 
         return this.doFetch<SharedChannelRemote[]>(
-            `${this.getRemoteClusterRoute(remoteId)}${buildQueryString(parameters)}/sharedchannelremotes`,
+            `${this.getRemoteClusterRoute(remoteId)}/sharedchannelremotes${buildQueryString(parameters)}`,
             {method: 'GET'},
         );
     };
 
-    getSharedChannelsInvite = (remoteId: string, channelId: string) => {
-        return this.doFetch<SharedChannelRemote[]>(
+    sharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
             {method: 'POST'},
         );
     };
 
-    getSharedChannelsUninvite = (remoteId: string, channelId: string) => {
-        return this.doFetch<RemoteCluster[]>(
+    sharedChannelRemoteUninvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/uninvite`,
             {method: 'POST'},
         );

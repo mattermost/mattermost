@@ -8,6 +8,9 @@ import styled, {css} from 'styled-components';
 
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
+import Timestamp, {RelativeRanges} from 'components/timestamp';
+import WithTooltip from 'components/with_tooltip';
+
 import {isConfirmed, isConnected} from './utils';
 
 export const SectionHeading = styled.h3`
@@ -16,10 +19,12 @@ export const SectionHeading = styled.h3`
     }
 `;
 
-export const SectionHeader = styled.header.attrs({className: 'header'})`
+export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
-        border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
+        ${({$borderless}) => !$borderless && css`
+            border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
+        `}
     }
 `;
 
@@ -28,6 +33,13 @@ export const SectionContent = styled.div.attrs({className: 'content'})<{$compact
         padding: ${({$compact}) => ($compact ? '24px 32px' : '48px 32px')};
         border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
     }
+`;
+
+export const ModalBody = styled.div`
+    padding: 0 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 `;
 
 export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
@@ -160,35 +172,72 @@ export const Button = styled.button.attrs({className: 'btn btn-secondary'})`
     margin: -1px -2px;
 `;
 
+export const LinkButton = styled.button.attrs({className: 'btn btn-link'})<{$destructive?: boolean}>`
+    font-weight: normal;
+    ${({$destructive}) => $destructive && css`
+        && {
+            color: #D24B4E;
+        }
+    `};
+`;
+
 export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
     if (!isConfirmed(rc)) {
         return (
             <FormattedMessage
                 tagName={PendingConnectionLabel}
-                id='...pending'
+                id='admin.secure_connections.status_pending'
                 defaultMessage='Connection Pending'
             />
         );
     }
 
-    if (!isConnected(rc)) {
-        return (
-            <FormattedMessage
-                tagName={OfflineConnectionLabel}
-                id='...offline'
-                defaultMessage='Offline'
-            />
-        );
-    }
-
-    return (
+    const status = isConnected(rc) ? (
         <FormattedMessage
             tagName={ConnectedLabel}
-            id='...connected'
+            id='admin.secure_connections.status_connected'
             defaultMessage='Connected'
         />
+    ) : (
+        <FormattedMessage
+            tagName={OfflineConnectionLabel}
+            id='admin.secure_connections.status_offline'
+            defaultMessage='Offline'
+        />
+    );
+
+    return (
+        <WithTooltip
+            id='connection-status-tooltip'
+            placement='top'
+            title={(
+                <FormattedMessage
+                    id='admin.secure_connections.status_tooltip'
+                    defaultMessage='Last ping from {url} {timestamp}'
+                    values={{
+                        timestamp: (
+                            <Timestamp
+                                value={rc.last_ping_at}
+                                ranges={LASTSYNC_TOOLTIP_RANGES}
+                            />
+                        ),
+                        url: rc.site_url,
+                    }}
+                />
+            )}
+        >
+            <div>
+                {status}
+            </div>
+        </WithTooltip>
     );
 };
+
+const LASTSYNC_TOOLTIP_RANGES = [
+    RelativeRanges.STANDARD_UNITS.second,
+    RelativeRanges.STANDARD_UNITS.minute,
+    RelativeRanges.STANDARD_UNITS.hour,
+];
 
 const labelStyle = css`
     font-size: 12px;

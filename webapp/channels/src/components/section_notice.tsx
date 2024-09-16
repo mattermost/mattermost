@@ -14,7 +14,7 @@ type Button = {
     text: string;
 }
 type Props = {
-    title: string;
+    title: string | React.ReactElement;
     text?: string;
     primaryButton?: Button;
     secondaryButton?: Button;

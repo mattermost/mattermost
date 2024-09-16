@@ -8,7 +8,7 @@ import {CheckIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
-import useCopyText, {messages as cmsg} from 'components/common/hooks/useCopyText';
+import useCopyText, {messages as copymsg} from 'components/common/hooks/useCopyText';
 import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import Input from 'components/widgets/inputs/input/input';
@@ -189,14 +189,14 @@ function SecureConnectionCreateInviteModal({
 const copy = (
     <>
         <ContentCopyIcon size={18}/>
-        <FormattedMessage {...cmsg.copy}/>
+        <FormattedMessage {...copymsg.copy}/>
     </>
 );
 
 const copied = (
     <>
         <CheckIcon size={18}/>
-        <FormattedMessage {...cmsg.copied}/>
+        <FormattedMessage {...copymsg.copied}/>
     </>
 );
 

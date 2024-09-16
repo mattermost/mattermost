@@ -25,6 +25,7 @@ import './channels_input.scss';
 
 type Props = {
     placeholder: React.ReactNode;
+    autoFocus?: boolean;
     ariaLabel: string;
     channelsLoader: (value: string, callback?: (channels: Channel[]) => void) => Promise<Channel[]>;
     onChange: (channels: Channel[]) => void;
@@ -33,6 +34,7 @@ type Props = {
     inputValue: string;
     loadingMessage?: MessageDescriptor;
     noOptionsMessage?: MessageDescriptor;
+    formatOptionLabel?: (channel: Channel) => JSX.Element;
 }
 
 type State = {
@@ -143,7 +145,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         }
     };
 
-    MultiValueRemove = ({children, innerProps}: {children: React.ReactNode | React.ReactNodeArray; innerProps: Record<string, any>}) => (
+    MultiValueRemove = ({children, innerProps}: {children: React.ReactNode | React.ReactNode[]; innerProps: Record<string, any>}) => (
         <div {...innerProps}>
             {children || <CloseCircleSolidIcon/>}
         </div>
@@ -185,6 +187,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
                 tabSelectsValue={true}
                 value={this.props.value}
                 aria-label={this.props.ariaLabel}
+                autoFocus={this.props.autoFocus}
             />
         );
     }

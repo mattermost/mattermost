@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FormatXMLElementFn, Options as IntlMessageFormatOptions} from 'intl-messageformat';
+import type {FormatXMLElementFn} from 'intl-messageformat';
 import type {
     MessageDescriptor,
     PrimitiveType,

@@ -3,28 +3,16 @@
 
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
-import {isConfirmed, isPending} from './utils';
+import {isConfirmed} from './utils';
 
-describe('isPending', () => {
+describe('isConfirmed', () => {
     it('should return true', () => {
-        const pending = isPending({site_url: 'pending_https://siteurl'} as RemoteCluster);
-        expect(pending).toBe(true);
+        const confirmed = isConfirmed({site_url: 'https://siteurl'} as RemoteCluster);
+        expect(confirmed).toBe(true);
     });
 
     it('should return false', () => {
-        const pending = isPending({site_url: 'https://siteurl'} as RemoteCluster);
-        expect(pending).toBe(false);
-    });
-});
-
-describe('isConnected', () => {
-    it('should return true', () => {
-        const pending = isConfirmed({site_url: 'https://siteurl'} as RemoteCluster);
-        expect(pending).toBe(true);
-    });
-
-    it('should return false', () => {
-        const pending = isPending({site_url: 'pending_https://siteurl'} as RemoteCluster);
-        expect(pending).toBe(false);
+        const confirmed = isConfirmed({site_url: 'pending_https://siteurl'} as RemoteCluster);
+        expect(confirmed).toBe(false);
     });
 });

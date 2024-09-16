@@ -465,6 +465,8 @@ export const ModalIdentifiers = {
     SECURE_CONNECTION_DELETE: 'secure_connection_delete',
     SECURE_CONNECTION_CREATE_INVITE: 'secure_connection_create_invite',
     SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
+    SHARED_CHANNEL_REMOTE_INVITE: 'secure_connection_create_invite',
+    SHARED_CHANNEL_REMOTE_UNINVITE: 'secure_connection_create_uninvite',
 };
 
 export const UserStatuses = {

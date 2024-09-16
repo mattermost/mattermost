@@ -1889,7 +1889,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `environment/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.configIsFalse('ExperimentalSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
                     it.not(it.any(
                         it.licensedForFeature('SharedChannels'),
                         it.licensedForSku(LicenseSkus.Enterprise),
@@ -1897,9 +1897,7 @@ const AdminDefinition: AdminDefinitionType = {
                     )),
                 ),
                 isDisabled: it.any(
-                    it.configIsFalse('ExperimentalSettings', 'EnableRemoteClusterService'),
-
-                    //it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
                 ),
                 schema: {
                     id: 'SecureConnectionDetail',
@@ -1909,24 +1907,20 @@ const AdminDefinition: AdminDefinitionType = {
 
             secure_connections: {
                 url: 'environment/secure_connections',
-                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Secure Connections (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
                 searchableStrings: secureConnectionsSearchableStrings,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.configIsFalse('ExperimentalSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
                     it.not(it.any(
                         it.licensedForFeature('SharedChannels'),
                         it.licensedForSku(LicenseSkus.Enterprise),
                         it.licensedForSku(LicenseSkus.Professional),
-
-                        // it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)
                     )),
                 ),
 
                 isDisabled: it.any(
-                    it.configIsFalse('ExperimentalSettings', 'EnableRemoteClusterService'),
-
-                    // it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MANAGE_SECURE_CONNECTIONS)),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
                 ),
                 schema: {
                     id: 'SecureConnections',

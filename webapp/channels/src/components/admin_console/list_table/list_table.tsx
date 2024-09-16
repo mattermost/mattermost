@@ -62,6 +62,7 @@ export type TableMeta = {
     onNextPageClick?: () => void;
     paginationInfo?: ReactNode;
     hasDualSidedPagination?: boolean;
+    hasNoPagination?: boolean;
 };
 
 interface TableMandatoryTypes {
@@ -119,20 +120,22 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     return (
         <div className='adminConsoleListTableContainer'>
-            <div className='adminConsoleListTabletOptionalHead'>
-                {tableMeta.hasDualSidedPagination && (
-                    <>
-                        {tableMeta.paginationInfo}
-                        <Pagination
-                            disablePrevPage={tableMeta.disablePrevPage}
-                            disableNextPage={tableMeta.disableNextPage}
-                            isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                            onPreviousPageClick={tableMeta.onPreviousPageClick}
-                            onNextPageClick={tableMeta.onNextPageClick}
-                        />
-                    </>
-                )}
-            </div>
+            {!tableMeta.hasNoPagination && (
+                <div className='adminConsoleListTabletOptionalHead'>
+                    {tableMeta.hasDualSidedPagination && (
+                        <>
+                            {tableMeta.paginationInfo}
+                            <Pagination
+                                disablePrevPage={tableMeta.disablePrevPage}
+                                disableNextPage={tableMeta.disableNextPage}
+                                isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                                onPreviousPageClick={tableMeta.onPreviousPageClick}
+                                onNextPageClick={tableMeta.onNextPageClick}
+                            />
+                        </>
+                    )}
+                </div>
+            )}
             <table
                 id={tableMeta.tableId}
                 aria-colcount={colCount}
@@ -269,9 +272,9 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     ))}
                 </tfoot>
             </table>
-            <div className='adminConsoleListTabletOptionalFoot'>
-                {tableMeta.paginationInfo}
-                {handlePageSizeChange && (
+            {!tableMeta.hasNoPagination && (
+                <div className='adminConsoleListTabletOptionalFoot'>
+                    {tableMeta.paginationInfo}
                     <div
                         className='adminConsoleListTablePageSize'
                         aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
@@ -302,15 +305,16 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             defaultMessage='rows per page'
                         />
                     </div>
-                )}
-                <Pagination
-                    disablePrevPage={tableMeta.disablePrevPage}
-                    disableNextPage={tableMeta.disableNextPage}
-                    isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                    onPreviousPageClick={tableMeta.onPreviousPageClick}
-                    onNextPageClick={tableMeta.onNextPageClick}
-                />
-            </div>
+                    <Pagination
+                        disablePrevPage={tableMeta.disablePrevPage}
+                        disableNextPage={tableMeta.disableNextPage}
+                        isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                        onPreviousPageClick={tableMeta.onPreviousPageClick}
+                        onNextPageClick={tableMeta.onNextPageClick}
+                    />
+
+                </div>
+            )}
         </div>
     );
 }
