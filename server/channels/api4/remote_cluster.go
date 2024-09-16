@@ -538,7 +538,6 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 		c.Err = invErr
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
