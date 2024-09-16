@@ -4327,6 +4327,14 @@ export default class Client4 {
             {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
         );
     };
+
+    // get user's current team's scheduled posts
+    getScheduledPosts = (teamId: string, includeDirectChannels: boolean) => {
+        return this.doFetchWithResponse<{[key: string]: ScheduledPost[]}>(
+            `${this.getPostsRoute()}/scheduled/team/${teamId}?includeDirectChannels=${includeDirectChannels}`,
+            {method: 'get'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

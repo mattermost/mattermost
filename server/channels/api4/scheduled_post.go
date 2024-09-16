@@ -16,6 +16,7 @@ import (
 
 func (api *API) InitScheduledPost() {
 	api.BaseRoutes.Posts.Handle("/schedule", api.APISessionRequired(createSchedulePost)).Methods(http.MethodPost)
+	api.BaseRoutes.Posts.Handle("/scheduled/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTeamScheduledPosts)).Methods(http.MethodGet)
 }
 
 func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -49,6 +50,45 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdScheduledPost); err != nil {
 		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
+		return
+	}
+}
+
+func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	teamId := c.Params.TeamId
+	userId := c.AppContext.Session().UserId
+
+	scheduledPosts, appErr := c.App.GetUserTeamScheduledPosts(c.AppContext, userId, teamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	response := map[string][]*model.ScheduledPost{}
+	response[teamId] = scheduledPosts
+
+	if r.URL.Query().Get("includeDirectChannels") == "true" {
+		directChannelScheduledPosts, appErr := c.App.GetUserTeamScheduledPosts(c.AppContext, userId, "")
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		response["directChannels"] = directChannelScheduledPosts
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Error("failed to encode scheduled posts to return API response", mlog.Err(err))
 		return
 	}
 }

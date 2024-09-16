@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect} from 'react';
-import {useIntl} from 'react-intl';
+import React, {memo, useCallback, useEffect} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
+import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
@@ -11,13 +12,13 @@ import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
 
-import NoResultsIndicator from 'components/no_results_indicator';
+import DraftList from 'components/drafts/draft_list/draft_list';
+import ScheduledPostList from 'components/drafts/scheduled_post_list/scheduled_post_list';
+import Tab from 'components/tabs/tab';
+import Tabs from 'components/tabs/tabs';
 import Header from 'components/widgets/header';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
-
-import DraftRow from './draft_row';
-import DraftsIllustration from './drafts_illustration';
 
 import './drafts.scss';
 
@@ -39,6 +40,11 @@ function Drafts({
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
+    const history = useHistory();
+    const match: match<{team: string}> = useRouteMatch();
+    const isDraftsTab = useRouteMatch('/:team/drafts');
+    const isScheduledPostsTab = useRouteMatch('/:team/scheduled_posts');
+
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
         dispatch(suppressRHS);
@@ -46,7 +52,17 @@ function Drafts({
         return () => {
             dispatch(unsuppressRHS);
         };
-    }, []);
+    }, [dispatch]);
+
+    const handleSwitchTabs = useCallback((key) => {
+        if (key === 0 && isScheduledPostsTab) {
+            history.push(`/${match.params.team}/drafts`);
+        } else if (key === 1 && isDraftsTab) {
+            history.push(`/${match.params.team}/scheduled_posts`);
+        }
+    }, [history, isDraftsTab, isScheduledPostsTab, match]);
+
+    const activeTab = isDraftsTab ? 0 : 1;
 
     return (
         <div
@@ -56,41 +72,59 @@ function Drafts({
             <Header
                 level={2}
                 className='Drafts__header'
-                heading={formatMessage({
-                    id: 'drafts.heading',
-                    defaultMessage: 'Drafts',
-                })}
+                heading={(
+                    <FormattedMessage
+                        id='drafts.heading'
+                        defaultMessage='Drafts'
+                    />
+                )}
                 subtitle={formatMessage({
                     id: 'drafts.subtitle',
                     defaultMessage: 'Any messages you\'ve started will show here',
                 })}
             />
-            <div className='Drafts__main'>
-                {drafts.map((d) => (
-                    <DraftRow
-                        key={d.key}
-                        displayName={displayName}
-                        draft={d}
-                        isRemote={draftRemotes?.[d.key]}
+
+            <Tabs
+                id='draft_tabs'
+                activeKey={activeTab}
+                mountOnEnter={true}
+                unmountOnExit={false}
+                onSelect={handleSwitchTabs}
+            >
+                <Tab
+                    eventKey={0}
+                    title={(
+                        <FormattedMessage
+                            id='drafts.heading'
+                            defaultMessage='Drafts'
+                        />
+                    )}
+                    unmountOnExit={false}
+                    tabClassName='drafts_tab'
+                >
+                    <DraftList
+                        drafts={drafts}
                         user={user}
+                        displayName={displayName}
+                        draftRemotes={draftRemotes}
                         status={status}
                     />
-                ))}
-                {drafts.length === 0 && (
-                    <NoResultsIndicator
-                        expanded={true}
-                        iconGraphic={DraftsIllustration}
-                        title={formatMessage({
-                            id: 'drafts.empty.title',
-                            defaultMessage: 'No drafts at the moment',
-                        })}
-                        subtitle={formatMessage({
-                            id: 'drafts.empty.subtitle',
-                            defaultMessage: 'Any messages you’ve started will show here.',
-                        })}
-                    />
-                )}
-            </div>
+                </Tab>
+
+                <Tab
+                    eventKey={1}
+                    title={(
+                        <FormattedMessage
+                            id='schedule_post.tab.title'
+                            defaultMessage='Scheduled'
+                        />
+                    )}
+                    unmountOnExit={false}
+                    tabClassName='drafts_tab'
+                >
+                    <ScheduledPostList/>
+                </Tab>
+            </Tabs>
         </div>
     );
 }

@@ -10,6 +10,7 @@
 
         Must have `create_post` permission for the channel the post is being created in.
 
+        __Minimum server version__: 10.3
       operationId: CreateScheduledPost
       requestBody:
         content:
@@ -50,6 +51,48 @@
                 type: object
                 items:
                   $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/posts/scheduled/team/{team_id}:
+    get:
+      tags:
+        - scheduled_post
+      summary: Gets all scheduled posts for a user for the specified team..
+      description: >
+        Get user-team scheduled posts
+
+        ##### Permissions
+
+        Must have `access_team` permission for the team the scheduled posts are being fetched for.
+
+        __Minimum server version__: 10.3
+      operationId: GetUserScheduledPosts
+      parameters:
+        - name: includeDirectChannels
+          in: query
+          description: Whether to include scheduled posts from DMs an GMs or not. Default is false
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Created scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ScheduledPost"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

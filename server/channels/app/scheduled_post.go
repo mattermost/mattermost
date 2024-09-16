@@ -41,3 +41,20 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 
 	return savedScheduledPost, nil
 }
+
+func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError) {
+	scheduledPosts, err := a.Srv().Store().ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+	if err != nil {
+		return nil, model.NewAppError("App.GetUserTeamScheduledPosts", "app.get_user_team_scheduled_posts.error", map[string]any{"user_id": userId, "team_id": teamId}, "", http.StatusInternalServerError)
+	}
+
+	if scheduledPosts == nil {
+		scheduledPosts = []*model.ScheduledPost{}
+	}
+
+	for _, scheduledPost := range scheduledPosts {
+		a.prepareDraftWithFileInfos(rctx, userId, &scheduledPost.Draft)
+	}
+
+	return scheduledPosts, nil
+}
