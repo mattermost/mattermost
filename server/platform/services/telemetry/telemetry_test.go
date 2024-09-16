@@ -542,7 +542,7 @@ func TestRudderTelemetry(t *testing.T) {
 		}
 	})
 	t.Run("Telemetry for Marketplace plugins is returned", func(t *testing.T) {
-		service.trackPluginConfig(configs map[string]any, service.srv.Config(), marketplaceServer.URL)
+		service.trackPluginConfig(map[string]any{}, service.srv.Config(), marketplaceServer.URL)
 
 		var batches []testBatch
 		collectBatches(t, &batches, pchan)
@@ -560,7 +560,7 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("Telemetry for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
-		service.trackPluginConfig(service.srv.Config(), "http://some.random.invalid.url")
+		service.trackPluginConfig(map[string]any{}, service.srv.Config(), "http://some.random.invalid.url")
 
 		var batches []testBatch
 		collectBatches(t, &batches, pchan)
