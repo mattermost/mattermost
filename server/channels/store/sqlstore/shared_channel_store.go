@@ -269,8 +269,10 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 	return sc, nil
 }
 
-// Delete deletes a single shared channel plus associated SharedChannelRemotes.
-// Returns true if shared channel found and deleted, false if not found.
+// Delete deletes a single shared channel as deleted, plus marks as
+// deleted associated SharedChannelRemotes.
+// Returns true if shared channel found and deleted, false if not
+// found.
 func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
@@ -291,17 +293,20 @@ func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
 		return false, errors.Wrap(err, "failed to delete SharedChannel")
 	}
 
+	curTime := model.GetMillis()
+
 	// Also remove remotes from SharedChannelRemotes (if any).
 	squery, args, err = s.getQueryBuilder().
-		Delete("SharedChannelRemotes").
+		Update("SharedChannelRemotes").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
 		Where(sq.Eq{"ChannelId": channelId}).
 		ToSql()
 	if err != nil {
 		return false, errors.Wrap(err, "delete_shared_channel_remotes_tosql")
 	}
 
-	_, err = transaction.Exec(squery, args...)
-	if err != nil {
+	if _, err = transaction.Exec(squery, args...); err != nil {
 		return false, errors.Wrap(err, "failed to delete SharedChannelRemotes")
 	}
 
@@ -337,10 +342,10 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
-		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
+		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "DeleteAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
 			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId").
-		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId,
-			remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
+		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.DeleteAt, remote.IsInviteAccepted, remote.IsInviteConfirmed,
+			remote.RemoteId, remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -362,6 +367,7 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("CreatorId", remote.CreatorId).
 		Set("CreateAt", remote.CreateAt).
 		Set("UpdateAt", remote.UpdateAt).
+		Set("DeleteAt", remote.DeleteAt).
 		Set("IsInviteAccepted", remote.IsInviteAccepted).
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
 		Set("RemoteId", remote.RemoteId).
@@ -403,6 +409,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "CreatorId",
 		prefix + "CreateAt",
 		prefix + "UpdateAt",
+		prefix + "DeleteAt",
 		prefix + "IsInviteAccepted",
 		prefix + "IsInviteConfirmed",
 		prefix + "RemoteId",
@@ -488,7 +495,9 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 		query = query.Where(sq.Eq{"scr.RemoteId": opts.RemoteId})
 	}
 
-	if !opts.InclUnconfirmed {
+	if opts.ExcludeConfirmed {
+		query = query.Where(sq.Eq{"scr.IsInviteConfirmed": false})
+	} else if !opts.IncludeUnconfirmed {
 		query = query.Where(sq.Eq{"scr.IsInviteConfirmed": true})
 	}
 
@@ -503,6 +512,10 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 	}
 
 	query = query.Offset(uint64(offset)).Limit(uint64(limit))
+
+	if !opts.IncludeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	squery, args, err := query.ToSql()
 	if err != nil {
@@ -526,6 +539,7 @@ func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (boo
 		From("SharedChannelRemotes").
 		Where(sq.Eq{"RemoteId": remoteId}).
 		Where(sq.Eq{"ChannelId": channelID}).
+		Where(sq.Eq{"DeleteAt": 0}).
 		Suffix(")")
 
 	query, args, err := builder.ToSql()
@@ -549,6 +563,7 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 		Join("SharedChannelRemotes AS scr ON rc.RemoteId = scr.RemoteId").
 		Join("ChannelMembers AS cm ON scr.ChannelId = cm.ChannelId").
 		Where(sq.Eq{"rc.RemoteId": remoteId}).
+		Where(sq.Eq{"scr.DeleteAt": 0}).
 		Where(sq.Eq{"cm.UserId": userId})
 
 	query, args, err := builder.ToSql()
@@ -614,8 +629,12 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 // DeleteRemote deletes a single shared channel remote.
 // Returns true if remote found and deleted, false if not found.
 func (s SqlSharedChannelStore) DeleteRemote(id string) (bool, error) {
+	curTime := model.GetMillis()
+
 	squery, args, err := s.getQueryBuilder().
-		Delete("SharedChannelRemotes").
+		Update("SharedChannelRemotes").
+		Set("DeleteAt", curTime).
+		Set("UpdateAt", curTime).
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
@@ -644,6 +663,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
+		Where("scr.DeleteAt = 0").
 		Where("scr.ChannelId = sc.ChannelId").
 		Where(sq.Eq{"scr.ChannelId": channelId})
 

@@ -219,7 +219,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 
 // doStatus displays connection status for all remote clusters.
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
-	list, err := a.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{})
+	list, err := a.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
 	if err != nil {
 		responsef(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": err.Error()}))
 	}
@@ -230,15 +230,16 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 
 	var sb strings.Builder
 	fmt.Fprintf(&sb, args.T("api.command_remote.remote_table_header")+" \n")
-	// | Secure Connection | Display name | ConnectionID | Site URL | Invite accepted | Online | Last ping  |
-	fmt.Fprintf(&sb, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | \n")
+	// | Secure Connection | Display name | ConnectionID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |
+	fmt.Fprintf(&sb, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | | :---- |\n")
 
 	for _, rc := range list {
 		accepted := formatBool(args.T, rc.IsConfirmed())
 		online := formatBool(args.T, isOnline(rc.LastPingAt))
 		lastPing := formatTimestamp(rc.LastPingAt)
+		deleted := formatBool(args.T, rc.DeleteAt != 0)
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.GetSiteURL(), accepted, online, lastPing)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.GetSiteURL(), rc.DefaultTeamId, accepted, online, lastPing, deleted)
 	}
 	return responsef(sb.String())
 }
