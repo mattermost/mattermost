@@ -3,14 +3,20 @@
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import {hasScheduledPostError} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import AlertBanner from 'components/alert_banner';
 import ScheduledPostItem from 'components/drafts/scheduled_post/scheduled_post';
 import NoScheduledPostsIllustration from 'components/drafts/scheduled_post_list/empty_scheduled_post_list_illustration';
 import NoResultsIndicator from 'components/no_results_indicator';
+
+import type {GlobalState} from 'types/store';
 
 import './style.scss';
 
@@ -24,12 +30,13 @@ type Props = {
 export default function ScheduledPostList({scheduledPosts, user, displayName}: Props) {
     const {formatMessage} = useIntl();
 
-    const scheduledPostsHasError = scheduledPosts.findIndex((scheduledPosts) => scheduledPosts.error_code);
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, currentTeamId));
 
     return (
         <div className='ScheduledPostList'>
             {
-                scheduledPostsHasError > 0 &&
+                scheduledPostsHasError &&
                 <AlertBanner
                     mode='danger'
                     className='scheduledPostListErrorIndicator'

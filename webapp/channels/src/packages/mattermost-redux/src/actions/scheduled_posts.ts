@@ -15,7 +15,7 @@ export function createSchedulePost(schedulePost: ScheduledPost, teamId: string, 
             const createdPost = await Client4.createScheduledPost(schedulePost, connectionId);
 
             dispatch({
-                type: ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED,
+                type: ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED,
                 data: {
                     scheduledPost: createdPost.data,
                     teamId,

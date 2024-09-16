@@ -24,6 +24,20 @@ export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: stri
     );
 }
 
-export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string) {
-    return state.entities.scheduledPosts.byTeamId[teamId]?.length || 0;
+export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string, includeDirectChannels: boolean) {
+    let count = state.entities.scheduledPosts.byTeamId[teamId]?.length || 0;
+    if (includeDirectChannels) {
+        count += (state.entities.scheduledPosts.byTeamId.directChannels?.length || 0);
+    }
+
+    return count;
+}
+
+export function hasScheduledPostError(state: GlobalState, teamId: string) {
+    let hasError = (state.entities.scheduledPosts.byTeamId[teamId] || []).some((scheduledPost) => scheduledPost.error_code !== '');
+    if (!hasError) {
+        hasError = (state.entities.scheduledPosts.byTeamId.directChannels || []).some((scheduledPost) => scheduledPost.error_code !== '');
+    }
+
+    return hasError;
 }

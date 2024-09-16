@@ -9,7 +9,7 @@ import {NavLink, useRouteMatch} from 'react-router-dom';
 import fetchTeamScheduledPosts from 'mattermost-redux/actions/scheduled_posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
-    getScheduledPostsByTeamCount,
+    getScheduledPostsByTeamCount, hasScheduledPostError,
 } from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -34,9 +34,11 @@ function DraftsLink() {
     const syncedDraftsAllowedAndEnabled = useSelector(syncedDraftsAreAllowedAndEnabled);
     const draftCount = useSelector(getDraftsCount);
     const teamId = useSelector(getCurrentTeamId);
-    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId));
+    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId, true));
 
     const itemsExist = draftCount > 0 || teamScheduledPostCount > 0;
+
+    const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, teamId));
 
     const {url} = useRouteMatch();
     const isDraftUrlMatch = useRouteMatch('/:team/drafts');
@@ -115,6 +117,8 @@ function DraftsLink() {
                         <ChannelMentionBadge
                             unreadMentions={teamScheduledPostCount}
                             icon={scheduleIcon}
+                            className={`scheduledPostBadge ${scheduledPostsHasError ? 'persistent' : ''}`}
+                            hasUrgent={scheduledPostsHasError}
                         />
                     }
                 </NavLink>

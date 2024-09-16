@@ -62,7 +62,7 @@ const GlobalThreads = () => {
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
 
-    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, currentTeamId));
+    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, currentTeamId, true));
 
     useEffect(() => {
         dispatch(suppressRHS);

@@ -59,6 +59,15 @@
                 }
             }
         }
+
+        .tab-content {
+            height: 100%;
+
+            div[role="tabpanel"] {
+                position: relative;
+                height: 100%;
+            }
+        }
     }
 
     span.MuiBadge-badge {position: relative;top: -2px;}
