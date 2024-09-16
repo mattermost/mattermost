@@ -389,7 +389,7 @@ func (wc *WebConn) GetSession() *model.Session {
 // SetSession sets the session of the connection.
 func (wc *WebConn) SetSession(v *model.Session) {
 	// Clone the session first as WebConn takes ownership of the object
-	// and the web.Hub will return it to the [sync.Poll] once the WebConn gets removed.
+	// and the web.Hub will return it to the [sync.Pool] once the WebConn gets removed.
 	if v != nil {
 		v = v.DeepCopy()
 	}
