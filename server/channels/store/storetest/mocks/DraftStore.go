@@ -50,9 +50,9 @@ func (_m *DraftStore) DeleteDraftsAssociatedWithPost(channelID string, rootID st
 	return r0
 }
 
-// DeleteEmptyDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userId
-func (_m *DraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	ret := _m.Called(createAt, userId)
+// DeleteEmptyDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userID
+func (_m *DraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error {
+	ret := _m.Called(createAt, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteEmptyDraftsByCreateAtAndUserId")
@@ -60,7 +60,7 @@ func (_m *DraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userI
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(int64, string) error); ok {
-		r0 = rf(createAt, userId)
+		r0 = rf(createAt, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -68,9 +68,9 @@ func (_m *DraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userI
 	return r0
 }
 
-// DeleteOrphanDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userId
-func (_m *DraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	ret := _m.Called(createAt, userId)
+// DeleteOrphanDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userID
+func (_m *DraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error {
+	ret := _m.Called(createAt, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteOrphanDraftsByCreateAtAndUserId")
@@ -78,7 +78,7 @@ func (_m *DraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, user
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(int64, string) error); ok {
-		r0 = rf(createAt, userId)
+		r0 = rf(createAt, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -146,9 +146,9 @@ func (_m *DraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.D
 	return r0, r1
 }
 
-// GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration provides a mock function with given fields: createAt, userId
-func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error) {
-	ret := _m.Called(createAt, userId)
+// GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration provides a mock function with given fields: createAt, userID
+func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userID string) (int64, string, error) {
+	ret := _m.Called(createAt, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration")
@@ -158,22 +158,22 @@ func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(crea
 	var r1 string
 	var r2 error
 	if rf, ok := ret.Get(0).(func(int64, string) (int64, string, error)); ok {
-		return rf(createAt, userId)
+		return rf(createAt, userID)
 	}
 	if rf, ok := ret.Get(0).(func(int64, string) int64); ok {
-		r0 = rf(createAt, userId)
+		r0 = rf(createAt, userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	if rf, ok := ret.Get(1).(func(int64, string) string); ok {
-		r1 = rf(createAt, userId)
+		r1 = rf(createAt, userID)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
 	if rf, ok := ret.Get(2).(func(int64, string) error); ok {
-		r2 = rf(createAt, userId)
+		r2 = rf(createAt, userID)
 	} else {
 		r2 = ret.Error(2)
 	}
