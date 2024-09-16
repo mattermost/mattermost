@@ -248,7 +248,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 		}()
 	}
 
-	rc, appErr := a.GetRemoteCluster(remoteID)
+	rc, appErr := a.GetRemoteCluster(remoteID, false)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
 	}

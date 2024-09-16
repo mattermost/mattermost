@@ -607,6 +607,15 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 				return nil, err
 			}
 
+			followers, err := a.buildThreadFollowers(ctx, post.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(followers) > 0 {
+				postLine.Post.ThreadFollowers = &followers
+			}
+
 			if withAttachments && len(replyAttachments) > 0 {
 				attachments = append(attachments, replyAttachments...)
 			}
@@ -672,6 +681,21 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	}
 
 	return replies, attachments, nil
+}
+
+func (a *App) buildThreadFollowers(_ request.CTX, postID string) ([]imports.ThreadFollowerImportData, *model.AppError) {
+	var followers []imports.ThreadFollowerImportData
+
+	threadFollowers, nErr := a.Srv().Store().Thread().GetThreadMembershipsForExport(postID)
+	if nErr != nil {
+		return nil, model.NewAppError("buildThreadFollowers", "app.thread.get_threadmembers_for_export.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	for _, member := range threadFollowers {
+		followers = append(followers, *ImportFollowerFromThreadMember(member))
+	}
+
+	return followers, nil
 }
 
 func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
@@ -978,6 +1002,16 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments
 			}
+
+			followers, err := a.buildThreadFollowers(ctx, post.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(followers) > 0 {
+				postLine.DirectPost.ThreadFollowers = &followers
+			}
+
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return nil, err
 			}

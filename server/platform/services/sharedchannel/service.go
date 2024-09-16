@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -24,7 +25,6 @@ const (
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 50 // a bit more than 4 typical screenfulls of posts
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
@@ -62,6 +62,7 @@ type AppIface interface {
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
+	SaveAndBroadcastStatus(status *model.Status)
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
@@ -244,6 +245,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool) {
 	if online {
 		// when a previously offline remote comes back online force a sync.
+		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
 	}
 
@@ -256,8 +258,17 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 
 func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channel) {
 	scs.platform.InvalidateCacheForChannel(channel)
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
-	messageWs.Add("channel_id", channel.Id)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
+	channelJSON, err := json.Marshal(channel)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+	messageWs.Add("channel", string(channelJSON))
+
 	scs.app.Publish(messageWs)
 }
 

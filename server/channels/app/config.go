@@ -214,9 +214,23 @@ func (a *App) GetConfigFile(name string) ([]byte, error) {
 // GetSanitizedConfig gets the configuration for a system admin without any secrets.
 func (a *App) GetSanitizedConfig() *model.Config {
 	cfg := a.Config().Clone()
-	cfg.Sanitize()
+
+	a.SanitizedConfig(cfg)
 
 	return cfg
+}
+
+// SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
+func (a *App) SanitizedConfig(cfg *model.Config) {
+	manifests, err := a.getPluginManifests()
+	if err != nil {
+		// GetPluginManifests might error, e.g. when plugins are disabled.
+		// Sanitize all plugin settings in this case.
+		cfg.Sanitize(nil)
+		return
+	}
+
+	cfg.Sanitize(manifests)
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
