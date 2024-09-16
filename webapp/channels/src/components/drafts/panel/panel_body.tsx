@@ -30,8 +30,6 @@ type Props = {
     uploadsInProgress: PostDraft['uploadsInProgress'];
     userId: UserProfile['id'];
     username: UserProfile['username'];
-    error: React.ReactNode;
-    errorClass: string;
 }
 
 const OPTIONS = {
@@ -49,8 +47,6 @@ function PanelBody({
     uploadsInProgress,
     userId,
     username,
-    error,
-    errorClass,
 }: Props) {
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
 
@@ -104,11 +100,6 @@ function PanelBody({
                     </div>
                 </div>
             </div>
-            {Boolean(error) && (
-                <div className={errorClass}>
-                    {error}
-                </div>
-            )}
         </>
     );
 }

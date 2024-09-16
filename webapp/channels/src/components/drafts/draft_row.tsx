@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback, useMemo, useEffect, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
@@ -159,9 +161,18 @@ function DraftRow({
                         uploadsInProgress={draft.value.uploadsInProgress}
                         userId={user.id}
                         username={user.username}
-                        error={postError || serverError}
-                        errorClass={errorClass || ''}
                     />
+                    {Boolean(postError || serverError) && (
+                        <div className={classNames('draftError', {errorClass})}>
+                            <FormattedMessage
+                                id='draft.send.error'
+                                defaultMessage='There has been an error while sending this draft: {error}'
+                                values={{
+                                    error: postError || serverError,
+                                }}
+                            />
+                        </div>
+                    )}
                 </>
             )}
         </Panel>
