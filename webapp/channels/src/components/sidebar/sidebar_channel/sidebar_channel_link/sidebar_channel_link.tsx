@@ -228,7 +228,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         const sharedChannelIcon = this.props.isSharedChannel ? (
             <SharedChannelIndicator
                 className='icon'
-                channelType={channel.type}
                 withTooltip={true}
             />
         ) : null;
