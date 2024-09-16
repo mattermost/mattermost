@@ -256,3 +256,10 @@ func (l *LRU) removeElement(e *list.Element) {
 	}
 	delete(l.items, kv.key)
 }
+
+func (*LRU) Increment(key string, val int) error {
+	panic("not implemented")
+}
+func (*LRU) Decrement(key string, val int) error {
+	panic("not implemented")
+}

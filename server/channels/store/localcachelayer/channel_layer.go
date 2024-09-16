@@ -442,7 +442,11 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 		return nil, err
 	}
 	// For redis, directly increment member count.
-	s.InvalidateMemberCount(member.ChannelId)
+	if s.rootStore.cacheType == model.CacheTypeRedis {
+		s.rootStore.doIncrementCache(s.rootStore.channelMemberCountsCache, member.ChannelId, 1)
+	} else {
+		s.InvalidateMemberCount(member.ChannelId)
+	}
 	return member, nil
 }
 
@@ -452,7 +456,12 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 		return nil, err
 	}
 	for _, member := range members {
-		s.InvalidateMemberCount(member.ChannelId)
+		// For redis, directly increment member count.
+		if s.rootStore.cacheType == model.CacheTypeRedis {
+			s.rootStore.doIncrementCache(s.rootStore.channelMemberCountsCache, member.ChannelId, 1)
+		} else {
+			s.InvalidateMemberCount(member.ChannelId)
+		}
 	}
 	return members, nil
 }
@@ -522,8 +531,13 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	if err != nil {
 		return err
 	}
-	// For redis, directly decrement member count
-	s.InvalidateMemberCount(channelId)
+
+	// For redis, directly decrement member count.
+	if s.rootStore.cacheType == model.CacheTypeRedis {
+		s.rootStore.doDecrementCache(s.rootStore.channelMemberCountsCache, channelId, 1)
+	} else {
+		s.InvalidateMemberCount(channelId)
+	}
 	return nil
 }
 
@@ -532,7 +546,11 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	if err != nil {
 		return err
 	}
-	// For redis, directly decrement member count
-	s.InvalidateMemberCount(channelId)
+	// For redis, directly decrement member count.
+	if s.rootStore.cacheType == model.CacheTypeRedis {
+		s.rootStore.doDecrementCache(s.rootStore.channelMemberCountsCache, channelId, len(userIds))
+	} else {
+		s.InvalidateMemberCount(channelId)
+	}
 	return nil
 }

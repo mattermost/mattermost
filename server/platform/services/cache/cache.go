@@ -49,6 +49,12 @@ type Cache interface {
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 	GetInvalidateClusterEvent() model.ClusterEvent
 
+	// Increment/Decrement will increment/decrement the
+	// number stored at that key by the value. This is only applicable
+	// for Redis. It will panic if this is called for LRU cache.
+	Increment(key string, val int) error
+	Decrement(key string, val int) error
+
 	// Name returns the name of the cache
 	Name() string
 }
