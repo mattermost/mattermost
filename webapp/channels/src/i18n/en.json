@@ -3366,6 +3366,8 @@
   "scheduled_post.error_code.no_channel_permission": "Missing Permission",
   "scheduled_post.error_code.no_channel_member": "Not In Channel",
   "scheduled_post.error_code.thread_deleted": "Thread Deleted",
+  "scheduled_post.delete_modal.title": "Delete scheduled post",
+  "scheduled_post.delete_modal.body": "Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?",
   "create_post_button.option.schedule_message": "Schedule message",
   "create_post_button.option.schedule_message.options.choose_custom_time": "Choose a custom time",
   "create_post_button.option.schedule_message.options.header": "Schedule message",

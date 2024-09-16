@@ -4,6 +4,7 @@
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
@@ -12,23 +13,24 @@ import {openModal} from 'actions/views/modals';
 import ScheduledPostCustomTimeModal
     from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 import Action from 'components/drafts/draft_actions/action';
-
-import {ModalIdentifiers} from 'utils/constants';
+import DeleteScheduledPostModal
+    from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
 
 import './style.scss';
 
 type Props = {
     scheduledPost: ScheduledPost;
+    channelDisplayName: string;
+    onReschedule: (timestamp: number) => void;
+    onDelete: (id: string) => void;
 }
 
-function ScheduledPostActions({scheduledPost}: Props) {
+function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDisplayName}: Props) {
     const dispatch = useDispatch();
 
-    // this is temporary. Will be removed in upcoming PR.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleConfirmRescheduledPost = useCallback((timestamp: number) => {
-        // TODO: will add the API call in a later PR.
-    }, []);
+        onReschedule(timestamp);
+    }, [onReschedule]);
 
     const handleReschedulePost = useCallback(() => {
         dispatch(openModal({
@@ -40,6 +42,17 @@ function ScheduledPostActions({scheduledPost}: Props) {
             },
         }));
     }, [dispatch, handleConfirmRescheduledPost, scheduledPost.channel_id]);
+
+    const handleDelete = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.DELETE_DRAFT,
+            dialogType: DeleteScheduledPostModal,
+            dialogProps: {
+                channelDisplayName,
+                onConfirm: () => onDelete(scheduledPost.id),
+            },
+        }));
+    }, [channelDisplayName, dispatch, onDelete, scheduledPost.id]);
 
     return (
         <div className='ScheduledPostActions'>
@@ -53,7 +66,7 @@ function ScheduledPostActions({scheduledPost}: Props) {
                         defaultMessage='Delete scheduled post'
                     />
                 )}
-                onClick={() => {}}
+                onClick={handleDelete}
             />
 
             {
