@@ -417,6 +417,8 @@ type UserStore interface {
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
+	StoreMfaUsedTimestamps(userID string, ts []int) error
+	GetMfaUsedTimestamps(userID string) ([]int, error)
 	Get(ctx context.Context, id string) (*model.User, error)
 	GetMany(ctx context.Context, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
