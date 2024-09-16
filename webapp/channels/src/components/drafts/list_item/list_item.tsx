@@ -66,7 +66,7 @@ export default function DraftListItem({
     ), [channel.display_name, channel.name, channel.type, handleOnDelete, handleOnEdit, handleOnSend, itemId, user.id]);
 
     const scheduledPostActions = useMemo(() => (
-        <ScheduledPostActions hasError={Boolean((item as ScheduledPost).error_code)}/>
+        <ScheduledPostActions scheduledPost={item as ScheduledPost}/>
     ), [item]);
 
     let timestamp: number;

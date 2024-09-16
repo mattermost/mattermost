@@ -9,14 +9,20 @@ import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
-export function createSchedulePost(schedulePost: ScheduledPost, connectionId: string) {
-    return async () => {
+export function createSchedulePost(schedulePost: ScheduledPost, teamId: string, connectionId: string) {
+    return async (dispatch: DispatchFunc) => {
         try {
             const createdPost = await Client4.createScheduledPost(schedulePost, connectionId);
-            return {data: createdPost};
 
-            // TODO: dispatch action to store created schedule
-            // post in store to display it.
+            dispatch({
+                type: ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED,
+                data: {
+                    scheduledPost: createdPost.data,
+                    teamId,
+                },
+            });
+
+            return {data: createdPost};
         } catch (error) {
             return {
                 error,

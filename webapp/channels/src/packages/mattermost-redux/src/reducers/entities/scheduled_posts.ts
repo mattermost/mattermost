@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {ScheduledPostsState} from '@mattermost/types/schedule_post';
+import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedule_post';
 
 import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 
@@ -19,6 +19,16 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
                 newState[teamId] = scheduledPostsByTeamId[teamId];
             }
         });
+
+        return newState;
+    }
+    case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
+        // const scheduledPost = action.data.scheduledPost as ScheduledPost;
+        // const teamId = action.data.teamId as string;
+
+        const {scheduledPost, teamId} = action.data;
+        const newState = {...state};
+        newState[teamId] = scheduledPost;
 
         return newState;
     }

@@ -143,7 +143,7 @@ function Drafts({
             >
                 <Tab
                     eventKey={0}
-                    title={scheduledPostsTabHeading}
+                    title={draftTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
@@ -158,7 +158,7 @@ function Drafts({
 
                 <Tab
                     eventKey={1}
-                    title={draftTabHeading}
+                    title={scheduledPostsTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
