@@ -271,8 +271,7 @@ func TestWebConnSessionRace(t *testing.T) {
 		TFunc:     i18n.IdentityTfunc(),
 		Locale:    "en",
 	}
-	wc := th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
-	t.Cleanup(wc.Close)
+	_ = th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
 
 	session.AddProp(model.SessionPropPlatform, "chrome")
 
