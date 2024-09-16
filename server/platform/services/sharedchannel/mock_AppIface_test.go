@@ -474,6 +474,11 @@ func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
+// SaveAndBroadcastStatus provides a mock function with given fields: status
+func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
+	_m.Called(status)
+}
+
 // SaveReactionForPost provides a mock function with given fields: c, reaction
 func (_m *MockAppIface) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(c, reaction)

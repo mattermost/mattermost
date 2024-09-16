@@ -30,10 +30,20 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 
 	// if plugin is already registered then treat this as an update.
 	if rc != nil {
-		rctx.Logger().Debug("Plugin already registered for Shared Channels",
-			mlog.String("plugin_id", opts.PluginID),
-			mlog.String("remote_id", rc.RemoteId),
-		)
+		// plugin was deleted at some point
+		if rc.DeleteAt != 0 {
+			rctx.Logger().Debug("Restoring plugin registration for Shared Channels",
+				mlog.String("plugin_id", opts.PluginID),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+
+			rc.DeleteAt = 0
+		} else {
+			rctx.Logger().Debug("Plugin already registered for Shared Channels",
+				mlog.String("plugin_id", opts.PluginID),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+		}
 
 		rc.DisplayName = opts.Displayname
 		rc.Options = opts.GetOptionFlags()
@@ -82,6 +92,11 @@ func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
 		return err
 	}
 
+	if rc.DeleteAt != 0 {
+		// plugin already unregistered, nothing to do
+		return nil
+	}
+
 	_, appErr := a.DeleteRemoteCluster(rc.RemoteId)
 	if appErr != nil {
 		return appErr
@@ -102,7 +117,7 @@ func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *
 }
 
 func (a *App) PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.GetRemoteCluster(rcId)
+	rc, err := a.GetRemoteCluster(rcId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +152,8 @@ func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError
 	return deleted, nil
 }
 
-func (a *App) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store().RemoteCluster().Get(remoteClusterId)
+func (a *App) GetRemoteCluster(remoteClusterId string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteClusterId, includeDeleted)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
