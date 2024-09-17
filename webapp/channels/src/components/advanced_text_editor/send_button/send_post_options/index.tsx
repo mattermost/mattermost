@@ -2,22 +2,18 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import moment from 'moment/moment';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
+import {ModalIdentifiers} from 'utils/constants';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-
 import {openModal} from 'actions/views/modals';
 
+import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
 import * as Menu from 'components/menu';
-import Timestamp from 'components/timestamp';
-
-import {ModalIdentifiers} from 'utils/constants';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
@@ -32,7 +28,6 @@ type Props = {
 export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const userTimezone = useSelector(getCurrentTimezone);
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         e.preventDefault();
@@ -63,93 +58,6 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             },
         }));
     }, [channelId, dispatch, handleSelectCustomTime]);
-
-    const coreMenuOptions = useMemo(() => {
-        const today = moment().tz(userTimezone);
-        const tomorrow9amTime = moment().tz(userTimezone);
-        tomorrow9amTime.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
-
-        const timeComponent = (
-            <Timestamp
-                value={tomorrow9amTime.valueOf()}
-                useDate={false}
-            />
-        );
-
-        const optionTomorrow = (
-            <Menu.Item
-                key={'scheduling_time_tomorrow_9_am'}
-                onClick={(e) => handleOnSelect(e, tomorrow9amTime.valueOf())}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.tomorrow'
-                        defaultMessage='Tomorrow at {9amTime}'
-                        values={{'9amTime': timeComponent}}
-                    />
-                }
-            />
-        );
-
-        const nextMonday = moment().tz(userTimezone);
-        nextMonday.day(8); // next monday; 1 = Monday, 8 = next Monday
-        nextMonday.set({hour: 9, minute: 0, second: 0, millisecond: 0}); // 9 AM
-
-        const optionNextMonday = (
-            <Menu.Item
-                key={'scheduling_time_next_monday_9_am'}
-                onClick={(e) => handleOnSelect(e, nextMonday.valueOf())}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.next_monday'
-                        defaultMessage='Next Monday at {9amTime}'
-                        values={{'9amTime': timeComponent}}
-                    />
-                }
-            />
-        );
-
-        const optionMonday = (
-            <Menu.Item
-                key={'scheduling_time_monday_9_am'}
-                onClick={(e) => handleOnSelect(e, nextMonday.valueOf())}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.monday'
-                        defaultMessage='Monday at {9amTime}'
-                        values={{
-                            '9amTime': timeComponent,
-                        }}
-                    />
-                }
-            />
-        );
-
-        let options: React.ReactElement[] = [];
-
-        switch (today.day()) {
-        // Sunday
-        case 0:
-            options = [optionTomorrow];
-            break;
-
-        // Monday
-        case 1:
-            options = [optionTomorrow, optionNextMonday];
-            break;
-
-        // Friday and Saturday
-        case 5:
-        case 6:
-            options = [optionMonday];
-            break;
-
-        // Tuesday to Thursday
-        default:
-            options = [optionTomorrow, optionMonday];
-        }
-
-        return options;
-    }, [handleOnSelect, userTimezone]);
 
     return (
         <Menu.Container
@@ -193,7 +101,7 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 }
             />
 
-            {coreMenuOptions}
+            <CoreMenuOptions handleOnSelect={handleOnSelect}/>
 
             <Menu.Separator/>
 

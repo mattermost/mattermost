@@ -6,7 +6,9 @@ import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
+import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
@@ -27,7 +29,7 @@ import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
 
-export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
+const EMPTY_LIST: ScheduledPost[] = [];
 
 type Props = {
     drafts: Draft[];
@@ -163,7 +165,7 @@ function Drafts({
                     tabClassName='drafts_tab'
                 >
                     <ScheduledPostList
-                        scheduledPosts={scheduledPosts || []}
+                        scheduledPosts={scheduledPosts || EMPTY_LIST}
                         user={user}
                         displayName={displayName}
                         status={status}

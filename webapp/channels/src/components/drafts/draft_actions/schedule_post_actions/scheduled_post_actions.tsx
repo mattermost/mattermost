@@ -5,6 +5,7 @@ import moment from 'moment';
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
@@ -18,8 +19,6 @@ import Action from 'components/drafts/draft_actions/action';
 import DeleteScheduledPostModal
     from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
 import SendDraftModal from 'components/drafts/draft_actions/send_draft_modal';
-
-import {ModalIdentifiers} from 'utils/constants';
 
 import './style.scss';
 
@@ -35,10 +34,6 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
     const dispatch = useDispatch();
     const userTimezone = useSelector(getCurrentTimezone);
 
-    const handleConfirmRescheduledPost = useCallback((timestamp: number) => {
-        onReschedule(timestamp);
-    }, [onReschedule]);
-
     const handleReschedulePost = useCallback(() => {
         const initialTime = moment.tz(scheduledPost.scheduled_at, userTimezone);
 
@@ -47,11 +42,11 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 channelId: scheduledPost.channel_id,
-                onConfirm: handleConfirmRescheduledPost,
+                onConfirm: onReschedule,
                 initialTime,
             },
         }));
-    }, [dispatch, handleConfirmRescheduledPost, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
@@ -103,7 +98,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                                     defaultMessage='Edit scheduled post'
                                 />
                             )}
-                            onClick={() => {}}
+                            onClick={() => {}} // this will be implemented in an upcoming PR
                         />
 
                         <Action

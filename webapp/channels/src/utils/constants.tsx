@@ -2210,4 +2210,7 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
+
 export default Constants;
+
