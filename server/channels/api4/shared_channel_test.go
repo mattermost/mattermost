@@ -355,9 +355,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 			Name               string
 			Client             *model.Client4
 			RemoteId           string
-			ExcludeHome        bool
-			ExcludeRemote      bool
-			IncludeDeleted     bool
+			Filter             model.SharedChannelRemoteFilterOpts
 			Page               int
 			PerPage            int
 			ExpectedStatusCode int
@@ -396,7 +394,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should return the complete list of shared channel remotes for a remote cluster, including deleted",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				IncludeDeleted:     true,
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeDeleted: true},
 				Page:               0,
 				PerPage:            100,
 				ExpectedStatusCode: http.StatusOK,
@@ -407,7 +405,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should return only the shared channel remotes homed localy",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				ExcludeRemote:      true,
+				Filter:             model.SharedChannelRemoteFilterOpts{ExcludeRemote: true},
 				Page:               0,
 				PerPage:            100,
 				ExpectedStatusCode: http.StatusOK,
@@ -418,7 +416,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should return only the shared channel remotes homed remotely",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				ExcludeHome:        true,
+				Filter:             model.SharedChannelRemoteFilterOpts{ExcludeHome: true},
 				Page:               0,
 				PerPage:            100,
 				ExpectedStatusCode: http.StatusOK,
@@ -429,7 +427,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should correctly paginate the results",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				IncludeDeleted:     true,
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeDeleted: true},
 				Page:               1,
 				PerPage:            1,
 				ExpectedStatusCode: http.StatusOK,
@@ -440,7 +438,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.ExcludeHome, tc.ExcludeRemote, tc.IncludeDeleted, tc.Page, tc.PerPage)
+				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.Filter, tc.Page, tc.PerPage)
 				checkHTTPStatus(t, resp, tc.ExpectedStatusCode)
 				if tc.ExpectedError {
 					require.Error(t, err)
