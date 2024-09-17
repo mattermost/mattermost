@@ -7,6 +7,8 @@ import (
 	"context"
 	"testing"
 	"time"
+	"encoding/json"
+	"strings"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -241,5 +243,177 @@ func TestUpdateUserStatus(t *testing.T) {
 		_, resp, err := client.UpdateUserStatus(context.Background(), th.BasicUser2.Id, toUpdateUserStatus)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestUpdateUserCustomStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+    t.Run("set custom status", func(t *testing.T) {
+        toUpdateCustomStatus := &model.CustomStatus{
+            Emoji: "calendar",  // Use a valid emoji name
+            Text:  "My custom status",
+        }
+        _, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+        require.NoError(t, err)
+        CheckOKStatus(t, resp)
+
+        user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+        require.NoError(t, err)
+        customStatusJSON := user.Props["customStatus"]
+        require.NotEmpty(t, customStatusJSON)
+        var customStatus map[string]interface{}
+        err = json.Unmarshal([]byte(customStatusJSON), &customStatus)
+        require.NoError(t, err)
+        assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus["emoji"])
+        assert.Equal(t, toUpdateCustomStatus.Text, customStatus["text"])
+    })
+
+    t.Run("update custom status with duration", func(t *testing.T) {
+        toUpdateCustomStatus := &model.CustomStatus{
+            Emoji:     "palm_tree",  // Use a valid emoji name
+            Text:      "On vacation",
+            Duration:  "date_and_time",
+            ExpiresAt: time.Now().Add(1 * time.Hour),
+        }
+        _, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+        require.NoError(t, err)
+        CheckOKStatus(t, resp)
+
+        user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+        require.NoError(t, err)
+        customStatusJSON := user.Props["customStatus"]
+        require.NotEmpty(t, customStatusJSON)
+        var customStatus map[string]interface{}
+        err = json.Unmarshal([]byte(customStatusJSON), &customStatus)
+        require.NoError(t, err)
+        assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus["emoji"])
+        assert.Equal(t, toUpdateCustomStatus.Text, customStatus["text"])
+        assert.Equal(t, toUpdateCustomStatus.Duration, customStatus["duration"])
+        
+        expiresAtStr, ok := customStatus["expires_at"].(string)
+        require.True(t, ok, "expires_at should be a string")
+        expiresAt, err := time.Parse(time.RFC3339, expiresAtStr)
+        require.NoError(t, err, "Failed to parse expires_at time")
+        
+        assert.WithinDuration(t, toUpdateCustomStatus.ExpiresAt, expiresAt, 5*time.Second)
+    })
+
+	t.Run("attempt to set custom status when disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = true })
+
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "palm_tree",
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("attempt to set custom status for another user", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "palm_tree",
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser2.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("attempt to set custom status with invalid data", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji:     "invalid_emoji",
+			Text:      strings.Repeat("a", 101), // Exceeds max length
+			Duration:  "invalid_duration",
+			ExpiresAt: time.Now().Add(-1 * time.Hour),
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("attempt to set custom status as non-authenticated user", func(t *testing.T) {
+		client.Logout(context.Background())
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "palm_tree",
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+
+func TestRemoveUserCustomStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	t.Run("remove custom status successfully", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "calendar",
+			Text:  "My custom status",
+		}
+		_, _, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.Empty(t, user.Props["customStatus"])
+	})
+
+	t.Run("attempt to remove custom status when disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = true })
+
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("attempt to remove custom status for another user", func(t *testing.T) {
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("attempt to remove custom status as non-authenticated user", func(t *testing.T) {
+		client.Logout(context.Background())
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("remove non-existent custom status", func(t *testing.T) {
+		th.LoginBasic()
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("remove custom status with system admin", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "calendar",
+			Text:  "My custom status",
+		}
+		_, _, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+
+		resp, err := th.SystemAdminClient.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.Empty(t, user.Props["customStatus"])
 	})
 }
