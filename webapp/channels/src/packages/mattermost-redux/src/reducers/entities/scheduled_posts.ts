@@ -23,7 +23,9 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
         return newState;
     }
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
-        const {scheduledPost, teamId} = action.data;
+        const scheduledPost = action.data.scheduledPost;
+        const teamId = action.data.teamId || 'directChannels';
+
         const newState = {...state};
 
         if (newState[teamId]) {
