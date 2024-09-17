@@ -668,9 +668,9 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		userID := model.NewId()
 		team := setupTeam(t, rctx, ss, userID)
 
-		teamIDchannelID1 := model.NewId()
-		teamIDchannelID2 := model.NewId()
-		teamIDchannelID3 := model.NewId()
+		channelID1 := model.NewId()
+		channelID2 := model.NewId()
+		channelID3 := model.NewId()
 
 		opts := &store.SidebarCategorySearchOpts{
 			TeamID:      team.Id,
@@ -687,7 +687,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 				TeamId:      team.Id,
 				DisplayName: model.NewId(),
 			},
-			Channels: []string{teamIDchannelID1, teamIDchannelID2, teamIDchannelID3},
+			Channels: []string{channelID1, channelID2, channelID3},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, created)
@@ -698,7 +698,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		assert.Equal(t, created.Id, res2.Id)
 		assert.Equal(t, model.SidebarCategoryCustom, res2.Type)
 		assert.Equal(t, created.DisplayName, res2.DisplayName)
-		assert.Equal(t, []string{teamIDchannelID1, teamIDchannelID2, teamIDchannelID3}, res2.Channels)
+		assert.Equal(t, []string{channelID1, channelID2, channelID3}, res2.Channels)
 	})
 
 	t.Run("should return any orphaned channels with the Channels category", func(t *testing.T) {
