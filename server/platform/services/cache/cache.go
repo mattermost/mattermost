@@ -49,12 +49,20 @@ type Cache interface {
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 	GetInvalidateClusterEvent() model.ClusterEvent
 
-	// Increment/Decrement will increment/decrement the
-	// number stored at that key by the value. This is only applicable
-	// for Redis. It will panic if this is called for LRU cache.
-	Increment(key string, val int) error
-	Decrement(key string, val int) error
-
 	// Name returns the name of the cache
 	Name() string
+}
+
+// ExternalCache is a super-set of the Cache interface with
+// a couple of more methods that allows for more efficient cache updates.
+// This can be achieved because the cache is external and an update
+// is visible to all nodes.
+type ExternalCache interface {
+	Cache
+	// Increment will increment the
+	// number stored at that key by the value.
+	Increment(key string, val int) error
+	// Decrement will decrement the
+	// number stored at that key by the value.
+	Decrement(key string, val int) error
 }

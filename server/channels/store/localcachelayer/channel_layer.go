@@ -441,9 +441,10 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	if err != nil {
 		return nil, err
 	}
+
 	// For redis, directly increment member count.
-	if s.rootStore.cacheType == model.CacheTypeRedis {
-		s.rootStore.doIncrementCache(s.rootStore.channelMemberCountsCache, member.ChannelId, 1)
+	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
 	} else {
 		s.InvalidateMemberCount(member.ChannelId)
 	}
@@ -457,8 +458,8 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 	}
 	for _, member := range members {
 		// For redis, directly increment member count.
-		if s.rootStore.cacheType == model.CacheTypeRedis {
-			s.rootStore.doIncrementCache(s.rootStore.channelMemberCountsCache, member.ChannelId, 1)
+		if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+			s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
 		} else {
 			s.InvalidateMemberCount(member.ChannelId)
 		}
@@ -533,8 +534,8 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	}
 
 	// For redis, directly decrement member count.
-	if s.rootStore.cacheType == model.CacheTypeRedis {
-		s.rootStore.doDecrementCache(s.rootStore.channelMemberCountsCache, channelId, 1)
+	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		s.rootStore.doDecrementCache(externalCache, channelId, 1)
 	} else {
 		s.InvalidateMemberCount(channelId)
 	}
@@ -547,8 +548,8 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 		return err
 	}
 	// For redis, directly decrement member count.
-	if s.rootStore.cacheType == model.CacheTypeRedis {
-		s.rootStore.doDecrementCache(s.rootStore.channelMemberCountsCache, channelId, len(userIds))
+	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		s.rootStore.doDecrementCache(externalCache, channelId, len(userIds))
 	} else {
 		s.InvalidateMemberCount(channelId)
 	}

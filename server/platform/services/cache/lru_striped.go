@@ -129,13 +129,6 @@ func (L LRUStriped) Name() string {
 	return L.name
 }
 
-func (LRUStriped) Increment(key string, val int) error {
-	panic("not implemented")
-}
-func (LRUStriped) Decrement(key string, val int) error {
-	panic("not implemented")
-}
-
 // NewLRUStriped creates a striped LRU cache using the special CacheOptions.StripedBuckets value.
 // See LRUStriped and CacheOptions for more details.
 //

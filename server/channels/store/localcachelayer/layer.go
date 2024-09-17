@@ -525,14 +525,14 @@ func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, val
 	return errs
 }
 
-func (s *LocalCacheStore) doIncrementCache(cache cache.Cache, key string, val int) {
+func (s *LocalCacheStore) doIncrementCache(cache cache.ExternalCache, key string, val int) {
 	err := cache.Increment(key, val)
 	if err != nil {
 		s.logger.Warn("Error while incrementing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
 }
 
-func (s *LocalCacheStore) doDecrementCache(cache cache.Cache, key string, val int) {
+func (s *LocalCacheStore) doDecrementCache(cache cache.ExternalCache, key string, val int) {
 	err := cache.Decrement(key, val)
 	if err != nil {
 		s.logger.Warn("Error while decrementing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
