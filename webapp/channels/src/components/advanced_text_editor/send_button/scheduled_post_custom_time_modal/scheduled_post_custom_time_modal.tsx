@@ -18,12 +18,17 @@ type Props = {
     channelId: string;
     onExited: () => void;
     onConfirm: (timestamp: number) => void;
+    initialTime?: Moment;
 }
 
-export default function ScheduledPostCustomTimeModal({channelId, onExited, onConfirm}: Props) {
+export default function ScheduledPostCustomTimeModal({channelId, onExited, onConfirm, initialTime}: Props) {
     const {formatMessage} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
+        if (initialTime) {
+            return initialTime;
+        }
+
         const now = moment().tz(userTimezone);
         return now.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
     });
@@ -41,7 +46,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
                 selectedTime={selectedDateTime?.toDate()}
             />
         );
-    }, [selectedDateTime]);
+    }, [channelId, selectedDateTime]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 

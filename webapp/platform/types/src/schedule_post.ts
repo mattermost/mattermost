@@ -16,6 +16,5 @@ export type ScheduledPost = Omit<Draft, 'delete_at'> & SchedulingInfo & {
 export type ScheduledPostsState = {
     byTeamId: {
         [teamId: string]: ScheduledPost[];
-        directChannels: ScheduledPost[];
     };
 }

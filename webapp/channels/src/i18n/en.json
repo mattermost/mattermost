@@ -3354,7 +3354,7 @@
   "schedule_post.tab.heading": "Scheduled",
   "scheduled_post.action.delete": "Delete scheduled post",
   "scheduled_post.action.edit": "Edit scheduled post",
-  "scheduled_post.action.rescheduled": "Rescheduled post",
+  "scheduled_post.action.reschedule": "Reschedule post",
   "scheduled_post.action.send_now": "Send now",
   "scheduled_post.panel.header.time": "Send on {scheduledDateTime}",
   "scheduled_post.panel.error_indicator.message": "One of your scheduled drafts cannot be sent.",

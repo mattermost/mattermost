@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {openModal} from 'actions/views/modals';
 
@@ -27,18 +30,22 @@ type Props = {
 
 function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDisplayName}: Props) {
     const dispatch = useDispatch();
+    const userTimezone = useSelector(getCurrentTimezone);
 
     const handleConfirmRescheduledPost = useCallback((timestamp: number) => {
         onReschedule(timestamp);
     }, [onReschedule]);
 
     const handleReschedulePost = useCallback(() => {
+        const initialTime = moment.tz(scheduledPost.scheduled_at, userTimezone);
+
         dispatch(openModal({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 channelId: scheduledPost.channel_id,
                 onConfirm: handleConfirmRescheduledPost,
+                initialTime,
             },
         }));
     }, [dispatch, handleConfirmRescheduledPost, scheduledPost.channel_id]);
@@ -91,7 +98,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             name='delete'
                             tooltipText={(
                                 <FormattedMessage
-                                    id='scheduled_post.action.rescheduled'
+                                    id='scheduled_post.action.reschedule'
                                     defaultMessage='Reschedule post'
                                 />
                             )}
