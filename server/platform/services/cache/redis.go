@@ -106,7 +106,7 @@ func (r *Redis) Increment(key string, val int) error {
 	).Error()
 }
 
-// Increment decrements the value of the key by the value.
+// Decrement decrements the value of the key by the value.
 func (r *Redis) Decrement(key string, val int) error {
 	now := time.Now()
 	defer func() {
