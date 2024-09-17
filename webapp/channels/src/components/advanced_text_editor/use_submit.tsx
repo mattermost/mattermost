@@ -89,7 +89,7 @@ const useSubmit = (
             return false;
         }
         const post = getPost(state, postId);
-        if (!post || post.delete_at) {
+        if (!post || post.delete_at || post.state === 'DELETED') {
             return true;
         }
 

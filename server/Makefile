@@ -144,19 +144,23 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
-PLUGIN_PACKAGES += focalboard-v8.0.0
+PLUGIN_PACKAGES += mattermost-plugin-ai-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.0.3
+PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.5.1
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -751,7 +755,7 @@ vet: ## Run mattermost go vet specific checks
 	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
 	## having to backport the fix to multiple release branches for any new change.
 	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
@@ -776,6 +780,10 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) install github.com/tinylib/msgp@v1.1.6
+	$(GOBIN)/msgp -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./public/model/utils_serial_gen.go >> tmp.go
+	@mv tmp.go ./public/model/utils_serial_gen.go
 	$(GOBIN)/msgp -file=./public/model/session.go -tests=false -o=./public/model/session_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/session_serial_gen.go >> tmp.go

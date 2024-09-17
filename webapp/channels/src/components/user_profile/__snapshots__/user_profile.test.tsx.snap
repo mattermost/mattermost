@@ -50,10 +50,6 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   >
     nickname
   </ProfilePopoverController>
-  <SharedUserIndicator
-    className="shared-user-icon"
-    id="sharedUserIndicator-user_id"
-  />
 </Fragment>
 `;
 

@@ -36,6 +36,7 @@ func remoteClusterFields(prefix string) []string {
 		prefix + "SiteURL",
 		prefix + "DefaultTeamId",
 		prefix + "CreateAt",
+		prefix + "DeleteAt",
 		prefix + "LastPingAt",
 		prefix + "Token",
 		prefix + "RemoteToken",
@@ -67,10 +68,10 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 
 	query := `INSERT INTO RemoteClusters
 				(RemoteId, RemoteTeamId, Name, DisplayName, SiteURL, DefaultTeamId, CreateAt,
-				LastPingAt, Token, RemoteToken, Topics, CreatorId, PluginID, Options)
+                DeleteAt, LastPingAt, Token, RemoteToken, Topics, CreatorId, PluginID, Options)
 				VALUES
 				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :DefaultTeamId, :CreateAt,
-				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
+				:DeleteAt, :LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to save RemoteCluster")
@@ -89,6 +90,7 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			SET Token = :Token,
 			RemoteTeamId = :RemoteTeamId,
 			CreateAt = :CreateAt,
+            DeleteAt = :DeleteAt,
 			LastPingAt = :LastPingAt,
 			RemoteToken = :RemoteToken,
 			CreatorId = :CreatorId,
@@ -107,17 +109,42 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 }
 
 func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return false, errors.Wrap(err, "DeleteRemoteCluster: begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	curTime := model.GetMillis()
+
+	// we delete the remote cluster itself
 	squery, args, err := s.getQueryBuilder().
-		Delete("RemoteClusters").
+		Update("RemoteClusters").
+		Set("DeleteAt", curTime).
 		Where(sq.Eq{"RemoteId": remoteId}).
 		ToSql()
 	if err != nil {
 		return false, errors.Wrap(err, "delete_remote_cluster_tosql")
 	}
 
-	result, err := s.GetMasterX().Exec(squery, args...)
+	result, err := transaction.Exec(squery, args...)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to delete RemoteCluster")
+	}
+
+	// also remove the shared channel remotes for the cluster (if any)
+	squery, args, err = s.getQueryBuilder().
+		Update("SharedChannelRemotes").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Where(sq.Eq{"RemoteId": remoteId}).
+		ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "delete_shared_channel_remotes_for_remote_cluster_tosql")
+	}
+
+	if _, err = transaction.Exec(squery, args...); err != nil {
+		return false, errors.Wrap(err, "failed to delete SharedChannelRemotes for RemoteCluster")
 	}
 
 	count, err := result.RowsAffected()
@@ -125,14 +152,22 @@ func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
 		return false, errors.Wrap(err, "failed to determine rows affected")
 	}
 
+	if err = transaction.Commit(); err != nil {
+		return false, errors.Wrap(err, "commit_transaction")
+	}
+
 	return count > 0, nil
 }
 
-func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) Get(remoteId string, includeDeleted bool) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("")...).
 		From("RemoteClusters").
 		Where(sq.Eq{"RemoteId": remoteId})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -213,6 +248,10 @@ func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClus
 		query = query.Where(sq.NotEq{fmt.Sprintf("(rc.Options & %d)", filter.RequireOptions): 0})
 	}
 
+	if !filter.IncludeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
 	if filter.Topic != "" {
 		trimmed := strings.TrimSpace(filter.Topic)
 		if trimmed == "" || trimmed == "*" {
@@ -237,7 +276,7 @@ func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClus
 }
 
 func (s sqlRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
-	rc, err := s.Get(remoteClusterid)
+	rc, err := s.Get(remoteClusterid, false)
 	if err != nil {
 		return nil, err
 	}
