@@ -84,8 +84,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 
 		toPass := make([]any, 0, len(keys))
 		for i := 0; i < len(keys); i++ {
-			// Note: keep https://github.com/mattermost/mattermost/pull/27830 in mind.
-			var userMap map[string]*model.User
+			var userMap model.UserMap
 			toPass = append(toPass, &userMap)
 		}
 		errs := s.rootStore.doMultiReadCache(s.rootStore.profilesInChannelCache, keys, toPass)
@@ -96,7 +95,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 				}
 				continue
 			}
-			gotMap := *(toPass[i].(*map[string]*model.User))
+			gotMap := *(toPass[i].(*model.UserMap))
 			if gotMap == nil {
 				s.rootStore.logger.Warn("Found nil userMap in InvalidateProfilesInChannelCacheByUser. This is not expected")
 				continue
@@ -147,7 +146,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
-		var cachedMap map[string]*model.User
+		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
 			return cachedMap, nil
 		}
