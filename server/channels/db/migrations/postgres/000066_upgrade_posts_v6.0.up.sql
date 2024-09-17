@@ -27,7 +27,7 @@ IF alter_fileids OR alter_props THEN
     IF parentid_exist THEN
         UPDATE posts SET rootid = parentid WHERE rootid = '' AND rootid != parentid;
         ALTER TABLE posts ALTER COLUMN fileids TYPE varchar(300), ALTER COLUMN props TYPE jsonb USING props::jsonb;
-        ALTER TABLE posts ALTER COLUMN fileids TYPE varchar(300), ALTER COLUMN props TYPE jsonb USING props::jsonb, DROP COLUMN ParentId;
+        ALTER TABLE posts DROP COLUMN ParentId;
     ELSE
         ALTER TABLE posts ALTER COLUMN fileids TYPE varchar(300), ALTER COLUMN props TYPE jsonb USING props::jsonb;
     END IF;
