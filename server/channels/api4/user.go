@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
@@ -74,7 +75,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(attachDeviceId)).Methods(http.MethodPut)
+	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(handleDeviceProps)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods(http.MethodPost)
@@ -2210,15 +2211,49 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	ReturnStatusOK(w)
 }
 
-func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJSON(r.Body)
+func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
+	receivedProps := model.MapFromJSON(r.Body)
+	deviceId := receivedProps["device_id"]
 
-	deviceId := props["device_id"]
-	if deviceId == "" {
-		c.SetInvalidParam("device_id")
+	newProps := map[string]string{}
+
+	deviceNotificationsDisabled := receivedProps[model.SessionPropDeviceNotificationDisabled]
+	if deviceNotificationsDisabled != "" {
+		if deviceNotificationsDisabled != "false" && deviceNotificationsDisabled != "true" {
+			c.SetInvalidParam(model.SessionPropDeviceNotificationDisabled)
+			return
+		}
+
+		newProps[model.SessionPropDeviceNotificationDisabled] = deviceNotificationsDisabled
+	}
+
+	mobileVersion := receivedProps[model.SessionPropMobileVersion]
+	if mobileVersion != "" {
+		if _, err := semver.Parse(mobileVersion); err != nil {
+			c.SetInvalidParam(model.SessionPropMobileVersion)
+			return
+		}
+		newProps[model.SessionPropMobileVersion] = mobileVersion
+	}
+
+	if deviceId != "" {
+		attachDeviceId(c, w, r, deviceId)
+	}
+
+	if c.Err != nil {
 		return
 	}
 
+	if err := c.App.SetExtraSessionProps(c.AppContext.Session(), newProps); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
+	ReturnStatusOK(w)
+}
+
+func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId string) {
 	auditRec := c.MakeAuditRecord("attachDeviceId", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "device_id", deviceId)
@@ -2266,8 +2301,6 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("")
-
-	ReturnStatusOK(w)
 }
 
 func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {

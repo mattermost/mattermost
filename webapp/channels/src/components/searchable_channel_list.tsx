@@ -129,14 +129,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
         if (isArchivedChannel(channel)) {
             channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (channel.shared) {
-            channelTypeIcon = (
-                <SharedChannelIndicator
-                    className='shared-channel-icon'
-                    channelType={channel.type}
-                    withTooltip={true}
-                />
-            );
         } else if (isPrivateChannel(channel)) {
             channelTypeIcon = <LockOutlineIcon size={18}/>;
         } else {
@@ -206,6 +198,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </button>
         );
 
+        const sharedChannelIcon = channel.shared ? (
+            <SharedChannelIndicator
+                className='shared-channel-icon'
+                withTooltip={true}
+            />
+        ) : null;
+
         return (
             <div
                 className='more-modal__row'
@@ -220,6 +219,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     <div className='style--none more-modal__name'>
                         {channelTypeIcon}
                         <span id='channelName'>{channel.display_name}</span>
+                        {sharedChannelIcon}
                     </div>
                     {channelPurposeContainer}
                 </div>
