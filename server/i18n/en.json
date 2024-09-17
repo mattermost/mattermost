@@ -4451,6 +4451,10 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.bot.update.app_error",
+    "translation": "Unable to update the bot."
+  },
+  {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Unable to add the user as a member of the channel."
   },
@@ -5175,6 +5179,10 @@
     "translation": "Some users not found"
   },
   {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Unable to find owner of the bot"
+  },
+  {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "Unable to archive imported channel."
   },
@@ -5217,6 +5225,10 @@
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Import data line has type \"bot\" but the bot object is null"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -5313,6 +5325,10 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot owner is missing"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
