@@ -395,6 +395,7 @@ func InitLocal(srv *app.Server) *API {
 
 	api.BaseRoutes.LDAP = api.BaseRoutes.APIRoot.PathPrefix("/ldap").Subrouter()
 	api.BaseRoutes.System = api.BaseRoutes.APIRoot.PathPrefix("/system").Subrouter()
+	api.BaseRoutes.Preferences = api.BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
@@ -425,6 +426,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitLdapLocal()
 	api.InitSystemLocal()
 	api.InitPostLocal()
+	api.InitPreferenceLocal()
 	api.InitRoleLocal()
 	api.InitUploadLocal()
 	api.InitImportLocal()

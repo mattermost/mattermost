@@ -57,7 +57,7 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId, false)
 	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
@@ -110,7 +110,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId, false)
 	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
@@ -158,7 +158,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
+	rc, err := c.App.GetRemoteCluster(frame.RemoteId, false)
 	if err != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
@@ -325,6 +325,7 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 		PluginID:       c.Params.PluginId,
 		OnlyPlugins:    c.Params.OnlyPlugins,
 		ExcludePlugins: c.Params.ExcludePlugins,
+		IncludeDeleted: c.Params.IncludeDeleted,
 	}
 
 	rcs, appErr := c.App.GetAllRemoteClusters(c.Params.Page, c.Params.PerPage, filter)
@@ -526,7 +527,7 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId)
+	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -538,7 +539,9 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(inviteCode))
+	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -558,7 +561,7 @@ func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	rc, err := c.App.GetRemoteCluster(c.Params.RemoteId, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -598,7 +601,7 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "remotecluster_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
-	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -642,7 +645,7 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
 	defer c.LogAuditRec(auditRec)
 
-	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -662,5 +665,5 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }

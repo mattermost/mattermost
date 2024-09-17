@@ -42,49 +42,50 @@ const (
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
-	TrackConfigService           = "config_service"
-	TrackConfigTeam              = "config_team"
-	TrackConfigClientReq         = "config_client_requirements"
-	TrackConfigSQL               = "config_sql"
-	TrackConfigLog               = "config_log"
-	TrackConfigAudit             = "config_audit"
-	TrackConfigNotificationLog   = "config_notifications_log"
-	TrackConfigFile              = "config_file"
-	TrackConfigRate              = "config_rate"
-	TrackConfigEmail             = "config_email"
-	TrackConfigPrivacy           = "config_privacy"
-	TrackConfigTheme             = "config_theme"
-	TrackConfigOAuth             = "config_oauth"
-	TrackConfigLDAP              = "config_ldap"
-	TrackConfigCompliance        = "config_compliance"
-	TrackConfigLocalization      = "config_localization"
-	TrackConfigSAML              = "config_saml"
-	TrackConfigPassword          = "config_password"
-	TrackConfigCluster           = "config_cluster"
-	TrackConfigMetrics           = "config_metrics"
-	TrackConfigSupport           = "config_support"
-	TrackConfigNativeApp         = "config_nativeapp"
-	TrackConfigExperimental      = "config_experimental"
-	TrackConfigAnalytics         = "config_analytics"
-	TrackConfigAnnouncement      = "config_announcement"
-	TrackConfigElasticsearch     = "config_elasticsearch"
-	TrackConfigPlugin            = "config_plugin"
-	TrackConfigDataRetention     = "config_data_retention"
-	TrackConfigMessageExport     = "config_message_export"
-	TrackConfigDisplay           = "config_display"
-	TrackConfigGuestAccounts     = "config_guest_accounts"
-	TrackConfigImageProxy        = "config_image_proxy"
-	TrackConfigBleve             = "config_bleve"
-	TrackConfigExport            = "config_export"
-	TrackConfigWrangler          = "config_wrangler"
-	TrackFeatureFlags            = "config_feature_flags"
-	TrackPermissionsGeneral      = "permissions_general"
-	TrackPermissionsSystemScheme = "permissions_system_scheme"
-	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
-	TrackPermissionsSystemRoles  = "permissions_system_roles"
-	TrackElasticsearch           = "elasticsearch"
-	TrackGroups                  = "groups"
-	TrackChannelModeration       = "channel_moderation"
+	TrackConfigService             = "config_service"
+	TrackConfigTeam                = "config_team"
+	TrackConfigClientReq           = "config_client_requirements"
+	TrackConfigSQL                 = "config_sql"
+	TrackConfigLog                 = "config_log"
+	TrackConfigAudit               = "config_audit"
+	TrackConfigNotificationLog     = "config_notifications_log"
+	TrackConfigFile                = "config_file"
+	TrackConfigRate                = "config_rate"
+	TrackConfigEmail               = "config_email"
+	TrackConfigPrivacy             = "config_privacy"
+	TrackConfigTheme               = "config_theme"
+	TrackConfigOAuth               = "config_oauth"
+	TrackConfigLDAP                = "config_ldap"
+	TrackConfigCompliance          = "config_compliance"
+	TrackConfigLocalization        = "config_localization"
+	TrackConfigSAML                = "config_saml"
+	TrackConfigPassword            = "config_password"
+	TrackConfigCluster             = "config_cluster"
+	TrackConfigMetrics             = "config_metrics"
+	TrackConfigSupport             = "config_support"
+	TrackConfigNativeApp           = "config_nativeapp"
+	TrackConfigExperimental        = "config_experimental"
+	TrackConfigAnalytics           = "config_analytics"
+	TrackConfigAnnouncement        = "config_announcement"
+	TrackConfigElasticsearch       = "config_elasticsearch"
+	TrackConfigPlugin              = "config_plugin"
+	TrackConfigDataRetention       = "config_data_retention"
+	TrackConfigMessageExport       = "config_message_export"
+	TrackConfigDisplay             = "config_display"
+	TrackConfigGuestAccounts       = "config_guest_accounts"
+	TrackConfigImageProxy          = "config_image_proxy"
+	TrackConfigBleve               = "config_bleve"
+	TrackConfigExport              = "config_export"
+	TrackConfigWrangler            = "config_wrangler"
+	TrackConfigConnectedWorkspaces = "config_connected_workspaces"
+	TrackFeatureFlags              = "config_feature_flags"
+	TrackPermissionsGeneral        = "permissions_general"
+	TrackPermissionsSystemScheme   = "permissions_system_scheme"
+	TrackPermissionsTeamSchemes    = "permissions_team_schemes"
+	TrackPermissionsSystemRoles    = "permissions_system_roles"
+	TrackElasticsearch             = "elasticsearch"
+	TrackGroups                    = "groups"
+	TrackChannelModeration         = "channel_moderation"
 
 	TrackActivity = "activity"
 	TrackLicense  = "license"
@@ -773,8 +774,6 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
@@ -889,6 +888,13 @@ func (ts *TelemetryService) trackConfig() {
 		"move_thread_from_private_channel_enable":        cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable,
 		"move_thread_from_direct_message_channel_enable": cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable,
 		"move_thread_from_group_message_channel_enable":  cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable,
+	})
+
+	ts.SendTelemetry(TrackConfigConnectedWorkspaces, map[string]any{
+		"enable_shared_channels":              *cfg.ConnectedWorkspacesSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
+		"max_posts_per_sync":                  *cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
 	})
 
 	// Convert feature flags to map[string]any for sending
