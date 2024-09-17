@@ -10,7 +10,7 @@ import type {ClientError} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
-import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch} from '@mattermost/types/remote_clusters';
+import {isRemoteClusterPatch, type RemoteCluster, type RemoteClusterAcceptInvite, type RemoteClusterPatch} from '@mattermost/types/remote_clusters';
 import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -88,10 +88,7 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
     };
 
     const save = async () => {
-        if (currentRemoteCluster && hasChanges) {
-            if (patch.display_name === undefined) {
-                return;
-            }
+        if (currentRemoteCluster && isRemoteClusterPatch(patch)) {
             setSaving(true);
             try {
                 const data = await Client4.patchRemoteCluster(remoteId, patch);

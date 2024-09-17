@@ -146,9 +146,9 @@ const msg = defineMessages({
     title: {id: 'admin.secure_connections.title', defaultMessage: 'Connected Workspaces'},
     subtitle: {id: 'admin.secure_connections.subtitle', defaultMessage: 'Connected workspaces with this server'},
     placeholderTitle: {id: 'admin.secure_connections.placeholder.title', defaultMessage: 'Share channels'},
-    placeholderSubtitle: {id: 'admin.secure_connections.placeholder.subtitle', defaultMessage: 'Connecting with an external organization allows you to share channels with them'},
+    placeholderSubtitle: {id: 'admin.secure_connections.placeholder.subtitle', defaultMessage: 'Connecting with an external workspace allows you to share channels with them'},
     addConnection: {id: 'admin.secure_connections.menu.add_connection', defaultMessage: 'Add a connection'},
-    menuAriaLabel: {id: 'admin.secure_connections.menu.dropdownAriaLabel', defaultMessage: 'Connected organizations actions menu'},
+    menuAriaLabel: {id: 'admin.secure_connections.menu.dropdownAriaLabel', defaultMessage: 'Connected workspaces actions menu'},
     createConnection: {id: 'admin.secure_connections.menu.create_connection', defaultMessage: 'Create a connection'},
     acceptInvitation: {id: 'admin.secure_connections.menu.accept_invitation', defaultMessage: 'Accept an invitation'},
 });

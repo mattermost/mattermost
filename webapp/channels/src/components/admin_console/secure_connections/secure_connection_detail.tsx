@@ -12,8 +12,11 @@ import styled from 'styled-components';
 
 import {GlobeIcon, LockIcon, PlusIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -41,6 +44,7 @@ import {
     ConnectionStatusLabel,
     LinkButton,
 } from './controls';
+import TeamSelector from './team_selector';
 import type {SharedChannelRemoteRow} from './utils';
 import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterCreate, useRemoteClusterEdit, useSharedChannelRemoteRows, useSharedChannelsAdd, useSharedChannelsRemove} from './utils';
 
@@ -78,21 +82,23 @@ export default function SecureConnectionDetail(props: Props) {
         dispatch(setNavigationBlocked(hasChanges));
     }, [hasChanges]);
 
-    const handleChange = ({currentTarget: {value}}: React.FormEvent<HTMLInputElement>) => {
+    const handleNameChange = ({currentTarget: {value}}: React.FormEvent<HTMLInputElement>) => {
         applyPatch({display_name: value});
+    };
+
+    const teams = useSelector(getActiveTeamsList);
+    const teamsById = useMemo(() => teams.reduce<IDMappedObjects<Team>>((teams, team) => ({...teams, [team.id]: team}), {}), [teams]);
+    const handleTeamChange = (teamId: string) => {
+        applyPatch({default_team_id: teamId});
     };
 
     const handleCreate = async () => {
         if (!isFormValid) {
             return;
         }
-        try {
-            const rc = await promptCreate(patch);
-            if (rc) {
-                history.replace(getEditLocation(rc));
-            }
-        } catch (err) {
-            // handle err
+        const rc = await promptCreate(patch);
+        if (rc) {
+            history.replace(getEditLocation(rc));
         }
     };
 
@@ -148,11 +154,11 @@ export default function SecureConnectionDetail(props: Props) {
                                     <Input
                                         type='text'
                                         value={remoteCluster?.display_name ?? ''}
-                                        onChange={handleChange}
+                                        onChange={handleNameChange}
                                         autoFocus={isCreating}
                                     />
                                 </FormField>
-                                {/* <FormField
+                                <FormField
                                     label={formatMessage({
                                         id: 'admin.secure_connections.details.team.label',
                                         defaultMessage: 'Destination Team',
@@ -163,10 +169,11 @@ export default function SecureConnectionDetail(props: Props) {
                                     })}
                                 >
                                     <TeamSelector
-                                        teamsById={teams}
-                                        onChange={setSelectedTeamId}
+                                        value={remoteCluster.default_team_id ?? ''}
+                                        teamsById={teamsById}
+                                        onChange={handleTeamChange}
                                     />
-                                </FormField> */}
+                                </FormField>
                             </>
                         )}
                     </SectionContent>

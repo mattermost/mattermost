@@ -15,10 +15,13 @@ export type RemoteClusterAcceptInvite = {
     password: string;
 }
 
-export type RemoteClusterPatch = Pick<RemoteCluster, 'display_name'>
+export type RemoteClusterPatch = Pick<RemoteCluster, 'display_name' | 'default_team_id'>
 
 export function isRemoteClusterPatch(x: Partial<RemoteClusterPatch>): x is RemoteClusterPatch {
-    return x.display_name !== undefined && x.display_name !== '';
+    return (
+        (x.display_name !== undefined && x.display_name !== '') ||
+        x.default_team_id !== undefined
+    );
 }
 
 export type RemoteCluster = {
@@ -35,6 +38,7 @@ export type RemoteCluster = {
     creator_id: string;
     plugin_id: string;
     options: number;
+    default_team_id: string;
 }
 
 export type RemoteClusterWithPassword = RemoteCluster & {

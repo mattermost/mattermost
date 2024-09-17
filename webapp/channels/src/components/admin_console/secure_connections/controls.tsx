@@ -19,6 +19,18 @@ export const SectionHeading = styled.h3`
     }
 `;
 
+const FormFieldLabel = styled.label`
+    width: 100%;
+
+    .DropdownInput.Input_container {
+        margin-top: 0;
+    }
+
+    & + & {
+        margin-top: 30px;
+    }
+`;
+
 export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
@@ -43,7 +55,9 @@ export const ModalBody = styled.div`
 `;
 
 export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
-
+    && {
+        overflow: visible;
+    }
 `;
 
 export const PlaceholderHeading = styled.h4`
@@ -109,10 +123,6 @@ const HelpText = styled.small`
     color: rgba(var(--center-channel-color-rgb), 0.72);
     display: block;
     margin-top: 10px;
-`;
-
-const FormFieldLabel = styled.label`
-    width: 100%;
 `;
 
 export const Input = styled.input.attrs({className: 'form-control secure-connections-input'})`
@@ -206,24 +216,33 @@ export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
         />
     );
 
+    if (!rc.last_ping_at) {
+        return status;
+    }
+
     return (
         <WithTooltip
             id='connection-status-tooltip'
             placement='top'
             title={(
-                <FormattedMessage
-                    id='admin.secure_connections.status_tooltip'
-                    defaultMessage='Last ping from {url} {timestamp}'
-                    values={{
-                        timestamp: (
-                            <Timestamp
-                                value={rc.last_ping_at}
-                                ranges={LASTSYNC_TOOLTIP_RANGES}
-                            />
-                        ),
-                        url: rc.site_url,
-                    }}
-                />
+                <>
+                    <FormattedMessage
+                        id='admin.secure_connections.status_tooltip'
+                        defaultMessage='Last ping: {timestamp}'
+                        values={{
+                            timestamp: (
+                                <Timestamp
+                                    value={rc.last_ping_at}
+                                    ranges={LASTSYNC_TOOLTIP_RANGES}
+                                />
+                            ),
+                        }}
+                    />
+                    <br/>
+                    <UrlWrapper>
+                        {rc.site_url}
+                    </UrlWrapper>
+                </>
             )}
         >
             <div>
@@ -232,6 +251,11 @@ export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
         </WithTooltip>
     );
 };
+
+const UrlWrapper = styled.div`
+    white-space: break-spaces;
+    word-wrap: none;
+`;
 
 const LASTSYNC_TOOLTIP_RANGES = [
     RelativeRanges.STANDARD_UNITS.second,

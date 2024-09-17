@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {DependencyList} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -49,22 +49,28 @@ function SharedChannelsAddModal({
     const [remotesByChannelId] = useSharedChannelRemotes(remoteId);
 
     const [query, setQuery] = useState('');
-    const [channels, setChannels] = useState<Channel[]>([]);
+    const [channels, setChannelsInner] = useState<Channel[]>([]);
     const [errors, setErrors] = useState<{[channel_id: string]: ServerError}>();
     const [done, setDone] = useState(false);
 
-    const exclusions = useMemo(() => {
-        if (!remotesByChannelId || !channels) {
-            return undefined;
-        }
+    const setChannels = useCallback((nextChannels: Channel[] | undefined) => {
+        setErrors((errs) => {
+            if (!errs || !nextChannels?.length) {
+                return undefined;
+            }
 
-        return channels.filter((channel) => {
-            const remote = remotesByChannelId?.[channel.id];
-
-            // selected channels that were previously shared with this remote
-            return remote && remote.delete_at !== 0;
+            // keep any errors for selected channels; discard errors of deselected channels
+            return nextChannels.reduce<typeof errors>((nextErrs, {id}) => {
+                if (!errs[id]) {
+                    return nextErrs;
+                }
+                return {...nextErrs, [id]: errs[id]};
+            }, {});
         });
-    }, [channels, remotesByChannelId]);
+
+        setChannelsInner(nextChannels ?? []);
+        setDone(false);
+    }, []);
 
     const loadChannels = useLatest(async (signal, query: string) => {
         if (!query) {
@@ -136,6 +142,7 @@ function SharedChannelsAddModal({
             compassDesign={true}
             bodyPadding={false}
             bodyOverflowVisible={true}
+            isConfirmDisabled={!channels.length}
         >
             <ModalBody>
                 <FormattedMessage
@@ -163,31 +170,22 @@ function SharedChannelsAddModal({
                     onChange={setChannels}
                     autoFocus={true}
                 />
-                {exclusions?.map((channel) => {
+                {errors && Object.entries(errors).map(([id]) => {
                     const message = (
                         <FormattedMessage
-                            id='admin.secure_connections.shared_channels.add.excluded_channel'
-                            defaultMessage='{channel} cannot be shared again as the channel was removed previously.'
+                            id='admin.secure_connections.shared_channels.add.error_inviting_remote_to_channel'
+                            defaultMessage='{channel} could not be added to this connection.'
                             values={{
-                                channel: <ChannelLabel channelId={channel.id}/>,
+                                channel: <ChannelLabel channelId={id}/>,
                             }}
                         />
                     );
 
                     return (
                         <SectionNotice
-                            key={channel.id}
-                            title={message}
-                            type='warning'
-                        />
-                    );
-                })}
-                {errors && Object.entries(errors).map(([id, err]) => {
-                    return (
-                        <InviteChannelError
                             key={id}
-                            channelId={id}
-                            error={err}
+                            title={message}
+                            type='danger'
                         />
                     );
                 })}
@@ -221,28 +219,6 @@ export const ChannelLabel = ({channelId}: {channelId: string}) => {
             <strong>{channel?.display_name}</strong>
         </ChannelLabelWrapper>
     );
-};
-const InviteChannelError = ({channelId, error}: {channelId: string; error: ServerError}) => {
-    if (error.server_error_id === 'api.shared_channel.invite_remote_to_channel_error') {
-        const message = (
-            <FormattedMessage
-                id='admin.secure_connections.shared_channels.add.error_inviting_remote_to_channel'
-                defaultMessage='{channel} could not added to this connection.'
-                values={{
-                    channel: <ChannelLabel channelId={channelId}/>,
-                }}
-            />
-        );
-
-        return (
-            <SectionNotice
-                title={message}
-                type='danger'
-            />
-        );
-    }
-
-    return null;
 };
 
 export default SharedChannelsAddModal;

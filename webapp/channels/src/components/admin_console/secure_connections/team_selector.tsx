@@ -1,26 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import type {ComponentProps} from 'react';
+import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import DropdownInput from 'components/dropdown_input';
 
 export type Props = {
-    teamsById: {[id: string]: Team};
+    value: string;
+    teamsById: IDMappedObjects<Team>;
     onChange: (teamId: string) => void;
 }
 
 const TeamSelector = (props: Props): JSX.Element => {
-    const [value, setValue] = useState<Team>();
-    const {formatMessage, locale} = useIntl();
+    const value = props.teamsById[props.value];
 
-    const handleTeamChange = useCallback((e) => {
-        const teamId = e.value as string;
+    const {locale} = useIntl();
 
-        setValue(props.teamsById[teamId]);
+    const handleTeamChange: ComponentProps<typeof DropdownInput>['onChange'] = useCallback((e) => {
+        const teamId = e.value;
         props.onChange(teamId);
     }, []);
 
@@ -35,8 +37,6 @@ const TeamSelector = (props: Props): JSX.Element => {
             onChange={handleTeamChange}
             value={value ? {label: value.display_name, value: value.id} : undefined}
             options={teamValues}
-            legend={formatMessage({id: 'admin.secure_connections.details.team.select_team_placeholder', defaultMessage: 'Select Team'})}
-            placeholder={formatMessage({id: 'admin.secure_connections.details.team.select_team_placeholder', defaultMessage: 'Select Team'})}
             name='team_selector'
         />
     );
