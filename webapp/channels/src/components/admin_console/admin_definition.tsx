@@ -1892,14 +1892,12 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
                     it.not(it.any(
                         it.licensedForFeature('SharedChannels'),
                         it.licensedForSku(LicenseSkus.Enterprise),
                         it.licensedForSku(LicenseSkus.Professional),
                     )),
-                ),
-                isDisabled: it.any(
-                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
                 ),
                 schema: {
                     id: 'SecureConnectionDetail',
@@ -1914,15 +1912,12 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
                     it.not(it.any(
                         it.licensedForFeature('SharedChannels'),
                         it.licensedForSku(LicenseSkus.Enterprise),
                         it.licensedForSku(LicenseSkus.Professional),
                     )),
-                ),
-
-                isDisabled: it.any(
-                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
                 ),
                 schema: {
                     id: 'SecureConnections',
