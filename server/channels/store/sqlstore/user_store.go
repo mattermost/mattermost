@@ -1680,7 +1680,7 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 		LeftJoin("Bots ON Users.ID = Bots.UserId").
 		Where(sq.And{
 			sq.Gt{"Users.DeleteAt": 0},
-			sq.NotEq{"Bots.UserId": nil},
+			sq.Eq{"Bots.UserId": nil},
 		})
 	queryStr, args, err := query.ToSql()
 	if err != nil {
