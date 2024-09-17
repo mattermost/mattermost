@@ -212,7 +212,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

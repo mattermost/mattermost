@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/rsc/qr"
 	"github.com/pkg/errors"
 )
@@ -26,6 +27,8 @@ const (
 type Store interface {
 	UpdateMfaActive(userId string, active bool) error
 	UpdateMfaSecret(userId, secret string) error
+	StoreMfaUsedTimestamps(userId string, ts []int) error
+	GetMfaUsedTimestamps(userId string) ([]int, error)
 }
 
 type MFA struct {
@@ -120,11 +123,17 @@ func (m *MFA) Deactivate(userId string) error {
 }
 
 // Validate the provide token using the secret provided
-func (m *MFA) ValidateToken(secret, token string) (bool, error) {
+func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
+	usedTs, err := m.store.GetMfaUsedTimestamps(user.Id)
+	if err != nil {
+		return false, errors.Wrap(err, "unable to retrieve the DisallowReuse slice")
+	}
+
 	otpConfig := &dgoogauth.OTPConfig{
-		Secret:      secret,
-		WindowSize:  3,
-		HotpCounter: 0,
+		Secret:        user.MfaSecret,
+		WindowSize:    3,
+		HotpCounter:   0,
+		DisallowReuse: usedTs,
 	}
 
 	trimmedToken := strings.TrimSpace(token)
@@ -132,6 +141,14 @@ func (m *MFA) ValidateToken(secret, token string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "unable to parse the token")
 	}
+	if !ok {
+		return false, nil
+	}
 
-	return ok, nil
+	err = m.store.StoreMfaUsedTimestamps(user.Id, otpConfig.DisallowReuse)
+	if err != nil {
+		return true, errors.Wrap(err, "unable to store the DisallowReuse slice")
+	}
+
+	return true, nil
 }
