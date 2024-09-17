@@ -284,7 +284,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <h2>
                             <FormattedMessage
                                 id='user_groups_modal.addPeople'
-                                defaultMessage='Add People'
+                                defaultMessage='Add people'
                             />
                         </h2>
                         <div className='group-add-user'>

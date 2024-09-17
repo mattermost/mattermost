@@ -9,7 +9,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import Constants from 'utils/constants';
-import {passwordErrors} from 'utils/password';
+import {getPasswordErrorMessage} from 'utils/password';
 
 import AdminSettings from './admin_settings';
 import type {BaseProps, BaseState} from './admin_settings';
@@ -26,10 +26,10 @@ type Props = BaseProps & {
 
 type State = BaseState & {
     passwordMinimumLength?: string;
-    passwordLowercase?: boolean;
-    passwordNumber?: boolean;
-    passwordUppercase?: boolean;
-    passwordSymbol?: boolean;
+    passwordLowercase: boolean;
+    passwordNumber: boolean;
+    passwordUppercase: boolean;
+    passwordSymbol: boolean;
     passwordEnableForgotLink?: boolean;
     maximumLoginAttempts?: string;
 };
@@ -64,26 +64,6 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.attemptDescription,
 ];
 
-function getPasswordErrorsMessage(lowercase?: boolean, uppercase?: boolean, number?: boolean, symbol?: boolean) {
-    type KeyType = keyof typeof passwordErrors;
-
-    let key: KeyType = 'passwordError';
-
-    if (lowercase) {
-        key += 'Lowercase';
-    }
-    if (uppercase) {
-        key += 'Uppercase';
-    }
-    if (number) {
-        key += 'Number';
-    }
-    if (symbol) {
-        key += 'Symbol';
-    }
-
-    return passwordErrors[key as KeyType];
-}
 export default class PasswordSettings extends AdminSettings<Props, State> {
     sampleErrorMsg: React.ReactNode;
 
@@ -102,7 +82,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
 
         this.sampleErrorMsg = (
             <FormattedMessage
-                {...getPasswordErrorsMessage(
+                {...getPasswordErrorMessage(
                     props.config.PasswordSettings.Lowercase,
                     props.config.PasswordSettings.Uppercase,
                     props.config.PasswordSettings.Number,
@@ -151,7 +131,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         }
         return (
             <FormattedMessage
-                {...getPasswordErrorsMessage(
+                {...getPasswordErrorMessage(
                     this.state.passwordLowercase,
                     this.state.passwordUppercase,
                     this.state.passwordNumber,

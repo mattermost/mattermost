@@ -556,7 +556,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <div>
                             <FormattedMessage
                                 id='deactivate_member_modal.desc'
-                                defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?'
+                                defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system.\n'
                                 values={{
                                     username: this.state.user?.username ?? '',
                                 }}

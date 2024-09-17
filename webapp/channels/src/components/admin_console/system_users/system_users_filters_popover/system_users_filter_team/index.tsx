@@ -63,11 +63,11 @@ export function SystemUsersFilterTeam(props: Props) {
                 if (page === 0) {
                     const initialOptions = [
                         {
-                            label: formatMessage({id: 'admin.system_users.filters.team.allTeams', defaultMessage: 'All teams'}),
+                            label: formatMessage({id: 'admin.system_users.filters.team.allTeams', defaultMessage: 'All Teams'}),
                             value: TeamFilters.AllTeams,
                         },
                         {
-                            label: formatMessage({id: 'admin.system_users.filters.team.noTeams', defaultMessage: 'No teams'}),
+                            label: formatMessage({id: 'admin.system_users.filters.team.noTeams', defaultMessage: 'No Teams'}),
                             value: TeamFilters.NoTeams,
                         },
                     ];

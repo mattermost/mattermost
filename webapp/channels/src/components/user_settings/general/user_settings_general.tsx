@@ -56,7 +56,7 @@ const holders = defineMessages({
     },
     validImage: {
         id: 'user.settings.general.validImage',
-        defaultMessage: 'Only BMP, JPG, JPEG, or PNG images may be used for profile pictures',
+        defaultMessage: 'Only BMP, JPG or PNG images may be used for profile pictures',
     },
     imageTooLarge: {
         id: 'user.settings.general.imageTooLarge',

@@ -45,8 +45,8 @@ const MobileChannelHeaderDropdown = ({
                 return (
                     <FormattedMessage
                         id='channel_header.directchannel.you'
-                        defaultMessage='{displayname} (you)'
-                        values={{displayname: displayName}}
+                        defaultMessage='{displayName} (you)'
+                        values={{displayName}}
                     />
                 );
             }

@@ -321,7 +321,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         if (this.props.adminMode && this.props.user) {
             modalTitle = formatMessage({
                 id: 'userSettings.adminMode.modal_header',
-                defaultMessage: "{userDisplayName}'s Settings",
+                defaultMessage: "Manage {userDisplayName}'s Settings",
             }, {
                 userDisplayName: getDisplayName(this.props.user),
             });

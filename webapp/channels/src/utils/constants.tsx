@@ -923,10 +923,7 @@ export const AnnouncementBarTypes = {
 export const AnnouncementBarMessages = {
     EMAIL_VERIFICATION_REQUIRED: 'announcement_bar.error.email_verification_required',
     EMAIL_VERIFIED: 'announcement_bar.notification.email_verified',
-    LICENSE_EXPIRED: 'announcement_bar.error.license_expired',
     LICENSE_EXPIRING: 'announcement_bar.error.license_expiring',
-    LICENSE_PAST_GRACE: 'announcement_bar.error.past_grace',
-    PREVIEW_MODE: 'announcement_bar.error.preview_mode',
     WEBSOCKET_PORT_ERROR: 'channel_loader.socketError',
     TRIAL_LICENSE_EXPIRING: 'announcement_bar.error.trial_license_expiring',
 };
@@ -948,14 +945,6 @@ defineMessages({
     licenseExpiring: {
         id: 'announcement_bar.error.license_expiring',
         defaultMessage: '{licenseSku} license expires on {date, date, long}.',
-    },
-    pastGrace: {
-        id: 'announcement_bar.error.past_grace',
-        defaultMessage: '{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details.',
-    },
-    previewMode: {
-        id: 'announcement_bar.error.preview_mode',
-        defaultMessage: 'Preview Mode: Email notifications have not been configured.',
     },
     socketError: {
         id: 'channel_loader.socketError',

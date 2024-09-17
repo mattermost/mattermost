@@ -10,7 +10,6 @@ import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import Constants from 'utils/constants';
 
 export function isValidPassword(password: string, passwordConfig: PasswordConfig, intl?: IntlShape) {
-    let errorId = passwordErrors.passwordError.id;
     const telemetryErrorIds = [];
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
@@ -25,7 +24,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Lowercase';
         telemetryErrorIds.push({field: 'password', rule: 'lowercase'});
     }
 
@@ -34,7 +32,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Uppercase';
         telemetryErrorIds.push({field: 'password', rule: 'uppercase'});
     }
 
@@ -43,7 +40,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Number';
         telemetryErrorIds.push({field: 'password', rule: 'number'});
     }
 
@@ -52,18 +48,21 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Symbol';
         telemetryErrorIds.push({field: 'password', rule: 'symbol'});
     }
 
     let error;
     if (!valid) {
+        const errorMessage = getPasswordErrorMessage(
+            passwordConfig.requireLowercase,
+            passwordConfig.requireUppercase,
+            passwordConfig.requireNumber,
+            passwordConfig.requireSymbol,
+        );
+
         error = intl ? (
             intl.formatMessage(
-                {
-                    id: errorId,
-                    defaultMessage: 'Must be {min}-{max} characters long.',
-                },
+                errorMessage,
                 {
                     min: minimumLength,
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -71,8 +70,7 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             )
         ) : (
             <FormattedMessage
-                id={errorId}
-                defaultMessage='Must be {min}-{max} characters long.'
+                {...errorMessage}
                 values={{
                     min: minimumLength,
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -82,6 +80,72 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
     }
 
     return {valid, error, telemetryErrorIds};
+}
+
+export function getPasswordErrorMessage(needsLowercase: boolean, needsUppercase: boolean, needsNumber: boolean, needsSymbol: boolean) {
+    /* eslint-disable no-else-return, no-lonely-if */
+    if (needsLowercase) {
+        if (needsUppercase) {
+            if (needsNumber) {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorLowercaseUppercaseNumberSymbol;
+                } else {
+                    return passwordErrors.passwordErrorLowercaseUppercaseNumber;
+                }
+            } else {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorLowercaseUppercaseSymbol;
+                } else {
+                    return passwordErrors.passwordErrorLowercaseUppercase;
+                }
+            }
+        } else {
+            if (needsNumber) {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorLowercaseNumberSymbol;
+                } else {
+                    return passwordErrors.passwordErrorLowercaseNumber;
+                }
+            } else {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorLowercaseSymbol;
+                } else {
+                    return passwordErrors.passwordErrorLowercase;
+                }
+            }
+        }
+    } else {
+        if (needsUppercase) {
+            if (needsNumber) {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorUppercaseNumberSymbol;
+                } else {
+                    return passwordErrors.passwordErrorUppercaseNumber;
+                }
+            } else {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorUppercaseSymbol;
+                } else {
+                    return passwordErrors.passwordErrorUppercase;
+                }
+            }
+        } else {
+            if (needsNumber) {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorNumberSymbol;
+                } else {
+                    return passwordErrors.passwordErrorNumber;
+                }
+            } else {
+                if (needsSymbol) {
+                    return passwordErrors.passwordErrorSymbol;
+                } else {
+                    return passwordErrors.passwordError;
+                }
+            }
+        }
+    }
+    /* eslint-enable no-else-return, no-lonely-if */
 }
 
 export const passwordErrors = defineMessages({

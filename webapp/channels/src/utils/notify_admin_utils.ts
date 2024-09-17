@@ -13,7 +13,7 @@ export function mapFeatureIdToTranslation(id: string, formatMessage: Function): 
     case MattermostFeatures.CREATE_MULTIPLE_TEAMS:
         return formatMessage({id: 'webapp.mattermost.feature.create_multiple_teams', defaultMessage: 'Create Multiple Teams'});
     case MattermostFeatures.START_CALL:
-        return formatMessage({id: 'webapp.mattermost.feature.start_call', defaultMessage: 'Start call'});
+        return formatMessage({id: 'webapp.mattermost.feature.start_call', defaultMessage: 'Start Call'});
     case MattermostFeatures.PLAYBOOKS_RETRO:
         return formatMessage({id: 'webapp.mattermost.feature.playbooks_retro', defaultMessage: 'Playbooks Retrospective'});
     case MattermostFeatures.UNLIMITED_MESSAGES:

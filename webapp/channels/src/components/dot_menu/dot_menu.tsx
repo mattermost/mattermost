@@ -477,14 +477,14 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const pinPost = (
             <FormattedMessage
                 id='post_info.pin'
-                defaultMessage='Pin'
+                defaultMessage='Pin to Channel'
             />
         );
 
         const unPinPost = (
             <FormattedMessage
                 id='post_info.unpin'
-                defaultMessage='Unpin'
+                defaultMessage='Unpin from Channel'
             />
         );
 

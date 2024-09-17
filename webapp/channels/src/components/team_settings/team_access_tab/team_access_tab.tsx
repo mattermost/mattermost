@@ -115,7 +115,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                                     className='fa fa-angle-left'
                                     aria-label={formatMessage({
                                         id: 'generic_icons.collapse',
-                                        defaultMessage: 'Collapes Icon',
+                                        defaultMessage: 'Collapse Icon',
                                     })}
                                     onClick={collapseModalHandler}
                                 />

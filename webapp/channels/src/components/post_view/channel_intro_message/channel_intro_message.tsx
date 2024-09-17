@@ -228,7 +228,7 @@ function createGMIntroMessage(
             <p className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.group_message'
-                    defaultMessage='This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'
+                    defaultMessage='This is the start of your group message history with these teammates. '
                 />
             </p>
         </div>

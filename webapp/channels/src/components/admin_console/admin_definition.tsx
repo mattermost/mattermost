@@ -712,7 +712,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     value: 'TLS',
-                                    display_name: defineMessage({id: 'admin.connectionSecurityTls', defaultMessage: 'TLS (Recommended)'}),
+                                    display_name: defineMessage({id: 'admin.connectionSecurityTlsRecommended', defaultMessage: 'TLS (Recommended)'}),
                                 },
                             ],
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -1191,9 +1191,9 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'text',
                             key: 'FileSettings.ExportAmazonS3Bucket',
-                            label: defineMessage({id: 'admin.image.amazonS3BucketTitle', defaultMessage: 'Amazon S3 Bucket:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3BucketDescription', defaultMessage: 'Name you selected for your S3 bucket in AWS.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3BucketExample', defaultMessage: 'E.g.: "mattermost-export"'}),
+                            label: defineMessage({id: 'admin.export.amazonS3BucketTitle', defaultMessage: 'Amazon S3 Bucket:'}),
+                            help_text: defineMessage({id: 'admin.export.amazonS3BucketDescription', defaultMessage: 'Name you selected for your S3 bucket in AWS.'}),
+                            placeholder: defineMessage({id: 'admin.export.amazonS3BucketExample', defaultMessage: 'E.g.: "mattermost-export"'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DedicatedExportStore', false),
@@ -1514,7 +1514,7 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'banner',
-                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties other than Site URL in this section will require a server restart before taking effect.'}),
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
                             banner_type: 'info',
                         },
                         {
@@ -3327,7 +3327,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         },
                                         {
                                             value: 'TLS',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityTls', defaultMessage: 'TLS (Recommended)'}),
+                                            display_name: defineMessage({id: 'admin.connectionSecurityTlsRecommended', defaultMessage: 'TLS (Recommended)'}),
                                         },
                                         {
                                             value: 'STARTTLS',
@@ -4615,7 +4615,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     value: Constants.GOOGLE_SERVICE,
                                     display_name: defineMessage({id: 'admin.oauth.google', defaultMessage: 'Google Apps'}),
                                     isHidden: it.all(it.not(it.licensedForFeature('GoogleOAuth')), it.not(it.cloudLicensed)),
-                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand sidebar and enter "Mattermost - your-company-name" as the <strong>Project Name</strong>, then click <strong>Create</strong>.\n3. Click the <strong>OAuth consent screen</strong> header and enter "Mattermost" as the <strong>Product name shown to users</strong>, then click <strong>Save</strong>.\n4. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n5. Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
+                                    help_text: defineMessage({id: 'admin.oauth.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand sidebar and enter "Mattermost - your-company-name" as the <strong>Project Name</strong>, then click <strong>Create</strong>.\n3. Click the <strong>OAuth consent screen</strong> header and enter "Mattermost" as the <strong>Product name shown to users</strong>, then click <strong>Save</strong>.\n4. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n5. Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -4953,7 +4953,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.GOOGLE_SERVICE,
                                     display_name: defineMessage({id: 'admin.openid.google', defaultMessage: 'Google Apps'}),
-                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com]</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter "Mattermost - your-company-name" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
+                                    help_text: defineMessage({id: 'admin.openid.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com]</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter "Mattermost - your-company-name" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -5063,7 +5063,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'GitLabSettings.Secret',
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
                             help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx442pnqMxQY"'}),
+                            placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             isHidden: it.not(it.stateEquals('openidType', Constants.GITLAB_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
@@ -6384,8 +6384,8 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'longtext',
                             key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
-                            label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
-                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
+                            label: defineMessage({id: 'admin.audit_logging_experimental.advanced_logging_json.title', defaultMessage: 'Advanced Logging:'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.advanced_logging_json.help_text', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
                             help_text_markdown: false,
                             help_text_values: {
                                 link: (msg: string) => (

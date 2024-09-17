@@ -30,7 +30,7 @@ const ChannelHeaderTitleDirect = ({
             {currentUser.id === dmUser?.id &&
                 <FormattedMessage
                     id='channel_header.directchannel.you'
-                    defaultMessage='{displayName} (you) '
+                    defaultMessage='{displayName} (you)'
                     values={{displayName}}
                 />}
             {isGuest(dmUser?.roles ?? '') && <GuestTag/>}

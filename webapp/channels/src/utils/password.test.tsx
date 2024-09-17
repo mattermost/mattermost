@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isValidPassword} from './password';
+import {getPasswordErrorMessage, isValidPassword, passwordErrors} from './password';
 
 describe('isValidPassword', () => {
     test('Minimum length enforced', () => {
@@ -194,4 +194,41 @@ describe('isValidPassword', () => {
             expect(data.valid).toEqual(valid);
         }
     });
+});
+
+test('getPasswordErrorMessage', () => {
+    for (const testCase of [
+        {lower: false, upper: false, number: false, symbol: false},
+        {lower: false, upper: false, number: false, symbol: true},
+        {lower: false, upper: false, number: true, symbol: false},
+        {lower: false, upper: false, number: true, symbol: true},
+        {lower: false, upper: true, number: false, symbol: false},
+        {lower: false, upper: true, number: false, symbol: true},
+        {lower: false, upper: true, number: true, symbol: false},
+        {lower: false, upper: true, number: true, symbol: true},
+        {lower: true, upper: false, number: false, symbol: false},
+        {lower: true, upper: false, number: false, symbol: true},
+        {lower: true, upper: false, number: true, symbol: false},
+        {lower: true, upper: false, number: true, symbol: true},
+        {lower: true, upper: true, number: false, symbol: false},
+        {lower: true, upper: true, number: false, symbol: true},
+        {lower: true, upper: true, number: true, symbol: false},
+        {lower: true, upper: true, number: true, symbol: true},
+    ]) {
+        let expected = 'passwordError';
+        if (testCase.lower) {
+            expected += 'Lowercase';
+        }
+        if (testCase.upper) {
+            expected += 'Uppercase';
+        }
+        if (testCase.number) {
+            expected += 'Number';
+        }
+        if (testCase.symbol) {
+            expected += 'Symbol';
+        }
+
+        expect(getPasswordErrorMessage(testCase.lower, testCase.upper, testCase.number, testCase.symbol)).toEqual(passwordErrors[expected as keyof typeof passwordErrors]);
+    }
 });
