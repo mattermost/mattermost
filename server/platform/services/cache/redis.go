@@ -183,11 +183,6 @@ func (r *Redis) Get(key string, value any) error {
 		_, err := u.UnmarshalMsg(bytesVal)
 		*v = &u
 		return err
-	case *map[string]*model.User:
-		var u model.UserMap
-		_, err := u.UnmarshalMsg(bytesVal)
-		*v = u
-		return err
 	}
 
 	// Slow path for other structs.
@@ -251,12 +246,6 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 			var u model.User
 			_, err := u.UnmarshalMsg(buf)
 			*v = &u
-			errs[i] = err
-			continue
-		case *map[string]*model.User:
-			var u model.UserMap
-			_, err := u.UnmarshalMsg(buf)
-			*v = u
 			errs[i] = err
 			continue
 		}

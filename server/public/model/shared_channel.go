@@ -261,12 +261,13 @@ type SharedChannelFilterOpts struct {
 }
 
 type SharedChannelRemoteFilterOpts struct {
-	ChannelId       string
-	RemoteId        string
-	InclUnconfirmed bool
-	ExcludeHome     bool
-	ExcludeRemote   bool
-	IncludeDeleted  bool
+	ChannelId          string
+	RemoteId           string
+	IncludeUnconfirmed bool
+	ExcludeConfirmed   bool
+	ExcludeHome        bool
+	ExcludeRemote      bool
+	IncludeDeleted     bool
 }
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
