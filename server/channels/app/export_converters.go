@@ -170,6 +170,19 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 	}
 }
 
+func ImportLineFromBot(bot *model.Bot, ownerUsername string) *imports.LineImportData {
+	return &imports.LineImportData{
+		Type: "bot",
+		Bot: &imports.BotImportData{
+			Username:    &bot.Username,
+			Owner:       &ownerUsername,
+			DisplayName: &bot.DisplayName,
+			Description: &bot.Description,
+			DeleteAt:    &bot.DeleteAt,
+		},
+	}
+}
+
 func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *imports.UserTeamImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {

@@ -312,6 +312,32 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 	return nil
 }
 
+func ValidateBotImportData(data *BotImportData) *model.AppError {
+	if data.ProfileImage != nil && data.ProfileImageData == nil {
+		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if data.Username == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(*data.Username) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.DisplayName != nil && utf8.RuneCountInString(*data.DisplayName) > model.UserFirstNameMaxRunes {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.first_name_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Owner == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_bot_import_data.owner_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(*data.Owner) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 var validAuthServices = []string{
 	"",
 	model.UserAuthServiceEmail,

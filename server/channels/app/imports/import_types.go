@@ -19,6 +19,7 @@ type LineImportData struct {
 	Team          *TeamImportData          `json:"team,omitempty"`
 	Channel       *ChannelImportData       `json:"channel,omitempty"`
 	User          *UserImportData          `json:"user,omitempty"`
+	Bot           *BotImportData           `json:"bot,omitempty"`
 	Post          *PostImportData          `json:"post,omitempty"`
 	DirectChannel *DirectChannelImportData `json:"direct_channel,omitempty"`
 	DirectPost    *DirectPostImportData    `json:"direct_post,omitempty"`
@@ -87,6 +88,16 @@ type UserImportData struct {
 
 	NotifyProps  *UserNotifyPropsImportData `json:"notify_props,omitempty"`
 	CustomStatus *model.CustomStatus        `json:"custom_status,omitempty"`
+}
+
+type BotImportData struct {
+	Username         *string   `json:"username"`
+	Owner            *string   `json:"owner"`
+	DisplayName      *string   `json:"display_name"`
+	Description      *string   `json:"description,omitempty"`
+	DeleteAt         *int64    `json:"delete_at,omitempty"`
+	ProfileImage     *string   `json:"profile_image,omitempty"`
+	ProfileImageData *zip.File `json:"-"`
 }
 
 type UserNotifyPropsImportData struct {

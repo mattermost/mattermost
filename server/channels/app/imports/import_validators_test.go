@@ -670,6 +670,56 @@ func TestImportValidateUserAuth(t *testing.T) {
 	}
 }
 
+func TestImportValidateBotImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := BotImportData{
+		Username:    model.NewPointer("bob"),
+		DisplayName: model.NewPointer("Display Name"),
+		Owner:       model.NewPointer("owner"),
+	}
+	err := ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with various invalid names.
+	data.Username = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to nil Username.")
+
+	data.Username = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to 0 length Username.")
+
+	data.Username = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long Username.")
+
+	data.Username = model.NewPointer("i am a username with spaces and !!!")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid characters in Username.")
+
+	data.Username = model.NewPointer("bob")
+
+	// Invalid Display Name.
+	data.DisplayName = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.DisplayName = model.NewPointer("Display Name")
+
+	// Invalid Owner Name.
+	data.Owner = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
+}
+
 func TestImportValidateUserTeamsImportData(t *testing.T) {
 	// Invalid Name.
 	data := []UserTeamImportData{
