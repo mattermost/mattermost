@@ -101,4 +101,5 @@ const Container = styled.div`
     align-items: center;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     overflow-x: auto;
+    max-width: 100vw;
 `;
