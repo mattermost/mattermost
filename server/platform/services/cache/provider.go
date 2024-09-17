@@ -94,7 +94,12 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		ForceSingleClient: true,
 		CacheSizeEachConn: 32 * (1 << 20), // 32MiB local cache size
 		DisableCache:      opts.DisableCache,
-		MaxFlushDelay:     250 * time.Microsecond,
+		// This is used to collect more commands before flushing to Redis.
+		// This increases latency at the cost of lower CPU usage at Redis.
+		// It's a tradeoff we are willing to make because Redis is only
+		// meant to be used at very high scales. The docs suggest 20us,
+		// but going as high as 250us doesn't make any material difference.
+		MaxFlushDelay: 250 * time.Microsecond,
 	})
 	if err != nil {
 		return nil, err
