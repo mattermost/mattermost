@@ -20,15 +20,17 @@ import DeleteScheduledPostModal
     from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
 
 import './style.scss';
+import SendDraftModal from 'components/drafts/draft_actions/send_draft_modal';
 
 type Props = {
     scheduledPost: ScheduledPost;
     channelDisplayName: string;
     onReschedule: (timestamp: number) => void;
-    onDelete: (id: string) => void;
+    onDelete: (scheduledPostId: string) => void;
+    onSend: (scheduledPostId: string) => void;
 }
 
-function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDisplayName}: Props) {
+function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDisplayName, onSend}: Props) {
     const dispatch = useDispatch();
     const userTimezone = useSelector(getCurrentTimezone);
 
@@ -48,7 +50,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                 initialTime,
             },
         }));
-    }, [dispatch, handleConfirmRescheduledPost, scheduledPost.channel_id]);
+    }, [dispatch, handleConfirmRescheduledPost, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
@@ -60,6 +62,17 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             },
         }));
     }, [channelDisplayName, dispatch, onDelete, scheduledPost.id]);
+
+    const handleSend = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.SEND_DRAFT,
+            dialogType: SendDraftModal,
+            dialogProps: {
+                displayName: channelDisplayName,
+                onConfirm: () => onSend(scheduledPost.id),
+            },
+        }));
+    }, [channelDisplayName, dispatch, onSend, scheduledPost.id]);
 
     return (
         <div className='ScheduledPostActions'>
@@ -115,7 +128,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                                     defaultMessage='Send now'
                                 />
                             )}
-                            onClick={() => {}}
+                            onClick={handleSend}
                         />
                     </React.Fragment>
                 )

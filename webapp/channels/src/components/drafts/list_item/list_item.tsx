@@ -71,8 +71,9 @@ export default function DraftListItem({
             channelDisplayName={channel.display_name}
             onReschedule={() => {}}
             onDelete={() => {}}
+            onSend={() => {}}
         />
-    ), [item]);
+    ), [channel.display_name, item]);
 
     let timestamp: number;
     let fileInfos: FileInfo[];
