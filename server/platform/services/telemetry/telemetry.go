@@ -894,6 +894,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_shared_channels":              *cfg.ConnectedWorkspacesSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
+		"max_posts_per_sync":                  *cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
 	})
 
 	// Convert feature flags to map[string]any for sending

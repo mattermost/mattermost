@@ -10160,5 +10160,9 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "Die Mitgliedschaft in der Unterhaltung kann für den Beitrag nicht gespeichert werden."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Die Größe des hochgeladenen Plugins überschreitet das Limit. Dieses Limit kann in der Systemkonsole über Dateispeicher > Maximale Dateigröße geändert werden"
   }
 ]
