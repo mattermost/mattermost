@@ -189,6 +189,7 @@ func (r *Redis) Get(key string, value any) error {
 	return msgpack.Unmarshal(bytesVal, value)
 }
 
+// GetMulti uses the MGET primitive to fetch multiple keys in a single operation.
 func (r *Redis) GetMulti(keys []string, values []any) []error {
 	now := time.Now()
 	defer func() {
@@ -222,21 +223,35 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 		return errs
 	}
 
-	for i, val := range vals {
-		if val.IsNil() {
+	for i, resp := range vals {
+		if resp.IsNil() {
 			errs[i] = ErrKeyNotFound
 			continue
 		}
 
-		buf, err := val.AsBytes()
+		var intVal int64
+		var bytesVal []byte
+		var err error
+		vPtr, ok := values[i].(*int64)
+		if ok {
+			intVal, err = resp.AsInt64()
+		} else {
+			bytesVal, err = resp.AsBytes()
+		}
 		if err != nil {
 			errs[i] = err
 			continue
 		}
 
+		if ok {
+			*vPtr = intVal
+			errs[i] = nil
+			continue
+		}
+
 		// We use a fast path for hot structs.
 		if msgpVal, ok := values[i].(msgp.Unmarshaler); ok {
-			_, err := msgpVal.UnmarshalMsg(buf)
+			_, err := msgpVal.UnmarshalMsg(bytesVal)
 			errs[i] = err
 			continue
 		}
@@ -244,14 +259,14 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 		switch v := values[i].(type) {
 		case **model.User:
 			var u model.User
-			_, err := u.UnmarshalMsg(buf)
+			_, err := u.UnmarshalMsg(bytesVal)
 			*v = &u
 			errs[i] = err
 			continue
 		}
 
 		// Slow path for other structs.
-		errs[i] = msgpack.Unmarshal(buf, values[i])
+		errs[i] = msgpack.Unmarshal(bytesVal, values[i])
 	}
 
 	return errs
