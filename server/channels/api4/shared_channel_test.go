@@ -313,6 +313,20 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err = th.App.ShareChannel(th.Context, sc4)
 	require.NoError(t, err)
 
+	c5 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc5 := &model.SharedChannel{
+		ChannelId:        c5.Id,
+		TeamId:           th.BasicTeam.Id,
+		ShareName:        "shared_5",
+		ShareDisplayName: "Shared Channel 5",
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         rc1.RemoteId,
+		Home:             false,
+	}
+
+	_, err = th.App.ShareChannel(th.Context, sc5)
+	require.NoError(t, err)
+
 	// for the pagination test, we need to get the channelId of the
 	// second SharedChannelRemote that belongs to RC1, sorted by ID,
 	// so we accumulate those SharedChannelRemotes on creation and
@@ -321,7 +335,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	sharedChannelRemotesFromRC1 := []*model.SharedChannelRemote{}
 
 	// create the shared channel remotes
-	for _, sc := range []*model.SharedChannel{sc1, sc2, sc3, sc4} {
+	for _, sc := range []*model.SharedChannel{sc1, sc2, sc3, sc4, sc5} {
 		scr := &model.SharedChannelRemote{
 			Id:                model.NewId(),
 			ChannelId:         sc.ChannelId,
@@ -329,6 +343,10 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: true,
 			RemoteId:          sc.RemoteId,
+		}
+		// scr for c5 is not confirmed yet
+		if sc.ChannelId == sc5.ChannelId {
+			scr.IsInviteConfirmed = false
 		}
 		_, err = th.App.SaveSharedChannelRemote(scr)
 		require.NoError(t, err)
@@ -424,10 +442,32 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				ExpectedIds:        []string{sc2.ChannelId},
 			},
 			{
+				Name:               "should return the complete list of shared channel remotes for a remote cluster including unconfirmed",
+				Client:             th.SystemAdminClient,
+				RemoteId:           rc1.RemoteId,
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeUnconfirmed: true},
+				Page:               0,
+				PerPage:            100,
+				ExpectedStatusCode: http.StatusOK,
+				ExpectedError:      false,
+				ExpectedIds:        []string{sc1.ChannelId, sc2.ChannelId, sc5.ChannelId},
+			},
+			{
+				Name:               "should return only the unconfirmed shared channel remotes for a remote cluster",
+				Client:             th.SystemAdminClient,
+				RemoteId:           rc1.RemoteId,
+				Filter:             model.SharedChannelRemoteFilterOpts{ExcludeConfirmed: true},
+				Page:               0,
+				PerPage:            100,
+				ExpectedStatusCode: http.StatusOK,
+				ExpectedError:      false,
+				ExpectedIds:        []string{sc5.ChannelId},
+			},
+			{
 				Name:               "should correctly paginate the results",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				Filter:             model.SharedChannelRemoteFilterOpts{IncludeDeleted: true},
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeDeleted: true, IncludeUnconfirmed: true},
 				Page:               1,
 				PerPage:            1,
 				ExpectedStatusCode: http.StatusOK,
