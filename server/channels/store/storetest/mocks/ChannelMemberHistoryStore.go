@@ -73,7 +73,7 @@ func (_m *ChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since i
 }
 
 // GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelID
-func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error) {
+func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error) {
 	ret := _m.Called(startTime, endTime, channelID)
 
 	if len(ret) == 0 {
@@ -82,10 +82,10 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 
 	var r0 []*model.ChannelMemberHistoryResult
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int64, string) ([]*model.ChannelMemberHistoryResult, error)); ok {
+	if rf, ok := ret.Get(0).(func(int64, int64, []string) ([]*model.ChannelMemberHistoryResult, error)); ok {
 		return rf(startTime, endTime, channelID)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int64, string) []*model.ChannelMemberHistoryResult); ok {
+	if rf, ok := ret.Get(0).(func(int64, int64, []string) []*model.ChannelMemberHistoryResult); ok {
 		r0 = rf(startTime, endTime, channelID)
 	} else {
 		if ret.Get(0) != nil {
@@ -93,7 +93,7 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, int64, string) error); ok {
+	if rf, ok := ret.Get(1).(func(int64, int64, []string) error); ok {
 		r1 = rf(startTime, endTime, channelID)
 	} else {
 		r1 = ret.Error(1)

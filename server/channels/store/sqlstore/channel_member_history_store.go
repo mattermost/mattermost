@@ -65,27 +65,27 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	return nil
 }
 
-func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
+func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
 	if err != nil {
-		return nil, errors.Wrapf(err, "hasDataAtOrBefore startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+		return nil, errors.Wrapf(err, "hasDataAtOrBefore startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
 	}
 
 	if useChannelMemberHistory {
 		// the export period starts after the ChannelMemberHistory table was first introduced, so we can use the
 		// data from it for our export
-		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelId)
+		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelIds)
 		if err2 != nil {
-			return nil, errors.Wrapf(err2, "getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+			return nil, errors.Wrapf(err2, "getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
 		}
 		return channelMemberHistories, nil
 	}
 	// the export period starts before the ChannelMemberHistory table was introduced, so we need to fake the
 	// data by assuming that anybody who has ever joined the channel in question was present during the export period.
 	// this may not always be true, but it's better than saying that somebody wasn't there when they were
-	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId)
+	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelIds)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getFromChannelMembersTable startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+		return nil, errors.Wrapf(err, "getFromChannelMembersTable startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
 	}
 	return channelMemberHistories, nil
 }
@@ -108,14 +108,14 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 	return false, nil
 }
 
-func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
+func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	query, args, err := s.getQueryBuilder().
 		Select(`cmh.*, u.Email AS "Email", u.Username, Bots.UserId IS NOT NULL AS IsBot, u.DeleteAt AS UserDeleteAt`).
 		From("ChannelMemberHistory cmh").
 		Join("Users u ON cmh.UserId = u.Id").
 		LeftJoin("Bots ON Bots.UserId = u.Id").
 		Where(sq.And{
-			sq.Eq{"cmh.ChannelId": channelId},
+			sq.Eq{"cmh.ChannelId": channelIds},
 			sq.LtOrEq{"cmh.JoinTime": endTime},
 			sq.Or{
 				sq.Eq{"cmh.LeaveTime": nil},
@@ -134,14 +134,14 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 	return histories, nil
 }
 
-func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
+func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	query, args, err := s.getQueryBuilder().
 		Select(`ch.ChannelId, ch.UserId, u.Email AS "Email", u.Username, Bots.UserId IS NOT NULL AS IsBot, u.DeleteAt AS UserDeleteAt`).
 		Distinct().
 		From("ChannelMembers ch").
 		Join("Users u ON ch.UserId = u.id").
 		LeftJoin("Bots ON Bots.UserId = u.id").
-		Where(sq.Eq{"ch.ChannelId": channelId}).ToSql()
+		Where(sq.Eq{"ch.ChannelId": channelIds}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}

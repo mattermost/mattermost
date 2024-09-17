@@ -119,12 +119,12 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	require.NoError(t, err)
 
 	// case 1: user joins and leaves the channel before the export period begins
-	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, channel.Id)
+	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Empty(t, channelMembers)
 
 	// case 2: user joins the channel after the export period begins, but has not yet left the channel when the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -135,7 +135,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	assert.Nil(t, channelMembers[0].LeaveTime)
 
 	// case 3: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -150,7 +150,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	require.NoError(t, err)
 
 	// case 4: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -161,7 +161,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
 	// case 5: user joins the channel after the export period begins, and leaves the channel before the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -172,7 +172,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
 	// case 6: user has joined and left the channel long before the export period begins
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Empty(t, channelMembers)
 }
@@ -223,7 +223,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	// the past, even though the time that they were actually in the channel doesn't necessarily overlap with the export period
 
 	// case 1: user joins and leaves the channel before the export period begins
-	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, channel.Id)
+	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -234,7 +234,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	assert.Equal(t, joinTime-100, *channelMembers[0].LeaveTime)
 
 	// case 2: user joins the channel after the export period begins, but has not yet left the channel when the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -245,7 +245,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	assert.Equal(t, joinTime+500, *channelMembers[0].LeaveTime)
 
 	// case 3: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -256,7 +256,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	assert.Equal(t, joinTime+500, *channelMembers[0].LeaveTime)
 
 	// case 4: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -267,7 +267,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	assert.Equal(t, leaveTime-100, *channelMembers[0].LeaveTime)
 
 	// case 5: user joins the channel after the export period begins, and leaves the channel before the export period ends
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -278,7 +278,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	assert.Equal(t, leaveTime+100, *channelMembers[0].LeaveTime)
 
 	// case 6: user has joined and left the channel long before the export period begins
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
@@ -332,7 +332,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// in between the join time and the leave time, both users were members of the channel
-	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)
+	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 2)
 
@@ -343,7 +343,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.NotEqual(t, int64(0), rowsDeleted)
 
 	// after the delete, there should be one less member in the channel
-	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)
+	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, []string{channel.Id})
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, user2.Id, channelMembers[0].UserId)
@@ -387,7 +387,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX
 	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
 		nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
-	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, channel.Id)
+	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, []string{channel.Id})
 	require.NoError(t, err)
 	require.Empty(t, result, "history should have been deleted by channel policy")
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("ChannelMemberHistory", 1000)

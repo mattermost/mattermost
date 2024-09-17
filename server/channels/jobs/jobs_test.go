@@ -239,6 +239,38 @@ func TestSetJobSuccess(t *testing.T) {
 	})
 }
 
+func TestSetJobCustomStatus(t *testing.T) {
+	t.Run("error setting custom status", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+
+		job := &model.Job{
+			Id:   "job_id",
+			Type: "job_type",
+		}
+		status := "some custom status"
+
+		mockStore.JobStore.On("UpdateStatus", "job_id", status).Return(job, &model.AppError{Message: "message"})
+
+		err := jobServer.SetJobCustomStatus(job, status)
+		expectErrorId(t, "app.job.update.app_error", err)
+	})
+
+	t.Run("custom status updated", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+
+		job := &model.Job{
+			Id:   "job_id",
+			Type: "job_type",
+		}
+		status := "some custom status"
+
+		mockStore.JobStore.On("UpdateStatus", "job_id", status).Return(job, nil)
+
+		err := jobServer.SetJobCustomStatus(job, status)
+		require.Nil(t, err)
+	})
+}
+
 func TestSetJobError(t *testing.T) {
 	t.Run("nil provided job error", func(t *testing.T) {
 		t.Run("error setting status", func(t *testing.T) {
