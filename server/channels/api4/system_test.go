@@ -80,9 +80,6 @@ func TestGetPing(t *testing.T) {
 	}, "ping feature flag test")
 
 	t.Run("ping root_status test", func(t *testing.T) {
-		if os.Geteuid() != 0 {
-			t.Skip("Skipping due to system user not having root privileges")
-		}
 		respMap, resp, err := th.SystemAdminClient.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
