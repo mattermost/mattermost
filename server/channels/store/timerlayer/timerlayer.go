@@ -7849,10 +7849,10 @@ func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, li
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
+func (s *TimerLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	start := time.Now()
 
-	result, err := s.SessionStore.GetMobileVersions()
+	result, err := s.SessionStore.GetMobileSessionMetadata()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7860,7 +7860,7 @@ func (s *TimerLayerSessionStore) GetMobileVersions() ([]*model.MobileVersionMetr
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetMobileVersions", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetMobileSessionMetadata", success, elapsed)
 	}
 	return result, err
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // DecodeMsg implements msgp.Decodable
-func (z *MobileVersionMetric) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *MobileSessionMetadata) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -63,7 +63,7 @@ func (z *MobileVersionMetric) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *MobileVersionMetric) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *MobileSessionMetadata) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 4
 	// write "Version"
 	err = en.Append(0x84, 0xa7, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
@@ -109,7 +109,7 @@ func (z *MobileVersionMetric) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *MobileVersionMetric) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *MobileSessionMetadata) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 4
 	// string "Version"
@@ -128,7 +128,7 @@ func (z *MobileVersionMetric) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *MobileVersionMetric) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *MobileSessionMetadata) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -182,7 +182,7 @@ func (z *MobileVersionMetric) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *MobileVersionMetric) Msgsize() (s int) {
+func (z *MobileSessionMetadata) Msgsize() (s int) {
 	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 9 + msgp.StringPrefixSize + len(z.Platform) + 6 + msgp.Float64Size + 21 + msgp.StringPrefixSize + len(z.NotificationDisabled)
 	return
 }

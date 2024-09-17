@@ -8710,16 +8710,16 @@ func (s *OpenTracingLayerSessionStore) GetLRUSessions(c request.CTX, userID stri
 	return result, err
 }
 
-func (s *OpenTracingLayerSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
+func (s *OpenTracingLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetMobileVersions")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetMobileSessionMetadata")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.SessionStore.GetMobileVersions()
+	result, err := s.SessionStore.GetMobileSessionMetadata()
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

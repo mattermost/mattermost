@@ -215,7 +215,7 @@ type MetricsInterfaceImpl struct {
 	MobileClientLoadDuration          *prometheus.HistogramVec
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
-	MobileClientVersionGauge          *prometheus.GaugeVec
+	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
 }
 
 func init() {
@@ -1336,16 +1336,16 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
-	m.MobileClientVersionGauge = prometheus.NewGaugeVec(
+	m.MobileClientSessionMetadataGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_versions",
-			Help:      "The number of mobile devices in each version and whether they have the notifications disabled",
+			Name:      "mobile_session_metadata",
+			Help:      "The number of mobile sessions in each version, platform and whether they have the notifications disabled",
 		},
 		[]string{"version", "platform", "notificationsDisabled"},
 	)
-	m.Registry.MustRegister(m.MobileClientVersionGauge)
+	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
 
 	return m
 }
@@ -1862,12 +1862,12 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform s
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientVersions(version string, platform string, value float64, notificationDisabled string) {
-	mi.MobileClientVersionGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
 }
 
-func (mi *MetricsInterfaceImpl) ClearMobileClientVersions() {
-	mi.MobileClientVersionGauge.Reset()
+func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {
+	mi.MobileClientSessionMetadataGauge.Reset()
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

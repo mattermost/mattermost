@@ -28,8 +28,8 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
-// ClearMobileClientVersions provides a mock function with given fields:
-func (_m *MetricsInterface) ClearMobileClientVersions() {
+// ClearMobileClientSessionMetadata provides a mock function with given fields:
+func (_m *MetricsInterface) ClearMobileClientSessionMetadata() {
 	_m.Called()
 }
 
@@ -378,14 +378,14 @@ func (_m *MetricsInterface) ObserveMobileClientLoadDuration(platform string, ela
 	_m.Called(platform, elapsed)
 }
 
+// ObserveMobileClientSessionMetadata provides a mock function with given fields: version, platform, value, notificationDisabled
+func (_m *MetricsInterface) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+	_m.Called(version, platform, value, notificationDisabled)
+}
+
 // ObserveMobileClientTeamSwitchDuration provides a mock function with given fields: platform, elapsed
 func (_m *MetricsInterface) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
 	_m.Called(platform, elapsed)
-}
-
-// ObserveMobileClientVersions provides a mock function with given fields: version, platform, value, notificationDisabled
-func (_m *MetricsInterface) ObserveMobileClientVersions(version string, platform string, value float64, notificationDisabled string) {
-	_m.Called(version, platform, value, notificationDisabled)
 }
 
 // ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed

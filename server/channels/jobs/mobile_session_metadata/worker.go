@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package mobile_versions
+package mobile_session_metadata
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
@@ -12,7 +12,7 @@ import (
 )
 
 func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() einterfaces.MetricsInterface) *jobs.SimpleWorker {
-	const workerName = "MobileVersions"
+	const workerName = "MobileSessionMetadata"
 
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.MetricsSettings.EnableClientMetrics
@@ -25,14 +25,14 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() 
 			return nil
 		}
 
-		versions, err := store.Session().GetMobileVersions()
+		versions, err := store.Session().GetMobileSessionMetadata()
 		if err != nil {
 			return err
 		}
 
-		metrics.ClearMobileClientVersions()
+		metrics.ClearMobileClientSessionMetadata()
 		for _, v := range versions {
-			metrics.ObserveMobileClientVersions(v.Version, v.Platform, v.Count, v.NotificationDisabled)
+			metrics.ObserveMobileClientSessionMetadata(v.Version, v.Platform, v.Count, v.NotificationDisabled)
 		}
 
 		return nil

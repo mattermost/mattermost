@@ -40,6 +40,7 @@ const (
 	JobTypeDeleteOrphanDraftsMigration   = "delete_orphan_drafts_migration"
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
+	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

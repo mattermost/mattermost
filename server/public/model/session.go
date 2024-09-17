@@ -39,7 +39,7 @@ const (
 //msgp:tuple StringMap
 type StringMap map[string]string
 
-type MobileVersionMetric struct {
+type MobileSessionMetadata struct {
 	Version              string
 	Platform             string
 	Count                float64

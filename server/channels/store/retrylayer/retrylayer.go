@@ -9938,11 +9938,11 @@ func (s *RetryLayerSessionStore) GetLRUSessions(c request.CTX, userID string, li
 
 }
 
-func (s *RetryLayerSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
+func (s *RetryLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.GetMobileVersions()
+		result, err := s.SessionStore.GetMobileSessionMetadata()
 		if err == nil {
 			return result, nil
 		}

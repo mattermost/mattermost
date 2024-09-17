@@ -164,7 +164,7 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, error) {
+func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	query, args, err := me.getQueryBuilder().
 		Select(fmt.Sprintf(
 			"COUNT(userid), SPLIT_PART(deviceid, ':', 1) AS platform, COALESCE(props->>'%s','N/A') AS version, COALESCE(props->>'%s','false') as notificationDisabled",
@@ -178,10 +178,10 @@ func (me SqlSessionStore) GetMobileVersions() ([]*model.MobileVersionMetric, err
 		return nil, errors.Wrap(err, "sessions_tosql")
 	}
 
-	versions := []*model.MobileVersionMetric{}
+	versions := []*model.MobileSessionMetadata{}
 	err = me.GetReplicaX().Select(&versions, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed get mobile versions")
+		return nil, errors.Wrap(err, "failed get mobile session metadata")
 	}
 	return versions, nil
 }
