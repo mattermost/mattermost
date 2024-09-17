@@ -793,8 +793,9 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
-		model.PermissionSysconsoleReadUserManagementGroups,
+		model.PermissionSysconsoleWriteUserManagementGroups,
 		model.PermissionSysconsoleReadUserManagementChannels,
+		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
 		c.SetPermissionError(permissions...)
@@ -822,6 +823,8 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channels = sanitizeAllChannelsResponse(c, channels)
+
 	if c.Params.IncludeTotalCount {
 		totalCount, err := c.App.GetAllChannelsCount(c.AppContext, opts)
 		if err != nil {
@@ -841,6 +844,18 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func sanitizeAllChannelsResponse(c *Context, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+		model.PermissionSysconsoleReadUserManagementChannels,
+	}) {
+		for _, channel := range channels {
+			channel.Channel = channel.Channel.Sanitize()
+		}
+	}
+	return channels
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1256,7 +1271,12 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(),
+		[]*model.Permission{
+			model.PermissionSysconsoleWriteUserManagementGroups,
+			model.PermissionSysconsoleReadUserManagementChannels,
+			model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+		}) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
@@ -1287,6 +1307,8 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	channels = sanitizeAllChannelsResponse(c, channels)
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 	if props.Page != nil && props.PerPage != nil {
