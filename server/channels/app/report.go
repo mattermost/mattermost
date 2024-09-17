@@ -210,34 +210,17 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOption
 		"role":               ro.Role,
 		"team":               ro.Team,
 		"hide_active":        strconv.FormatBool(ro.HideActive),
-		"hide_Inactive":      strconv.FormatBool(ro.HideInactive),
+		"hide_inactive":      strconv.FormatBool(ro.HideInactive),
 		"start_at":           strconv.FormatInt(startAt, 10),
 		"end_at":             strconv.FormatInt(endAt, 10),
 	}
 
-	// Check for existing job
-	// TODO: Maybe make this a reusable function? // here, check for matches with the other fields too, role, team and bool
-	pendingJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, model.JobTypeExportUsersToCSV, model.JobStatusPending)
-	if err != nil {
+	// Check for existing jobs
+	if err := a.checkForExistingJobs(rctx, options, model.JobTypeExportUsersToCSV); err != nil {
 		return err
 	}
-	for _, job := range pendingJobs {
-		if job.Data["date_range"] == options["date_range"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
-			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
-		}
-	}
 
-	inProgressJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, model.JobTypeExportUsersToCSV, model.JobStatusInProgress)
-	if err != nil {
-		return err
-	}
-	for _, job := range inProgressJobs {
-		if job.Data["date_range"] == options["date_range"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
-			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
-		}
-	}
-
-	_, err = a.Srv().Jobs.CreateJob(rctx, model.JobTypeExportUsersToCSV, options)
+	_, err := a.Srv().Jobs.CreateJob(rctx, model.JobTypeExportUsersToCSV, options)
 	if err != nil {
 		return err
 	}
@@ -272,6 +255,42 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOption
 			rctx.Logger().Error("Failed to post batch export message", mlog.Err(err))
 		}
 	})
+
+	return nil
+}
+
+// Helper function to check for existing or pending jobs
+func (a *App) checkForExistingJobs(rctx request.CTX, options map[string]string, jobType string) *model.AppError {
+	checkJobExists := func(jobs []*model.Job, options map[string]string) bool {
+		for _, job := range jobs {
+			fmt.Printf("\n\n ***The job: %#v \n\n ***the options: %#v \n…\n", job, options)
+			if job.Data["date_range"] == options["date_range"] &&
+				job.Data["requesting_user_id"] == options["requesting_user_id"] &&
+				job.Data["role"] == options["role"] &&
+				job.Data["team"] == options["team"] &&
+				job.Data["hide_active"] == options["hide_active"] &&
+				job.Data["hide_inactive"] == options["hide_inactive"] {
+				return true
+			}
+		}
+		return false
+	}
+
+	pendingJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, jobType, model.JobStatusPending)
+	if err != nil {
+		return err
+	}
+	if checkJobExists(pendingJobs, options) {
+		return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
+	}
+
+	inProgressJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, jobType, model.JobStatusInProgress)
+	if err != nil {
+		return err
+	}
+	if checkJobExists(inProgressJobs, options) {
+		return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
+	}
 
 	return nil
 }

@@ -107,3 +107,96 @@ some-other-other-name,600,2022-01-01
 		require.NotNil(t, err)
 	})
 }
+
+func TestCheckForExistingJobs(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should return error if job with same options exists in pending jobs", func(t *testing.T) {
+		app := th.App
+		rctx := th.Context
+		options := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "user",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+		}
+
+		jobType := model.JobTypeExportUsersToCSV
+
+		// Create a pending job with same options
+		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, options)
+		defer app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+		require.Nil(t, err)
+		require.NotNil(t, job)
+
+		// checkForExistingJobs
+		appErr := app.checkForExistingJobs(rctx, options, jobType)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.report.start_users_batch_export.job_exists", appErr.Id)
+	})
+
+	t.Run("should return error if job with same options exists in in-progress jobs", func(t *testing.T) {
+		app := th.App
+		rctx := th.Context
+		options := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "user",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+		}
+
+		jobType := model.JobTypeExportUsersToCSV
+
+		// Create an in-progress job with same options
+		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, options)
+		defer app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+		require.Nil(t, err)
+		require.NotNil(t, job)
+
+		// Manually set job status to in-progress
+		err = app.Srv().Jobs.SetJobProgress(job, 60)
+		require.Nil(t, err)
+
+		// Call checkForExistingJobs
+		appErr := app.checkForExistingJobs(rctx, options, jobType)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.report.start_users_batch_export.job_exists", appErr.Id)
+	})
+
+	t.Run("should not return error if existing jobs have different options", func(t *testing.T) {
+		app := th.App
+		rctx := th.Context
+		options := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "user",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+		}
+
+		jobType := model.JobTypeExportUsersToCSV
+
+		differentOptions := map[string]string{
+			"date_range":         "all_time",
+			"requesting_user_id": th.BasicUser2.Id,
+			"role":               "admin",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+		}
+
+		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, differentOptions)
+		require.Nil(t, err)
+		require.NotNil(t, job)
+
+		// Call checkForExistingJobs
+		appErr := app.checkForExistingJobs(rctx, options, jobType)
+		require.Nil(t, appErr)
+	})
+}
