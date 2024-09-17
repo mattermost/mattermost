@@ -1448,15 +1448,19 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
-
-		for _, id := range knownPluginIDs {
-			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
-		}
 	} else {
 		for _, p := range marketplacePlugins {
 			id := p.Manifest.Id
 
 			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	}
+
+	for _, id := range knownPluginIDs {
+		plugin_id := fmt.Sprintf("enable_%s", id)
+		_, ok := pluginConfigData[plugin_id]
+		if !ok {
+			pluginConfigData[plugin_id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
 		}
 	}
 
