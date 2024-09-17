@@ -467,33 +467,10 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TrackConfigService,
-			TrackConfigTeam,
-			TrackConfigSQL,
-			TrackConfigLog,
-			TrackConfigNotificationLog,
-			TrackConfigFile,
-			TrackConfigRate,
-			TrackConfigEmail,
-			TrackConfigPrivacy,
-			TrackConfigOAuth,
-			TrackConfigLDAP,
-			TrackConfigCompliance,
-			TrackConfigLocalization,
-			TrackConfigSAML,
-			TrackConfigPassword,
-			TrackConfigCluster,
-			TrackConfigMetrics,
-			TrackConfigSupport,
-			TrackConfigNativeApp,
-			TrackConfigExperimental,
-			TrackConfigAnalytics,
-			TrackConfigPlugin,
-			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
-			TrackConfigMessageExport,
 			TrackPlugins,
+			TrackConfigs,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -510,33 +487,10 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TrackConfigService,
-			TrackConfigTeam,
-			TrackConfigSQL,
-			TrackConfigLog,
-			TrackConfigNotificationLog,
-			TrackConfigFile,
-			TrackConfigRate,
-			TrackConfigEmail,
-			TrackConfigPrivacy,
-			TrackConfigOAuth,
-			TrackConfigLDAP,
-			TrackConfigCompliance,
-			TrackConfigLocalization,
-			TrackConfigSAML,
-			TrackConfigPassword,
-			TrackConfigCluster,
-			TrackConfigMetrics,
-			TrackConfigSupport,
-			TrackConfigNativeApp,
-			TrackConfigExperimental,
-			TrackConfigAnalytics,
-			TrackConfigPlugin,
-			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
-			TrackConfigMessageExport,
 			TrackPlugins,
+			TrackConfigs,
 		} {
 			require.Contains(t, info, item)
 		}
