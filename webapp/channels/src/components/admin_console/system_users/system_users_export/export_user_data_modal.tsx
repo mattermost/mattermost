@@ -61,7 +61,7 @@ export function ExportUserDataModal({onConfirm, onExited}: Props) {
         message = (
             <>
                 {message}
-                <p className='Modal_Description_Note'>
+                <p className='mt-3 text-muted'>
                     <FormattedMessage
                         id='export_user_data_modal.export_data.table_filters_note'
                         defaultMessage={'Note: The exported data will use the filters you have set in the users list. To export all data first remove the filters.'}

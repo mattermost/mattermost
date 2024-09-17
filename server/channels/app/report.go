@@ -86,7 +86,6 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 }
 
 func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
-	fmt.Printf("\n\n\n Los putos datos: %#v \n\n\n \n\n\n", job)
 	requestingUserId := job.Data["requesting_user_id"]
 	if requestingUserId == "" {
 		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.missing_user_id", nil, "", http.StatusInternalServerError)
