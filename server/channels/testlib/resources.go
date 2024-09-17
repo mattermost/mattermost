@@ -83,6 +83,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
 		{"fonts", "fonts", resourceTypeFolder, actionSymlink},
+		{"channels/app/plugin_api_tests", "channels/app/plugin_api_tests", resourceTypeFolder, actionSymlink},
 		{"channels/utils/policies-roles-mapping.json", "channels/utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
 	}
 

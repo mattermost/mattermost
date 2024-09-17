@@ -3,18 +3,18 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import set from 'lodash/set';
-import type {Dispatch} from 'redux';
-import {batchActions} from 'redux-batched-actions';
-import type {MockStoreEnhanced} from 'redux-mock-store';
+import type { Dispatch } from 'redux';
+import { batchActions } from 'redux-batched-actions';
+import type { MockStoreEnhanced } from 'redux-mock-store';
 
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
+import type { Post } from '@mattermost/types/posts';
+import type { UserProfile } from '@mattermost/types/users';
+import type { IDMappedObjects } from '@mattermost/types/utilities';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
+import { SearchTypes } from 'mattermost-redux/action_types';
 import * as SearchActions from 'mattermost-redux/actions/search';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import { trackEvent } from 'actions/telemetry_actions.jsx';
 import {
     updateRhsState,
     selectPostFromRightHandSideSearch,
@@ -42,17 +42,19 @@ import {
 } from 'actions/views/rhs';
 
 import mockStore from 'tests/test_store';
-import {ActionTypes, RHSStates, Constants} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
-import {getBrowserUtcOffset} from 'utils/timezone';
+import { ActionTypes, RHSStates, Constants } from 'utils/constants';
+import { TestHelper } from 'utils/test_helper';
+import { getBrowserUtcOffset } from 'utils/timezone';
 
-import type {GlobalState} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
-import type {ViewsState} from 'types/store/views';
+import type { GlobalState } from 'types/store';
+import type { RhsState } from 'types/store/rhs';
+import type { ViewsState } from 'types/store/views';
 
 const currentChannelId = '123';
 const currentTeamId = '321';
 const currentUserId = 'user123';
+const currentUsername = 'user-name';
+const currentUserFirstName = 'first-name';
 const pluggableId = 'pluggableId';
 const previousSelectedPost = {
     id: 'post123',
@@ -61,21 +63,21 @@ const previousSelectedPost = {
 } as Post;
 
 const UserSelectors = require('mattermost-redux/selectors/entities/users');
-UserSelectors.getCurrentUserMentionKeys = jest.fn(() => [{key: '@here'}, {key: '@mattermost'}, {key: '@channel'}, {key: '@all'}]);
+UserSelectors.getCurrentUserMentionKeys = jest.fn(() => [{ key: '@here' }, { key: '@mattermost' }, { key: '@channel' }, { key: '@all' }]);
 
 // Mock Date.now() to return a constant value.
 const POST_CREATED_TIME = Date.now();
 global.Date.now = jest.fn(() => POST_CREATED_TIME);
 
 jest.mock('mattermost-redux/actions/posts', () => ({
-    getPostThread: (...args: any) => ({type: 'MOCK_GET_POST_THREAD', args}),
-    getMentionsAndStatusesForPosts: (...args: any) => ({type: 'MOCK_GET_MENTIONS_AND_STATUSES_FOR_POSTS', args}),
+    getPostThread: (...args: any) => ({ type: 'MOCK_GET_POST_THREAD', args }),
+    getMentionsAndStatusesForPosts: (...args: any) => ({ type: 'MOCK_GET_MENTIONS_AND_STATUSES_FOR_POSTS', args }),
 }));
 
 jest.mock('mattermost-redux/actions/search', () => ({
-    searchPostsWithParams: (...args: any) => ({type: 'MOCK_SEARCH_POSTS', args}),
-    searchFilesWithParams: (...args: any) => ({type: 'MOCK_SEARCH_FILES', args}),
-    clearSearch: (...args: any) => ({type: 'MOCK_CLEAR_SEARCH', args}),
+    searchPostsWithParams: (...args: any) => ({ type: 'MOCK_SEARCH_POSTS', args }),
+    searchFilesWithParams: (...args: any) => ({ type: 'MOCK_SEARCH_FILES', args }),
+    clearSearch: (...args: any) => ({ type: 'MOCK_CLEAR_SEARCH', args }),
     getFlaggedPosts: jest.fn(),
     getPinnedPosts: jest.fn(),
 }));
@@ -102,6 +104,8 @@ describe('rhs view actions', () => {
                 currentUserId,
                 profiles: {
                     user123: {
+                        username: currentUsername,
+                        first_name: currentUserFirstName,
                         timezone: {
                             useAutomaticTimezone: true,
                             automaticTimezone: '',
@@ -115,7 +119,7 @@ describe('rhs view actions', () => {
                     [previousSelectedPost.id]: previousSelectedPost,
                 } as IDMappedObjects<Post>,
             },
-            preferences: {myPreferences: {}},
+            preferences: { myPreferences: {} },
         },
         views: {
             rhs: {
@@ -214,28 +218,55 @@ describe('rhs view actions', () => {
     });
 
     describe('performSearch', () => {
-        const terms = '@here test search';
+        // timezone offset in seconds
+        let timeZoneOffset = getBrowserUtcOffset() * 60;
+        // Avoid problems with negative cero
+        if (timeZoneOffset === 0) {
+            timeZoneOffset = 0;
+        }
 
         test('it dispatches searchPosts correctly', () => {
+            const terms = '@here test search';
             store.dispatch(performSearch(terms, false));
 
-            // timezone offset in seconds
-            let timeZoneOffset = getBrowserUtcOffset() * 60;
-
-            // Avoid problems with negative cero
-            if (timeZoneOffset === 0) {
-                timeZoneOffset = 0;
-            }
-
             const compareStore = mockStore(initialState);
-            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
-            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, { include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20 }));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, { include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20 }));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
+        });
 
+        test('it dispatches searchFiles correctly', () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        filesSearchExtFilter: ['txt', 'jpeg'],
+                    },
+                } as ViewsState,
+            });
+
+            const terms = '@here test search';
+            store.dispatch(performSearch(terms, false));
+
+            const filesExtTerms = '@here test search ext:txt ext:jpeg';
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, { include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20 }));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, { include_deleted_channels: false, terms: filesExtTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20 }));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test('it dispatches searchPosts correctly for Recent Mentions', () => {
+            const terms = `@here test search ${currentUsername} @${currentUsername} ${currentUserFirstName}`;
             store.dispatch(performSearch(terms, true));
-            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
-            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+
+            const mentionsQuotedTerms = `@here test search "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}"`;
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams('', { include_deleted_channels: false, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20 }));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, { include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20 }));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -274,9 +305,9 @@ describe('rhs view actions', () => {
     describe('showFlaggedPosts', () => {
         test('it dispatches the right actions', async () => {
             (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_FLAGGED_POSTS'});
+                dispatch({ type: 'MOCK_GET_FLAGGED_POSTS' });
 
-                return {data: 'data'};
+                return { data: 'data' };
             });
 
             await store.dispatch(showFlaggedPosts());
@@ -318,9 +349,9 @@ describe('rhs view actions', () => {
     describe('showPinnedPosts', () => {
         test('it dispatches the right actions for the current channel', async () => {
             (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_PINNED_POSTS'});
+                dispatch({ type: 'MOCK_GET_PINNED_POSTS' });
 
-                return {data: 'data'};
+                return { data: 'data' };
             });
 
             await store.dispatch(showPinnedPosts());
@@ -364,9 +395,9 @@ describe('rhs view actions', () => {
             const channelId = 'channel1';
 
             (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_PINNED_POSTS'});
+                dispatch({ type: 'MOCK_GET_PINNED_POSTS' });
 
-                return {data: 'data'};
+                return { data: 'data' };
             });
 
             await store.dispatch(showPinnedPosts(channelId));
@@ -718,7 +749,7 @@ describe('rhs view actions', () => {
         });
 
         it('opens a mention search', () => {
-            store.dispatch(openAtPrevious({isMentionSearch: true}));
+            store.dispatch(openAtPrevious({ isMentionSearch: true }));
             const compareStore = mockStore(initialState);
 
             compareStore.dispatch(performSearch('@mattermost ', true));
@@ -738,11 +769,11 @@ describe('rhs view actions', () => {
 
         it('opens pinned posts', async () => {
             (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_PINNED_POSTS'});
-                return {data: 'data'};
+                dispatch({ type: 'MOCK_GET_PINNED_POSTS' });
+                return { data: 'data' };
             });
 
-            await store.dispatch(openAtPrevious({isPinnedPosts: true}));
+            await store.dispatch(openAtPrevious({ isPinnedPosts: true }));
 
             expect(SearchActions.getPinnedPosts).toHaveBeenCalledWith(currentChannelId);
 
@@ -762,12 +793,12 @@ describe('rhs view actions', () => {
 
         it('opens flagged posts', async () => {
             (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
-                dispatch({type: 'MOCK_GET_FLAGGED_POSTS'});
+                dispatch({ type: 'MOCK_GET_FLAGGED_POSTS' });
 
-                return {data: 'data'};
+                return { data: 'data' };
             });
 
-            await store.dispatch(openAtPrevious({isFlaggedPosts: true}));
+            await store.dispatch(openAtPrevious({ isFlaggedPosts: true }));
 
             expect(SearchActions.getFlaggedPosts).toHaveBeenCalled();
 
@@ -785,7 +816,7 @@ describe('rhs view actions', () => {
 
         it('opens selected post', async () => {
             const previousState = 'flag';
-            await store.dispatch(openAtPrevious({selectedPostId: previousSelectedPost.id, previousRhsState: previousState}));
+            await store.dispatch(openAtPrevious({ selectedPostId: previousSelectedPost.id, previousRhsState: previousState }));
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch({
@@ -800,14 +831,14 @@ describe('rhs view actions', () => {
         });
 
         it('opens empty search when selected post does not exist', async () => {
-            await store.dispatch(openAtPrevious({selectedPostId: 'postxyz'}));
+            await store.dispatch(openAtPrevious({ selectedPostId: 'postxyz' }));
 
             expect(store.getActions()).toEqual(actionsForEmptySearch());
         });
 
         it('opens selected post card', async () => {
             const previousState = 'flag';
-            await store.dispatch(openAtPrevious({selectedPostCardId: previousSelectedPost.id, previousRhsState: previousState}));
+            await store.dispatch(openAtPrevious({ selectedPostCardId: previousSelectedPost.id, previousRhsState: previousState }));
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch({
@@ -821,7 +852,7 @@ describe('rhs view actions', () => {
         });
 
         it('opens empty search when selected post card does not exist', async () => {
-            await store.dispatch(openAtPrevious({selectedPostCardId: 'postxyz'}));
+            await store.dispatch(openAtPrevious({ selectedPostCardId: 'postxyz' }));
 
             expect(store.getActions()).toEqual(actionsForEmptySearch());
         });
@@ -840,7 +871,7 @@ describe('rhs view actions', () => {
             } as GlobalState;
 
             store = mockStore(searchInitialState);
-            await store.dispatch(openAtPrevious({searchVisible: true}));
+            await store.dispatch(openAtPrevious({ searchVisible: true }));
 
             const compareStore = mockStore(searchInitialState);
             compareStore.dispatch(updateRhsState(RHSStates.SEARCH));
@@ -872,9 +903,9 @@ describe('rhs view actions', () => {
     });
 
     describe('selectPostAndHighlight', () => {
-        const post1 = {id: '42'} as Post;
-        const post2 = {id: '43'} as Post;
-        const post3 = {id: '44'} as Post;
+        const post1 = { id: '42' } as Post;
+        const post2 = { id: '43' } as Post;
+        const post3 = { id: '44' } as Post;
 
         beforeEach(() => {
             jest.useFakeTimers();
@@ -882,7 +913,7 @@ describe('rhs view actions', () => {
         });
 
         const batchedActions = (postId: string, delay = 0) => [{
-            meta: {batch: true},
+            meta: { batch: true },
             payload: [{
                 postId,
                 timestamp: POST_CREATED_TIME + delay,
@@ -910,7 +941,7 @@ describe('rhs view actions', () => {
 
             expect(store.getActions()).toEqual([
                 ...batchedActions('42'),
-                {type: ActionTypes.CLEAR_HIGHLIGHT_REPLY},
+                { type: ActionTypes.CLEAR_HIGHLIGHT_REPLY },
             ]);
         });
 
@@ -936,7 +967,7 @@ describe('rhs view actions', () => {
                 ...batchedActions('42'),
                 ...batchedActions('43', 1000),
                 ...batchedActions('44', 2000),
-                {type: ActionTypes.CLEAR_HIGHLIGHT_REPLY},
+                { type: ActionTypes.CLEAR_HIGHLIGHT_REPLY },
             ]);
         });
     });
@@ -961,7 +992,7 @@ describe('rhs view actions', () => {
 
     describe('rhs go back', () => {
         it('should be able to go back', () => {
-            const testState = {...initialState};
+            const testState = { ...initialState };
             testState.views.rhs.previousRhsStates = [RHSStates.CHANNEL_FILES as RhsState];
             const store = mockStore(testState);
             store.dispatch(goBack());
