@@ -4467,6 +4467,10 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.SplitKey != nil {
 		*o.ServiceSettings.SplitKey = FakeSetting
 	}
+
+	if o.CacheSettings.RedisPassword != nil {
+		*o.CacheSettings.RedisPassword = FakeSetting
+	}
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
