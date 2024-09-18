@@ -60,6 +60,7 @@ const GlobalThreads = () => {
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
+
     useEffect(() => {
         dispatch(suppressRHS);
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Threads));

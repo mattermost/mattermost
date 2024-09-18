@@ -53,15 +53,21 @@ function hasErrorByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, act
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
+        let changed = false;
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
             if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
                 const teamScheduledPosts = scheduledPostsByTeamId[teamId] as ScheduledPost[];
-                newState[teamId] = teamScheduledPosts.some((scheduledPost) => scheduledPost.error_code);
+                const updatedHasError = teamScheduledPosts.some((scheduledPost) => scheduledPost.error_code);
+
+                if (state[teamId] !== updatedHasError) {
+                    changed = true;
+                    newState[teamId] = updatedHasError;
+                }
             }
         });
 
-        return newState;
+        return changed ? newState : state;
     }
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
         const teamId = action.data.teamId || 'directChannels';
@@ -77,14 +83,14 @@ function hasErrorByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, act
 
         // if team doesn't have any error and neither does the new scheduled post,
         // then nothing changes so we return the original state as-in.
-        if (!scheduledPost.error_code && state[teamId]) {
+        if (!scheduledPost.error_code || state[teamId]) {
             return state;
         }
 
-        const newState = {...state};
-        newState[teamId] = newState[teamId] || Boolean(scheduledPost.error_code);
-
-        return newState;
+        return {
+            ...state,
+            [teamId]: true,
+        };
     }
     case UserTypes.LOGOUT_SUCCESS: {
         return {};

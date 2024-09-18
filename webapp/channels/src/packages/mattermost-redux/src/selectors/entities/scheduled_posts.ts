@@ -34,16 +34,5 @@ export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string,
 }
 
 export function hasScheduledPostError(state: GlobalState, teamId: string) {
-    const teamScheduledPosts = state.entities.scheduledPosts.byTeamId[teamId] || [];
-    let hasError = teamScheduledPosts.some((scheduledPost) => scheduledPost.error_code);
-
-    // if team doesn't have error, check for direct message.
-    // We're checking for both team and direct channels because everywhere we show the error indicator,
-    // we show it for both combined. For example, in LHS and in Scheduled tab in Drafts section.
-    if (!hasError) {
-        const directChanelScheduledPosts = state.entities.scheduledPosts.byTeamId.directChannels || [];
-        hasError = directChanelScheduledPosts.some((scheduledPost) => scheduledPost.error_code);
-    }
-
-    return hasError;
+    return state.entities.scheduledPosts.errorsByTeamId[teamId] || state.entities.scheduledPosts.errorsByTeamId.directChannels;
 }

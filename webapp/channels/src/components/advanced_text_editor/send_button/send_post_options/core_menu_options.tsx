@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -29,10 +29,12 @@ function CoreMenuOptions({handleOnSelect}: Props) {
         />
     );
 
+    const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime.valueOf()), [handleOnSelect, tomorrow9amTime]);
+
     const optionTomorrow = (
         <Menu.Item
             key={'scheduling_time_tomorrow_9_am'}
-            onClick={(e) => handleOnSelect(e, tomorrow9amTime.valueOf())}
+            onClick={tomorrowClickHandler}
             labels={
                 <FormattedMessage
                     id='create_post_button.option.schedule_message.options.tomorrow'
@@ -47,10 +49,12 @@ function CoreMenuOptions({handleOnSelect}: Props) {
     nextMonday.day(8); // next monday; 1 = Monday, 8 = next Monday
     nextMonday.set({hour: 9, minute: 0, second: 0, millisecond: 0}); // 9 AM
 
+    const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday.valueOf()), [handleOnSelect, nextMonday]);
+
     const optionNextMonday = (
         <Menu.Item
             key={'scheduling_time_next_monday_9_am'}
-            onClick={(e) => handleOnSelect(e, nextMonday.valueOf())}
+            onClick={nextMondayClickHandler}
             labels={
                 <FormattedMessage
                     id='create_post_button.option.schedule_message.options.next_monday'
@@ -64,7 +68,7 @@ function CoreMenuOptions({handleOnSelect}: Props) {
     const optionMonday = (
         <Menu.Item
             key={'scheduling_time_monday_9_am'}
-            onClick={(e) => handleOnSelect(e, nextMonday.valueOf())}
+            onClick={nextMondayClickHandler}
             labels={
                 <FormattedMessage
                     id='create_post_button.option.schedule_message.options.monday'
