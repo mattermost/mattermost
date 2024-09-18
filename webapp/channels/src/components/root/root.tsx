@@ -32,7 +32,7 @@ import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import A11yController from 'utils/a11y_controller';
-import {PageLoadContext} from 'utils/constants';
+import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -571,6 +571,8 @@ export default class Root extends React.PureComponent<Props, State> {
 }
 
 export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
-    const TEAM_CONTROLLER_PATH_PATTERN = /^\/([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+    const TEAM_CONTROLLER_PATH_PATTERN = new RegExp(
+        `^\\/([a-z0-9\\-_]+)\\/(channels|messages|threads|drafts|integrations|emoji|${SCHEDULED_POST_URL_SUFFIX})(\\/.*)?$`,
+    );
     return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }

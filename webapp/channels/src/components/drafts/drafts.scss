@@ -70,7 +70,10 @@
         }
     }
 
-    span.MuiBadge-badge {position: relative;top: -2px;}
+    span.MuiBadge-badge {
+        position: relative;
+        top: -2px;
+    }
 
     @media screen and (max-width: 768px) {
         grid-template-rows: 0 1fr;
