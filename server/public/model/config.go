@@ -265,6 +265,8 @@ const (
 	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
+
+	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -933,27 +935,32 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type CacheSettings struct {
-	CacheType     *string `access:",write_restrictable,cloud_restrictable"`
-	RedisAddress  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisPassword *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisDB       *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	CacheType          *string `access:",write_restrictable,cloud_restrictable"`
+	RedisAddress       *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *CacheSettings) SetDefaults() {
 	if s.CacheType == nil {
-		s.CacheType = NewString(CacheTypeLRU)
+		s.CacheType = NewPointer(CacheTypeLRU)
 	}
 
 	if s.RedisAddress == nil {
-		s.RedisAddress = NewString("")
+		s.RedisAddress = NewPointer("")
 	}
 
 	if s.RedisPassword == nil {
-		s.RedisPassword = NewString("")
+		s.RedisPassword = NewPointer("")
 	}
 
 	if s.RedisDB == nil {
-		s.RedisDB = NewInt(-1)
+		s.RedisDB = NewPointer(-1)
+	}
+
+	if s.DisableClientCache == nil {
+		s.DisableClientCache = NewPointer(false)
 	}
 }
 
@@ -2762,6 +2769,7 @@ type NativeAppSettings struct {
 	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser  *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2779,6 +2787,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.AppCustomURLSchemes == nil {
 		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
+	}
+
+	if s.MobileExternalBrowser == nil {
+		s.MobileExternalBrowser = NewPointer(false)
 	}
 }
 
@@ -3197,6 +3209,38 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 }
 
+// Sanitize cleans up the plugin settings by removing any sensitive information.
+// It does so by checking if the setting is marked as secret in the plugin manifest.
+// If it is, the setting is replaced with a fake value.
+// If a plugin is no longer installed, all settings of it's are sanitized.
+// If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
+func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
+	manifestMap := make(map[string]*Manifest, len(pluginManifests))
+
+	for _, manifest := range pluginManifests {
+		manifestMap[manifest.Id] = manifest
+	}
+
+	for id, settings := range s.Plugins {
+		manifest := manifestMap[id]
+
+		for key := range settings {
+			if manifest == nil {
+				// Sanitize plugin settings for plugins that are not installed
+				settings[key] = FakeSetting
+				continue
+			}
+
+			for _, definedSetting := range manifest.SettingsSchema.Settings {
+				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+					settings[key] = FakeSetting
+					break
+				}
+			}
+		}
+	}
+}
+
 type WranglerSettings struct {
 	PermittedWranglerRoles                   []string
 	AllowedEmailDomain                       []string
@@ -3246,6 +3290,7 @@ type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels            *bool
 	EnableRemoteClusterService      *bool
 	DisableSharedChannelsStatusSync *bool
+	MaxPostsPerSync                 *int
 }
 
 func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
@@ -3267,6 +3312,10 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 
 	if c.DisableSharedChannelsStatusSync == nil {
 		c.DisableSharedChannelsStatusSync = NewPointer(false)
+	}
+
+	if c.MaxPostsPerSync == nil {
+		c.MaxPostsPerSync = NewPointer(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
 	}
 }
 
@@ -4396,7 +4445,7 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize() {
+func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4462,6 +4511,12 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.SplitKey != nil {
 		*o.ServiceSettings.SplitKey = FakeSetting
 	}
+
+	if o.CacheSettings.RedisPassword != nil {
+		*o.CacheSettings.RedisPassword = FakeSetting
+	}
+
+	o.PluginSettings.Sanitize(pluginManifests)
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

@@ -118,6 +118,10 @@ services:
       discovery.type: single-node
       plugins.security.disabled: "true"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  redis:
+    image: "redis:7.4.0"
+    networks:
+      - mm-test
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     networks:
