@@ -19,8 +19,11 @@ function CoreMenuOptions({handleOnSelect}: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
 
     const today = moment().tz(userTimezone);
-    const tomorrow9amTime = moment().tz(userTimezone);
-    tomorrow9amTime.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
+    const tomorrow9amTime = moment().
+        tz(userTimezone).
+        add(1, 'days').
+        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+        valueOf();
 
     const timeComponent = (
         <Timestamp
@@ -29,7 +32,7 @@ function CoreMenuOptions({handleOnSelect}: Props) {
         />
     );
 
-    const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime.valueOf()), [handleOnSelect, tomorrow9amTime]);
+    const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
 
     const optionTomorrow = (
         <Menu.Item
@@ -45,11 +48,13 @@ function CoreMenuOptions({handleOnSelect}: Props) {
         />
     );
 
-    const nextMonday = moment().tz(userTimezone);
-    nextMonday.day(8); // next monday; 1 = Monday, 8 = next Monday
-    nextMonday.set({hour: 9, minute: 0, second: 0, millisecond: 0}); // 9 AM
+    const nextMonday = moment().
+        tz(userTimezone).
+        day(8). // next monday; 1 = Monday, 8 = next Monday
+        set({hour: 9, minute: 0, second: 0, millisecond: 0}). // 9 AM
+        valueOf();
 
-    const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday.valueOf()), [handleOnSelect, nextMonday]);
+    const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
 
     const optionNextMonday = (
         <Menu.Item
