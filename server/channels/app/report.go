@@ -262,7 +262,6 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOption
 func (a *App) checkForExistingJobs(rctx request.CTX, options map[string]string, jobType string) *model.AppError {
 	checkJobExists := func(jobs []*model.Job, options map[string]string) bool {
 		for _, job := range jobs {
-			fmt.Printf("\n\n ***The job: %#v \n\n ***the options: %#v \n…\n", job, options)
 			if job.Data["date_range"] == options["date_range"] &&
 				job.Data["requesting_user_id"] == options["requesting_user_id"] &&
 				job.Data["role"] == options["role"] &&
