@@ -8781,6 +8781,9 @@ func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filt
 	if filter.ExcludePlugins {
 		v.Set("exclude_plugins", "true")
 	}
+	if filter.IncludeDeleted {
+		v.Set("include_deleted", "true")
+	}
 	url := c.remoteClusterRoute()
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -8845,11 +8848,12 @@ func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteCluster
 	}
 	defer closeBody(r)
 
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		return "", nil, NewAppError("GenerateRemoteClusterInvite", "api.read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	var inviteCode string
+	if err := json.NewDecoder(r.Body).Decode(&inviteCode); err != nil {
+		return "", nil, NewAppError("GenerateRemoteClusterInvite", "api.unmarshall_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return string(b), BuildResponse(r), nil
+
+	return inviteCode, BuildResponse(r), nil
 }
 
 func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) (*RemoteCluster, *Response, error) {
@@ -8860,7 +8864,9 @@ func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) 
 	defer closeBody(r)
 
 	var rc *RemoteCluster
-	json.NewDecoder(r.Body).Decode(&rc)
+	if err := json.NewDecoder(r.Body).Decode(&rc); err != nil {
+		return nil, nil, NewAppError("GetRemoteCluster", "api.unmarshall_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	return rc, BuildResponse(r), nil
 }
@@ -8894,13 +8900,16 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote, includeDeleted bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
 	v := url.Values{}
 	if excludeHome {
 		v.Set("exclude_home", "true")
 	}
 	if excludeRemote {
 		v.Set("exclude_remote", "true")
+	}
+	if includeDeleted {
+		v.Set("include_deleted", "true")
 	}
 	if page != 0 {
 		v.Set("page", fmt.Sprintf("%d", page))
