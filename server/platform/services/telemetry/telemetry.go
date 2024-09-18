@@ -1472,7 +1472,6 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 			if marketplacePlugins != nil {
 				for _, p := range marketplacePlugins {
 					id := p.Manifest.Id
-
 					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 				}
 			}
@@ -1486,7 +1485,6 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 
 		}
 	}
-
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 
