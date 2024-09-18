@@ -9189,3 +9189,30 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 
 	return BuildResponse(res), nil
 }
+
+func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {
+    query := fmt.Sprintf("?in_team=%v&in_channel=%v&include_deleted=%v&include_bots=%v&include_remote_users=%v",
+        options.TeamId, options.ChannelId, options.IncludeDeleted, options.IncludeBotAccounts, options.IncludeRemoteUsers)
+    
+    if len(options.Roles) > 0 {
+        query += fmt.Sprintf("&roles=%s", strings.Join(options.Roles, ","))
+    }
+    if len(options.ChannelRoles) > 0 {
+        query += fmt.Sprintf("&channel_roles=%s", strings.Join(options.ChannelRoles, ","))
+    }
+    if len(options.TeamRoles) > 0 {
+        query += fmt.Sprintf("&team_roles=%s", strings.Join(options.TeamRoles, ","))
+    }
+
+    r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered"+query, "")
+    if err != nil {
+        return nil, BuildResponse(r), err
+    }
+    defer closeBody(r)
+
+    var stats UsersStats
+    if err := json.NewDecoder(r.Body).Decode(&stats); err != nil {
+        return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+    }
+    return &stats, BuildResponse(r), nil
+}
