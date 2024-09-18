@@ -1468,8 +1468,8 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			ts.log.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
-			// If marketplace request failed, use predefined list
-			if marketplacePlugins != nil {
+			// If marketplace request didn't fail, go through it
+			if err != nil {
 				for _, p := range marketplacePlugins {
 					id := p.Manifest.Id
 					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
@@ -1482,7 +1482,6 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 					pluginConfigData[pluginVersionStr] = pluginVersion(plugins, id)
 				}
 			}
-
 		}
 	}
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
