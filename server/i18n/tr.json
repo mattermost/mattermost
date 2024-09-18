@@ -10160,5 +10160,9 @@
   {
     "id": "app.import.import_direct_channel.no_members.error",
     "translation": "Doğrudan kanalın herhangi bir üyesi yok"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Yüklenen uygulama eki boyut sınırını aşıyor. Bu sınır sistem panosundan Dosya depolama alanı > En büyük dosya boyutu bölümünden değiştirilebilir"
   }
 ]

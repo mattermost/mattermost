@@ -294,12 +294,12 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	u.Timezone = nil
 	require.Equal(t, user, u)
 
-	tt := make(map[string]*model.User)
+	tt := make(model.UserMap)
 	tt["1"] = u
-	err = l.SetWithDefaultExpiry("mm", model.UserMap(tt))
+	err = l.SetWithDefaultExpiry("mm", tt)
 	require.NoError(t, err)
 
-	var out map[string]*model.User
+	var out model.UserMap
 	err = l.Get("mm", &out)
 	require.NoError(t, err)
 	out["1"].Timezone = nil
