@@ -745,10 +745,6 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 func (_m *UserStore) GetMfaUsedTimestamps(userID string) ([]int, error) {
 	ret := _m.Called(userID)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetMfaUsedTimestamps")
-	}
-
 	var r0 []int
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) ([]int, error)); ok {
@@ -1653,10 +1649,6 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 // StoreMfaUsedTimestamps provides a mock function with given fields: userID, ts
 func (_m *UserStore) StoreMfaUsedTimestamps(userID string, ts []int) error {
 	ret := _m.Called(userID, ts)
-
-	if len(ret) == 0 {
-		panic("no return value specified for StoreMfaUsedTimestamps")
-	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, []int) error); ok {
