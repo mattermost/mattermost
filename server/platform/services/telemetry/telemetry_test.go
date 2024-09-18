@@ -555,6 +555,9 @@ func TestRudderTelemetry(t *testing.T) {
 				// Confirm known plugins are present
 				assert.Contains(t, b.Properties, "enable_jira")
 				assert.Contains(t, b.Properties, "version_jira")
+
+				// Confirm it doesn't contain unknown plugins
+				assert.NotContains(t, b.Properties, "enable_something")
 			}
 		}
 	})
