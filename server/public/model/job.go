@@ -73,6 +73,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
 	JobTypeRefreshPostStats,
+	JobTypeMobileSessionMetadata,
 }
 
 type Job struct {

@@ -1567,7 +1567,7 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeActiveUsers,
+		model.JobTypeMobileSessionMetadata,
 		mobile_session_metadata.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		mobile_session_metadata.MakeScheduler(s.Jobs),
 	)
