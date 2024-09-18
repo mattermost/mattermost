@@ -6,8 +6,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-const noOp
-
 type Props = {
     displayName: string;
     onConfirm: () => void;

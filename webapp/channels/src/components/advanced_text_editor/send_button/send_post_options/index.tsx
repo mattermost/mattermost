@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import {ModalIdentifiers} from 'utils/constants';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
@@ -14,6 +13,8 @@ import {openModal} from 'actions/views/modals';
 
 import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
 import * as Menu from 'components/menu';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 

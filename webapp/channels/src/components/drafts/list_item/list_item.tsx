@@ -5,7 +5,7 @@ import React, {useMemo} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {ScheduledPost, ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import DraftActions from 'components/drafts/draft_actions';
@@ -15,9 +15,9 @@ import Panel from 'components/drafts/panel/panel';
 import PanelBody from 'components/drafts/panel/panel_body';
 import Header from 'components/drafts/panel/panel_header';
 
-import './style.scss';
-
 import type {PostDraft} from 'types/store/draft';
+
+import './style.scss';
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
@@ -80,7 +80,7 @@ export default function DraftListItem({
     let uploadsInProgress: string[];
     let actions: React.ReactNode;
     let panelClassName = '';
-    let errorCode = '';
+    let errorCode: ScheduledPostErrorCode | undefined;
 
     if (kind === 'draft') {
         const draft = item as PostDraft;

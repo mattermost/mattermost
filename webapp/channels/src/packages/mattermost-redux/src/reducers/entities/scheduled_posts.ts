@@ -52,7 +52,7 @@ function hasErrorByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, act
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
             if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
                 const teamScheduledPosts = scheduledPostsByTeamId[teamId] as ScheduledPost[];
-                newState[teamId] = teamScheduledPosts.some((scheduledPost) => scheduledPost.error_code !== '');
+                newState[teamId] = teamScheduledPosts.some((scheduledPost) => scheduledPost.error_code);
             }
         });
 
@@ -68,16 +68,16 @@ function hasErrorByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, act
             return state;
         }
 
-        const scheduledPost = action.data.scheduledPost;
+        const scheduledPost = action.data.scheduledPost as ScheduledPost;
 
         // if team doesn't have any error and neither does the new scheduled post,
         // then nothing changes so we return the original state as-in.
-        if (scheduledPost.error_code === '' && state[teamId]) {
+        if (!scheduledPost.error_code && state[teamId]) {
             return state;
         }
 
         const newState = {...state};
-        newState[teamId] = newState[teamId] || scheduledPost.error_code !== '';
+        newState[teamId] = newState[teamId] || Boolean(scheduledPost.error_code);
 
         return newState;
     }

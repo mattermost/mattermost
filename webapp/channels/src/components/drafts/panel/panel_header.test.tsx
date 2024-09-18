@@ -16,7 +16,7 @@ describe('components/drafts/panel/panel_header', () => {
         timestamp: 12345,
         remote: false,
         title: <div>{'title'}</div>,
-        errorCode: '',
+        errorCode: undefined,
     };
 
     it('should match snapshot', () => {

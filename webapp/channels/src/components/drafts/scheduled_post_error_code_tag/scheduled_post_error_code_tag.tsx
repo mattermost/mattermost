@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
+
+import type {ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 
 import Tag from 'components/widgets/tag/tag';
 
-const errorCodeToErrorMessage: {[key: string]: {id: string; defaultMessage: string}} = {
+const errorCodeToErrorMessage = defineMessages<ScheduledPostErrorCode>({
     unknown: {
         id: 'scheduled_post.error_code.unknown_error',
         defaultMessage: 'Unknown Error',
@@ -39,10 +41,10 @@ const errorCodeToErrorMessage: {[key: string]: {id: string; defaultMessage: stri
         id: 'scheduled_post.error_code.thread_deleted',
         defaultMessage: 'Thread Deleted',
     },
-};
+});
 
 type Props = {
-    errorCode: string;
+    errorCode: ScheduledPostErrorCode;
 }
 
 export default function ScheduledPostErrorCodeTag({errorCode}: Props) {

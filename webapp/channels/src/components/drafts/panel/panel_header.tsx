@@ -7,6 +7,7 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
+import type {ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 
 import ScheduledPostErrorCodeTag from 'components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
@@ -37,7 +38,7 @@ type Props = {
     timestamp: number;
     remote: boolean;
     title: React.ReactNode;
-    errorCode: string;
+    errorCode?: ScheduledPostErrorCode;
 };
 
 function PanelHeader({kind, actions, hover, timestamp, remote, title, errorCode}: Props) {

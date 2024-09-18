@@ -213,6 +213,7 @@ const state: GlobalState = {
         },
         scheduledPosts: {
             byTeamId: {},
+            errorsByTeamId: {},
         },
     },
     errors: [],
