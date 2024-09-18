@@ -172,7 +172,7 @@ func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMeta
 			model.SessionPropDeviceNotificationDisabled,
 		)).
 		From("sessions").
-		GroupBy("platform", "version", "notificationsDisabled").
+		GroupBy("platform", "version", "notificationDisabled").
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")

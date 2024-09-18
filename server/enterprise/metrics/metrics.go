@@ -1343,7 +1343,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "mobile_session_metadata",
 			Help:      "The number of mobile sessions in each version, platform and whether they have the notifications disabled",
 		},
-		[]string{"version", "platform", "notificationsDisabled"},
+		[]string{"version", "platform", "notifications_disabled"},
 	)
 	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
 
