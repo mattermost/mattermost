@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect} from 'react';
+import {Badge} from '@mui/base';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
@@ -18,9 +23,14 @@ import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 import Header from 'components/widgets/header';
 
+import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import './drafts.scss';
+
+const EMPTY_LIST: ScheduledPost[] = [];
 
 type Props = {
     drafts: Draft[];
@@ -43,7 +53,12 @@ function Drafts({
     const history = useHistory();
     const match: match<{team: string}> = useRouteMatch();
     const isDraftsTab = useRouteMatch('/:team/drafts');
-    const isScheduledPostsTab = useRouteMatch('/:team/scheduled_posts');
+
+    const isScheduledPostsTab = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
+
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const getScheduledPostsByTeam = makeGetScheduledPostsByTeam();
+    const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
@@ -61,6 +76,44 @@ function Drafts({
             history.push(`/${match.params.team}/scheduled_posts`);
         }
     }, [history, isDraftsTab, isScheduledPostsTab, match]);
+
+    const scheduledPostsTabHeading = useMemo(() => {
+        return (
+            <div className='drafts_tab_title'>
+                <FormattedMessage
+                    id='schedule_post.tab.heading'
+                    defaultMessage='Scheduled'
+                />
+
+                {
+                    scheduledPosts?.length > 0 &&
+                    <Badge
+                        className='badge'
+                        badgeContent={scheduledPosts.length}
+                    />
+                }
+            </div>
+        );
+    }, [scheduledPosts?.length]);
+
+    const draftTabHeading = useMemo(() => {
+        return (
+            <div className='drafts_tab_title'>
+                <FormattedMessage
+                    id='drafts.heading'
+                    defaultMessage='Drafts'
+                />
+
+                {
+                    drafts.length > 0 &&
+                    <Badge
+                        className='badge'
+                        badgeContent={drafts.length}
+                    />
+                }
+            </div>
+        );
+    }, [drafts?.length]);
 
     const activeTab = isDraftsTab ? 0 : 1;
 
@@ -93,12 +146,7 @@ function Drafts({
             >
                 <Tab
                     eventKey={0}
-                    title={(
-                        <FormattedMessage
-                            id='drafts.heading'
-                            defaultMessage='Drafts'
-                        />
-                    )}
+                    title={draftTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
@@ -113,16 +161,16 @@ function Drafts({
 
                 <Tab
                     eventKey={1}
-                    title={(
-                        <FormattedMessage
-                            id='schedule_post.tab.title'
-                            defaultMessage='Scheduled'
-                        />
-                    )}
+                    title={scheduledPostsTabHeading}
                     unmountOnExit={false}
                     tabClassName='drafts_tab'
                 >
-                    <ScheduledPostList/>
+                    <ScheduledPostList
+                        scheduledPosts={scheduledPosts || EMPTY_LIST}
+                        user={user}
+                        displayName={displayName}
+                        status={status}
+                    />
                 </Tab>
             </Tabs>
         </div>

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -11,13 +11,14 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
 
+import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
 import * as Menu from 'components/menu';
-import Timestamp from 'components/timestamp';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import './style.scss';
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
+
+import './style.scss';
 
 type Props = {
     channelId: string;
@@ -58,99 +59,6 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             },
         }));
     }, [channelId, dispatch, handleSelectCustomTime]);
-
-    const coreMenuOptions = useMemo(() => {
-        const today = new Date();
-        today.setHours(9, 0, 0, 0); // 9 AM
-        const unixTimestamp = today.getTime();
-
-        const timeComponent = (
-            <Timestamp
-                value={unixTimestamp}
-                useDate={false}
-            />
-        );
-
-        const tomorrow9amTime = new Date();
-        tomorrow9amTime.setDate(today.getDate() + 1);
-        tomorrow9amTime.setHours(9, 0, 0, 0);
-
-        const optionTomorrow = (
-            <Menu.Item
-                key={'scheduling_time_tomorrow_9_am'}
-                onClick={(e) => handleOnSelect(e, tomorrow9amTime.getTime())}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.tomorrow'
-                        defaultMessage='Tomorrow at {9amTime}'
-                        values={{'9amTime': timeComponent}}
-                    />
-                }
-            />
-        );
-
-        const nextMonday = new Date();
-        const dayOfWeek = today.getDay();
-        const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
-        nextMonday.setHours(9, 0, 0, 0);
-        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
-
-        const optionNextMonday = (
-            <Menu.Item
-                key={'scheduling_time_next_monday_9_am'}
-                onClick={(e) => handleOnSelect(e, nextMonday.getTime())}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.next_monday'
-                        defaultMessage='Next Monday at {9amTime}'
-                        values={{'9amTime': timeComponent}}
-                    />
-                }
-            />
-        );
-
-        const optionMonday = (
-            <Menu.Item
-                key={'scheduling_time_next_monday_9_am'}
-                onClick={(e) => handleOnSelect(e, nextMonday.getTime())}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.monday'
-                        defaultMessage='Monday at {9amTime}'
-                        values={{
-                            '9amTime': timeComponent,
-                        }}
-                    />
-                }
-            />
-        );
-
-        let options: React.ReactElement[] = [];
-
-        switch (today.getDay()) {
-        // Sunday
-        case 0:
-            options = [optionTomorrow];
-            break;
-
-        // Monday
-        case 1:
-            options = [optionTomorrow, optionNextMonday];
-            break;
-
-        // Friday and Saturday
-        case 5:
-        case 6:
-            options = [optionMonday];
-            break;
-
-        // Tuesday to Thursday
-        default:
-            options = [optionTomorrow, optionMonday];
-        }
-
-        return options;
-    }, [handleOnSelect]);
 
     return (
         <Menu.Container
@@ -194,7 +102,7 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 }
             />
 
-            {coreMenuOptions}
+            <CoreMenuOptions handleOnSelect={handleOnSelect}/>
 
             <Menu.Separator/>
 

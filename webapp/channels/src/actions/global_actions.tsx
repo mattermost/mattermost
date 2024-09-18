@@ -16,6 +16,7 @@ import {
     getChannelStats,
     selectChannel,
 } from 'mattermost-redux/actions/channels';
+import fetchTeamScheduledPosts from 'mattermost-redux/actions/scheduled_posts';
 import {logout, loadMe} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -372,6 +373,7 @@ export async function redirectUserToDefaultTeam() {
     if (team && team.delete_at === 0) {
         const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
         if (channel) {
+            dispatch(fetchTeamScheduledPosts(team.id, true));
             dispatch(selectChannel(channel.id));
             getHistory().push(`/${team.name}/channels/${channel.name}`);
             return;

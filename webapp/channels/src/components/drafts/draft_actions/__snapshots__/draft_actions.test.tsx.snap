@@ -35,6 +35,7 @@ exports[`components/drafts/draft_actions should match snapshot 1`] = `
   <Memo(DraftActions)
     displayName=""
     draftId=""
+    itemId=""
     onDelete={[MockFunction]}
     onEdit={[MockFunction]}
     onSend={[MockFunction]}

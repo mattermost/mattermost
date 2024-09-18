@@ -8,21 +8,21 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 
 type Props = {
-    displayName: string;
+    channelDisplayName: string;
     onConfirm: () => void;
     onExited: () => void;
 }
 
-function DeleteDraftModal({
-    displayName,
+export default function DeleteScheduledPostModal({
+    channelDisplayName,
     onExited,
     onConfirm,
 }: Props) {
     const {formatMessage} = useIntl();
 
     const title = formatMessage({
-        id: 'drafts.confirm.delete.title',
-        defaultMessage: 'Delete draft',
+        id: 'scheduled_post.delete_modal.title',
+        defaultMessage: 'Delete scheduled post',
     });
 
     const confirmButtonText = formatMessage({
@@ -32,11 +32,11 @@ function DeleteDraftModal({
 
     const message = (
         <FormattedMessage
-            id={'drafts.confirm.delete.text'}
-            defaultMessage={'Are you sure you want to delete this draft to <strong>{displayName}</strong>?'}
+            id={'scheduled_post.delete_modal.body'}
+            defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
             values={{
                 strong: (chunk: string) => <strong>{chunk}</strong>,
-                displayName,
+                displayName: channelDisplayName,
             }}
         />
     );
@@ -56,5 +56,3 @@ function DeleteDraftModal({
         </GenericModal>
     );
 }
-
-export default DeleteDraftModal;

@@ -150,7 +150,8 @@ export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): Actio
 
         const state = getState() as GlobalState;
         const connectionId = getConnectionId(state);
-        const result = await dispatch(createSchedulePost(scheduledPost, connectionId));
+        const channel = state.entities.channels.channels[scheduledPost.channel_id];
+        const result = await dispatch(createSchedulePost(scheduledPost, channel.team_id, connectionId));
 
         if (scheduledPost.root_id) {
             dispatch(storeCommentDraft(scheduledPost.root_id, null));

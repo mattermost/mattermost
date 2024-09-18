@@ -15,13 +15,9 @@ import {makeOnSubmit} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPost} from 'actions/views/rhs';
 
-import type {PostDraft} from 'types/store/draft';
+import DraftListItem from 'components/drafts/list_item/list_item';
 
-import DraftActions from '../draft_actions';
-import DraftTitle from '../draft_title';
-import Panel from '../panel/panel';
-import PanelBody from '../panel/panel_body';
-import Header from '../panel/panel_header';
+import type {PostDraft} from 'types/store/draft';
 
 type Props = {
     channel?: Channel;
@@ -84,46 +80,22 @@ function ThreadDraft({
     }
 
     return (
-        <Panel onClick={handleOnEdit}>
-            {({hover}) => (
-                <>
-                    <Header
-                        hover={hover}
-                        actions={(
-                            <DraftActions
-                                channelDisplayName={channel.display_name}
-                                channelName={channel.name}
-                                channelType={channel.type}
-                                userId={user.id}
-                                draftId={draftId}
-                                onDelete={handleOnDelete}
-                                onEdit={handleOnEdit}
-                                onSend={handleOnSend}
-                            />
-                        )}
-                        title={(
-                            <DraftTitle
-                                type={type}
-                                channel={channel}
-                                userId={user.id}
-                            />
-                        )}
-                        timestamp={value.updateAt}
-                        remote={isRemote || false}
-                    />
-                    <PanelBody
-                        channelId={channel.id}
-                        displayName={displayName}
-                        fileInfos={value.fileInfos}
-                        message={value.message}
-                        status={status}
-                        uploadsInProgress={value.uploadsInProgress}
-                        userId={user.id}
-                        username={user.username}
-                    />
-                </>
-            )}
-        </Panel>
+        <DraftListItem
+            kind='draft'
+            type={type}
+            itemId={draftId}
+            user={user}
+            showPriority={false}
+            handleOnEdit={handleOnEdit}
+            handleOnDelete={handleOnDelete}
+            handleOnSend={handleOnSend}
+            item={value}
+            channelId={channel.id}
+            displayName={displayName}
+            isRemote={isRemote || false}
+            channel={channel}
+            status={status}
+        />
     );
 }
 
