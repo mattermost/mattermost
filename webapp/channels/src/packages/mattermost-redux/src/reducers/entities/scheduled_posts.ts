@@ -48,7 +48,7 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
     }
 }
 
-function hasErrorByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, action: AnyAction) {
+function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, action: AnyAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
@@ -102,5 +102,5 @@ function hasErrorByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, act
 
 export default combineReducers({
     byTeamId,
-    hasErrorByTeamId,
+    errorsByTeamId,
 });
