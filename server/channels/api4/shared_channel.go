@@ -116,10 +116,12 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 	}
 
 	filter := model.SharedChannelRemoteFilterOpts{
-		RemoteId:       c.Params.RemoteId,
-		ExcludeHome:    c.Params.ExcludeHome,
-		ExcludeRemote:  c.Params.ExcludeRemote,
-		IncludeDeleted: c.Params.IncludeDeleted,
+		RemoteId:           c.Params.RemoteId,
+		IncludeUnconfirmed: c.Params.IncludeUnconfirmed,
+		ExcludeConfirmed:   c.Params.ExcludeConfirmed,
+		ExcludeHome:        c.Params.ExcludeHome,
+		ExcludeRemote:      c.Params.ExcludeRemote,
+		IncludeDeleted:     c.Params.IncludeDeleted,
 	}
 	sharedChannelRemotes, err := c.App.GetSharedChannelRemotes(c.Params.Page, c.Params.PerPage, filter)
 	if err != nil {
