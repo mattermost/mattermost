@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useMemo, useRef} from 'react';
+import classNames from 'classnames';
+import React, {memo, useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
@@ -23,9 +24,23 @@ import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+const getDraftsCount = makeGetDraftsCount();
+
 import './drafts_link.scss';
 
-const getDraftsCount = makeGetDraftsCount();
+const scheduleIcon = (
+    <i
+        data-testid='scheduledPostIcon'
+        className='icon icon-draft-indicator icon-clock-send-outline'
+    />
+);
+
+const pencilIcon = (
+    <i
+        data-testid='draftIcon'
+        className='icon icon-draft-indicator icon-pencil-outline'
+    />
+);
 
 function DraftsLink() {
     const dispatch = useDispatch();
@@ -57,25 +72,7 @@ function DraftsLink() {
         const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
         dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
         initialScheduledPostsLoaded.current = true;
-    }, [teamId]);
-
-    const pencilIcon = useMemo(() => {
-        return (
-            <i
-                data-testid='draftIcon'
-                className='icon icon-draft-indicator icon-pencil-outline'
-            />
-        );
-    }, []);
-
-    const scheduleIcon = useMemo(() => {
-        return (
-            <i
-                data-testid='scheduledPostIcon'
-                className='icon icon-draft-indicator icon-clock-send-outline'
-            />
-        );
-    }, []);
+    }, [dispatch, teamId]);
 
     if (!itemsExist && !urlMatches) {
         return null;
@@ -118,7 +115,7 @@ function DraftsLink() {
                         <ChannelMentionBadge
                             unreadMentions={teamScheduledPostCount}
                             icon={scheduleIcon}
-                            className={`scheduledPostBadge ${scheduledPostsHasError ? 'persistent' : ''}`}
+                            className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
                             hasUrgent={scheduledPostsHasError}
                         />
                     }

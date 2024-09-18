@@ -23,6 +23,34 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import './style.scss';
 
+const deleteTooltipText = (
+    <FormattedMessage
+        id='scheduled_post.action.delete'
+        defaultMessage='Delete scheduled post'
+    />
+);
+
+const editTooltipText = (
+    <FormattedMessage
+        id='scheduled_post.action.edit'
+        defaultMessage='Edit scheduled post'
+    />
+);
+
+const rescheduleTooltipText = (
+    <FormattedMessage
+        id='scheduled_post.action.reschedule'
+        defaultMessage='Reschedule post'
+    />
+);
+
+const sendNowTooltipText = (
+    <FormattedMessage
+        id='scheduled_post.action.send_now'
+        defaultMessage='Send now'
+    />
+);
+
 type Props = {
     scheduledPost: ScheduledPost;
     channelDisplayName: string;
@@ -77,12 +105,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                 icon='icon-trash-can-outline'
                 id='delete'
                 name='delete'
-                tooltipText={(
-                    <FormattedMessage
-                        id='scheduled_post.action.delete'
-                        defaultMessage='Delete scheduled post'
-                    />
-                )}
+                tooltipText={deleteTooltipText}
                 onClick={handleDelete}
             />
 
@@ -93,12 +116,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             icon='icon-pencil-outline'
                             id='delete'
                             name='delete'
-                            tooltipText={(
-                                <FormattedMessage
-                                    id='scheduled_post.action.edit'
-                                    defaultMessage='Edit scheduled post'
-                                />
-                            )}
+                            tooltipText={editTooltipText}
                             onClick={() => {}} // this will be implemented in an upcoming PR
                         />
 
@@ -106,12 +124,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             icon='icon-clock-send-outline'
                             id='delete'
                             name='delete'
-                            tooltipText={(
-                                <FormattedMessage
-                                    id='scheduled_post.action.reschedule'
-                                    defaultMessage='Reschedule post'
-                                />
-                            )}
+                            tooltipText={rescheduleTooltipText}
                             onClick={handleReschedulePost}
                         />
 
@@ -119,12 +132,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             icon='icon-send-outline'
                             id='delete'
                             name='delete'
-                            tooltipText={(
-                                <FormattedMessage
-                                    id='scheduled_post.action.send_now'
-                                    defaultMessage='Send now'
-                                />
-                            )}
+                            tooltipText={sendNowTooltipText}
                             onClick={handleSend}
                         />
                     </React.Fragment>

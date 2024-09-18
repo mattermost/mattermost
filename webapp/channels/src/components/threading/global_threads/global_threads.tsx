@@ -11,7 +11,6 @@ import {Link, useRouteMatch} from 'react-router-dom';
 
 import {getThreadCounts, getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getScheduledPostsByTeamCount} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getThreadOrderInCurrentTeam,
     getUnreadThreadOrderInCurrentTeam,
@@ -61,9 +60,6 @@ const GlobalThreads = () => {
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
-
-    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, currentTeamId, true));
-
     useEffect(() => {
         dispatch(suppressRHS);
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Threads));
@@ -93,7 +89,7 @@ const GlobalThreads = () => {
         }
     }, [currentTeamId, selectedThreadId, threadIdentifier]);
 
-    const isEmptyList = isEmpty(threadIds) && isEmpty(unreadThreadIds) && teamScheduledPostCount === 0;
+    const isEmptyList = isEmpty(threadIds) && isEmpty(unreadThreadIds);
 
     const [isLoading, setLoading] = useState(isEmptyList);
 

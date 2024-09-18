@@ -28,6 +28,11 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
 
         const newState = {...state};
 
+        const existingIndex = newState[teamId].findIndex((existingScheduledPost) => existingScheduledPost.id === scheduledPost.id);
+        if (existingIndex >= 0) {
+            newState[teamId].splice(existingIndex, 1);
+        }
+
         if (newState[teamId]) {
             newState[teamId] = [...newState[teamId], scheduledPost];
         } else {
