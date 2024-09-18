@@ -34,6 +34,7 @@ export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string,
 }
 
 export function hasScheduledPostError(state: GlobalState, teamId: string) {
+    console.log('hasScheduledPostError called');
     let hasError = (state.entities.scheduledPosts.byTeamId[teamId] || []).some((scheduledPost) => scheduledPost.error_code !== '');
     if (!hasError) {
         hasError = (state.entities.scheduledPosts.byTeamId.directChannels || []).some((scheduledPost) => scheduledPost.error_code !== '');

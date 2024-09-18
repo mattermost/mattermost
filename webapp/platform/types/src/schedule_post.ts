@@ -17,4 +17,7 @@ export type ScheduledPostsState = {
     byTeamId: {
         [teamId: string]: ScheduledPost[];
     };
+    errorsByTeamId: {
+        [teamId: string]: boolean;
+    };
 }
