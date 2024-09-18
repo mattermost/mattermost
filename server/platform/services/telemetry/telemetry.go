@@ -1457,30 +1457,33 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	}
 
 	for _, id := range knownPluginIDs {
-		plugin_id := fmt.Sprintf("enable_%s", id)
-		_, ok := pluginConfigData[plugin_id]
-		if !ok {
-			pluginConfigData[plugin_id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		pluginIdStr := fmt.Sprintf("enable_%s", id)
+		_, exists := pluginConfigData[pluginIdStr]
+		if !exists {
+			pluginConfigData[pluginIdStr] = pluginActivated(cfg.PluginSettings.PluginStates, id)
 		}
 	}
-
 	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			ts.log.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
 			// If marketplace request failed, use predefined list
-			if marketplacePlugins == nil {
-				for _, id := range knownPluginIDs {
-					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
-				}
-			} else {
+			if marketplacePlugins != nil {
 				for _, p := range marketplacePlugins {
 					id := p.Manifest.Id
 
 					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 				}
 			}
+			for _, id := range knownPluginIDs {
+				pluginVersionStr := fmt.Sprintf("version_%s", id)
+				_, exists := pluginConfigData[pluginVersionStr]
+				if !exists {
+					pluginConfigData[pluginVersionStr] = pluginVersion(plugins, id)
+				}
+			}
+
 		}
 	}
 
