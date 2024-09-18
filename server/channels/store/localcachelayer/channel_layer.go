@@ -458,6 +458,9 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 	}
 	for _, member := range members {
 		// For redis, directly increment member count.
+		// It should be possible to group the members from the slice
+		// by channelID and increment it once per channel. But it depends
+		// on whether all members are part of the same channel or not.
 		if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
 			s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
 		} else {
