@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: mattermost/migration-assist
-          ref: MM-60000
+          ref: main
           path: migration-assist
       - name: Compare migration-assist with mattermost
         run: |
