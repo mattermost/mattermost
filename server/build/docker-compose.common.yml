@@ -53,6 +53,7 @@ services:
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
+     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
       interval: 5s
