@@ -167,7 +167,7 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	query, args, err := me.getQueryBuilder().
 		Select(fmt.Sprintf(
-			"COUNT(userid), SPLIT_PART(deviceid, ':', 1) AS platform, COALESCE(props->>'%s','N/A') AS version, COALESCE(props->>'%s','false') as notificationDisabled",
+			"COUNT(userid), COALESCE(NULLIF(SPLIT_PART(deviceid, ':', 1), ''),'N/A') AS platform, COALESCE(props->>'%s','N/A') AS version, COALESCE(props->>'%s','false') as notificationDisabled",
 			model.SessionPropMobileVersion,
 			model.SessionPropDeviceNotificationDisabled,
 		)).
