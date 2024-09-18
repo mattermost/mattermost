@@ -340,7 +340,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+	// Hardcoding this to LRU because of the volume of SCAN calls in case of Redis.
+	if localCacheStore.profilesInChannelCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
 		DefaultExpiry:          ProfilesInChannelCacheSec * time.Second,
@@ -526,7 +527,10 @@ func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, val
 }
 
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
-	cache.Purge()
+	err := cache.Purge()
+	if err != nil {
+		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
 	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
