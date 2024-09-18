@@ -114,8 +114,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting bots")
-	var botPPs []string
-	botPPs, err = a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
+	botPPs, err := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
 	if err != nil {
 		return err
 	}
@@ -505,7 +504,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 }
 
 func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool) ([]string, *model.AppError) {
-	afterId := strings.Repeat("0", 26)
+	afterId := ""
 	cnt := 0
 	profilePictures := []string{}
 
@@ -515,9 +514,6 @@ func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, i
 			return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		if len(bots) == 0 {
-			break
-		}
 		cnt += len(bots)
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "bots_exported", cnt)
 
@@ -553,6 +549,10 @@ func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, i
 			if err := a.exportWriteLine(writer, botLine); err != nil {
 				return profilePictures, err
 			}
+		}
+
+		if len(bots) < 1000 {
+			break
 		}
 	}
 

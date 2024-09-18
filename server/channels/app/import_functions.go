@@ -876,12 +876,10 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 				return appErr
 			}
 		}
-	} else {
+	} else if hasBotChanged {
 		var err error
-		if hasBotChanged {
-			if savedBot, err = a.Srv().Store().Bot().Update(bot); err != nil {
-				return model.NewAppError("importBot", "app.bot.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
+		if savedBot, err = a.Srv().Store().Bot().Update(bot); err != nil {
+			return model.NewAppError("importBot", "app.bot.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
