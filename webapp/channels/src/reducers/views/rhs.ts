@@ -209,6 +209,17 @@ function searchTerms(state = '', action: AnyAction) {
     }
 }
 
+function searchTeam(state = null, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_SEARCH_TEAM:
+        return action.teamId;
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
 function searchType(state = '', action: AnyAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TYPE:
@@ -405,6 +416,7 @@ export default combineReducers({
     filesSearchExtFilter,
     rhsState,
     searchTerms,
+    searchTeam,
     searchType,
     searchResultsTerms,
     size,

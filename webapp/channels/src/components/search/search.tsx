@@ -154,6 +154,13 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         };
     }, [hideSearchBar, currentChannelName]);
 
+    // TEMPORARY force search team to current team
+    useEffect(() => {
+        if (currentChannel) {
+            actions.updateSearchTeam(currentChannel.team_id);
+        }
+    }, [currentChannel]);
+
     useEffect((): void => {
         if (!isMobileView) {
             setVisibleSearchHintOptions(determineVisibleSearchHintOptions(searchTerms, searchType));
@@ -205,6 +212,14 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         pretextArray.pop();
         pretextArray.push(term.toLowerCase());
         handleUpdateSearchTerms(pretextArray.join(' '));
+    };
+
+    const handleUpdateSearchTeam = async (teamId: string) => {
+        await actions.updateSearchTeam(teamId);
+        handleSearch().then(() => {
+            setKeepInputFocused(false);
+            setFocused(false);
+        });
     };
 
     const handleUpdateSearchTerms = (terms: string): void => {
@@ -310,6 +325,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             actions.updateRhsState(RHSStates.SEARCH);
         }
         actions.updateSearchTerms('');
+        actions.updateSearchTeam(null);
         actions.updateSearchType('');
     };
 
@@ -547,6 +563,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     channelDisplayName={props.channelDisplayName}
                     isOpened={props.isSideBarRightOpen}
                     updateSearchTerms={handleAddSearchTerm}
+                    updateSearchTeam={handleUpdateSearchTeam}
                     handleSearchHintSelection={handleSearchHintSelection}
                     isSideBarExpanded={props.isRhsExpanded}
                     getMorePostsForSearch={props.actions.getMorePostsForSearch}
@@ -555,6 +572,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     searchFilterType={searchFilterType}
                     setSearchType={(value: SearchType) => actions.updateSearchType(value)}
                     searchType={searchType || 'messages'}
+                    crossTeamSearchEnabled={props.crossTeamSearchEnabled}
                 />
             ) : props.children}
         </div>

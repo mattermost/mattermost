@@ -27,6 +27,7 @@ export type StateProps = {
     isRhsOpen: boolean;
     isSearchingTerm: boolean;
     searchTerms: string;
+    searchTeam: string;
     searchType: SearchType;
     searchVisible: boolean;
     hideMobileSearchBarInRHS: boolean;
@@ -36,11 +37,13 @@ export type StateProps = {
     isChannelFiles: boolean;
     currentChannel?: Channel;
     isMobileView: boolean;
+    crossTeamSearchEnabled: boolean;
 }
 
 export type DispatchProps = {
     actions: {
         updateSearchTerms: (term: string) => Action;
+        updateSearchTeam: (teamId: string|null) => Action;
         updateSearchTermsForShortcut: () => void;
         updateSearchType: (searchType: string) => Action;
         showSearchResults: (isMentionSearch: boolean) => unknown;
