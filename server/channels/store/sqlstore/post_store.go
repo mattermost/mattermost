@@ -3239,7 +3239,7 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 
 func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	meta := &store.PostReminderMetadata{}
-	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
+	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelID,
 		COALESCE(t.name, '') as TeamName,
 		u.locale as UserLocale, u.username as Username
 	FROM Posts p
