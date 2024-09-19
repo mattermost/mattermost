@@ -241,14 +241,16 @@ func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
 	return &imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team:     &post.TeamName,
-			Channel:  &post.ChannelName,
-			User:     &post.Username,
-			Type:     &post.Type,
-			Message:  &post.Message,
-			Props:    &post.Props,
-			CreateAt: &post.CreateAt,
-			EditAt:   &post.EditAt,
+			Team:      &post.TeamName,
+			Channel:   &post.ChannelName,
+			User:      &post.Username,
+			Type:      &post.Type,
+			Message:   &post.Message,
+			Props:     &post.Props,
+			CreateAt:  &post.CreateAt,
+			EditAt:    &post.EditAt,
+			IsPinned:  &post.IsPinned,
+			FlaggedBy: &post.FlaggedBy,
 		},
 	}
 }
@@ -268,17 +270,21 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
 			EditAt:         &post.EditAt,
+			IsPinned:       &post.IsPinned,
+			FlaggedBy:      &post.FlaggedBy,
 		},
 	}
 }
 
 func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
 	return &imports.ReplyImportData{
-		User:     &post.Username,
-		Type:     &post.Type,
-		Message:  &post.Message,
-		CreateAt: &post.CreateAt,
-		EditAt:   &post.EditAt,
+		User:      &post.Username,
+		Type:      &post.Type,
+		Message:   &post.Message,
+		CreateAt:  &post.CreateAt,
+		EditAt:    &post.EditAt,
+		IsPinned:  &post.IsPinned,
+		FlaggedBy: &post.FlaggedBy,
 	}
 }
 

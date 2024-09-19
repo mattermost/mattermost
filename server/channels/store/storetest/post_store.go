@@ -4344,6 +4344,28 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		}
 		assert.True(t, found)
 	})
+
+	t.Run("with flagged post", func(t *testing.T) {
+		err := ss.Preference().Save(model.Preferences([]model.Preference{
+			{
+				UserId:   u1.Id,
+				Category: model.PreferenceCategoryFlaggedPost,
+				Name:     p1.Id,
+				Value:    "true",
+			},
+		}))
+		require.NoError(t, err)
+
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		assert.NoError(t, err)
+
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				require.NotNil(t, p.FlaggedBy)
+				assert.Equal(t, []string{u1.Username}, p.FlaggedBy)
+			}
+		}
+	})
 }
 
 func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4389,7 +4411,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 	r1, err := ss.Post().GetRepliesForExport(p1.Id)
 	assert.NoError(t, err)
 
-	assert.Len(t, r1, 1)
+	require.Len(t, r1, 1)
 
 	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
@@ -4404,7 +4426,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 	r1, err = ss.Post().GetRepliesForExport(p1.Id)
 	assert.NoError(t, err)
 
-	assert.Len(t, r1, 1)
+	require.Len(t, r1, 1)
 
 	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)

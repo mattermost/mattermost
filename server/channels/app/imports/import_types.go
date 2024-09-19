@@ -169,6 +169,7 @@ type ReplyImportData struct {
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type PostImportData struct {
@@ -210,7 +211,7 @@ type DirectPostImportData struct {
 	CreateAt *int64                 `json:"create_at"`
 	EditAt   *int64                 `json:"edit_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by"`
+	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`

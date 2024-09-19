@@ -722,7 +722,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PreferenceCategoryDisplaySettings,
-			Name:     "channel_display_mode",
+			Name:     model.PreferenceNameChannelDisplayMode,
 			Value:    *data.ChannelDisplayMode,
 		})
 	}
@@ -1184,6 +1184,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			return err
 		}
 		usernames = append(usernames, *replyData.User)
+		if replyData.FlaggedBy != nil {
+			usernames = append(usernames, *replyData.FlaggedBy...)
+		}
 	}
 
 	users, err := a.getUsersByUsernames(usernames)
@@ -1274,6 +1277,27 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 	for _, postWithData := range postsWithData {
 		a.updateFileInfoWithPostId(rctx, postWithData.post)
+
+		if postWithData.replyData.FlaggedBy != nil {
+			var preferences model.Preferences
+
+			for _, username := range *postWithData.replyData.FlaggedBy {
+				user := users[strings.ToLower(username)]
+
+				preferences = append(preferences, model.Preference{
+					UserId:   user.Id,
+					Category: model.PreferenceCategoryFlaggedPost,
+					Name:     postWithData.post.Id,
+					Value:    "true",
+				})
+			}
+
+			if len(preferences) > 0 {
+				if err := a.Srv().Store().Preference().Save(preferences); err != nil {
+					return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+		}
 	}
 
 	return nil

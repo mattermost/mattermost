@@ -234,18 +234,21 @@ type PostForExport struct {
 	TeamName    string
 	ChannelName string
 	Username    string
-	ReplyCount  int
+	// ReplyCount  int
+	FlaggedBy []string
 }
 
 type DirectPostForExport struct {
 	Post
 	User           string
 	ChannelMembers *[]string
+	FlaggedBy      []string
 }
 
 type ReplyForExport struct {
 	Post
-	Username string
+	Username  string
+	FlaggedBy []string
 }
 
 type PostForIndexing struct {

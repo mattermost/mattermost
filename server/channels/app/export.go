@@ -29,43 +29,79 @@ import (
 
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
-var exportablePreferences = map[imports.ComparablePreference]string{{
-	Category: model.PreferenceCategoryTheme,
-	Name:     "",
-}: "Theme", {
-	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "feature_enabled_markdown_preview",
-}: "UseMarkdownPreview", {
-	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "formatting",
-}: "UseFormatting", {
-	Category: model.PreferenceCategorySidebarSettings,
-	Name:     "show_unread_section",
-}: "ShowUnreadSection", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameUseMilitaryTime,
-}: "UseMilitaryTime", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameCollapseSetting,
-}: "CollapsePreviews", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameMessageDisplay,
-}: "MessageDisplay", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "channel_display_mode",
-}: "CollapseConsecutive", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "collapse_consecutive_messages",
-}: "ColorizeUsernames", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "colorize_usernames",
-}: "ChannelDisplayMode", {
-	Category: model.PreferenceCategoryTutorialSteps,
-	Name:     "",
-}: "TutorialStep", {
-	Category: model.PreferenceCategoryNotifications,
-	Name:     model.PreferenceNameEmailInterval,
-}: "EmailInterval",
+var exportablePreferences = map[imports.ComparablePreference]string{
+	{
+		Category: model.PreferenceCategoryTheme,
+		Name:     "",
+	}: "Theme",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "feature_enabled_markdown_preview",
+	}: "UseMarkdownPreview",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "formatting",
+	}: "UseFormatting",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "send_on_ctrl_enter",
+	}: "SendOnCtrlEnter",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "join_leave",
+	}: "ShowJoinLeave",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "unread_scroll_position",
+	}: "ShowUnreadScrollPosition",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "sync_drafts",
+	}: "SyncDrafts",
+	{
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     model.PreferenceNameShowUnreadSection,
+	}: "ShowUnreadSection",
+	{
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     model.PreferenceLimitVisibleDmsGms,
+	}: "LimitVisibleDmsGms",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameUseMilitaryTime,
+	}: "UseMilitaryTime",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseSetting,
+	}: "CollapsePreviews",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameMessageDisplay,
+	}: "MessageDisplay",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameChannelDisplayMode,
+	}: "CollapseConsecutive",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseConsecutive,
+	}: "ColorizeUsernames",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameColorizeUsernames,
+	}: "ChannelDisplayMode",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameNameFormat,
+	}: "NameFormat",
+	{
+		Category: model.PreferenceCategoryTutorialSteps,
+		Name:     "",
+	}: "TutorialStep",
+	{
+		Category: model.PreferenceCategoryNotifications,
+		Name:     model.PreferenceNameEmailInterval,
+	}: "EmailInterval",
 }
 
 func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
