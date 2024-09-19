@@ -262,7 +262,7 @@ export const useSharedChannelRemotes = (remoteId: string) => {
     const fetch = async () => {
         setLoadingState(true);
         try {
-            const data = await Client4.getSharedChannelRemotes(remoteId, '', true);
+            const data = await Client4.getSharedChannelRemotes(remoteId, {include_deleted: true, include_unconfirmed: true});
 
             setRemotes(data?.reduce<typeof remotes>((state, remote) => {
                 state![remote.channel_id] = remote;
@@ -303,7 +303,7 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
             let missing: string[] = [];
 
             try {
-                const data = await Client4.getSharedChannelRemotes(remoteId, opts.filter);
+                const data = await Client4.getSharedChannelRemotes(remoteId, {include_unconfirmed: true, exclude_remote: opts.filter === 'home', exclude_home: opts.filter === 'remote'});
                 let state = getState();
                 let getMyChannelsOnce: undefined | ((remote: SharedChannelRemote) => Promise<Channel | undefined>) = async (firstNotFound: SharedChannelRemote) => {
                     const channels = await Client4.getAllTeamsChannels();

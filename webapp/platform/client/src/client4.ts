@@ -2135,21 +2135,18 @@ export default class Client4 {
 
     // Shared Channels Routes
 
-    getSharedChannelRemotes = (remoteId: string, filter?: 'home' | 'remote' | '', includeDeleted = false) => {
-        const parameters: {[key: string]: boolean | string} = {};
-
-        if (filter === 'home') {
-            parameters.exclude_remote = true;
-        } else if (filter === 'remote') {
-            parameters.exclude_home = true;
-        }
-
-        if (includeDeleted) {
-            parameters.include_deleted = true;
-        }
-
+    getSharedChannelRemotes = (
+        remoteId: string,
+        filters: {
+            exclude_remote?: boolean;
+            exclude_home?: boolean;
+            include_deleted?: boolean;
+            include_unconfirmed?: boolean;
+            exclude_confirmed?: boolean;
+        },
+    ) => {
         return this.doFetch<SharedChannelRemote[]>(
-            `${this.getRemoteClusterRoute(remoteId)}/sharedchannelremotes${buildQueryString(parameters)}`,
+            `${this.getRemoteClusterRoute(remoteId)}/sharedchannelremotes${buildQueryString(filters)}`,
             {method: 'GET'},
         );
     };
