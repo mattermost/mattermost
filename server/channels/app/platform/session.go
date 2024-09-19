@@ -19,7 +19,7 @@ func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
 		// Once the session is retrieved from the pool, all existing prop fields are cleared.
 		// To avoid a race between clearing the props and accessing it, clear the props maps before returning it to the pool.
 		for k := range session.Props {
-			delete(session.Props, k) // clear is only avaiable in go 1.21
+			delete(session.Props, k) // clear is only available in go 1.21
 		}
 		// Also clear the team members slice to avoid a similar race condition.
 		for i := 0; i < len(session.TeamMembers); i++ {
