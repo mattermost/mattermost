@@ -7,7 +7,7 @@ import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as utils from 'utils/notifications';
 
-import {sendDesktopNotification, getDesktopSoundFromChannelMemberAndUser, getDesktopNotificationSoundFromChannelMemberAndUser} from './notification_actions';
+import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound} from './notification_actions';
 
 describe('notification_actions', () => {
     describe('sendDesktopNotification', () => {
@@ -510,7 +510,7 @@ describe('notification_actions', () => {
     });
 });
 
-describe('getDesktopSoundFromChannelMemberAndUser', () => {
+describe('isDesktopSoundEnabled', () => {
     test('should return channel member sound if it exists', () => {
         const channelMember1 = {
             notify_props: {
@@ -522,7 +522,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'false',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember1, user1)).toBe(true);
+        expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
 
         const channelMember2 = {
             notify_props: {
@@ -534,7 +534,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'false',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember2, user2)).toBe(false);
+        expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
 
         const channelMember3 = {
             notify_props: {
@@ -546,7 +546,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'false',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember3, user3)).toBe(false);
+        expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
 
         const channelMember4 = {
             notify_props: {
@@ -558,7 +558,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'true',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember4, user4)).toBe(true);
+        expect(isDesktopSoundEnabled(channelMember4, user4)).toBe(true);
 
         const channelMember5 = {
             notify_props: {
@@ -570,7 +570,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: '',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember5, user5)).toBe(true);
+        expect(isDesktopSoundEnabled(channelMember5, user5)).toBe(true);
     });
 
     test('should return user sound if channel member sound is not defined', () => {
@@ -584,7 +584,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'true',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember1, user1)).toBe(true);
+        expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
 
         const channelMember2 = {
             notify_props: {
@@ -596,7 +596,7 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'false',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember2, user2)).toBe(false);
+        expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
 
         const channelMember3 = {
             notify_props: {},
@@ -606,17 +606,17 @@ describe('getDesktopSoundFromChannelMemberAndUser', () => {
                 desktop_sound: 'false',
             },
         };
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember3, user3)).toBe(false);
+        expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
     });
 
     test('should return default if both channel member and user are not defined', () => {
         const channelMember = {};
         const user = {};
-        expect(getDesktopSoundFromChannelMemberAndUser(channelMember, user)).toBe(true);
+        expect(isDesktopSoundEnabled(channelMember, user)).toBe(true);
     });
 });
 
-describe('getDesktopNotificationSoundFromChannelMemberAndUser', () => {
+describe('getDesktopNotificationSound', () => {
     test('should return channel member notification sound if it exists', () => {
         const channelMember1 = {
             notify_props: {
@@ -628,7 +628,7 @@ describe('getDesktopNotificationSoundFromChannelMemberAndUser', () => {
                 desktop_notification_sound: 'Crackle',
             },
         };
-        expect(getDesktopNotificationSoundFromChannelMemberAndUser(channelMember1, user1)).toBe('Crackle');
+        expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
 
         const channelMember2 = {
             notify_props: {
@@ -640,7 +640,7 @@ describe('getDesktopNotificationSoundFromChannelMemberAndUser', () => {
                 desktop_notification_sound: '',
             },
         };
-        expect(getDesktopNotificationSoundFromChannelMemberAndUser(channelMember2, user2)).toBe('Bing');
+        expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
 
         const channelMember3 = {
             notify_props: {
@@ -652,7 +652,7 @@ describe('getDesktopNotificationSoundFromChannelMemberAndUser', () => {
                 desktop_notification_sound: 'Bing',
             },
         };
-        expect(getDesktopNotificationSoundFromChannelMemberAndUser(channelMember3, user3)).toBe('Crackle');
+        expect(getDesktopNotificationSound(channelMember3, user3)).toBe('Crackle');
     });
 
     test('should return user notification sound if channel member sound is not defined', () => {
@@ -662,10 +662,10 @@ describe('getDesktopNotificationSoundFromChannelMemberAndUser', () => {
                 desktop_notification_sound: 'Crackle',
             },
         };
-        expect(getDesktopNotificationSoundFromChannelMemberAndUser(channelMember1, user1)).toBe('Crackle');
+        expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
 
         const channelMember2 = {};
         const user2 = {};
-        expect(getDesktopNotificationSoundFromChannelMemberAndUser(channelMember2, user2)).toBe('Bing');
+        expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
     });
 });

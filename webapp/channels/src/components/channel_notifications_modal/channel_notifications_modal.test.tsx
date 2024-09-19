@@ -312,12 +312,15 @@ describe('ChannelNotificationsModal', () => {
                 'current_user_id',
                 'channel_id',
                 {
+                    channel_auto_follow_threads: 'off',
                     desktop: 'default',
                     desktop_notification_sound: 'default',
                     desktop_sound: 'default',
+                    desktop_threads: 'all',
                     ignore_channel_mentions: 'off',
                     mark_unread: 'all',
                     push: 'all',
+                    push_threads: 'all',
                 },
             ),
         );
@@ -336,7 +339,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
             },
         }).notify_props;
 
-        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true, true);
+        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true);
         expect(channelNotifyProps.mark_unread).toEqual('all');
         expect(channelNotifyProps.ignore_channel_mentions).toEqual('off');
         expect(channelNotifyProps.channel_auto_follow_threads).toEqual('off');
@@ -354,7 +357,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
             },
         }).notify_props;
 
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, true);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true);
         expect(channelNotifyProps1.desktop).toEqual('default');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -368,7 +371,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
             },
         }).notify_props;
 
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.desktop).toEqual('default');
     });
 
@@ -384,7 +387,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
             },
         }).notify_props;
 
-        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true, true);
+        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true);
         expect(channelNotifyProps.desktop).toEqual('all');
     });
 
@@ -399,7 +402,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_threads: 'mention',
             },
         }).notify_props;
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, true);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true);
         expect(channelNotifyProps1.desktop_threads).toEqual('default');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -412,7 +415,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_threads: 'mention',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.desktop_threads).toEqual('mention');
     });
 
@@ -425,7 +428,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_threads: 'mention',
             },
         }).notify_props;
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, true);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true);
         expect(channelNotifyProps1.desktop_threads).toEqual('default');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -436,7 +439,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_threads: 'default',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.desktop_threads).toEqual('default');
 
         const userNotifyProps3 = TestHelper.getUserMock({
@@ -447,7 +450,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_threads: 'none',
             },
         }).notify_props;
-        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true, true);
+        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true);
         expect(channelNotifyProps3.desktop_threads).toEqual('none');
 
         const userNotifyProps4 = TestHelper.getUserMock({
@@ -460,7 +463,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_threads: 'none',
             },
         }).notify_props;
-        const channelNotifyProps4 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps4, savedChannelNotifyProps4, true, true);
+        const channelNotifyProps4 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps4, savedChannelNotifyProps4, true);
         expect(channelNotifyProps4.desktop_threads).toEqual('none');
     });
 
@@ -475,7 +478,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_sound: 'on',
             },
         }).notify_props;
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, true);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true);
         expect(channelNotifyProps1.desktop_sound).toEqual('default');
 
         const userNotifyProps2 = {
@@ -486,7 +489,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_sound: 'off',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.desktop_sound).toEqual('default');
 
         const userNotifyProps3 = {
@@ -497,7 +500,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_sound: 'on',
             },
         }).notify_props;
-        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true, true);
+        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true);
         expect(channelNotifyProps3.desktop_sound).toEqual('default');
 
         const userNotifyProps4 = {
@@ -508,7 +511,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_sound: 'off',
             },
         }).notify_props;
-        const channelNotifyProps4 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps4, savedChannelNotifyProps4, true, true);
+        const channelNotifyProps4 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps4, savedChannelNotifyProps4, true);
         expect(channelNotifyProps4.desktop_sound).toEqual('off');
 
         const userNotifyProps5 = {} as UserNotifyProps;
@@ -517,7 +520,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_sound: 'off',
             },
         }).notify_props;
-        const channelNotifyProps5 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps5, savedChannelNotifyProps5, true, true);
+        const channelNotifyProps5 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps5, savedChannelNotifyProps5, true);
         expect(channelNotifyProps5.desktop_sound).toEqual('off');
     });
 
@@ -532,7 +535,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_notification_sound: 'Bing',
             },
         }).notify_props;
-        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true, true);
+        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true);
         expect(channelNotifyProps.desktop_notification_sound).toEqual('default');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -545,7 +548,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_notification_sound: 'Bing',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.desktop_notification_sound).toEqual('Bing');
     });
 
@@ -558,7 +561,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_notification_sound: 'Bing',
             },
         }).notify_props;
-        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true, true);
+        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, true);
         expect(channelNotifyProps.desktop_notification_sound).toEqual('default');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -569,7 +572,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_notification_sound: 'default',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.desktop_notification_sound).toEqual('default');
 
         const userNotifyProps3 = TestHelper.getUserMock({
@@ -580,29 +583,8 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 desktop_notification_sound: 'Crackle',
             },
         }).notify_props;
-        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true, true);
+        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true);
         expect(channelNotifyProps3.desktop_notification_sound).toEqual('Crackle');
-    });
-
-    test('should not return desktop_threads value if collapsed reply threads is enabled', () => {
-        const userNotifyProps = TestHelper.getUserMock({
-            notify_props: {
-                desktop_threads: 'mention',
-                push_threads: 'mention',
-            } as UserNotifyProps,
-        }).notify_props;
-        const savedChannelNotifyProps = TestHelper.getChannelMembershipMock({
-            notify_props: {
-                desktop_threads: 'mention',
-                push_threads: 'mention',
-                channel_auto_follow_threads: 'on',
-            },
-        }).notify_props;
-
-        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(userNotifyProps, savedChannelNotifyProps, false, true);
-        expect(channelNotifyProps.desktop_threads).toBeUndefined();
-        expect(channelNotifyProps.push_threads).toBeUndefined();
-        expect(channelNotifyProps.channel_auto_follow_threads).toBeUndefined();
     });
 
     test('should return correct push value', () => {
@@ -616,7 +598,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push: 'all',
             },
         }).notify_props;
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, true);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true);
         expect(channelNotifyProps1.push).toEqual('all');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -629,7 +611,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push: 'all',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.push).toEqual('default');
     });
 
@@ -646,7 +628,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push: 'all',
             },
         }).notify_props;
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, false);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, false);
         expect(channelNotifyProps1.push).toEqual('all');
 
         const userNotifyProps2 = TestHelper.getUserMock({
@@ -661,7 +643,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push: 'all',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, false);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, false);
         expect(channelNotifyProps2.push).toEqual('mention');
     });
 
@@ -678,7 +660,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push_threads: 'all',
             },
         }).notify_props;
-        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true, true);
+        const channelNotifyProps1 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps1, savedChannelNotifyProps1, true);
         expect(channelNotifyProps1.push).toEqual('all');
         expect(channelNotifyProps1.push_threads).toEqual('all');
 
@@ -693,7 +675,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push_threads: 'all',
             },
         }).notify_props;
-        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true, true);
+        const channelNotifyProps2 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps2, savedChannelNotifyProps2, true);
         expect(channelNotifyProps2.push).toEqual('all');
         expect(channelNotifyProps2.push_threads).toEqual('all');
 
@@ -707,7 +689,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push_threads: 'all',
             },
         }).notify_props;
-        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true, true);
+        const channelNotifyProps3 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps3, savedChannelNotifyProps3, true);
         expect(channelNotifyProps3.push).toEqual('all');
         expect(channelNotifyProps3.push_threads).toEqual('all');
 
@@ -722,7 +704,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push_threads: 'none',
             },
         }).notify_props;
-        const channelNotifyProps4 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps4, savedChannelNotifyProps4, true, false);
+        const channelNotifyProps4 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps4, savedChannelNotifyProps4, false);
         expect(channelNotifyProps4.push_threads).toEqual('mention');
 
         const userNotifyProps5 = TestHelper.getUserMock({
@@ -736,7 +718,7 @@ describe('createChannelNotifyPropsFromSelectedSettings', () => {
                 push_threads: 'none',
             },
         }).notify_props;
-        const channelNotifyProps5 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps5, savedChannelNotifyProps5, true, false);
+        const channelNotifyProps5 = createChannelNotifyPropsFromSelectedSettings(userNotifyProps5, savedChannelNotifyProps5, false);
         expect(channelNotifyProps5.push_threads).toEqual('all');
     });
 });

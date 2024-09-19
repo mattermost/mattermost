@@ -70,9 +70,9 @@ export default function ChannelNotificationsModal(props: Props) {
         setSettings((prevSettings) => ({...prevSettings, ...values}));
     }, []);
 
-    function handleUseSameMobileSettingsAsDesktopCheckboxChange() {
+    function handleUseSameMobileSettingsAsDesktopCheckboxChange(value: boolean) {
         const newValueOfSettings = {...settings};
-        const newValueOfDesktopAndMobileSettingsDifferent = !desktopAndMobileSettingsDifferent;
+        const newValueOfDesktopAndMobileSettingsDifferent = !value;
 
         if (newValueOfDesktopAndMobileSettingsDifferent === false) {
             newValueOfSettings.push = settings.desktop;
@@ -102,7 +102,7 @@ export default function ChannelNotificationsModal(props: Props) {
     }
 
     function handleSave() {
-        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(props.currentUser.notify_props, settings, props.collapsedReplyThreads, desktopAndMobileSettingsDifferent);
+        const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(props.currentUser.notify_props, settings, desktopAndMobileSettingsDifferent);
 
         props.actions.updateChannelNotifyProps(props.currentUser.id, props.channel.id, channelNotifyProps).then((value) => {
             const {error} = value;
@@ -593,7 +593,6 @@ export function getInitialValuesOfChannelNotifyProps<T extends keyof ChannelNoti
 export function createChannelNotifyPropsFromSelectedSettings(
     userNotifyProps: UserNotifyProps,
     savedChannelNotifyProps: ChannelMembership['notify_props'],
-    collapsedReplyThreads: boolean,
     desktopAndMobileSettingsDifferent: boolean,
 ) {
     const channelNotifyProps: ChannelMembership['notify_props'] = {
@@ -689,12 +688,6 @@ export function createChannelNotifyPropsFromSelectedSettings(
         } else {
             channelNotifyProps.push_threads = channelNotifyProps.desktop_threads;
         }
-    }
-
-    if (collapsedReplyThreads === false) {
-        delete channelNotifyProps.desktop_threads;
-        delete channelNotifyProps.push_threads;
-        delete channelNotifyProps.channel_auto_follow_threads;
     }
 
     return channelNotifyProps;

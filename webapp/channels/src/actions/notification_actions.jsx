@@ -31,7 +31,11 @@ import * as Utils from 'utils/utils';
 
 import {runDesktopNotificationHooks} from './hooks';
 
-export const getDesktopSoundFromChannelMemberAndUser = (channelMember, user) => {
+/**
+ * This function is used to determine if the desktop sound is enabled.
+ * It checks if desktop sound is defined in the channel member and if not, it checks if it's defined in the user preferences.
+ */
+export function isDesktopSoundEnabled(channelMember, user) {
     const isDesktopSoundDefinedInChannelMember = channelMember?.notify_props?.desktop_sound?.length;
     const isDesktopSoundDefinedInUser = user?.notify_props?.desktop_sound?.length;
 
@@ -54,9 +58,14 @@ export const getDesktopSoundFromChannelMemberAndUser = (channelMember, user) => 
     }
 
     return desktopSound;
-};
+}
 
-export const getDesktopNotificationSoundFromChannelMemberAndUser = (channelMember, user) => {
+/**
+ * This function returns the desktop notification sound from the channel member and user.
+ * It checks if desktop notification sound is defined in the channel member and if not, it checks if it's defined in the user preferences.
+ * If neither is defined, it returns the default sound 'BING'.
+ */
+export function getDesktopNotificationSound(channelMember, user) {
     const hasDesktopNotificationSoundInChannelMember = channelMember?.notify_props?.desktop_notification_sound?.length;
     const hasDesktopNotificationSoundInUser = user?.notify_props?.desktop_notification_sound?.length;
 
@@ -76,7 +85,7 @@ export const getDesktopNotificationSoundFromChannelMemberAndUser = (channelMembe
     }
 
     return desktopNotificationSound;
-};
+}
 
 /**
  * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<import('utils/notifications').NotificationResult>, GlobalState>}
@@ -291,7 +300,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         //Play a sound if explicitly set in settings
-        const isDesktopSoundEnabled = getDesktopSoundFromChannelMemberAndUser(member, user);
+        const desktopSoundEnabled = isDesktopSoundEnabled(member, user);
 
         // Notify if you're not looking in the right channel or when
         // the window itself is not active
@@ -317,7 +326,7 @@ export function sendDesktopNotification(post, msgProps) {
             notify = true;
         }
 
-        let soundName = getDesktopNotificationSoundFromChannelMemberAndUser(member, user);
+        let soundName = getDesktopNotificationSound(member, user);
 
         const updatedState = getState();
         let url = getChannelURL(updatedState, channel, teamId);
@@ -327,7 +336,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         // Allow plugins to change the notification, or re-enable a notification
-        const args = {title, body, silent: !isDesktopSoundEnabled, soundName, url, notify};
+        const args = {title, body, silent: !desktopSoundEnabled, soundName, url, notify};
         const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
@@ -341,7 +350,7 @@ export function sendDesktopNotification(post, msgProps) {
             const result = dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
-            if (isDesktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
+            if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
                 ding(soundName);
             }
 
