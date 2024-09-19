@@ -44,6 +44,36 @@ func (_m *ScheduledPostStore) CreateScheduledPost(scheduledPost *model.Scheduled
 	return r0, r1
 }
 
+// Get provides a mock function with given fields: scheduledPostId
+func (_m *ScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+	ret := _m.Called(scheduledPostId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 *model.ScheduledPost
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.ScheduledPost, error)); ok {
+		return rf(scheduledPostId)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.ScheduledPost); ok {
+		r0 = rf(scheduledPostId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ScheduledPost)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(scheduledPostId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPendingScheduledPosts provides a mock function with given fields: beforeTime, lastScheduledPostId, perPage
 func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	ret := _m.Called(beforeTime, lastScheduledPostId, perPage)

@@ -206,6 +206,12 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 }
 
 func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+	scheduledPost.PreSave()
+	maxMessageSize := s.getMaxMessageSize()
+	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
+		return errors.Wrap(err, "failed to validate scheduled post")
+	}
+
 	builder := s.getQueryBuilder().
 		Update("ScheduledPosts").
 		SetMap(s.toUpdateMap(scheduledPost)).
@@ -248,9 +254,9 @@ func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPos
 			"Id": scheduledPostId,
 		})
 
-	var scheduledPost *model.ScheduledPost
+	scheduledPost := &model.ScheduledPost{}
 
-	if err := s.GetReplicaX().SelectBuilder(&scheduledPost, query); err != nil {
+	if err := s.GetReplicaX().GetBuilder(scheduledPost, query); err != nil {
 		mlog.Error("SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database", mlog.String("scheduled_post_id", scheduledPostId), mlog.Err(err))
 
 		return nil, errors.Wrapf(err, "SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database, scheduledPostId: %s", scheduledPostId)

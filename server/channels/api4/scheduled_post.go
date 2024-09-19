@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
@@ -16,6 +17,7 @@ import (
 
 func (api *API) InitScheduledPost() {
 	api.BaseRoutes.Posts.Handle("/schedule", api.APISessionRequired(createSchedulePost)).Methods(http.MethodPost)
+	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(updateScheduledPost)).Methods(http.MethodPut)
 	api.BaseRoutes.Posts.Handle("/scheduled/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTeamScheduledPosts)).Methods(http.MethodGet)
 }
 
@@ -94,9 +96,20 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
+	if scheduledPostId == "" {
+		c.SetInvalidURLParam("scheduled_post_id")
+		return
+	}
+
 	var scheduledPost model.ScheduledPost
 	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
 		c.SetInvalidParamWithErr("schedule_post", err)
+		return
+	}
+
+	if scheduledPost.Id != scheduledPostId {
+		c.SetInvalidURLParam("scheduled_post_id")
 		return
 	}
 
@@ -111,5 +124,19 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := c.AppContext.Session().UserId
-	c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost)
+	updatedScheduledPost, appErr := c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(updatedScheduledPost)
+	auditRec.AddEventObjectType("scheduledPost")
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(updatedScheduledPost); err != nil {
+		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
+		return
+	}
 }

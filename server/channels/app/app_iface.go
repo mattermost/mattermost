@@ -871,7 +871,6 @@ type AppIface interface {
 	GetUserCountForReport(filter *model.UserReportOptions) (*int64, *model.AppError)
 	GetUserForLogin(c request.CTX, id, loginId string) (*model.User, *model.AppError)
 	GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError)
-	UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError)
 	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
 	GetUsers(userIDs []string) ([]*model.User, *model.AppError)
 	GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError)
@@ -1204,6 +1203,7 @@ type AppIface interface {
 	UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
 	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
+	UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error

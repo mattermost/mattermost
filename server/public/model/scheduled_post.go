@@ -134,3 +134,11 @@ func (s *ScheduledPost) Auditable() map[string]interface{} {
 		"metadata":   metaData,
 	}
 }
+
+func (s *ScheduledPost) RestoreNonUpdatableFields(originalScheduledPost *ScheduledPost) {
+	s.Id = originalScheduledPost.Id
+	s.CreateAt = originalScheduledPost.CreateAt
+	s.UserId = originalScheduledPost.UserId
+	s.ChannelId = originalScheduledPost.ChannelId
+	s.RootId = originalScheduledPost.RootId
+}
