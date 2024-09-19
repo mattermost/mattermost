@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package email
 
 import (
@@ -312,7 +309,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 			t := translateFunc("api.email_batching.send_batched_email_notification.time", formattedTime)
 
-			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
+			MessageURL := siteURL + "/_redirect/pl/" + notification.post.Id
 
 			channelDisplayName := channel.DisplayName
 			showChannelIcon := true
