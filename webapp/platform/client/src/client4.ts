@@ -2514,6 +2514,7 @@ export default class Client4 {
             ActiveSearchBackend: string;
             database_status: string;
             filestore_status: string;
+            root_status: boolean;
         }>(
             `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId, use_rest_semantics: true})}`,
             {method: 'get'},
@@ -4179,7 +4180,11 @@ export default class Client4 {
 
         let data;
         try {
-            data = await response.json();
+            if (headers.get('Content-Type') === 'application/json') {
+                data = await response.json();
+            } else {
+                data = await response.text();
+            }
         } catch (err) {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',
