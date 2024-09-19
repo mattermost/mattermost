@@ -165,7 +165,10 @@ function SystemUsers(props: Props) {
 
     function handleRowClick(userId: UserReport['id']) {
         if (userId.length !== 0) {
-            history.push(`/admin_console/user_management/user/${userId}`);
+            const remoteID = userReports.find((userReport) => userReport.id === userId)?.remote_id;
+            if (!remoteID) {
+                history.push(`/admin_console/user_management/user/${userId}`);
+            }
         }
     }
 
@@ -403,16 +406,21 @@ function SystemUsers(props: Props) {
                     id: 'admin.system_users.list.actions',
                     defaultMessage: 'Actions',
                 }),
-                cell: (info: CellContext<UserReport, null>) => (
-                    <SystemUsersListAction
-                        rowIndex={info.cell.row.index}
-                        tableId={tableId}
-                        user={info.row.original}
-                        currentUser={props.currentUser}
-                        updateUser={(updatedUser) => updateUserReport(info.row.original.id, updatedUser)}
-                        onError={(error) => updateUserReport(info.row.original.id, {error})}
-                    />
-                ),
+                cell: (info: CellContext<UserReport, null>) => {
+                    if (info.row.original?.remote_id?.length) {
+                        return (<></>);
+                    }
+                    return (
+                        <SystemUsersListAction
+                            rowIndex={info.cell.row.index}
+                            tableId={tableId}
+                            user={info.row.original}
+                            currentUser={props.currentUser}
+                            updateUser={(updatedUser) => updateUserReport(info.row.original.id, updatedUser)}
+                            onError={(error) => updateUserReport(info.row.original.id, {error})}
+                        />
+                    );
+                },
                 enableHiding: false,
                 enablePinning: true,
                 enableSorting: false,
