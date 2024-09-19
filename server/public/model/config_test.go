@@ -1488,9 +1488,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 					"secrettext":   FakeSetting,
 					"secretnumber": FakeSetting,
 				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
-				},
 			},
 		},
 		"two plugins installed": {
@@ -1595,9 +1592,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				"somesetting":  "some value",
 				"secrettext":   FakeSetting,
 				"secretnumber": FakeSetting,
-			},
-			"another.plugin": {
-				"somesetting": FakeSetting,
 			},
 		}
 		assert.Equal(t, expected, c.Plugins)
