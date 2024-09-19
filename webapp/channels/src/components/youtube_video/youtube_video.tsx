@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cn from 'classnames';
 import React from 'react';
 
+import {ArrowCollapseIcon, ArrowExpandIcon} from '@mattermost/compass-icons/components';
 import type {OpenGraphMetadata} from '@mattermost/types/posts';
 
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
+import WithTooltip from 'components/with_tooltip';
 
-import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
+import {getIsShortsVideoLink, getVideoId, handleYoutubeTime, ytRegex} from 'utils/youtube';
 
 type Props = {
     postId: string;
@@ -20,6 +23,7 @@ type Props = {
 
 type State = {
     playing: boolean;
+    shortsExpanded: boolean;
 }
 
 export default class YoutubeVideo extends React.PureComponent<Props, State> {
@@ -28,34 +32,40 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         this.state = {
             playing: false,
+            shortsExpanded: false,
         };
     }
 
     static getDerivedStateFromProps(props: Props, state: State): State | null {
         if (!props.show && state.playing) {
-            return {playing: false};
+            return {playing: false, shortsExpanded: false};
         }
         return null;
     }
 
     play = () => {
-        this.setState({playing: true});
+        this.setState({...this.state, playing: true});
     };
 
     stop = () => {
-        this.setState({playing: false});
+        this.setState({...this.state, playing: false});
+    };
+
+    toggleShortsExpanded = () => {
+        this.setState({...this.state, shortsExpanded: !this.state.shortsExpanded});
     };
 
     render() {
         const {metadata, link} = this.props;
 
         const videoId = getVideoId(link);
+        const isShorts = getIsShortsVideoLink(link);
         const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
 
         const header = (
             <h4>
-                <span className='video-type'>{'YouTube - '}</span>
+                <span className='video-type'>{`YouTube ${isShorts ? 'Shorts ' : ''}- `}</span>
                 <span className='video-title'>
                     <ExternalLink
                         href={this.props.link}
@@ -64,6 +74,20 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                         {videoTitle}
                     </ExternalLink>
                 </span>
+                {isShorts && (
+                    <WithTooltip
+                        id={`${this.props.postId}_expand_shorts`}
+                        title={this.state.shortsExpanded ? 'Shrink' : 'Expand Horizontally'}
+                        placement='right'
+                    >
+                        <i
+                            className='video-expand-shorts'
+                            onClick={this.toggleShortsExpanded}
+                        >
+                            {this.state.shortsExpanded ? <ArrowCollapseIcon/> : <ArrowExpandIcon/>}
+                        </i>
+                    </WithTooltip>
+                )}
             </h4>
         );
 
@@ -113,7 +137,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 <div>
                     {header}
                     <div
-                        className='video-div embed-responsive-item'
+                        className={cn('video-div', 'embed-responsive-item', this.state.shortsExpanded ? 'video-shorts-expanded' : (isShorts && 'video-shorts'))}
                         onClick={this.play}
                     >
                         {content}
