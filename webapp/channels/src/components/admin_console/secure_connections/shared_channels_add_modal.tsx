@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {DependencyList} from 'react';
+import type {ComponentProps, DependencyList} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {ArchiveOutlineIcon, GlobeIcon, LockIcon} from '@mattermost/compass-icons/components';
+import type IconProps from '@mattermost/compass-icons/components/props';
 import {GenericModal} from '@mattermost/components';
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {searchAllChannels} from 'mattermost-redux/actions/channels';
@@ -49,11 +50,11 @@ function SharedChannelsAddModal({
     const [remotesByChannelId] = useSharedChannelRemotes(remoteId);
 
     const [query, setQuery] = useState('');
-    const [channels, setChannelsInner] = useState<Channel[]>([]);
+    const [channels, setChannelsInner] = useState<ChannelWithTeamData[]>([]);
     const [errors, setErrors] = useState<{[channel_id: string]: ServerError}>();
     const [done, setDone] = useState(false);
 
-    const setChannels = useCallback((nextChannels: Channel[] | undefined) => {
+    const setChannels = useCallback((nextChannels: ChannelWithTeamData[] | undefined) => {
         setErrors((errs) => {
             if (!errs || !nextChannels?.length) {
                 return undefined;
@@ -99,6 +100,16 @@ function SharedChannelsAddModal({
 
         return [];
     }, [searchAllChannels, remotesByChannelId], {delay: TYPING_DELAY_MS});
+
+    const formatLabel: ComponentProps<typeof ChannelsInput<ChannelWithTeamData>>['formatOptionLabel'] = (channel, meta) => {
+        return (
+            <>
+                <ChannelLabel channel={channel}/>
+                <SecondaryTextRight className='selected-hidden'>{'~'}{channel.name}</SecondaryTextRight>
+                <SecondaryTextRight className='selected-hidden'>{channel.team_display_name}</SecondaryTextRight>
+            </>
+        );
+    };
 
     const handleConfirm = async () => {
         if (done) {
@@ -169,23 +180,14 @@ function SharedChannelsAddModal({
                     value={channels}
                     onChange={setChannels}
                     autoFocus={true}
+                    formatOptionLabel={formatLabel}
                 />
-                {errors && Object.entries(errors).map(([id]) => {
-                    const message = (
-                        <FormattedMessage
-                            id='admin.secure_connections.shared_channels.add.error_inviting_remote_to_channel'
-                            defaultMessage='{channel} could not be added to this connection.'
-                            values={{
-                                channel: <ChannelLabel channelId={id}/>,
-                            }}
-                        />
-                    );
-
+                {errors && Object.entries(errors).map(([id, err]) => {
                     return (
-                        <SectionNotice
+                        <ChannelError
                             key={id}
-                            title={message}
-                            type='danger'
+                            id={id}
+                            err={err}
                         />
                     );
                 })}
@@ -194,32 +196,85 @@ function SharedChannelsAddModal({
     );
 }
 
+const ChannelError = (props: {id: string; err: ServerError}) => {
+    const channel = useSelector((state: GlobalState) => getChannel(state, props.id));
+
+    const message = (
+        <FormattedMessage
+            id='admin.secure_connections.shared_channels.add.error_inviting_remote_to_channel'
+            defaultMessage='{channel} could not be added to this connection.'
+            values={{
+                channel: channel ? (
+                    <ChannelLabel
+                        bold={true}
+                        channel={channel}
+                    />
+                ) : props.id,
+            }}
+        />
+    );
+
+    return (
+        <SectionNotice
+            title={message}
+            type='danger'
+        />
+    );
+};
+
 const ChannelLabelWrapper = styled.span`
     svg {
         vertical-align: middle;
-        margin-right: 5px;
+        margin-left: 6px;
+        margin-right: 10px;
+    }
+
+    .channels-input__multi-value__label & {
+        font-weight: 600;
     }
 `;
-export const ChannelLabel = ({channelId}: {channelId: string}) => {
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
 
-    let icon = <GlobeIcon size={16}/>;
-
-    if (channel?.type === Constants.PRIVATE_CHANNEL) {
-        icon = <LockIcon size={16}/>;
-    }
-
-    if (isArchivedChannel(channel)) {
-        icon = <ArchiveOutlineIcon size={16}/>;
-    }
+const ChannelLabel = ({channel, bold}: {channel: Channel; bold?: boolean}) => {
+    const ChannelDisplayName = bold ? 'strong' : 'span';
 
     return (
         <ChannelLabelWrapper>
-            {icon}
-            <strong>{channel?.display_name}</strong>
+            <ChannelIcon
+                channel={channel}
+                size={20}
+                color='rgba(var(--center-channel-color-rgb), 0.64)'
+            />
+            <ChannelDisplayName>{channel?.display_name}</ChannelDisplayName>
         </ChannelLabelWrapper>
     );
 };
+
+const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & IconProps) => {
+    let Icon = GlobeIcon;
+
+    if (channel?.type === Constants.PRIVATE_CHANNEL) {
+        Icon = LockIcon;
+    }
+
+    if (isArchivedChannel(channel)) {
+        Icon = ArchiveOutlineIcon;
+    }
+
+    return (
+        <Icon
+            size={size}
+            {...otherProps}
+        />
+    );
+};
+
+const SecondaryTextRight = styled.span`
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    margin-left: 5px;
+    &:last-child {
+        margin-left: auto;
+    }
+`;
 
 export default SharedChannelsAddModal;
 
