@@ -253,7 +253,10 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		// Create a goroutine to avoid blocking the creation of the websocket connection.
 		ps.Go(func() {
 			ps.SetStatusOnline(userID, false)
-			ps.UpdateLastActivityAtIfNeeded(*wc.GetSession())
+			session := wc.GetSession()
+			if session != nil {
+				ps.UpdateLastActivityAtIfNeeded(*session)
+			}
 		})
 	}
 
