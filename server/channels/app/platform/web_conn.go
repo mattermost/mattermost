@@ -249,6 +249,8 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSession(&cfg.Session)
 	userID := cfg.Session.UserId
 	if userID != "" {
+		// UpdateLastActivityAtIfNeeded might block if the Hub is busy.
+		// Create a goroutine to avoid blocking the creation of the websocket connection.
 		ps.Go(func() {
 			ps.SetStatusOnline(userID, false)
 			ps.UpdateLastActivityAtIfNeeded(*wc.GetSession())
