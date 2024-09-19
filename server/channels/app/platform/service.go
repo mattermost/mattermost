@@ -169,6 +169,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				RedisAddr:     *cacheConfig.RedisAddress,
 				RedisPassword: *cacheConfig.RedisPassword,
 				RedisDB:       *cacheConfig.RedisDB,
+				DisableCache:  *cacheConfig.DisableClientCache,
 			},
 		)
 	}
@@ -292,8 +293,13 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
 
+	// Note: we hardcode the session and status cache to LRU because they lead
+	// to a lot of SCAN calls in case of Redis. We could potentially have a
+	// reverse mapping to avoid the scan, but this needs more complicated code.
+	// Leaving this for now.
+
 	// Needed before loading license
-	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
@@ -304,10 +310,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	// Note: we hardcode the session cache to LRU because the session invalidation
-	// path always iterates through the entire cache, leading to a lot of SCAN calls
-	// in case of Redis. We could potentially have a reverse mapping of userIDs to
-	// session IDs, but leaving this one for now.
 	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Session",
 		Size:           model.SessionCacheSize,
