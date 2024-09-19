@@ -411,3 +411,49 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[1].Id)
 	})
 }
+
+func TestUpdateScheduledPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("base case", func(t *testing.T) {
+		// first we'll create a scheduled post
+		userId := model.NewId()
+
+		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
+			Name:        model.NewId(),
+			DisplayName: "Channel",
+			Type:        model.ChannelTypeOpen,
+		}, 1000)
+		require.NoError(t, err)
+
+		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+
+		defer func() {
+			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
+			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
+		}()
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: channel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost)
+
+		// now we'll try updating it
+	})
+}

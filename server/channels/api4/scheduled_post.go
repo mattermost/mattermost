@@ -117,12 +117,6 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
 
-	hasPermissionToCreatePostInChannel := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionCreatePost)
-	if !hasPermissionToCreatePostInChannel {
-		c.SetPermissionError(model.PermissionCreatePost)
-		return
-	}
-
 	userId := c.AppContext.Session().UserId
 	updatedScheduledPost, appErr := c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost)
 	if appErr != nil {

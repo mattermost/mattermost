@@ -11,8 +11,25 @@ import (
 )
 
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
-	if appErr := a.scheduledPostPreSaveChecks(rctx, scheduledPost); appErr != nil {
+	scheduledPost.PreSave()
+	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
+		return nil, validationErr
+	}
+
+	// verify user belongs to the channel
+	_, appErr := a.GetChannelMember(rctx, scheduledPost.ChannelId, scheduledPost.UserId)
+	if appErr != nil {
 		return nil, appErr
+	}
+
+	// validate the channel is not archived
+	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if channel.DeleteAt > 0 {
+		return nil, model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
 	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(scheduledPost)
@@ -43,9 +60,9 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 }
 
 func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
-	if appErr := a.scheduledPostPreSaveChecks(rctx, scheduledPost); appErr != nil {
-		// TODO set error code in DB and broadcast websocket event
-		return nil, appErr
+	scheduledPost.PreSave()
+	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
+		return nil, validationErr
 	}
 
 	// validate the scheduled post belongs to the said user
@@ -72,29 +89,4 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 
 	return scheduledPost, nil
 
-}
-
-func (a *App) scheduledPostPreSaveChecks(rctx request.CTX, scheduledPost *model.ScheduledPost) *model.AppError {
-	scheduledPost.PreSave()
-	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
-		return validationErr
-	}
-
-	// verify user belongs to the channel
-	_, appErr := a.GetChannelMember(rctx, scheduledPost.ChannelId, scheduledPost.UserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	// validate the channel is not archived
-	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
-	if appErr != nil {
-		return appErr
-	}
-
-	if channel.DeleteAt > 0 {
-		return model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
-	}
-
-	return nil
 }
