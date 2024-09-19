@@ -25,8 +25,24 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
     mark(Mark.PostListLoaded);
 
     // Send new performance metrics to server
-    const channelSwitch = measureAndReport(Measure.ChannelSwitch, Mark.ChannelLinkClicked, Mark.PostListLoaded, true);
-    const teamSwitch = measureAndReport(Measure.TeamSwitch, Mark.TeamLinkClicked, Mark.PostListLoaded, true);
+    const channelSwitch = measureAndReport({
+        name: Measure.ChannelSwitch,
+        startMark: Mark.ChannelLinkClicked,
+        endMark: Mark.PostListLoaded,
+        labels: {
+            fresh: fresh.toString(),
+        },
+        canFail: true,
+    });
+    const teamSwitch = measureAndReport({
+        name: Measure.TeamSwitch,
+        startMark: Mark.TeamLinkClicked,
+        endMark: Mark.PostListLoaded,
+        labels: {
+            fresh: fresh.toString(),
+        },
+        canFail: true,
+    });
 
     // Send old performance metrics to Rudder
     if (shouldTrackPerformance()) {
