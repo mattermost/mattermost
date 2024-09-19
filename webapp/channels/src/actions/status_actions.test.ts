@@ -100,7 +100,7 @@ describe('actions/status_actions', () => {
             expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id3', 'current_user_id']);
         });
 
-        test('load statuses with empty channel and no users in sidebar', () => {
+        test('load statuses with empty channel and no users in sidebar, should only fetch current user\'s status', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             state.entities.preferences.myPreferences = {};
