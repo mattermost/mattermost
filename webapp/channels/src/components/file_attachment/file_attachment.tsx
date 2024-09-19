@@ -2,21 +2,21 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useState, useEffect} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, { useRef, useState, useEffect } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-import type {FileInfo} from '@mattermost/types/files';
+import { ArchiveOutlineIcon } from '@mattermost/compass-icons/components';
+import type { FileInfo } from '@mattermost/types/files';
 
-import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+import { getFileThumbnailUrl, getFileUrl } from 'mattermost-redux/utils/file_utils';
 
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
-import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
-import {trimFilename} from 'utils/file_utils';
+import { Constants, FileTypes, ModalIdentifiers } from 'utils/constants';
+import { trimFilename } from 'utils/file_utils';
 import {
     fileSizeToString,
     getFileType,
@@ -27,7 +27,7 @@ import ArchivedTooltip from './archived_tooltip';
 import FileThumbnail from './file_thumbnail';
 import FilenameOverlay from './filename_overlay';
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from './index';
 
 interface Props extends PropsFromRedux {
 
@@ -57,7 +57,7 @@ interface Props extends PropsFromRedux {
 export default function FileAttachment(props: Props) {
     const mounted = useRef(true);
 
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     const [loaded, setLoaded] = useState(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE);
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
@@ -171,7 +171,7 @@ export default function FileAttachment(props: Props) {
     };
 
     const renderFileMenuItems = () => {
-        const {enablePublicLink, fileInfo, pluginMenuItems} = props;
+        const { enablePublicLink, fileInfo, pluginMenuItems } = props;
 
         let divider;
         const defaultItems = [];
@@ -181,8 +181,8 @@ export default function FileAttachment(props: Props) {
                     data-title='Public Image'
                     key={fileInfo.id + '_publiclinkmenuitem'}
                     onClick={handleGetPublicLink}
-                    ariaLabel={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
-                    text={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
+                    ariaLabel={formatMessage({ id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link' })}
+                    text={formatMessage({ id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link' })}
                 />,
             );
         }
@@ -221,20 +221,20 @@ export default function FileAttachment(props: Props) {
             >
                 <WithTooltip
                     id='file-name__tooltip'
-                    title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                    title={formatMessage({ id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions' })}
                     placement='top'
                 >
                     <button
                         ref={buttonRef}
                         id={`file_action_button_${props.fileInfo.id}`}
-                        aria-label={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'}).toLowerCase()}
+                        aria-label={formatMessage({ id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions' }).toLowerCase()}
                         className={classNames(
                             'file-dropdown-icon', 'dots-icon',
-                            {'a11y--active': keepOpen},
+                            { 'a11y--active': keepOpen },
                         )}
                         aria-expanded={keepOpen}
                     >
-                        <i className='icon icon-dots-vertical'/>
+                        <i className='icon icon-dots-vertical' />
                     </button>
                 </WithTooltip>
                 <Menu
@@ -251,12 +251,12 @@ export default function FileAttachment(props: Props) {
         );
     };
 
-    const {compactDisplay, fileInfo} = props;
+    const { compactDisplay, fileInfo } = props;
 
     let fileThumbnail;
     let fileDetail;
     let fileActions;
-    const ariaLabelImage = `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${fileInfo.name}`.toLowerCase();
+    const ariaLabelImage = `${formatMessage({ id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail' })} ${fileInfo.name}`.toLowerCase();
 
     if (!compactDisplay) {
         fileThumbnail = (
@@ -272,7 +272,7 @@ export default function FileAttachment(props: Props) {
                         disablePreview={props.disablePreview}
                     />
                 ) : (
-                    <div className='post-image__load'/>
+                    <div className='post-image__load' />
                 )}
             </a>
         );
@@ -300,6 +300,9 @@ export default function FileAttachment(props: Props) {
                     >
                         {fileInfo.name}
                     </span>
+                    {fileInfo.extra_info && <span className={'post-image__extra-info'}>
+                        {fileInfo.extra_info}
+                    </span>}
                     {fileInfo.archived ? <span className={'post-image__archived'}>
 
                         <FormattedMessage
@@ -330,7 +333,7 @@ export default function FileAttachment(props: Props) {
                 handleImageClick={onAttachmentClick}
                 iconClass={'post-image__download'}
             >
-                <i className='icon icon-download-outline'/>
+                <i className='icon icon-download-outline' />
             </FilenameOverlay>
         );
     } else if (fileInfo.archived && compactDisplay) {
@@ -361,14 +364,14 @@ export default function FileAttachment(props: Props) {
         <WithTooltip
             id='fileAttachmentArchivedTooltip'
             placement='top'
-            title={<ArchivedTooltip/>}
+            title={<ArchivedTooltip />}
             disabled={!fileInfo.archived}
         >
             <div
                 className={classNames([
                     'post-image__column',
-                    {'keep-open': keepOpen},
-                    {'post-image__column--archived': fileInfo.archived},
+                    { 'keep-open': keepOpen },
+                    { 'post-image__column--archived': fileInfo.archived },
                 ])}
             >
                 {fileThumbnail}

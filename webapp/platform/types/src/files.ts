@@ -19,12 +19,13 @@ export type FileInfo = {
     mini_preview?: string;
     archived: boolean;
     link?: string;
+    extra_info?: string;
 };
 export type FilesState = {
     files: Record<string, FileInfo>;
     filesFromSearch: Record<string, FileSearchResultItem>;
     fileIdsByPostId: Record<string, string[]>;
-    filePublicLink?: {link: string};
+    filePublicLink?: { link: string };
 };
 
 export type FileUploadResponse = {

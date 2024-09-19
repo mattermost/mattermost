@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type { ReactNode } from 'react';
 
-import type {FileInfo} from '@mattermost/types/files';
+import type { FileInfo } from '@mattermost/types/files';
 
-import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+import { getFileThumbnailUrl, getFileUrl } from 'mattermost-redux/utils/file_utils';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 
-import Constants, {FileTypes} from 'utils/constants';
+import Constants, { FileTypes } from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import FileProgressPreview from './file_progress_preview';
@@ -27,7 +27,7 @@ type Props = {
     onRemove?: (id: string) => void;
     fileInfos: FilePreviewInfo[];
     uploadsInProgress?: string[];
-    uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
+    uploadsProgressPercent?: { [clientID: string]: FilePreviewInfo };
 }
 
 export default class FilePreview extends React.PureComponent<Props> {
@@ -82,7 +82,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                 );
             } else {
                 className += ' custom-file';
-                previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
+                previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)} />;
             }
 
             previews.push(
@@ -101,6 +101,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                                     compactDisplay={false}
                                     canDownload={false}
                                 />
+                                {info.extra_info && <span className='post-image__extra-info'>{info.extra_info}</span>}
                                 {info.extension && <span className='post-image__type'>{info.extension.toUpperCase()}</span>}
                                 <span className='post-image__size'>{Utils.fileSizeToString(info.size)}</span>
                             </div>
@@ -111,7 +112,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                                     className='file-preview__remove'
                                     onClick={this.handleRemove.bind(this, info.id)}
                                 >
-                                    <i className='icon icon-close'/>
+                                    <i className='icon icon-close' />
                                 </a>
                             )}
                         </div>

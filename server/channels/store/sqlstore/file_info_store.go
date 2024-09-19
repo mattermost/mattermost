@@ -42,6 +42,7 @@ type fileInfoWithChannelID struct {
 	Content         string
 	RemoteId        *string
 	Archived        bool
+	ExtraInfo       string
 }
 
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
@@ -49,6 +50,7 @@ func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
 		Id:              fi.Id,
 		CreatorId:       fi.CreatorId,
 		PostId:          fi.PostId,
+		ExtraInfo:       fi.ExtraInfo,
 		ChannelId:       fi.ChannelId,
 		CreateAt:        fi.CreateAt,
 		UpdateAt:        fi.UpdateAt,
@@ -106,6 +108,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"Coalesce(FileInfo.Content, '') AS Content",
 		"Coalesce(FileInfo.RemoteId, '') AS RemoteId",
 		"FileInfo.Archived",
+		"FileInfo.ExtraInfo",
 	}
 
 	return s
@@ -120,10 +123,10 @@ func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.
 	query := `
 		INSERT INTO FileInfo
 		(Id, CreatorId, PostId, ChannelId, CreateAt, UpdateAt, DeleteAt, Path, ThumbnailPath, PreviewPath,
-			Name, Extension, Size, MimeType, Width, Height, HasPreviewImage, MiniPreview, Content, RemoteId)
+			Name, Extension, Size, MimeType, Width, Height, HasPreviewImage, MiniPreview, Content, RemoteId, ExtraInfo)
 		VALUES
 		(:Id, :CreatorId, :PostId, :ChannelId, :CreateAt, :UpdateAt, :DeleteAt, :Path, :ThumbnailPath, :PreviewPath,
-			:Name, :Extension, :Size, :MimeType, :Width, :Height, :HasPreviewImage, :MiniPreview, :Content, :RemoteId)
+	:Name, :Extension, :Size, :MimeType, :Width, :Height, :HasPreviewImage, :MiniPreview, :Content, :RemoteId, :ExtraInfo)
 	`
 
 	if _, err := fs.GetMasterX().NamedExec(query, info); err != nil {
@@ -186,10 +189,10 @@ func (fs SqlFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*mode
 			"MiniPreview":     info.MiniPreview,
 			"Content":         info.Content,
 			"RemoteId":        info.RemoteId,
+			"ExtraInfo":       info.ExtraInfo,
 		}).
 		Where(sq.Eq{"Id": info.Id}).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}

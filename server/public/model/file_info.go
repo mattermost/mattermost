@@ -57,6 +57,7 @@ type FileInfo struct {
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
 	Archived        bool    `json:"archived"`
+	ExtraInfo       string  `json:"extra_info,omitempty"`
 }
 
 func (fi *FileInfo) Auditable() map[string]interface{} {
