@@ -58,14 +58,9 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			// This always needs to be a pointer to a value.
-			// Otherwise the msp unmarshaler will fail to work.
-			var session model.Session
-			toPass = append(toPass, &session)
-		}
-
+		// This always needs to be model.Session, not *model.Session.
+		// Otherwise the msp unmarshaler will fail to work.
+		toPass := getCacheTargets[model.Session](len(keys))
 		errs := ps.sessionCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {

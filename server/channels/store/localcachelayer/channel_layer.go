@@ -245,12 +245,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	var channelsToQuery []string
 
 	if allowFromCache {
-		var toPass []any
-		for i := 0; i < len(ids); i++ {
-			var channel *model.Channel
-			toPass = append(toPass, &channel)
-		}
-
+		toPass := getCacheTargets[*model.Channel](len(ids))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -352,12 +347,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 			newKeys = append(newKeys, teamId+name)
 		}
 
-		toPass := make([]any, 0, len(newKeys))
-		for i := 0; i < len(newKeys); i++ {
-			var channel *model.Channel
-			toPass = append(toPass, &channel)
-		}
-
+		toPass := getCacheTargets[*model.Channel](len(newKeys))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, newKeys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -461,12 +451,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	counts := make(map[string]int64)
 	remainingChannels := make([]string, 0)
 
-	toPass := make([]any, 0, len(channelIDs))
-	for i := 0; i < len(channelIDs); i++ {
-		var cacheItem int64
-		toPass = append(toPass, &cacheItem)
-	}
-
+	toPass := getCacheTargets[int64](len(channelIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.reaction.rootStore.channelMemberCountsCache, channelIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
