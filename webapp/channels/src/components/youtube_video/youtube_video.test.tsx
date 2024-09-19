@@ -91,4 +91,48 @@ describe('YoutubeVideo', () => {
 
         expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkUrl');
     });
+
+    test('should match init snapshot (Shorts)', () => {
+        const store = mockStore(initialState);
+        const props = {
+            ...baseProps,
+            link: 'https://www.youtube.com/shorts/2oa5WCUpwD8',
+        };
+        const wrapper = mount(
+            <Provider store={store}>
+                <YoutubeVideo {...props}/>
+            </Provider>,
+        );
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkForThumbnail');
+        expect(wrapper.find('a').text()).toEqual('Youtube title');
+        expect(wrapper.find('.video-shorts').exists()).toBe(true);
+        expect(wrapper.find('.video-shorts-expanded').exists()).toBe(false);
+    });
+
+    test('should match snapshot for playing state (Shorts)', () => {
+        const wrapper = shallow(
+            <YoutubeVideo
+                {...baseProps}
+                link={'https://www.youtube.com/shorts/2oa5WCUpwD8'}
+            />,
+        );
+        wrapper.setState({playing: true, shortsExpanded: false});
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find('.video-shorts').exists()).toBe(true);
+        expect(wrapper.find('.video-shorts-expanded').exists()).toBe(false);
+    });
+
+    test('should match snapshot for playing state and shortsExpanded state (Shorts)', () => {
+        const wrapper = shallow(
+            <YoutubeVideo
+                {...baseProps}
+                link={'https://www.youtube.com/shorts/2oa5WCUpwD8'}
+            />,
+        );
+        wrapper.setState({playing: true, shortsExpanded: true});
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find('.video-shorts').exists()).toBe(false);
+        expect(wrapper.find('.video-shorts-expanded').exists()).toBe(true);
+    });
 });
