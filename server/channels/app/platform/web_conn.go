@@ -194,15 +194,6 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 
 // NewWebConn returns a new WebConn instance.
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runner HookRunner) *WebConn {
-	userID := cfg.Session.UserId
-	session := cfg.Session
-	if cfg.Session.UserId != "" {
-		ps.Go(func() {
-			ps.SetStatusOnline(userID, false)
-			ps.UpdateLastActivityAtIfNeeded(session)
-		})
-	}
-
 	// Disable TCP_NO_DELAY for higher throughput
 	var tcpConn *net.TCPConn
 	switch conn := cfg.WebSocket.UnderlyingConn().(type) {
@@ -254,9 +245,23 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		remoteAddress:      cfg.RemoteAddress,
 		xForwardedFor:      cfg.XForwardedFor,
 	}
-	wc.Active.Store(cfg.Active)
 
 	wc.SetSession(&cfg.Session)
+	userID := cfg.Session.UserId
+	if userID != "" {
+		// UpdateLastActivityAtIfNeeded might block if the Hub is busy.
+		// Create a goroutine to avoid blocking the creation of the websocket connection.
+		ps.Go(func() {
+			ps.SetStatusOnline(userID, false)
+			session := wc.GetSession()
+			if session != nil {
+				ps.UpdateLastActivityAtIfNeeded(*session)
+			}
+		})
+	}
+
+	wc.Active.Store(cfg.Active)
+
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
@@ -388,6 +393,8 @@ func (wc *WebConn) GetSession() *model.Session {
 
 // SetSession sets the session of the connection.
 func (wc *WebConn) SetSession(v *model.Session) {
+	// Clone the session first as WebConn takes ownership of the object
+	// and the web.Hub will return it to the [sync.Pool] once the WebConn gets removed.
 	if v != nil {
 		v = v.DeepCopy()
 	}
