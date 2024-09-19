@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -455,5 +456,125 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		// now we'll try updating it
+		newScheduledAtTime := model.GetMillis() + 9999999
+		createdScheduledPost.ScheduledAt = newScheduledAtTime
+		createdScheduledPost.Message = "Updated Message!!!"
+
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost)
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedScheduledPost)
+
+		require.Equal(t, newScheduledAtTime, updatedScheduledPost.ScheduledAt)
+		require.Equal(t, "Updated Message!!!", updatedScheduledPost.Message)
+	})
+
+	t.Run("should ot be allowed to updated a scheduled post not belonging to the user", func(t *testing.T) {
+		// first we'll create a scheduled post
+		userId := model.NewId()
+
+		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
+			Name:        model.NewId(),
+			DisplayName: "Channel",
+			Type:        model.ChannelTypeOpen,
+		}, 1000)
+		require.NoError(t, err)
+
+		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+
+		defer func() {
+			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
+			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
+		}()
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: channel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost)
+
+		// now we'll try updating it
+		newScheduledAtTime := model.GetMillis() + 9999999
+		createdScheduledPost.ScheduledAt = newScheduledAtTime
+		createdScheduledPost.Message = "Updated Message!!!"
+
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Nil(t, updatedScheduledPost)
+	})
+
+	t.Run("should only allow updating limited fields", func(t *testing.T) {
+		// first we'll create a scheduled post
+		userId := model.NewId()
+
+		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
+			Name:        model.NewId(),
+			DisplayName: "Channel",
+			Type:        model.ChannelTypeOpen,
+		}, 1000)
+		require.NoError(t, err)
+
+		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+
+		defer func() {
+			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
+			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
+		}()
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: channel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost)
+
+		// now we'll try updating it
+		newUpdatedAt := model.GetMillis() + 1000000
+		createdScheduledPost.UpdateAt = newUpdatedAt     // this should be overridden by the actual update time
+		createdScheduledPost.Message = "Updated Message" // this will update
+		newChannelId := model.NewId()
+		createdScheduledPost.ChannelId = newChannelId // this won't update
+		newCreateAt := model.GetMillis() + 5000000
+		createdScheduledPost.CreateAt = newCreateAt // this won't update
+		createdScheduledPost.FileIds = []string{model.NewId(), model.NewId()}
+		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
+
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost)
+
+		require.NotEqual(t, newUpdatedAt, updatedScheduledPost.UpdateAt)
+		require.Equal(t, "Updated Message", updatedScheduledPost.Message)
+		require.NotEqual(t, newChannelId, updatedScheduledPost.ChannelId)
+		require.NotEqual(t, newCreateAt, updatedScheduledPost.CreateAt)
+		require.Equal(t, 2, len(updatedScheduledPost.FileIds))
+		require.Equal(t, model.ScheduledPostErrorUnknownError, createdScheduledPost.ErrorCode)
 	})
 }

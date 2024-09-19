@@ -66,8 +66,6 @@ func (s *ScheduledPost) PreSave() {
 	}
 
 	s.ProcessedAt = 0
-	s.ErrorCode = ""
-
 	s.Draft.PreSave()
 }
 

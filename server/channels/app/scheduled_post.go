@@ -87,6 +87,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
 	}
 
-	return scheduledPost, nil
+	// TODO: add WebSocket event broadcast here. This will be done in a later PR
 
+	return scheduledPost, nil
 }
