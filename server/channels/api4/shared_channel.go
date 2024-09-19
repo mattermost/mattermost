@@ -173,7 +173,11 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	audit.AddEventParameter(auditRec, "user_id", c.AppContext.Session().UserId)
 
 	if err := c.App.InviteRemoteToChannel(c.Params.ChannelId, c.Params.RemoteId, c.AppContext.Session().UserId, true); err != nil {
-		c.Err = model.NewAppError("inviteRemoteClusterToChannel", "api.shared_channel.invite_remote_to_channel_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if appErr, ok := err.(*model.AppError); ok {
+			c.Err = appErr
+		} else {
+			c.Err = model.NewAppError("inviteRemoteClusterToChannel", "api.shared_channel.invite_remote_to_channel_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 		return
 	}
 
