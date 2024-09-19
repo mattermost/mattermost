@@ -646,6 +646,25 @@ func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, incl
 	return scheduledPosts, BuildResponse(r), nil
 }
 
+func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
+	buf, err := json.Marshal(scheduledPost)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPut(ctx, c.postsRoute()+"/schedule/"+scheduledPost.Id, string(buf))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var updatedScheduledPost ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&updatedScheduledPost); err != nil {
+		return nil, nil, NewAppError("UpdateScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &updatedScheduledPost, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }

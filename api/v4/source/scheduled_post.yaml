@@ -101,3 +101,69 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/posts/schedule/{scheduled_post_id}:
+    put:
+      tags:
+        - scheduled_post
+      summary: Update a scheduled post
+      description: >
+        Updates a scheduled post
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel the where the scheduled post belongs to.
+
+        __Minimum server version__: 10.3
+      operationId: UpdateScheduledPost
+      parameters:
+        - name: scheduled_post_id
+          in: path
+          description: ID of the scheduled post to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - channel_id
+                - user_id
+                - message
+                - scheduled_at
+              properties:
+                id:
+                  description: ID of the scheduled post to update
+                  type: string
+                channel_id:
+                  type: string
+                  description: The channel ID to post in
+                user_id:
+                  type: string
+                  description: The current user ID
+                scheduled_at:
+                  type: integer
+                  description: UNIX timestamp in milliseconds of the time when the scheduled post should be sent
+                message:
+                  type: string
+                  description: The message contents, can be formatted with Markdown
+      responses:
+        "200":
+          description: Updated scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
