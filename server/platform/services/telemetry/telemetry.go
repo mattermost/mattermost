@@ -1468,12 +1468,9 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			ts.log.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
-			// If marketplace request didn't fail, go through it
-			if err != nil {
-				for _, p := range marketplacePlugins {
-					id := p.Manifest.Id
-					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
-				}
+			for _, p := range marketplacePlugins {
+				id := p.Manifest.Id
+				pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 			}
 			for _, id := range knownPluginIDs {
 				pluginVersionStr := fmt.Sprintf("version_%s", id)
