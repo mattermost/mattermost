@@ -40,6 +40,7 @@ jobs:
             apt install -y sbcl unzip libsqlite3-dev make curl gawk freetds-dev libzip-dev && \
             git clone https://github.com/dimitri/pgloader.git && \
             cd pgloader && \
+            git checkout \$(git tag --list --sort=-v:refname "v*" | head -n1) && \
             make && \
             mv build/bin/pgloader /bin" >> dockerfile_tmp
           docker build -t $TEST_IMAGE - < dockerfile_tmp
