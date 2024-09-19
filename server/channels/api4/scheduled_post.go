@@ -92,3 +92,24 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	var scheduledPost model.ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
+		c.SetInvalidParamWithErr("schedule_post", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateScheduledPost", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+
+	hasPermissionToCreatePostInChannel := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionCreatePost)
+	if !hasPermissionToCreatePostInChannel {
+		c.SetPermissionError(model.PermissionCreatePost)
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost)
+}

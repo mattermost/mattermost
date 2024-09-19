@@ -239,3 +239,22 @@ func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) 
 		"ErrorCode":   scheduledPost.ErrorCode,
 	}
 }
+
+func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+	query := s.getQueryBuilder().
+		Select(s.columns("")...).
+		From("ScheduledPosts").
+		Where(sq.Eq{
+			"Id": scheduledPostId,
+		})
+
+	var scheduledPost *model.ScheduledPost
+
+	if err := s.GetReplicaX().SelectBuilder(&scheduledPost, query); err != nil {
+		mlog.Error("SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database", mlog.String("scheduled_post_id", scheduledPostId), mlog.Err(err))
+
+		return nil, errors.Wrapf(err, "SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database, scheduledPostId: %s", scheduledPostId)
+	}
+
+	return scheduledPost, nil
+}

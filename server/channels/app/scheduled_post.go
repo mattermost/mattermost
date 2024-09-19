@@ -58,3 +58,8 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 
 	return scheduledPosts, nil
 }
+
+func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+	// validate the scheduled post belongs to the said user
+	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
+}
