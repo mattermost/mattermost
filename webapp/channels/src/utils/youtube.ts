@@ -40,3 +40,12 @@ export function getVideoId(link: string) {
 
     return match[1];
 }
+
+export function getIsShortsVideoLink(link: string) {
+    const match = link.trim().match(ytRegex);
+    if (!match) {
+        return false;
+    }
+
+    return link.includes('/shorts/');
+}
