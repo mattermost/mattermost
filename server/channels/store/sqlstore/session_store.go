@@ -154,7 +154,8 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 			UserId = ? AND
 			ExpiresAt != 0 AND
 			? <= ExpiresAt AND
-			DeviceId != ''`
+			DeviceId != '' AND
+			DeviceId != COALESCE(Props->>'last_removed_device_id', '')`
 
 	sessions := []*model.Session{}
 
