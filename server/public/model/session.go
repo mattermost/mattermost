@@ -26,6 +26,7 @@ const (
 	SessionPropIsBotValue                 = "true"
 	SessionPropOAuthAppID                 = "oauth_app_id"
 	SessionPropMattermostAppID            = "mattermost_app_id"
+	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
 	SessionTypeUserAccessToken            = "UserAccessToken"

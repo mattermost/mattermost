@@ -531,7 +531,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
 		a.SetExtraSessionProps(session, map[string]string{
-			"last_removed_device_id": session.DeviceId,
+			model.SessionPropLastRemovedDeviceId: session.DeviceId,
 		})
 		a.ClearSessionCacheForUser(session.UserId)
 		return errors.New(notificationErrorRemoveDevice)
