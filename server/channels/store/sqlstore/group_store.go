@@ -251,6 +251,19 @@ func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*mod
 	return &group, nil
 }
 
+func (s *SqlGroupStore) GetByNames(names []string) ([]*model.Group, error) {
+	groups := []*model.Group{}
+	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Name": names})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_names_tosql")
+	}
+	if err := s.GetReplicaX().Select(&groups, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Groups by names")
+	}
+	return groups, nil
+}
+
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Id": groupIDs})
