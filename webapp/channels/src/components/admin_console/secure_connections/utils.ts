@@ -282,6 +282,10 @@ export const useSharedChannelRemotes = (remoteId: string) => {
     return [remotes, {loading, error, fetch}] as const;
 };
 
+const remoteRow = (remote: SharedChannelRemote, channel: Channel, team?: Team) => {
+    return {...remote, display_name: channel.display_name, team_display_name: team?.display_name ?? ''};
+};
+
 export type SharedChannelRemoteRow = SharedChannelRemote & Pick<Channel, 'display_name'> & {team_display_name: string};
 export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'home' | 'remote' | undefined}) => {
     const [sharedChannelRemotes, setSharedChannelRemotes] = useState<SharedChannelRemoteRow[]>();
@@ -298,9 +302,9 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
         }
 
         setLoadingState(true);
-        dispatch<ActionFuncAsync<SharedChannelRemoteRow[], GlobalState>>(async (dispatch, getState) => {
-            const collected: SharedChannelRemoteRow[] = [];
-            let missing: string[] = [];
+        dispatch<ActionFuncAsync<IDMappedObjects<SharedChannelRemoteRow>, GlobalState>>(async (dispatch, getState) => {
+            const collected: IDMappedObjects<SharedChannelRemoteRow> = {};
+            const missing: SharedChannelRemote[] = [];
 
             try {
                 const data = await Client4.getSharedChannelRemotes(remoteId, {include_unconfirmed: true, exclude_remote: opts.filter === 'home', exclude_home: opts.filter === 'remote'});
@@ -319,45 +323,43 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
                     return getChannel(state, firstNotFound.channel_id);
                 };
 
+                // first-past, get known channels or do initial load on first not-found channel
                 for (const remote of data) {
-                    let channel = getChannel(state, remote.channel_id);
+                    // eslint-disable-next-line no-await-in-loop
+                    const channel = getChannel(state, remote.channel_id) ?? await getMyChannelsOnce?.(remote);
 
                     if (!channel) {
-                        // eslint-disable-next-line no-await-in-loop
-                        channel = await getMyChannelsOnce?.(remote);
-
-                        if (!channel) {
-                            // still no channel, continue and find remaining missing channels
-                            missing?.push(remote.channel_id);
-                            break;
-                        }
+                        // collect all remotes with missing channels
+                        missing?.push(remote);
+                        continue;
                     }
 
                     const team = getTeam(state, channel.team_id);
-                    collected.push({...remote, display_name: channel.display_name, team_display_name: team?.display_name ?? ''});
+                    collected[remote.remote_id] = remoteRow(remote, channel, team);
                 }
 
+                // fetch missing channels individually
                 if (missing.length) {
-                    // fetch missing channels individually
                     // TODO: performance; consider adding sharedchannelremotes search param to api/v4/channels
-                    await Promise.allSettled(missing.map((id) => dispatch(fetchChannel(id))));
-                    missing = [];
+                    await Promise.allSettled(missing.map((remote) => dispatch(fetchChannel(remote.channel_id))));
                     state = getState();
 
-                    // resume where we left off
-                    for (const remote of data.slice(collected.length)) {
+                    for (const remote of missing) {
                         const channel = getChannel(state, remote.channel_id);
 
                         if (!channel) {
-                            missing?.push(remote.channel_id);
+                            missing?.push(remote);
                             continue;
                         }
+
                         const team = getTeam(state, channel.team_id);
-                        collected.push({...remote, display_name: channel.display_name, team_display_name: team?.display_name ?? ''});
+                        collected[remote.remote_id] = remoteRow(remote, channel, team);
                     }
                 }
 
-                setSharedChannelRemotes(collected.length ? collected : undefined);
+                const rows = Object.values(collected);
+
+                setSharedChannelRemotes(rows.length ? rows : undefined);
                 setLoadingState(false);
             } catch (error) {
                 setLoadingState(error);
