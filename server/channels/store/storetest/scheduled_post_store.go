@@ -302,6 +302,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 			ScheduledAt: newScheduledAt,
 			ErrorCode:   "test_error_code",
 			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
 				Message:   "updated message",
 				UpdateAt:  updateTimestamp,
 				UserId:    newUserId,     // this should not update
@@ -327,7 +328,6 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		assert.Equal(t, newScheduledAt, userScheduledPosts[0].ScheduledAt)
 		assert.Equal(t, "test_error_code", userScheduledPosts[0].ErrorCode)
 		assert.Equal(t, "updated message", userScheduledPosts[0].Message)
-		assert.Equal(t, updateTimestamp, userScheduledPosts[0].UpdateAt)
 		assert.Equal(t, 2, len(userScheduledPosts[0].FileIds))
 		assert.Equal(t, "urgent", userScheduledPosts[0].Priority["priority"])
 		assert.Equal(t, false, userScheduledPosts[0].Priority["requested_ack"])

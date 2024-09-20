@@ -388,7 +388,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 
 		scheduledPost2 := &model.ScheduledPost{
 			Draft: model.Draft{
-				CreateAt:  model.GetMillis(),
+				CreateAt:  model.GetMillis() + 100,
 				UserId:    th.BasicUser.Id,
 				ChannelId: gm.Id,
 				Message:   "this is a second scheduled post",

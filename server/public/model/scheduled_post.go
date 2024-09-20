@@ -70,7 +70,15 @@ func (s *ScheduledPost) PreSave() {
 		s.Id = NewId()
 	}
 
+	s.ProcessedAt = 0
+	s.ErrorCode = ""
+
 	s.Draft.PreSave()
+}
+
+func (s *ScheduledPost) PreUpdate() {
+	s.Draft.UpdateAt = GetMillis()
+	s.Draft.PreCommit()
 }
 
 // ToPost converts a scheduled post toa  regular, mattermost post object.

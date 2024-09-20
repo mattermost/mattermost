@@ -60,7 +60,7 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 }
 
 func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
-	scheduledPost.PreSave()
+	scheduledPost.PreUpdate()
 	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
 		return nil, validationErr
 	}

@@ -206,7 +206,7 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 }
 
 func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
-	scheduledPost.PreSave()
+	scheduledPost.PreUpdate()
 	maxMessageSize := s.getMaxMessageSize()
 	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
 		return errors.Wrap(err, "failed to validate scheduled post")
