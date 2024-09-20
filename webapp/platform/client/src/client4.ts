@@ -4343,6 +4343,13 @@ export default class Client4 {
             {method: 'put', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
         );
     };
+
+    deleteScheduledPost = (schedulePostId: string, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule/${schedulePostId}`,
+            {method: 'delete', headers: {'Connection-Id': connectionId}},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {
