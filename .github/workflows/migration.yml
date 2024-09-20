@@ -37,7 +37,7 @@ jobs:
           PGLOADER_IMAGE: ghcr.io/dimitri/pgloader:latest
         run: |
           docker build -t $TEST_IMAGE - <<EOF
-          FROM $PGLOADER_IMAGE
+          FROM $PGLOADER_IMAGE AS pgloader
           FROM $BUILD_IMAGE
           COPY --from=pgloader /usr/local/bin/pgloader /usr/local/bin/pgloader
           EOF
