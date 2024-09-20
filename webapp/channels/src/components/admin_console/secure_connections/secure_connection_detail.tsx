@@ -212,6 +212,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
     const [data, {loading, fetch}] = useSharedChannelRemoteRows(props.remoteId, {filter});
     const {promptAdd} = useSharedChannelsAdd(props.remoteId);
     const confirmed = props.rc ? isConfirmed(props.rc) : undefined;
+    const showTabs = confirmed ? true : !(confirmed === false && filter === 'home' && !data);
 
     useEffect(() => {
         //once we know confirmation status, set default filter/tab
@@ -283,7 +284,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                 </AddChannelsButton>
             </SectionHeader>
             <TabsWrapper>
-                {confirmed && (
+                {showTabs && (
                     <Tabs
                         id='shared-channels'
                         className='tabs'
@@ -307,7 +308,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                         />
                     </Tabs>
                 )}
-                <SectionContent>
+                <SectionContent $compact={Boolean(data)}>
                     {content}
                 </SectionContent>
             </TabsWrapper>

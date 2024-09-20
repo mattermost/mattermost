@@ -237,7 +237,7 @@ export const getCreateLocation = (): LocationDescriptor<RemoteCluster> => {
 };
 
 const SiteURLPendingPrefix = 'pending_';
-export const isConfirmed = (rc: RemoteCluster) => rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix);
+export const isConfirmed = (rc: RemoteCluster) => Boolean(rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix));
 export const isConnected = (rc: RemoteCluster) => Interval.before(DateTime.now(), {minutes: 5}).contains(DateTime.fromMillis(rc.last_ping_at));
 
 export type TLoadingState<TError extends Error = ClientError> = boolean | TError;
