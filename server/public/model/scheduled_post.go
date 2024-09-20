@@ -19,6 +19,11 @@ const (
 	ScheduledPostErrorThreadDeleted           = "thread_deleted"
 )
 
+// allow scheduled posts to be created up to
+// this much time in the past. While this ir primarily added for reliable test cases,
+// it also helps with flaky and slow network connection between the client and the server,
+const scheduledPostMaxTimeGap = -5000
+
 type ScheduledPost struct {
 	Draft
 	Id          string `json:"id"`
@@ -49,7 +54,7 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.empty_post.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
-	if s.ScheduledAt < GetMillis() {
+	if (s.ScheduledAt - GetMillis()) < scheduledPostMaxTimeGap {
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.scheduled_at.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
@@ -65,7 +70,6 @@ func (s *ScheduledPost) PreSave() {
 		s.Id = NewId()
 	}
 
-	s.ProcessedAt = 0
 	s.Draft.PreSave()
 }
 

@@ -295,6 +295,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		fileID2 := model.NewId()
 
 		newScheduledAt := model.GetMillis() + 500000
+		newUserId := model.NewId()
 
 		updateSchedulePost := &model.ScheduledPost{
 			Id:          createdScheduledPost.Id,
@@ -303,7 +304,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 			Draft: model.Draft{
 				Message:   "updated message",
 				UpdateAt:  updateTimestamp,
-				UserId:    "new_user_id", // this should not update
+				UserId:    newUserId,     // this should not update
 				ChannelId: model.NewId(), // this should not update
 				FileIds:   []string{fileID1, fileID2},
 				Priority: model.StringInterface{
