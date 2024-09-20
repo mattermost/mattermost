@@ -340,6 +340,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+	// Hardcoding this to LRU because of the volume of SCAN calls in case of Redis.
 	if localCacheStore.profilesInChannelCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
@@ -450,7 +451,10 @@ func (s LocalCacheStore) DropAllTables() {
 }
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string, props map[string]string) {
-	cache.Remove(key)
+	err := cache.Remove(key)
+	if err != nil {
+		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
 	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
@@ -464,20 +468,46 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 	}
 }
 
-func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
-	cache.SetWithDefaultExpiry(key, value)
+func (s *LocalCacheStore) doMultiInvalidateCacheCluster(cache cache.Cache, keys []string, props map[string]string) {
+	err := cache.RemoveMulti(keys)
+	if err != nil {
+		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+		for _, key := range keys {
+			msg := &model.ClusterMessage{
+				Event:    cache.GetInvalidateClusterEvent(),
+				SendType: model.ClusterSendBestEffort,
+				Data:     []byte(key),
+			}
+			if props != nil {
+				msg.Props = props
+			}
+			s.cluster.SendClusterMessage(msg)
+		}
+	}
 }
 
-func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value any) error {
-	err := cache.Get(key, value)
+func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
+	err := cache.SetWithDefaultExpiry(key, value)
+	if err != nil {
+		s.logger.Warn("Error while setting cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+}
+
+func (s *LocalCacheStore) doStandardReadCache(c cache.Cache, key string, value any) error {
+	err := c.Get(key, value)
 	if err == nil {
 		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter(cache.Name())
+			s.metrics.IncrementMemCacheHitCounter(c.Name())
 		}
 		return nil
 	}
+	if err != cache.ErrKeyNotFound {
+		s.logger.Warn("Error while reading from cache", mlog.Err(err), mlog.String("cache_name", c.Name()))
+	}
 	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter(cache.Name())
+		s.metrics.IncrementMemCacheMissCounter(c.Name())
 	}
 	return err
 }
@@ -496,8 +526,25 @@ func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, val
 	return errs
 }
 
+func (s *LocalCacheStore) doIncrementCache(cache cache.ExternalCache, key string, val int) {
+	err := cache.Increment(key, val)
+	if err != nil {
+		s.logger.Warn("Error while incrementing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+}
+
+func (s *LocalCacheStore) doDecrementCache(cache cache.ExternalCache, key string, val int) {
+	err := cache.Decrement(key, val)
+	if err != nil {
+		s.logger.Warn("Error while decrementing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+}
+
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
-	cache.Purge()
+	err := cache.Purge()
+	if err != nil {
+		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
 	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),

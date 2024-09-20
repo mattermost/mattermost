@@ -76,22 +76,41 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
-	// TODO: use scan here
-	keys, err := s.rootStore.profilesInChannelCache.Keys()
-	if err == nil {
-		for _, key := range keys {
-			// TODO: use MGET here on batches of keys
-			var userMap map[string]*model.User
-			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
-				if _, userInCache := userMap[userId]; userInCache {
-					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key, nil)
-					if s.rootStore.metrics != nil {
-						s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.profilesInChannelCache.Name())
-					}
+	var toDelete []string
+	err := s.rootStore.profilesInChannelCache.Scan(func(keys []string) error {
+		if len(keys) == 0 {
+			return nil
+		}
+
+		toPass := make([]any, 0, len(keys))
+		for i := 0; i < len(keys); i++ {
+			var userMap model.UserMap
+			toPass = append(toPass, &userMap)
+		}
+		errs := s.rootStore.doMultiReadCache(s.rootStore.profilesInChannelCache, keys, toPass)
+		for i, err := range errs {
+			if err != nil {
+				if err != cache.ErrKeyNotFound {
+					return err
 				}
+				continue
+			}
+			gotMap := *(toPass[i].(*model.UserMap))
+			if gotMap == nil {
+				s.rootStore.logger.Warn("Found nil userMap in InvalidateProfilesInChannelCacheByUser. This is not expected")
+				continue
+			}
+			if _, ok := gotMap[userId]; ok {
+				toDelete = append(toDelete, keys[i])
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		s.rootStore.logger.Warn("Error while scanning in InvalidateProfilesInChannelCacheByUser", mlog.Err(err))
+		return
 	}
+	s.rootStore.doMultiInvalidateCacheCluster(s.rootStore.profilesInChannelCache, toDelete, nil)
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string) {
@@ -127,7 +146,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
-		var cachedMap map[string]*model.User
+		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
 			return cachedMap, nil
 		}

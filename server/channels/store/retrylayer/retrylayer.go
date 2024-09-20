@@ -8951,11 +8951,11 @@ func (s *RetryLayerRemoteClusterStore) Delete(remoteClusterId string) (bool, err
 
 }
 
-func (s *RetryLayerRemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster, error) {
+func (s *RetryLayerRemoteClusterStore) Get(remoteClusterId string, includeDeleted bool) (*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.RemoteClusterStore.Get(remoteClusterId)
+		result, err := s.RemoteClusterStore.Get(remoteClusterId, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -10442,11 +10442,11 @@ func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteId string, userId 
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+func (s *RetryLayerSharedChannelStore) GetRemotes(offset int, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetRemotes(opts)
+		result, err := s.SharedChannelStore.GetRemotes(offset, limit, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -12407,6 +12407,27 @@ func (s *RetryLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadM
 
 }
 
+func (s *RetryLayerThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadMembershipsForExport(postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
 
 	tries := 0
@@ -12554,6 +12575,27 @@ func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string,
 
 }
 
+func (s *RetryLayerThreadStore) MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.MaintainMultipleFromImport(memberships)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) MarkAllAsRead(userID string, threadIds []string) error {
 
 	tries := 0
@@ -12674,6 +12716,27 @@ func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.SaveMultipleMemberships(memberships)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -13508,6 +13571,27 @@ func (s *RetryLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 
 }
 
+func (s *RetryLayerUserStore) GetMfaUsedTimestamps(userID string) ([]int, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetMfaUsedTimestamps(userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
@@ -14282,6 +14366,27 @@ func (s *RetryLayerUserStore) SearchWithoutTeam(term string, options *model.User
 
 }
 
+func (s *RetryLayerUserStore) StoreMfaUsedTimestamps(userID string, ts []int) error {
+
+	tries := 0
+	for {
+		err := s.UserStore.StoreMfaUsedTimestamps(userID, ts)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 
 	tries := 0
@@ -14786,11 +14891,11 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 
 }
 
-func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamID string) (int64, error) {
+func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamID string, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.WebhookStore.AnalyticsIncomingCount(teamID)
+		result, err := s.WebhookStore.AnalyticsIncomingCount(teamID, userID)
 		if err == nil {
 			return result, nil
 		}

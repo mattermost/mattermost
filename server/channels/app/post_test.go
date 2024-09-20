@@ -757,7 +757,6 @@ func TestMaxPostSize(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
@@ -1767,6 +1766,48 @@ func TestSearchPostsForUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
 		es.AssertExpectations(t)
+	})
+
+	t.Run("should return the same results if there is a tilde in the channel name", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		searchQueryWithPrefix := fmt.Sprintf("in:~%s %s", th.BasicChannel.Name, searchTerm)
+
+		resultsWithPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Greater(t, len(resultsWithPrefix.PostList.Posts), 0, "searching using a tilde in front of a channel should return results")
+		searchQueryWithoutPrefix := fmt.Sprintf("in:%s %s", th.BasicChannel.Name, searchTerm)
+
+		resultsWithoutPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Equal(t, len(resultsWithPrefix.Posts), len(resultsWithoutPrefix.Posts), "searching using a tilde in front of a channel should return the same number of results")
+		for k, v := range resultsWithPrefix.Posts {
+			assert.Equal(t, v, resultsWithoutPrefix.Posts[k], "post at %s was different", k)
+		}
+	})
+
+	t.Run("should return the same results if there is an 'at' in the user", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		searchQueryWithPrefix := fmt.Sprintf("from:@%s %s", th.BasicUser.Username, searchTerm)
+
+		resultsWithPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Greater(t, len(resultsWithPrefix.PostList.Posts), 0, "searching using a 'at' symbol in front of a channel should return results")
+		searchQueryWithoutPrefix := fmt.Sprintf("from:@%s %s", th.BasicUser.Username, searchTerm)
+
+		resultsWithoutPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Equal(t, len(resultsWithPrefix.Posts), len(resultsWithoutPrefix.Posts), "searching using an 'at' symbol in front of a channel should return the same number of results")
+		for k, v := range resultsWithPrefix.Posts {
+			assert.Equal(t, v, resultsWithoutPrefix.Posts[k], "post at %s was different", k)
+		}
 	})
 }
 

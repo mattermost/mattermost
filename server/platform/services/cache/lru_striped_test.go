@@ -41,11 +41,15 @@ func TestNewLRUStriped(t *testing.T) {
 func TestLRUStripedKeyDistribution(t *testing.T) {
 	dataset := makeLRUPredictableTestData(100)
 
-	scache, err := NewLRUStriped(&CacheOptions{StripedBuckets: 4, Size: len(dataset)})
+	scache, err := NewLRUStriped(&CacheOptions{
+		StripedBuckets: 4,
+		Size:           len(dataset),
+		DefaultExpiry:  0,
+	})
 	require.NoError(t, err)
 	cache := scache.(LRUStriped)
 	for _, kv := range dataset {
-		require.NoError(t, cache.Set(kv[0], kv[1]))
+		require.NoError(t, cache.SetWithDefaultExpiry(kv[0], kv[1]))
 		var out string
 		require.NoError(t, cache.Get(kv[0], &out))
 		require.Equal(t, kv[1], out)
@@ -87,13 +91,17 @@ func TestLRUStriped_HashKey(t *testing.T) {
 }
 
 func TestLRUStriped_Get(t *testing.T) {
-	cache, err := NewLRUStriped(&CacheOptions{StripedBuckets: 4, Size: 128})
+	cache, err := NewLRUStriped(&CacheOptions{
+		StripedBuckets: 4,
+		Size:           128,
+		DefaultExpiry:  0,
+	})
 	require.NoError(t, err)
 	var out string
 	require.Equal(t, ErrKeyNotFound, cache.Get("key", &out))
 	require.Zero(t, out)
 
-	require.NoError(t, cache.Set("key", "value"))
+	require.NoError(t, cache.SetWithDefaultExpiry("key", "value"))
 	require.NoError(t, cache.Get("key", &out))
 	require.Equal(t, "value", out)
 }

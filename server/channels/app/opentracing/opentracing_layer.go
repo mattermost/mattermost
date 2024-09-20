@@ -7242,6 +7242,28 @@ func (a *OpenTracingAppLayer) GetIncomingWebhook(hookID string) (*model.Incoming
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetIncomingWebhooksCount(teamID string, userID string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksCount")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetIncomingWebhooksCount(teamID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetIncomingWebhooksForTeamPage(teamID string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksForTeamPage")
@@ -9104,7 +9126,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(rctx request.CTX
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteCluster")
 
@@ -9116,7 +9138,7 @@ func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.R
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRemoteCluster(remoteClusterId)
+	resultVar0, resultVar1 := a.app.GetRemoteCluster(remoteClusterId, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9744,7 +9766,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemoteByIds(channelID string, remo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+func (a *OpenTracingAppLayer) GetSharedChannelRemotes(page int, perPage int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannelRemotes")
 
@@ -9756,7 +9778,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemotes(opts model.SharedChannelRe
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSharedChannelRemotes(opts)
+	resultVar0, resultVar1 := a.app.GetSharedChannelRemotes(page, perPage, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15313,6 +15335,21 @@ func (a *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*mode
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SanitizedConfig(cfg *model.Config) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizedConfig")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SanitizedConfig(cfg)
+}
+
 func (a *OpenTracingAppLayer) SaveAcknowledgementForPost(c request.CTX, postID string, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAcknowledgementForPost")
@@ -15377,6 +15414,21 @@ func (a *OpenTracingAppLayer) SaveAdminNotifyData(data *model.NotifyAdminData) (
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SaveAndBroadcastStatus(status *model.Status) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAndBroadcastStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SaveAndBroadcastStatus(status)
 }
 
 func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError {
@@ -16723,6 +16775,28 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(c request.CTX, user *model.
 
 	defer span.Finish()
 	resultVar0 := a.app.SetDefaultProfileImage(c, user)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetExtraSessionProps")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SetExtraSessionProps(session, newProps)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

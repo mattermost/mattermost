@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -116,7 +117,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
 		Store:               sc.Store,
-		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
 		goroutineExitSignal: make(chan struct{}, 1),
@@ -135,6 +135,13 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
+
+	// Apply options, some of the options overrides the default config actually.
+	for _, option := range options {
+		if err2 := option(ps); err2 != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err2)
+		}
+	}
 
 	// the config store is not set, we need to create a new one
 	if ps.configStore == nil {
@@ -162,6 +169,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				RedisAddr:     *cacheConfig.RedisAddress,
 				RedisPassword: *cacheConfig.RedisPassword,
 				RedisDB:       *cacheConfig.RedisDB,
+				DisableCache:  *cacheConfig.DisableClientCache,
 			},
 		)
 	}
@@ -174,13 +182,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	res, err := ps.cacheProvider.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
-	}
-
-	// Apply options, some of the options overrides the default config actually.
-	for _, option := range options {
-		if err2 := option(ps); err2 != nil {
-			return nil, fmt.Errorf("failed to apply option: %w", err2)
-		}
 	}
 
 	// Step 2: Start logging.
@@ -292,12 +293,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
 
+	// Note: we hardcode the session and status cache to LRU because they lead
+	// to a lot of SCAN calls in case of Redis. We could potentially have a
+	// reverse mapping to avoid the scan, but this needs more complicated code.
+	// Leaving this for now.
+
 	// Needed before loading license
 	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)

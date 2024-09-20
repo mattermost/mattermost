@@ -626,7 +626,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <div className='setting-list__hint pb-3'>
                             <FormattedMessage
                                 id='user.settings.general.emailOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through Entra ID. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -735,7 +735,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.general.loginOffice365'
-                    defaultMessage='Login done through Office 365 ({email})'
+                    defaultMessage='Login done through Entra ID ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}

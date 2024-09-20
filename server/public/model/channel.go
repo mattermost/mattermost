@@ -122,7 +122,7 @@ type ChannelForExport struct {
 
 type DirectChannelForExport struct {
 	Channel
-	Members *[]string
+	Members []*ChannelMemberForExport
 }
 
 type ChannelModeration struct {
@@ -354,6 +354,15 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	return otherUserId
+}
+
+func (o *Channel) Sanitize() Channel {
+	return Channel{
+		Id:          o.Id,
+		TeamId:      o.TeamId,
+		Type:        o.Type,
+		DisplayName: o.DisplayName,
+	}
 }
 
 func (t ChannelType) MarshalJSON() ([]byte, error) {
