@@ -82,7 +82,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			return nil
 		}
 
-		toPass := getCacheTargets[model.UserMap](len(keys))
+		toPass := allocateCacheTargets[model.UserMap](len(keys))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.profilesInChannelCache, keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -173,7 +173,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	remainingUserIds := make([]string, 0)
 
 	fromMaster := false
-	toPass := getCacheTargets[*model.User](len(userIds))
+	toPass := allocateCacheTargets[*model.User](len(userIds))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, userIds, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -255,7 +255,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	uniqIDs := dedup(ids)
 
 	fromMaster := false
-	toPass := getCacheTargets[*model.User](len(uniqIDs))
+	toPass := allocateCacheTargets[*model.User](len(uniqIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, uniqIDs, toPass)
 	for i, err := range errs {
 		if err != nil {

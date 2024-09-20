@@ -60,7 +60,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 
 		// This always needs to be model.Session, not *model.Session.
 		// Otherwise the msp unmarshaler will fail to work.
-		toPass := getCacheTargets[model.Session](len(keys))
+		toPass := allocateCacheTargets[model.Session](len(keys))
 		errs := ps.sessionCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {

@@ -566,13 +566,12 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.rolePermissionsCache)
 }
 
-// getCacheTargets is used to fill target value types
+// allocateCacheTargets is used to fill target value types
 // for getting items from cache.
-func getCacheTargets[T any](l int) []any {
+func allocateCacheTargets[T any](l int) []any {
 	toPass := make([]any, 0, l)
 	for i := 0; i < l; i++ {
-		var target T
-		toPass = append(toPass, &target)
+		toPass = append(toPass, new(T))
 	}
 	return toPass
 }
