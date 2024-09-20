@@ -374,21 +374,6 @@ export function getChannel(channelId: string): ActionFuncAsync<Channel> {
     };
 }
 
-export function getChannelIfNeeded(channelId: string): ActionFuncAsync<Channel> {
-    return async (...props) => {
-        const [, getState] = props;
-        const state = getState();
-
-        const channel = getChannelSelector(state, channelId);
-
-        if (channel) {
-            return {data: channel};
-        }
-
-        return getChannel(channelId)(...props);
-    };
-}
-
 export function getChannelAndMyMember(channelId: string): ActionFuncAsync<{channel: Channel; member: ChannelMembership}> {
     return async (dispatch, getState) => {
         let channel;
