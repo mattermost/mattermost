@@ -13,7 +13,8 @@ import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import * as Menu from 'components/menu';
 
 import {ConnectionStatusLabel} from './controls';
-import {getEditLocation, useRemoteClusterDelete, useRemoteClusterCreateInvite} from './utils';
+import {useRemoteClusterCreateInvite, useRemoteClusterDelete} from './modals/modal_utils';
+import {getEditLocation} from './utils';
 
 type Props = {
     remoteCluster: RemoteCluster;

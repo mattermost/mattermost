@@ -13,7 +13,7 @@ import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import Input from 'components/widgets/inputs/input/input';
 
-import {Button, ModalFieldset, ModalNoticeWrapper, ModalParagraph} from './controls';
+import {Button, ModalFieldset, ModalNoticeWrapper, ModalParagraph} from '../controls';
 
 type Props = {
     creating?: boolean;

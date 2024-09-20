@@ -187,7 +187,7 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
                     }
 
                     const team = getTeam(state, channel.team_id);
-                    collected[remote.remote_id] = remoteRow(remote, channel, team);
+                    collected[remote.id] = remoteRow(remote, channel, team);
                 }
 
                 // fetch missing channels individually
@@ -204,7 +204,7 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
                         }
 
                         const team = getTeam(state, channel.team_id);
-                        collected[remote.remote_id] = remoteRow(remote, channel, team);
+                        collected[remote.id] = remoteRow(remote, channel, team);
                     }
                 }
 

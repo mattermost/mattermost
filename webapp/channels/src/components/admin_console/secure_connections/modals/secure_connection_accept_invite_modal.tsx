@@ -12,8 +12,8 @@ import type {PartialExcept} from '@mattermost/types/utilities';
 import LoadingScreen from 'components/loading_screen';
 import Input from 'components/widgets/inputs/input/input';
 
-import {ModalFieldset, ModalParagraph} from './controls';
-import {isErrorState, isPendingState} from './utils';
+import {ModalFieldset, ModalParagraph} from '../controls';
+import {isErrorState, isPendingState} from '../utils';
 
 type Props = {
     creating?: boolean;
