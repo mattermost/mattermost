@@ -22,9 +22,7 @@ func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
 			delete(session.Props, k) // clear is only available in go 1.21
 		}
 		// Also clear the team members slice to avoid a similar race condition.
-		for i := 0; i < len(session.TeamMembers); i++ {
-			session.TeamMembers[i] = nil
-		}
+		session.TeamMembers = session.TeamMembers[:0]
 		ps.sessionPool.Put(session)
 	}
 }
