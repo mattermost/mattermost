@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cn from 'classnames';
+import classNames from 'classnames';
 import React from 'react';
 
 import {ArrowCollapseIcon, ArrowExpandIcon} from '@mattermost/compass-icons/components';
@@ -137,7 +137,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 <div>
                     {header}
                     <div
-                        className={cn('video-div', 'embed-responsive-item', this.state.shortsExpanded ? 'video-shorts-expanded' : (isShorts && 'video-shorts'))}
+                        className={classNames('video-div', 'embed-responsive-item', this.state.shortsExpanded ? 'video-shorts-expanded' : (isShorts && 'video-shorts'))}
                         onClick={this.play}
                     >
                         {content}
