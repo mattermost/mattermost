@@ -44,9 +44,10 @@ import {
     ConnectionStatusLabel,
     LinkButton,
 } from './controls';
+import {useRemoteClusterCreate, useSharedChannelsAdd, useSharedChannelsRemove} from './modals/modal_utils';
 import TeamSelector from './team_selector';
 import type {SharedChannelRemoteRow} from './utils';
-import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterCreate, useRemoteClusterEdit, useSharedChannelRemoteRows, useSharedChannelsAdd, useSharedChannelsRemove} from './utils';
+import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows} from './utils';
 
 import {AdminConsoleListTable} from '../list_table';
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';

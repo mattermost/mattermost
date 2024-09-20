@@ -14,8 +14,9 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import BuildingSvg from './building.svg';
 import {AdminSection, SectionHeader, SectionHeading, SectionContent, PlaceholderContainer, PlaceholderHeading} from './controls';
+import {useRemoteClusterAcceptInvite} from './modals/modal_utils';
 import SecureConnectionRow from './secure_connection_row';
-import {getCreateLocation, getEditLocation, useRemoteClusterAcceptInvite, useRemoteClusters} from './utils';
+import {getCreateLocation, getEditLocation, useRemoteClusters} from './utils';
 
 import type {SearchableStrings} from '../types';
 

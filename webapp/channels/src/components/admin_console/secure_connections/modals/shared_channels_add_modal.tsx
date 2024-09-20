@@ -24,9 +24,10 @@ import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import {ModalBody, ModalParagraph} from './controls';
-import type {SharedChannelsAddResult} from './utils';
-import {useSharedChannelRemotes} from './utils';
+import type {SharedChannelsAddResult} from './modal_utils';
+
+import {ModalBody, ModalParagraph} from '../controls';
+import {useSharedChannelRemotes} from '../utils';
 
 type Props = {
     onConfirm: (channels: Channel[]) => Promise<SharedChannelsAddResult>;

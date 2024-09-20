@@ -8,11 +8,10 @@ import {useDispatch} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
-import type {StatusOK} from '@mattermost/types/client4';
-import type {ServerError} from '@mattermost/types/errors';
-import {isRemoteClusterPatch, type RemoteCluster, type RemoteClusterAcceptInvite, type RemoteClusterPatch} from '@mattermost/types/remote_clusters';
+import {isRemoteClusterPatch, type RemoteCluster, type RemoteClusterPatch} from '@mattermost/types/remote_clusters';
 import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
-import type {PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {ChannelTypes} from 'mattermost-redux/action_types';
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
@@ -21,18 +20,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {openModal} from 'actions/views/modals';
-
-import {ModalIdentifiers} from 'utils/constants';
-import {cleanUpUrlable} from 'utils/url';
-
 import type {GlobalState} from 'types/store';
-
-import SecureConnectionAcceptInviteModal from './secure_connection_accept_invite_modal';
-import SecureConnectionCreateInviteModal from './secure_connection_create_invite_modal';
-import SecureConnectionDeleteModal from './secure_connection_delete_modal';
-import SharedChannelsAddModal from './shared_channels_add_modal';
-import SharedChannelsRemoveModal from './shared_channels_remove_modal';
 
 export const useRemoteClusters = () => {
     const [remoteClusters, setRemoteClusters] = useState<RemoteCluster[]>();
@@ -114,142 +102,6 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
             patch,
         },
     ] as const;
-};
-
-const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~_!@-#$^';
-const makePassword = () => {
-    return Array.from(window.crypto.getRandomValues(new Uint32Array(16))).
-        map((n) => chars[n % chars.length]).
-        join('');
-};
-
-export const useRemoteClusterCreate = () => {
-    const dispatch = useDispatch();
-    const [saving, setSaving] = useState<TLoadingState>(false);
-
-    const promptCreate = (patch: RemoteClusterPatch) => {
-        return new Promise<RemoteCluster | undefined>((resolve, reject) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE,
-                dialogType: SecureConnectionCreateInviteModal,
-                dialogProps: {
-                    creating: true,
-                    password: makePassword(),
-                    onConfirm: async (password: string) => {
-                        try {
-                            setSaving(true);
-                            const response = await Client4.createRemoteCluster({
-                                ...patch,
-                                name: cleanUpUrlable(patch.display_name),
-                                password,
-                            });
-                            setSaving(false);
-
-                            if (response) {
-                                const {invite, remote_cluster: remoteCluster} = response;
-
-                                resolve(remoteCluster);
-                                return {remoteCluster, share: {invite, password}};
-                            }
-                        } catch (err) {
-                            // handle create error
-                            reject(err);
-                        }
-                        setSaving(false);
-                        return undefined;
-                    },
-                },
-            }));
-        });
-    };
-
-    return {promptCreate, saving};
-};
-
-export const useRemoteClusterCreateInvite = (remoteCluster: RemoteCluster) => {
-    const dispatch = useDispatch();
-    const [saving, setSaving] = useState<TLoadingState>(false);
-
-    const promptCreateInvite = () => {
-        return new Promise<RemoteCluster>((resolve, reject) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE,
-                dialogType: SecureConnectionCreateInviteModal,
-                dialogProps: {
-                    password: makePassword(),
-                    onConfirm: async (password: string) => {
-                        try {
-                            setSaving(true);
-                            const invite = await Client4.generateInviteRemoteCluster(remoteCluster.remote_id, {password});
-                            setSaving(false);
-                            resolve(remoteCluster);
-                            return {remoteCluster, share: {invite, password}};
-                        } catch (err) {
-                            // handle create error
-                            reject(err);
-                        }
-                        setSaving(false);
-                        return undefined;
-                    },
-                },
-            }));
-        });
-    };
-
-    return {promptCreateInvite, saving} as const;
-};
-
-export const useRemoteClusterAcceptInvite = () => {
-    const dispatch = useDispatch();
-    const [saving, setSaving] = useState<TLoadingState>(false);
-
-    const promptAcceptInvite = () => {
-        return new Promise<RemoteCluster>((resolve, reject) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE,
-                dialogType: SecureConnectionAcceptInviteModal,
-                dialogProps: {
-                    onConfirm: async (acceptInvite: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'invite' | 'password'>) => {
-                        try {
-                            setSaving(true);
-                            const rc = await Client4.acceptInviteRemoteCluster({
-                                ...acceptInvite,
-                                name: cleanUpUrlable(acceptInvite.display_name),
-                            });
-                            setSaving(false);
-                            resolve(rc);
-                            return rc;
-                        } catch (err) {
-                            // handle create error
-                            reject(err);
-                            setSaving(err);
-                            throw (err);
-                        }
-                    },
-                },
-            }));
-        });
-    };
-
-    return {promptAcceptInvite, saving} as const;
-};
-
-export const useRemoteClusterDelete = (rc: RemoteCluster) => {
-    const dispatch = useDispatch();
-    const promptDelete = () => {
-        return new Promise((resolve, reject) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.SECURE_CONNECTION_DELETE,
-                dialogType: SecureConnectionDeleteModal,
-                dialogProps: {
-                    displayName: rc.display_name,
-                    onConfirm: () => Client4.deleteRemoteCluster(rc.remote_id).then(resolve, reject),
-                },
-            }));
-        });
-    };
-
-    return {promptDelete} as const;
 };
 
 export const useSharedChannelRemotes = (remoteId: string) => {
@@ -348,7 +200,6 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
                         const channel = getChannel(state, remote.channel_id);
 
                         if (!channel) {
-                            missing?.push(remote);
                             continue;
                         }
 
@@ -377,60 +228,6 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
     return [sharedChannelRemotes, {loading, error, fetch}] as const;
 };
 
-export const useSharedChannelsRemove = (remoteId: string) => {
-    const dispatch = useDispatch();
-    const promptRemove = (channelId: string) => {
-        return new Promise((resolve, reject) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.SHARED_CHANNEL_REMOTE_UNINVITE,
-                dialogType: SharedChannelsRemoveModal,
-                dialogProps: {
-                    onConfirm: () => Client4.sharedChannelRemoteUninvite(remoteId, channelId).then(resolve, reject),
-                },
-            }));
-        });
-    };
-
-    return {promptRemove};
-};
-
-export type SharedChannelsAddResult = {
-    data: {[channel_id: string]: PromiseSettledResult<StatusOK>};
-    errors: {[channel_id: string]: ServerError};
-}
-export const useSharedChannelsAdd = (remoteId: string) => {
-    const dispatch = useDispatch();
-    const promptAdd = () => {
-        return new Promise((resolve) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.SHARED_CHANNEL_REMOTE_INVITE,
-                dialogType: SharedChannelsAddModal,
-                dialogProps: {
-                    remoteId,
-                    onConfirm: async (channels: Channel[]) => {
-                        const result: SharedChannelsAddResult = {data: {}, errors: {}};
-                        const {data, errors} = result;
-
-                        const requests = channels.map(({id}) => Client4.sharedChannelRemoteInvite(remoteId, id));
-                        (await Promise.allSettled(requests)).forEach((r, i) => {
-                            if (r.status === 'rejected' && r.reason.server_error_id) {
-                                errors[channels[i].id] = r.reason;
-                            } else if (r.status === 'fulfilled') {
-                                data[channels[i].id] = r;
-                            }
-                        });
-
-                        resolve(result);
-                        return result;
-                    },
-                },
-            }));
-        });
-    };
-
-    return {promptAdd};
-};
-
 export const getEditLocation = (rc: RemoteCluster): LocationDescriptor<RemoteCluster> => {
     return {pathname: `/admin_console/environment/secure_connections/${rc.remote_id}`, state: rc};
 };
@@ -443,8 +240,7 @@ const SiteURLPendingPrefix = 'pending_';
 export const isConfirmed = (rc: RemoteCluster) => rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix);
 export const isConnected = (rc: RemoteCluster) => Interval.before(DateTime.now(), {minutes: 5}).contains(DateTime.fromMillis(rc.last_ping_at));
 
-type TLoadingState<TError extends Error = ClientError> = boolean | TError;
-
+export type TLoadingState<TError extends Error = ClientError> = boolean | TError;
 export const isPendingState = <T extends Error>(loadingState: TLoadingState<T>) => loadingState === true;
 export const isErrorState = <T extends Error>(loadingState: TLoadingState<T>): loadingState is T => loadingState instanceof Error;
 

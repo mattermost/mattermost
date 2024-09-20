@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import {ModalBody, ModalParagraph} from './controls';
+import {ModalBody, ModalParagraph} from '../controls';
 
 type Props = {
     onConfirm: () => void;
