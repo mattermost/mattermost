@@ -280,9 +280,17 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
             classes += ' combined';
         }
         const additionalValuesProp = additionalValues?.[id] ? additionalValues[id] : undefined;
-
         const name = groupRolesStrings[id] ? <FormattedMessage {...groupRolesStrings[id].name}/> : id;
-        const description = groupRolesStrings[id] ? <FormattedMessage {...groupRolesStrings[id].description}/> : '';
+        let description: React.JSX.Element | string = '';
+        if (groupRolesStrings[id]) {
+            description = (
+                <FormattedMessage
+                    id={groupRolesStrings[id].description.id}
+                    defaultMessage={groupRolesStrings[id].description.defaultMessage}
+                    values={additionalValuesProp}
+                />
+            );
+        }
 
         return (
             <div className='permission-group'>

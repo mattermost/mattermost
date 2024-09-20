@@ -151,10 +151,12 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
 	configStore.Set(memoryConfig)
 
-	ps, err := New(ServiceConfig{
-		ConfigStore: configStore,
-		Store:       dbStore,
-	}, options...)
+	options = append(options, ConfigStore(configStore))
+
+	ps, err := New(
+		ServiceConfig{
+			Store: dbStore,
+		}, options...)
 	if err != nil {
 		panic(err)
 	}
@@ -264,7 +266,7 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewBool(v)
+		channel.Shared = model.NewPointer(v)
 	}
 }
 

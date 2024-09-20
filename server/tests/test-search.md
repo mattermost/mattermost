@@ -11,7 +11,7 @@ This post is used by the core team to test search. It should be returned for the
 您好吗  
 您好  
 **Email search:** person@domain.org  
-**Link search:** www.dropbox.com  
+**Link search:** www.github.com/mattermost  
 **Markdown search:**  
 ##### Hello  
 ```  

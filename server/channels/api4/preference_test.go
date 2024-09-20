@@ -74,6 +74,14 @@ func TestGetPreferences(t *testing.T) {
 	_, resp, err = client.GetPreferences(context.Background(), th.BasicUser2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		prefs, resp, err := c.GetPreferences(context.Background(), user1.Id)
+		require.NotNil(t, prefs)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
@@ -134,6 +142,14 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	_, resp, err = client.GetPreferencesByCategory(context.Background(), th.BasicUser2.Id, category)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferencesByCategory API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		prefs, resp, err := c.GetPreferencesByCategory(context.Background(), user1.Id, category)
+		require.NotNil(t, prefs)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
@@ -192,6 +208,14 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferenceByCategoryAndName API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		pref, resp, err := c.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
+		require.NotNil(t, pref)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferences(t *testing.T) {
@@ -255,6 +279,21 @@ func TestUpdatePreferences(t *testing.T) {
 	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// UpdatePreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		preferences := model.Preferences{
+			{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    "true",
+			},
+		}
+		resp, err := c.UpdatePreferences(context.Background(), user1.Id, preferences)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferencesOverload(t *testing.T) {
@@ -623,6 +662,25 @@ func TestDeletePreferences(t *testing.T) {
 	resp, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// DeletePreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// Creating Test Data
+		var preferences model.Preferences
+		preference := model.Preference{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryCustomStatus,
+			Name:     model.NewId(),
+			Value:    "true",
+		}
+		preferences = append(preferences, preference)
+		c.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+
+		// Delete Prefrerences Operation
+		resp, err = c.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestDeletePreferencesOverload(t *testing.T) {
@@ -931,5 +989,91 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.Contains(t, categories.Categories[0].Channels, channel.Id)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
+	})
+}
+
+func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
+	t.Run("Update limit_visible_dms_gms to a valid value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		_, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "40",
+			},
+		})
+		require.NoError(t, err)
+
+		pref, _, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms)
+		require.NoError(t, err)
+
+		require.Equal(t, "40", pref.Value, "Value was not updated")
+	})
+
+	t.Run("Update limit_visible_dms_gms to a value greater PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "10000",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Update limit_visible_dms_gms to an invalid value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "one thousand",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Update limit_visible_dms_gms to a negative number", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.LoginBasic()
+		user := th.BasicUser
+
+		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PreferenceCategorySidebarSettings,
+				Name:     model.PreferenceLimitVisibleDmsGms,
+				Value:    "-20",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }

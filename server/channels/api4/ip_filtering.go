@@ -14,13 +14,13 @@ import (
 )
 
 func (api *API) InitIPFiltering() {
-	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(getIPFilters)).Methods("GET")
-	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(applyIPFilters)).Methods("POST")
-	api.BaseRoutes.IPFiltering.Handle("/my_ip", api.APISessionRequired(myIP)).Methods("GET")
+	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(getIPFilters)).Methods(http.MethodGet)
+	api.BaseRoutes.IPFiltering.Handle("", api.APISessionRequired(applyIPFilters)).Methods(http.MethodPost)
+	api.BaseRoutes.IPFiltering.Handle("/my_ip", api.APISessionRequired(myIP)).Methods(http.MethodGet)
 }
 
 func ensureIPFilteringInterface(c *Context, where string) (einterfaces.IPFilteringInterface, bool) {
-	if c.App.IPFiltering() == nil || !c.App.Config().FeatureFlags.CloudIPFiltering || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
+	if c.App.IPFiltering() == nil || !c.App.Config().FeatureFlags.CloudIPFiltering || c.App.License() == nil || !c.App.License().IsCloud() || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
 		c.Err = model.NewAppError(where, "api.context.ip_filtering.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}

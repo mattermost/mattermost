@@ -288,7 +288,7 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 			return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		a.InvalidateCacheForUser(channel.CreatorId)
+		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
 	}
 
 	a.Srv().Go(func() {
@@ -372,8 +372,8 @@ func (a *App) getOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *m
 }
 
 func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, channel *model.Channel) {
-	a.InvalidateCacheForUser(userID)
-	a.InvalidateCacheForUser(otherUserID)
+	a.Srv().Platform().InvalidateChannelCacheForUser(userID)
+	a.Srv().Platform().InvalidateChannelCacheForUser(otherUserID)
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
@@ -497,13 +497,14 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 		return nil, err
 	}
 
+	jsonIDs := model.ArrayToJSON(userIDs)
 	for _, userID := range userIDs {
-		a.InvalidateCacheForUser(userID)
-	}
+		a.Srv().Platform().InvalidateChannelCacheForUser(userID)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil, "")
-	message.Add("teammate_ids", model.ArrayToJSON(userIDs))
-	a.Publish(message)
+		message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, userID, nil, "")
+		message.Add("teammate_ids", jsonIDs)
+		a.Publish(message)
+	}
 
 	return channel, nil
 }
@@ -1293,7 +1294,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		}
 	}
 
-	a.InvalidateCacheForUser(member.UserId)
+	a.Srv().Platform().InvalidateChannelCacheForUser(member.UserId)
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 	// Notify the clients that the member notify props changed
@@ -1330,7 +1331,7 @@ func (a *App) PatchChannelMembersNotifyProps(c request.CTX, members []*model.Cha
 	}
 
 	for userId := range userIds {
-		a.InvalidateCacheForUser(userId)
+		a.Srv().Platform().InvalidateChannelCacheForUser(userId)
 	}
 	for channelId := range channelIds {
 		a.invalidateCacheForChannelMembersNotifyProps(channelId)
@@ -1374,7 +1375,7 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 		}
 	}
 
-	a.InvalidateCacheForUser(member.UserId)
+	a.Srv().Platform().InvalidateChannelCacheForUser(member.UserId)
 
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
@@ -1567,7 +1568,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	return newMember, nil
@@ -1597,10 +1598,17 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
+	// We are sending separate websocket events to the user added and to the channel
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
+	userMessage.Add("user_id", user.Id)
+	userMessage.Add("team_id", channel.TeamId)
+	a.Publish(userMessage)
 
 	return newMember, nil
 }
@@ -2554,7 +2562,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 		}
 	}
 
-	a.InvalidateCacheForUser(userIDToRemove)
+	a.Srv().Platform().InvalidateChannelCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	var actorUser *model.User
@@ -2712,7 +2720,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, false)
+	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID)
 	a.UpdateMobileAppBadge(userID)
 
 	return channelUnread, nil
@@ -2748,7 +2756,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
-		a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, true)
+		a.sendWebSocketPostUnreadEvent(c, channelUnread, postID)
 		a.UpdateMobileAppBadge(userID)
 		return channelUnread, nil
 	}
@@ -2821,17 +2829,15 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, false)
+	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID)
 	a.UpdateMobileAppBadge(userID)
 	return channelUnread, nil
 }
 
-func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.ChannelUnreadAt, postID string, withMsgCountRoot bool) {
+func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.ChannelUnreadAt, postID string) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostUnread, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil, "")
 	message.Add("msg_count", channelUnread.MsgCount)
-	if withMsgCountRoot {
-		message.Add("msg_count_root", channelUnread.MsgCountRoot)
-	}
+	message.Add("msg_count_root", channelUnread.MsgCountRoot)
 	message.Add("mention_count", channelUnread.MentionCount)
 	message.Add("mention_count_root", channelUnread.MentionCountRoot)
 	message.Add("urgent_mention_count", channelUnread.UrgentMentionCount)

@@ -319,20 +319,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}, plugin.UserHasBeenCreatedID)
 	})
 
-	// For cloud yearly subscriptions, if the current user count of the workspace exceeds the number of seats initially purchased
-	// (plus the “threshold” of 10%), then a subscriptionHistoryEvent object would need to be created and added to the subscriptionHistory
-	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
-	// workspace is currently on a monthly plan, then this function will not do anything.
-
-	if a.Channels().License().IsCloud() && !ruser.IsRemote() {
-		go func(userId string) {
-			_, err := a.SendSubscriptionHistoryEvent(userId)
-			if err != nil {
-				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-			}
-		}(ruser.Id)
-	}
-
 	userLimits, limitErr := a.GetServerLimits()
 	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
@@ -864,7 +850,7 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	}
 
 	options := a.Config().GetSanitizeOptions()
-	updatedUser.SanitizeProfile(options)
+	updatedUser.SanitizeProfile(options, false)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", updatedUser)
@@ -1117,7 +1103,7 @@ func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
 	options := a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, asAdmin)
 }
 
 func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
@@ -1355,15 +1341,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
 
-	if a.Channels().License().IsCloud() && prev.IsRemote() && !user.IsRemote() {
-		go func(userId string) {
-			_, err := a.SendSubscriptionHistoryEvent(userId)
-			if err != nil {
-				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-			}
-		}(user.Id)
-	}
-
 	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
@@ -1445,7 +1422,11 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	hashedPassword := model.HashPassword(newPassword)
+	hashedPassword, err := model.HashPassword(newPassword)
+	if err != nil {
+		// can't be password length (checked in IsPasswordValid)
+		return model.NewAppError("UpdatePassword", "api.user.update_password.password_hash.app_error", nil, "user_id="+user.Id, http.StatusInternalServerError).Wrap(err)
+	}
 
 	if err := a.Srv().Store().User().UpdatePassword(user.Id, hashedPassword); err != nil {
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2554,7 +2535,7 @@ func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	}
 
 	options := a.Config().GetSanitizeOptions()
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, false)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", user)

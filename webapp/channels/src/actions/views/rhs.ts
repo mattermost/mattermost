@@ -19,7 +19,7 @@ import {
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
@@ -122,6 +122,14 @@ export function selectPostFromRightHandSideSearchByPostId(postId: string): Actio
     };
 }
 
+export function replyToLatestPostInChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const postId = getLatestInteractablePostId(state, channelId);
+        return dispatch(selectPostFromRightHandSideSearchByPostId(postId));
+    };
+}
+
 export function updateSearchTerms(terms: string) {
     return {
         type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -194,16 +202,18 @@ export function performSearch(terms: string, isMentionSearch?: boolean): ThunkAc
         }
 
         if (isMentionSearch) {
-            // Username should be quoted to allow specific search
-            // in case username is made with multiple words splitted by dashes or other symbols.
+            // Username and FirstName should be quoted to allow specific search
+            // in case the name is made with multiple words splitted by dashes or other symbols.
             const user = getCurrentUser(getState());
             const termsArr = searchTerms.split(' ').filter((t) => Boolean(t && t.trim()));
-            const username = '@' + user.username;
-            const quotedUsername = `"${username}"`;
+            const atUsername = '@' + user.username;
             for (let i = 0; i < termsArr.length; i++) {
-                if (termsArr[i] === username) {
-                    termsArr[i] = quotedUsername;
-                    break;
+                if (termsArr[i] === atUsername) {
+                    termsArr[i] = `"${atUsername}"`;
+                } else if (termsArr[i] === user.username) {
+                    termsArr[i] = `"${user.username}"`;
+                } else if (termsArr[i] === user.first_name) {
+                    termsArr[i] = `"${user.first_name}"`;
                 }
             }
             searchTerms = termsArr.join(' ');
@@ -648,7 +658,11 @@ export function setEditChannelMembers(active: boolean) {
 
 export function measureRhsOpened() {
     return () => {
-        measureAndReport(Measure.RhsLoad, Mark.PostSelected, undefined, true);
+        measureAndReport({
+            name: Measure.RhsLoad,
+            startMark: Mark.PostSelected,
+            canFail: true,
+        });
 
         performance.clearMarks(Mark.PostSelected);
     };
