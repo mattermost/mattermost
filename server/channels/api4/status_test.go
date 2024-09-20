@@ -5,15 +5,13 @@ package api4
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
-	"encoding/json"
-	"strings"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetUserStatus(t *testing.T) {
@@ -251,55 +249,47 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-    t.Run("set custom status", func(t *testing.T) {
-        toUpdateCustomStatus := &model.CustomStatus{
-            Emoji: "calendar",  // Use a valid emoji name
-            Text:  "My custom status",
-        }
-        _, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
-        require.NoError(t, err)
-        CheckOKStatus(t, resp)
+	t.Run("set custom status", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "calendar",  // Use a valid emoji name
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-        user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
-        require.NoError(t, err)
-        customStatusJSON := user.Props["customStatus"]
-        require.NotEmpty(t, customStatusJSON)
-        var customStatus map[string]interface{}
-        err = json.Unmarshal([]byte(customStatusJSON), &customStatus)
-        require.NoError(t, err)
-        assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus["emoji"])
-        assert.Equal(t, toUpdateCustomStatus.Text, customStatus["text"])
-    })
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		customStatus := user.GetCustomStatus()
+		require.NotNil(t, customStatus)
+		assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus.Emoji)
+		assert.Equal(t, toUpdateCustomStatus.Text, customStatus.Text)
+	})
 
-    t.Run("update custom status with duration", func(t *testing.T) {
-        toUpdateCustomStatus := &model.CustomStatus{
-            Emoji:     "palm_tree",  // Use a valid emoji name
-            Text:      "On vacation",
-            Duration:  "date_and_time",
-            ExpiresAt: time.Now().Add(1 * time.Hour),
-        }
-        _, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
-        require.NoError(t, err)
-        CheckOKStatus(t, resp)
+	t.Run("update custom status with duration", func(t *testing.T) {
+		expiresAt := time.Now().Add(1 * time.Hour)
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji:     "palm_tree",  // Use a valid emoji name
+			Text:      "On vacation",
+			Duration:  "date_and_time",
+			ExpiresAt: expiresAt,
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-        user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
-        require.NoError(t, err)
-        customStatusJSON := user.Props["customStatus"]
-        require.NotEmpty(t, customStatusJSON)
-        var customStatus map[string]interface{}
-        err = json.Unmarshal([]byte(customStatusJSON), &customStatus)
-        require.NoError(t, err)
-        assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus["emoji"])
-        assert.Equal(t, toUpdateCustomStatus.Text, customStatus["text"])
-        assert.Equal(t, toUpdateCustomStatus.Duration, customStatus["duration"])
-        
-        expiresAtStr, ok := customStatus["expires_at"].(string)
-        require.True(t, ok, "expires_at should be a string")
-        expiresAt, err := time.Parse(time.RFC3339, expiresAtStr)
-        require.NoError(t, err, "Failed to parse expires_at time")
-        
-        assert.WithinDuration(t, toUpdateCustomStatus.ExpiresAt, expiresAt, 5*time.Second)
-    })
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		customStatus := user.GetCustomStatus()
+		require.NotNil(t, customStatus)
+		assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus.Emoji)
+		assert.Equal(t, toUpdateCustomStatus.Text, customStatus.Text)
+		assert.Equal(t, toUpdateCustomStatus.Duration, customStatus.Duration)
+		
+		require.NotNil(t, customStatus.ExpiresAt, "Expected ExpiresAt to be set")
+		// Check that ExpiresAt is within 5 seconds of the expected time
+		assert.WithinDuration(t, expiresAt, customStatus.ExpiresAt, 5*time.Second)
+	})
 
 	t.Run("attempt to set custom status when disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = false })
@@ -312,6 +302,13 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
+
+		// Assert that the error ID is "api.custom_status.disabled"
+		if appErr, ok := err.(*model.AppError); ok {
+			assert.Equal(t, "api.custom_status.disabled", appErr.Id)
+		} else {
+			t.Errorf("expected *model.AppError, got %T", err)
+		}
 	})
 
 	t.Run("attempt to set custom status for another user", func(t *testing.T) {
@@ -348,7 +345,6 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 	})
 }
 
-
 func TestRemoveUserCustomStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -368,7 +364,8 @@ func TestRemoveUserCustomStatus(t *testing.T) {
 
 		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
-		assert.Empty(t, user.Props["customStatus"])
+		customStatus := user.GetCustomStatus()
+		assert.Nil(t, customStatus)
 	})
 
 	t.Run("attempt to remove custom status when disabled", func(t *testing.T) {
@@ -414,6 +411,7 @@ func TestRemoveUserCustomStatus(t *testing.T) {
 
 		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
-		assert.Empty(t, user.Props["customStatus"])
+		customStatus := user.GetCustomStatus()
+		assert.Nil(t, customStatus)
 	})
 }
