@@ -757,5 +757,5 @@ const defaultServerConfig: AdminConfig = {
         EnableRemoteClusterService: false,
         DisableSharedChannelsStatusSync: false,
         MaxPostsPerSync: 50,
-    }
+    },
 };
