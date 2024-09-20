@@ -91,3 +91,26 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 
 	return scheduledPost, nil
 }
+
+func (a *App) DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, connectionId string) (*model.ScheduledPost, *model.AppError) {
+	scheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPostId)
+	if err != nil {
+		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError)
+	}
+
+	if scheduledPost == nil {
+		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusNotFound)
+	}
+
+	if scheduledPost.UserId != userId {
+		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_permission.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusForbidden)
+	}
+
+	if err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts([]string{scheduledPostId}); err != nil {
+		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError)
+	}
+
+	// TODO: add WebSocket event broadcast here. This will be done in a later PR
+
+	return scheduledPost, nil
+}

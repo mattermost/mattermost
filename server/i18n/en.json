@@ -4927,6 +4927,22 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Failed to delete scheduled post from database."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "You do not have permission to delete this resource."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Token does not exist or is expired"
   },

@@ -584,6 +584,7 @@ type AppIface interface {
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteRetentionPolicy(policyID string) *model.AppError
+	DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, connectionId string) (*model.ScheduledPost, *model.AppError)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId string) *model.AppError
