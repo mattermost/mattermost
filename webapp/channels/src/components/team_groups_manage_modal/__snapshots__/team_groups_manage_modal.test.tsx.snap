@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/TeamGroupsManageModal should hide confirm modal when team changes 1`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;
+
+exports[`components/TeamGroupsManageModal should hide confirm modal when team changes 2`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;
+
+exports[`components/TeamGroupsManageModal should match snapshot 1`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;
