@@ -253,7 +253,21 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+    const [handleSubmit, errorClass] = useSubmit(
+        draft,
+        postError,
+        channelId,
+        postId,
+        serverError,
+        lastBlurAt,
+        focusTextbox,
+        setServerError,
+        setShowPreview,
+        handleDraftChange,
+        prioritySubmitCheck,
+        undefined,
+        afterSubmit,
+    );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -390,6 +404,7 @@ const AdvancedTextEditor = ({
     // Remove show preview when we switch channels or posts
     useEffect(() => {
         setShowPreview(false);
+        setServerError(null);
     }, [channelId, postId]);
 
     // Remove uploads in progress on mount

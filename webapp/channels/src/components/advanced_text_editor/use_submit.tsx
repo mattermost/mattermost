@@ -57,14 +57,14 @@ const useSubmit = (
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
-    setPostError: (err: React.ReactNode) => void,
     setShowPreview: (showPreview: boolean) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
+    afterOptimisticSubmit?: () => void,
     afterSubmit?: (response: SubmitPostReturnType) => void,
     skipCommands?: boolean,
 ): [
-        (submittingDraft?: PostDraft) => void,
+        (submittingDraft?: PostDraft) => Promise<void>,
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
@@ -134,6 +134,7 @@ const useSubmit = (
         }
 
         if (submittingDraft.message.trim().length === 0 && submittingDraft.fileInfos.length === 0) {
+            isDraftSubmitting.current = false;
             return;
         }
 
@@ -144,6 +145,7 @@ const useSubmit = (
         }
 
         if (serverError && !isErrorInvalidSlashCommand(serverError)) {
+            isDraftSubmitting.current = false;
             return;
         }
 
@@ -154,12 +156,14 @@ const useSubmit = (
         setServerError(null);
 
         const ignoreSlash = skipCommands || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
-        const options = {ignoreSlash, afterSubmit};
+        const options = {ignoreSlash, afterSubmit, afterOptimisticSubmit};
 
         try {
-            await dispatch(onSubmit(submittingDraft, options));
+            const res = await dispatch(onSubmit(submittingDraft, options));
+            if (res.error) {
+                throw res.error;
+            }
 
-            setPostError(null);
             setServerError(null);
             handleDraftChange({
                 message: '',
@@ -179,6 +183,8 @@ const useSubmit = (
                     ...err,
                     submittedMessage: submittingDraft.message,
                 });
+            } else {
+                setServerError(err as any);
             }
             isDraftSubmitting.current = false;
             return;
@@ -189,8 +195,7 @@ const useSubmit = (
         }
 
         isDraftSubmitting.current = false;
-    }, [
-        draft,
+    }, [draft,
         postError,
         isRootDeleted,
         serverError,
@@ -199,10 +204,10 @@ const useSubmit = (
         setServerError,
         skipCommands,
         afterSubmit,
+        afterOptimisticSubmit,
         postId,
         showPostDeletedModal,
         dispatch,
-        setPostError,
         handleDraftChange,
         channelId,
     ]);

@@ -18,6 +18,8 @@ type Props = {
     onDelete: () => void;
     onEdit: () => void;
     onSend: () => void;
+    canEdit: boolean;
+    canSend: boolean;
 }
 
 function DraftActions({
@@ -25,6 +27,8 @@ function DraftActions({
     onDelete,
     onEdit,
     onSend,
+    canEdit,
+    canSend,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -75,6 +79,7 @@ function DraftActions({
                     />
                 )}
                 onClick={onEdit}
+                disabled={!canEdit}
             />
             <Action
                 icon='icon-send-outline'
@@ -87,6 +92,7 @@ function DraftActions({
                     />
                 )}
                 onClick={handleSend}
+                disabled={!canSend}
             />
         </>
     );

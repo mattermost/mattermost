@@ -13,9 +13,17 @@ type Props = {
     name: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
     tooltipText: React.ReactElement | string;
+    disabled?: boolean;
 };
 
-function Action({name, icon, onClick, id, tooltipText}: Props) {
+function Action({
+    name,
+    icon,
+    onClick,
+    id,
+    tooltipText,
+    disabled,
+}: Props) {
     return (
         <div className='DraftAction'>
             <WithTooltip
@@ -28,10 +36,17 @@ function Action({name, icon, onClick, id, tooltipText}: Props) {
                         'DraftAction__button',
                         {'DraftAction__button--delete': name === 'delete'},
                     )}
-                    id={`draft_{icon}_${id}`}
+                    id={`draft_${icon}_${id}`}
                     onClick={onClick}
+                    disabled={disabled}
                 >
-                    <i className={`icon ${icon}`}/>
+                    <i
+                        className={classNames(
+                            'icon',
+                            icon,
+                            {disabled},
+                        )}
+                    />
                 </button>
             </WithTooltip>
         </div>
