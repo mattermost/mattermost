@@ -27,7 +27,6 @@ import type {PostDraft} from 'types/store/draft';
 import type {ProductComponent} from 'types/store/plugins';
 
 export class TestHelper {
-    static getIntlMock: any;
     public static getPostDraftMock(override?: Partial<PostDraft>): PostDraft {
         const defaultPostDraft: PostDraft = {
             message: 'Test message',
