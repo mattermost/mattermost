@@ -665,6 +665,20 @@ func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *Schedu
 	return &updatedScheduledPost, BuildResponse(r), nil
 }
 
+func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId string) (*ScheduledPost, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postsRoute()+"/schedule/"+scheduledPostId)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var deletedScheduledPost ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&deletedScheduledPost); err != nil {
+		return nil, nil, NewAppError("DeleteScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &deletedScheduledPost, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }
