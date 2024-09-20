@@ -9,6 +9,7 @@ import {useHistory} from 'react-router-dom';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import BuildingSvg from './building.svg';
@@ -19,8 +20,17 @@ import {getCreateLocation, getEditLocation, useRemoteClusterAcceptInvite, useRem
 import type {SearchableStrings} from '../types';
 
 export default function SecureConnections() {
-    const {formatMessage} = useIntl();
-    const [remoteClusters, {loading, fetch}] = useRemoteClusters();
+    const [remoteClusters, {loading, error, fetch}] = useRemoteClusters();
+
+    const serviceNotRunning = error?.server_error_id === 'api.remote_cluster.service_not_enabled.app_error';
+    const disabled = loading || serviceNotRunning;
+
+    const placeholder = loading ? <LoadingScreen/> : (
+        <Placeholder
+            disabled={disabled}
+            serviceNotRunning={serviceNotRunning}
+        />
+    );
 
     return (
         <div
@@ -28,16 +38,19 @@ export default function SecureConnections() {
             data-testid='secureConnectionsSection'
         >
             <AdminHeader>
-                <span id='secureConnections-header'>{formatMessage(msg.pageTitle)}</span>
+                <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
                 <AdminSection>
                     <SectionHeader>
                         <hgroup>
-                            <SectionHeading>{formatMessage(msg.title)}</SectionHeading>
+                            <FormattedMessage
+                                tagName={SectionHeading}
+                                {...msg.title}
+                            />
                             <FormattedMessage {...msg.subtitle}/>
                         </hgroup>
-                        <AddMenu/>
+                        <AddMenu disabled={disabled}/>
                     </SectionHeader>
                     {remoteClusters?.map((rc) => {
                         return (
@@ -45,9 +58,10 @@ export default function SecureConnections() {
                                 key={rc.remote_id}
                                 remoteCluster={rc}
                                 onDeleteSuccess={fetch}
+                                disabled={disabled}
                             />
                         );
-                    }) ?? (loading ? <LoadingScreen/> : <Placeholder/>)}
+                    }) ?? placeholder}
                 </AdminSection>
             </AdminWrapper>
         </div>
@@ -64,9 +78,17 @@ const AdminWrapper = (props: {children: ReactNode}) => {
     );
 };
 
-const Placeholder = () => {
+const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceNotRunning: boolean}) => {
     return (
         <SectionContent>
+            {serviceNotRunning && (
+                <SectionNotice
+                    type='danger'
+                    title={(
+                        <FormattedMessage {...msg.serviceNotRunning}/>
+                    )}
+                />
+            )}
             <PlaceholderContainer>
                 <BuildingSvg/>
                 <hgroup>
@@ -79,7 +101,10 @@ const Placeholder = () => {
                         {...msg.placeholderSubtitle}
                     />
                 </hgroup>
-                <AddMenu buttonClassNames='btn-tertiary'/>
+                <AddMenu
+                    buttonClassNames='btn-tertiary'
+                    disabled={disabled}
+                />
             </PlaceholderContainer>
         </SectionContent>
     );
@@ -87,10 +112,9 @@ const Placeholder = () => {
 
 const menuId = 'secure_connections_add_menu';
 
-const AddMenu = (props: {buttonClassNames?: string}) => {
+const AddMenu = ({buttonClassNames, disabled}: {buttonClassNames?: string; disabled: boolean}) => {
     const {formatMessage} = useIntl();
     const history = useHistory();
-    const disabled = false;
     const {promptAcceptInvite} = useRemoteClusterAcceptInvite();
 
     const handleCreate = () => {
@@ -108,7 +132,7 @@ const AddMenu = (props: {buttonClassNames?: string}) => {
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                class: classNames('btn', props.buttonClassNames ?? 'btn-primary btn-sm', {disabled}),
+                class: classNames('btn', buttonClassNames ?? 'btn-primary btn-sm', {disabled}),
                 disabled,
                 children: (
                     <>
@@ -151,6 +175,7 @@ const msg = defineMessages({
     menuAriaLabel: {id: 'admin.secure_connections.menu.dropdownAriaLabel', defaultMessage: 'Connected workspaces actions menu'},
     createConnection: {id: 'admin.secure_connections.menu.create_connection', defaultMessage: 'Create a connection'},
     acceptInvitation: {id: 'admin.secure_connections.menu.accept_invitation', defaultMessage: 'Accept an invitation'},
+    serviceNotRunning: {id: 'admin.secure_connections.serviceNotRunning', defaultMessage: 'Service not running, please restart server.'},
 });
 
 export const searchableStrings: SearchableStrings = Object.values(msg);

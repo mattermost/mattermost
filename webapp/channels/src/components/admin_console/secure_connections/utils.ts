@@ -37,7 +37,7 @@ import SharedChannelsRemoveModal from './shared_channels_remove_modal';
 export const useRemoteClusters = () => {
     const [remoteClusters, setRemoteClusters] = useState<RemoteCluster[]>();
     const [loadingState, setLoadingState] = useState<boolean | ClientError>(true);
-    const loading = isPendingState(loadingState);
+    const {loading, error} = loadingStatus(loadingState);
 
     const fetch = async () => {
         setLoadingState(true);
@@ -54,10 +54,10 @@ export const useRemoteClusters = () => {
         fetch();
     }, []);
 
-    return [remoteClusters, {loading, fetch}] as const;
+    return [remoteClusters, {loading, fetch, error}] as const;
 };
 
-export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteCluster?: RemoteCluster) => {
+export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteCluster: RemoteCluster | undefined) => {
     const editing = remoteId !== 'create';
 
     const [currentRemoteCluster, setCurrentRemoteCluster] = useState<RemoteCluster | undefined>(initRemoteCluster);
@@ -441,8 +441,14 @@ const SiteURLPendingPrefix = 'pending_';
 export const isConfirmed = (rc: RemoteCluster) => rc.site_url && !rc.site_url.startsWith(SiteURLPendingPrefix);
 export const isConnected = (rc: RemoteCluster) => Interval.before(DateTime.now(), {minutes: 5}).contains(DateTime.fromMillis(rc.last_ping_at));
 
-type TLoadingState<TError = ClientError> = boolean | TError;
+type TLoadingState<TError extends Error = ClientError> = boolean | TError;
 
-export const isPendingState = <TError, T extends TLoadingState<TError>>(x: T) => x === true;
-export const isErrorState = <TError, T extends TLoadingState<TError>>(x: T) => Boolean(!isPendingState(x) && x);
+export const isPendingState = <T extends Error>(loadingState: TLoadingState<T>) => loadingState === true;
+export const isErrorState = <T extends Error>(loadingState: TLoadingState<T>): loadingState is T => loadingState instanceof Error;
 
+const loadingStatus = <T extends Error>(loadingState: TLoadingState<T>) => {
+    const loading = isPendingState(loadingState);
+    const error = isErrorState(loadingState) ? loadingState : undefined;
+
+    return {error, loading};
+};

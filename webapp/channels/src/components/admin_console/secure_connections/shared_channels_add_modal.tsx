@@ -101,7 +101,7 @@ function SharedChannelsAddModal({
         return [];
     }, [searchAllChannels, remotesByChannelId], {delay: TYPING_DELAY_MS});
 
-    const formatLabel: ComponentProps<typeof ChannelsInput<ChannelWithTeamData>>['formatOptionLabel'] = (channel, meta) => {
+    const formatLabel: ComponentProps<typeof ChannelsInput<ChannelWithTeamData>>['formatOptionLabel'] = (channel) => {
         return (
             <>
                 <ChannelLabel channel={channel}/>
@@ -199,20 +199,30 @@ function SharedChannelsAddModal({
 const ChannelError = (props: {id: string; err: ServerError}) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, props.id));
 
-    const message = (
+    const channelLabel = channel ? (
+        <ChannelLabel
+            bold={true}
+            channel={channel}
+        />
+    ) : props.id;
+
+    let message = (
         <FormattedMessage
-            id='admin.secure_connections.shared_channels.add.error_inviting_remote_to_channel'
+            id='admin.secure_connections.shared_channels.add.error.inviting_remote_to_channel'
             defaultMessage='{channel} could not be added to this connection.'
-            values={{
-                channel: channel ? (
-                    <ChannelLabel
-                        bold={true}
-                        channel={channel}
-                    />
-                ) : props.id,
-            }}
+            values={{channel: channelLabel}}
         />
     );
+
+    if (props.err.server_error_id === 'api.command_share.channel_invite_not_home.error') {
+        message = (
+            <FormattedMessage
+                id='admin.secure_connections.shared_channels.add.error.channel_invite_not_home'
+                defaultMessage='{channel} could not be added to this connection because it originates from another connection.'
+                values={{channel: channelLabel}}
+            />
+        );
+    }
 
     return (
         <SectionNotice

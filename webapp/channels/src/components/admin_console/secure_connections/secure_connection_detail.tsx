@@ -68,7 +68,7 @@ export default function SecureConnectionDetail(props: Props) {
     const dispatch = useDispatch();
 
     const [remoteCluster, {applyPatch, save, currentRemoteCluster, hasChanges, loading, saving, patch}] = useRemoteClusterEdit(remoteId, initRemoteCluster);
-    const isFormValid = isRemoteClusterPatch(patch);
+    const isFormValid = isRemoteClusterPatch(patch) && (!isCreating || Boolean(patch.display_name && patch.default_team_id));
 
     const {promptCreate, saving: creating} = useRemoteClusterCreate();
 

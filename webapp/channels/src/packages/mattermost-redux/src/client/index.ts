@@ -14,5 +14,3 @@ export {
     DEFAULT_LIMIT_AFTER,
     DEFAULT_LIMIT_BEFORE,
 };
-
-globalThis.Client4 = Client4;

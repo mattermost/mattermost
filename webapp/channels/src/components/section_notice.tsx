@@ -51,7 +51,7 @@ const SectionNotice = ({
             <div className={'sectionNoticeContent'}>
                 {icon && <i className={classNames('icon sectionNoticeIcon', icon, type)}/>}
                 <div className='sectionNoticeBody'>
-                    <h4 className={classNames('sectionNoticeTitle', {welcome: type === 'welcome'})}>{title}</h4>
+                    <h4 className={classNames('sectionNoticeTitle', {welcome: type === 'welcome', noText: !text})}>{title}</h4>
                     {text && <Markdown message={text}/>}
                     {(primaryButton || secondaryButton || linkButton) && (
                         <div className='sectionNoticeActions'>

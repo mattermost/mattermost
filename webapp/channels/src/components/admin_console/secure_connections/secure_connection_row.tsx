@@ -18,6 +18,7 @@ import {getEditLocation, useRemoteClusterDelete, useRemoteClusterCreateInvite} f
 type Props = {
     remoteCluster: RemoteCluster;
     onDeleteSuccess: () => void;
+    disabled: boolean;
 };
 
 export default function SecureConnectionRow(props: Props) {
@@ -36,7 +37,7 @@ export default function SecureConnectionRow(props: Props) {
 
 const menuId = 'secure_connection_row_menu';
 
-const RowMenu = ({remoteCluster: rc, onDeleteSuccess}: Props) => {
+const RowMenu = ({remoteCluster: rc, onDeleteSuccess, disabled}: Props) => {
     const {formatMessage} = useIntl();
     const history = useHistory<RemoteCluster>();
     const {promptDelete} = useRemoteClusterDelete(rc);
@@ -53,8 +54,6 @@ const RowMenu = ({remoteCluster: rc, onDeleteSuccess}: Props) => {
     const handleDelete = () => {
         promptDelete().then(onDeleteSuccess);
     };
-
-    const disabled = false;
 
     return (
         <Menu.Container

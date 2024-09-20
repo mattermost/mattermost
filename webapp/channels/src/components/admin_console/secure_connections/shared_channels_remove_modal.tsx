@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-
-import SectionNotice from 'components/section_notice';
 
 import {ModalBody, ModalParagraph} from './controls';
 
