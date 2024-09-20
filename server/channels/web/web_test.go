@@ -127,7 +127,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	})
 
 	web := New(s)
-	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
+	URL = fmt.Sprintf("http://%s", s.ListenAddr.String())
 	apiClient = model.NewAPIv4Client(URL)
 
 	s.Store().MarkSystemRanUnitTests()

@@ -29,7 +29,7 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.SiteURL = fmt.Sprintf("http://localhost:%d", th.Server.ListenAddr.Port)
+		*cfg.ServiceSettings.SiteURL = fmt.Sprintf("http://%s", th.Server.ListenAddr.String())
 	})
 
 	return th

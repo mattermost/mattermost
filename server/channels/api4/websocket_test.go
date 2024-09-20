@@ -24,7 +24,7 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
+	url := fmt.Sprintf("ws://%s", th.App.Srv().ListenAddr.String())
 	_, _, err := websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket/", nil)
 	require.NoError(t, err)
 }
@@ -157,7 +157,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
+	url := fmt.Sprintf("ws://%s", th.App.Srv().ListenAddr.String())
 
 	// Should fail because origin doesn't match
 	_, _, err := websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket", http.Header{
@@ -168,7 +168,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket", http.Header{
-		"Origin": []string{fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port)},
+		"Origin": []string{fmt.Sprintf("http://%s", th.App.Srv().ListenAddr.String())},
 	})
 	require.NoError(t, err, err)
 
@@ -460,7 +460,7 @@ func TestWebSocketUpgrade(t *testing.T) {
 	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
 	require.NoError(t, err)
 
-	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
+	url := fmt.Sprintf("http://%s", th.App.Srv().ListenAddr.String()) + model.APIURLSuffix + "/websocket"
 	resp, err := http.Get(url)
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)

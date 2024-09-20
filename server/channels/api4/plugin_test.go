@@ -2024,7 +2024,7 @@ func TestPluginWebSocketSession(t *testing.T) {
 	require.True(t, activated)
 
 	// Connect through WebSocket and send a message
-	reqURL := fmt.Sprintf("ws://localhost:%d", th.Server.ListenAddr.Port)
+	reqURL := fmt.Sprintf("ws://%s", th.Server.ListenAddr.String())
 	wsc, err := model.NewWebSocketClient4(reqURL, th.Client.AuthToken)
 	require.NoError(t, err)
 	require.NotNil(t, wsc)
@@ -2075,7 +2075,7 @@ func TestPluginWebSocketRemoteAddress(t *testing.T) {
 	require.True(t, activated)
 
 	// Connect through WebSocket and send a message
-	reqURL := fmt.Sprintf("ws://localhost:%d", th.Server.ListenAddr.Port)
+	reqURL := fmt.Sprintf("ws://%s", th.Server.ListenAddr.String())
 	wsc, err := model.NewWebSocketClient4(reqURL, th.Client.AuthToken)
 	require.NoError(t, err)
 	require.NotNil(t, wsc)

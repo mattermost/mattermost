@@ -131,8 +131,7 @@ func TestCORSRequestHandling(t *testing.T) {
 			licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 			th.App.Srv().Store().(*mocks.Store).On("License").Return(&licenseStore)
 
-			port := th.App.Srv().ListenAddr.Port
-			host := fmt.Sprintf("http://localhost:%v", port)
+			host := fmt.Sprintf("http://%v", th.App.Srv().ListenAddr.String())
 			url := fmt.Sprintf("%v/api/v4/system/ping", host)
 
 			req, err := http.NewRequest("GET", url, nil)
