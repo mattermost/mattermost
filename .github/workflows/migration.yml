@@ -42,7 +42,7 @@ jobs:
           COPY --from=pgloader /usr/local/bin/pgloader /usr/local/bin/pgloader
           EOF
           # Print out installed pgloader version
-          docker run --rm -it ghcr.io/dimitri/pgloader:latest pgloader --version
+          docker run --rm ghcr.io/dimitri/pgloader:latest pgloader --version
       - name: Generate test-data
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
