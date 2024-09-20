@@ -15,6 +15,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
+	easyjson "github.com/mailru/easyjson"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 )
 
@@ -326,7 +327,7 @@ func (o *Post) Clone() *Post {
 func (o *Post) ToJSON() (string, error) {
 	pCopy := o.Clone() //nolint:revive
 	pCopy.StripActionIntegrations()
-	b, err := json.Marshal(pCopy)
+	b, err := easyjson.Marshal(pCopy)
 	return string(b), err
 }
 
