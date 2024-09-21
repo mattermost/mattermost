@@ -548,15 +548,15 @@ func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 }
 
 func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*model.WebSocketClient, error) {
-	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprint("ws://localhost:", th.App.Srv().ListenAddr.String()), th.Client.AuthToken, connID, seqNo, true)
+	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprint("ws://", th.App.Srv().ListenAddr.String()), th.Client.AuthToken, connID, seqNo, true)
 }
 
 func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprint("ws://localhost:", th.App.Srv().ListenAddr.String()), th.SystemAdminClient.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprint("ws://", th.App.Srv().ListenAddr.String()), th.SystemAdminClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprint("ws://localhost:", th.App.Srv().ListenAddr.String()), client.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprint("ws://", th.App.Srv().ListenAddr.String()), client.AuthToken)
 }
 
 func (th *TestHelper) CreateBotWithSystemAdminClient() *model.Bot {
