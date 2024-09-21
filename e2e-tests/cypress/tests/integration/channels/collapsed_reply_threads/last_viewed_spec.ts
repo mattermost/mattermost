@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 // ***************************************************************
@@ -13,11 +16,11 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let userA: Cypress.UserProfile; // Member of team A and B
-    let teamA: Cypress.Team;
-    let teamB: Cypress.Team;
+    let userA: UserProfile; // Member of team A and B
+    let teamA: Team;
+    let teamB: Team;
     let offTopicUrlA: string;
-    let testChannel: Cypress.Channel;
+    let testChannel: Channel;
 
     before(() => {
         cy.apiUpdateConfig({

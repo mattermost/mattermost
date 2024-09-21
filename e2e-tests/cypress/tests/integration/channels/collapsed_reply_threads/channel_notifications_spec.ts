@@ -10,16 +10,18 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {PostMessageResp} from '../../../support/task_commands';
 import {spyNotificationAs} from '../../../support/notification';
 
 describe('CRT Desktop notifications', () => {
-    let testTeam: Cypress.Team;
+    let testTeam: Team;
     let testChannelUrl: string;
     let testChannelId: string;
     let testChannelName: string;
-    let receiver: Cypress.UserProfile;
-    let sender: Cypress.UserProfile;
+    let receiver: UserProfile;
+    let sender: UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({

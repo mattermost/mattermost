@@ -10,15 +10,20 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {PostMessageResp} from 'tests/support/task_commands';
+
 describe('Collapsed Reply Threads', () => {
-    let testTeam: Cypress.Team;
-    let testChannel: Cypress.Channel;
-    let user1: Cypress.UserProfile;
-    let user2: Cypress.UserProfile;
-    let user3: Cypress.UserProfile;
-    let rootPost; // PostMessageResp
-    let replyPost1; // PostMessageResp
-    let replyPost2; // PostMessageResp
+    let testTeam: Team;
+    let testChannel: Channel;
+    let user1: UserProfile;
+    let user2: UserProfile;
+    let user3: UserProfile;
+    let rootPost: PostMessageResp;
+    let replyPost1: PostMessageResp;
+    let replyPost2: PostMessageResp;
 
     const messages = {
         ROOT: 'ROOT POST',

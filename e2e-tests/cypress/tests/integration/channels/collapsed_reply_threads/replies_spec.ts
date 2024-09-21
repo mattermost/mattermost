@@ -10,15 +10,19 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
+import { PostMessageResp } from 'tests/support/task_commands';
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam: Cypress.Team;
-    let testUser: Cypress.UserProfile;
-    let otherUser: Cypress.UserProfile;
-    let testChannel: Cypress.Channel;
-    let rootPost; // PostMessageResp;
-    let postForAvatar; // PostMessageResp;
+    let testTeam: Team;
+    let testUser: UserProfile;
+    let otherUser: UserProfile;
+    let testChannel: Channel;
+    let rootPost: PostMessageResp;
+    let postForAvatar: PostMessageResp;
 
     before(() => {
         cy.apiUpdateConfig({

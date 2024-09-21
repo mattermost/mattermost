@@ -9,15 +9,18 @@
 
 // Group: @channels @collapsed_reply_threads
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {isMac} from '../../../utils';
 import {ChainableT} from '../../../types';
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam: Cypress.Team;
-    let testUser: Cypress.UserProfile;
-    let otherUser: Cypress.UserProfile;
-    let testChannel: Cypress.Channel;
+    let testTeam: Team;
+    let testUser: UserProfile;
+    let otherUser: UserProfile;
+    let testChannel: Channel;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -255,8 +258,6 @@ function postMessageWithReply(channelId, postSender, postMessage, replySender, r
     });
 }
 
-Cypress.Commands.add('postMessageWithReply', postMessageWithReply);
-
 function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> {
     if (scrolls === maxScrolls) {
         return;
@@ -274,8 +275,6 @@ function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> {
         }
     });
 }
-
-Cypress.Commands.add('scrollThreadsListToEnd', scrollThreadsListToEnd);
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
