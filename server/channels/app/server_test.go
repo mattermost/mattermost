@@ -480,7 +480,7 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, s.Start())
 		defer s.Shutdown()
 
-		resp, err := client.Get("https://localhost:" + s.ListenAddr.String() + "/panic")
+		resp, err := client.Get("https://" + s.ListenAddr.String() + "/panic")
 		require.Nil(t, resp)
 		require.True(t, errors.Is(err, io.EOF), fmt.Sprintf("unexpected error: %s", err))
 
