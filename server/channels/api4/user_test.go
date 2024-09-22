@@ -2702,11 +2702,11 @@ func TestUpdateUserActive(t *testing.T) {
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			resp, err := client.UpdateUserActive(context.Background(), user.Id, false)
 			require.Error(t, err)
-			CheckUnauthorizedStatus(t, resp)
+			CheckForbiddenStatus(t, resp)
 
 			resp, err = client.UpdateUserActive(context.Background(), user.Id, true)
 			require.Error(t, err)
-			CheckUnauthorizedStatus(t, resp)
+			CheckForbiddenStatus(t, resp)
 		})
 	})
 }
