@@ -14,6 +14,7 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -45,10 +46,12 @@ const SidebarCategorySortingMenu = ({
     const dispatch = useDispatch();
     const selectedDmNumber = useSelector(getVisibleDmGmLimit);
     const currentUserId = useSelector(getCurrentUserId);
-
+    const [sortBehavior, setSortBehavior] = useState(category.sorting);
+    
     function handleSortDirectMessages(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
         trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
+        setSortBehavior(sorting);
     }
 
     let sortDirectMessagesIcon = <ClockOutlineIcon size={18}/>;
@@ -95,6 +98,11 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
+                trailingElements= {sortBehavior===CategorySorting.Alphabetical ?(
+                    <>
+                        <CheckIcon size={16}/>
+                    </>
+                ): null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -105,6 +113,11 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
+                trailingElements= {sortBehavior===CategorySorting.Recency ?(
+                    <>
+                        <CheckIcon size={16}/>
+                    </>
+                ): null}
             />
         </Menu.SubMenu>
 
@@ -153,6 +166,11 @@ const SidebarCategorySortingMenu = ({
                     key={`showDmCount-${category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
+                    trailingElements= {selectedDmNumber === dmGmShowCount?(
+                        <>
+                            <CheckIcon size={16}/>
+                        </>
+                    ): null}
                 />
             ))}
         </Menu.SubMenu>
