@@ -2,11 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
 
 export default function EntraIdIcon(props: React.HTMLAttributes<HTMLSpanElement>) {
-    const {formatMessage} = useIntl();
-
     return (
         <span {...props}>
             <svg
@@ -15,7 +12,6 @@ export default function EntraIdIcon(props: React.HTMLAttributes<HTMLSpanElement>
                 viewBox='0 0 16 16'
                 fill='none'
                 xmlns='http://www.w3.org/2000/svg'
-                aria-label={formatMessage({id: 'generic_icons.login.oneLogin', defaultMessage: 'One Login Icon'})}
             >
                 <path
                     d='M3.38 12.473c0.345 0.215 0.918 0.454 1.524 0.454 0.552 0 1.065 -0.16 1.49 -0.433l0.002 -0.001L8 11.491V15.111a1.387 1.387 0 0 1 -0.732 -0.208z'
