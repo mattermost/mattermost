@@ -1342,30 +1342,23 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(channel)
 	defer c.LogAuditRec(auditRec)
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		c.Err = model.NewAppError("deleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
-		return
-	}
-
 	if channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePublicChannel) {
 		c.SetPermissionError(model.PermissionDeletePublicChannel)
 		return
 	}
 
-	if channel.Type == model.ChannelTypePrivate && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePrivateChannel) {
+	if (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypePrivate) &&
+		!c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePrivateChannel) {
 		c.SetPermissionError(model.PermissionDeletePrivateChannel)
 		return
 	}
 
-	if c.Params.Permanent {
-		if *c.App.Config().ServiceSettings.EnableAPIChannelDeletion {
-			err = c.App.PermanentDeleteChannel(c.AppContext, channel)
-		} else {
-			err = model.NewAppError("deleteChannel", "api.user.delete_channel.not_enabled.app_error", nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
-		}
+	if *c.App.Config().ServiceSettings.EnableAPIChannelDeletion {
+		err = c.App.PermanentDeleteChannel(c.AppContext, channel)
 	} else {
-		err = c.App.DeleteChannel(c.AppContext, channel, c.AppContext.Session().UserId)
+		err = model.NewAppError("deleteChannel", "api.user.delete_channel.not_enabled.app_error", nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
 	}
+
 	if err != nil {
 		c.Err = err
 		return

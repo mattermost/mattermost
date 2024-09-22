@@ -695,13 +695,20 @@ func TestDeleteDirectChannel(t *testing.T) {
 	user := th.BasicUser
 	user2 := th.BasicUser2
 
+	enableAPIChannelDeletion := *th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIChannelDeletion = &enableAPIChannelDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
+
 	rgc, resp, err := client.CreateDirectChannel(context.Background(), user.Id, user2.Id)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	require.NotNil(t, rgc, "should have created a direct channel")
 
 	_, err = client.DeleteChannel(context.Background(), rgc.Id)
-	CheckErrorID(t, err, "api.channel.delete_channel.type.invalid")
+	require.NoError(t, err)
 }
 
 func TestCreateGroupChannel(t *testing.T) {
@@ -842,13 +849,20 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 	userIds := []string{user.Id, user2.Id, user3.Id}
 
+	enableAPIChannelDeletion := *th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIChannelDeletion = &enableAPIChannelDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
+
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		rgc, resp, err := th.Client.CreateGroupChannel(context.Background(), userIds)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, rgc, "should have created a group channel")
 		_, err = client.DeleteChannel(context.Background(), rgc.Id)
-		CheckErrorID(t, err, "api.channel.delete_channel.type.invalid")
+		require.NoError(t, err)
 	})
 }
 
