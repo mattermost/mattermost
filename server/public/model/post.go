@@ -234,8 +234,8 @@ type PostForExport struct {
 	TeamName    string
 	ChannelName string
 	Username    string
-	// ReplyCount  int
-	FlaggedBy []string
+	ReplyCount  int
+	FlaggedBy   []string
 }
 
 type DirectPostForExport struct {

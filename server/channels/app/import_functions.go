@@ -763,6 +763,60 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		})
 	}
 
+	if data.SendOnCtrlEnter != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "send_on_ctrl_enter",
+			Value:    *data.SendOnCtrlEnter,
+		})
+	}
+
+	if data.ShowJoinLeave != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "show_join_leave",
+			Value:    *data.ShowJoinLeave,
+		})
+	}
+
+	if data.ShowUnreadScrollPosition != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "show_unread_scroll_position",
+			Value:    *data.ShowUnreadScrollPosition,
+		})
+	}
+
+	if data.SyncDrafts != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "sync_drafts",
+			Value:    *data.SyncDrafts,
+		})
+	}
+
+	if data.LimitVisibleDmsGms != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategorySidebarSettings,
+			Name:     model.PreferenceLimitVisibleDmsGms,
+			Value:    *data.LimitVisibleDmsGms,
+		})
+	}
+
+	if data.NameFormat != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     model.PreferenceNameNameFormat,
+			Value:    *data.NameFormat,
+		})
+	}
+
 	if data.EmailInterval != nil || savedUser.NotifyProps[model.EmailNotifyProp] == "false" {
 		var intervalSeconds string
 		if value := savedUser.NotifyProps[model.EmailNotifyProp]; value == "false" {
@@ -1235,6 +1289,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		}
 		if replyData.EditAt != nil {
 			reply.EditAt = *replyData.EditAt
+		}
+		if replyData.IsPinned != nil {
+			reply.IsPinned = *replyData.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID, extractContent)
