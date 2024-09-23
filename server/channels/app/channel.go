@@ -1961,7 +1961,7 @@ func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.Channe
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
-	storeOpts := store.ChannelSearchOpts{
+	storeOpts := store.ChannelSearchOpts{ // TODO: Correctly pass down all options to store
 		ExcludeChannelNames:      opts.ExcludeChannelNames,
 		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
 		IncludeDeleted:           opts.IncludeDeleted,
@@ -1980,7 +1980,7 @@ func (a *App) GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
-	storeOpts := store.ChannelSearchOpts{
+	storeOpts := store.ChannelSearchOpts{ // TODO: Correctly pass down all options to store
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,

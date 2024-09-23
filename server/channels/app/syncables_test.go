@@ -646,11 +646,13 @@ func TestSyncSyncableRoles(t *testing.T) {
 	_, err = th.App.UpdateGroupSyncable(channelSyncable)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
+	updatedUsers, err := th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, err)
+	assert.Len(t, updatedUsers, 2)
 
-	err = th.App.SyncSyncableRoles(th.Context, team.Id, model.GroupSyncableTypeTeam)
+	updatedUsers, err = th.App.SyncSyncableRoles(th.Context, team.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
+	assert.Len(t, updatedUsers, 2)
 
 	for _, user := range []*model.User{user1, user2} {
 		tm, err := th.App.GetTeamMember(th.Context, team.Id, user.Id)

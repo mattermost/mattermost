@@ -12071,21 +12071,21 @@ func (s *RetryLayerTeamStore) UpdateMember(rctx request.CTX, member *model.TeamM
 
 }
 
-func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) ([]string, error) {
 
 	tries := 0
 	for {
-		err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+		result, err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

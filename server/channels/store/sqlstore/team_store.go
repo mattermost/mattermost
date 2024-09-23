@@ -1591,23 +1591,52 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 	return c > 0, nil
 }
 
-// UpdateMembersRole updates all the members of teamID in the userIds string array to be admins and sets all other
+// UpdateMembersRole updates all the members of teamID in the adminIDs string array to be admins and sets all other
 // users as not being admin.
-func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+// It return the list of userIDs that were updated.
+func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]string, error) {
 	query, args, err := s.getQueryBuilder().
+		Select("UserId").
+		From("TeamMembers").
+		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
+		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
+		Where(
+			sq.Or{
+				// New admins
+				sq.And{
+					sq.Eq{"SchemeAdmin": "false"},
+					sq.Eq{"UserId": adminIDs},
+				},
+				// Demoted admins
+				sq.And{
+					sq.Eq{"SchemeAdmin": "true"},
+					sq.NotEq{"UserId": adminIDs},
+				},
+			},
+		).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	var updatedUsers []string
+	if err = s.GetMasterX().Select(&updatedUsers, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get list of udpated users")
+	}
+
+	query, args, err = s.getQueryBuilder().
 		Update("TeamMembers").
-		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": userIDs}, "true").Else("false")).
+		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
 		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "team_tosql")
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to update TeamMembers")
+		return nil, errors.Wrap(err, "failed to update TeamMembers")
 	}
 
-	return nil
+	return updatedUsers, nil
 }
 
 func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {

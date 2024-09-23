@@ -10554,7 +10554,7 @@ func (s *OpenTracingLayerTeamStore) UpdateMember(rctx request.CTX, member *model
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) ([]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.UpdateMembersRole")
 	s.Root.Store.SetContext(newCtx)
@@ -10563,13 +10563,13 @@ func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, userIDs []s
 	}()
 
 	defer span.Finish()
-	err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+	result, err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error) {

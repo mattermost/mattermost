@@ -17442,7 +17442,7 @@ func (a *OpenTracingAppLayer) SyncSharedChannel(channelID string) error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) *model.AppError {
+func (a *OpenTracingAppLayer) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncSyncableRoles")
 
@@ -17454,14 +17454,14 @@ func (a *OpenTracingAppLayer) SyncSyncableRoles(rctx request.CTX, syncableID str
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SyncSyncableRoles(rctx, syncableID, syncableType)
+	resultVar0, resultVar1 := a.app.SyncSyncableRoles(rctx, syncableID, syncableType)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {

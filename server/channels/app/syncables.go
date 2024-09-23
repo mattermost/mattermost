@@ -220,10 +220,10 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 // SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
-func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) *model.AppError {
+func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
 	permittedAdmins, err := a.Srv().Store().Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
-		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	rctx.Logger().Info(
@@ -232,22 +232,23 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 		mlog.Array("permitted_admins", permittedAdmins),
 	)
 
+	var updatedUsers []string
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		nErr := a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
-		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		updatedUsers, err = a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins) // TODO
+		if err != nil {
+			return nil, model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return nil
 	case model.GroupSyncableTypeChannel:
-		nErr := a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
-		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		err = a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		if err != nil {
+			return nil, model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return nil
 	default:
-		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]any{"Value": syncableType}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]any{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
+
+	return updatedUsers, nil
 }
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
