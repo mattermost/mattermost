@@ -191,7 +191,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should search files part of channel bookmarks",
 		Fn:   testFileInfoSearchShowChannelBookmarkFiles,
-		Tags: []string{EnginePostgres, EngineMySQL},
+		Tags: []string{EnginePostgres, EngineMySQL, EngineElasticSearch},
 	},
 }
 
