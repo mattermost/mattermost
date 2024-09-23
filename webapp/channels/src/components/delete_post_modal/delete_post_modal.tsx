@@ -103,6 +103,36 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         }
     };
 
+    getTitle = () => {
+        return this.props.post.root_id ? (
+            <FormattedMessage
+                id='delete_post.confirm_comment'
+                defaultMessage='Confirm Comment Delete'
+            />
+        ) : (
+            <FormattedMessage
+                id='delete_post.confirm_post'
+                defaultMessage='Confirm Post Delete'
+            />
+        );
+    };
+
+    getPrompt = () => {
+        return this.props.post.root_id ? (
+            <FormattedMessage
+                id='delete_post.question_comment'
+                defaultMessage='Are you sure you want to delete this comment?'
+                tagName='p'
+            />
+        ) : (
+            <FormattedMessage
+                id='delete_post.question_post'
+                defaultMessage='Are you sure you want to delete this message?'
+                tagName='p'
+            />
+        );
+    };
+
     render() {
         let commentWarning: React.ReactNode = '';
         let remoteWarning: React.ReactNode = '';
@@ -111,7 +141,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
             commentWarning = (
                 <FormattedMessage
                     id='delete_post.warning'
-                    defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
+                    defaultMessage='This message has {count, number} {count, plural, one {comment} other {comments}} on it.'
                     values={{
                         count: this.props.commentCount,
                     }}
@@ -123,18 +153,6 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         if (this.props.post.remote_id) {
             remoteWarning = <SharedChannelPostDeleteWarning post={this.props.post}/>;
         }
-
-        const postTerm = this.props.post.root_id ? (
-            <FormattedMessage
-                id='delete_post.comment'
-                defaultMessage='Comment'
-            />
-        ) : (
-            <FormattedMessage
-                id='delete_post.post'
-                defaultMessage='Post'
-            />
-        );
 
         return (
             <Modal
@@ -152,24 +170,11 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='deletePostModalLabel'
                     >
-                        <FormattedMessage
-                            id='delete_post.confirm'
-                            defaultMessage='Confirm {term} Delete'
-                            values={{
-                                term: (postTerm),
-                            }}
-                        />
+                        {this.getTitle()}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <FormattedMessage
-                        id='delete_post.question'
-                        defaultMessage='Are you sure you want to delete this {term}?'
-                        values={{
-                            term: (postTerm),
-                        }}
-                        tagName='p'
-                    />
+                    {this.getPrompt()}
                     {commentWarning}
                     {remoteWarning}
                 </Modal.Body>
@@ -209,12 +214,12 @@ const SharedChannelPostDeleteWarning = ({post}: {post: Post}) => {
     const text = post.root_id ? (
         formatMessage({
             id: 'delete_post.shared_channel_warning.message_comment',
-            defaultMessage: 'This comment originated from a shared channel in another workspace, deleting it here will not remove it from the channel in the other workspace.',
+            defaultMessage: 'This comment originated from a shared channel in another workspace. Deleting it here won\'t remove it from the channel in the other workspace.',
         })
     ) : (
         formatMessage({
             id: 'delete_post.shared_channel_warning.message_post',
-            defaultMessage: 'This post originated from a shared channel in another workspace, deleting it here will not remove it from the channel in the other workspace.',
+            defaultMessage: 'This message originated from a shared channel in another workspace. Deleting it here won\'t remove it from the channel in the other workspace.',
         })
     );
 
