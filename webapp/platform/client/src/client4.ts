@@ -4336,6 +4336,13 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
+            {method: 'put', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -91,8 +92,8 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 	var successfulScheduledPostIDs []string
 
 	for i := range scheduledPosts {
-		scheduledPost, appErr := a.postScheduledPost(rctx, scheduledPosts[i])
-		if appErr != nil {
+		scheduledPost, err := a.postScheduledPost(rctx, scheduledPosts[i])
+		if err != nil {
 			failedScheduledPosts = append(failedScheduledPosts, scheduledPost)
 			continue
 		}
@@ -143,7 +144,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 			mlog.Err(err),
 		)
 
-		return scheduledPost, appErr
+		return scheduledPost, err
 	}
 
 	if scheduledPost.ErrorCode != "" {
@@ -155,7 +156,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 			mlog.String("error_code", scheduledPost.ErrorCode),
 		)
 
-		return scheduledPost, appErr
+		return scheduledPost, fmt.Errorf("App.processScheduledPostBatch: skipping posting a scheduled post as `can post` check failed, error_code: %s", scheduledPost.ErrorCode)
 	}
 
 	post, err := scheduledPost.ToPost()
@@ -167,7 +168,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		)
 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, appErr
+		return scheduledPost, err
 	}
 
 	_, appErr = a.CreatePost(rctx, post, channel, true, false)

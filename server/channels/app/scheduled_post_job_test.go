@@ -54,6 +54,9 @@ func TestProcessScheduledPosts(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
 		scheduledAt := model.GetMillis() + 1000
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -78,9 +81,6 @@ func TestProcessScheduledPosts(t *testing.T) {
 		}
 		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
 		assert.NoError(t, err)
-
-		appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
-		assert.Nil(t, appErr)
 
 		time.Sleep(1 * time.Second)
 

@@ -6759,6 +6759,22 @@
     "translation": "update error"
   },
   {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Failed to save updated scheduled post in database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "You do not have permission to update this resource."
+  },
+  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Cannot upload to a deleted channel."
   },
