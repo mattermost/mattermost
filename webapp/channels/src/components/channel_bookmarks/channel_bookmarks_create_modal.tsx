@@ -563,7 +563,7 @@ const continuableLinkErr = (url: URL, confirm?: () => void) => {
         return (
             <FormattedMessage
                 id='channel_bookmarks.create.error.invalid_url.continuing_anyway'
-                defaultMessage='Could not find: {url}. Please enter a valid link.'
+                defaultMessage='Could not find: {url}.'
                 values={{
                     url: url.toString(),
                 }}
