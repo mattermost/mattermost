@@ -155,13 +155,16 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
 
 export type SubmitPostReturnType = CreatePostReturnType & SubmitCommandRerturnType & SubmitReactionReturnType;
 
+export type OnSubmitOptions = {
+    ignoreSlash?: boolean;
+    afterSubmit?: (response: SubmitPostReturnType) => void;
+    afterOptimisticSubmit?: () => void;
+}
+
 export function onSubmit(
     draft: PostDraft,
-    options: {
-        ignoreSlash?: boolean;
-        afterSubmit?: (response: SubmitPostReturnType) => void;
-        afterOptimisticSubmit?: () => void;
-    }): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
+    options: OnSubmitOptions,
+): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const {message, channelId, rootId} = draft;
         const state = getState();

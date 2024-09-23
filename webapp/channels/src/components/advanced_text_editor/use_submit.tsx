@@ -16,7 +16,7 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {scrollPostListToBottom} from 'actions/views/channel';
-import type {SubmitPostReturnType} from 'actions/views/create_comment';
+import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
@@ -156,7 +156,7 @@ const useSubmit = (
         setServerError(null);
 
         const ignoreSlash = skipCommands || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
-        const options = {ignoreSlash, afterSubmit, afterOptimisticSubmit};
+        const options: OnSubmitOptions = {ignoreSlash, afterSubmit, afterOptimisticSubmit};
 
         try {
             const res = await dispatch(onSubmit(submittingDraft, options));
