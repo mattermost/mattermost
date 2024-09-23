@@ -80,7 +80,9 @@ export default function DraftListItem({
         };
 
         const result = await dispatch(updateScheduledPost(updatedScheduledPost, connectionId));
-        console.log(result);
+        return {
+            error: result.error?.message,
+        };
     }, [connectionId, dispatch, item]);
 
     const scheduledPostActions = useMemo(() => (
