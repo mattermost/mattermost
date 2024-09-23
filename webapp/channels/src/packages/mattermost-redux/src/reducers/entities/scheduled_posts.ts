@@ -41,6 +41,30 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
 
         return newState;
     }
+    case ScheduledPostTypes.SCHEDULED_POST_UPDATED: {
+        const scheduledPost = action.data.scheduledPost;
+
+        const newState = {...state};
+        let modified = false;
+
+        Object.keys(state).some((teamId: string) => {
+            const index = newState[teamId].findIndex((existingScheduledPost) => existingScheduledPost.id === scheduledPost.id);
+
+            if (index >= 0) {
+                newState[teamId] = [...newState[teamId]];
+                newState[teamId][index] = scheduledPost;
+                modified = true;
+
+                // return true makes some() not loop through remaining array
+                return true;
+            }
+
+            // returning false makes some() continue looping through the array
+            return false;
+        });
+
+        return modified ? newState : state;
+    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:

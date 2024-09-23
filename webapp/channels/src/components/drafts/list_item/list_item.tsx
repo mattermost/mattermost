@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost, ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import {updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
+
+import {getConnectionId} from 'selectors/general';
 
 import DraftActions from 'components/drafts/draft_actions';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
@@ -52,6 +57,9 @@ export default function DraftListItem({
     showPriority,
     status,
 }: Props) {
+    const dispatch = useDispatch();
+    const connectionId = useSelector(getConnectionId);
+
     const draftActions = useMemo(() => (
         <DraftActions
             channelDisplayName={channel.display_name}
@@ -65,11 +73,21 @@ export default function DraftListItem({
         />
     ), [channel.display_name, channel.name, channel.type, handleOnDelete, handleOnEdit, handleOnSend, itemId, user.id]);
 
+    const handleOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+        const updatedScheduledPost: ScheduledPost = {
+            ...(item as ScheduledPost),
+            scheduled_at: updatedScheduledAtTime,
+        };
+
+        const result = await dispatch(updateScheduledPost(updatedScheduledPost, connectionId));
+        console.log(result);
+    }, [connectionId, dispatch, item]);
+
     const scheduledPostActions = useMemo(() => (
         <ScheduledPostActions
             scheduledPost={item as ScheduledPost}
             channelDisplayName={channel.display_name}
-            onReschedule={() => {}}
+            onReschedule={handleOnReschedule}
             onDelete={() => {}}
             onSend={() => {}}
         />
