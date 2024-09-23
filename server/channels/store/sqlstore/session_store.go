@@ -165,14 +165,24 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 }
 
 func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
+	versionProp := model.SessionPropMobileVersion
+	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled
+	platformQuery := "NULLIF(SPLIT_PART(deviceid, ':', 1), '')"
+	if me.DriverName() == model.DatabaseDriverMysql {
+		versionProp = "$." + versionProp
+		notificationDisabledProp = "$." + notificationDisabledProp
+		platformQuery = "NULLIF(SUBSTRING_INDEX(deviceid, ':', 1), deviceid)"
+	}
+
 	query, args, err := me.getQueryBuilder().
 		Select(fmt.Sprintf(
-			"COUNT(userid), COALESCE(NULLIF(SPLIT_PART(deviceid, ':', 1), ''),'N/A') AS platform, COALESCE(props->>'%s','N/A') AS version, COALESCE(props->>'%s','false') as notificationDisabled",
-			model.SessionPropMobileVersion,
-			model.SessionPropDeviceNotificationDisabled,
+			"COUNT(userid) AS Count, COALESCE(%s,'N/A') AS Platform, COALESCE(props->>'%s','N/A') AS Version, COALESCE(props->>'%s','false') as NotificationDisabled",
+			platformQuery,
+			versionProp,
+			notificationDisabledProp,
 		)).
-		From("sessions").
-		GroupBy("platform", "version", "notificationDisabled").
+		From("Sessions").
+		GroupBy("Platform", "Version", "NotificationDisabled").
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")
