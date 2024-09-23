@@ -3,12 +3,14 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 import * as UserAgent from 'utils/user_agent';
@@ -103,19 +105,23 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
 
     render() {
         let commentWarning: React.ReactNode = '';
+        let remoteWarning: React.ReactNode = '';
 
         if (this.props.commentCount > 0 && this.props.post.root_id === '') {
             commentWarning = (
-                <div className='mt-2'>
-                    <FormattedMessage
-                        id='delete_post.warning'
-                        defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
-                        values={{
-                            count: this.props.commentCount,
-                        }}
-                    />
-                </div>
+                <FormattedMessage
+                    id='delete_post.warning'
+                    defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
+                    values={{
+                        count: this.props.commentCount,
+                    }}
+                    tagName='p'
+                />
             );
+        }
+
+        if (this.props.post.remote_id) {
+            remoteWarning = <SharedChannelPostDeleteWarning post={this.props.post}/>;
         }
 
         const postTerm = this.props.post.root_id ? (
@@ -162,8 +168,10 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                         values={{
                             term: (postTerm),
                         }}
+                        tagName='p'
                     />
                     {commentWarning}
+                    {remoteWarning}
                 </Modal.Body>
                 <Modal.Footer>
                     <button
@@ -194,3 +202,30 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const SharedChannelPostDeleteWarning = ({post}: {post: Post}) => {
+    const {formatMessage} = useIntl();
+
+    const text = post.root_id ? (
+        formatMessage({
+            id: 'delete_post.shared_channel_warning.message_comment',
+            defaultMessage: 'This comment originated from a shared channel in another workspace, deleting it here will not remove it from the channel in the other workspace.',
+        })
+    ) : (
+        formatMessage({
+            id: 'delete_post.shared_channel_warning.message_post',
+            defaultMessage: 'This post originated from a shared channel in another workspace, deleting it here will not remove it from the channel in the other workspace.',
+        })
+    );
+
+    return (
+        <SectionNotice
+            type='warning'
+            title={formatMessage({
+                id: 'delete_post.shared_channel_warning.title',
+                defaultMessage: 'Shared Channel',
+            })}
+            text={text}
+        />
+    );
+};

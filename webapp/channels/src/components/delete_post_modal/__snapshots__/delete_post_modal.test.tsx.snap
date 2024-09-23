@@ -63,6 +63,7 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
     <MemoizedFormattedMessage
       defaultMessage="Are you sure you want to delete this {term}?"
       id="delete_post.question"
+      tagName="p"
       values={
         Object {
           "term": <Memo(MemoizedFormattedMessage)
@@ -166,6 +167,7 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
     <MemoizedFormattedMessage
       defaultMessage="Are you sure you want to delete this {term}?"
       id="delete_post.question"
+      tagName="p"
       values={
         Object {
           "term": <Memo(MemoizedFormattedMessage)
@@ -175,19 +177,16 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
         }
       }
     />
-    <div
-      className="mt-2"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="This post has {count, number} {count, plural, one {comment} other {comments}} on it."
-        id="delete_post.warning"
-        values={
-          Object {
-            "count": 1,
-          }
+    <MemoizedFormattedMessage
+      defaultMessage="This post has {count, number} {count, plural, one {comment} other {comments}} on it."
+      id="delete_post.warning"
+      tagName="p"
+      values={
+        Object {
+          "count": 1,
         }
-      />
-    </div>
+      }
+    />
   </ModalBody>
   <ModalFooter
     bsClass="modal-footer"
@@ -282,6 +281,7 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
     <MemoizedFormattedMessage
       defaultMessage="Are you sure you want to delete this {term}?"
       id="delete_post.question"
+      tagName="p"
       values={
         Object {
           "term": <Memo(MemoizedFormattedMessage)
