@@ -67,20 +67,22 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         const header = (
             <h4>
-                <span className='video-type'>
-                    <FormattedMessage
-                        {...videoType}
-                        values={{type: videoType}}
-                    />
-                </span>
-                <span className='video-title'>
-                    <ExternalLink
-                        href={this.props.link}
-                        location='youtube_video'
-                    >
-                        {videoTitle}
-                    </ExternalLink>
-                </span>
+                <FormattedMessage
+                    {...videoType}
+                    values={{
+                        title: (
+                            <span className='video-title'>
+                                <ExternalLink
+                                    href={this.props.link}
+                                    location='youtube_video'
+                                >
+                                    {videoTitle}
+                                </ExternalLink>
+                            </span>
+                        ),
+                        type: (v) => (<span className='video-type'>{v}</span>),
+                    }}
+                />
                 {isShorts && (
                     <WithTooltip
                         id={`${this.props.postId}_expand_shorts`}
@@ -169,11 +171,11 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 const messages = defineMessages({
     youtube: {
         id: 'youtube_video.type.youtube',
-        defaultMessage: 'YouTube - ',
+        defaultMessage: '<type>YouTube - </type>{title}',
     },
     shorts: {
         id: 'youtube_video.type.shorts',
-        defaultMessage: 'YouTube Shorts - ',
+        defaultMessage: '<type>YouTube Shorts - </type>{title}',
     },
 
     shrink: {
