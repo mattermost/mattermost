@@ -133,6 +133,15 @@ describe('SystemUserDetail', () => {
 
         expect(container).toMatchSnapshot();
     });
+
+    test('everything should be disabled', () => {
+        const props = {
+            ...defaultProps,
+            isDisabled: true,
+        };
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
 });
 
 describe('getUserAuthenticationTextField', () => {
