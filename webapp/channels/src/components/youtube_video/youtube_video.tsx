@@ -144,7 +144,14 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 <div>
                     {header}
                     <div
-                        className={classNames('video-div', 'embed-responsive-item', this.state.shortsExpanded ? 'video-shorts-expanded' : (isShorts && 'video-shorts'))}
+                        className={classNames(
+                            'video-div',
+                            'embed-responsive-item',
+                            {
+                                'video-shorts-expanded': this.state.shortsExpanded,
+                                'video-shorts': isShorts && !this.state.shortsExpanded,
+                            },
+                        )}
                         onClick={this.play}
                     >
                         {content}
