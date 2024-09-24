@@ -963,7 +963,6 @@ func TestNowhereNil(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r != nil {
@@ -1196,7 +1195,6 @@ func TestIsValidHTTPURL(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r != nil {
