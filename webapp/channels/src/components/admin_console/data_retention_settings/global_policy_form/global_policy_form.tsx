@@ -103,7 +103,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         this.setState({saving: true});
 
         if ((messageRetentionDropdownValue.value !== FOREVER && parseInt(messageRetentionInputValue, 10) < 1) || (fileRetentionDropdownValue.value !== FOREVER && parseInt(fileRetentionInputValue, 10) < 1)) {
-            this.setState({formErrorText: Utils.localizeMessage('admin.data_retention.global_policy.form.numberError', 'You must add a number greater than or equal to 1.'), saving: false});
+            this.setState({formErrorText: Utils.localizeMessage({id: 'admin.data_retention.global_policy.form.numberError', defaultMessage: 'You must add a number greater than or equal to 1.'}), saving: false});
             return;
         }
 
@@ -185,7 +185,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                 <div
                                     className='global_policy'
                                 >
-                                    <p>{Utils.localizeMessage('admin.data_retention.form.text', 'Applies to all teams and channels, but does not apply to custom retention policies.')}</p>
+                                    <p>{Utils.localizeMessage({id: 'admin.data_retention.form.text', defaultMessage: 'Applies to all teams and channels, but does not apply to custom retention policies.'})}</p>
                                     <div id='global_direct_message_dropdown'>
                                         <DropdownInputHybrid
                                             onDropdownChange={(value) => {
@@ -205,8 +205,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             disabled={this.isMessageRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
-                                            legend={Utils.localizeMessage('admin.data_retention.form.channelAndDirectMessageRetention', 'Channel & direct message retention')}
-                                            placeholder={Utils.localizeMessage('admin.data_retention.form.channelAndDirectMessageRetention', 'Channel & direct message retention')}
+                                            legend={Utils.localizeMessage({id: 'admin.data_retention.form.channelAndDirectMessageRetention', defaultMessage: 'Channel & direct message retention'})}
+                                            placeholder={Utils.localizeMessage({id: 'admin.data_retention.form.channelAndDirectMessageRetention', defaultMessage: 'Channel & direct message retention'})}
                                             name={'channel_message_retention'}
                                             inputType={'number'}
                                             dropdownClassNamePrefix={'channel_message_retention_dropdown'}
@@ -233,8 +233,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             disabled={this.isFileRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
-                                            legend={Utils.localizeMessage('admin.data_retention.form.fileRetention', 'File retention')}
-                                            placeholder={Utils.localizeMessage('admin.data_retention.form.fileRetention', 'File retention')}
+                                            legend={Utils.localizeMessage({id: 'admin.data_retention.form.fileRetention', defaultMessage: 'File retention'})}
+                                            placeholder={Utils.localizeMessage({id: 'admin.data_retention.form.fileRetention', defaultMessage: 'File retention'})}
                                             name={'file_retention'}
                                             inputType={'number'}
                                             dropdownClassNamePrefix={'file_retention_dropdown'}
