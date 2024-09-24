@@ -136,8 +136,8 @@ const AddUsersToGroupModal = (props: Props) => {
                                 deleteUserCallback={deleteUserCallback}
                                 groupId={props.groupId}
                                 searchOptions={searchOptions}
-                                buttonSubmitText={localizeMessage('multiselect.addPeopleToGroup', 'Add People')}
-                                buttonSubmitLoadingText={localizeMessage('multiselect.adding', 'Adding...')}
+                                buttonSubmitText={localizeMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
+                                buttonSubmitLoadingText={localizeMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
                                 backButtonClick={goBack}
                                 backButtonClass={'multiselect-back'}
                                 saving={saving}

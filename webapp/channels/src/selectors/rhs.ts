@@ -91,7 +91,7 @@ export const getSelectedPost = createSelector(
             id: selectedPostId,
             exists: false,
             type: PostTypes.FAKE_PARENT_DELETED as PostType,
-            message: localizeMessage('rhs_thread.rootPostDeletedMessage.body', 'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.'),
+            message: localizeMessage({id: 'rhs_thread.rootPostDeletedMessage.body', defaultMessage: 'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.'}),
             channel_id: selectedPostChannelId,
             user_id: currentUserId,
             reply_count: 0,
