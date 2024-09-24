@@ -17,12 +17,13 @@ import DateTimePickerModal from 'components/date_time_picker_modal/date_time_pic
 type Props = {
     channelId: string;
     onExited: () => void;
-    onConfirm: (timestamp: number) => void;
+    onConfirm: (timestamp: number) => Promise<{error?: string}>;
     initialTime?: Moment;
 }
 
 export default function ScheduledPostCustomTimeModal({channelId, onExited, onConfirm, initialTime}: Props) {
     const {formatMessage} = useIntl();
+    const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
@@ -35,18 +36,31 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
 
-    const handleOnConfirm = useCallback((dateTime: Moment) => {
-        onConfirm(dateTime.valueOf());
-    }, [onConfirm]);
+    const handleOnConfirm = useCallback(async (dateTime: Moment) => {
+        const response = await onConfirm(dateTime.valueOf());
+        if (response.error) {
+            setErrorMessage(response.error);
+        } else {
+            onExited();
+        }
+    }, [onConfirm, onExited]);
 
     const bodySuffix = useMemo(() => {
         return (
-            <DMUserTimezone
-                channelId={channelId}
-                selectedTime={selectedDateTime?.toDate()}
-            />
+            <React.Fragment>
+                <DMUserTimezone
+                    channelId={channelId}
+                    selectedTime={selectedDateTime?.toDate()}
+                />
+                {
+                    errorMessage &&
+                    <p className='error'>
+                        {errorMessage}
+                    </p>
+                }
+            </React.Fragment>
         );
-    }, [channelId, selectedDateTime]);
+    }, [channelId, selectedDateTime, errorMessage]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 

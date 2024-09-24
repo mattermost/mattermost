@@ -95,6 +95,7 @@ export default function DateTimePickerModal({onExited,
             compassDesign={true}
             keyboardEscape={false}
             cancelButtonText={cancelButtonText}
+            autoCloseOnConfirmButton={false}
         >
             {bodyPrefix}
 

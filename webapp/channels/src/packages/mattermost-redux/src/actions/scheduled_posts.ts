@@ -31,7 +31,7 @@ export function createSchedulePost(schedulePost: ScheduledPost, teamId: string, 
     };
 }
 
-export default function fetchTeamScheduledPosts(teamId: string, includeDirectChannels: boolean) {
+export function fetchTeamScheduledPosts(teamId: string, includeDirectChannels: boolean) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let scheduledPosts;
 
@@ -50,5 +50,26 @@ export default function fetchTeamScheduledPosts(teamId: string, includeDirectCha
         }
 
         return {data: scheduledPosts};
+    };
+}
+
+export function updateScheduledPost(scheduledPost: ScheduledPost, connectionId: string) {
+    return async (dispatch: DispatchFunc) => {
+        try {
+            const updatedScheduledPost = await Client4.updateScheduledPost(scheduledPost, connectionId);
+
+            dispatch({
+                type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
+                data: {
+                    scheduledPost: updatedScheduledPost.data,
+                },
+            });
+
+            return {data: updatedScheduledPost};
+        } catch (error) {
+            return {
+                error,
+            };
+        }
     };
 }

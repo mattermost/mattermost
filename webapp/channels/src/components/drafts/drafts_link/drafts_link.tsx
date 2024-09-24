@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
 
-import fetchTeamScheduledPosts from 'mattermost-redux/actions/scheduled_posts';
+import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getScheduledPostsByTeamCount, hasScheduledPostError,
