@@ -65,6 +65,57 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	return nil
 }
 
+func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error) {
+	// ChannelMemberHistory has been in production for long enough that we are assuming the export period
+	// starts after the ChannelMemberHistory table was first introduced
+	subqueryPosts := s.getSubQueryBuilder().
+		Select("p.ChannelId").
+		Distinct().
+		From("Posts AS p").
+		Where(
+			sq.And{
+				sq.GtOrEq{"p.UpdateAt": startTime},
+				sq.LtOrEq{"p.UpdateAt": endTime},
+				sq.NotLike{"p.Type": "system_%"},
+			})
+
+	subqueryCMH := s.getSubQueryBuilder().
+		Select("cmh.ChannelId").
+		Distinct().
+		From("ChannelMemberHistory AS cmh").
+		Where(
+			sq.Or{
+				sq.And{
+					sq.GtOrEq{"cmh.JoinTime": startTime},
+					sq.LtOrEq{"cmh.JoinTime": endTime},
+				},
+				sq.And{
+					sq.GtOrEq{"cmh.LeaveTime": startTime},
+					sq.LtOrEq{"cmh.LeaveTime": endTime},
+				},
+			})
+
+	unionExpr, args, err := sq.Expr("(? UNION ?) AS cm", subqueryPosts, subqueryCMH).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetChannelsWithActivityDuring unionExpr to sql")
+	}
+
+	// no bound args in this expression
+	query, _, err := s.getQueryBuilder().
+		Select("*").
+		From(unionExpr).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetChannelsWithActivityDuring query to sql")
+	}
+
+	channelIds := make([]string, 0)
+	if err := s.GetReplicaX().Select(&channelIds, query, args...); err != nil {
+		return nil, err
+	}
+
+	return channelIds, nil
+}
+
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
 	if err != nil {

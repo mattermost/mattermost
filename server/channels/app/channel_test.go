@@ -587,6 +587,86 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
+func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
+	th := Setup(t).InitBasic().DeleteBots()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+	require.Nil(t, err, "Failed to add user to team.")
+	user3 := th.CreateUser()
+	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user3.Id)
+	require.Nil(t, err, "Failed to add user to team.")
+	user4 := th.CreateUser()
+	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user4.Id)
+	require.Nil(t, err, "Failed to add user to team.")
+
+	channel1 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel2 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel3 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel4 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel5 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel6 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+
+	// user3 is already in channel3
+	_, err = th.App.AddUserToChannel(th.Context, user3, channel3, false)
+	require.Nil(t, err, "Failed to add user to channel.")
+	// user4 is already in channel4 (for the second part of the test)
+	_, err = th.App.AddUserToChannel(th.Context, user4, channel4, false)
+	require.Nil(t, err, "Failed to add user to channel.")
+
+	testStart := model.GetMillis()
+
+	// Test: previous activity (user3 and 4's adds) aren't showing up:
+	channelIds, nErr := th.App.Srv().Store().ChannelMemberHistory().GetChannelsWithActivityDuring(testStart, testStart+10000)
+	require.NoError(t, nErr)
+	assert.Len(t, channelIds, 0)
+
+	// Posts, adds, and leaves should create activity
+	post := &model.Post{
+		ChannelId: channel1.Id,
+		Message:   "root post",
+		UserId:    th.BasicUser.Id,
+	}
+	_, err = th.App.CreatePost(th.Context, post, channel1, false, true)
+	require.Nil(t, err, "Failed to create post.")
+
+	_, err = th.App.AddUserToChannel(th.Context, user, channel2, false)
+	require.Nil(t, err, "Failed to add user to channel.")
+
+	err = th.App.RemoveUserFromChannel(th.Context, user3.Id, user3.Id, channel3)
+	require.Nil(t, err, "Failed to add user to channel.")
+
+	// Test: there should be a ChannelMemberHistory record for the users and the post
+	channelIds, nErr = th.App.Srv().Store().ChannelMemberHistory().GetChannelsWithActivityDuring(testStart, model.GetMillis())
+	require.NoError(t, nErr)
+	assert.Len(t, channelIds, 3)
+	assert.ElementsMatch(t, []string{channel1.Id, channel2.Id, channel3.Id}, channelIds)
+
+	testEnd := model.GetMillis()
+	// In case the tests are running very fast:
+	time.Sleep(time.Millisecond)
+
+	// Now, we do not find activity for new posts, leaves, or adds after the test is over
+	post2 := &model.Post{
+		ChannelId: channel5.Id,
+		Message:   "root post",
+		UserId:    th.BasicUser.Id,
+	}
+	err = th.App.RemoveUserFromChannel(th.Context, user4.Id, user4.Id, channel4)
+	require.Nil(t, err, "Failed to create post.")
+	_, err = th.App.CreatePost(th.Context, post2, channel5, false, true)
+	require.Nil(t, err, "Failed to create post.")
+	_, err = th.App.AddUserToChannel(th.Context, user, channel6, false)
+	require.Nil(t, err, "Failed to add user to channel.")
+
+	// Test: we get the same three channels as before, not channels 4, 5, 6 which have activity after testEnd
+	channelIds, nErr = th.App.Srv().Store().ChannelMemberHistory().GetChannelsWithActivityDuring(testStart, testEnd)
+	require.NoError(t, nErr)
+	assert.Len(t, channelIds, 3)
+	assert.ElementsMatch(t, []string{channel1.Id, channel2.Id, channel3.Id}, channelIds)
+}
+
 func TestLeaveDefaultChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
