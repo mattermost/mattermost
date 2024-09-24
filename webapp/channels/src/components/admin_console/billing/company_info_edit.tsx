@@ -150,7 +150,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                     type='text'
                     value={address}
                     onChange={updateState(setAddress)}
-                    placeholder={Utils.localizeMessage('admin.billing.company_info.address', 'Address')}
+                    placeholder={Utils.localizeMessage({id: 'admin.billing.company_info.address', defaultMessage: 'Address'})}
                     required={true}
                 />
             </div>
@@ -160,7 +160,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                     type='text'
                     value={address2}
                     onChange={updateState(setAddress2)}
-                    placeholder={Utils.localizeMessage('admin.billing.company_info.address_2', 'Address 2')}
+                    placeholder={Utils.localizeMessage({id: 'admin.billing.company_info.address_2', defaultMessage: 'Address 2'})}
                 />
             </div>
             <div className='form-row'>
@@ -169,7 +169,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                     type='text'
                     value={city}
                     onChange={updateState(setCity)}
-                    placeholder={Utils.localizeMessage('admin.billing.company_info.city', 'City')}
+                    placeholder={Utils.localizeMessage({id: 'admin.billing.company_info.city', defaultMessage: 'City'})}
                     required={true}
                 />
             </div>
@@ -190,7 +190,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                         type='text'
                         value={postalCode}
                         onChange={updateState(setPostalCode)}
-                        placeholder={Utils.localizeMessage('admin.billing.company_info.zipcode', 'Zip/Postal Code')}
+                        placeholder={Utils.localizeMessage({id: 'admin.billing.company_info.zipcode', defaultMessage: 'Zip/Postal Code'})}
                         required={true}
                     />
                 </div>
@@ -228,7 +228,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                                     type='text'
                                     value={companyName}
                                     onChange={updateState(setCompanyName)}
-                                    placeholder={Utils.localizeMessage('admin.billing.company_info.companyName', 'Company name')}
+                                    placeholder={Utils.localizeMessage({id: 'admin.billing.company_info.companyName', defaultMessage: 'Company name'})}
                                     required={true}
                                 />
                             </div>
@@ -238,7 +238,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                                     type='number'
                                     value={numEmployees}
                                     onChange={updateNumEmployees}
-                                    placeholder={Utils.localizeMessage('admin.billing.company_info.numEmployees', 'Number of employees (optional)')}
+                                    placeholder={Utils.localizeMessage({id: 'admin.billing.company_info.numEmployees', defaultMessage: 'Number of employees (optional)'})}
                                 />
                             </div>
                             <div className='section-title'>

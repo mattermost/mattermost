@@ -571,6 +571,9 @@ export default class Root extends React.PureComponent<Props, State> {
 }
 
 export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
-    const TEAM_CONTROLLER_PATH_PATTERN = /^\/([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+    // Note: we have specifically added admin_console to the negative lookahead as admin_console can have integrations as subpaths (admin_console/integrations/bot_accounts)
+    // and we don't want to treat those as team controller routes.
+    const TEAM_CONTROLLER_PATH_PATTERN = /^\/(?!admin_console)([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+
     return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }

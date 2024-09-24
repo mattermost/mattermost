@@ -291,7 +291,7 @@ func (s LocalCacheChannelStore) GetAllChannelMembersForUser(ctx request.CTX, use
 		cache_key += "_deleted"
 	}
 	if allowFromCache {
-		ids := make(map[string]string)
+		var ids model.StringMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMembersForUserCache, cache_key, &ids); err == nil {
 			return ids, nil
 		}
