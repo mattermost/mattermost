@@ -98,6 +98,10 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		mlog.Error(err.Error())
 		return err
 	}
+	// If we allow testing then listen for manual testing URL hits
+	if *server.Config().ServiceSettings.EnableTesting {
+		manualtesting.Init(api)
+	}
 	wsapi.Init(server)
 	web.New(server)
 
@@ -105,11 +109,6 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	if err != nil {
 		mlog.Error(err.Error())
 		return err
-	}
-
-	// If we allow testing then listen for manual testing URL hits
-	if *server.Config().ServiceSettings.EnableTesting {
-		manualtesting.Init(api)
 	}
 
 	notifyReady()
