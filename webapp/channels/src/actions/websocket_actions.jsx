@@ -246,7 +246,7 @@ export function reconnect() {
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPoll());
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
