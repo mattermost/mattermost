@@ -46,12 +46,10 @@ const SidebarCategorySortingMenu = ({
     const dispatch = useDispatch();
     const selectedDmNumber = useSelector(getVisibleDmGmLimit);
     const currentUserId = useSelector(getCurrentUserId);
-    const [sortBehavior, setSortBehavior] = useState(category.sorting);
 
     function handleSortDirectMessages(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
         trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
-        setSortBehavior(sorting);
     }
 
     let sortDirectMessagesIcon = <ClockOutlineIcon size={18}/>;
@@ -98,7 +96,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
-                trailingElements={sortBehavior === CategorySorting.Alphabetical ? (
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? (
                     <>
                         <CheckIcon size={16}/>
                     </>
@@ -113,7 +111,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
-                trailingElements={sortBehavior === CategorySorting.Recency ? (
+                trailingElements={category.sorting === CategorySorting.Recency ? (
                     <>
                         <CheckIcon size={16}/>
                     </>
