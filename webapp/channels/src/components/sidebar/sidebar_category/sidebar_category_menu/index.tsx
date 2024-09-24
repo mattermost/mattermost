@@ -13,7 +13,7 @@ import {
     SortAlphabeticalAscendingIcon,
     ClockOutlineIcon,
     ChevronRightIcon,
-    CheckIcon
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -196,11 +196,11 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
-                trailingElements= {sortBehavior===CategorySorting.Alphabetical ?(
+                trailingElements={sortBehavior === CategorySorting.Alphabetical ? (
                     <>
                         <CheckIcon size={16}/>
                     </>
-                ): null}
+                ) : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -211,11 +211,11 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
-                trailingElements= {sortBehavior===CategorySorting.Recency ?(
+                trailingElements={sortBehavior === CategorySorting.Recency ? (
                     <>
                         <CheckIcon size={16}/>
                     </>
-                ): null}
+                ) : null}
             />
             <Menu.Item
                 id={`sortManual-${category.id}`}
@@ -226,11 +226,11 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Manual)}
-                trailingElements= {sortBehavior===CategorySorting.Manual ?(
+                trailingElements={sortBehavior === CategorySorting.Manual ? (
                     <>
                         <CheckIcon size={16}/>
                     </>
-                ): null}
+                ) : null}
             />
         </Menu.SubMenu>
     );
