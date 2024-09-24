@@ -44,15 +44,15 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
     }
 
     play = () => {
-        this.setState({...this.state, playing: true});
+        this.setState({playing: true});
     };
 
     stop = () => {
-        this.setState({...this.state, playing: false});
+        this.setState({playing: false});
     };
 
     toggleShortsExpanded = () => {
-        this.setState({...this.state, shortsExpanded: !this.state.shortsExpanded});
+        this.setState({shortsExpanded: !this.state.shortsExpanded});
     };
 
     render() {
