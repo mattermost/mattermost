@@ -54,7 +54,7 @@ const sendNowTooltipText = (
 type Props = {
     scheduledPost: ScheduledPost;
     channelDisplayName: string;
-    onReschedule: (timestamp: number) => void;
+    onReschedule: (timestamp: number) => Promise<{error?: string}>;
     onDelete: (scheduledPostId: string) => void;
     onSend: (scheduledPostId: string) => void;
 }

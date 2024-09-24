@@ -16,7 +16,7 @@ import {
     getChannelStats,
     selectChannel,
 } from 'mattermost-redux/actions/channels';
-import fetchTeamScheduledPosts from 'mattermost-redux/actions/scheduled_posts';
+import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {logout, loadMe} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
