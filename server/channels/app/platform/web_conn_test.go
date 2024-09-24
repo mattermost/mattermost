@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 type hookRunner struct {
@@ -240,4 +242,39 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("Cycled End", func(t *testing.T) { run(int64(137), deadQueueSize+10) })
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
 	})
+}
+
+// TestWebConnSessionRace guards against https://mattermost.atlassian.net/browse/MM-60307. It need to be run with the -race flag.
+func TestWebConnSessionRace(t *testing.T) {
+	th := Setup(t).InitBasic()
+	t.Cleanup(th.TearDown)
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	t.Cleanup(s.Close)
+	d := websocket.Dialer{}
+	c, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+	require.NoError(t, err)
+
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
+
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	// Ensure LastActivityAt needs to get updated in the session store
+	session.LastActivityAt = session.LastActivityAt - model.SessionActivityTimeout - 1
+
+	cfg := &WebConnConfig{
+		WebSocket: c,
+		Session:   *session,
+		TFunc:     i18n.IdentityTfunc(),
+		Locale:    "en",
+	}
+	_ = th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
+
+	session.AddProp(model.SessionPropPlatform, "chrome")
+
+	// Wait a bit of the race checker to catch any
+	time.Sleep(100 * time.Millisecond)
 }

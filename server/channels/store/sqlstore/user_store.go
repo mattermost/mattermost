@@ -1708,7 +1708,27 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 
 func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 	var count int64
-	err := us.GetReplicaX().Get(&count, "SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0")
+	query := us.getQueryBuilder().
+		Select("COUNT(Id)").
+		From("Users")
+	if us.DriverName() == model.DatabaseDriverPostgres {
+		query = query.LeftJoin("Bots ON Users.ID = Bots.UserId").
+			Where(sq.And{
+				sq.Gt{"Users.DeleteAt": 0},
+				sq.Eq{"Bots.UserId": nil},
+			})
+	} else {
+		query = query.Where(sq.And{
+			sq.Expr("Users.Id NOT IN (SELECT UserId FROM Bots)"),
+			sq.Gt{"Users.DeleteAt": 0},
+		})
+	}
+	queryStr, args, err := query.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to create a SQL query to count inactive users")
+	}
+	err = us.GetReplicaX().Get(&count, queryStr, args...)
+
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count inactive Users")
 	}
