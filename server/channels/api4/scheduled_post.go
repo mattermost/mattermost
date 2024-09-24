@@ -19,6 +19,7 @@ import (
 func (api *API) InitScheduledPost() {
 	api.BaseRoutes.Posts.Handle("/schedule", api.APISessionRequired(createSchedulePost)).Methods(http.MethodPost)
 	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(updateScheduledPost)).Methods(http.MethodPut)
+	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteScheduledPost)).Methods(http.MethodDelete)
 	api.BaseRoutes.Posts.Handle("/scheduled/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTeamScheduledPosts)).Methods(http.MethodGet)
 }
 
@@ -131,6 +132,36 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(updatedScheduledPost); err != nil {
+		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
+		return
+	}
+}
+
+func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
+	if scheduledPostId == "" {
+		c.SetInvalidURLParam("scheduled_post_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteScheduledPost", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	audit.AddEventParameter(auditRec, "scheduledPostId", scheduledPostId)
+
+	userId := c.AppContext.Session().UserId
+	connectionID := r.Header.Get(model.ConnectionId)
+	deletedScheduledPost, appErr := c.App.DeleteScheduledPost(c.AppContext, userId, scheduledPostId, connectionID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(deletedScheduledPost)
+	auditRec.AddEventObjectType("scheduledPost")
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(deletedScheduledPost); err != nil {
 		mlog.Error("failed to encode scheduled post to return API response", mlog.Err(err))
 		return
 	}

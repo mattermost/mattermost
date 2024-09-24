@@ -167,3 +167,37 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - scheduled_post
+      summary: Delete a scheduled post
+      description: >
+        Delete a scheduled post
+
+        __Minimum server version__: 10.3
+      operationId: DeleteScheduledPost
+      parameters:
+        - name: scheduled_post_id
+          in: path
+          description: ID of the scheduled post to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
