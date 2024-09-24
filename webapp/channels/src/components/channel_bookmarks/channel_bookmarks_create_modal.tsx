@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, ClipboardEventHandler, FocusEventHandler, MouseEvent, ReactNode} from 'react';
+import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -27,7 +27,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isValidUrl, parseLink, urlRemoveProtocol} from 'utils/url';
+import {isValidUrl, parseLink, removeScheme} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -87,7 +87,7 @@ function ChannelBookmarkCreateModal({
     }, [handleKeyDown]);
 
     // type === 'link'
-    const [icon] = useState(bookmark?.image_url);
+    const icon = bookmark?.image_url;
     const [link, setLinkInner] = useState(bookmark?.link_url ?? '');
     const prevLink = useRef(link);
     const [validatedLink, setValidatedLink] = useState<string>();
@@ -105,21 +105,14 @@ function ChannelBookmarkCreateModal({
         if (!forced) {
             setValidatedLink(validatedLink);
         }
-        const parsed = urlRemoveProtocol(validatedLink);
+        const parsed = removeScheme(validatedLink);
         setParsedDisplayName(parsed);
         setDisplayName(parsed);
     });
 
-    const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
+    const handleLinkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const {value} = e.target;
         setLink(value);
-    }, []);
-
-    const handleLinkBlur: FocusEventHandler<HTMLInputElement> = useCallback(({target: {value}}) => {
-        setLink(value);
-    }, []);
-
-    const handleLinkPasted: ClipboardEventHandler<HTMLInputElement> = useCallback(({clipboardData}) => {
-        setLink(clipboardData.getData('text/plain'));
     }, []);
 
     // type === 'file'
@@ -354,7 +347,15 @@ function ChannelBookmarkCreateModal({
     }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon]);
 
     const confirmDisabled = saving || !isValid || !hasChanges;
-    const linkStatus = checkingLink ? <LoadingSpinner/> : (!linkError && validatedLink && checkedIcon);
+
+    let linkStatusIndicator;
+    if (checkingLink) {
+        // loading
+        linkStatusIndicator = <LoadingSpinner/>;
+    } else if (validatedLink && !linkError) {
+        // validated
+        linkStatusIndicator = checkedIcon;
+    }
 
     return (
         <GenericModal
@@ -381,13 +382,11 @@ function ChannelBookmarkCreateModal({
                             containerClassName='linkInput'
                             placeholder={formatMessage(msg.linkPlaceholder)}
                             onChange={handleLinkChange}
-                            onBlur={handleLinkBlur}
-                            onPaste={handleLinkPasted}
                             hasError={Boolean(linkError)}
                             value={link}
                             data-testid='linkInput'
                             autoFocus={true}
-                            addon={linkStatus || undefined}
+                            addon={linkStatusIndicator}
                             customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
                         />
                     </>
@@ -650,7 +649,6 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
     useEffect(() => {
         const handler = setTimeout(async () => {
             cancel();
-
             if (!link) {
                 return;
             }
@@ -669,6 +667,7 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
                 await fetch(url, {
                     mode: 'no-cors',
 
+                    // @ts-expect-error AbortSignal.any exists; remove this directive when next TS upgrade
                     signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
                 });
                 onValidated(link);

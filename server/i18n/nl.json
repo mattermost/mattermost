@@ -8072,7 +8072,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Uitnodiging aanvaard | Online | Laatste ping  |"
+    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Standaard Team | Uitnodiging aanvaard | Online | Laatste ping | Verwijderd |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10128,5 +10128,61 @@
   {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Kan de webhook niet ophalen voor teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Gebruiker is geen OAuth of SAML gebruiker."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Kan gedeelde externe kanalen niet ophalen"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Kan niet bepalen of kanaal wordt gedeeld met de externe"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Kan externe niet uitnodigen voor kanaal"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Er zijn geen leden voor het directe kanaal"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Kan geen leden voor dit draadje ophalen voor export."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Ongeldig bericht ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Ongeldige gebruikers-id."
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Kan remote niet afmelden voor kanaal"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Fout bij het ophalen van de kanaalleden voor direct kanaal"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Kan lidmaatschap voor dit draadje niet opslaan voor bericht."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "De grootte van de geüploade plugin overschrijdt de limiet. Deze limiet kan worden gewijzigd in de Systeemconsole via Bestandsopslag > Maximale bestandsgrootte"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Bestand kon niet worden geüpload. Uploadkanaal wordt niet gedeeld met remote."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Kan de extra sessie-eigenschappen niet bijwerken."
   }
 ]

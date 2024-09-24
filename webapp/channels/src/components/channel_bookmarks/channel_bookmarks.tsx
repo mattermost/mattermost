@@ -32,9 +32,9 @@ function ChannelBookmarks({
         return null;
     }
 
-    const handleOnDragEnd: ComponentProps<typeof DragDropContext>['onDragEnd'] = async ({source, destination, draggableId}) => {
+    const handleOnDragEnd: ComponentProps<typeof DragDropContext>['onDragEnd'] = ({source, destination, draggableId}) => {
         if (destination) {
-            await reorder(draggableId, source.index, destination.index);
+            reorder(draggableId, source.index, destination.index);
         }
     };
 
@@ -101,4 +101,5 @@ const Container = styled.div`
     align-items: center;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     overflow-x: auto;
+    max-width: 100vw;
 `;

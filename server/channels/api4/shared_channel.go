@@ -110,15 +110,18 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 		return
 	}
 
-	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil {
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, true); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	filter := model.SharedChannelRemoteFilterOpts{
-		RemoteId:      c.Params.RemoteId,
-		ExcludeHome:   c.Params.ExcludeHome,
-		ExcludeRemote: c.Params.ExcludeRemote,
+		RemoteId:           c.Params.RemoteId,
+		IncludeUnconfirmed: c.Params.IncludeUnconfirmed,
+		ExcludeConfirmed:   c.Params.ExcludeConfirmed,
+		ExcludeHome:        c.Params.ExcludeHome,
+		ExcludeRemote:      c.Params.ExcludeRemote,
+		IncludeDeleted:     c.Params.IncludeDeleted,
 	}
 	sharedChannelRemotes, err := c.App.GetSharedChannelRemotes(c.Params.Page, c.Params.PerPage, filter)
 	if err != nil {
@@ -153,7 +156,7 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil {
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false); appErr != nil {
 		c.SetInvalidRemoteIdError(c.Params.RemoteId)
 		return
 	}
@@ -170,7 +173,11 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	audit.AddEventParameter(auditRec, "user_id", c.AppContext.Session().UserId)
 
 	if err := c.App.InviteRemoteToChannel(c.Params.ChannelId, c.Params.RemoteId, c.AppContext.Session().UserId, true); err != nil {
-		c.Err = model.NewAppError("inviteRemoteClusterToChannel", "api.shared_channel.invite_remote_to_channel_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if appErr, ok := err.(*model.AppError); ok {
+			c.Err = appErr
+		} else {
+			c.Err = model.NewAppError("inviteRemoteClusterToChannel", "api.shared_channel.invite_remote_to_channel_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 		return
 	}
 
@@ -200,7 +207,7 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId); appErr != nil {
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false); appErr != nil {
 		c.SetInvalidRemoteIdError(c.Params.RemoteId)
 		return
 	}

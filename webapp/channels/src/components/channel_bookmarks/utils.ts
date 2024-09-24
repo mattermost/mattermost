@@ -134,7 +134,11 @@ export const useChannelBookmarks = (channelId: string) => {
 
     const reorder = async (id: string, prevOrder: number, nextOrder: number) => {
         setTempOrder(insertWithoutDuplicates(order, id, nextOrder));
-        await dispatch(reorderBookmark(channelId, id, nextOrder));
+        const {error} = await dispatch(reorderBookmark(channelId, id, nextOrder));
+
+        if (error) {
+            setTempOrder(undefined);
+        }
     };
 
     return {
