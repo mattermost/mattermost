@@ -55,7 +55,7 @@ type Props = {
     scheduledPost: ScheduledPost;
     channelDisplayName: string;
     onReschedule: (timestamp: number) => Promise<{error?: string}>;
-    onDelete: (scheduledPostId: string) => void;
+    onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
 }
 
@@ -114,24 +114,24 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                     <React.Fragment>
                         <Action
                             icon='icon-pencil-outline'
-                            id='delete'
-                            name='delete'
+                            id='edit'
+                            name='edit'
                             tooltipText={editTooltipText}
                             onClick={() => {}} // this will be implemented in an upcoming PR
                         />
 
                         <Action
                             icon='icon-clock-send-outline'
-                            id='delete'
-                            name='delete'
+                            id='reschedule'
+                            name='reschedule'
                             tooltipText={rescheduleTooltipText}
                             onClick={handleReschedulePost}
                         />
 
                         <Action
                             icon='icon-send-outline'
-                            id='delete'
-                            name='delete'
+                            id='sendNow'
+                            name='sendNow'
                             tooltipText={sendNowTooltipText}
                             onClick={handleSend}
                         />

@@ -7,4 +7,5 @@ export default keyMirror({
     SCHEDULED_POSTS_RECEIVED: null,
     SINGLE_SCHEDULED_POST_RECEIVED: null,
     SCHEDULED_POST_UPDATED: null,
+    SCHEDULED_POST_DELETED: null,
 });
