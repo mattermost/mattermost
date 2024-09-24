@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
       TEST_IMAGE: migration-test-image
     defaults:
       run:
@@ -30,7 +29,7 @@ jobs:
           docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
       - name: Build test image
         env:
-          BUILD_IMAGE: golang:${{ steps.go.outputs.GO_VERSION }}-bookworm
+          BUILD_IMAGE: golang:1.21.8-bookworm
           PGLOADER_IMAGE: mattermost/mattermost-pgloader:v3.6.9
         run: |
           docker build -t $TEST_IMAGE - <<EOF
