@@ -38,6 +38,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, rctx, ss) })
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
+	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -455,4 +456,85 @@ func testGetLRUSessions(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, s3.Id, sessions[0].Id)
 	require.Equal(t, s2.Id, sessions[1].Id)
 	require.Equal(t, s1.Id, sessions[2].Id)
+}
+
+func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+	userId3 := model.NewId()
+	userId4 := model.NewId()
+	userId5 := model.NewId()
+
+	// Clear existing sessions.
+	err := ss.Session().RemoveAllSessions()
+	require.NoError(t, err)
+
+	s1 := &model.Session{}
+	s1.UserId = userId1
+	s1.ExpiresAt = model.GetMillis() + 10000
+
+	_, err = ss.Session().Save(rctx, s1)
+	require.NoError(t, err)
+
+	s2 := &model.Session{}
+	s2.UserId = userId2
+	s2.DeviceId = "android:" + model.NewId()
+	s2.ExpiresAt = model.GetMillis() + 10000
+	s2.Props = model.StringMap{
+		model.SessionPropDeviceNotificationDisabled: "false",
+		model.SessionPropMobileVersion:              "1.2.3",
+	}
+
+	_, err = ss.Session().Save(rctx, s2)
+	require.NoError(t, err)
+
+	s3 := &model.Session{}
+	s3.UserId = userId3
+	s3.DeviceId = "ios:" + model.NewId()
+	s3.ExpiresAt = model.GetMillis() + 10000
+	s3.Props = model.StringMap{
+		model.SessionPropDeviceNotificationDisabled: "true",
+		model.SessionPropMobileVersion:              "1.2.3",
+	}
+
+	_, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	s4 := &model.Session{}
+	s4.UserId = userId4
+	s4.DeviceId = "android:" + model.NewId()
+	s4.ExpiresAt = model.GetMillis() + 10000
+	s4.Props = model.StringMap{
+		model.SessionPropDeviceNotificationDisabled: "true",
+		model.SessionPropMobileVersion:              "3.2.1",
+	}
+
+	_, err = ss.Session().Save(rctx, s4)
+	require.NoError(t, err)
+
+	s5 := &model.Session{}
+	s5.UserId = userId5
+	s5.DeviceId = "android:" + model.NewId()
+	s5.ExpiresAt = model.GetMillis() + 10000
+	s5.Props = model.StringMap{
+		model.SessionPropDeviceNotificationDisabled: "true",
+		model.SessionPropMobileVersion:              "3.2.1",
+	}
+
+	_, err = ss.Session().Save(rctx, s5)
+	require.NoError(t, err)
+
+	metadata, err := ss.Session().GetMobileSessionMetadata()
+	require.NoError(t, err)
+	require.Len(t, metadata, 4)
+	found := false
+	for _, d := range metadata {
+		if d.NotificationDisabled == "true" &&
+			d.Platform == "android" &&
+			d.Version == "3.2.1" {
+			found = true
+			require.Equal(t, float64(2), d.Count)
+		}
+	}
+	require.True(t, found)
 }

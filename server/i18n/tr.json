@@ -7984,7 +7984,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Davet kabul edildi | Çevrim içi | Son iletişim |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Varsayılan takım | Davet kabul edildi | Çevrim içi | Son iletişim | Silindi |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -10164,5 +10164,13 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "Yüklenen uygulama eki boyut sınırını aşıyor. Bu sınır sistem panosundan Dosya depolama alanı > En büyük dosya boyutu bölümünden değiştirilebilir"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Dosya yüklenemedi. Yükleme kanalı uzak taraf ile paylaşılmıyor."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Ek oturum özellikleri güncellenemedi."
   }
 ]
