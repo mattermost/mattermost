@@ -17,12 +17,14 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/pkg/errors"
 	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
@@ -651,6 +653,8 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 		if err != nil {
 			return nil, nil, nil, err
 		}
+	} else if oEmbedProvider := oembed.FindEndpointForURL(requestURL); oEmbedProvider != nil {
+		og, err = a.getLinkMetadataFromOEmbed(c, requestURL, oEmbedProvider)
 	} else {
 		og, image, err = a.getLinkMetadataForURL(c, requestURL)
 
@@ -701,6 +705,32 @@ func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*mo
 	}
 
 	return permalink, nil
+}
+
+func (a *App) getLinkMetadataFromOEmbed(c request.CTX, requestURL string, provider *oembed.ProviderEndpoint) (*opengraph.OpenGraph, error) {
+	request, err := http.NewRequest("GET", provider.GetProviderURL(requestURL), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Add("Accept", "application/json")
+	request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
+
+	client := a.HTTPService().MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+	res, err := client.Do(request)
+	if err != nil {
+		c.Logger().Warn("error fetching oEmbed data", mlog.Err(err))
+		return nil, errors.Wrap(err, "getLinkMetadataFromOEmbed: Unable to get oEmbed data")
+	}
+
+	defer func() {
+		io.Copy(io.Discard, res.Body)
+		res.Body.Close()
+	}()
+
+	return a.parseOpenGraphFromOEmbed(requestURL, res.Body)
 }
 
 func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengraph.OpenGraph, *model.PostImage, error) {
