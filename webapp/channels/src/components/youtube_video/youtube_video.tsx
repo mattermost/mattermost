@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {ArrowCollapseIcon, ArrowExpandIcon} from '@mattermost/compass-icons/components';
 import type {OpenGraphMetadata} from '@mattermost/types/posts';
@@ -60,12 +61,18 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         const videoId = getVideoId(link);
         const isShorts = getIsShortsVideoLink(link);
+        const videoType = isShorts ? messages.shorts : messages.youtube;
         const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
 
         const header = (
             <h4>
-                <span className='video-type'>{`YouTube ${isShorts ? 'Shorts ' : ''}- `}</span>
+                <span className='video-type'>
+                    <FormattedMessage
+                        {...videoType}
+                        values={{type: videoType}}
+                    />
+                </span>
                 <span className='video-title'>
                     <ExternalLink
                         href={this.props.link}
@@ -77,7 +84,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 {isShorts && (
                     <WithTooltip
                         id={`${this.props.postId}_expand_shorts`}
-                        title={this.state.shortsExpanded ? 'Shrink' : 'Expand Horizontally'}
+                        title={this.state.shortsExpanded ? messages.shrink : messages.expand}
                         placement='right'
                     >
                         <i
@@ -151,3 +158,23 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         return Boolean(link.trim().match(ytRegex));
     }
 }
+
+const messages = defineMessages({
+    youtube: {
+        id: 'youtube_video.type.youtube',
+        defaultMessage: 'YouTube - ',
+    },
+    shorts: {
+        id: 'youtube_video.type.shorts',
+        defaultMessage: 'YouTube Shorts - ',
+    },
+
+    shrink: {
+        id: 'youtube_video.shorts.shrink',
+        defaultMessage: 'Shrink',
+    },
+    expand: {
+        id: 'youtube_video.shorts.expand',
+        defaultMessage: 'Expand Horizontally',
+    },
+});
