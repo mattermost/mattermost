@@ -524,6 +524,8 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	app.initElasticsearchChannelIndexCheck()
+
 	return s, nil
 }
 
@@ -1524,11 +1526,6 @@ func (s *Server) initJobs() {
 	if jobsElasticsearchIndexerInterface != nil {
 		builder := jobsElasticsearchIndexerInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
-	}
-
-	if jobsElasticsearchFixChannelIndexInterface != nil {
-		builder := jobsElasticsearchFixChannelIndexInterface(s)
-		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
 	}
 
 	if jobsLdapSyncInterface != nil {
