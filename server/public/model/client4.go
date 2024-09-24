@@ -4021,7 +4021,7 @@ func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
-// PermanentDeletePost permanently deletes a post and it's files from the provided post id string.
+// PermanentDeletePost permanently deletes a post and its files from the provided post id string.
 func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.postRoute(postId)+"?permanent="+c.boolString(true))
 	if err != nil {
