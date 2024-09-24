@@ -2840,7 +2840,7 @@ func (s *RetryLayerChannelStore) UpdateMemberNotifyProps(channelID string, userI
 
 }
 
-func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]string, error) {
+func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
 
 	tries := 0
 	for {
@@ -12071,11 +12071,11 @@ func (s *RetryLayerTeamStore) UpdateMember(rctx request.CTX, member *model.TeamM
 
 }
 
-func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) ([]string, error) {
+func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+		result, err := s.TeamStore.UpdateMembersRole(teamID, adminIDs)
 		if err == nil {
 			return result, nil
 		}

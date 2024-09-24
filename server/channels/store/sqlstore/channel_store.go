@@ -4166,9 +4166,9 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 // It returns the list of userIDs whose roles got updated.
 //
 // TODO: parameterize adminIDs
-func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) ([]string, error) {
+func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) ([]*model.ChannelMember, error) {
 	query, args, err := s.getQueryBuilder().
-		Select("UserId").
+		Select("*").
 		From("ChannelMembers").
 		Where(sq.Eq{"ChannelID": channelID}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
@@ -4190,8 +4190,8 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	var updatedUsers []string
-	if err = s.GetMasterX().Select(&updatedUsers, query, args...); err != nil {
+	var updatedMembers []*model.ChannelMember
+	if err = s.GetMasterX().Select(&updatedMembers, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get list of updated users")
 	}
 
@@ -4208,7 +4208,7 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 		return nil, errors.Wrap(err, "failed to update ChannelMembers")
 	}
 
-	return updatedUsers, nil
+	return updatedMembers, nil
 }
 
 func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {

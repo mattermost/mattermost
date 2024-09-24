@@ -4827,10 +4827,15 @@ func groupTestUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Sto
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			var updatedUsers []string
-			updatedUsers, err = ss.Team().UpdateMembersRole(team.Id, tt.newAdmins)
+			var updatedMemmbers []*model.TeamMember
+			updatedMemmbers, err = ss.Team().UpdateMembersRole(team.Id, tt.newAdmins)
 			require.NoError(t, err)
-			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUsers)
+
+			var updatedUserIDs []string
+			for _, user := range updatedMemmbers {
+				updatedUserIDs = append(updatedUserIDs, user.UserId)
+			}
+			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
 			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
 			require.NoError(t, err)
@@ -4947,10 +4952,15 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			var updatedUsers []string
-			updatedUsers, err = ss.Channel().UpdateMembersRole(channel.Id, tt.newAdmins)
+			var updatedMemmbers []*model.ChannelMember
+			updatedMemmbers, err = ss.Channel().UpdateMembersRole(channel.Id, tt.newAdmins)
 			require.NoError(t, err)
-			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUsers)
+
+			var updatedUserIDs []string
+			for _, user := range updatedMemmbers {
+				updatedUserIDs = append(updatedUserIDs, user.UserId)
+			}
+			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
 			require.NoError(t, err)

@@ -1336,29 +1336,29 @@ func (_m *TeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (*
 	return r0, r1
 }
 
-// UpdateMembersRole provides a mock function with given fields: teamID, userIDs
-func (_m *TeamStore) UpdateMembersRole(teamID string, userIDs []string) ([]string, error) {
-	ret := _m.Called(teamID, userIDs)
+// UpdateMembersRole provides a mock function with given fields: teamID, adminIDs
+func (_m *TeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error) {
+	ret := _m.Called(teamID, adminIDs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateMembersRole")
 	}
 
-	var r0 []string
+	var r0 []*model.TeamMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []string) ([]string, error)); ok {
-		return rf(teamID, userIDs)
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.TeamMember, error)); ok {
+		return rf(teamID, adminIDs)
 	}
-	if rf, ok := ret.Get(0).(func(string, []string) []string); ok {
-		r0 = rf(teamID, userIDs)
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.TeamMember); ok {
+		r0 = rf(teamID, adminIDs)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).([]*model.TeamMember)
 		}
 	}
 
 	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(teamID, userIDs)
+		r1 = rf(teamID, adminIDs)
 	} else {
 		r1 = ret.Error(1)
 	}
