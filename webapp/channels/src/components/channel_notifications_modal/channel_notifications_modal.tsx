@@ -52,14 +52,14 @@ export default function ChannelNotificationsModal(props: Props) {
     const [show, setShow] = useState(true);
     const [serverError, setServerError] = useState('');
 
-    const [settings, setSettings] = useState<Omit<ChannelNotifyProps, 'email'>>(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
+    const [settings, setSettings] = useState<Omit<ChannelMembership['notify_props'], 'email'>>(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
 
     const [desktopAndMobileSettingsDifferent, setDesktopAndMobileSettingDifferent] = useState<boolean>(areDesktopAndMobileSettingsDifferent(
         props.collapsedReplyThreads,
-        getInitialValuesOfChannelNotifyProps('desktop', props.currentUser.notify_props, props.channelMember?.notify_props),
-        getInitialValuesOfChannelNotifyProps('push', props.currentUser.notify_props, props.channelMember?.notify_props),
-        getInitialValuesOfChannelNotifyProps('desktop_threads', props.currentUser.notify_props, props.channelMember?.notify_props),
-        getInitialValuesOfChannelNotifyProps('push_threads', props.currentUser.notify_props, props.channelMember?.notify_props),
+        getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.desktop, props.currentUser.notify_props.desktop),
+        getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.push, props.currentUser.notify_props.push),
+        getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.desktop_threads, props.currentUser.notify_props.desktop_threads),
+        getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.push_threads, props.currentUser.notify_props.push_threads),
     ));
 
     function handleHide() {
@@ -78,8 +78,8 @@ export default function ChannelNotificationsModal(props: Props) {
             newValueOfSettings.push = settings.desktop;
             newValueOfSettings.push_threads = settings.desktop_threads;
         } else {
-            newValueOfSettings.push = getInitialValuesOfChannelNotifyProps('push', props.currentUser.notify_props, props.channelMember?.notify_props);
-            newValueOfSettings.push_threads = getInitialValuesOfChannelNotifyProps('push_threads', props.currentUser.notify_props, props.channelMember?.notify_props);
+            newValueOfSettings.push = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props.channelMember?.notify_props?.push, props.currentUser?.notify_props?.push);
+            newValueOfSettings.push_threads = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props.channelMember?.notify_props?.push_threads, props.currentUser?.notify_props?.push_threads);
         }
         setSettings(newValueOfSettings);
         setDesktopAndMobileSettingDifferent(newValueOfDesktopAndMobileSettingsDifferent);
@@ -416,178 +416,58 @@ export default function ChannelNotificationsModal(props: Props) {
     );
 }
 
-function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMembership['notify_props']): Omit<ChannelNotifyProps, 'email'> {
+function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMembership['notify_props']): Omit<ChannelMembership['notify_props'], 'email'> {
     return {
-        mark_unread: channelMemberNotifyProps?.mark_unread || NotificationLevels.ALL,
-        ignore_channel_mentions: getInitialValuesOfChannelNotifyProps('ignore_channel_mentions', currentUserNotifyProps, channelMemberNotifyProps),
-        desktop: getInitialValuesOfChannelNotifyProps('desktop', currentUserNotifyProps, channelMemberNotifyProps),
-        desktop_threads: getInitialValuesOfChannelNotifyProps('desktop_threads', currentUserNotifyProps, channelMemberNotifyProps),
-        desktop_sound: getInitialValuesOfChannelNotifyProps('desktop_sound', currentUserNotifyProps, channelMemberNotifyProps),
-        desktop_notification_sound: getInitialValuesOfChannelNotifyProps('desktop_notification_sound', currentUserNotifyProps, channelMemberNotifyProps),
-        push: getInitialValuesOfChannelNotifyProps('push', currentUserNotifyProps, channelMemberNotifyProps),
-        push_threads: getInitialValuesOfChannelNotifyProps('push_threads', currentUserNotifyProps, channelMemberNotifyProps),
-        channel_auto_follow_threads: channelMemberNotifyProps?.channel_auto_follow_threads || 'off',
+        mark_unread: channelMemberNotifyProps?.mark_unread ?? NotificationLevels.ALL,
+        ignore_channel_mentions: getInitialValuesOfIgnoreChannelMentions(channelMemberNotifyProps?.mark_unread, channelMemberNotifyProps?.ignore_channel_mentions, currentUserNotifyProps?.channel),
+        desktop: getInitialValuesOfChannelNotifyProps<ChannelMembership['notify_props']['desktop']>(NotificationLevels.ALL, channelMemberNotifyProps?.desktop, currentUserNotifyProps?.desktop),
+        desktop_threads: getInitialValuesOfChannelNotifyProps<ChannelMembership['notify_props']['desktop_threads']>(NotificationLevels.ALL, channelMemberNotifyProps?.desktop_threads, currentUserNotifyProps?.desktop_threads),
+        desktop_sound: getInitialValuesOfChannelNotifyProps<ChannelMembership['notify_props']['desktop_sound']>(DesktopSound.ON, channelMemberNotifyProps?.desktop_sound, convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps?.desktop_sound)),
+        desktop_notification_sound: getInitialValuesOfChannelNotifyProps<ChannelMembership['notify_props']['desktop_notification_sound']>(DesktopNotificationSounds.BING, channelMemberNotifyProps?.desktop_notification_sound, currentUserNotifyProps?.desktop_notification_sound),
+        push: getInitialValuesOfChannelNotifyProps<ChannelMembership['notify_props']['push']>(NotificationLevels.ALL, channelMemberNotifyProps?.push, currentUserNotifyProps?.push),
+        push_threads: getInitialValuesOfChannelNotifyProps<ChannelMembership['notify_props']['push_threads']>(NotificationLevels.ALL, channelMemberNotifyProps?.push_threads, currentUserNotifyProps?.push_threads),
+        channel_auto_follow_threads: channelMemberNotifyProps?.channel_auto_follow_threads ?? 'off',
     };
 }
 
-/**
- * Function to get the initial values for the state corresponding to channel notification props.
- * This is not same as channel's notification props or user's notification props but values are determined based on both along with suitable defaults.
- */
-export function getInitialValuesOfChannelNotifyProps<T extends keyof ChannelNotifyProps>(
-    selectedNotifyProps: T,
-    currentUserNotifyProps: UserNotifyProps,
-    channelMemberNotifyProps?: ChannelMembership['notify_props']): ChannelNotifyProps[T] {
-    if (selectedNotifyProps === 'desktop') {
-        let desktop: ChannelNotifyProps['desktop'];
+export function getInitialValuesOfChannelNotifyProps<KeyInNotifyProps>(defaultValue: KeyInNotifyProps, channelMemberNotifyProp: KeyInNotifyProps | undefined = undefined, userNotifyProp: KeyInNotifyProps | undefined = undefined): KeyInNotifyProps {
+    let value = defaultValue;
 
-        // Logic below is same for 'push' as well
-        // Check if CHANNEL has a 'desktop' setting
-        if (channelMemberNotifyProps?.desktop) {
-            // If the CHANNEL's 'desktop' setting is default, we should use the USER's 'desktop' setting since its always set
-            if (channelMemberNotifyProps.desktop === NotificationLevels.DEFAULT) {
-                desktop = currentUserNotifyProps.desktop;
-            } else {
-                // Otherwise, we should use the CHANNEL 'desktop' setting as is
-                desktop = channelMemberNotifyProps.desktop;
-            }
+    // Check if channel_member's notify_prop is defined for the selected notify_prop
+    if (channelMemberNotifyProp) {
+        // If channel_member's notify_prop is default and user's notify_prop is defined, we should use user's notify_prop
+        if (channelMemberNotifyProp === NotificationLevels.DEFAULT && userNotifyProp) {
+            value = userNotifyProp;
         } else {
-            // If the CHANNEL's 'desktop' setting is not set, we should use the USER's 'desktop' setting since thats always set
-            desktop = currentUserNotifyProps.desktop;
+            // Otherwise, we should use channel_member's notify_prop as is
+            value = channelMemberNotifyProp;
         }
-
-        return desktop as ChannelNotifyProps[T];
+    } else if (userNotifyProp) {
+        // If channel_member's notify_prop is not defined and user's notify_prop is defined, we should use user's notify_prop as is
+        value = userNotifyProp;
     }
 
-    if (selectedNotifyProps === 'desktop_threads') {
-        let desktopThreads: ChannelNotifyProps['desktop_threads'] = NotificationLevels.ALL;
+    return value;
+}
 
-        // Logic below is same for 'push_threads' as well
-        // Check if CHANNEL has a 'desktop_threads' setting
-        if (channelMemberNotifyProps?.desktop_threads) {
-            // If the CHANNEL's 'desktop_threads' setting is default and USER has a 'desktop_threads' setting, we should use that
-            if (channelMemberNotifyProps.desktop_threads === NotificationLevels.DEFAULT && currentUserNotifyProps?.desktop_threads) {
-                desktopThreads = currentUserNotifyProps.desktop_threads;
-            } else {
-                // Otherwise, we should use the CHANNEL's 'desktop_threads' setting as is
-                desktopThreads = channelMemberNotifyProps.desktop_threads;
-            }
-        } else if (currentUserNotifyProps?.desktop_threads) {
-            // If the CHANNEL's 'desktop_threads' setting is not set and USER has a 'desktop_threads' setting, we should use that
-            desktopThreads = currentUserNotifyProps.desktop_threads;
-        } else {
-            // Otherwise, we should use the default value
-            desktopThreads = NotificationLevels.ALL;
-        }
-
-        return desktopThreads as ChannelNotifyProps[T];
+export function getInitialValuesOfIgnoreChannelMentions(
+    markUnread: ChannelMembership['notify_props']['mark_unread'],
+    ignoreChannelMentions: ChannelMembership['notify_props']['ignore_channel_mentions'],
+    userNotifyPropForChannel: UserNotifyProps['channel'],
+): ChannelMembership['notify_props']['ignore_channel_mentions'] {
+    let ignoreChannelMentionsDefault: ChannelNotifyProps['ignore_channel_mentions'] = IgnoreChannelMentions.OFF;
+    if (markUnread === NotificationLevels.MENTION || (userNotifyPropForChannel && userNotifyPropForChannel === 'false')) {
+        ignoreChannelMentionsDefault = IgnoreChannelMentions.ON;
     }
 
-    if (selectedNotifyProps === 'desktop_sound') {
-        let desktopSound: ChannelNotifyProps['desktop_sound'] = DesktopSound.ON;
-
-        // Check if CHANNEL has a 'desktop_sound' setting
-        if (channelMemberNotifyProps?.desktop_sound) {
-            // If the CHANNEL's 'desktop_sound' setting is default and USER has a 'desktop_sound' setting, we should use that
-            if (channelMemberNotifyProps.desktop_sound === DesktopSound.DEFAULT && currentUserNotifyProps?.desktop_sound) {
-                desktopSound = convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps.desktop_sound);
-            } else {
-                // Otherwise, we should use the CHANNEL's 'desktop_sound' setting as is
-                desktopSound = channelMemberNotifyProps.desktop_sound;
-            }
-        } else if (currentUserNotifyProps?.desktop_sound) {
-            // If the CHANNEL's 'desktop_sound' setting is not set and USER has a 'desktop_sound' setting, we should use that
-            desktopSound = convertDesktopSoundNotifyPropFromUserToDesktop(currentUserNotifyProps.desktop_sound);
-        } else {
-            // Otherwise, we should use the default value
-            desktopSound = DesktopSound.ON;
+    if (ignoreChannelMentions) {
+        if (ignoreChannelMentions === IgnoreChannelMentions.DEFAULT) {
+            return ignoreChannelMentionsDefault;
         }
-
-        return desktopSound as ChannelNotifyProps[T];
+        return ignoreChannelMentions;
     }
 
-    if (selectedNotifyProps === 'desktop_notification_sound') {
-        let desktopNotificationSound: ChannelNotifyProps['desktop_notification_sound'] = DesktopNotificationSounds.BING;
-
-        // Check if CHANNEL has a 'desktop_notification_sound' setting
-        if (channelMemberNotifyProps?.desktop_notification_sound) {
-            // If the CHANNEL's 'desktop_notification_sound' setting is default and USER has a 'desktop_notification_sound' setting, we should use that
-            if (channelMemberNotifyProps.desktop_notification_sound === DesktopNotificationSounds.DEFAULT && currentUserNotifyProps?.desktop_notification_sound) {
-                desktopNotificationSound = currentUserNotifyProps.desktop_notification_sound;
-            } else {
-                // Otherwise, we should use the CHANNEL's 'desktop_notification_sound' setting as is
-                desktopNotificationSound = channelMemberNotifyProps.desktop_notification_sound;
-            }
-        } else if (currentUserNotifyProps?.desktop_notification_sound) {
-            // If the CHANNEL's 'desktop_notification_sound' setting is not set and USER has a 'desktop_notification_sound' setting, we should use that
-            desktopNotificationSound = currentUserNotifyProps.desktop_notification_sound;
-        } else {
-            // Otherwise, we should use the default value
-            desktopNotificationSound = DesktopNotificationSounds.BING;
-        }
-
-        return desktopNotificationSound as ChannelNotifyProps[T];
-    }
-
-    if (selectedNotifyProps === 'push') {
-        let push: ChannelNotifyProps['push'];
-
-        // Check if CHANNEL has a 'push' setting
-        if (channelMemberNotifyProps?.push) {
-            // If the CHANNEL's 'push' setting is default and USER has a 'push' setting, we should use that
-            if (channelMemberNotifyProps.push === NotificationLevels.DEFAULT && currentUserNotifyProps?.push) {
-                push = currentUserNotifyProps.push;
-            } else {
-                // Otherwise, we should use the CHANNEL's 'push' setting as is
-                push = channelMemberNotifyProps.push;
-            }
-        } else {
-            // If the CHANNEL's 'push' setting is not set, then we should use the USER's 'push' setting since its always set
-            push = currentUserNotifyProps.push;
-        }
-
-        return push as ChannelNotifyProps[T];
-    }
-
-    if (selectedNotifyProps === 'push_threads') {
-        let pushThreads: ChannelNotifyProps['push_threads'] = NotificationLevels.ALL;
-
-        // Check if CHANNEL has a 'push_threads' setting
-        if (channelMemberNotifyProps?.push_threads) {
-            // If the CHANNEL's 'push_threads' setting is default and USER has a 'push_threads' setting, we should use that
-            if (channelMemberNotifyProps.push_threads === NotificationLevels.DEFAULT && currentUserNotifyProps?.push_threads) {
-                pushThreads = currentUserNotifyProps.push_threads;
-            } else {
-                // Otherwise, we should use the CHANNEL's 'push_threads' setting as is
-                pushThreads = channelMemberNotifyProps.push_threads;
-            }
-        } else if (currentUserNotifyProps?.push_threads) {
-            // If the CHANNEL's 'push_threads' setting is not set and USER has a 'push_threads' setting, we should use that
-            pushThreads = currentUserNotifyProps.push_threads;
-        } else {
-            // Otherwise, we should use the default value
-            pushThreads = NotificationLevels.ALL;
-        }
-
-        return pushThreads as ChannelNotifyProps[T];
-    }
-
-    if (selectedNotifyProps === 'ignore_channel_mentions') {
-        let ignoreChannelMentionsDefault: ChannelNotifyProps['ignore_channel_mentions'] = IgnoreChannelMentions.OFF;
-
-        if (channelMemberNotifyProps?.mark_unread === NotificationLevels.MENTION || (currentUserNotifyProps.channel && currentUserNotifyProps.channel === 'false')) {
-            ignoreChannelMentionsDefault = IgnoreChannelMentions.ON;
-        }
-
-        let ignoreChannelMentions = channelMemberNotifyProps?.ignore_channel_mentions;
-        if (!ignoreChannelMentions || ignoreChannelMentions === IgnoreChannelMentions.DEFAULT) {
-            ignoreChannelMentions = ignoreChannelMentionsDefault;
-        }
-
-        return ignoreChannelMentions as ChannelNotifyProps[T];
-    }
-
-    return undefined as ChannelNotifyProps[T];
+    return ignoreChannelMentionsDefault;
 }
 
 export function createChannelNotifyPropsFromSelectedSettings(

@@ -9,9 +9,11 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 
 import ChannelNotificationsModal, {createChannelNotifyPropsFromSelectedSettings, getInitialValuesOfChannelNotifyProps} from 'components/channel_notifications_modal/channel_notifications_modal';
 import type {Props} from 'components/channel_notifications_modal/channel_notifications_modal';
+import {convertDesktopSoundNotifyPropFromUserToDesktop} from 'components/channel_notifications_modal/reset_to_default_button';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
+import {DesktopSound, IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
+import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {TestHelper} from 'utils/test_helper';
 
 describe('ChannelNotificationsModal', () => {
@@ -255,23 +257,14 @@ describe('ChannelNotificationsModal', () => {
             <ChannelNotificationsModal {...props}/>,
         );
 
-        const AlllabelRadio: HTMLInputElement = screen.getByTestId(
-            'MobileNotification-all',
-        );
-        fireEvent.click(AlllabelRadio);
-        expect(AlllabelRadio.checked).toEqual(true);
+        fireEvent.click(screen.getByTestId('MobileNotification-all'));
+        expect(screen.getByTestId('MobileNotification-all')).toBeChecked();
 
-        const MentionslabelRadio: HTMLInputElement = screen.getByTestId(
-            'MobileNotification-mention',
-        );
-        fireEvent.click(MentionslabelRadio);
-        expect(MentionslabelRadio.checked).toEqual(true);
+        fireEvent.click(screen.getByTestId('MobileNotification-mention'));
+        expect(screen.getByTestId('MobileNotification-mention')).toBeChecked();
 
-        const NothinglabelRadio: HTMLInputElement = screen.getByTestId(
-            'MobileNotification-none',
-        );
-        fireEvent.click(NothinglabelRadio);
-        expect(NothinglabelRadio.checked).toEqual(true);
+        fireEvent.click(screen.getByTestId('MobileNotification-none'));
+        expect(screen.getByTestId('MobileNotification-none')).toBeChecked();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
@@ -735,69 +728,32 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
                 desktop: 'default',
             },
         }).notify_props;
-        const desktop = getInitialValuesOfChannelNotifyProps('desktop', userNotifyProps1, channelMemberNotifyProps1);
-        expect(desktop).toEqual('all');
+        const desktop = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps1.desktop, userNotifyProps1.desktop);
+        expect(desktop).toEqual(NotificationLevels.ALL);
 
         const userNotifyProps2 = TestHelper.getUserMock({
             notify_props: {
-                desktop: 'all',
+                desktop: NotificationLevels.ALL,
             } as UserNotifyProps,
         }).notify_props;
         const channelMemberNotifyProps2 = TestHelper.getChannelMembershipMock({
             notify_props: {
-                desktop: 'mention',
+                desktop: NotificationLevels.MENTION,
             },
         }).notify_props;
-        const desktop2 = getInitialValuesOfChannelNotifyProps('desktop', userNotifyProps2, channelMemberNotifyProps2);
-        expect(desktop2).toEqual('mention');
+        const desktop2 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps2.desktop, userNotifyProps2.desktop);
+        expect(desktop2).toEqual(NotificationLevels.MENTION);
 
         const userNotifyProps3 = TestHelper.getUserMock({
             notify_props: {
-                desktop: 'all',
+                desktop: NotificationLevels.ALL,
             } as UserNotifyProps,
         }).notify_props;
         const channelMemberNotifyProps3 = TestHelper.getChannelMembershipMock({
             notify_props: {},
         }).notify_props;
-        const desktop3 = getInitialValuesOfChannelNotifyProps('desktop', userNotifyProps3, channelMemberNotifyProps3);
-        expect(desktop3).toEqual('all');
-    });
-
-    test('should return correct value for desktop_threads', () => {
-        const userNotifyProps1 = TestHelper.getUserMock({
-            notify_props: {
-                desktop_threads: 'all',
-            } as UserNotifyProps,
-        }).notify_props;
-        const channelMemberNotifyProps1 = TestHelper.getChannelMembershipMock({
-            notify_props: {
-                desktop_threads: 'default',
-            },
-        }).notify_props;
-        const desktopThreads = getInitialValuesOfChannelNotifyProps('desktop_threads', userNotifyProps1, channelMemberNotifyProps1);
-        expect(desktopThreads).toEqual('all');
-
-        const userNotifyProps2 = TestHelper.getUserMock({
-            notify_props: {} as UserNotifyProps,
-        }).notify_props;
-        const channelMemberNotifyProps2 = TestHelper.getChannelMembershipMock({
-            notify_props: {
-                desktop_threads: 'mention',
-            },
-        }).notify_props;
-        const desktopThreads2 = getInitialValuesOfChannelNotifyProps('desktop_threads', userNotifyProps2, channelMemberNotifyProps2);
-        expect(desktopThreads2).toEqual('mention');
-
-        const userNotifyProps3 = TestHelper.getUserMock({
-            notify_props: {
-                desktop_threads: 'all',
-            } as UserNotifyProps,
-        }).notify_props;
-        const channelMemberNotifyProps3 = TestHelper.getChannelMembershipMock({
-            notify_props: {},
-        }).notify_props;
-        const desktopThreads3 = getInitialValuesOfChannelNotifyProps('desktop_threads', userNotifyProps3, channelMemberNotifyProps3);
-        expect(desktopThreads3).toEqual('all');
+        const desktop3 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps3.desktop, userNotifyProps3.desktop);
+        expect(desktop3).toEqual(NotificationLevels.ALL);
 
         const userNotifyProps4 = TestHelper.getUserMock({
             notify_props: {} as UserNotifyProps,
@@ -805,8 +761,54 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         const channelMemberNotifyProps4 = TestHelper.getChannelMembershipMock({
             notify_props: {},
         }).notify_props;
-        const desktopThreads4 = getInitialValuesOfChannelNotifyProps('desktop_threads', userNotifyProps4, channelMemberNotifyProps4);
-        expect(desktopThreads4).toEqual('all');
+        const desktop4 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps4.desktop, userNotifyProps4.desktop);
+        expect(desktop4).toEqual(NotificationLevels.ALL);
+    });
+
+    test('should return correct value for desktop_threads', () => {
+        const userNotifyProps1 = TestHelper.getUserMock({
+            notify_props: {
+                desktop_threads: NotificationLevels.ALL,
+            } as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps1 = TestHelper.getChannelMembershipMock({
+            notify_props: {
+                desktop_threads: NotificationLevels.DEFAULT,
+            },
+        }).notify_props;
+        const desktopThreads = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps1.desktop_threads, userNotifyProps1.desktop_threads);
+        expect(desktopThreads).toEqual(NotificationLevels.ALL);
+
+        const userNotifyProps2 = TestHelper.getUserMock({
+            notify_props: {} as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps2 = TestHelper.getChannelMembershipMock({
+            notify_props: {
+                desktop_threads: NotificationLevels.MENTION,
+            },
+        }).notify_props;
+        const desktopThreads2 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps2.desktop_threads, userNotifyProps2.desktop_threads);
+        expect(desktopThreads2).toEqual(NotificationLevels.MENTION);
+
+        const userNotifyProps3 = TestHelper.getUserMock({
+            notify_props: {
+                desktop_threads: NotificationLevels.ALL,
+            } as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps3 = TestHelper.getChannelMembershipMock({
+            notify_props: {},
+        }).notify_props;
+        const desktopThreads3 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps3.desktop_threads, userNotifyProps3.desktop_threads);
+        expect(desktopThreads3).toEqual(NotificationLevels.ALL);
+
+        const userNotifyProps4 = TestHelper.getUserMock({
+            notify_props: {} as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps4 = TestHelper.getChannelMembershipMock({
+            notify_props: {},
+        }).notify_props;
+        const desktopThreads4 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps4.desktop_threads, userNotifyProps4.desktop_threads);
+        expect(desktopThreads4).toEqual(NotificationLevels.ALL);
     });
 
     test('should return correct value for desktop_sound', () => {
@@ -817,11 +819,11 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         }).notify_props;
         const channelMemberNotifyProps1 = TestHelper.getChannelMembershipMock({
             notify_props: {
-                desktop_sound: 'default',
+                desktop_sound: DesktopSound.DEFAULT,
             },
         }).notify_props;
-        const desktopSound = getInitialValuesOfChannelNotifyProps('desktop_sound', userNotifyProps1, channelMemberNotifyProps1);
-        expect(desktopSound).toEqual('off');
+        const desktopSound = getInitialValuesOfChannelNotifyProps(DesktopSound.ON, channelMemberNotifyProps1?.desktop_sound, convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps1?.desktop_sound));
+        expect(desktopSound).toEqual(DesktopSound.OFF);
 
         const userNotifyProps2 = TestHelper.getUserMock({
             notify_props: {
@@ -830,11 +832,11 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         }).notify_props;
         const channelMemberNotifyProps2 = TestHelper.getChannelMembershipMock({
             notify_props: {
-                desktop_sound: 'off',
+                desktop_sound: DesktopSound.OFF,
             },
         }).notify_props;
-        const desktopSound2 = getInitialValuesOfChannelNotifyProps('desktop_sound', userNotifyProps2, channelMemberNotifyProps2);
-        expect(desktopSound2).toEqual('off');
+        const desktopSound2 = getInitialValuesOfChannelNotifyProps(DesktopSound.ON, channelMemberNotifyProps2?.desktop_sound, convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps2?.desktop_sound));
+        expect(desktopSound2).toEqual(DesktopSound.OFF);
 
         const userNotifyProps3 = TestHelper.getUserMock({
             notify_props: {
@@ -844,8 +846,8 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         const channelMemberNotifyProps3 = TestHelper.getChannelMembershipMock({
             notify_props: {},
         }).notify_props;
-        const desktopSound3 = getInitialValuesOfChannelNotifyProps('desktop_sound', userNotifyProps3, channelMemberNotifyProps3);
-        expect(desktopSound3).toEqual('off');
+        const desktopSound3 = getInitialValuesOfChannelNotifyProps(DesktopSound.ON, channelMemberNotifyProps3?.desktop_sound, convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps3?.desktop_sound));
+        expect(desktopSound3).toEqual(DesktopSound.OFF);
 
         const userNotifyProps4 = TestHelper.getUserMock({
             notify_props: {} as UserNotifyProps,
@@ -853,47 +855,47 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         const channelMemberNotifyProps4 = TestHelper.getChannelMembershipMock({
             notify_props: {},
         }).notify_props;
-        const desktopSound4 = getInitialValuesOfChannelNotifyProps('desktop_sound', userNotifyProps4, channelMemberNotifyProps4);
-        expect(desktopSound4).toEqual('on');
+        const desktopSound4 = getInitialValuesOfChannelNotifyProps(DesktopSound.ON, channelMemberNotifyProps4?.desktop_sound, convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyProps4?.desktop_sound));
+        expect(desktopSound4).toEqual(DesktopSound.ON);
     });
 
     test('should return correct value for desktop_notification_sound', () => {
         const userNotifyProps1 = TestHelper.getUserMock({
             notify_props: {
-                desktop_notification_sound: 'Bing',
+                desktop_notification_sound: DesktopNotificationSounds.BING,
             } as UserNotifyProps,
         }).notify_props;
         const channelMemberNotifyProps1 = TestHelper.getChannelMembershipMock({
             notify_props: {
-                desktop_notification_sound: 'default',
+                desktop_notification_sound: DesktopNotificationSounds.DEFAULT,
             },
         }).notify_props;
-        const desktopNotificationSound = getInitialValuesOfChannelNotifyProps('desktop_notification_sound', userNotifyProps1, channelMemberNotifyProps1);
-        expect(desktopNotificationSound).toEqual('Bing');
+        const desktopNotificationSound = getInitialValuesOfChannelNotifyProps(DesktopNotificationSounds.BING, channelMemberNotifyProps1?.desktop_notification_sound, userNotifyProps1?.desktop_notification_sound);
+        expect(desktopNotificationSound).toEqual(DesktopNotificationSounds.BING);
 
         const userNotifyProps2 = TestHelper.getUserMock({
             notify_props: {
-                desktop_notification_sound: 'Crackle',
+                desktop_notification_sound: DesktopNotificationSounds.CRACKLE,
             } as UserNotifyProps,
         }).notify_props;
         const channelMemberNotifyProps2 = TestHelper.getChannelMembershipMock({
             notify_props: {
-                desktop_notification_sound: 'Bing',
+                desktop_notification_sound: DesktopNotificationSounds.BING,
             },
         }).notify_props;
-        const desktopNotificationSound2 = getInitialValuesOfChannelNotifyProps('desktop_notification_sound', userNotifyProps2, channelMemberNotifyProps2);
-        expect(desktopNotificationSound2).toEqual('Bing');
+        const desktopNotificationSound2 = getInitialValuesOfChannelNotifyProps(DesktopNotificationSounds.BING, channelMemberNotifyProps2?.desktop_notification_sound, userNotifyProps2?.desktop_notification_sound);
+        expect(desktopNotificationSound2).toEqual(DesktopNotificationSounds.BING);
 
         const userNotifyProps3 = TestHelper.getUserMock({
             notify_props: {
-                desktop_notification_sound: 'Crackle',
+                desktop_notification_sound: DesktopNotificationSounds.CRACKLE,
             } as UserNotifyProps,
         }).notify_props;
         const channelMemberNotifyProps3 = TestHelper.getChannelMembershipMock({
             notify_props: {},
         }).notify_props;
-        const desktopNotificationSound3 = getInitialValuesOfChannelNotifyProps('desktop_notification_sound', userNotifyProps3, channelMemberNotifyProps3);
-        expect(desktopNotificationSound3).toEqual('Crackle');
+        const desktopNotificationSound3 = getInitialValuesOfChannelNotifyProps(DesktopNotificationSounds.BING, channelMemberNotifyProps3?.desktop_notification_sound, userNotifyProps3?.desktop_notification_sound);
+        expect(desktopNotificationSound3).toEqual(DesktopNotificationSounds.CRACKLE);
 
         const userNotifyProps4 = TestHelper.getUserMock({
             notify_props: {} as UserNotifyProps,
@@ -901,7 +903,46 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         const channelMemberNotifyProps4 = TestHelper.getChannelMembershipMock({
             notify_props: {},
         }).notify_props;
-        const desktopNotificationSound4 = getInitialValuesOfChannelNotifyProps('desktop_notification_sound', userNotifyProps4, channelMemberNotifyProps4);
-        expect(desktopNotificationSound4).toEqual('Bing');
+        const desktopNotificationSound4 = getInitialValuesOfChannelNotifyProps(DesktopNotificationSounds.BING, channelMemberNotifyProps4?.desktop_notification_sound, userNotifyProps4?.desktop_notification_sound);
+        expect(desktopNotificationSound4).toEqual(DesktopNotificationSounds.BING);
+    });
+
+    test('should return correct value for push', () => {
+        const userNotifyProps1 = TestHelper.getUserMock({
+            notify_props: {
+                push: NotificationLevels.ALL,
+            } as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps1 = TestHelper.getChannelMembershipMock({
+            notify_props: {
+                push: NotificationLevels.DEFAULT,
+            },
+        }).notify_props;
+        const push = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps1.push, userNotifyProps1.push);
+        expect(push).toEqual(NotificationLevels.ALL);
+
+        const userNotifyProps2 = TestHelper.getUserMock({
+            notify_props: {} as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps2 = TestHelper.getChannelMembershipMock({
+            notify_props: {},
+        }).notify_props;
+        const push2 = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps2.push, userNotifyProps2.push);
+        expect(push2).toEqual(NotificationLevels.ALL);
+    });
+
+    test('should return correct value for push_threads', () => {
+        const userNotifyProps1 = TestHelper.getUserMock({
+            notify_props: {
+                push_threads: NotificationLevels.ALL,
+            } as UserNotifyProps,
+        }).notify_props;
+        const channelMemberNotifyProps1 = TestHelper.getChannelMembershipMock({
+            notify_props: {
+                push_threads: NotificationLevels.DEFAULT,
+            },
+        }).notify_props;
+        const pushThreads = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps1.push_threads, userNotifyProps1.push_threads);
+        expect(pushThreads).toEqual(NotificationLevels.ALL);
     });
 });
