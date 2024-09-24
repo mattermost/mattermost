@@ -61,34 +61,46 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet(context.Background(), "/system/ping", "")
+		respMap, resp, err := client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		respString := string(respBytes)
-		require.NotContains(t, respString, "TestFeatureFlag")
+		_, ok := respMap["TestFeatureFlag"]
+		assert.Equal(t, false, ok)
 
 		// Run the environment variable override code to test
 		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, err = client.DoAPIGet(context.Background(), "/system/ping", "")
+		respMap, resp, err = client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err = io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		respString = string(respBytes)
-		require.Contains(t, respString, "testvalue")
+		_, ok = respMap["TestFeatureFlag"]
+		assert.Equal(t, true, ok)
 	}, "ping feature flag test")
+
+	t.Run("ping root_status test", func(t *testing.T) {
+		respMap, resp, err := th.SystemAdminClient.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		_, ok := respMap["root_status"]
+		assert.Equal(t, true, ok)
+	})
+
+	t.Run("ping root_status test with client user", func(t *testing.T) {
+		respMap, resp, err := th.Client.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		_, ok := respMap["root_status"]
+		assert.Equal(t, false, ok)
+	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
 		resp, err := client.DoAPIGet(context.Background(), "/system/ping?device_id=platform:id", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		var respMap map[string]string
+		var respMap map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&respMap)
 		require.NoError(t, err)
 		assert.Equal(t, "unknown", respMap["CanReceiveNotifications"]) // Unrecognized platform
@@ -885,6 +897,64 @@ func TestPushNotificationAck(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, resp.Code)
 		assert.NotNil(t, resp.Body)
 	})
+
+	ttcc := []struct {
+		name          string
+		propValue     string
+		platform      string
+		expectedValue string
+	}{
+		{
+			name:          "should set session prop device notification disabled to false if an ack is sent from iOS",
+			propValue:     "true",
+			platform:      "ios",
+			expectedValue: "false",
+		},
+		{
+			name:          "no change if empty",
+			propValue:     "",
+			platform:      "ios",
+			expectedValue: "",
+		},
+		{
+			name:          "no change if false",
+			propValue:     "false",
+			platform:      "ios",
+			expectedValue: "false",
+		},
+		{
+			name:          "no change on Android",
+			propValue:     "true",
+			platform:      "android",
+			expectedValue: "true",
+		},
+	}
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
+				th.Server.Store().Session().UpdateProps(session)
+				th.App.ClearSessionCacheForUser(session.UserId)
+			}()
+
+			session.AddProp(model.SessionPropDeviceNotificationDisabled, tc.propValue)
+			err := th.Server.Store().Session().UpdateProps(session)
+			th.App.ClearSessionCacheForUser(session.UserId)
+			assert.NoError(t, err)
+
+			handler := api.APIHandler(pushNotificationAck)
+			resp := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+			req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+			req.Body = io.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "platform": "%s", "post_id":"%s", "type": "%s"}`, tc.platform, th.BasicPost.Id, model.PushTypeMessage)))
+
+			handler.ServeHTTP(resp, req)
+			updatedSession, _ := th.App.GetSession(th.Client.AuthToken)
+			assert.Equal(t, tc.expectedValue, updatedSession.Props[model.SessionPropDeviceNotificationDisabled])
+			storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+			assert.Equal(t, tc.expectedValue, storeSession.Props[model.SessionPropDeviceNotificationDisabled])
+		})
+	}
 }
 
 func TestCompleteOnboarding(t *testing.T) {

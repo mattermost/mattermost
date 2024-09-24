@@ -894,6 +894,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_shared_channels":              *cfg.ConnectedWorkspacesSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
+		"max_posts_per_sync":                  *cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
 	})
 
 	// Convert feature flags to map[string]any for sending
@@ -1447,10 +1448,6 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
-
-		for _, id := range knownPluginIDs {
-			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
-		}
 	} else {
 		for _, p := range marketplacePlugins {
 			id := p.Manifest.Id
@@ -1459,26 +1456,31 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		}
 	}
 
+	for _, id := range knownPluginIDs {
+		pluginIdStr := fmt.Sprintf("enable_%s", id)
+		_, exists := pluginConfigData[pluginIdStr]
+		if !exists {
+			pluginConfigData[pluginIdStr] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	}
 	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			ts.log.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
-			// If marketplace request failed, use predefined list
-			if marketplacePlugins == nil {
-				for _, id := range knownPluginIDs {
-					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
-				}
-			} else {
-				for _, p := range marketplacePlugins {
-					id := p.Manifest.Id
-
-					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
+			for _, p := range marketplacePlugins {
+				id := p.Manifest.Id
+				pluginConfigData["version_"+id] = pluginVersion(plugins, id)
+			}
+			for _, id := range knownPluginIDs {
+				pluginVersionStr := fmt.Sprintf("version_%s", id)
+				_, exists := pluginConfigData[pluginVersionStr]
+				if !exists {
+					pluginConfigData[pluginVersionStr] = pluginVersion(plugins, id)
 				}
 			}
 		}
 	}
-
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 
