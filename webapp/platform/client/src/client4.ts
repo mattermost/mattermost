@@ -2514,6 +2514,7 @@ export default class Client4 {
             ActiveSearchBackend: string;
             database_status: string;
             filestore_status: string;
+            root_status: boolean;
         }>(
             `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId, use_rest_semantics: true})}`,
             {method: 'get'},
