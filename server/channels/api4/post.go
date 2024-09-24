@@ -645,9 +645,9 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
-	if err != nil {
-		c.SetPermissionError(model.PermissionDeletePost)
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(post)
@@ -666,13 +666,13 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 
 	if permanent {
-		err = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	} else {
-		_, err = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

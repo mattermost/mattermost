@@ -6,7 +6,6 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
@@ -32,22 +31,22 @@ func localDeletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeDeleted := permanent
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
-	if err != nil {
-		c.SetPermissionError(model.PermissionDeletePost)
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
 	if permanent {
-		err = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	} else {
-		_, err = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
