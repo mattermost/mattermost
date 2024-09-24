@@ -877,6 +877,22 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mlog.String("post_id", post.Id),
 	)
 
+	go func() {
+		for id, reason := range mentions.Mentions {
+			user, ok := profileMap[id]
+			if !ok {
+				continue
+			}
+			if user.IsGuest() {
+				if reason == KeywordMention {
+					a.Srv().telemetryService.SendTelemetry("track_paid_usage", map[string]any{"guest": "mention"})
+				} else if reason == DMMention {
+					a.Srv().telemetryService.SendTelemetry("track_paid_usage", map[string]any{"guest": "direct_message"})
+				}
+			}
+		}
+	}()
+
 	return mentionedUsersList, nil
 }
 

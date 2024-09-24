@@ -1568,6 +1568,12 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	if user.IsGuest() {
+		go func() {
+			a.Srv().telemetryService.SendTelemetry("track_paid_usage", map[string]any{"guest": "added_to_channel"})
+		}()
+	}
+
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
