@@ -3707,10 +3707,10 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID 
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteForPost(c request.CTX, postID string) error {
+func (s *TimerLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
 	start := time.Now()
 
-	err := s.FileInfoStore.PermanentDeleteForPost(c, postID)
+	err := s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

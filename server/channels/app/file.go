@@ -1595,19 +1595,19 @@ func getFileExtFromMimeType(mimeType string) string {
 	return "jpg"
 }
 
-func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.AppError {
+func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(fileInfos) == 0 {
-		c.Logger().Debug("No files found for post", mlog.String("post_id", postID))
+		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
 		return nil
 	}
 
-	a.RemoveFilesFromFileStore(c, fileInfos)
+	a.RemoveFilesFromFileStore(rctx, fileInfos)
 
-	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(c, postID)
+	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
 	if err != nil {
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1618,22 +1618,22 @@ func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.Ap
 	return nil
 }
 
-func (a *App) RemoveFilesFromFileStore(c request.CTX, fileInfos []*model.FileInfo) {
+func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
 	for _, info := range fileInfos {
-		a.RemoveFileFromFileStore(c, info.Path)
+		a.RemoveFileFromFileStore(rctx, info.Path)
 		if info.PreviewPath != "" {
-			a.RemoveFileFromFileStore(c, info.PreviewPath)
+			a.RemoveFileFromFileStore(rctx, info.PreviewPath)
 		}
 		if info.ThumbnailPath != "" {
-			a.RemoveFileFromFileStore(c, info.ThumbnailPath)
+			a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
 		}
 	}
 }
 
-func (a *App) RemoveFileFromFileStore(c request.CTX, path string) {
+func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 	res, appErr := a.FileExists(path)
 	if appErr != nil {
-		c.Logger().Warn(
+		rctx.Logger().Warn(
 			"Error checking existence of file",
 			mlog.String("path", path),
 			mlog.Err(appErr),
@@ -1642,13 +1642,13 @@ func (a *App) RemoveFileFromFileStore(c request.CTX, path string) {
 	}
 
 	if !res {
-		c.Logger().Warn("File not found", mlog.String("path", path))
+		rctx.Logger().Warn("File not found", mlog.String("path", path))
 		return
 	}
 
 	appErr = a.RemoveFile(path)
 	if appErr != nil {
-		c.Logger().Warn(
+		rctx.Logger().Warn(
 			"Unable to remove file",
 			mlog.String("path", path),
 			mlog.Err(appErr),

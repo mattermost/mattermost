@@ -4060,7 +4060,7 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, u
 	return result, err
 }
 
-func (s *OpenTracingLayerFileInfoStore) PermanentDeleteForPost(c request.CTX, postID string) error {
+func (s *OpenTracingLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.PermanentDeleteForPost")
 	s.Root.Store.SetContext(newCtx)
@@ -4069,7 +4069,7 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteForPost(c request.CTX, po
 	}()
 
 	defer span.Finish()
-	err := s.FileInfoStore.PermanentDeleteForPost(c, postID)
+	err := s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
