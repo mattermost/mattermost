@@ -34,7 +34,7 @@ jobs:
       - name: Build test image
         env:
           BUILD_IMAGE: golang:${{ steps.go.outputs.GO_VERSION }}-bookworm
-          PGLOADER_IMAGE: mattermost/mattermost-pgloader
+          PGLOADER_IMAGE: mattermost/mattermost-pgloader:v3.6.9
         run: |
           docker build -t $TEST_IMAGE - <<EOF
           FROM $PGLOADER_IMAGE AS pgloader
