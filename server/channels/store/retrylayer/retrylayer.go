@@ -2840,21 +2840,21 @@ func (s *RetryLayerChannelStore) UpdateMemberNotifyProps(channelID string, userI
 
 }
 
-func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
+func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]string, error) {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+		result, err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

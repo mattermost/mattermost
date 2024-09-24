@@ -168,7 +168,7 @@ type TeamStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	// It return the list of userIDs that were updated.
+	// It returns the list of userIDs whose roles got updated.
 	UpdateMembersRole(teamID string, userIDs []string) ([]string, error)
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
@@ -301,7 +301,8 @@ type ChannelStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(channelID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(channelID string, userIDs []string) ([]string, error)
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)

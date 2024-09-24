@@ -1593,7 +1593,7 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 
 // UpdateMembersRole updates all the members of teamID in the adminIDs string array to be admins and sets all other
 // users as not being admin.
-// It return the list of userIDs that were updated.
+// It returns the list of userIDs whose roles got updated.
 func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]string, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("UserId").
@@ -1604,12 +1604,12 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]str
 			sq.Or{
 				// New admins
 				sq.And{
-					sq.Eq{"SchemeAdmin": "false"},
+					sq.Eq{"SchemeAdmin": false},
 					sq.Eq{"UserId": adminIDs},
 				},
 				// Demoted admins
 				sq.And{
-					sq.Eq{"SchemeAdmin": "true"},
+					sq.Eq{"SchemeAdmin": true},
 					sq.NotEq{"UserId": adminIDs},
 				},
 			},
@@ -1620,7 +1620,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]str
 
 	var updatedUsers []string
 	if err = s.GetMasterX().Select(&updatedUsers, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get list of udpated users")
+		return nil, errors.Wrap(err, "failed to get list of updated users")
 	}
 
 	query, args, err = s.getQueryBuilder().

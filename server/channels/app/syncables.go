@@ -240,7 +240,7 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 			return nil, model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	case model.GroupSyncableTypeChannel:
-		err = a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		updatedUsers, err = a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if err != nil {
 			return nil, model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
