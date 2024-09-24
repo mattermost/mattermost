@@ -1961,10 +1961,12 @@ func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.Channe
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
-	storeOpts := store.ChannelSearchOpts{ // TODO: Correctly pass down all options to store
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
+	storeOpts := store.ChannelSearchOpts{
 		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
 		IncludeDeleted:           opts.IncludeDeleted,
+		ExcludeChannelNames:      opts.ExcludeChannelNames,
+		GroupConstrained:         opts.GroupConstrained,
+		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		IncludePolicyID:          opts.IncludePolicyID,
 	}
@@ -1980,10 +1982,14 @@ func (a *App) GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
-	storeOpts := store.ChannelSearchOpts{ // TODO: Correctly pass down all options to store
-		ExcludeChannelNames:  opts.ExcludeChannelNames,
-		NotAssociatedToGroup: opts.NotAssociatedToGroup,
-		IncludeDeleted:       opts.IncludeDeleted,
+	storeOpts := store.ChannelSearchOpts{
+		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
+		IncludeDeleted:           opts.IncludeDeleted,
+		ExcludeChannelNames:      opts.ExcludeChannelNames,
+		GroupConstrained:         opts.GroupConstrained,
+		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
+		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
+		IncludePolicyID:          opts.IncludePolicyID,
 	}
 	count, err := a.Srv().Store().Channel().GetAllChannelsCount(storeOpts)
 	if err != nil {

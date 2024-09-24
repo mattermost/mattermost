@@ -1190,6 +1190,15 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
 	}
 
+	if opts.GroupConstrained {
+		query = query.Where(sq.Eq{"c.GroupConstrained": true})
+	} else if opts.ExcludeGroupConstrained {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.GroupConstrained": true},
+			sq.Eq{"c.GroupConstrained": nil},
+		})
+	}
+
 	if len(opts.ExcludeChannelNames) > 0 {
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
