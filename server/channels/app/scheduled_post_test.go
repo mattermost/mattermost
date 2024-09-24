@@ -599,7 +599,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
-		require.NoError(t, err) // This will produce error as the row doesn't exist
+		require.NoError(t, err)
 		require.NotNil(t, fetchedScheduledPost)
 		require.Equal(t, createdScheduledPost.Id, fetchedScheduledPost.Id)
 		require.Equal(t, createdScheduledPost.Message, fetchedScheduledPost.Message)
@@ -635,7 +635,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
-		require.NoError(t, err) // This will produce error as the row doesn't exist
+		require.NoError(t, err)
 		require.NotNil(t, fetchedScheduledPost)
 		require.Equal(t, createdScheduledPost.Id, fetchedScheduledPost.Id)
 		require.Equal(t, createdScheduledPost.Message, fetchedScheduledPost.Message)
