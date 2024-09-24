@@ -1090,6 +1090,12 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
             for (const attachment of post.props.attachments) {
                 findNeededUsernamesAndGroups(attachment.pretext);
                 findNeededUsernamesAndGroups(attachment.text);
+
+                if (attachment.fields) {
+                    for (const field of attachment.fields) {
+                        findNeededUsernamesAndGroups(field.value);
+                    }
+                }
             }
         }
     }

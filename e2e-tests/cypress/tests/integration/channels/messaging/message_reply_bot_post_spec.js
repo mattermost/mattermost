@@ -10,10 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {getAdminAccount} from '../../../support/env';
-
 describe('Messaging', () => {
-    const sysadmin = getAdminAccount();
     let newChannel;
 
     before(() => {
@@ -31,7 +28,7 @@ describe('Messaging', () => {
         // # Create a bot and get userID
         cy.apiCreateBot().then(({bot}) => {
             const botUserId = bot.user_id;
-            cy.externalRequest({user: sysadmin, method: 'put', path: `users/${botUserId}/roles`, data: {roles: 'system_user system_post_all system_admin'}});
+            cy.externalUpdateUserRoles(botUserId, 'system_user system_post_all system_admin');
 
             // # Get token from bots id
             cy.apiAccessToken(botUserId, 'Create token').then(({token}) => {
@@ -98,7 +95,7 @@ describe('Messaging', () => {
         // # Create a bot and get userID
         cy.apiCreateBot().then(({bot}) => {
             const botUserId = bot.user_id;
-            cy.externalRequest({user: sysadmin, method: 'put', path: `users/${botUserId}/roles`, data: {roles: 'system_user system_post_all system_admin'}});
+            cy.externalUpdateUserRoles(botUserId, 'system_user system_post_all system_admin');
 
             // # Get token from bots id
             cy.apiAccessToken(botUserId, 'Create token').then(({token}) => {
