@@ -90,6 +90,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                         placement='right'
                     >
                         <i
+                            data-testid='youtube-expand-shorts'
                             className='video-expand-shorts'
                             onClick={this.toggleShortsExpanded}
                         >
@@ -146,6 +147,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                 <div>
                     {header}
                     <div
+                        data-testid='youtube-video'
                         className={classNames(
                             'video-div',
                             'embed-responsive-item',
