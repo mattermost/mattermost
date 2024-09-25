@@ -470,16 +470,16 @@ export function fetchAllMyChannelMembers(): ActionFuncAsync {
         const {currentUserId} = state.entities.users;
 
         let channelsMembers: ChannelMembership[] = [];
-        let allMembers = true;
+        let hasMoreMembers = true;
         let page = 0;
         try {
-            while (allMembers) {
-                // Expected to disable since we don't have number of pages
+            while (hasMoreMembers) {
+                // Expected to disable since we don't have number of pages, so we can't use Promise.all
                 // eslint-disable-next-line no-await-in-loop
                 const data = await Client4.getAllChannelsMembers(currentUserId, page, 200);
                 channelsMembers = [...channelsMembers, ...data];
                 if (data.length < 200) {
-                    allMembers = false;
+                    hasMoreMembers = false;
                 }
                 page++;
             }
@@ -494,7 +494,7 @@ export function fetchAllMyChannelMembers(): ActionFuncAsync {
             data: channelsMembers,
             currentUserId,
         });
-        return {data: {channelsMembers}};
+        return {data: channelsMembers};
     };
 }
 

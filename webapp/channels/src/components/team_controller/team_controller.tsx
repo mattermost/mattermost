@@ -55,14 +55,14 @@ function TeamController(props: Props) {
 
     useEffect(() => {
         InitialLoadingScreen.stop();
-        async function fetchInitialChannels() {
+        async function fetchAllChannels() {
             await props.fetchAllMyTeamsChannels();
 
             setInitialChannelsLoaded(true);
         }
 
         props.fetchAllMyChannelMembers();
-        fetchInitialChannels();
+        fetchAllChannels();
     }, []);
 
     useEffect(() => {
