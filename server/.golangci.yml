@@ -18,7 +18,6 @@ linters:
     - govet
     - ineffassign
     - revive
-    - exportloopref
     - staticcheck
     - unconvert
     - unused
@@ -59,4 +58,4 @@ issues:
 
     - linters:
         - errcheck
-      path: "channels|platform|cmd/mattermost|public/model|public/plugin|public/shared/mlog|enterprise/ldap"
+      path: "channels|platform|cmd/mattermost|public/model|public/plugin|public/shared/mlog"

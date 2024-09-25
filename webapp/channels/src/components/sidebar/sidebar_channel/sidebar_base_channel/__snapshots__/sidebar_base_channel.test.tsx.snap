@@ -26,7 +26,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   icon={
     <SidebarBaseChannelIcon
       channelType="O"
-      isSharedChannel={false}
     />
   }
   label="channel_display_name"
@@ -60,7 +59,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   icon={
     <SidebarBaseChannelIcon
       channelType="P"
-      isSharedChannel={false}
     />
   }
   label="channel_display_name"
@@ -95,9 +93,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   icon={
     <SidebarBaseChannelIcon
       channelType="O"
-      isSharedChannel={true}
     />
   }
+  isSharedChannel={true}
   label="channel_display_name"
   link="/team_name/channels/"
 />
@@ -130,9 +128,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   icon={
     <SidebarBaseChannelIcon
       channelType="P"
-      isSharedChannel={true}
     />
   }
+  isSharedChannel={true}
   label="channel_display_name"
   link="/team_name/channels/"
 />

@@ -25,7 +25,7 @@ const ShowSearchButton = ({actions}: Props) => {
             type='button'
             className='navbar-toggle navbar-right__icon navbar-search pull-right'
             onClick={handleClick}
-            aria-label={localizeMessage('accessibility.button.Search', 'Search')}
+            aria-label={localizeMessage({id: 'accessibility.button.Search', defaultMessage: 'Search'})}
         >
             <SearchIcon
                 className='icon icon__search'

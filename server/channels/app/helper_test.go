@@ -145,7 +145,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
-	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+	if *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService || *cfg.ConnectedWorkspacesSettings.EnableSharedChannels {
 		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	}
 	if enterprise {
@@ -472,6 +472,26 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+		panic(err)
+	}
+	return post
+}
+
+func (th *TestHelper) CreatePostReply(root *model.Post) *model.Post {
+	id := model.NewId()
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: root.ChannelId,
+		RootId:    root.Id,
+		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	ch, err := th.App.GetChannel(th.Context, root.ChannelId)
+	if err != nil {
+		panic(err)
+	}
+	if post, err = th.App.CreatePost(th.Context, post, ch, false, true); err != nil {
 		panic(err)
 	}
 	return post
