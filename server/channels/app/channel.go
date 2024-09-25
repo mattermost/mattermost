@@ -1570,7 +1570,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 	if user.IsGuest() {
 		go func() {
-			a.Srv().telemetryService.SendTelemetry("track_paid_usage", map[string]any{"guest": "added_to_channel"})
+			a.Srv().telemetryService.SendTelemetryForFeature("guest", false, "add_guest_to_channel", map[string]any{})
 		}()
 	}
 

@@ -119,6 +119,11 @@ type RudderConfig struct {
 	DataplaneURL string
 }
 
+type EventFeature struct {
+	Name   string `json:"name"`
+	IsFree bool   `json:"is_free"`
+}
+
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
 	service := &TelemetryService{
 		srv:          srv,
@@ -206,6 +211,34 @@ func (ts *TelemetryService) SendTelemetry(event string, properties map[string]an
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
 			context = &rudder.Context{Traits: map[string]any{"installationId": installationId}}
 		}
+		err := ts.rudderClient.Enqueue(rudder.Track{
+			Event:      event,
+			UserId:     ts.TelemetryID,
+			Properties: properties,
+			Context:    context,
+		})
+		if err != nil {
+			ts.log.Warn("Error sending telemetry", mlog.Err(err))
+		}
+	}
+}
+
+func (ts *TelemetryService) SendTelemetryForFeature(featureName string, isFree bool, event string, properties map[string]any) {
+	if ts.rudderClient != nil {
+		feature := EventFeature{
+			Name:   featureName,
+			IsFree: isFree,
+		}
+
+		var context *rudder.Context
+		// if we are part of a cloud installation, add it's ID to the tracked event's context
+		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
+			context = &rudder.Context{
+				Traits: map[string]any{"installationId": installationId},
+			}
+		}
+		context.Extra["feature"] = feature
+
 		err := ts.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
 			UserId:     ts.TelemetryID,

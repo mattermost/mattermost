@@ -885,9 +885,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			}
 			if user.IsGuest() {
 				if reason == KeywordMention {
-					a.Srv().telemetryService.SendTelemetry("track_paid_usage", map[string]any{"guest": "mention"})
+					a.Srv().telemetryService.SendTelemetryForFeature("guest", false, "post_triggered_guest_notification", map[string]any{})
 				} else if reason == DMMention {
-					a.Srv().telemetryService.SendTelemetry("track_paid_usage", map[string]any{"guest": "direct_message"})
+					a.Srv().telemetryService.SendTelemetryForFeature("guest", false, "direct_message_to_guest", map[string]any{})
 				}
 			}
 		}
