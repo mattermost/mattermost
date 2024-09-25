@@ -23,14 +23,14 @@ const FileInfoPreview = ({
 
     if (fileInfo.extension !== '') {
         infoParts.push(
-            Utils.localizeMessage('file_info_preview.type', 'File type ') +
+            Utils.localizeMessage({id: 'file_info_preview.type', defaultMessage: 'File type '}) +
         fileInfo.extension.toUpperCase(),
         );
     }
 
     if (fileInfo.size) {
         infoParts.push(
-            Utils.localizeMessage('file_info_preview.size', 'Size ') +
+            Utils.localizeMessage({id: 'file_info_preview.size', defaultMessage: 'Size '}) +
         Utils.fileSizeToString(fileInfo.size),
         );
     }

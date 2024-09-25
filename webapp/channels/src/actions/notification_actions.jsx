@@ -20,7 +20,6 @@ import {isThreadOpen} from 'selectors/views/threads';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
@@ -200,10 +199,10 @@ export function sendDesktopNotification(post, msgProps) {
         } else if (msgProps.sender_name) {
             username = msgProps.sender_name;
         } else {
-            username = Utils.localizeMessage('channel_loader.someone', 'Someone');
+            username = Utils.localizeMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'});
         }
 
-        let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
+        let title = Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'});
         if (!channel) {
             title = msgProps.channel_display_name;
             channel = {
@@ -211,21 +210,21 @@ export function sendDesktopNotification(post, msgProps) {
                 type: msgProps.channel_type,
             };
         } else if (channel.type === Constants.DM_CHANNEL) {
-            title = Utils.localizeMessage('notification.dm', 'Direct Message');
+            title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
         } else {
             title = channel.display_name;
         }
 
         if (title === '') {
             if (msgProps.channel_type === Constants.DM_CHANNEL) {
-                title = Utils.localizeMessage('notification.dm', 'Direct Message');
+                title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
             } else {
                 title = msgProps.channel_display_name;
             }
         }
 
         if (isCrtReply) {
-            title = Utils.localizeAndFormatMessage(t('notification.crt'), 'Reply in {title}', {title});
+            title = Utils.localizeAndFormatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
         }
 
         let notifyText = post.message;
@@ -247,13 +246,13 @@ export function sendDesktopNotification(post, msgProps) {
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {
             if (msgProps.image) {
-                body += Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
+                body += Utils.localizeMessage({id: 'channel_loader.uploadedImage', defaultMessage: ' uploaded an image'});
             } else if (msgProps.otherFile) {
-                body += Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
+                body += Utils.localizeMessage({id: 'channel_loader.uploadedFile', defaultMessage: ' uploaded a file'});
             } else if (image) {
-                body += Utils.localizeMessage('channel_loader.postedImage', ' posted an image');
+                body += Utils.localizeMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
             } else {
-                body += Utils.localizeMessage('channel_loader.something', ' did something new');
+                body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
             }
         } else {
             body += `: ${strippedMarkdownNotifyText}`;
