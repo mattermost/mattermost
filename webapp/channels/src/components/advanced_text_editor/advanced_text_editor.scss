@@ -242,3 +242,14 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.postBoxIndicator {
+    display: flex;
+    flex-direction: column;
+    padding-block: 8px;
+    gap: 8px;
+
+    div {
+        padding-block: 0;
+    }
+}

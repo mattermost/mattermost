@@ -552,17 +552,22 @@ const AdvancedTextEditor = ({
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            {showScheduledPostIndicator && (
-                <ScheduledPostIndicator
-                    channelId={channelId}
-                />
-            )}
-            {showRemoteUserHour && (
-                <RemoteUserHour
-                    teammateId={teammateId}
-                    displayName={teammateDisplayName}
-                />
-            )}
+            {
+                (showScheduledPostIndicator || showRemoteUserHour) &&
+                <div className='postBoxIndicator'>
+                    {showRemoteUserHour && (
+                        <RemoteUserHour
+                            teammateId={teammateId}
+                            displayName={teammateDisplayName}
+                        />
+                    )}
+                    {showScheduledPostIndicator && (
+                        <ScheduledPostIndicator
+                            channelId={channelId}
+                        />
+                    )}
+                </div>
+            }
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
