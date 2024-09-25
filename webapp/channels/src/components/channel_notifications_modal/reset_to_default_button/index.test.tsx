@@ -8,10 +8,10 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {NotificationLevels, DesktopSound} from 'utils/constants';
-import {notificationSoundKeys} from 'utils/notification_sounds';
+import {notificationSoundKeys, convertDesktopSoundNotifyPropFromUserToDesktop} from 'utils/notification_sounds';
 import {TestHelper} from 'utils/test_helper';
 
-import ResetToDefaultButton, {convertDesktopSoundNotifyPropFromUserToDesktop, SectionName} from './index';
+import ResetToDefaultButton, {SectionName} from './index';
 import type {Props} from './index';
 
 describe('ResetToDefaultButton', () => {

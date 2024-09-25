@@ -8,7 +8,7 @@ import type {ChannelMembership, ChannelNotifyProps} from '@mattermost/types/chan
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import {DesktopSound, NotificationLevels} from 'utils/constants';
-import {notificationSoundKeys} from 'utils/notification_sounds';
+import {notificationSoundKeys, convertDesktopSoundNotifyPropFromUserToDesktop} from 'utils/notification_sounds';
 
 export enum SectionName {
     Desktop = 'desktop',
@@ -27,11 +27,6 @@ export interface Props {
 }
 
 export default function ResetToDefaultButton(props: Props) {
-    function handleOnClick() {
-        const channelNotifyPropsDefaultedToUserNotifyProps = resetChannelsNotificationToUsersDefault(props.userNotifyProps, props.sectionName);
-        props.onClick(channelNotifyPropsDefaultedToUserNotifyProps, props.sectionName);
-    }
-
     const areDesktopNotificationsSameAsDefault = useMemo(() => {
         const isNotifyMeAboutSame = props.userNotifyProps.desktop === props.userSelectedChannelNotifyProps.desktop;
         const isThreadReplyNotificationsSame = props.userNotifyProps.desktop_threads === props.userSelectedChannelNotifyProps.desktop_threads;
@@ -81,6 +76,11 @@ export default function ResetToDefaultButton(props: Props) {
         return null;
     }
 
+    function handleOnClick() {
+        const channelNotifyPropsDefaultedToUserNotifyProps = resetChannelsNotificationToUsersDefault(props.userNotifyProps, props.sectionName);
+        props.onClick(channelNotifyPropsDefaultedToUserNotifyProps, props.sectionName);
+    }
+
     return (
         <button
             className='channel-notifications-settings-modal__reset-btn'
@@ -94,18 +94,6 @@ export default function ResetToDefaultButton(props: Props) {
             />
         </button>
     );
-}
-
-/**
- * This conversion is needed because User's preference for desktop sound is stored as either true or false. On the other hand,
- * Channel's specific desktop sound is stored as either On or Off.
- */
-export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktopSound?: UserNotifyProps['desktop_sound']): ChannelNotifyProps['desktop_sound'] {
-    if (userNotifyDesktopSound && userNotifyDesktopSound === 'false') {
-        return DesktopSound.OFF;
-    }
-
-    return DesktopSound.ON;
 }
 
 export function resetChannelsNotificationToUsersDefault(userNotifyProps: UserNotifyProps, sectionName: SectionName): ChannelMembership['notify_props'] {

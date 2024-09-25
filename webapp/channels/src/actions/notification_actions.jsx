@@ -36,28 +36,26 @@ import {runDesktopNotificationHooks} from './hooks';
  * It checks if desktop sound is defined in the channel member and if not, it checks if it's defined in the user preferences.
  */
 export function isDesktopSoundEnabled(channelMember, user) {
-    const isDesktopSoundDefinedInChannelMember = channelMember?.notify_props?.desktop_sound?.length;
-    const isDesktopSoundDefinedInUser = user?.notify_props?.desktop_sound?.length;
+    const soundInChannelMemberNotifyProps = channelMember?.notify_props?.desktop_sound;
+    const soundInUserNotifyProps = user?.notify_props?.desktop_sound;
 
-    let desktopSound = true;
-    if (isDesktopSoundDefinedInChannelMember) {
-        if (channelMember.notify_props.desktop_sound === DesktopSound.DEFAULT) {
-            // If the channel member has the default sound, use the user's sound
-            if (isDesktopSoundDefinedInUser) {
-                desktopSound = user.notify_props.desktop_sound === 'true';
-            } else {
-                desktopSound = true;
-            }
-        } else {
-            // Otherwise, use the channel member's sound
-            desktopSound = channelMember.notify_props.desktop_sound === 'on';
-        }
-    } else if (isDesktopSoundDefinedInUser) {
-        // If the channel member doesn't have a sound set, use the user's sound
-        desktopSound = user.notify_props.desktop_sound === 'true';
+    if (soundInChannelMemberNotifyProps === DesktopSound.ON) {
+        return true;
     }
 
-    return desktopSound;
+    if (soundInChannelMemberNotifyProps === DesktopSound.OFF) {
+        return false;
+    }
+
+    if (soundInChannelMemberNotifyProps === DesktopSound.DEFAULT) {
+        return soundInUserNotifyProps ? soundInUserNotifyProps === 'true' : true;
+    }
+
+    if (soundInUserNotifyProps) {
+        return soundInUserNotifyProps === 'true';
+    }
+
+    return true;
 }
 
 /**
@@ -66,25 +64,18 @@ export function isDesktopSoundEnabled(channelMember, user) {
  * If neither is defined, it returns the default sound 'BING'.
  */
 export function getDesktopNotificationSound(channelMember, user) {
-    const hasDesktopNotificationSoundInChannelMember = channelMember?.notify_props?.desktop_notification_sound?.length;
-    const hasDesktopNotificationSoundInUser = user?.notify_props?.desktop_notification_sound?.length;
+    const notificationSoundInChannelMember = channelMember?.notify_props?.desktop_notification_sound;
+    const notificationSoundInUser = user?.notify_props?.desktop_notification_sound;
 
-    let desktopNotificationSound = DesktopNotificationSounds.BING;
-    if (hasDesktopNotificationSoundInChannelMember) {
-        if (channelMember.notify_props.desktop_notification_sound === DesktopNotificationSounds.DEFAULT) {
-            if (hasDesktopNotificationSoundInUser) {
-                desktopNotificationSound = user.notify_props.desktop_notification_sound;
-            } else {
-                desktopNotificationSound = DesktopNotificationSounds.BING;
-            }
-        } else {
-            desktopNotificationSound = channelMember.notify_props.desktop_notification_sound;
-        }
-    } else if (hasDesktopNotificationSoundInUser) {
-        desktopNotificationSound = user.notify_props.desktop_notification_sound;
+    if (notificationSoundInChannelMember && notificationSoundInChannelMember !== DesktopNotificationSounds.DEFAULT) {
+        return notificationSoundInChannelMember;
     }
 
-    return desktopNotificationSound;
+    if (notificationSoundInUser && notificationSoundInUser !== DesktopNotificationSounds.DEFAULT) {
+        return notificationSoundInUser;
+    }
+
+    return DesktopNotificationSounds.BING;
 }
 
 /**

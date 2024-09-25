@@ -7,13 +7,12 @@ import React from 'react';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
-import ChannelNotificationsModal, {createChannelNotifyPropsFromSelectedSettings, getInitialValuesOfChannelNotifyProps} from 'components/channel_notifications_modal/channel_notifications_modal';
+import ChannelNotificationsModal, {createChannelNotifyPropsFromSelectedSettings, getInitialValuesOfChannelNotifyProps, areDesktopAndMobileSettingsDifferent} from 'components/channel_notifications_modal/channel_notifications_modal';
 import type {Props} from 'components/channel_notifications_modal/channel_notifications_modal';
-import {convertDesktopSoundNotifyPropFromUserToDesktop} from 'components/channel_notifications_modal/reset_to_default_button';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {DesktopSound, IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
-import {DesktopNotificationSounds} from 'utils/notification_sounds';
+import {DesktopNotificationSounds, convertDesktopSoundNotifyPropFromUserToDesktop} from 'utils/notification_sounds';
 import {TestHelper} from 'utils/test_helper';
 
 describe('ChannelNotificationsModal', () => {
@@ -944,5 +943,21 @@ describe('getInitialValuesOfChannelNotifyProps', () => {
         }).notify_props;
         const pushThreads = getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, channelMemberNotifyProps1.push_threads, userNotifyProps1.push_threads);
         expect(pushThreads).toEqual(NotificationLevels.ALL);
+    });
+});
+
+describe('areDesktopAndMobileSettingsDifferent', () => {
+    test('should return correct value for collapsed threads', () => {
+        expect(areDesktopAndMobileSettingsDifferent(true, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.DEFAULT, NotificationLevels.DEFAULT)).toEqual(true);
+
+        expect(areDesktopAndMobileSettingsDifferent(true, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL)).toEqual(false);
+
+        expect(areDesktopAndMobileSettingsDifferent(true, NotificationLevels.ALL, NotificationLevels.ALL)).toEqual(true);
+
+        expect(areDesktopAndMobileSettingsDifferent(true, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL)).toEqual(true);
+
+        expect(areDesktopAndMobileSettingsDifferent(true, NotificationLevels.MENTION, NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.ALL)).toEqual(false);
+
+        expect(areDesktopAndMobileSettingsDifferent(true, NotificationLevels.DEFAULT, NotificationLevels.DEFAULT)).toEqual(true);
     });
 });

@@ -19,9 +19,9 @@ import RadioSettingItem from 'components/widgets/modals/components/radio_setting
 import type {Option} from 'components/widgets/modals/components/react_select_item';
 
 import {NotificationLevels, DesktopSound, IgnoreChannelMentions} from 'utils/constants';
-import {DesktopNotificationSounds, getValueOfNotificationSoundsSelect, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
+import {convertDesktopSoundNotifyPropFromUserToDesktop, DesktopNotificationSounds, getValueOfNotificationSoundsSelect, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
 
-import ResetToDefaultButton, {SectionName, convertDesktopSoundNotifyPropFromUserToDesktop} from './reset_to_default_button';
+import ResetToDefaultButton, {SectionName} from './reset_to_default_button';
 import utils from './utils';
 
 import type {PropsFromRedux} from './index';
@@ -52,13 +52,13 @@ export default function ChannelNotificationsModal(props: Props) {
     const [show, setShow] = useState(true);
     const [serverError, setServerError] = useState('');
 
-    const [settings, setSettings] = useState<Omit<ChannelMembership['notify_props'], 'email'>>(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
+    const [settings, setSettings] = useState(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
 
     const [desktopAndMobileSettingsDifferent, setDesktopAndMobileSettingDifferent] = useState<boolean>(areDesktopAndMobileSettingsDifferent(
         props.collapsedReplyThreads,
         getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.desktop, props.currentUser.notify_props.desktop),
-        getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.push, props.currentUser.notify_props.push),
         getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.desktop_threads, props.currentUser.notify_props.desktop_threads),
+        getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.push, props.currentUser.notify_props.push),
         getInitialValuesOfChannelNotifyProps(NotificationLevels.ALL, props?.channelMember?.notify_props?.push_threads, props.currentUser.notify_props.push_threads),
     ));
 
@@ -90,8 +90,8 @@ export default function ChannelNotificationsModal(props: Props) {
             const desktopAndMobileSettingsDifferent = areDesktopAndMobileSettingsDifferent(
                 props.collapsedReplyThreads,
                 settings.desktop,
-                channelNotifyPropsDefaultedToUserNotifyProps.push,
                 settings.desktop_threads,
+                channelNotifyPropsDefaultedToUserNotifyProps.push,
                 channelNotifyPropsDefaultedToUserNotifyProps.push_threads,
             );
 
@@ -416,7 +416,7 @@ export default function ChannelNotificationsModal(props: Props) {
     );
 }
 
-function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMembership['notify_props']): Omit<ChannelMembership['notify_props'], 'email'> {
+function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMembership['notify_props']): Required<Omit<ChannelMembership['notify_props'], 'email'>> {
     return {
         mark_unread: channelMemberNotifyProps?.mark_unread ?? NotificationLevels.ALL,
         ignore_channel_mentions: getInitialValuesOfIgnoreChannelMentions(channelMemberNotifyProps?.mark_unread, channelMemberNotifyProps?.ignore_channel_mentions, currentUserNotifyProps?.channel),
@@ -430,7 +430,7 @@ function getStateFromNotifyProps(currentUserNotifyProps: UserNotifyProps, channe
     };
 }
 
-export function getInitialValuesOfChannelNotifyProps<KeyInNotifyProps>(defaultValue: KeyInNotifyProps, channelMemberNotifyProp: KeyInNotifyProps | undefined = undefined, userNotifyProp: KeyInNotifyProps | undefined = undefined): KeyInNotifyProps {
+export function getInitialValuesOfChannelNotifyProps<KeyInNotifyProps>(defaultValue: NonNullable<KeyInNotifyProps>, channelMemberNotifyProp: KeyInNotifyProps | undefined = undefined, userNotifyProp: KeyInNotifyProps | undefined = undefined) {
     let value = defaultValue;
 
     // Check if channel_member's notify_prop is defined for the selected notify_prop
@@ -454,7 +454,7 @@ export function getInitialValuesOfIgnoreChannelMentions(
     markUnread: ChannelMembership['notify_props']['mark_unread'],
     ignoreChannelMentions: ChannelMembership['notify_props']['ignore_channel_mentions'],
     userNotifyPropForChannel: UserNotifyProps['channel'],
-): ChannelMembership['notify_props']['ignore_channel_mentions'] {
+): NonNullable<ChannelMembership['notify_props']['ignore_channel_mentions']> {
     let ignoreChannelMentionsDefault: ChannelNotifyProps['ignore_channel_mentions'] = IgnoreChannelMentions.OFF;
     if (markUnread === NotificationLevels.MENTION || (userNotifyPropForChannel && userNotifyPropForChannel === 'false')) {
         ignoreChannelMentionsDefault = IgnoreChannelMentions.ON;
@@ -574,35 +574,17 @@ export function createChannelNotifyPropsFromSelectedSettings(
 }
 
 /**
- * Check's if channel's global notification settings for desktop and mobile are different
+ * Check's if channel's notification settings for desktop and mobile are different
  */
 export function areDesktopAndMobileSettingsDifferent(
     isCollapsedThreadsEnabled: boolean,
-    desktop?: UserNotifyProps['desktop'],
+    desktop: UserNotifyProps['desktop'],
+    desktopThreads: UserNotifyProps['desktop_threads'],
     push?: UserNotifyProps['push'],
-    desktopThreads?: UserNotifyProps['desktop_threads'],
     pushThreads?: UserNotifyProps['push_threads'],
 ): boolean {
-    function checkIfPushThreadsAreDifferent(pushThreads: UserNotifyProps['push_threads'], desktopThreads: UserNotifyProps['desktop_threads']) {
-        if (!pushThreads) {
-            return false;
-        } else if (pushThreads === desktopThreads) {
-            return false;
-        }
-
-        return true;
-    }
-
-    if (push === NotificationLevels.DEFAULT) {
-        if (isCollapsedThreadsEnabled) {
-            return checkIfPushThreadsAreDifferent(pushThreads, desktopThreads);
-        }
-        return false;
-    } else if (desktop === push) {
-        if (isCollapsedThreadsEnabled) {
-            return checkIfPushThreadsAreDifferent(pushThreads, desktopThreads);
-        }
-        return false;
+    if (push === NotificationLevels.DEFAULT || push === desktop) {
+        return isCollapsedThreadsEnabled && desktopThreads !== pushThreads;
     }
 
     return true;
