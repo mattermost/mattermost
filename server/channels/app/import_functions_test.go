@@ -2580,10 +2580,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			LineNumber: 1,
 		}
 
-		_, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		_, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
 		require.Nil(t, err)
 
-		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
 		require.NoError(t, nErr)
 		require.Equal(t, 1, len(resultPosts))
 		require.True(t, resultPosts[0].IsPinned)
