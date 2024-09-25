@@ -115,7 +115,7 @@ export const useRemoteClusterAcceptInvite = () => {
     const promptAcceptInvite = () => {
         return new Promise<RemoteCluster>((resolve, reject) => {
             dispatch(openModal({
-                modalId: ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE,
+                modalId: ModalIdentifiers.SECURE_CONNECTION_ACCEPT_INVITE,
                 dialogType: SecureConnectionAcceptInviteModal,
                 dialogProps: {
                     onConfirm: async (acceptInvite: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'invite' | 'password'>) => {
