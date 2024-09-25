@@ -4005,7 +4005,7 @@
   "invite_modal.invited_guests": "Guests",
   "invite_modal.invited_members": "Members",
   "invite_modal.no_permissions.description": "You do not have permissions to add users or guests. If this seems like an error, please reach out to your system administrator.",
-  "invite_modal.no_permissions.title": "Unable to continue",
+  "invite_modal.no_permissions.title": "Unable to invite people",
   "invite_modal.people": "people",
   "invite_modal.restricted_invite_guest.post_trial_description": "Collaborate with users outside of your organization while tightly controlling their access to channels and team members. Upgrade to the Professional plan to create unlimited user groups.",
   "invite_modal.restricted_invite_guest.post_trial_title": "Upgrade to invite guest",

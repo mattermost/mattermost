@@ -27,6 +27,7 @@ import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
+import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
@@ -486,6 +487,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <WindowSizeObserver/>
                         <ModalController/>
                         <AnnouncementBarController/>
+                        <QueryParamActionController/>
                         <SystemNotice/>
                         <GlobalHeader/>
                         <CloudEffects/>
