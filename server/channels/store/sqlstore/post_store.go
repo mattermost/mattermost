@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -104,6 +103,15 @@ func postSliceColumns() []string {
 	cols := make([]string, len(colInfos))
 	for i, colInfo := range colInfos {
 		cols[i] = colInfo.Name
+	}
+	return cols
+}
+
+func postSliceColumnsWithName(name string) []string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = name + "." + colInfo.Name
 	}
 	return cols
 }
@@ -2658,13 +2666,22 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
 		}
 
+		aggFn := "json_agg(u1.Username)"
+		if s.DriverName() == model.DatabaseDriverMysql {
+			aggFn = "JSON_ARRAYAGG(u1.Username)"
+		}
+		result := []*model.PostForExport{}
+
 		builder := s.getQueryBuilder().
-			Select("p1.*, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName").
+			Select(fmt.Sprintf("%s, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName, %s as FlaggedBy", strings.Join(postSliceColumnsWithName("p1"), ", "), aggFn)).
 			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
+			LeftJoin("Preferences ON p1.Id = Preferences.Name").
+			LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 			InnerJoin("Channels ON p1.ChannelId = Channels.Id").
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
 			Where(excludeDeletedCond).
+			GroupBy(fmt.Sprintf("%s, Users.Username, Teams.Name, Channels.Name", strings.Join(postSliceColumnsWithName("p1"), ", "))).
 			OrderBy("p1.Id")
 
 		query, args, err := builder.ToSql()
@@ -2672,128 +2689,72 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			return nil, errors.Wrap(err, "postsForExport_toSql")
 		}
 
-		err = s.GetSearchReplicaX().Select(&postsForExport, query, args...)
+		err = s.GetSearchReplicaX().Select(&result, query, args...)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to find Posts")
 		}
 
-		if len(postsForExport) == 0 {
+		if len(result) == 0 {
 			// All of the posts were in channels or teams that were deleted.
 			// Update the afterId and try again.
 			afterId = rootIds[len(rootIds)-1]
 			continue
 		}
 
-		flaggedMap, err := s.getFlaggedPostUsernames(rootIds)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to find flagged posts")
-		}
-
-		for _, post := range postsForExport {
-			if usernames, ok := flaggedMap[post.Id]; ok {
-				post.FlaggedBy = slices.Clone(usernames)
-				delete(flaggedMap, post.Id)
-			}
-
-			if len(flaggedMap) == 0 {
-				break
-			}
-		}
-
-		return postsForExport, nil
+		return result, nil
 	}
 }
 
-func (s *SqlPostStore) getFlaggedPostUsernames(postIds []string) (map[string][]string, error) {
-	aggFn := "string_agg(Users.Username, ', ')"
+func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExport, error) {
+	aggFn := "json_agg(u1.Username)"
 	if s.DriverName() == model.DatabaseDriverMysql {
-		aggFn = "GROUP_CONCAT(Users.Username)"
+		aggFn = "JSON_ARRAYAGG(u1.Username)"
 	}
+	result := []*model.ReplyForExport{}
 
-	flagged := []struct {
-		Id        string
-		FlaggedBy string
-	}{}
-	builder := s.getQueryBuilder().Select("p1.Id, "+aggFn+" as FlaggedBy").
-		FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": postIds}), "p1").
-		LeftJoin("Preferences ON p1.Id = Preferences.Name").
-		LeftJoin("Users ON Preferences.UserId = Users.Id").
-		Where("Users.Username IS NOT NULL").
-		GroupBy("p1.Id")
+	qb := s.getQueryBuilder().Select(fmt.Sprintf("Posts.*, u2.Username as Username, %s as FlaggedBy", aggFn)).
+		From("Posts").
+		LeftJoin("Preferences ON Posts.Id = Preferences.Name").
+		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
+		InnerJoin("Users u2 ON Posts.UserId = u2.Id").
+		Where(sq.Eq{"Posts.RootId": rootId}, sq.Eq{"Posts.DeleteAt": 0}).
+		GroupBy("Posts.Id, u2.Username").
+		OrderBy("Posts.Id")
 
-	query, args, err := builder.ToSql()
+	query, args, err := qb.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "postsForExport_toSql")
 	}
 
-	err = s.GetSearchReplicaX().Select(&flagged, query, args...)
+	err = s.GetSearchReplicaX().Select(&result, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
-	flaggedMap := map[string][]string{}
-	for _, f := range flagged {
-		flaggedMap[f.Id] = strings.Split(f.FlaggedBy, ",")
-	}
-
-	return flaggedMap, nil
-}
-
-func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExport, error) {
-	posts := []*model.ReplyForExport{}
-	err := s.GetSearchReplicaX().Select(&posts, `
-			SELECT
-				Posts.*,
-				Users.Username as Username
-			FROM
-				Posts
-			INNER JOIN
-				Users ON Posts.UserId = Users.Id
-			WHERE
-				Posts.RootId = ?
-				AND Posts.DeleteAt = 0
-			ORDER BY
-				Posts.Id`, rootId)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-
-	postIds := make([]string, len(posts))
-	for i, post := range posts {
-		postIds[i] = post.Id
-	}
-
-	flaggedMap, err := s.getFlaggedPostUsernames(postIds)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find flagged posts")
-	}
-
-	for _, post := range posts {
-		if usernames, ok := flaggedMap[post.Id]; ok {
-			post.FlaggedBy = slices.Clone(usernames)
-			delete(flaggedMap, post.Id)
-		}
-
-		if len(flaggedMap) == 0 {
-			break
-		}
-	}
-
-	return posts, nil
+	return result, nil
 }
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
+	aggFn := "json_agg(u1.Username)"
+	if s.DriverName() == model.DatabaseDriverMysql {
+		aggFn = "JSON_ARRAYAGG(u1.Username)"
+	}
+	result := []*model.DirectPostForExport{}
+
 	query := s.getQueryBuilder().
-		Select("p.*", "Users.Username as User").
+		Select(fmt.Sprintf("p.*, u2.Username as User, %s as FlaggedBy", aggFn)).
 		From("Posts p").
+		LeftJoin("Preferences ON p.Id = Preferences.Name").
+		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 		Join("Channels ON p.ChannelId = Channels.Id").
-		Join("Users ON p.UserId = Users.Id").
+		Join("Users u2 ON p.UserId = u2.Id").
 		Where(sq.And{
 			sq.Gt{"p.Id": afterId},
 			sq.Eq{"p.RootId": ""},
 			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
+		GroupBy("p.Id, u2.Username").
 		OrderBy("p.Id").
 		Limit(uint64(limit))
 
@@ -2808,13 +2769,12 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		return nil, errors.Wrap(err, "post_tosql")
 	}
 
-	posts := []*model.DirectPostForExport{}
-	if err2 := s.GetReplicaX().Select(&posts, queryString, args...); err2 != nil {
+	if err2 := s.GetReplicaX().Select(&result, queryString, args...); err2 != nil {
 		return nil, errors.Wrap(err2, "failed to find Posts")
 	}
 	var channelIds []string
-	for _, post := range posts {
-		channelIds = append(channelIds, post.ChannelId)
+	for _, p := range result {
+		channelIds = append(channelIds, p.ChannelId)
 	}
 	query = s.getQueryBuilder().
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
@@ -2836,8 +2796,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 
 	// Build a map of channels and their posts
 	postsChannelMap := make(map[string][]*model.DirectPostForExport)
-	postIds := make([]string, len(posts))
-	for i, post := range posts {
+	postIds := make([]string, len(result))
+	for i, post := range result {
 		post.ChannelMembers = &[]string{}
 		postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
 		postIds[i] = post.Id
@@ -2856,23 +2816,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 	}
 
-	flaggedMap, err := s.getFlaggedPostUsernames(postIds)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find flagged posts")
-	}
-
-	for _, post := range posts {
-		if usernames, ok := flaggedMap[post.Id]; ok {
-			post.FlaggedBy = slices.Clone(usernames)
-			delete(flaggedMap, post.Id)
-		}
-
-		if len(flaggedMap) == 0 {
-			break
-		}
-	}
-
-	return posts, nil
+	return result, nil
 }
 
 //nolint:unparam

@@ -238,6 +238,7 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 }
 
 func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
+	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
@@ -250,7 +251,7 @@ func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
 			CreateAt:  &post.CreateAt,
 			EditAt:    &post.EditAt,
 			IsPinned:  &post.IsPinned,
-			FlaggedBy: &post.FlaggedBy,
+			FlaggedBy: &f,
 		},
 	}
 }
@@ -260,6 +261,7 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
 	}
+	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "direct_post",
 		DirectPost: &imports.DirectPostImportData{
@@ -271,12 +273,13 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 			CreateAt:       &post.CreateAt,
 			EditAt:         &post.EditAt,
 			IsPinned:       &post.IsPinned,
-			FlaggedBy:      &post.FlaggedBy,
+			FlaggedBy:      &f,
 		},
 	}
 }
 
 func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
+	f := []string(post.FlaggedBy)
 	return &imports.ReplyImportData{
 		User:      &post.Username,
 		Type:      &post.Type,
@@ -284,7 +287,7 @@ func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
 		CreateAt:  &post.CreateAt,
 		EditAt:    &post.EditAt,
 		IsPinned:  &post.IsPinned,
-		FlaggedBy: &post.FlaggedBy,
+		FlaggedBy: &f,
 	}
 }
 

@@ -4362,7 +4362,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		for _, p := range posts {
 			if p.Id == p1.Id {
 				require.NotNil(t, p.FlaggedBy)
-				assert.Equal(t, []string{u1.Username}, p.FlaggedBy)
+				assert.Equal(t, model.StringArray([]string{u1.Username}), p.FlaggedBy)
 			}
 		}
 	})
