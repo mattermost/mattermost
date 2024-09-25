@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
 import React from 'react';
 import {useDispatch} from 'react-redux';
 import {MemoryRouter, Route, useHistory} from 'react-router-dom';
 
 import {openModal} from 'actions/views/modals';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import QueryParamActionController from './query_param_action_controller';
 
@@ -48,7 +49,7 @@ describe('QueryParamActionController', () => {
     });
 
     it('should dispatch openModal for INVITATION modal ID when passed valid open_invitation_modal action', () => {
-        render(
+        renderWithContext(
             <MemoryRouter initialEntries={['/?action=open_invitation_modal']}>
                 <Route
                     path='/'
@@ -66,7 +67,7 @@ describe('QueryParamActionController', () => {
     });
 
     it('should not dispatch any action when action query parameter is not present', () => {
-        render(
+        renderWithContext(
             <MemoryRouter initialEntries={['/']}>
                 <Route
                     path='/'
@@ -79,7 +80,7 @@ describe('QueryParamActionController', () => {
     });
 
     it('should not dispatch any action when action query parameter is not in list', () => {
-        render(
+        renderWithContext(
             <MemoryRouter initialEntries={['/?action=invalid_action']}>
                 <Route
                     path='/'
@@ -92,7 +93,7 @@ describe('QueryParamActionController', () => {
     });
 
     it('should remove the action query parameter after dispatching the action', () => {
-        render(
+        renderWithContext(
             <MemoryRouter initialEntries={['/?action=open_invitation_modal']}>
                 <Route
                     path='/'
