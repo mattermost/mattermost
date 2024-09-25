@@ -9,17 +9,27 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: string, includeDirectChannels: boolean) => ScheduledPost[] {
     return createSelector(
         'makeGetScheduledPostsByTeam',
+        (state: GlobalState) => state,
         (state: GlobalState, teamId: string, includeDirectChannels: boolean) => includeDirectChannels,
         (state: GlobalState, teamId: string) => state.entities.scheduledPosts.byTeamId[teamId],
         (state: GlobalState) => state.entities.scheduledPosts.byTeamId.directChannels,
-        (includeDirectChannels: boolean, teamScheduledPosts: ScheduledPost[], directChannelScheduledPosts: ScheduledPost[]) => {
-            const team = teamScheduledPosts || [];
-            const direct = directChannelScheduledPosts || [];
-            if (!includeDirectChannels) {
-                return team;
+        (state: GlobalState, includeDirectChannels: boolean, teamScheduledPostsIDs: string[], directChannelScheduledPostsIDs: string[]) => {
+            const scheduledPosts: ScheduledPost[] = [];
+
+            const extractor = (scheduledPostId: string) => {
+                const scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
+                if (scheduledPost) {
+                    scheduledPosts.push(scheduledPost);
+                }
+            };
+
+            teamScheduledPostsIDs.forEach(extractor);
+
+            if (includeDirectChannels) {
+                directChannelScheduledPostsIDs.forEach(extractor);
             }
 
-            return [...team, ...direct];
+            return scheduledPosts;
         },
     );
 }
@@ -36,3 +46,15 @@ export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string,
 export function hasScheduledPostError(state: GlobalState, teamId: string) {
     return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }
+
+// export function showChannelScheduledPostIndicator(state: GlobalState, channelId: string): null | ScheduledPost | number {
+//     const channelScheduledPosts = state.entities.scheduledPosts.byChannelId[channelId];
+//
+//     if (channelScheduledPosts.length === 0) {
+//         return null;
+//     } else if (channelScheduledPosts.length === 1) {
+//         const scheduledPostId = channelScheduledPosts[0];
+//         return state.entities.scheduledPosts.byChannelId[chann]
+//     }
+//     return channelScheduledPosts.length;
+// }
