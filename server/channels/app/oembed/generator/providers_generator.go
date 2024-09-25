@@ -56,6 +56,9 @@ func main() {
 
 	var input []*oEmbedProvider
 	err = json.Unmarshal(inputJson, &input)
+	if err != nil {
+		panic(errors.Wrap(err, "Unable to read providers.json"))
+	}
 
 	var endpoints []*oembed.ProviderEndpoint
 	for _, inputProvider := range input {
@@ -63,9 +66,9 @@ func main() {
 			continue
 		}
 
-		providerEndpoints, err := extractEndpointsFromProvider(inputProvider)
-		if err != nil {
-			panic(errors.Wrap(err, "Unable to convert oEmbedProvider from providers.json to a ProviderEndpoint"))
+		providerEndpoints, extractErr := extractEndpointsFromProvider(inputProvider)
+		if extractErr != nil {
+			panic(errors.Wrap(extractErr, "Unable to convert oEmbedProvider from providers.json to a ProviderEndpoint"))
 		}
 		endpoints = append(endpoints, providerEndpoints...)
 	}
