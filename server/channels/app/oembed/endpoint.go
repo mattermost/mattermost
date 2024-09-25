@@ -20,6 +20,7 @@ func (e *ProviderEndpoint) GetProviderURL(requestURL string) string {
 	url, _ := url.Parse(e.URL)
 
 	query := url.Query()
+	query.Add("format", "json")
 	query.Add("url", requestURL)
 	url.RawQuery = query.Encode()
 
