@@ -11,10 +11,6 @@
 
 import {getAdminAccount} from '../../../support/env';
 
-const demoteToMember = (user, admin) => {
-    cy.externalRequest({user: admin, method: 'put', path: `users/${user.id}/roles`, data: {roles: 'system_user'}});
-};
-
 const demoteToChannelMember = (user, channelId, admin) => {
     cy.externalRequest({
         user: admin,
@@ -70,7 +66,7 @@ describe('Change Roles', () => {
             cy.visit(`/${team.name}/channels/${channel.name}`);
 
             // # Make user a regular member for channel and system
-            demoteToMember(testUser, admin);
+            cy.externalUpdateUserRoles(user.id, 'system_user');
             demoteToChannelMember(testUser, testChannelId, admin);
 
             // # Reload page to ensure no cache or saved information
