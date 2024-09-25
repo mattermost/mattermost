@@ -2666,9 +2666,9 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
 		}
 
-		aggFn := "json_agg(u1.Username)"
+		aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
 		if s.DriverName() == model.DatabaseDriverMysql {
-			aggFn = "JSON_ARRAYAGG(u1.Username)"
+			aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
 		}
 		result := []*model.PostForExport{}
 
@@ -2706,9 +2706,9 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 }
 
 func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExport, error) {
-	aggFn := "json_agg(u1.Username)"
+	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
 	if s.DriverName() == model.DatabaseDriverMysql {
-		aggFn = "JSON_ARRAYAGG(u1.Username)"
+		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
 	}
 	result := []*model.ReplyForExport{}
 
@@ -2735,9 +2735,9 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 }
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
-	aggFn := "json_agg(u1.Username)"
+	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
 	if s.DriverName() == model.DatabaseDriverMysql {
-		aggFn = "JSON_ARRAYAGG(u1.Username)"
+		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
 	}
 	result := []*model.DirectPostForExport{}
 
