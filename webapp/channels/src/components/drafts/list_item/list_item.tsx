@@ -101,7 +101,7 @@ export default function DraftListItem({
             onDelete={handleSchedulePostOnDelete}
             onSend={() => {}}
         />
-    ), [channel.display_name, item]);
+    ), [channel.display_name, handleSchedulePostOnDelete, handleSchedulePostOnReschedule, item]);
 
     let timestamp: number;
     let fileInfos: FileInfo[];

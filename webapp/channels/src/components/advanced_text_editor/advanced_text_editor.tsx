@@ -555,15 +555,15 @@ const AdvancedTextEditor = ({
             {
                 (showScheduledPostIndicator || showRemoteUserHour) &&
                 <div className='postBoxIndicator'>
+                    {showScheduledPostIndicator && (
+                        <ScheduledPostIndicator
+                            channelId={channelId}
+                        />
+                    )}
                     {showRemoteUserHour && (
                         <RemoteUserHour
                             teammateId={teammateId}
                             displayName={teammateDisplayName}
-                        />
-                    )}
-                    {showScheduledPostIndicator && (
-                        <ScheduledPostIndicator
-                            channelId={channelId}
                         />
                     )}
                 </div>

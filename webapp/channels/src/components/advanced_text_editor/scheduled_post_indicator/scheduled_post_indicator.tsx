@@ -5,14 +5,15 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {type match} from 'react-router-dom';
+import {NavLink, useRouteMatch} from 'react-router-dom';
 
 import {showChannelScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 
-import './scheduled_post_indicator.scss';
-
 import type {GlobalState} from 'types/store';
 
-import {NavLink, useRouteMatch} from 'react-router-dom';
+import './scheduled_post_indicator.scss';
+import Timestamp from "components/timestamp";
+import {SCHEDULED_POST_TIME_RANGES, scheduledPostTimeFormat} from "@mattermost/types/schedule_post";
 
 type Props = {
     channelId: string;
@@ -30,6 +31,33 @@ export default function ScheduledPostIndicator({channelId}: Props) {
             />
         </NavLink>
     ), [match]);
+
+    if (scheduledPostData.count === 1 && scheduledPostData.scheduledPost) {
+        return (
+            <div className='ScheduledPostIndicator'>
+                <i
+                    data-testid='scheduledPostIcon'
+                    className='icon icon-draft-indicator icon-clock-send-outline'
+                />
+                <FormattedMessage
+                    id='scheduled_post.channel_indicator.single'
+                    defaultMessage='Message scheduled for {dateTime}.'
+                    values={{
+                        dateTime: (
+                            <Timestamp
+                                value={scheduledPostData.scheduledPost.scheduled_at}
+                                ranges={SCHEDULED_POST_TIME_RANGES}
+                                useSemanticOutput={false}
+                                useTime={scheduledPostTimeFormat}
+                            />
+                        ),
+                    }}
+                />
+
+                {link}
+            </div>
+        );
+    }
 
     if (scheduledPostData.count > 1) {
         return (
@@ -50,5 +78,5 @@ export default function ScheduledPostIndicator({channelId}: Props) {
             </div>
         );
     }
-    return (null);
+    return null;
 }
