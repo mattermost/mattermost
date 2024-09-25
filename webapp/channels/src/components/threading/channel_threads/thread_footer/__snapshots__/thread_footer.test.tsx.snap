@@ -762,7 +762,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   "formatted": <Memo(SemanticTime)
                     value={2019-04-01T23:31:44.000Z}
                   >
-                    April 1, 2019
+                    April 2, 2019
                   </Memo(SemanticTime)>,
                 }
               }
@@ -774,9 +774,9 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   value={2019-04-01T23:31:44.000Z}
                 >
                   <time
-                    dateTime="2019-04-01T23:31:44.000"
+                    dateTime="2019-04-02T05:01:44.000"
                   >
-                    April 1, 2019
+                    April 2, 2019
                   </time>
                 </Memo(SemanticTime)>
               </span>
@@ -1608,7 +1608,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   "formatted": <Memo(SemanticTime)
                     value={2019-04-01T23:31:44.000Z}
                   >
-                    April 1, 2019
+                    April 2, 2019
                   </Memo(SemanticTime)>,
                 }
               }
@@ -1620,9 +1620,9 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   value={2019-04-01T23:31:44.000Z}
                 >
                   <time
-                    dateTime="2019-04-01T23:31:44.000"
+                    dateTime="2019-04-02T05:01:44.000"
                   >
-                    April 1, 2019
+                    April 2, 2019
                   </time>
                 </Memo(SemanticTime)>
               </span>
