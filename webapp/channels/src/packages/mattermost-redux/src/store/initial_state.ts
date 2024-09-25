@@ -214,6 +214,7 @@ const state: GlobalState = {
         scheduledPosts: {
             byTeamId: {},
             errorsByTeamId: {},
+            byChannelId: {},
         },
     },
     errors: [],

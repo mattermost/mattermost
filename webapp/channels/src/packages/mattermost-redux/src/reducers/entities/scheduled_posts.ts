@@ -168,7 +168,68 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
     }
 }
 
+function byChannelId(state: ScheduledPostsState['byChannelId'] = {}, action: AnyAction) {
+    switch (action.type) {
+    case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
+        const {scheduledPostsByTeamId} = action.data;
+        const newState = {...state};
+
+        Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
+            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+                scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
+                    if (newState[scheduledPost.channel_id]) {
+                        newState[scheduledPost.channel_id].push(scheduledPost.id);
+                    } else {
+                        newState[scheduledPost.channel_id] = [scheduledPost.id];
+                    }
+                });
+            }
+        });
+
+        return newState;
+    }
+    case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
+        console.log('SINGLE_SCHEDULED_POST_RECEIVED');
+        const scheduledPost = action.data.scheduledPost;
+        const newState = {...state};
+
+        if (!newState[scheduledPost.channel_id]) {
+            newState[scheduledPost.channel_id] = [scheduledPost.id];
+            return newState;
+        }
+
+        let changed = false;
+        const existingIndex = newState[scheduledPost.channel_id].findIndex((scheduledPostId) => scheduledPostId === scheduledPost.id);
+
+        if (existingIndex) {
+            newState[scheduledPost.channel_id] = [...newState[scheduledPost.channel_id], scheduledPost.id];
+            changed = true;
+        }
+
+        return changed ? newState : state;
+    }
+    case ScheduledPostTypes.SCHEDULED_POST_DELETED: {
+        const scheduledPost = action.data.scheduledPost;
+        if (!state[scheduledPost.channel_id]) {
+            return state;
+        }
+
+        const newState = {...state};
+        const index = newState[scheduledPost.channel_id].findIndex((scheduledPostId) => scheduledPostId === scheduledPost.id);
+        newState[scheduledPost.channel_id] = [...newState[scheduledPost.channel_id]];
+        newState[scheduledPost.channel_id].splice(index, 1);
+
+        return newState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     byTeamId,
     errorsByTeamId,
+    byChannelId,
 });

@@ -22,4 +22,7 @@ export type ScheduledPostsState = {
     errorsByTeamId: {
         [teamId: string]: string[];
     };
+    byChannelId: {
+        [channelId: string]: string[];
+    };
 }
