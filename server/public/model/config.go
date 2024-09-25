@@ -1649,6 +1649,7 @@ type FileSettings struct {
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1666,6 +1667,7 @@ type FileSettings struct {
 	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1778,6 +1780,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes))
 	}
 
+	if s.AmazonS3StorageClass == nil || *s.AmazonS3StorageClass == "" {
+		s.AmazonS3StorageClass = NewPointer("STANDARD")
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = NewPointer(false)
 	}
@@ -1842,6 +1848,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3UploadPartSizeBytes == nil {
 		s.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3ExportUploadPartSizeBytes))
+	}
+
+	if s.ExportAmazonS3StorageClass == nil || *s.ExportAmazonS3StorageClass == "" {
+		s.ExportAmazonS3StorageClass = NewPointer("STANDARD")
 	}
 }
 
