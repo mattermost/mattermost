@@ -7895,6 +7895,18 @@
     "translation": "unable to migrate."
   },
   {
+    "id": "ent.message_export.CalculateChannelExports.app_error",
+    "translation": "Failed to generate channel exports data."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Calculating channel activity: {{.NumCompleted}}/{{.NumChannels}} channels completed."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exporting channel information for {{.NumChannels}} channels."
+  },
+  {
     "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": "Failed to get file info for a post."
   },
