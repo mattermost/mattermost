@@ -16,8 +16,8 @@ import (
 func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
 	if session != nil {
 		session.Id = ""
-		// Once the session is retrieved from the pool, all existing prop fields are cleared.
-		// To avoid a race between clearing the props and accessing it, clear the props maps before returning it to the pool.
+		// All existing prop fields are cleared once the session is retrieved from the pool.
+		// To speed up that process, clear the props here to avoid doing that in the hot path.
 		for k := range session.Props {
 			delete(session.Props, k) // clear is only available in go 1.21
 		}
