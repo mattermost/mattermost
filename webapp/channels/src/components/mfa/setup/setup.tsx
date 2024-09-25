@@ -97,7 +97,7 @@ class Setup extends React.PureComponent<Props, State> {
         e.preventDefault();
         const code = this.input?.current?.value.replace(/\s/g, '');
         if (!code || code.length === 0) {
-            this.setState({error: Utils.localizeMessage('mfa.setup.codeError', 'Please enter the code from Google Authenticator.')});
+            this.setState({error: Utils.localizeMessage({id: 'mfa.setup.codeError', defaultMessage: 'Please enter the code from Google Authenticator.'})});
             return;
         }
 
@@ -107,7 +107,7 @@ class Setup extends React.PureComponent<Props, State> {
             if (error) {
                 if (error.server_error_id === 'ent.mfa.activate.authenticate.app_error') {
                     this.setState({
-                        error: Utils.localizeMessage('mfa.setup.badCode', 'Invalid code. If this issue persists, contact your System Administrator.'),
+                        error: Utils.localizeMessage({id: 'mfa.setup.badCode', defaultMessage: 'Invalid code. If this issue persists, contact your System Administrator.'}),
                     });
                 } else {
                     this.setState({

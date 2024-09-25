@@ -1410,6 +1410,12 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 		if attachment.Text != "" {
 			ret = append(ret, attachment.Text)
 		}
+
+		for _, field := range attachment.Fields {
+			if valueString, ok := field.Value.(string); ok && valueString != "" {
+				ret = append(ret, valueString)
+			}
+		}
 	}
 	return ret
 }
