@@ -6,6 +6,11 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
+export type ChannelScheduledPostIndicatorData = {
+    scheduledPost?: ScheduledPost;
+    count: number;
+}
+
 export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: string, includeDirectChannels: boolean) => ScheduledPost[] {
     return createSelector(
         'makeGetScheduledPostsByTeam',
@@ -47,14 +52,19 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
     return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }
 
-// export function showChannelScheduledPostIndicator(state: GlobalState, channelId: string): null | ScheduledPost | number {
-//     const channelScheduledPosts = state.entities.scheduledPosts.byChannelId[channelId];
-//
-//     if (channelScheduledPosts.length === 0) {
-//         return null;
-//     } else if (channelScheduledPosts.length === 1) {
-//         const scheduledPostId = channelScheduledPosts[0];
-//         return state.entities.scheduledPosts.byChannelId[chann]
-//     }
-//     return channelScheduledPosts.length;
-// }
+export function showChannelScheduledPostIndicator(state: GlobalState, channelId: string): ChannelScheduledPostIndicatorData {
+    const data = {} as ChannelScheduledPostIndicatorData;
+    const channelScheduledPosts = state.entities.scheduledPosts.byChannelId[channelId] || [];
+
+    if (channelScheduledPosts.length === 0) {
+        data.count = 0;
+    } else if (channelScheduledPosts.length === 1) {
+        const scheduledPostId = channelScheduledPosts[0];
+        data.scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
+        data.count = 1;
+    } else {
+        data.count = channelScheduledPosts.length;
+    }
+
+    return data;
+}

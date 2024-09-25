@@ -66,6 +66,8 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
+import {showChannelScheduledPostIndicator} from "mattermost-redux/selectors/entities/scheduled_posts";
+import ScheduledPostIndicator from "components/advanced_text_editor/scheduled_post_indicator/scheduled_post_indicator";
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
@@ -120,6 +122,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const showRemoteUserHour = useSelector((state: GlobalState) => !showDndWarning && Boolean(getDirectChannel(state, channelId)?.teammate_id));
+    const showScheduledPostIndicator = useSelector((state: GlobalState) => showChannelScheduledPostIndicator(state, channelId));
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -549,6 +552,11 @@ const AdvancedTextEditor = ({
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
+            {showScheduledPostIndicator && (
+                <ScheduledPostIndicator
+                    channelId={channelId}
+                />
+            )}
             {showRemoteUserHour && (
                 <RemoteUserHour
                     teammateId={teammateId}
