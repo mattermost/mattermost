@@ -20,7 +20,7 @@ type OEmbedResponse struct {
 	AuthorURL       string `json:"author_url,omitempty"`
 	ProviderName    string `json:"provider_name,omitempty"`
 	ProviderURL     string `json:"provider_url,omitempty"`
-	CacheAge        int    `json:"cache_age,omitempty"`
+	CacheAge        string `json:"cache_age,omitempty"`
 	ThumbnailURL    string `json:"thumbnail_url,omitempty"`
 	ThumbnailWidth  int    `json:"thumbnail_width,omitempty"`
 	ThumbnailHeight int    `json:"thumbnail_height,omitempty"`
