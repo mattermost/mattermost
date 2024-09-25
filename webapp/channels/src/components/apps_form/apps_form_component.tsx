@@ -518,10 +518,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 autoFocus={!fields || fields.length === 0}
                 className='btn btn-primary save-button'
                 spinning={Boolean(this.state.submitting)}
-                spinningText={localizeMessage(
-                    'interactive_dialog.submitting',
-                    'Submitting...',
-                )}
+                spinningText={localizeMessage({
+                    id: 'interactive_dialog.submitting',
+                    defaultMessage: 'Submitting...',
+                })}
             >
                 {submitText}
             </SpinnerButton>

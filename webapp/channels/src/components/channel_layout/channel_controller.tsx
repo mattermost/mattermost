@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
-import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 
 import {makeAsyncComponent} from 'components/async_load';
 import CenterChannel from 'components/channel_layout/center_channel';
@@ -51,11 +51,13 @@ export default function ChannelController(props: Props) {
         };
     }, []);
 
+    // Starts a regular interval to fetch statuses of users.
+    // see function "addVisibleUsersInCurrentChannelAndSelfToStatusPoll" for more details on which user's statuses are fetched.
     useEffect(() => {
         let loadStatusesIntervalId: NodeJS.Timeout;
         if (enabledUserStatuses) {
             loadStatusesIntervalId = setInterval(() => {
-                dispatch(addVisibleUsersInCurrentChannelToStatusPoll());
+                dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
             }, Constants.STATUS_INTERVAL);
         }
 
