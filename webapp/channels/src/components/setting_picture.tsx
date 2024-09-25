@@ -296,7 +296,7 @@ export default class SettingPicture extends Component<Props, State> {
                         className='btn btn-primary btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
-                        aria-label={localizeMessage('setting_picture.select', 'Select')}
+                        aria-label={localizeMessage({id: 'setting_picture.select', defaultMessage: 'Select'})}
                     >
                         <FormattedMessage
                             id='setting_picture.select'
@@ -310,11 +310,11 @@ export default class SettingPicture extends Component<Props, State> {
                         ref={this.confirmButton}
                         className={confirmButtonClass}
                         onClick={this.handleSave}
-                        aria-label={this.props.loadingPicture ? localizeMessage('setting_picture.uploading', 'Uploading...') : localizeMessage('setting_picture.save', 'Save')}
+                        aria-label={this.props.loadingPicture ? localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'}) : localizeMessage({id: 'setting_picture.save', defaultMessage: 'Save'})}
                     >
                         <LoadingWrapper
                             loading={this.props.loadingPicture}
-                            text={localizeMessage('setting_picture.uploading', 'Uploading...')}
+                            text={localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'})}
                         >
                             <FormattedMessage
                                 id='setting_picture.save'
@@ -358,7 +358,7 @@ export default class SettingPicture extends Component<Props, State> {
                                 data-testid='cancelSettingPicture'
                                 className='btn btn-tertiary theme ml-2'
                                 onClick={this.handleCancel}
-                                aria-label={localizeMessage('setting_picture.cancel', 'Cancel')}
+                                aria-label={localizeMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'})}
                             >
                                 <FormattedMessage
                                     id='setting_picture.cancel'

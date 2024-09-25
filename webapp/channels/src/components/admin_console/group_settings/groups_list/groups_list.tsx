@@ -471,7 +471,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     <div className='group-list-search'>
                         <input
                             type='text'
-                            placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
+                            placeholder={Utils.localizeMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                             onKeyUp={(e: any) => this.handleGroupSearchKeyUp(e)}
                             onChange={(e) => this.setState({searchString: e.target.value})}
                             value={this.state.searchString}

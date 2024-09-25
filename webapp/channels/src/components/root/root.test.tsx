@@ -403,4 +403,17 @@ describe('doesRouteBelongToTeamControllerRoutes', () => {
         expect(doesRouteBelongToTeamControllerRoutes('/login')).toBe(false);
         expect(doesRouteBelongToTeamControllerRoutes('/error')).toBe(false);
     });
+
+    test('should return false for admin_console routes', () => {
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/about')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/reporting')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/user_management')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/environment')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/site_config')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/plugins/')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/integrations/')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/integrations/bot_accounts')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/compliance')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/experimental')).toBe(false);
+    });
 });

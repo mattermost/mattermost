@@ -280,7 +280,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 data = result.data;
                 error = result.error;
             } else {
-                error = Utils.localizeMessage('bot.edit_failed', 'Failed to edit bot');
+                error = Utils.localizeMessage({id: 'bot.edit_failed', defaultMessage: 'Failed to edit bot'});
             }
 
             if (!error && data) {
@@ -334,7 +334,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 data = result.data;
                 error = result.error;
             } else {
-                error = Utils.localizeMessage('bot.create_failed', 'Failed to create bot');
+                error = Utils.localizeMessage({id: 'bot.create_failed', defaultMessage: 'Failed to create bot'});
             }
 
             let token = '';
@@ -345,7 +345,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                     await this.props.actions.setDefaultProfileImage(data.user_id);
                 }
                 const tokenResult = await this.props.actions.createUserAccessToken(data.user_id,
-                    Utils.localizeMessage('bot.token.default.description', 'Default Token'),
+                    Utils.localizeMessage({id: 'bot.token.default.description', defaultMessage: 'Default Token'}),
                 );
 
                 // On error just skip the confirmation because we have a bot without a token.
@@ -608,12 +608,12 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     <option
                                         value={roleOptionMember}
                                     >
-                                        {Utils.localizeMessage('bot.add.role.member', 'Member')}
+                                        {Utils.localizeMessage({id: 'bot.add.role.member', defaultMessage: 'Member'})}
                                     </option>
                                     <option
                                         value={roleOptionSystemAdmin}
                                     >
-                                        {Utils.localizeMessage('bot.add.role.admin', 'System Admin')}
+                                        {Utils.localizeMessage({id: 'bot.add.role.admin', defaultMessage: 'System Admin'})}
                                     </option>
                                 </select>
                                 <div className='form__help'>
