@@ -229,6 +229,7 @@
         "AmazonS3SSE": false,
         "AmazonS3Trace": false,
         "AmazonS3RequestTimeoutMilliseconds": 30000,
+        "AmazonS3StorageClass": "STANDARD",
         "DedicatedExportStore": false,
         "ExportDriverName": "local",
         "ExportDirectory": "./data/",
@@ -243,7 +244,8 @@
         "ExportAmazonS3SSE": false,
         "ExportAmazonS3Trace": false,
         "ExportAmazonS3RequestTimeoutMilliseconds": 30000,
-        "ExportAmazonS3PresignExpiresSeconds": 21600
+        "ExportAmazonS3PresignExpiresSeconds": 21600,
+        "ExportAmazonS3StorageClass": "STANDARD"
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
