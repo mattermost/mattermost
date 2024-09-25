@@ -102,10 +102,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
             });
         }
 
-        let isSharedChannel = false;
-        if (teammate.remote_id) {
-            isSharedChannel = true;
-        }
+        const isSharedChannel = Boolean(teammate.remote_id);
 
         return (
             <SidebarChannelLink
