@@ -391,6 +391,19 @@ func TestChannelStoreGetManyCache(t *testing.T) {
 		assert.ElementsMatch(t, model.ChannelList{&fakeChannel, &fakeChannel2}, channels)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMany", 2)
 	})
+
+	t.Run("passing allowCache=false should bypass cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		fakeChannel := model.Channel{Id: "channel1", Name: "channel1-name"}
+		channels, err := cachedStore.Channel().GetMany([]string{fakeChannel.Id}, false)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, model.ChannelList{&fakeChannel}, channels)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMany", 1)
+	})
 }
 
 func TestChannelStoreGetByNamesCache(t *testing.T) {
