@@ -147,10 +147,10 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         // by default we assume is not cloud, so the cta button is Start Trial (which will request a trial license)
         let ctaPrimaryButton = (
             <StartTrialBtn
-                message={Utils.localizeMessage(
-                    'admin.ldap_feature_discovery.call_to_action.primary',
-                    'Start trial',
-                )}
+                message={Utils.localizeMessage({
+                    id: 'admin.ldap_feature_discovery.call_to_action.primary',
+                    defaultMessage: 'Start trial',
+                })}
                 telemetryId={`start_self_hosted_trial_from_${this.props.featureName}`}
                 btnClass='btn btn-primary'
                 renderAsButton={true}

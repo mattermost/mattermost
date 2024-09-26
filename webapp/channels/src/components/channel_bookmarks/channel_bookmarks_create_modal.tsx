@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, ClipboardEventHandler, FocusEventHandler, MouseEvent} from 'react';
+import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import {PencilOutlineIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
-import {debounce} from 'mattermost-redux/actions/helpers';
 import {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -24,10 +23,11 @@ import FileAttachment from 'components/file_attachment';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileProgressPreview from 'components/file_preview/file_progress_preview';
 import Input from 'components/widgets/inputs/input/input';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isValidUrl, parseLink} from 'utils/url';
+import {isValidUrl, parseLink, removeScheme} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -50,23 +50,6 @@ type Props = {
     bookmark?: never;
     onConfirm: (data: ChannelBookmarkCreate) => Promise<ActionResult<boolean, any>> | ActionResult<boolean, any>;
 });
-
-function validHttpUrl(input: string) {
-    const val = parseLink(input);
-
-    if (!val || !isValidUrl(val)) {
-        return null;
-    }
-
-    let url;
-    try {
-        url = new URL(val);
-    } catch {
-        return null;
-    }
-
-    return url;
-}
 
 function ChannelBookmarkCreateModal({
     bookmark,
@@ -104,51 +87,33 @@ function ChannelBookmarkCreateModal({
     }, [handleKeyDown]);
 
     // type === 'link'
-    const [linkInputValue, setLinkInputValue] = useState(bookmark?.link_url ?? '');
-    const [link, setLinkImmediately] = useState(linkInputValue);
-    const [linkError, setLinkError] = useState('');
-    const [icon, setIcon] = useState(bookmark?.image_url);
+    const icon = bookmark?.image_url;
+    const [link, setLinkInner] = useState(bookmark?.link_url ?? '');
+    const prevLink = useRef(link);
+    const [validatedLink, setValidatedLink] = useState<string>();
+    const setLink = useCallback((value: string) => {
+        setLinkInner((currentLink) => {
+            prevLink.current = currentLink;
+            return value;
+        });
+        if (!value) {
+            setValidatedLink(undefined);
+        }
+    }, []);
 
-    const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
-        setLinkInputValue(value);
+    const [linkError, {loading: checkingLink, suppressed: linkErrorBypass}] = useBookmarkLinkValidation(link === prevLink.current ? '' : link, (validatedLink, forced) => {
+        if (!forced) {
+            setValidatedLink(validatedLink);
+        }
+        const parsed = removeScheme(validatedLink);
+        setParsedDisplayName(parsed);
+        setDisplayName(parsed);
+    });
+
+    const handleLinkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const {value} = e.target;
         setLink(value);
     }, []);
-
-    const setLink = debounce((val: string) => {
-        setLinkImmediately(val);
-    }, 250);
-
-    const handleLinkBlur: FocusEventHandler<HTMLInputElement> = useCallback(({target: {value}}) => {
-        setLinkImmediately(value);
-    }, []);
-
-    const handleLinkPasted: ClipboardEventHandler<HTMLInputElement> = useCallback(({clipboardData}) => {
-        setLinkImmediately(clipboardData.getData('text/plain'));
-    }, []);
-
-    const resetParsed = () => {
-        setParsedDisplayName(link || '');
-        setIcon('');
-    };
-
-    useEffect(() => {
-        if (link === bookmark?.link_url || !link) {
-            return;
-        }
-
-        const url = validHttpUrl(link);
-
-        (async () => {
-            resetParsed();
-
-            if (!url) {
-                setLinkError('Please enter a valid link. Could not parse: ' + link);
-                return;
-            }
-            setLinkError('');
-            setParsedDisplayName(link);
-        })();
-    }, [link, bookmark?.link_url, channelId]);
 
     // type === 'file'
     const canUploadFiles = useCanUploadFiles();
@@ -303,7 +268,14 @@ function ChannelBookmarkCreateModal({
     const isValid = (() => {
         if (type === 'link') {
             if (!link || linkError) {
+                if (link && linkError && linkErrorBypass) {
+                    return true;
+                }
                 return false;
+            }
+
+            if (validatedLink || link === bookmark?.link_url) {
+                return true;
             }
         }
 
@@ -311,9 +283,11 @@ function ChannelBookmarkCreateModal({
             if (!fileInfo || !displayNameValue || fileError) {
                 return false;
             }
+
+            return true;
         }
 
-        return true;
+        return undefined;
     })();
     const showControls = type === 'file' || (isValid || bookmark);
 
@@ -374,6 +348,15 @@ function ChannelBookmarkCreateModal({
 
     const confirmDisabled = saving || !isValid || !hasChanges;
 
+    let linkStatusIndicator;
+    if (checkingLink) {
+        // loading
+        linkStatusIndicator = <LoadingSpinner/>;
+    } else if (validatedLink && !linkError) {
+        // validated
+        linkStatusIndicator = checkedIcon;
+    }
+
     return (
         <GenericModal
             enforceFocus={!showEmojiPicker}
@@ -392,19 +375,21 @@ function ChannelBookmarkCreateModal({
         >
             <>
                 {type === 'link' ? (
-                    <Input
-                        type='text'
-                        name='bookmark-link'
-                        containerClassName='linkInput'
-                        placeholder={formatMessage(msg.linkPlaceholder)}
-                        onChange={handleLinkChange}
-                        onBlur={handleLinkBlur}
-                        onPaste={handleLinkPasted}
-                        value={linkInputValue}
-                        data-testid='linkInput'
-                        autoFocus={true}
-                        customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
-                    />
+                    <>
+                        <Input
+                            type='text'
+                            name='bookmark-link'
+                            containerClassName='linkInput'
+                            placeholder={formatMessage(msg.linkPlaceholder)}
+                            onChange={handleLinkChange}
+                            hasError={Boolean(linkError)}
+                            value={link}
+                            data-testid='linkInput'
+                            autoFocus={true}
+                            addon={linkStatusIndicator}
+                            customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
+                        />
+                    </>
                 ) : (
                     <>
                         <FieldLabel>
@@ -489,6 +474,21 @@ const TitleWrapper = styled.div`
     margin-top: 20px;
 `;
 
+const CheckWrapper = styled.span`
+    padding: 0px 12px;
+    display: flex;
+    align-items: center;
+`;
+
+const checkedIcon = (
+    <CheckWrapper>
+        <CheckIcon
+            size={20}
+            color='var(--sys-online-indicator)'
+        />
+    </CheckWrapper>
+);
+
 const FieldLabel = styled.span`
     display: inline-block;
     margin-bottom: 8px;
@@ -558,6 +558,48 @@ const FileInputContainer = styled.div`
     }
 `;
 
+const continuableLinkErr = (url: URL, confirm?: () => void) => {
+    if (!confirm) {
+        return (
+            <FormattedMessage
+                id='channel_bookmarks.create.error.invalid_url.continuing_anyway'
+                defaultMessage='Could not find: {url}. Please enter a valid link.'
+                values={{
+                    url: url.toString(),
+                }}
+            />
+        );
+    }
+
+    return (
+        <FormattedMessage
+            id='channel_bookmarks.create.error.invalid_url.continue_anyway'
+            defaultMessage='Could not find: {url}. Please enter a valid link, or <Confirm>continue anyway</Confirm>.'
+            values={{
+                url: url.toString(),
+                Confirm: (msg) => (
+                    <LinkErrContinue
+                        tabIndex={0}
+                        onClick={confirm}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                confirm();
+                            }
+                        }}
+                    >
+                        {msg}
+                    </LinkErrContinue>
+                ),
+            }}
+        />
+    );
+};
+
+const LinkErrContinue = styled.a`
+    color: unset !important;
+    text-decoration: underline;
+`;
+
 const FileItemContainer = styled.div`
     display: flex;
     flex: 1 1 auto;
@@ -576,6 +618,96 @@ const msg = defineMessages({
     addBookmarkText: {id: 'channel_bookmarks.create.confirm_add.button', defaultMessage: 'Add bookmark'},
     saveText: {id: 'channel_bookmarks.create.confirm_save.button', defaultMessage: 'Save bookmark'},
     fileInputEdit: {id: 'channel_bookmarks.create.file_input.edit', defaultMessage: 'Edit'},
-    linkInvalid: {id: 'channel_bookmarks.create.error.invalid_url', defaultMessage: 'Please enter a valid link'},
+    linkInvalid: {id: 'channel_bookmarks.create.error.invalid_url', defaultMessage: 'Please enter a valid link. Could not parse: {link}.'},
     saveError: {id: 'channel_bookmarks.create.error.generic_save', defaultMessage: 'There was an error trying to save the bookmark.'},
 });
+
+const TYPING_DELAY_MS = 250;
+const REQUEST_TIMEOUT = 10000;
+export const useBookmarkLinkValidation = (link: string, onValidated: (validatedLink: string, forced?: boolean) => void) => {
+    const {formatMessage} = useIntl();
+
+    const [loading, setLoading] = useState<URL>();
+    const [error, setError] = useState<ReactNode>();
+    const [suppressed, setSuppressed] = useState(false);
+    const abort = useRef<AbortController>();
+
+    const start = useCallback((url: URL) => {
+        setLoading(url);
+        setError(undefined);
+        setSuppressed(false);
+        abort.current = new AbortController();
+        return abort.current.signal;
+    }, []);
+
+    const cancel = useCallback(() => {
+        abort.current?.abort('stale request');
+        abort.current = undefined;
+        setLoading(undefined);
+    }, []);
+
+    useEffect(() => {
+        const handler = setTimeout(async () => {
+            cancel();
+            if (!link) {
+                return;
+            }
+
+            const url = validHttpUrl(link);
+
+            if (!url) {
+                setError(formatMessage(msg.linkInvalid, {link}));
+                setLoading(undefined);
+                return;
+            }
+
+            const signal = start(url);
+
+            try {
+                await fetch(url, {
+                    mode: 'no-cors',
+                    signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
+                });
+                onValidated(link);
+            } catch (err) {
+                if (signal === abort.current?.signal) {
+                    setError(continuableLinkErr(url, () => {
+                        onValidated(link, true);
+                        setSuppressed(true);
+                        setError(continuableLinkErr(url));
+                    }));
+                }
+            } finally {
+                setLoading((currentUrl) => {
+                    if (currentUrl !== url) {
+                        // trailing effect of cancelled
+                        return currentUrl;
+                    }
+
+                    return undefined;
+                });
+            }
+        }, TYPING_DELAY_MS);
+
+        return () => clearTimeout(handler);
+    }, [link, start, cancel]);
+
+    return [error, {loading: Boolean(loading), suppressed}] as const;
+};
+
+export const validHttpUrl = (input: string) => {
+    const val = parseLink(input);
+
+    if (!val || !isValidUrl(val)) {
+        return null;
+    }
+
+    let url;
+    try {
+        url = new URL(val);
+    } catch {
+        return null;
+    }
+
+    return url;
+};
