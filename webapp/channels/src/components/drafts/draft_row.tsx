@@ -87,7 +87,7 @@ function DraftRow({
 
     let postError = '';
     if (rootPostDeleted) {
-        postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread cannot be found'});
+        postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
     } else if (tooLong) {
         postError = intl.formatMessage({id: 'drafts.error.too_long', defaultMessage: 'Message too long'});
     } else if (readOnly) {
