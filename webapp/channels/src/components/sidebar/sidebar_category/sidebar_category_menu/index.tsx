@@ -194,11 +194,7 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
-                trailingElements={category.sorting === CategorySorting.Alphabetical ? (
-                    <>
-                        <CheckIcon size={16}/>
-                    </>
-                ) : null}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -209,11 +205,7 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
-                trailingElements={category.sorting === CategorySorting.Recency ? (
-                    <>
-                        <CheckIcon size={16}/>
-                    </>
-                ) : null}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortManual-${category.id}`}
@@ -224,11 +216,7 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Manual)}
-                trailingElements={category.sorting === CategorySorting.Manual ? (
-                    <>
-                        <CheckIcon size={16}/>
-                    </>
-                ) : null}
+                trailingElements={category.sorting === CategorySorting.Manual ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
     );

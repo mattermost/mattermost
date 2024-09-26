@@ -96,11 +96,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
-                trailingElements={category.sorting === CategorySorting.Alphabetical ? (
-                    <>
-                        <CheckIcon size={16}/>
-                    </>
-                ) : null}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -111,11 +107,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
-                trailingElements={category.sorting === CategorySorting.Recency ? (
-                    <>
-                        <CheckIcon size={16}/>
-                    </>
-                ) : null}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
 
@@ -164,11 +156,7 @@ const SidebarCategorySortingMenu = ({
                     key={`showDmCount-${category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
-                    trailingElements={selectedDmNumber === dmGmShowCount ? (
-                        <>
-                            <CheckIcon size={16}/>
-                        </>
-                    ) : null}
+                    trailingElements={selectedDmNumber === dmGmShowCount ? <CheckIcon size={16}/> : null}
                 />
             ))}
         </Menu.SubMenu>
