@@ -251,7 +251,7 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 
 	t.Run("set custom status", func(t *testing.T) {
 		toUpdateCustomStatus := &model.CustomStatus{
-			Emoji: "calendar",  // Use a valid emoji name
+			Emoji: "calendar", // Use a valid emoji name
 			Text:  "My custom status",
 		}
 		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
@@ -269,7 +269,7 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 	t.Run("update custom status with duration", func(t *testing.T) {
 		expiresAt := time.Now().Add(1 * time.Hour)
 		toUpdateCustomStatus := &model.CustomStatus{
-			Emoji:     "palm_tree",  // Use a valid emoji name
+			Emoji:     "palm_tree", // Use a valid emoji name
 			Text:      "On vacation",
 			Duration:  "date_and_time",
 			ExpiresAt: expiresAt,
@@ -285,7 +285,7 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 		assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus.Emoji)
 		assert.Equal(t, toUpdateCustomStatus.Text, customStatus.Text)
 		assert.Equal(t, toUpdateCustomStatus.Duration, customStatus.Duration)
-		
+
 		require.NotNil(t, customStatus.ExpiresAt, "Expected ExpiresAt to be set")
 		// Check that ExpiresAt is within 5 seconds of the expected time
 		assert.WithinDuration(t, expiresAt, customStatus.ExpiresAt, 5*time.Second)
