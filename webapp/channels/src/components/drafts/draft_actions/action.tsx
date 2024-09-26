@@ -4,8 +4,9 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import './action.scss';
 import WithTooltip from 'components/with_tooltip';
+
+import './action.scss';
 
 type Props = {
     icon: string;
@@ -13,7 +14,6 @@ type Props = {
     name: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
     tooltipText: React.ReactElement | string;
-    disabled?: boolean;
 };
 
 function Action({
@@ -22,7 +22,6 @@ function Action({
     onClick,
     id,
     tooltipText,
-    disabled,
 }: Props) {
     return (
         <div className='DraftAction'>
@@ -38,13 +37,11 @@ function Action({
                     )}
                     id={`draft_${icon}_${id}`}
                     onClick={onClick}
-                    disabled={disabled}
                 >
                     <i
                         className={classNames(
                             'icon',
                             icon,
-                            {disabled},
                         )}
                     />
                 </button>

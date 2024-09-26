@@ -34,17 +34,9 @@
         color: rgba(var(--center-channel-color-rgb), 0.64);
         fill: rgba(var(--center-channel-color-rgb), 0.64);
 
-        &.disabled {
-            color: rgba(var(--center-channel-color-rgb), 0.4);
-            fill: rgba(var(--center-channel-color-rgb), 0.4);
-        }
         &:hover {
             color: rgba(var(--center-channel-color-rgb), 0.8);
             fill: rgba(var(--center-channel-color-rgb), 0.8);
-            &.disabled {
-                color: rgba(var(--center-channel-color-rgb), 0.4);
-                fill: rgba(var(--center-channel-color-rgb), 0.4);
-            }
         }
     }
 

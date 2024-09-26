@@ -68,32 +68,34 @@ function DraftActions({
                 )}
                 onClick={handleDelete}
             />
-            <Action
-                icon='icon-pencil-outline'
-                id='edit'
-                name='edit'
-                tooltipText={(
-                    <FormattedMessage
-                        id='drafts.actions.edit'
-                        defaultMessage='Edit draft'
-                    />
-                )}
-                onClick={onEdit}
-                disabled={!canEdit}
-            />
-            <Action
-                icon='icon-send-outline'
-                id='send'
-                name='send'
-                tooltipText={(
-                    <FormattedMessage
-                        id='drafts.actions.send'
-                        defaultMessage='Send draft'
-                    />
-                )}
-                onClick={handleSend}
-                disabled={!canSend}
-            />
+            {canEdit && (
+                <Action
+                    icon='icon-pencil-outline'
+                    id='edit'
+                    name='edit'
+                    tooltipText={(
+                        <FormattedMessage
+                            id='drafts.actions.edit'
+                            defaultMessage='Edit draft'
+                        />
+                    )}
+                    onClick={onEdit}
+                />
+            )}
+            {canSend && (
+                <Action
+                    icon='icon-send-outline'
+                    id='send'
+                    name='send'
+                    tooltipText={(
+                        <FormattedMessage
+                            id='drafts.actions.send'
+                            defaultMessage='Send draft'
+                        />
+                    )}
+                    onClick={handleSend}
+                />
+            )}
         </>
     );
 }

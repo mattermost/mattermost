@@ -19,12 +19,7 @@
         transition-duration: 0.15s;
     }
 
-    .draftError {
-        display: flex;
-        min-height: 40px;
-        align-items: center;
-        padding: 0 16px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        color: var(--error-text);
+    &.draftError {
+        border-color: var(--error-text);
     }
 }

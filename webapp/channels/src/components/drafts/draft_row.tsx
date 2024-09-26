@@ -74,8 +74,11 @@ function DraftRow({
         const rootPost = getPost(state, rootId);
         return !rootPost || rootPost.delete_at > 0 || rootPost.state === 'DELETED';
     });
-    const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
-    const tooLong = draft.value.message.length > maxPostSize;
+
+    const tooLong = useSelector((state: GlobalState) => {
+        const maxPostSize = parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT;
+        return draft.value.message.length > maxPostSize;
+    });
 
     const readOnly = !useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -84,11 +87,11 @@ function DraftRow({
 
     let postError = '';
     if (rootPostDeleted) {
-        postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'This draft was created for a post that cannot be found.'});
+        postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread cannot be found'});
     } else if (tooLong) {
-        postError = intl.formatMessage({id: 'create_post.error_message', defaultMessage: 'Your message is too long. Character count: {length}/{limit}'}, {length: draft.value.message.length, limit: maxPostSize});
+        postError = intl.formatMessage({id: 'drafts.error.too_long', defaultMessage: 'Message too long'});
     } else if (readOnly) {
-        postError = intl.formatMessage({id: 'drafts.error.read_only', defaultMessage: 'This channel is read only.'});
+        postError = intl.formatMessage({id: 'drafts.error.read_only', defaultMessage: 'Channel is read only'});
     }
 
     const canSend = !postError;
@@ -164,7 +167,10 @@ function DraftRow({
     }
 
     return (
-        <Panel onClick={goToMessage}>
+        <Panel
+            onClick={goToMessage}
+            hasError={Boolean(postError)}
+        >
             {({hover}) => (
                 <>
                     <Header
