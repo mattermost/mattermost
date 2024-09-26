@@ -14,6 +14,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import ChannelController, {getClassnamesForBody} from './channel_controller';
+import { renderWithContext } from 'tests/react_testing_utils';
 
 let mockState: GlobalState;
 
@@ -54,7 +55,7 @@ describe('ChannelController', () => {
         mockState.entities.general.config.EnableUserStatuses = 'true';
         const store = mockStore(mockState);
 
-        render(
+        renderWithContext(
             <Provider store={store}>
                 <ChannelController shouldRenderCenterChannel={true}/>
             </Provider>,
@@ -71,7 +72,7 @@ describe('ChannelController', () => {
         const store = mockStore(mockState);
         mockState.entities.general.config.EnableUserStatuses = 'false';
 
-        render(
+        renderWithContext(
             <Provider store={store}>
                 <ChannelController shouldRenderCenterChannel={true}/>
             </Provider>,
