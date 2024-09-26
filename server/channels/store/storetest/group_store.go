@@ -4832,8 +4832,16 @@ func groupTestUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Sto
 			require.NoError(t, err)
 
 			var updatedUserIDs []string
-			for _, user := range updatedMemmbers {
-				updatedUserIDs = append(updatedUserIDs, user.UserId)
+			for _, member := range updatedMemmbers {
+				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
+
+				if slices.Contains(tt.newAdmins, member.UserId) {
+					assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				} else {
+					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				}
+
+				updatedUserIDs = append(updatedUserIDs, member.UserId)
 			}
 			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
@@ -4957,8 +4965,16 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 			require.NoError(t, err)
 
 			var updatedUserIDs []string
-			for _, user := range updatedMemmbers {
-				updatedUserIDs = append(updatedUserIDs, user.UserId)
+			for _, member := range updatedMemmbers {
+				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
+
+				if slices.Contains(tt.newAdmins, member.UserId) {
+					assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				} else {
+					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				}
+
+				updatedUserIDs = append(updatedUserIDs, member.UserId)
 			}
 			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 

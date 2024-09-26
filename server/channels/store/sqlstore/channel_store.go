@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -4202,6 +4203,15 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 	var updatedMembers []*model.ChannelMember
 	if err = s.GetMasterX().Select(&updatedMembers, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get list of updated users")
+	}
+
+	// Update SchemeAdmin field as the data from the SQL is not updated yet
+	for _, member := range updatedMembers {
+		if slices.Contains(adminIDs, member.UserId) {
+			member.SchemeAdmin = true
+		} else {
+			member.SchemeAdmin = false
+		}
 	}
 
 	query, args, err = s.getQueryBuilder().

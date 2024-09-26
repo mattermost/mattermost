@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -1621,6 +1622,15 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*mo
 	var updatedMembers []*model.TeamMember
 	if err = s.GetMasterX().Select(&updatedMembers, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get list of updated users")
+	}
+
+	// Update SchemeAdmin field as the data from the SQL is not updated yet
+	for _, member := range updatedMembers {
+		if slices.Contains(adminIDs, member.UserId) {
+			member.SchemeAdmin = true
+		} else {
+			member.SchemeAdmin = false
+		}
 	}
 
 	query, args, err = s.getQueryBuilder().
