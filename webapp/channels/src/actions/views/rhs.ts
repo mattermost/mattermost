@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import type { AnyAction } from 'redux';
-import { batchActions } from 'redux-batched-actions';
+import type {AnyAction} from 'redux';
+import {batchActions} from 'redux-batched-actions';
 
-import type { Post } from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import { SearchTypes } from 'mattermost-redux/action_types';
-import { getChannel } from 'mattermost-redux/actions/channels';
-import { getPostsByIds, getPost as fetchPost } from 'mattermost-redux/actions/posts';
+import {SearchTypes} from 'mattermost-redux/action_types';
+import {getChannel} from 'mattermost-redux/actions/channels';
+import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -17,25 +17,36 @@ import {
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
-import { getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector } from 'mattermost-redux/selectors/entities/channels';
-import { getConfig } from 'mattermost-redux/selectors/entities/general';
-import { getLatestInteractablePostId, getPost } from 'mattermost-redux/selectors/entities/posts';
-import { getCurrentTeamId } from 'mattermost-redux/selectors/entities/teams';
-import { getCurrentTimezone } from 'mattermost-redux/selectors/entities/timezone';
-import { getCurrentUser, getCurrentUserMentionKeys } from 'mattermost-redux/selectors/entities/users';
-import type { ActionFunc, ActionFuncAsync, ThunkActionFunc } from 'mattermost-redux/types/actions';
+import {
+    getCurrentChannelId,
+    getCurrentChannelNameForSearchShortcut,
+    getChannel as getChannelSelector,
+} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
-import { trackEvent } from 'actions/telemetry_actions.jsx';
-import { getSearchType, getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState } from 'selectors/rhs';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {
+    getSearchType,
+    getSearchTerms,
+    getRhsState,
+    getPluggableId,
+    getFilesSearchExtFilter,
+    getPreviousRhsState,
+} from 'selectors/rhs';
 
-import { SidebarSize } from 'components/resizable_sidebar/constants';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import { ActionTypes, RHSStates, Constants } from 'utils/constants';
-import { Mark, Measure, measureAndReport } from 'utils/performance_telemetry';
-import { getBrowserUtcOffset, getUtcOffsetForTimeZone } from 'utils/timezone';
+import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type { GlobalState } from 'types/store';
-import type { RhsState } from 'types/store/rhs';
+import type {GlobalState} from 'types/store';
+import type {RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
@@ -43,11 +54,14 @@ function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): A
 
         dispatch(selectPost(post, previousRhsState || getRhsState(state)));
 
-        return { data: true };
+        return {data: true};
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
+function selectPostCardFromRightHandSideSearchWithPreviousState(
+    post: Post,
+    previousRhsState?: RhsState
+): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -58,7 +72,7 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
             previousRhsState: previousRhsState || getRhsState(state),
         });
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -69,12 +83,11 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
             state: rhsState,
         };
 
-        if ([
-            RHSStates.PIN,
-            RHSStates.CHANNEL_FILES,
-            RHSStates.CHANNEL_INFO,
-            RHSStates.CHANNEL_MEMBERS,
-        ].includes(rhsState)) {
+        if (
+            [RHSStates.PIN, RHSStates.CHANNEL_FILES, RHSStates.CHANNEL_INFO, RHSStates.CHANNEL_MEMBERS].includes(
+                rhsState
+            )
+        ) {
             action.channelId = channelId || getCurrentChannelId(getState());
         }
         if (previousRhsState) {
@@ -83,7 +96,7 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
 
         dispatch(action);
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -107,7 +120,7 @@ export function goBack(): ActionFuncAsync<boolean, GlobalState> {
             state: prevState || defaultTab,
         });
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -228,9 +241,30 @@ export function performSearch(terms: string, isMentionSearch?: boolean): ThunkAc
 
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
-        const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, { terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20 }));
-        const filesPromise = dispatch(searchFilesWithParams(teamId, { terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20 }));
+        const timezoneOffset =
+            (userCurrentTimezone && userCurrentTimezone.length > 0
+                ? getUtcOffsetForTimeZone(userCurrentTimezone)
+                : getBrowserUtcOffset()) * 60;
+        const messagesPromise = dispatch(
+            searchPostsWithParams(isMentionSearch ? '' : teamId, {
+                terms: searchTerms,
+                is_or_search: Boolean(isMentionSearch),
+                include_deleted_channels: viewArchivedChannels,
+                time_zone_offset: timezoneOffset,
+                page: 0,
+                per_page: 20,
+            })
+        );
+        const filesPromise = dispatch(
+            searchFilesWithParams(teamId, {
+                terms: termsWithExtensionsFilters,
+                is_or_search: Boolean(isMentionSearch),
+                include_deleted_channels: viewArchivedChannels,
+                time_zone_offset: timezoneOffset,
+                page: 0,
+                per_page: 20,
+            })
+        );
         return Promise.all([filesPromise, messagesPromise]);
     };
 }
@@ -288,7 +322,7 @@ export function showChannelMembers(channelId: string, inEditingMode = false): Ac
             previousRhsState,
         });
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -300,7 +334,7 @@ export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalSt
             dispatch(closeRightHandSide());
         }
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -310,11 +344,11 @@ export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean, Global
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(hideRHSPlugin(pluggableId));
-            return { data: false };
+            return {data: false};
         }
 
         dispatch(showRHSPlugin(pluggableId));
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -334,22 +368,24 @@ export function showFlaggedPosts(): ActionFuncAsync {
             data = results.data;
         }
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
+        dispatch(
+            batchActions([
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                    data,
                 },
-            },
-        ]));
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId,
+                        terms: null,
+                        isOrSearch: false,
+                    },
+                },
+            ])
+        );
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -377,22 +413,24 @@ export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, Gl
             data = results.data;
         }
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
+        dispatch(
+            batchActions([
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                    data,
                 },
-            },
-        ]));
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId,
+                        terms: null,
+                        isOrSearch: false,
+                    },
+                },
+            ])
+        );
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -435,48 +473,56 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, Gl
             data = results[1].data;
         }
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
+        dispatch(
+            batchActions([
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                    data,
                 },
-            },
-        ]));
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId,
+                        terms: null,
+                        isOrSearch: false,
+                    },
+                },
+            ])
+        );
 
-        return { data: true };
+        return {data: true};
     };
 }
 
 export function showMentions(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
-        const termKeys = getCurrentUserMentionKeys(getState()).filter(({ key }) => {
+        const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
         });
 
-        const terms = termKeys.map(({ key }) => key).join(' ').trim() + ' ';
+        const terms =
+            termKeys
+                .map(({key}) => key)
+                .join(' ')
+                .trim() + ' ';
 
         trackEvent('api', 'api_posts_search_mention');
 
         dispatch(performSearch(terms, true));
-        dispatch(batchActions([
-            {
-                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                terms,
-            },
-            {
-                type: ActionTypes.UPDATE_RHS_STATE,
-                state: RHSStates.MENTION,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                    terms,
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.MENTION,
+                },
+            ])
+        );
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -504,21 +550,24 @@ export function closeRightHandSide(): ActionFunc {
         ];
 
         dispatch(batchActions(actionsBatch));
-        return { data: true };
+        return {data: true};
     };
 }
 
-export const toggleMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
-    type: ActionTypes.TOGGLE_RHS_MENU,
-});
+export const toggleMenu = (): ThunkActionFunc<unknown> => (dispatch) =>
+    dispatch({
+        type: ActionTypes.TOGGLE_RHS_MENU,
+    });
 
-export const openMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
-    type: ActionTypes.OPEN_RHS_MENU,
-});
+export const openMenu = (): ThunkActionFunc<unknown> => (dispatch) =>
+    dispatch({
+        type: ActionTypes.OPEN_RHS_MENU,
+    });
 
-export const closeMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
-    type: ActionTypes.CLOSE_RHS_MENU,
-});
+export const closeMenu = (): ThunkActionFunc<unknown> => (dispatch) =>
+    dispatch({
+        type: ActionTypes.CLOSE_RHS_MENU,
+    });
 
 export function setRhsExpanded(expanded: boolean) {
     return {
@@ -555,9 +604,9 @@ export function selectPostById(postId: string): ActionFuncAsync {
                 await dispatch(getChannel(post.channel_id));
             }
             dispatch(selectPost(post));
-            return { data: true };
+            return {data: true};
         }
-        return { data: false };
+        return {data: false};
     };
 }
 
@@ -578,19 +627,20 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
 
 export function selectPostAndHighlight(post: Post): ActionFunc {
     return (dispatch) => {
-        dispatch(batchActions([
-            selectPost(post),
-            highlightReply(post),
-        ]));
+        dispatch(batchActions([selectPost(post), highlightReply(post)]));
 
         debouncedClearHighlightReply(dispatch);
 
-        return { data: true };
+        return {data: true};
     };
 }
 
 export function selectPostCard(post: Post) {
-    return { type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id };
+    return {
+        type: ActionTypes.SELECT_POST_CARD,
+        postId: post.id,
+        channelId: post.channel_id,
+    };
 }
 
 export function openRHSSearch(): ActionFunc {
@@ -601,7 +651,7 @@ export function openRHSSearch(): ActionFunc {
 
         dispatch(updateRhsState(RHSStates.SEARCH));
 
-        return { data: true };
+        return {data: true};
     };
 }
 
@@ -630,11 +680,15 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown, GlobalSt
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+            return post
+                ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState))
+                : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+            return post
+                ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState))
+                : dispatch(openRHSSearch());
         }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());

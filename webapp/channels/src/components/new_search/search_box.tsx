@@ -1,25 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {
-    useState,
-    useRef,
-    forwardRef,
-    useCallback,
-    useEffect,
-} from "react";
-import {useIntl} from "react-intl";
-import styled from "styled-components";
+import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react';
+import {useIntl} from 'react-intl';
+import styled from 'styled-components';
 
-import Constants from "utils/constants";
-import * as Keyboard from "utils/keyboard";
-import {escapeRegex} from "utils/text_formatting";
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {escapeRegex} from 'utils/text_formatting';
 
-import useSearchSuggestions from "./hooks";
-import SearchBoxHints from "./search_box_hints";
-import SearchInput from "./search_box_input";
-import SearchSuggestions from "./search_box_suggestions";
-import SearchTypeSelector from "./search_box_type_selector";
+import useSearchSuggestions from './hooks';
+import SearchBoxHints from './search_box_hints';
+import SearchInput from './search_box_input';
+import SearchSuggestions from './search_box_suggestions';
+import SearchTypeSelector from './search_box_type_selector';
 
 const {KeyCodes} = Constants;
 
@@ -71,11 +65,8 @@ const SearchBox = forwardRef(
     ): JSX.Element => {
         const intl = useIntl();
         const [caretPosition, setCaretPosition] = useState<number>(0);
-        const [searchTerms, setSearchTerms] =
-            useState<string>(initialSearchTerms);
-        const [searchType, setSearchType] = useState<string>(
-            initialSearchType || "messages"
-        );
+        const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
+        const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
         const [selectedOption, setSelectedOption] = useState<number>(-1);
 
         const inputRef = useRef<HTMLInputElement | null>(null);
@@ -100,38 +91,32 @@ const SearchBox = forwardRef(
             const input = inputRef.current;
 
             if (input) {
-                input.addEventListener("change", updateCaretPosition);
-                input.addEventListener("keypress", updateCaretPosition);
-                input.addEventListener("keyup", updateCaretPosition);
-                input.addEventListener("mousedown", updateCaretPosition);
-                input.addEventListener("touchstart", updateCaretPosition);
-                input.addEventListener("input", updateCaretPosition);
-                input.addEventListener("paste", updateCaretPosition);
-                input.addEventListener("cut", updateCaretPosition);
-                input.addEventListener("mousemove", updateCaretPosition);
-                input.addEventListener("select", updateCaretPosition);
-                input.addEventListener("selectstart", updateCaretPosition);
+                input.addEventListener('change', updateCaretPosition);
+                input.addEventListener('keypress', updateCaretPosition);
+                input.addEventListener('keyup', updateCaretPosition);
+                input.addEventListener('mousedown', updateCaretPosition);
+                input.addEventListener('touchstart', updateCaretPosition);
+                input.addEventListener('input', updateCaretPosition);
+                input.addEventListener('paste', updateCaretPosition);
+                input.addEventListener('cut', updateCaretPosition);
+                input.addEventListener('mousemove', updateCaretPosition);
+                input.addEventListener('select', updateCaretPosition);
+                input.addEventListener('selectstart', updateCaretPosition);
             }
 
             return () => {
                 if (input) {
-                    input.removeEventListener("change", updateCaretPosition);
-                    input.removeEventListener("keypress", updateCaretPosition);
-                    input.removeEventListener("mousedown", updateCaretPosition);
-                    input.removeEventListener("keyup", updateCaretPosition);
-                    input.removeEventListener(
-                        "touchstart",
-                        updateCaretPosition
-                    );
-                    input.removeEventListener("input", updateCaretPosition);
-                    input.removeEventListener("paste", updateCaretPosition);
-                    input.removeEventListener("cut", updateCaretPosition);
-                    input.removeEventListener("mousemove", updateCaretPosition);
-                    input.removeEventListener("select", updateCaretPosition);
-                    input.removeEventListener(
-                        "selectstart",
-                        updateCaretPosition
-                    );
+                    input.removeEventListener('change', updateCaretPosition);
+                    input.removeEventListener('keypress', updateCaretPosition);
+                    input.removeEventListener('mousedown', updateCaretPosition);
+                    input.removeEventListener('keyup', updateCaretPosition);
+                    input.removeEventListener('touchstart', updateCaretPosition);
+                    input.removeEventListener('input', updateCaretPosition);
+                    input.removeEventListener('paste', updateCaretPosition);
+                    input.removeEventListener('cut', updateCaretPosition);
+                    input.removeEventListener('mousemove', updateCaretPosition);
+                    input.removeEventListener('select', updateCaretPosition);
+                    input.removeEventListener('selectstart', updateCaretPosition);
                 }
             };
         }, [inputRef.current]);
@@ -148,10 +133,7 @@ const SearchBox = forwardRef(
             if (inputRef.current) {
                 inputRef.current.focus();
                 setTimeout(() => {
-                    inputRef.current?.setSelectionRange(
-                        newposition,
-                        newposition
-                    );
+                    inputRef.current?.setSelectionRange(newposition, newposition);
                 }, 0);
             }
         }, []);
@@ -160,12 +142,9 @@ const SearchBox = forwardRef(
             (value: string, matchedPretext: string) => {
                 const escapedMatchedPretext = escapeRegex(matchedPretext);
                 const caretPosition = getCaretPosition();
-                const extraSpace =
-                    caretPosition === searchTerms.length ? " " : "";
+                const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
                 setSearchTerms(
-                    searchTerms
-                        .slice(0, caretPosition)
-                        .replace(new RegExp(escapedMatchedPretext + "$"), "") +
+                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$'), '') +
                         value +
                         extraSpace +
                         searchTerms.slice(caretPosition)
@@ -180,11 +159,7 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (
-                        !providerResults ||
-                        providerResults?.items.length === 0 ||
-                        selectedOption === -1
-                    ) {
+                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
                         onClose();
                     } else {
                         setSelectedOption(-1);
@@ -211,11 +186,7 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (
-                        !providerResults ||
-                        providerResults?.items.length === 0 ||
-                        selectedOption === -1
-                    ) {
+                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
                         onSearch(searchType, searchTerms);
                     } else {
                         const matchedPretext = providerResults?.matchedPretext;
@@ -225,15 +196,7 @@ const SearchBox = forwardRef(
                     }
                 }
             },
-            [
-                providerResults,
-                onClose,
-                selectedOption,
-                onSearch,
-                searchType,
-                searchTerms,
-                updateSearchValue,
-            ]
+            [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms, updateSearchValue]
         );
 
         const closeHandler = useCallback(
@@ -255,22 +218,16 @@ const SearchBox = forwardRef(
                 ref={ref}
                 id="searchBox"
                 aria-label={intl.formatMessage({
-                    id: "search_bar.search",
-                    defaultMessage: "Search",
+                    id: 'search_bar.search',
+                    defaultMessage: 'Search',
                 })}
                 aria-describedby="searchHints"
                 role="searchbox"
             >
-                <CloseIcon
-                    className="btn btn-icon btn-m"
-                    onClick={closeHandler}
-                >
+                <CloseIcon className="btn btn-icon btn-m" onClick={closeHandler}>
                     <i className="icon icon-close" />
                 </CloseIcon>
-                <SearchTypeSelector
-                    searchType={searchType}
-                    setSearchType={setSearchType}
-                />
+                <SearchTypeSelector searchType={searchType} setSearchType={setSearchType} />
                 <SearchInput
                     ref={inputRef}
                     searchTerms={searchTerms}

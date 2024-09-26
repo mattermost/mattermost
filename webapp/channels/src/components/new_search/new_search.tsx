@@ -1,29 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef, useCallback} from "react";
-import {FormattedMessage} from "react-intl";
-import {useSelector, useDispatch} from "react-redux";
-import styled from "styled-components";
+import React, {useEffect, useState, useRef, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
+import styled from 'styled-components';
 
-import {getCurrentChannelNameForSearchShortcut} from "mattermost-redux/selectors/entities/channels";
+import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
-import {
-    updateSearchTerms,
-    showSearchResults,
-    updateSearchType,
-} from "actions/views/rhs";
-import {getSearchButtons} from "selectors/plugins";
-import {getSearchTerms, getSearchType} from "selectors/rhs";
+import {updateSearchTerms, showSearchResults, updateSearchType} from 'actions/views/rhs';
+import {getSearchButtons} from 'selectors/plugins';
+import {getSearchTerms, getSearchType} from 'selectors/rhs';
 
-import Popover from "components/widgets/popover";
+import Popover from 'components/widgets/popover';
 
-import Constants from "utils/constants";
-import * as Keyboard from "utils/keyboard";
-import {isServerVersionGreaterThanOrEqualTo} from "utils/server_version";
-import {isDesktopApp, getDesktopVersion, isMacApp} from "utils/user_agent";
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
-import SearchBox from "./search_box";
+import SearchBox from './search_box';
 
 const PopoverStyled = styled(Popover)`
     min-width: 600px;
@@ -97,43 +93,33 @@ const NewSearchContainer = styled.div`
 `;
 
 const NewSearch = (): JSX.Element => {
-    const currentChannelName = useSelector(
-        getCurrentChannelNameForSearchShortcut
-    );
-    const searchTerms = useSelector(getSearchTerms) || "";
-    const searchType = useSelector(getSearchType) || "";
+    const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
+    const searchTerms = useSelector(getSearchTerms) || '';
+    const searchType = useSelector(getSearchType) || '';
     const pluginSearch = useSelector(getSearchButtons);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
-    const [currentChannel, setCurrentChannel] = useState("");
+    const [currentChannel, setCurrentChannel] = useState('');
     const searchBoxRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        const isDesktop =
-            isDesktopApp() &&
-            isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), "4.7.0");
+        const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
                 e.preventDefault();
-                setCurrentChannel("");
+                setCurrentChannel('');
                 setFocused(false);
             }
 
-            if (
-                Keyboard.cmdOrCtrlPressed(e) &&
-                Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)
-            ) {
+            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
                 e.preventDefault();
-                setCurrentChannel("");
+                setCurrentChannel('');
                 setFocused(false);
             }
 
-            if (
-                Keyboard.cmdOrCtrlPressed(e) &&
-                Keyboard.isKeyPressed(e, Constants.KeyCodes.F)
-            ) {
+            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F)) {
                 if (!isDesktop && !e.shiftKey) {
                     return;
                 }
@@ -144,39 +130,36 @@ const NewSearch = (): JSX.Element => {
                 }
 
                 e.preventDefault();
-                setCurrentChannel(currentChannelName || "");
+                setCurrentChannel(currentChannelName || '');
                 setFocused(true);
             }
         };
 
-        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener('keydown', handleKeyDown);
         return () => {
-            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener('keydown', handleKeyDown);
         };
     }, [currentChannelName]);
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             if (searchBoxRef.current) {
-                if (
-                    e.target !== searchBoxRef.current &&
-                    !searchBoxRef.current.contains(e.target as Node)
-                ) {
+                if (e.target !== searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
                     setFocused(false);
-                    setCurrentChannel("");
+                    setCurrentChannel('');
                 }
             }
         };
 
-        document.addEventListener("click", handleClick, {capture: true});
+        document.addEventListener('click', handleClick, {capture: true});
         return () => {
-            document.removeEventListener("click", handleClick);
+            document.removeEventListener('click', handleClick);
         };
     }, []);
 
     const closeSearchBox = useCallback(() => {
         setFocused(false);
-        setCurrentChannel("");
+        setCurrentChannel('');
     }, []);
 
     const openSearchBox = useCallback(() => {
@@ -188,10 +171,7 @@ const NewSearch = (): JSX.Element => {
             if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 return;
             }
-            if (
-                Keyboard.cmdOrCtrlPressed(e) &&
-                Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)
-            ) {
+            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
                 setFocused(false);
                 return;
             }
@@ -205,11 +185,7 @@ const NewSearch = (): JSX.Element => {
             dispatch(updateSearchType(searchType));
             dispatch(updateSearchTerms(searchTerms));
 
-            if (
-                searchType === "" ||
-                searchType === "messages" ||
-                searchType === "files"
-            ) {
+            if (searchType === '' || searchType === 'messages' || searchType === 'files') {
                 dispatch(showSearchResults(false));
             } else {
                 pluginSearch.forEach((pluginData: any) => {
@@ -219,15 +195,12 @@ const NewSearch = (): JSX.Element => {
                 });
             }
             setFocused(false);
-            setCurrentChannel("");
+            setCurrentChannel('');
         },
         [pluginSearch]
     );
 
-    const clearSearchType = useCallback(
-        () => dispatch(updateSearchType("")),
-        []
-    );
+    const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
 
     return (
         <NewSearchContainer
@@ -239,24 +212,15 @@ const NewSearch = (): JSX.Element => {
             className="a11y__region"
         >
             <i className="icon icon-magnify" />
-            {(searchType === "messages" || searchType === "files") && (
+            {(searchType === 'messages' || searchType === 'files') && (
                 <SearchTypeBadge>
-                    {searchType === "messages" && (
-                        <FormattedMessage
-                            id="search_bar.search_types.messages"
-                            defaultMessage="MESSAGES"
-                        />
+                    {searchType === 'messages' && (
+                        <FormattedMessage id="search_bar.search_types.messages" defaultMessage="MESSAGES" />
                     )}
-                    {searchType === "files" && (
-                        <FormattedMessage
-                            id="search_bar.search_types.files"
-                            defaultMessage="FILES"
-                        />
+                    {searchType === 'files' && (
+                        <FormattedMessage id="search_bar.search_types.files" defaultMessage="FILES" />
                     )}
-                    <i
-                        className="icon icon-close icon-12"
-                        onClick={clearSearchType}
-                    />
+                    <i className="icon icon-close icon-12" onClick={clearSearchType} />
                 </SearchTypeBadge>
             )}
             {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
@@ -265,8 +229,8 @@ const NewSearch = (): JSX.Element => {
                     data-testid="input-clear"
                     role="button"
                     onClick={() => {
-                        dispatch(updateSearchType(""));
-                        dispatch(updateSearchTerms(""));
+                        dispatch(updateSearchType(''));
+                        dispatch(updateSearchTerms(''));
                     }}
                 >
                     <span className="input-clear-x" aria-hidden="true">
@@ -274,23 +238,14 @@ const NewSearch = (): JSX.Element => {
                     </span>
                 </CloseIcon>
             )}
-            {!searchTerms && (
-                <FormattedMessage
-                    id="search_bar.search"
-                    defaultMessage="Search"
-                />
-            )}
+            {!searchTerms && <FormattedMessage id="search_bar.search" defaultMessage="Search" />}
             {focused && (
                 <PopoverStyled id="searchPopover" placement="bottom">
                     <SearchBox
                         ref={searchBoxRef}
                         onClose={closeSearchBox}
                         onSearch={runSearch}
-                        initialSearchTerms={
-                            currentChannel
-                                ? `in:${currentChannel} `
-                                : searchTerms
-                        }
+                        initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                         initialSearchType={searchType}
                     />
                 </PopoverStyled>
