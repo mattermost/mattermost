@@ -5,14 +5,15 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
-import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
+import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 
 import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';

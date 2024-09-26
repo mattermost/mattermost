@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import type {Job} from '@mattermost/types/jobs';
 
 import MessageExportSettings from 'components/admin_console/message_export_settings';
 import type {MessageExportSettings as MessageExportSettingsClass} from 'components/admin_console/message_export_settings';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import type {BaseProps} from './admin_settings';
 
