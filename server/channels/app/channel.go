@@ -1839,7 +1839,15 @@ func (a *App) GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel,
 			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-	return channels, nil
+// Filter out archived channels
+    activeChannels := []*model.Channel{}
+    for _, channel := range channels {
+        if channel.DeleteAt == 0 {
+            activeChannels = append(activeChannels, channel)
+        }
+    }
+
+    return activeChannels, nil
 }
 
 func (a *App) GetChannelsMemberCount(c request.CTX, channelIDs []string) (map[string]int64, *model.AppError) {
