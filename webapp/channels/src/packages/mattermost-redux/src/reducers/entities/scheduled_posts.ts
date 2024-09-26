@@ -47,7 +47,7 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
         const newState = {...state};
         let modified = false;
 
-        Object.keys(state).some((teamId: string) => {
+        for (const teamId of Object.keys(state)) {
             const index = newState[teamId].findIndex((existingScheduledPost) => existingScheduledPost.id === scheduledPost.id);
 
             if (index >= 0) {
@@ -55,13 +55,9 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
                 newState[teamId][index] = scheduledPost;
                 modified = true;
 
-                // return true makes some() not loop through remaining array
-                return true;
+                break;
             }
-
-            // returning false makes some() continue looping through the array
-            return false;
-        });
+        }
 
         return modified ? newState : state;
     }
@@ -71,7 +67,7 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
         const newState = {...state};
         let modified = false;
 
-        Object.keys(state).some((teamId: string) => {
+        for (const teamId of Object.keys(state)) {
             const index = newState[teamId].findIndex((existingScheduledPost) => existingScheduledPost.id === scheduledPost.id);
 
             if (index >= 0) {
@@ -79,13 +75,9 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
                 newState[teamId].splice(index, 1);
                 modified = true;
 
-                // return true makes some() not loop through remaining array
-                return true;
+                break;
             }
-
-            // returning false makes some() continue looping through the array
-            return false;
-        });
+        }
 
         return modified ? newState : state;
     }
@@ -101,23 +93,15 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
-        let changed = false;
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
             if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
                 const teamScheduledPosts = scheduledPostsByTeamId[teamId] as ScheduledPost[];
-                const scheduledPostIDsWithError = teamScheduledPosts.
-                    filter((scheduledPost) => scheduledPost.error_code).
-                    map((scheduledPost) => scheduledPost.id);
-
-                if (state[teamId] !== scheduledPostIDsWithError) {
-                    changed = true;
-                    newState[teamId] = scheduledPostIDsWithError;
-                }
+                newState[teamId] = teamScheduledPosts.filter((scheduledPost) => scheduledPost.error_code).map((scheduledPost) => scheduledPost.id);
             }
         });
 
-        return changed ? newState : state;
+        return newState;
     }
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
         let changed = false;
@@ -145,19 +129,16 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
         const scheduledPost = action.data.scheduledPost as ScheduledPost;
         const newState = {...state};
 
-        Object.keys(state).some((teamId: string) => {
+        for (const teamId of Object.keys(state)) {
             const index = newState[teamId].findIndex((scheduledPostId) => scheduledPostId === scheduledPost.id);
 
             if (index >= 0) {
                 changed = true;
                 newState[teamId] = [...newState[teamId]];
                 newState[teamId].splice(index, 1);
-                return true;
+                break;
             }
-
-            return false;
-        });
-
+        }
         return changed ? newState : state;
     }
     case UserTypes.LOGOUT_SUCCESS: {

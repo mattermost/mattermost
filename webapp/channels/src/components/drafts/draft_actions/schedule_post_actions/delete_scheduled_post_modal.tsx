@@ -7,8 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import './delete_scheduled_post_modal.scss';
-
 type Props = {
     channelDisplayName: string;
     onConfirm: () => Promise<{error?: string}>;
@@ -43,13 +41,6 @@ export default function DeleteScheduledPostModal({
                     displayName: channelDisplayName,
                 }}
             />
-
-            {
-                errorMessage &&
-                <p className='error'>
-                    {errorMessage}
-                </p>
-            }
         </React.Fragment>
     );
 
@@ -64,6 +55,7 @@ export default function DeleteScheduledPostModal({
 
     return (
         <GenericModal
+            className='delete_scheduled_post_modal'
             confirmButtonText={confirmButtonText}
             handleCancel={noop}
             handleConfirm={handleOnConfirm}
@@ -73,6 +65,7 @@ export default function DeleteScheduledPostModal({
             isDeleteModal={true}
             autoFocusConfirmButton={true}
             autoCloseOnConfirmButton={false}
+            errorText={errorMessage}
         >
             {message}
         </GenericModal>
