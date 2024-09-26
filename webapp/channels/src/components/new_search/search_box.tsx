@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react';
-import {useIntl} from 'react-intl';
+import React, { useState, useRef, forwardRef, useCallback, useEffect } from 'react';
+import { useIntl } from 'react-intl';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {escapeRegex} from 'utils/text_formatting';
+import { escapeRegex } from 'utils/text_formatting';
 
 import useSearchSuggestions from './hooks';
 import SearchBoxHints from './search_box_hints';
@@ -15,12 +15,13 @@ import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
 import SearchTypeSelector from './search_box_type_selector';
 
-const {KeyCodes} = Constants;
+const { KeyCodes } = Constants;
 
 type Props = {
     onClose: () => void;
     onSearch: (searchType: string, searchTerms: string) => void;
     initialSearchTerms: string;
+    initialSearchType: string;
 }
 
 const SearchBoxContainer = styled.div`
@@ -57,14 +58,14 @@ const CloseIcon = styled.button`
     z-index: 1;
 `;
 
-const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
+const SearchBox = forwardRef(({ onClose, onSearch, initialSearchTerms, initialSearchType }: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
     const [caretPosition, setCaretPosition] = useState<number>(0);
     const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
-    const [searchType, setSearchType] = useState<string>('messages');
+    const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
 
-    const inputRef = useRef<HTMLInputElement|null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     const getCaretPosition = useCallback(() => {
         if (inputRef.current) {
@@ -192,7 +193,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
         <SearchBoxContainer
             ref={ref}
             id='searchBox'
-            aria-label={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+            aria-label={intl.formatMessage({ id: 'search_bar.search', defaultMessage: 'Search' })}
             aria-describedby='searchHints'
             role='searchbox'
         >
@@ -200,7 +201,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 className='btn btn-icon btn-m'
                 onClick={closeHandler}
             >
-                <i className='icon icon-close'/>
+                <i className='icon icon-close' />
             </CloseIcon>
             <SearchTypeSelector
                 searchType={searchType}

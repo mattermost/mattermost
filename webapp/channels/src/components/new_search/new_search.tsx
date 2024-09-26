@@ -1,29 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useSelector, useDispatch} from 'react-redux';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { FormattedMessage } from 'react-intl';
+import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 
-import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
+import { getCurrentChannelNameForSearchShortcut } from 'mattermost-redux/selectors/entities/channels';
 
 import {
     updateSearchTerms,
     showSearchResults,
     updateSearchType,
 } from 'actions/views/rhs';
-import {getSearchButtons} from 'selectors/plugins';
+import { getSearchButtons } from 'selectors/plugins';
 import {
     getSearchTerms,
+    getSearchType,
 } from 'selectors/rhs';
 
 import Popover from 'components/widgets/popover';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
+import { isServerVersionGreaterThanOrEqualTo } from 'utils/server_version';
+import { isDesktopApp, getDesktopVersion, isMacApp } from 'utils/user_agent';
 
 import SearchBox from './search_box';
 
@@ -39,6 +40,44 @@ const PopoverStyled = styled(Popover)`
         padding: 0px;
     }
 `;
+
+const SearchTypeBadge = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 2px 2px 7px;
+    border-radius: 4px;
+    margin: 0 6px;
+    background: rgba(var(--sidebar-text-rgb), 0.08);
+    color: var(--sidebar-text);
+    font-size: 10px;
+    font-weight: 700;
+
+    .icon-close {
+        padding: 2px;
+        cursor: pointer;
+    }
+
+    &:hover {
+        background: rgba(v(button-bg-rgb), 0.16);
+    }
+`
+
+const CloseIcon = styled.div`
+  position: absolute;
+  top: 0;
+  right: 2px;
+  display: flex;
+  width: 2.4rem;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  cursor: pointer;
+  font-size: 16px;
+  visibility: visible;
+  transition: opacity 0.12s easy-out;
+`
 
 const NewSearchContainer = styled.div`
     display: flex;
@@ -63,12 +102,13 @@ const NewSearchContainer = styled.div`
 const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
+    const searchType = useSelector(getSearchType) || '';
     const pluginSearch = useSelector(getSearchButtons);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
-    const searchBoxRef = useRef<HTMLDivElement|null>(null);
+    const searchBoxRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
@@ -118,7 +158,7 @@ const NewSearch = (): JSX.Element => {
             }
         };
 
-        document.addEventListener('click', handleClick, {capture: true});
+        document.addEventListener('click', handleClick, { capture: true });
         return () => {
             document.removeEventListener('click', handleClick);
         };
@@ -161,6 +201,8 @@ const NewSearch = (): JSX.Element => {
         setCurrentChannel('');
     }, [pluginSearch]);
 
+    const clearSearchType = useCallback(() => dispatch(updateSearchType('')), [])
+
     return (
         <NewSearchContainer
             tabIndex={0}
@@ -170,8 +212,41 @@ const NewSearch = (): JSX.Element => {
             role='search'
             className='a11y__region'
         >
-            <i className='icon icon-magnify'/>
+            <i className='icon icon-magnify' />
+            {(searchType === 'messages' || searchType === 'files') && (
+                <SearchTypeBadge>
+                    {searchType === 'messages' && (
+                        <FormattedMessage
+                            id='search_bar.search_types.messages'
+                            defaultMessage='MESSAGES'
+                        />
+                    )}
+                    {searchType === 'files' && (
+                        <FormattedMessage
+                            id='search_bar.search_types.files'
+                            defaultMessage='FILES'
+                        />
+                    )}
+                    <i
+                        className='icon icon-close icon-12'
+                        onClick={clearSearchType}
+                    />
+                </SearchTypeBadge>
+            )}
             {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
+            {searchTerms && (
+                <CloseIcon
+                    data-testid="input-clear"
+                    role="button"
+                    onClick={() => {
+                        dispatch(updateSearchType(''));
+                        dispatch(updateSearchTerms(''));
+                    }}>
+                    <span className="input-clear-x" aria-hidden="true">
+                        <i className="icon icon-close-circle" />
+                    </span>
+                </CloseIcon>
+            )}
             {!searchTerms && (
                 <FormattedMessage
                     id='search_bar.search'
@@ -188,6 +263,7 @@ const NewSearch = (): JSX.Element => {
                         onClose={closeSearchBox}
                         onSearch={runSearch}
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
+                        initialSearchType={searchType}
                     />
                 </PopoverStyled>
             )}
