@@ -66,11 +66,9 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         }
         onClick={[Function]}
         trailingElements={
-          <React.Fragment>
-            <CheckIcon
-              size={16}
-            />
-          </React.Fragment>
+          <CheckIcon
+            size={16}
+          />
         }
       />
       <MenuItem
@@ -120,11 +118,9 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         }
         onClick={[Function]}
         trailingElements={
-          <React.Fragment>
-            <CheckIcon
-              size={16}
-            />
-          </React.Fragment>
+          <CheckIcon
+            size={16}
+          />
         }
       />
       <MenuItem

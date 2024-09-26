@@ -96,11 +96,9 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
       }
       onClick={[Function]}
       trailingElements={
-        <React.Fragment>
-          <CheckIcon
-            size={16}
-          />
-        </React.Fragment>
+        <CheckIcon
+          size={16}
+        />
       }
     />
     <MenuItem
