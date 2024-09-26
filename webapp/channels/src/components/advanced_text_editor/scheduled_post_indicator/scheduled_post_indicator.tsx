@@ -6,13 +6,14 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {type match} from 'react-router-dom';
 import {NavLink, useRouteMatch} from 'react-router-dom';
-import {Locations} from 'utils/constants';
 
 import {SCHEDULED_POST_TIME_RANGES, scheduledPostTimeFormat} from '@mattermost/types/schedule_post';
 
 import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 
 import Timestamp from 'components/timestamp';
+
+import {Locations} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 

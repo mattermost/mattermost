@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 .ScheduledPostIndicator {
-    padding: 8px 24px;
-    font-size: 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
-    gap: 5px;
     display: flex;
     flex-wrap: wrap;
+    padding: 8px 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    gap: 5px;
 
     i.icon {
         width: 16px;

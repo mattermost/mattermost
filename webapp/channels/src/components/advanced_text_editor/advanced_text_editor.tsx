@@ -5,12 +5,6 @@ import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
-import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
-import {isErrorInvalidSlashCommand} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
@@ -44,6 +38,13 @@ import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
+
+import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
+import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';

@@ -7,10 +7,11 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
+import type {
+    ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 import {
     SCHEDULED_POST_TIME_RANGES,
-    ScheduledPostErrorCode,
-    scheduledPostTimeFormat
+    scheduledPostTimeFormat,
 } from '@mattermost/types/schedule_post';
 
 import ScheduledPostErrorCodeTag from 'components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag';
@@ -26,8 +27,6 @@ const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     useTime: false,
     units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'],
 };
-
-
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
