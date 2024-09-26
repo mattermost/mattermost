@@ -246,8 +246,11 @@
 .postBoxIndicator {
     display: flex;
     flex-direction: column;
-    padding-block: 8px;
     gap: 8px;
+
+    &:has(div) {
+        padding-block: 8px;
+    }
 
     div {
         padding-block: 0;

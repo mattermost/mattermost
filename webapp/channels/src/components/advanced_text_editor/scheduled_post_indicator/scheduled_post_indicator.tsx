@@ -6,21 +6,30 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {type match} from 'react-router-dom';
 import {NavLink, useRouteMatch} from 'react-router-dom';
+import {Locations} from 'utils/constants';
 
-import {showChannelScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {SCHEDULED_POST_TIME_RANGES, scheduledPostTimeFormat} from '@mattermost/types/schedule_post';
+
+import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
+
+import Timestamp from 'components/timestamp';
 
 import type {GlobalState} from 'types/store';
 
 import './scheduled_post_indicator.scss';
-import Timestamp from "components/timestamp";
-import {SCHEDULED_POST_TIME_RANGES, scheduledPostTimeFormat} from "@mattermost/types/schedule_post";
 
 type Props = {
+    location: string;
     channelId: string;
+    postId: string;
 }
 
-export default function ScheduledPostIndicator({channelId}: Props) {
-    const scheduledPostData = useSelector((state: GlobalState) => showChannelScheduledPostIndicator(state, channelId));
+export default function ScheduledPostIndicator({location, channelId, postId}: Props) {
+    // we use RHS_COMMENT for RHS and threads view, and CENTER for center channel.
+    // get scheduled posts of a thread if in RHS or threads view,
+    // else, get those for the channel
+    const id = location === Locations.RHS_COMMENT ? postId : channelId;
+    const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, id));
     const match: match<{team: string}> = useRouteMatch();
 
     const link = useMemo(() => (

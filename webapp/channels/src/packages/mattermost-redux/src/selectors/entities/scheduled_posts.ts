@@ -52,9 +52,9 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
     return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }
 
-export function showChannelScheduledPostIndicator(state: GlobalState, channelId: string): ChannelScheduledPostIndicatorData {
+export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData {
     const data = {} as ChannelScheduledPostIndicatorData;
-    const channelScheduledPosts = state.entities.scheduledPosts.byChannelId[channelId] || [];
+    const channelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || [];
 
     if (channelScheduledPosts.length === 0) {
         data.count = 0;

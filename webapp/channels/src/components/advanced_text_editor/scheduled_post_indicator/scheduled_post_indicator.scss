@@ -5,8 +5,9 @@
     padding: 8px 24px;
     font-size: 12px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
-    display: flex;
     gap: 5px;
+    display: flex;
+    flex-wrap: wrap;
 
     i.icon {
         width: 16px;
