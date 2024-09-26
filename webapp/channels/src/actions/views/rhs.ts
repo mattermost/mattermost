@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import type {AnyAction} from 'redux';
-import {batchActions} from 'redux-batched-actions';
+import type { AnyAction } from 'redux';
+import { batchActions } from 'redux-batched-actions';
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from '@mattermost/types/posts';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
-import {getChannel} from 'mattermost-redux/actions/channels';
-import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import { SearchTypes } from 'mattermost-redux/action_types';
+import { getChannel } from 'mattermost-redux/actions/channels';
+import { getPostsByIds, getPost as fetchPost } from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -17,25 +17,25 @@ import {
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
-import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import { getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector } from 'mattermost-redux/selectors/entities/channels';
+import { getConfig } from 'mattermost-redux/selectors/entities/general';
+import { getLatestInteractablePostId, getPost } from 'mattermost-redux/selectors/entities/posts';
+import { getCurrentTeamId } from 'mattermost-redux/selectors/entities/teams';
+import { getCurrentTimezone } from 'mattermost-redux/selectors/entities/timezone';
+import { getCurrentUser, getCurrentUserMentionKeys } from 'mattermost-redux/selectors/entities/users';
+import type { ActionFunc, ActionFuncAsync, ThunkActionFunc } from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
+import { trackEvent } from 'actions/telemetry_actions.jsx';
+import { getSearchType, getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState } from 'selectors/rhs';
 
-import {SidebarSize} from 'components/resizable_sidebar/constants';
+import { SidebarSize } from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Constants} from 'utils/constants';
-import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
-import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
+import { ActionTypes, RHSStates, Constants } from 'utils/constants';
+import { Mark, Measure, measureAndReport } from 'utils/performance_telemetry';
+import { getBrowserUtcOffset, getUtcOffsetForTimeZone } from 'utils/timezone';
 
-import type {GlobalState} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type { GlobalState } from 'types/store';
+import type { RhsState } from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
@@ -43,7 +43,7 @@ function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): A
 
         dispatch(selectPost(post, previousRhsState || getRhsState(state)));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -58,7 +58,7 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
             previousRhsState: previousRhsState || getRhsState(state),
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -83,7 +83,7 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
 
         dispatch(action);
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -107,7 +107,7 @@ export function goBack(): ActionFuncAsync<boolean, GlobalState> {
             state: prevState || defaultTab,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -143,21 +143,21 @@ export function setRhsSize(rhsSize?: SidebarSize) {
         const width = window.innerWidth;
 
         switch (true) {
-        case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
-            newSidebarSize = SidebarSize.SMALL;
-            break;
-        }
-        case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
-            newSidebarSize = SidebarSize.MEDIUM;
-            break;
-        }
-        case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
-            newSidebarSize = SidebarSize.LARGE;
-            break;
-        }
-        default: {
-            newSidebarSize = SidebarSize.XLARGE;
-        }
+            case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
+                newSidebarSize = SidebarSize.SMALL;
+                break;
+            }
+            case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
+                newSidebarSize = SidebarSize.MEDIUM;
+                break;
+            }
+            case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
+                newSidebarSize = SidebarSize.LARGE;
+                break;
+            }
+            default: {
+                newSidebarSize = SidebarSize.XLARGE;
+            }
         }
     }
     return {
@@ -184,6 +184,13 @@ function updateSearchResultsTerms(terms: string) {
     return {
         type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
         terms,
+    };
+}
+
+function updateSearchResultsType(searchType: string) {
+    return {
+        type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+        searchType,
     };
 }
 
@@ -222,8 +229,8 @@ export function performSearch(terms: string, isMentionSearch?: boolean): ThunkAc
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, { terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20 }));
+        const filesPromise = dispatch(searchFilesWithParams(teamId, { terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20 }));
         return Promise.all([filesPromise, messagesPromise]);
     };
 }
@@ -240,6 +247,7 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         const state = getState();
 
         const searchTerms = getSearchTerms(state);
+        const searchType = getSearchType(state);
 
         if (isMentionSearch) {
             dispatch(updateRhsState(RHSStates.MENTION));
@@ -247,6 +255,7 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
             dispatch(updateRhsState(RHSStates.SEARCH));
         }
         dispatch(updateSearchResultsTerms(searchTerms));
+        dispatch(updateSearchResultsType(searchType));
 
         return dispatch(performSearch(searchTerms));
     };
@@ -279,7 +288,7 @@ export function showChannelMembers(channelId: string, inEditingMode = false): Ac
             previousRhsState,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -291,7 +300,7 @@ export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalSt
             dispatch(closeRightHandSide());
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -301,11 +310,11 @@ export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean, Global
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(hideRHSPlugin(pluggableId));
-            return {data: false};
+            return { data: false };
         }
 
         dispatch(showRHSPlugin(pluggableId));
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -340,7 +349,7 @@ export function showFlaggedPosts(): ActionFuncAsync {
             },
         ]));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -383,7 +392,7 @@ export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, Gl
             },
         ]));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -441,17 +450,17 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, Gl
             },
         ]));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function showMentions(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
-        const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
+        const termKeys = getCurrentUserMentionKeys(getState()).filter(({ key }) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
         });
 
-        const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
+        const terms = termKeys.map(({ key }) => key).join(' ').trim() + ' ';
 
         trackEvent('api', 'api_posts_search_mention');
 
@@ -467,7 +476,7 @@ export function showMentions(): ActionFunc<boolean, GlobalState> {
             },
         ]));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -495,7 +504,7 @@ export function closeRightHandSide(): ActionFunc {
         ];
 
         dispatch(batchActions(actionsBatch));
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -546,9 +555,9 @@ export function selectPostById(postId: string): ActionFuncAsync {
                 await dispatch(getChannel(post.channel_id));
             }
             dispatch(selectPost(post));
-            return {data: true};
+            return { data: true };
         }
-        return {data: false};
+        return { data: false };
     };
 }
 
@@ -576,12 +585,12 @@ export function selectPostAndHighlight(post: Post): ActionFunc {
 
         debouncedClearHighlightReply(dispatch);
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function selectPostCard(post: Post) {
-    return {type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id};
+    return { type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id };
 }
 
 export function openRHSSearch(): ActionFunc {
@@ -592,7 +601,7 @@ export function openRHSSearch(): ActionFunc {
 
         dispatch(updateRhsState(RHSStates.SEARCH));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
