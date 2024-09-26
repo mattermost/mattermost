@@ -615,6 +615,8 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 	_, err = th.App.AddUserToChannel(th.Context, user4, channel4, false)
 	require.Nil(t, err, "Failed to add user to channel.")
 
+	// make sure we don't catch earlier posts
+	time.Sleep(10 * time.Millisecond)
 	testStart := model.GetMillis()
 
 	// Test: previous activity (user3 and 4's adds) aren't showing up:
@@ -645,7 +647,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 
 	testEnd := model.GetMillis()
 	// In case the tests are running very fast:
-	time.Sleep(time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// Now, we do not find activity for new posts, leaves, or adds after the test is over
 	post2 := &model.Post{
