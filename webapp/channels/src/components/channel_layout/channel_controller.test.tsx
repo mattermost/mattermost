@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, act} from '@testing-library/react';
+import {act} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
 import * as actions from 'actions/status_actions';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -14,7 +15,6 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import ChannelController, {getClassnamesForBody} from './channel_controller';
-import { renderWithContext } from 'tests/react_testing_utils';
 
 let mockState: GlobalState;
 
