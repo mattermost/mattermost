@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -1570,7 +1571,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 	if user.IsGuest() {
 		go func() {
-			a.Srv().telemetryService.SendTelemetryForFeature("guest", false, "add_guest_to_channel", map[string]any{})
+			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGuestFeature, []telemetry.TrackSKU{telemetry.TrackEnterpriseSKU}, "add_guest_to_channel", map[string]any{"user_actual_id": user.Id})
 		}()
 	}
 

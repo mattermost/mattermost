@@ -93,6 +93,17 @@ const (
 	TrackPlugins  = "plugins"
 )
 
+type TrackSKU string
+
+const (
+	TrackProfessionalSKU TrackSKU = "professional"
+	TrackEnterpriseSKU   TrackSKU = "enterprise"
+)
+
+type TrackFeature string
+
+const TrackGuestFeature TrackFeature = "guest"
+
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
@@ -120,8 +131,8 @@ type RudderConfig struct {
 }
 
 type EventFeature struct {
-	Name   string `json:"name"`
-	IsFree bool   `json:"is_free"`
+	Name TrackFeature `json:"name"`
+	SKUS []TrackSKU   `json:"skus"`
 }
 
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
@@ -223,11 +234,11 @@ func (ts *TelemetryService) SendTelemetry(event string, properties map[string]an
 	}
 }
 
-func (ts *TelemetryService) SendTelemetryForFeature(featureName string, isFree bool, event string, properties map[string]any) {
+func (ts *TelemetryService) SendTelemetryForFeature(featureName TrackFeature, skus []TrackSKU, event string, properties map[string]any) {
 	if ts.rudderClient != nil {
 		feature := EventFeature{
-			Name:   featureName,
-			IsFree: isFree,
+			Name: featureName,
+			SKUS: skus,
 		}
 
 		var context *rudder.Context
