@@ -115,8 +115,8 @@ export const displayError = (err: string, channelID: string, rootID?: string) =>
 
 // Shim of mobile-version intl
 export const intlShim = {
-    formatMessage: (config: {id: string; defaultMessage: string}, values?: {[name: string]: any}) => {
-        return localizeAndFormatMessage(config.id, config.defaultMessage, values);
+    formatMessage: (config: {id: string; defaultMessage?: string}, values?: {[name: string]: any}) => {
+        return localizeAndFormatMessage(config, values);
     },
 };
 
