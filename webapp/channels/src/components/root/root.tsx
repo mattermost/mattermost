@@ -312,7 +312,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
             if (isUserAtRootRoute) {
                 if (isMeRequested) {
-                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
+                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history, new URLSearchParams(this.props.location.search));
                 } else if (this.props.noAccounts) {
                     this.props.history.push('/signup_user_complete');
                 }
