@@ -2726,7 +2726,6 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 		return nil, errors.Wrap(err, "postsForExport_toSql")
 	}
 
-	fmt.Println(query)
 	err = s.GetSearchReplicaX().Select(&result, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
