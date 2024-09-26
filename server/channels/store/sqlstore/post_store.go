@@ -2717,7 +2717,7 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 		LeftJoin("Preferences ON Posts.Id = Preferences.Name").
 		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 		InnerJoin("Users u2 ON Posts.UserId = u2.Id").
-		Where(sq.Eq{"Posts.RootId": rootId}, sq.Eq{"Posts.DeleteAt": 0}).
+		Where(sq.And{sq.Eq{"Posts.RootId": rootId}, sq.Eq{"Posts.DeleteAt": 0}}).
 		GroupBy("Posts.Id, u2.Username").
 		OrderBy("Posts.Id")
 
@@ -2726,6 +2726,7 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 		return nil, errors.Wrap(err, "postsForExport_toSql")
 	}
 
+	fmt.Println(query)
 	err = s.GetSearchReplicaX().Select(&result, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
@@ -2796,11 +2797,9 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 
 	// Build a map of channels and their posts
 	postsChannelMap := make(map[string][]*model.DirectPostForExport)
-	postIds := make([]string, len(result))
-	for i, post := range result {
+	for _, post := range result {
 		post.ChannelMembers = &[]string{}
 		postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
-		postIds[i] = post.Id
 	}
 
 	// Build a map of channels and their members
