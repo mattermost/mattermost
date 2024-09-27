@@ -355,18 +355,27 @@ func (ps *PlatformService) getRequestTrialURL() string {
 }
 
 func (ps *PlatformService) logLicense(message string, license *model.License) {
-	ps.logger.Info(
-		message,
+	logger := ps.logger.With(
 		mlog.String("id", license.Id),
 		mlog.Time("issued_at", model.GetTimeForMillis(license.IssuedAt)),
 		mlog.Time("starts_at", model.GetTimeForMillis(license.StartsAt)),
 		mlog.Time("expires_at", model.GetTimeForMillis(license.ExpiresAt)),
-		mlog.String("customer_id", license.Customer.Id),
-		mlog.Int("features.users", *license.Features.Users),
-		mlog.Map("features", license.Features.ToMap()),
 		mlog.String("sku_name", license.SkuName),
 		mlog.String("sku_short_name", license.SkuShortName),
 		mlog.Bool("is_trial", license.IsTrial),
 		mlog.Bool("is_gov_sku", license.IsGovSku),
 	)
+
+	if license.Customer != nil {
+		logger = logger.With(mlog.String("customer_id", license.Customer.Id))
+	}
+
+	if license.Features != nil {
+		logger = logger.With(
+			mlog.Int("features.users", *license.Features.Users),
+			mlog.Map("features", license.Features.ToMap()),
+		)
+	}
+
+	logger.Info(message)
 }
