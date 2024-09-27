@@ -355,6 +355,10 @@ func (ps *PlatformService) getRequestTrialURL() string {
 }
 
 func (ps *PlatformService) logLicense(message string, license *model.License) {
+	if ps.logger == nil {
+		return
+	}
+
 	logger := ps.logger.With(
 		mlog.String("id", license.Id),
 		mlog.Time("issued_at", model.GetTimeForMillis(license.IssuedAt)),
