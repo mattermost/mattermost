@@ -75,6 +75,7 @@ const (
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
+	PostPropsNotificationTestMessage  = "notification_test_message"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -492,6 +493,7 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
+		// PostPropsNotificationTestMessage,
 	}
 
 	for _, member := range membersToSanitize {

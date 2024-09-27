@@ -1099,6 +1099,7 @@ type AppIface interface {
 	SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError)
 	SendPersistentNotifications() error
 	SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError
+	SendTestMessage(c request.CTX, userID string) *model.AppError
 	SendTestPushNotification(deviceID string) string
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool

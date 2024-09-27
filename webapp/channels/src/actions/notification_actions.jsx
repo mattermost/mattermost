@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {logError} from 'mattermost-redux/actions/errors';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -80,16 +81,17 @@ export function sendDesktopNotification(post, msgProps) {
         const userStatus = getStatusForUserId(state, user.id);
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
+        const skipChecks = Boolean(post.props?.notification_test_message);
 
         if (!member) {
             return {status: 'error', reason: 'no_member'};
         }
 
-        if (isChannelMuted(member)) {
+        if (isChannelMuted(member) && !skipChecks) {
             return {status: 'not_sent', reason: 'channel_muted'};
         }
 
-        if (userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
+        if ((userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) && !skipChecks) {
             return {status: 'not_sent', reason: 'user_status', data: userStatus};
         }
 
@@ -104,7 +106,7 @@ export function sendDesktopNotification(post, msgProps) {
             notifyLevel = NotificationLevels.ALL;
         }
 
-        if (notifyLevel === NotificationLevels.NONE) {
+        if (notifyLevel === NotificationLevels.NONE && !skipChecks) {
             return {status: 'not_sent', reason: 'notify_level_none'};
         } else if (channel?.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
             // Compose the whole text in the message, including interactive messages.
@@ -178,12 +180,12 @@ export function sendDesktopNotification(post, msgProps) {
                 }
             }
 
-            if (!isExplicitlyMentioned) {
+            if (!isExplicitlyMentioned && !skipChecks) {
                 return {status: 'not_sent', reason: 'not_explicitly_mentioned', data: mentionableText};
             }
-        } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
+        } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL && !skipChecks) {
             return {status: 'not_sent', reason: 'not_mentioned'};
-        } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
+        } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1 && !skipChecks) {
             // if user is not following the thread don't notify
             return {status: 'not_sent', reason: 'not_following_thread'};
         }
@@ -305,7 +307,7 @@ export function sendDesktopNotification(post, msgProps) {
         let silent = false;
         ({title, body, silent, soundName, url, notify} = hookResult.args);
 
-        if (notify) {
+        if (notify || skipChecks) {
             const result = dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
@@ -348,4 +350,8 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
         dispatch(logError(error));
         return {status: 'error', reason: 'notification_api', data: String(error)};
     }
+};
+
+export const sendTestNotification = async () => {
+    return Client4.sendTestNotificaiton();
 };

@@ -206,6 +206,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
+	// if isTestMessage {
+	// 	post.AddProp(model.PostPropsNotificationTestMessage, model.NewId())
+	// }
+
 	if c.Session().IsOAuth {
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}

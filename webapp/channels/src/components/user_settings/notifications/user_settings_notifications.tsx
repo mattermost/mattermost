@@ -14,6 +14,8 @@ import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
+import {sendTestNotification} from 'actions/notification_actions';
+
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -963,6 +965,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         );
     };
 
+    onSendTestNotificationClick() {
+        sendTestNotification();
+    }
+
     render() {
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
         const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
@@ -1092,6 +1098,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
+                    <div className='divider-light'/>
+                    <button onClick={this.onSendTestNotificationClick}>
+                        {'Send test notification'}
+                    </button>
                     <div className='divider-dark'/>
                 </div>
             </div>
