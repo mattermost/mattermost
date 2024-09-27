@@ -31,6 +31,7 @@ import './system_users_export.scss';
 
 interface Props {
     currentUserId: UserProfile['id'];
+    usersLenght: number;
 }
 
 export function SystemUsersExport(props: Props) {
@@ -70,6 +71,9 @@ export function SystemUsersExport(props: Props) {
     }
 
     function handleExport() {
+        if (!props.usersLenght) {
+            return;
+        }
         if (!isLicensed) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.UPGRADE_EXPORT_DATA_MODAL,
@@ -95,6 +99,7 @@ export function SystemUsersExport(props: Props) {
         <button
             onClick={handleExport}
             className='btn btn-md btn-tertiary'
+            disabled={!props.usersLenght}
         >
             <span className='icon icon-download-outline'/>
             <FormattedMessage
