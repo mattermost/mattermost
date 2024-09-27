@@ -5,8 +5,11 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
-import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import {getCurrentChannel, getDirectTeammate, getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -24,6 +27,11 @@ function isDeactivatedChannel(state: GlobalState, channelId: string) {
     return Boolean(teammate && teammate.delete_at);
 }
 
+function isMissingChannelRoles(state: GlobalState, channel?: Channel) {
+    const channelRoles = channel ? getMyChannelMembership(state, channel.id)?.roles || '' : '';
+    return !channelRoles.split(' ').some((v) => Boolean(getRoles(state)[v]));
+}
+
 function mapStateToProps(state: GlobalState) {
     const channel = getCurrentChannel(state);
 
@@ -32,6 +40,8 @@ function mapStateToProps(state: GlobalState) {
     const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
     const enableOnboardingFlow = config.EnableOnboardingFlow === 'true';
     const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
+
+    const missingChannelRole = isMissingChannelRoles(state, channel);
 
     return {
         channelId: channel ? channel.id : '',
@@ -44,6 +54,7 @@ function mapStateToProps(state: GlobalState) {
         isFirstAdmin: isFirstAdmin(state),
         enableWebSocketEventScope,
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
+        missingChannelRole,
     };
 }
 

@@ -50,10 +50,7 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
+        <Memo(FormError) />
       </div>
     </div>
   </div>
