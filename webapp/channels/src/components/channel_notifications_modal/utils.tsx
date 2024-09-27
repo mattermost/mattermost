@@ -49,9 +49,9 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                 title: (
                     <FormattedMessage
                         id='channelNotifications.desktopNotification.allMessages'
-                        defaultMessage='All new messages {suffix}'
+                        defaultMessage='All new messages {optionalDefault}'
                         values={{
-                            suffix: defaultOption === NotificationLevels.ALL ? (
+                            optionalDefault: defaultOption === NotificationLevels.ALL ? (
                                 <FormattedMessage
                                     id='channel_notifications.default'
                                     defaultMessage='(default)'
@@ -68,9 +68,9 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                 title: (
                     <FormattedMessage
                         id='channelNotifications.desktopNotification.mention'
-                        defaultMessage='Mentions, direct messages, and keywords only {suffix}'
+                        defaultMessage='Mentions, direct messages, and keywords only {optionalDefault}'
                         values={{
-                            suffix: defaultOption === NotificationLevels.MENTION ? (
+                            optionalDefault: defaultOption === NotificationLevels.MENTION ? (
                                 <FormattedMessage
                                     id='channel_notifications.default'
                                     defaultMessage='(default)'
@@ -87,9 +87,9 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                 title: (
                     <FormattedMessage
                         id='channelNotifications.desktopNotification.nothing'
-                        defaultMessage='Nothing {suffix}'
+                        defaultMessage='Nothing {optionalDefault}'
                         values={{
-                            suffix: defaultOption === NotificationLevels.NONE ? (
+                            optionalDefault: defaultOption === NotificationLevels.NONE ? (
                                 <FormattedMessage
                                     id='channel_notifications.default'
                                     defaultMessage='(default)'
@@ -124,9 +124,9 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                 title: (
                     <FormattedMessage
                         id='channelNotifications.mobileNotification.newMessages'
-                        defaultMessage='All new messages {suffix}'
+                        defaultMessage='All new messages {optionalDefault}'
                         values={{
-                            suffix: defaultOption === NotificationLevels.ALL ? (
+                            optionalDefault: defaultOption === NotificationLevels.ALL ? (
                                 <FormattedMessage
                                     id='channel_notifications.default'
                                     defaultMessage='(default)'
@@ -143,9 +143,9 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                 title: (
                     <FormattedMessage
                         id='channelNotifications.mobileNotification.mention'
-                        defaultMessage='Mentions, direct messages, and keywords only {suffix}'
+                        defaultMessage='Mentions, direct messages, and keywords only {optionalDefault}'
                         values={{
-                            suffix: defaultOption === NotificationLevels.MENTION ? (
+                            optionalDefault: defaultOption === NotificationLevels.MENTION ? (
                                 <FormattedMessage
                                     id='channel_notifications.default'
                                     defaultMessage='(default)'
@@ -162,9 +162,9 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                 title: (
                     <FormattedMessage
                         id='channelNotifications.mobileNotification.nothing'
-                        defaultMessage='Nothing {suffix}'
+                        defaultMessage='Nothing {optionalDefault}'
                         values={{
-                            suffix: defaultOption === NotificationLevels.NONE ? (
+                            optionalDefault: defaultOption === NotificationLevels.NONE ? (
                                 <FormattedMessage
                                     id='channel_notifications.default'
                                     defaultMessage='(default)'

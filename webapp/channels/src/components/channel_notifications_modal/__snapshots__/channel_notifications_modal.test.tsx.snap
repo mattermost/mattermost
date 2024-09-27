@@ -199,7 +199,7 @@ Object {
                             type="radio"
                             value="all"
                           />
-                          All new messages
+                          All new messages 
                           (default)
                         </label>
                         <label
@@ -212,7 +212,7 @@ Object {
                             type="radio"
                             value="mention"
                           />
-                          Mentions, direct messages, and keywords only
+                          Mentions, direct messages, and keywords only 
                         </label>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
@@ -224,7 +224,7 @@ Object {
                             type="radio"
                             value="none"
                           />
-                          Nothing
+                          Nothing 
                         </label>
                       </fieldset>
                     </div>
@@ -618,7 +618,7 @@ Object {
                             type="radio"
                             value="all"
                           />
-                          All new messages
+                          All new messages 
                           (default)
                         </label>
                         <label
@@ -631,7 +631,7 @@ Object {
                             type="radio"
                             value="mention"
                           />
-                          Mentions, direct messages, and keywords only
+                          Mentions, direct messages, and keywords only 
                         </label>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
@@ -643,7 +643,7 @@ Object {
                             type="radio"
                             value="none"
                           />
-                          Nothing
+                          Nothing 
                         </label>
                       </fieldset>
                     </div>
@@ -789,6 +789,7 @@ Object {
                   </div>
                   <div
                     class="mm-modal-generic-section-item"
+                    data-testid="mobile-notify-me-radio-section"
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
@@ -813,7 +814,7 @@ Object {
                             type="radio"
                             value="all"
                           />
-                          All new messages
+                          All new messages 
                         </label>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
@@ -826,7 +827,7 @@ Object {
                             type="radio"
                             value="mention"
                           />
-                          Mentions, direct messages, and keywords only
+                          Mentions, direct messages, and keywords only 
                           (default)
                         </label>
                         <label
@@ -839,7 +840,7 @@ Object {
                             type="radio"
                             value="none"
                           />
-                          Nothing
+                          Nothing 
                         </label>
                       </fieldset>
                     </div>
@@ -1478,7 +1479,7 @@ Object {
                             type="radio"
                             value="all"
                           />
-                          All new messages
+                          All new messages 
                           (default)
                         </label>
                         <label
@@ -1491,7 +1492,7 @@ Object {
                             type="radio"
                             value="mention"
                           />
-                          Mentions, direct messages, and keywords only
+                          Mentions, direct messages, and keywords only 
                         </label>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
@@ -1503,7 +1504,7 @@ Object {
                             type="radio"
                             value="none"
                           />
-                          Nothing
+                          Nothing 
                         </label>
                       </fieldset>
                     </div>
@@ -1978,7 +1979,7 @@ Object {
                             type="radio"
                             value="all"
                           />
-                          All new messages
+                          All new messages 
                           (default)
                         </label>
                         <label
@@ -1991,7 +1992,7 @@ Object {
                             type="radio"
                             value="mention"
                           />
-                          Mentions, direct messages, and keywords only
+                          Mentions, direct messages, and keywords only 
                         </label>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
@@ -2003,7 +2004,7 @@ Object {
                             type="radio"
                             value="none"
                           />
-                          Nothing
+                          Nothing 
                         </label>
                       </fieldset>
                     </div>
@@ -2478,7 +2479,7 @@ Object {
                             type="radio"
                             value="all"
                           />
-                          All new messages
+                          All new messages 
                           (default)
                         </label>
                         <label
@@ -2491,7 +2492,7 @@ Object {
                             type="radio"
                             value="mention"
                           />
-                          Mentions, direct messages, and keywords only
+                          Mentions, direct messages, and keywords only 
                         </label>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
@@ -2503,7 +2504,7 @@ Object {
                             type="radio"
                             value="none"
                           />
-                          Nothing
+                          Nothing 
                         </label>
                       </fieldset>
                     </div>
