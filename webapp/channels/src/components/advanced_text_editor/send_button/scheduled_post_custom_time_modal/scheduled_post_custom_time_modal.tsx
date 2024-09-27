@@ -14,8 +14,6 @@ import {
 } from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
-import './scheduled_post_custom_time_modal.scss';
-
 type Props = {
     channelId: string;
     onExited: () => void;
@@ -54,12 +52,6 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
                     channelId={channelId}
                     selectedTime={selectedDateTime?.toDate()}
                 />
-                {
-                    errorMessage &&
-                    <p className='error'>
-                        {errorMessage}
-                    </p>
-                }
             </React.Fragment>
         );
     }, [channelId, selectedDateTime, errorMessage]);
@@ -68,6 +60,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     return (
         <DateTimePickerModal
+            className='scheduled_post_custom_time_modal'
             initialTime={selectedDateTime}
             header={
                 <FormattedMessage
@@ -95,6 +88,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             bodySuffix={bodySuffix}
             relativeDate={true}
             onCancel={onExited}
+            errorText={errorMessage}
         />
     );
 }
