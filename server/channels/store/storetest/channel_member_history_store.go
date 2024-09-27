@@ -84,8 +84,6 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.Store) {
-	var channels []*model.Channel
-
 	// Need to wait to make sure channels and posts have nothing in them for this test.
 	time.Sleep(101 * time.Millisecond)
 
@@ -98,7 +96,6 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 	}
 	channel1, err := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, err)
-	channels = append(channels, channel1)
 
 	// channel2 will have no activity until case 6 (shouldn't show up until then)
 	ch2 := &model.Channel{
@@ -109,7 +106,6 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 	}
 	channel2, err := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, err)
-	channels = append(channels, channel2)
 
 	// and two test users
 	user1 := model.User{
@@ -196,7 +192,7 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 
 	newPost := post.Clone()
 	newPost.Message = "edited message"
-	post, err = ss.Post().Update(rctx, newPost, post)
+	_, err = ss.Post().Update(rctx, newPost, post)
 	require.NoError(t, err)
 
 	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now-1, now+1000)
@@ -216,7 +212,7 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 		CreateAt:  now + 11,
 		UpdateAt:  now + 11,
 	}
-	post2, err = ss.Post().Save(rctx, post2)
+	_, err = ss.Post().Save(rctx, post2)
 	require.NoError(t, err)
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user1.Id, channel1.Id, now+12)
 	require.NoError(t, err)
