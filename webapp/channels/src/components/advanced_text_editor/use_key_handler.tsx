@@ -39,7 +39,7 @@ const useKeyHandler = (
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
-    handleSubmit: (e: React.FormEvent, submittingDraft?: PostDraft) => void,
+    handleSubmit: (submittingDraft?: PostDraft) => void,
     emitTypingEvent: () => void,
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,
@@ -124,19 +124,9 @@ const useKeyHandler = (
         }
 
         if (allowSending && isValidPersistentNotifications) {
-            e.persist?.();
-
-            // textboxRef.current?.blur();
-
-            if (withClosedCodeBlock && message) {
-                handleSubmit(e, {...draft, message});
-            } else {
-                handleSubmit(e);
-            }
-
-            // setTimeout(() => {
-            //     focusTextbox();
-            // });
+            e.preventDefault();
+            const updatedDraft = (withClosedCodeBlock && message) ? {...draft, message} : undefined;
+            handleSubmit(updatedDraft);
         }
 
         emitTypingEvent();
