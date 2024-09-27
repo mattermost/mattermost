@@ -165,7 +165,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       id="channelNotificationPreferences"
       modalId="channel_notifications"
       show={true}
-      text="Notification Preferences"
+      text={
+        Object {
+          "defaultMessage": "Notification Preferences",
+          "id": "navbar.preferences",
+        }
+      }
     />
     <Connect(MenuItemToggleMuteChannel)
       channel={
@@ -275,7 +280,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelAddMembers"
         modalId="channel_invite"
         show={true}
-        text="Add Members"
+        text={
+          Object {
+            "defaultMessage": "Add Members",
+            "id": "navbar.addMembers",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -294,7 +304,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelAddMembers"
         modalId="create_dm_channel"
         show={false}
-        text="Add Members"
+        text={
+          Object {
+            "defaultMessage": "Add Members",
+            "id": "navbar.addMembers",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Connect(ToggleChannelMembersRHS)
@@ -319,7 +334,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       }
       id="channelViewMembers"
       show={false}
-      text="View Members"
+      text={
+        Object {
+          "defaultMessage": "View Members",
+          "id": "channel_header.viewMembers",
+        }
+      }
     />
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
@@ -342,7 +362,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelAddGroups"
         modalId="add_groups_to_channel"
         show={false}
-        text="Add Groups"
+        text={
+          Object {
+            "defaultMessage": "Add Groups",
+            "id": "navbar.addGroups",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -361,7 +386,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelManageGroups"
         modalId="manage_channel_groups"
         show={false}
-        text="Manage Groups"
+        text={
+          Object {
+            "defaultMessage": "Manage Groups",
+            "id": "navbar_dropdown.manageGroups",
+          }
+        }
       />
       <Connect(ToggleChannelMembersRHS)
         channel={
@@ -386,7 +416,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         editMembers={true}
         id="channelManageMembers"
         show={true}
-        text="Manage Members"
+        text={
+          Object {
+            "defaultMessage": "Manage Members",
+            "id": "channel_header.manageMembers",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Memo(ChannelPermissionGate)
@@ -421,7 +456,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         }
         id="channelViewMembers"
         show={true}
-        text="View Members"
+        text={
+          Object {
+            "defaultMessage": "View Members",
+            "id": "channel_header.viewMembers",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
@@ -459,7 +499,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       id="channelEditHeader"
       modalId="edit_channel_header"
       show={false}
-      text="Edit Conversation Header"
+      text={
+        Object {
+          "defaultMessage": "Edit Conversation Header",
+          "id": "channel_header.setConversationHeader",
+        }
+      }
     />
     <MenuItemToggleModalRedux
       dialogProps={
@@ -494,7 +539,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       id="convertGMPrivateChannel"
       modalId="convert_gm_to_channel"
       show={false}
-      text="Convert to Private Channel"
+      text={
+        Object {
+          "defaultMessage": "Convert to Private Channel",
+          "id": "sidebar_left.sidebar_channel_menu_convert_to_channel",
+        }
+      }
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
@@ -540,7 +590,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelEditHeader"
         modalId="edit_channel_header"
         show={true}
-        text="Edit Channel Header"
+        text={
+          Object {
+            "defaultMessage": "Edit Channel Header",
+            "id": "channel_header.setHeader",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -575,7 +630,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelEditPurpose"
         modalId="edit_channel_purpose"
         show={true}
-        text="Edit Channel Purpose"
+        text={
+          Object {
+            "defaultMessage": "Edit Channel Purpose",
+            "id": "channel_header.setPurpose",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -610,7 +670,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelRename"
         modalId="rename_channel"
         show={true}
-        text="Rename Channel"
+        text={
+          Object {
+            "defaultMessage": "Rename Channel",
+            "id": "channel_header.rename",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Memo(ChannelPermissionGate)
@@ -640,7 +705,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelConvertToPrivate"
         modalId="convert_channel"
         show={true}
-        text="Convert to Private Channel"
+        text={
+          Object {
+            "defaultMessage": "Convert to Private Channel",
+            "id": "channel_header.convert",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Connect(Component)
@@ -711,7 +781,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelArchiveChannel"
         modalId="delete_channel"
         show={true}
-        text="Archive Channel"
+        text={
+          Object {
+            "defaultMessage": "Archive Channel",
+            "id": "channel_header.delete",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Connect(CloseMessage)
@@ -825,7 +900,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         id="channelUnarchiveChannel"
         modalId="unarchive_channel"
         show={false}
-        text="Unarchive Channel"
+        text={
+          Object {
+            "defaultMessage": "Unarchive Channel",
+            "id": "channel_header.unarchive",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
@@ -997,7 +1077,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       id="channelNotificationPreferences"
       modalId="channel_notifications"
       show={true}
-      text="Notification Preferences"
+      text={
+        Object {
+          "defaultMessage": "Notification Preferences",
+          "id": "navbar.preferences",
+        }
+      }
     />
     <Connect(MenuItemToggleMuteChannel)
       channel={
@@ -1107,7 +1192,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelAddMembers"
         modalId="channel_invite"
         show={true}
-        text="Add Members"
+        text={
+          Object {
+            "defaultMessage": "Add Members",
+            "id": "navbar.addMembers",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1126,7 +1216,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelAddMembers"
         modalId="create_dm_channel"
         show={false}
-        text="Add Members"
+        text={
+          Object {
+            "defaultMessage": "Add Members",
+            "id": "navbar.addMembers",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Connect(ToggleChannelMembersRHS)
@@ -1151,7 +1246,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       }
       id="channelViewMembers"
       show={false}
-      text="View Members"
+      text={
+        Object {
+          "defaultMessage": "View Members",
+          "id": "channel_header.viewMembers",
+        }
+      }
     />
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
@@ -1174,7 +1274,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelAddGroups"
         modalId="add_groups_to_channel"
         show={false}
-        text="Add Groups"
+        text={
+          Object {
+            "defaultMessage": "Add Groups",
+            "id": "navbar.addGroups",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1193,7 +1298,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelManageGroups"
         modalId="manage_channel_groups"
         show={false}
-        text="Manage Groups"
+        text={
+          Object {
+            "defaultMessage": "Manage Groups",
+            "id": "navbar_dropdown.manageGroups",
+          }
+        }
       />
       <Connect(ToggleChannelMembersRHS)
         channel={
@@ -1218,7 +1328,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         editMembers={true}
         id="channelManageMembers"
         show={true}
-        text="Manage Members"
+        text={
+          Object {
+            "defaultMessage": "Manage Members",
+            "id": "channel_header.manageMembers",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Memo(ChannelPermissionGate)
@@ -1253,7 +1368,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         }
         id="channelViewMembers"
         show={true}
-        text="View Members"
+        text={
+          Object {
+            "defaultMessage": "View Members",
+            "id": "channel_header.viewMembers",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
@@ -1291,7 +1411,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       id="channelEditHeader"
       modalId="edit_channel_header"
       show={false}
-      text="Edit Conversation Header"
+      text={
+        Object {
+          "defaultMessage": "Edit Conversation Header",
+          "id": "channel_header.setConversationHeader",
+        }
+      }
     />
     <MenuItemToggleModalRedux
       dialogProps={
@@ -1326,7 +1451,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       id="convertGMPrivateChannel"
       modalId="convert_gm_to_channel"
       show={false}
-      text="Convert to Private Channel"
+      text={
+        Object {
+          "defaultMessage": "Convert to Private Channel",
+          "id": "sidebar_left.sidebar_channel_menu_convert_to_channel",
+        }
+      }
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
@@ -1372,7 +1502,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelEditHeader"
         modalId="edit_channel_header"
         show={true}
-        text="Edit Channel Header"
+        text={
+          Object {
+            "defaultMessage": "Edit Channel Header",
+            "id": "channel_header.setHeader",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1407,7 +1542,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelEditPurpose"
         modalId="edit_channel_purpose"
         show={true}
-        text="Edit Channel Purpose"
+        text={
+          Object {
+            "defaultMessage": "Edit Channel Purpose",
+            "id": "channel_header.setPurpose",
+          }
+        }
       />
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1442,7 +1582,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelRename"
         modalId="rename_channel"
         show={true}
-        text="Rename Channel"
+        text={
+          Object {
+            "defaultMessage": "Rename Channel",
+            "id": "channel_header.rename",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Memo(ChannelPermissionGate)
@@ -1472,7 +1617,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelConvertToPrivate"
         modalId="convert_channel"
         show={true}
-        text="Convert to Private Channel"
+        text={
+          Object {
+            "defaultMessage": "Convert to Private Channel",
+            "id": "channel_header.convert",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Connect(Component)
@@ -1543,7 +1693,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelArchiveChannel"
         modalId="delete_channel"
         show={true}
-        text="Archive Channel"
+        text={
+          Object {
+            "defaultMessage": "Archive Channel",
+            "id": "channel_header.delete",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
     <Connect(CloseMessage)
@@ -1672,7 +1827,12 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         id="channelUnarchiveChannel"
         modalId="unarchive_channel"
         show={false}
-        text="Unarchive Channel"
+        text={
+          Object {
+            "defaultMessage": "Unarchive Channel",
+            "id": "channel_header.unarchive",
+          }
+        }
       />
     </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>

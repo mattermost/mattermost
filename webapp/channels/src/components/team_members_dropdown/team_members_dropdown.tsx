@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -17,7 +17,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {getHistory} from 'utils/browser_history';
-import * as Utils from 'utils/utils';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 
@@ -253,19 +252,19 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             <Menu.ItemAction
                 id='removeFromTeam'
                 onClick={this.handleRemoveFromTeam}
-                text={Utils.localizeMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove From Team'})}
+                text={defineMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove From Team'})}
             />
         );
         const menuMakeAdmin = (
             <Menu.ItemAction
                 onClick={this.handleMakeAdmin}
-                text={Utils.localizeMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})}
+                text={defineMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})}
             />
         );
         const menuMakeMember = (
             <Menu.ItemAction
                 onClick={this.handleMakeMember}
-                text={Utils.localizeMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Member'})}
+                text={defineMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Member'})}
             />
         );
         return (
@@ -283,7 +282,7 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
                     <Menu
                         openLeft={true}
                         openUp={openUp}
-                        ariaLabel={Utils.localizeMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
+                        ariaLabel={defineMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
                     >
                         {canRemoveFromTeam ? menuRemove : null}
                         {showMakeAdmin ? menuMakeAdmin : null}

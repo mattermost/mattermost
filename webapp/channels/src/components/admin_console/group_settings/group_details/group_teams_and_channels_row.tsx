@@ -4,15 +4,13 @@
 import classNames from 'classnames';
 import isNil from 'lodash/isNil';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
     id: string;
@@ -99,7 +97,7 @@ State
                         <Menu
                             openLeft={true}
                             openUp={true}
-                            ariaLabel={localizeMessage({
+                            ariaLabel={defineMessage({
                                 id: 'admin.team_channel_settings.group_row.memberRole',
                                 defaultMessage: 'Member Role',
                             })}

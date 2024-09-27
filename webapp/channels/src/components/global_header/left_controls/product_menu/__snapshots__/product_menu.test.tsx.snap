@@ -19,7 +19,7 @@ exports[`components/global/product_switcher should have an active button state w
       <ProductBranding />
     </ProductMenuContainer>
     <Menu
-      ariaLabel="switcherOpen"
+      ariaLabel="Product switch menu"
       className="product-switcher-menu"
       id="product-switcher-menu"
       listId="product-switcher-menu-dropdown"
@@ -83,7 +83,7 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
       <ProductBranding />
     </ProductMenuContainer>
     <Menu
-      ariaLabel="switcherOpen"
+      ariaLabel="Product switch menu"
       className="product-switcher-menu"
       id="product-switcher-menu"
       listId="product-switcher-menu-dropdown"
@@ -147,7 +147,7 @@ exports[`components/global/product_switcher should match snapshot with product s
       <ProductBranding />
     </ProductMenuContainer>
     <Menu
-      ariaLabel="switcherOpen"
+      ariaLabel="Product switch menu"
       className="product-switcher-menu"
       id="product-switcher-menu"
       listId="product-switcher-menu-dropdown"
@@ -211,7 +211,7 @@ exports[`components/global/product_switcher should match snapshot without licens
       <ProductBrandingTeamEdition />
     </ProductMenuContainer>
     <Menu
-      ariaLabel="switcherOpen"
+      ariaLabel="Product switch menu"
       className="product-switcher-menu"
       id="product-switcher-menu"
       listId="product-switcher-menu-dropdown"
@@ -275,7 +275,7 @@ exports[`components/global/product_switcher should render once when there are no
       <ProductBranding />
     </ProductMenuContainer>
     <Menu
-      ariaLabel="switcherOpen"
+      ariaLabel="Product switch menu"
       className="product-switcher-menu"
       id="product-switcher-menu"
       listId="product-switcher-menu-dropdown"
@@ -339,7 +339,7 @@ exports[`components/global/product_switcher should render the correct amount of 
       <ProductBranding />
     </ProductMenuContainer>
     <Menu
-      ariaLabel="switcherOpen"
+      ariaLabel="Product switch menu"
       className="product-switcher-menu"
       id="product-switcher-menu"
       listId="product-switcher-menu-dropdown"

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
@@ -12,7 +12,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 interface GroupRowProps {
     group: Partial<Group>;
@@ -67,11 +66,26 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
     displayRoleToBe = () => {
         const {group, type} = this.props;
         if (!group.scheme_admin && type === 'channel') {
-            return localizeMessage({id: 'admin.team_channel_settings.group_row.channelAdmin', defaultMessage: 'Channel Admin'});
+            return (
+                <FormattedMessage
+                    id='admin.team_channel_settings.group_row.channelAdmin'
+                    defaultMessage='Channel Admin'
+                />
+            );
         } else if (!group.scheme_admin && type === 'team') {
-            return localizeMessage({id: 'admin.team_channel_settings.group_row.teamAdmin', defaultMessage: 'Team Admin'});
+            return (
+                <FormattedMessage
+                    id='admin.team_channel_settings.group_row.teamAdmin'
+                    defaultMessage='Team Admin'
+                />
+            );
         }
-        return localizeMessage({id: 'admin.team_channel_settings.group_row.member', defaultMessage: 'Member'});
+        return (
+            <FormattedMessage
+                id='admin.team_channel_settings.group_row.member'
+                defaultMessage='Member'
+            />
+        );
     };
 
     render = () => {
@@ -119,7 +133,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
                                 id='role-to-be-menu'
                                 openLeft={true}
                                 openUp={false}
-                                ariaLabel={localizeMessage({id: 'admin.team_channel_settings.group_row.memberRole', defaultMessage: 'Member Role'})}
+                                ariaLabel={defineMessage({id: 'admin.team_channel_settings.group_row.memberRole', defaultMessage: 'Member Role'})}
                             >
                                 <Menu.ItemAction
                                     id='role-to-be'

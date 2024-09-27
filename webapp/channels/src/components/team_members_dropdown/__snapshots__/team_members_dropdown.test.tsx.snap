@@ -22,7 +22,12 @@ exports[`components/team_members_dropdown should match snapshot for a bot with g
   </button>
   <div>
     <Menu
-      ariaLabel="Change the role of a team member"
+      ariaLabel={
+        Object {
+          "defaultMessage": "Change the role of a team member",
+          "id": "team_members_dropdown.menuAriaLabel",
+        }
+      }
       openLeft={true}
       openUp={false}
     >
@@ -30,12 +35,22 @@ exports[`components/team_members_dropdown should match snapshot for a bot with g
         id="removeFromTeam"
         onClick={[Function]}
         show={true}
-        text="Remove From Team"
+        text={
+          Object {
+            "defaultMessage": "Remove From Team",
+            "id": "team_members_dropdown.leave_team",
+          }
+        }
       />
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          Object {
+            "defaultMessage": "Make Member",
+            "id": "team_members_dropdown.makeMember",
+          }
+        }
       />
     </Menu>
   </div>
@@ -64,7 +79,12 @@ exports[`components/team_members_dropdown should match snapshot for team_members
   </button>
   <div>
     <Menu
-      ariaLabel="Change the role of a team member"
+      ariaLabel={
+        Object {
+          "defaultMessage": "Change the role of a team member",
+          "id": "team_members_dropdown.menuAriaLabel",
+        }
+      }
       openLeft={true}
       openUp={false}
     >
@@ -72,12 +92,22 @@ exports[`components/team_members_dropdown should match snapshot for team_members
         id="removeFromTeam"
         onClick={[Function]}
         show={true}
-        text="Remove From Team"
+        text={
+          Object {
+            "defaultMessage": "Remove From Team",
+            "id": "team_members_dropdown.leave_team",
+          }
+        }
       />
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          Object {
+            "defaultMessage": "Make Member",
+            "id": "team_members_dropdown.makeMember",
+          }
+        }
       />
     </Menu>
   </div>
@@ -106,7 +136,12 @@ exports[`components/team_members_dropdown should match snapshot opening dropdown
   </button>
   <div>
     <Menu
-      ariaLabel="Change the role of a team member"
+      ariaLabel={
+        Object {
+          "defaultMessage": "Change the role of a team member",
+          "id": "team_members_dropdown.menuAriaLabel",
+        }
+      }
       openLeft={true}
       openUp={true}
     >
@@ -114,12 +149,22 @@ exports[`components/team_members_dropdown should match snapshot opening dropdown
         id="removeFromTeam"
         onClick={[Function]}
         show={true}
-        text="Remove From Team"
+        text={
+          Object {
+            "defaultMessage": "Remove From Team",
+            "id": "team_members_dropdown.leave_team",
+          }
+        }
       />
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          Object {
+            "defaultMessage": "Make Member",
+            "id": "team_members_dropdown.makeMember",
+          }
+        }
       />
     </Menu>
   </div>
@@ -148,14 +193,24 @@ exports[`components/team_members_dropdown should match snapshot with group-const
   </button>
   <div>
     <Menu
-      ariaLabel="Change the role of a team member"
+      ariaLabel={
+        Object {
+          "defaultMessage": "Change the role of a team member",
+          "id": "team_members_dropdown.menuAriaLabel",
+        }
+      }
       openLeft={true}
       openUp={false}
     >
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          Object {
+            "defaultMessage": "Make Member",
+            "id": "team_members_dropdown.makeMember",
+          }
+        }
       />
     </Menu>
   </div>

@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/MenuItemToggleModalRedux should match snapshot 1`] = `
+exports[`components/MenuItemAction should match snapshot 1`] = `
 <div>
   <button
-    class="style--none "
+    class="style--none"
   >
     <span
       class="MenuItem__primary-text"
@@ -14,7 +14,7 @@ exports[`components/MenuItemToggleModalRedux should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/MenuItemToggleModalRedux should match snapshot with extra text 1`] = `
+exports[`components/MenuItemAction should match snapshot with extra text 1`] = `
 <div>
   <button
     class="style--none MenuItem__with-help"
@@ -27,7 +27,7 @@ exports[`components/MenuItemToggleModalRedux should match snapshot with extra te
     <span
       class="MenuItem__help-text"
     >
-      Extra text
+      Extra Text
     </span>
   </button>
 </div>

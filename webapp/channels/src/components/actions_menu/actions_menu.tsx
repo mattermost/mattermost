@@ -402,7 +402,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                     openLeft={true}
                     openUp={this.state.openUp}
-                    ariaLabel={Utils.localizeMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
+                    ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
                     key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                 >
                     {menuItems}

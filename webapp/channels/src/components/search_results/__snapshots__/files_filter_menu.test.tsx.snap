@@ -30,7 +30,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -131,7 +136,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -232,7 +242,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -333,7 +348,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -434,7 +454,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -535,7 +560,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -636,7 +666,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction
@@ -737,7 +772,12 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
       </IconContainer>
     </WithTooltip>
     <Menu
-      ariaLabel="file menu"
+      ariaLabel={
+        Object {
+          "defaultMessage": "file menu",
+          "id": "file_attachment.menu",
+        }
+      }
       openLeft={true}
     >
       <MenuItemAction

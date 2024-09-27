@@ -4,7 +4,12 @@ exports[`components/ChannelHeaderDropdown/MenuItem.CloseMessage should match sna
 <MenuItemAction
   onClick={[Function]}
   show={true}
-  text="Close Direct Message"
+  text={
+    Object {
+      "defaultMessage": "Close Direct Message",
+      "id": "center_panel.direct.closeDirectMessage",
+    }
+  }
 />
 `;
 
@@ -12,6 +17,11 @@ exports[`components/ChannelHeaderDropdown/MenuItem.CloseMessage should match sna
 <MenuItemAction
   onClick={[Function]}
   show={true}
-  text="Close Group Message"
+  text={
+    Object {
+      "defaultMessage": "Close Group Message",
+      "id": "center_panel.direct.closeGroupMessage",
+    }
+  }
 />
 `;

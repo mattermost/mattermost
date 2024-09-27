@@ -239,7 +239,7 @@ export default function FileAttachment(props: Props) {
                 </WithTooltip>
                 <Menu
                     id={`file_dropdown_${props.fileInfo.id}`}
-                    ariaLabel={'file menu'}
+                    ariaLabel={formatMessage({id: 'file_attachment.menu', defaultMessage: 'file menu'})}
                     openLeft={true}
                     openUp={openUp}
                 >

@@ -3,6 +3,9 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
+
+import {formatAsComponent} from 'utils/i18n';
 
 import './menu_item.scss';
 
@@ -14,7 +17,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
         show: boolean;
         id?: string;
         icon?: React.ReactNode;
-        text?: React.ReactNode;
+        text?: React.ReactNode | MessageDescriptor;
     }
     class MenuItem extends React.PureComponent<Props & React.ComponentProps<typeof Component>> {
         public static defaultProps = {
@@ -29,7 +32,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
                 return null;
             }
 
-            let textProp: React.ReactNode = text;
+            let textProp: React.ReactNode = formatAsComponent(text);
             if (icon) {
                 textProp = (
                     <>
@@ -49,7 +52,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
                 >
                     <Component
                         text={textProp}
-                        ariaLabel={text?.toString()}
+                        ariaLabel={typeof text === 'string' ? text : undefined}
                         {...props}
                     />
                 </li>

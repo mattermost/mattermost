@@ -20,8 +20,8 @@ describe('components/Menu', () => {
         const wrapper = shallow(<Menu ariaLabel='test-label'>{'text'}</Menu>);
 
         expect(wrapper).toMatchInlineSnapshot(`
-      <div
-        aria-label="test-label"
+      <MenuDiv
+        ariaLabel="test-label"
         className="a11y__popup Menu"
         role="menu"
       >
@@ -32,7 +32,7 @@ describe('components/Menu', () => {
         >
           text
         </ul>
-      </div>
+      </MenuDiv>
     `);
     });
 
@@ -47,8 +47,8 @@ describe('components/Menu', () => {
         );
 
         expect(wrapper).toMatchInlineSnapshot(`
-      <div
-        aria-label="test-label"
+      <MenuDiv
+        ariaLabel="test-label"
         className="a11y__popup Menu"
         id="test-id"
         role="menu"
@@ -60,7 +60,7 @@ describe('components/Menu', () => {
         >
           text
         </ul>
-      </div>
+      </MenuDiv>
     `);
     });
 
@@ -76,8 +76,8 @@ describe('components/Menu', () => {
         );
 
         expect(wrapper).toMatchInlineSnapshot(`
-      <div
-        aria-label="test-label"
+      <MenuDiv
+        ariaLabel="test-label"
         className="a11y__popup Menu"
         role="menu"
       >
@@ -88,7 +88,7 @@ describe('components/Menu', () => {
         >
           text
         </ul>
-      </div>
+      </MenuDiv>
     `);
     });
 

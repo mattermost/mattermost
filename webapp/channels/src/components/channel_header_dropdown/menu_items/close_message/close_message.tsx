@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -12,7 +13,6 @@ import Menu from 'components/widgets/menu/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
 
@@ -96,9 +96,9 @@ export default class CloseMessage extends React.PureComponent<Props> {
 
         let text;
         if (channel.type === Constants.DM_CHANNEL) {
-            text = localizeMessage({id: 'center_panel.direct.closeDirectMessage', defaultMessage: 'Close Direct Message'});
+            text = defineMessage({id: 'center_panel.direct.closeDirectMessage', defaultMessage: 'Close Direct Message'});
         } else if (channel.type === Constants.GM_CHANNEL) {
-            text = localizeMessage({id: 'center_panel.direct.closeGroupMessage', defaultMessage: 'Close Group Message'});
+            text = defineMessage({id: 'center_panel.direct.closeGroupMessage', defaultMessage: 'Close Group Message'});
         }
 
         return (

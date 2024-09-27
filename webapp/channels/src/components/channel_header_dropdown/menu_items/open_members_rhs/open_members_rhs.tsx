@@ -16,7 +16,7 @@ type OwnProps = {
     show: boolean;
     id: string;
     editMembers?: boolean;
-    text: string;
+    text: React.ComponentProps<typeof Menu.ItemAction>['text'];
 }
 
 type Props = {

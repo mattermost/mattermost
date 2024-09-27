@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`plugins/MainMenuActions should match snapshot in mobile view with some plugin and ability to click plugin 1`] = `
-<div
-  aria-label="main menu"
+<MenuDiv
+  ariaLabel="main menu"
   className="a11y__popup Menu"
   role="menu"
 >
@@ -426,12 +426,12 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       />
     </Memo(MenuGroup)>
   </ul>
-</div>
+</MenuDiv>
 `;
 
 exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
-<div
-  aria-label="team menu"
+<MenuDiv
+  ariaLabel="team menu"
   className="a11y__popup Menu"
   role="menu"
 >
@@ -650,5 +650,5 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
       />
     </Memo(MenuGroup)>
   </ul>
-</div>
+</MenuDiv>
 `;

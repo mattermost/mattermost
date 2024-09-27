@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {FilterVariantIcon} from '@mattermost/compass-icons/components';
 
@@ -46,7 +46,7 @@ export default function FilesFilterMenu(props: Props): JSX.Element {
                 </WithTooltip>
 
                 <Menu
-                    ariaLabel={'file menu'}
+                    ariaLabel={defineMessage({id: 'file_attachment.menu', defaultMessage: 'file menu'})}
                     openLeft={true}
                 >
                     <Menu.ItemAction

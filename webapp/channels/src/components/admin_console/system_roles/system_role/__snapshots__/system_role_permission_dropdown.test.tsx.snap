@@ -27,7 +27,12 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
     </div>
   </button>
   <Menu
-    ariaLabel="Change role access on a system console section"
+    ariaLabel={
+      Object {
+        "defaultMessage": "Change role access on a system console section",
+        "id": "admin.permissions.system_role_permissions.change_access",
+      }
+    }
   >
     <MenuItemAction
       onClick={[Function]}
@@ -138,7 +143,12 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
     </div>
   </button>
   <Menu
-    ariaLabel="Change role access on a system console section"
+    ariaLabel={
+      Object {
+        "defaultMessage": "Change role access on a system console section",
+        "id": "admin.permissions.system_role_permissions.change_access",
+      }
+    }
   >
     <MenuItemAction
       onClick={[Function]}

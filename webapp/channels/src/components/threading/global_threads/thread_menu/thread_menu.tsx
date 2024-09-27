@@ -81,7 +81,7 @@ function ThreadMenu({
         >
             {children}
             <Menu
-                ariaLabel={''}
+                ariaLabel={formatMessage({id: 'threading.threadMenu.label', defaultMessage: 'Thread menu'})}
                 openLeft={true}
             >
                 <Menu.ItemAction

@@ -286,7 +286,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
                             </button>
                             <Menu
                                 openLeft={false}
-                                ariaLabel={'Clear custom status after'}
+                                ariaLabel={defineMessage({id: 'dnd_custom_time_picker_modal.clearAfter', defaultMessage: 'Clear custom status after'})}
                             >
                                 {timeMenuItems}
                             </Menu>

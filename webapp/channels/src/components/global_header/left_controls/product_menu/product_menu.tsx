@@ -122,7 +122,7 @@ const ProductMenu = (): JSX.Element => {
                     listId={'product-switcher-menu-dropdown'}
                     className={'product-switcher-menu'}
                     id={'product-switcher-menu'}
-                    ariaLabel={'switcherOpen'}
+                    ariaLabel={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
                 >
                     <ProductMenuItem
                         destination={'/'}

@@ -17,7 +17,7 @@ import WithTooltip from 'components/with_tooltip';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-import {fileSizeToString, copyToClipboard, localizeMessage} from 'utils/utils';
+import {fileSizeToString, copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
 
@@ -161,18 +161,18 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                                     <i className='icon icon-dots-vertical'/>
                                 </a>
                                 <Menu
-                                    ariaLabel={'file menu'}
+                                    ariaLabel={defineMessage({id: 'file_attachment.menu', defaultMessage: 'file menu'})}
                                     openLeft={true}
                                 >
                                     <Menu.ItemAction
                                         onClick={this.jumpToConv}
-                                        ariaLabel={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
-                                        text={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
+                                        ariaLabel={defineMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
+                                        text={defineMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
                                     />
                                     <Menu.ItemAction
                                         onClick={this.copyLink}
-                                        ariaLabel={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
-                                        text={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
+                                        ariaLabel={defineMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
+                                        text={defineMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
                                     />
                                     {this.renderPluginItems()}
                                 </Menu>

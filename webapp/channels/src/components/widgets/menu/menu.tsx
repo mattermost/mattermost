@@ -4,6 +4,9 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties} from 'react';
+import {useIntl, type MessageDescriptor} from 'react-intl';
+
+import {formatAsString} from 'utils/i18n';
 
 import MenuGroup from './menu_group';
 import MenuHeader from './menu_header';
@@ -23,7 +26,7 @@ type Props = {
     openLeft?: boolean;
     openUp?: boolean;
     id?: string;
-    ariaLabel: string;
+    ariaLabel: MessageDescriptor | string;
     customStyles?: CSSProperties;
     className?: string;
     listId?: string;
@@ -124,8 +127,8 @@ export default class Menu extends React.PureComponent<Props> {
         }
 
         return (
-            <div
-                aria-label={ariaLabel}
+            <MenuDiv
+                ariaLabel={ariaLabel}
                 className='a11y__popup Menu'
                 id={id}
                 role='menu'
@@ -146,7 +149,22 @@ export default class Menu extends React.PureComponent<Props> {
                 >
                     {children}
                 </ul>
-            </div>
+            </MenuDiv>
         );
     }
+}
+
+type MenuDivProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'ariaLabel'> & {
+    ariaLabel: MessageDescriptor | string;
+};
+
+function MenuDiv({ariaLabel, ...otherProps}: MenuDivProps) {
+    const intl = useIntl();
+
+    return (
+        <div
+            aria-label={formatAsString(intl.formatMessage, ariaLabel)}
+            {...otherProps}
+        />
+    );
 }

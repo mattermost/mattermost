@@ -13,7 +13,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -100,31 +99,31 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 <Menu
                     openLeft={false}
                     openUp={false}
-                    ariaLabel={Utils.localizeMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
+                    ariaLabel={formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
                 >
                     <Menu.ItemAction
                         show={props.permissionToEditGroup}
                         onClick={goToEditGroupModal}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.editDetails', defaultMessage: 'Edit Details'})}
+                        text={formatMessage({id: 'user_groups_modal.editDetails', defaultMessage: 'Edit Details'})}
                         disabled={false}
                     />
                     <Menu.ItemAction
                         show={props.permissionToJoinGroup && !isGroupMember}
                         onClick={joinGroup}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.joinGroup', defaultMessage: 'Join Group'})}
+                        text={formatMessage({id: 'user_groups_modal.joinGroup', defaultMessage: 'Join Group'})}
                         disabled={false}
                     />
                     <Menu.ItemAction
                         show={props.permissionToLeaveGroup && isGroupMember}
                         onClick={leaveGroup}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.leaveGroup', defaultMessage: 'Leave Group'})}
+                        text={formatMessage({id: 'user_groups_modal.leaveGroup', defaultMessage: 'Leave Group'})}
                         disabled={false}
                         isDangerous={true}
                     />
                     <Menu.ItemAction
                         show={props.permissionToArchiveGroup}
                         onClick={archiveGroup}
-                        text={Utils.localizeMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
+                        text={formatMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
                         disabled={false}
                         isDangerous={true}
                     />

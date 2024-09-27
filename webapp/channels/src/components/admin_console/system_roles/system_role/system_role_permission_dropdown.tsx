@@ -2,13 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-
-import * as Utils from 'utils/utils';
 
 import {noAccess, writeAccess, readAccess, mixedAccess} from './types';
 import type {PermissionAccess, PermissionToUpdate, SystemSection, WriteAccess, NoAccess, ReadAccess, MixedAccess} from './types';
@@ -118,7 +116,7 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
             break;
         }
 
-        const ariaLabel = Utils.localizeMessage({id: 'admin.permissions.system_role_permissions.change_access', defaultMessage: 'Change role access on a system console section'});
+        const ariaLabel = defineMessage({id: 'admin.permissions.system_role_permissions.change_access', defaultMessage: 'Change role access on a system console section'});
         return (
             <MenuWrapper
                 isDisabled={isDisabled}

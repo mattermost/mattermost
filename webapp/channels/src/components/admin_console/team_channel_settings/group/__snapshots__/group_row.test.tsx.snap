@@ -72,7 +72,12 @@ exports[`admin_console/team_channel_settings/group/GroupRow should match snapsho
           </a>
         </div>
         <Menu
-          ariaLabel="Member Role"
+          ariaLabel={
+            Object {
+              "defaultMessage": "Member Role",
+              "id": "admin.team_channel_settings.group_row.memberRole",
+            }
+          }
           id="role-to-be-menu"
           openLeft={true}
           openUp={false}
@@ -81,7 +86,12 @@ exports[`admin_console/team_channel_settings/group/GroupRow should match snapsho
             id="role-to-be"
             onClick={[Function]}
             show={true}
-            text="Channel Admin"
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Channel Admin"
+                id="admin.team_channel_settings.group_row.channelAdmin"
+              />
+            }
           />
         </Menu>
       </MenuWrapper>
