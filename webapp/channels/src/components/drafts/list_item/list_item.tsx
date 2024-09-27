@@ -113,6 +113,8 @@ export default function DraftListItem({
     if (kind === 'draft') {
         const draft = item as PostDraft;
 
+        console.log(draft.fileInfos);
+
         timestamp = draft.updateAt;
         fileInfos = draft.fileInfos;
         uploadsInProgress = draft.uploadsInProgress;
@@ -129,6 +131,8 @@ export default function DraftListItem({
             panelClassName = 'scheduled_post_error';
             errorCode = scheduledPost.error_code;
         }
+
+        console.log(scheduledPost.metadata?.files, scheduledPost.file_ids);
     }
 
     return (
