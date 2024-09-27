@@ -230,6 +230,7 @@ export default function ChannelNotificationsModal(props: Props) {
             {desktopAndMobileSettingsDifferent && (
                 <>
                     <RadioSettingItem
+                        dataTestId='mobile-notify-me-radio-section'
                         title={formatMessage({
                             id: 'channel_notifications.NotifyMeTitle',
                             defaultMessage: 'Notify me about…',
@@ -240,6 +241,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
                     <CheckboxSettingItem
+                        dataTestId='mobile-reply-threads-checkbox-section'
                         title={formatMessage({
                             id: 'channel_notifications.ThreadsReplyTitle',
                             defaultMessage: 'Thread reply notifications',
