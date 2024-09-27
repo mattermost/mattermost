@@ -215,7 +215,9 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 
 	user := imports.UserImportData{
-		ProfileImage:       profileImage,
+		Avatar: imports.Avatar{
+			ProfileImage: profileImage,
+		},
 		Username:           &username,
 		Email:              &email,
 		Password:           &password,

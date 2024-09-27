@@ -623,41 +623,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		savedUser = user
 	}
 
-	if data.ProfileImage != nil {
-		var file io.ReadSeeker
-		var err error
-		if data.ProfileImageData != nil {
-			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
-			var f io.ReadCloser
-			f, err = data.ProfileImageData.Open()
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
-			} else {
-				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
-				var b []byte
-				b, err = io.ReadAll(limitedReader)
-				if err != nil {
-					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
-				} else {
-					file = bytes.NewReader(b)
-				}
-			}
-		} else {
-			file, err = os.Open(*data.ProfileImage)
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-			} else {
-				defer file.(*os.File).Close()
-			}
-		}
-
-		if file != nil {
-			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
-			}
-			if err := a.SetProfileImageFromFile(rctx, savedUser.Id, file); err != nil {
-				rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
-			}
+	if data.Avatar.ProfileImage != nil {
+		appErr := a.importProfileImage(rctx, savedUser.Id, &data.Avatar)
+		if appErr != nil {
+			return appErr
 		}
 	}
 
@@ -827,18 +796,14 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 
 	bot.Username = *data.Username
 
-	if data.Description != nil {
-		if bot.Description != *data.Description {
-			bot.Description = *data.Description
-			hasBotChanged = true
-		}
+	if data.Description != nil && bot.Description != *data.Description {
+		bot.Description = *data.Description
+		hasBotChanged = true
 	}
 
-	if data.DisplayName != nil {
-		if bot.DisplayName != *data.DisplayName {
-			bot.DisplayName = *data.DisplayName
-			hasBotChanged = true
-		}
+	if data.DisplayName != nil && bot.DisplayName != *data.DisplayName {
+		bot.DisplayName = *data.DisplayName
+		hasBotChanged = true
 	}
 
 	var owner *model.User
@@ -887,41 +852,50 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 		savedBot = bot
 	}
 
-	if data.ProfileImage != nil {
-		var file io.ReadSeeker
-		var err error
-		if data.ProfileImageData != nil {
-			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
-			var f io.ReadCloser
-			f, err = data.ProfileImageData.Open()
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
-			} else {
-				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
-				var b []byte
-				b, err = io.ReadAll(limitedReader)
-				if err != nil {
-					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
-				} else {
-					file = bytes.NewReader(b)
-				}
-			}
+	if data.Avatar.ProfileImage != nil {
+		appErr := a.importProfileImage(rctx, savedBot.UserId, &data.Avatar)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
+func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.Avatar) *model.AppError {
+	var file io.ReadSeeker
+	var err error
+	if data.ProfileImageData != nil {
+		// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
+		var f io.ReadCloser
+		f, err = data.ProfileImageData.Open()
+		if err != nil {
+			rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
 		} else {
-			file, err = os.Open(*data.ProfileImage)
+			limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+			var b []byte
+			b, err = io.ReadAll(limitedReader)
 			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
+				rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
 			} else {
-				defer file.(*os.File).Close()
+				file = bytes.NewReader(b)
 			}
 		}
+	} else {
+		file, err = os.Open(*data.ProfileImage)
+		if err != nil {
+			rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
+		} else {
+			defer file.(*os.File).Close()
+		}
+	}
 
-		if file != nil {
-			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
-			}
-			if err := a.SetProfileImageFromFile(rctx, savedBot.UserId, file); err != nil {
-				rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
-			}
+	if file != nil {
+		if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+			return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+		}
+		if err := a.SetProfileImageFromFile(rctx, userID, file); err != nil {
+			rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
 		}
 	}
 

@@ -192,6 +192,8 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
+		} else if err != nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
@@ -315,6 +317,8 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 func ValidateBotImportData(data *BotImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
+		} else if err != nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}

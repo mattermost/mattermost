@@ -55,24 +55,28 @@ type ChannelImportData struct {
 	DeletedAt   *int64             `json:"deleted_at,omitempty"`
 }
 
+type Avatar struct {
+	ProfileImage     *string   `json:"profile_image,omitempty"`
+	ProfileImageData *zip.File `json:"-"`
+}
+
 type UserImportData struct {
-	ProfileImage       *string   `json:"profile_image,omitempty"`
-	ProfileImageData   *zip.File `json:"-"`
-	Username           *string   `json:"username"`
-	Email              *string   `json:"email"`
-	AuthService        *string   `json:"auth_service"`
-	AuthData           *string   `json:"auth_data,omitempty"`
-	Password           *string   `json:"password,omitempty"`
-	Nickname           *string   `json:"nickname"`
-	FirstName          *string   `json:"first_name"`
-	LastName           *string   `json:"last_name"`
-	Position           *string   `json:"position"`
-	Roles              *string   `json:"roles"`
-	Locale             *string   `json:"locale"`
-	UseMarkdownPreview *string   `json:"feature_enabled_markdown_preview,omitempty"`
-	UseFormatting      *string   `json:"formatting,omitempty"`
-	ShowUnreadSection  *string   `json:"show_unread_section,omitempty"`
-	DeleteAt           *int64    `json:"delete_at,omitempty"`
+	Avatar
+	Username           *string `json:"username"`
+	Email              *string `json:"email"`
+	AuthService        *string `json:"auth_service"`
+	AuthData           *string `json:"auth_data,omitempty"`
+	Password           *string `json:"password,omitempty"`
+	Nickname           *string `json:"nickname"`
+	FirstName          *string `json:"first_name"`
+	LastName           *string `json:"last_name"`
+	Position           *string `json:"position"`
+	Roles              *string `json:"roles"`
+	Locale             *string `json:"locale"`
+	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview,omitempty"`
+	UseFormatting      *string `json:"formatting,omitempty"`
+	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
+	DeleteAt           *int64  `json:"delete_at,omitempty"`
 
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
@@ -91,13 +95,12 @@ type UserImportData struct {
 }
 
 type BotImportData struct {
-	Username         *string   `json:"username"`
-	Owner            *string   `json:"owner"`
-	DisplayName      *string   `json:"display_name"`
-	Description      *string   `json:"description,omitempty"`
-	DeleteAt         *int64    `json:"delete_at,omitempty"`
-	ProfileImage     *string   `json:"profile_image,omitempty"`
-	ProfileImageData *zip.File `json:"-"`
+	Avatar
+	Username    *string `json:"username"`
+	Owner       *string `json:"owner"`
+	DisplayName *string `json:"display_name"`
+	Description *string `json:"description,omitempty"`
+	DeleteAt    *int64  `json:"delete_at,omitempty"`
 }
 
 type UserNotifyPropsImportData struct {

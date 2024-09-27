@@ -508,8 +508,10 @@ func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, i
 	cnt := 0
 	profilePictures := []string{}
 
+	const pageSize = 1000
+
 	for {
-		bots, err := a.Srv().Store().Bot().GetAllAfter(1000, afterId)
+		bots, err := a.Srv().Store().Bot().GetAllAfter(pageSize, afterId)
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -551,7 +553,7 @@ func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, i
 			}
 		}
 
-		if len(bots) < 1000 {
+		if len(bots) < pageSize {
 			break
 		}
 	}
