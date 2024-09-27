@@ -17368,7 +17368,7 @@ func (a *OpenTracingAppLayer) SwitchOAuthToEmail(c request.CTX, email string, pa
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SyncLdap(c request.CTX, includeRemovedMembers bool) {
+func (a *OpenTracingAppLayer) SyncLdap(rctx request.CTX, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
@@ -17380,7 +17380,7 @@ func (a *OpenTracingAppLayer) SyncLdap(c request.CTX, includeRemovedMembers bool
 	}()
 
 	defer span.Finish()
-	a.app.SyncLdap(c, includeRemovedMembers)
+	a.app.SyncLdap(rctx, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
