@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classnames from 'classnames';
 import type {Moment} from 'moment-timezone';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
@@ -31,6 +32,8 @@ type Props = {
     bodyPrefix?: React.ReactNode;
     bodySuffix?: React.ReactNode;
     relativeDate?: boolean;
+    className?: string;
+    errorText?: string | React.ReactNode;
 };
 
 export default function DateTimePickerModal({onExited,
@@ -46,6 +49,8 @@ export default function DateTimePickerModal({onExited,
     bodyPrefix,
     bodySuffix,
     relativeDate,
+    className,
+    errorText,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
@@ -91,11 +96,12 @@ export default function DateTimePickerModal({onExited,
             handleConfirm={handleConfirm}
             handleCancel={onCancel}
             handleEnterKeyPress={handleConfirm}
-            className={'date-time-picker-modal'}
+            className={classnames('date-time-picker-modal', className)}
             compassDesign={true}
             keyboardEscape={false}
             cancelButtonText={cancelButtonText}
             autoCloseOnConfirmButton={false}
+            errorText={errorText}
         >
             {bodyPrefix}
 

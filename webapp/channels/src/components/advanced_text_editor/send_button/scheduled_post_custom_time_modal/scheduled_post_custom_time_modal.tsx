@@ -52,12 +52,6 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
                     channelId={channelId}
                     selectedTime={selectedDateTime?.toDate()}
                 />
-                {
-                    errorMessage &&
-                    <p className='error'>
-                        {errorMessage}
-                    </p>
-                }
             </React.Fragment>
         );
     }, [channelId, selectedDateTime, errorMessage]);
@@ -66,6 +60,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     return (
         <DateTimePickerModal
+            className='scheduled_post_custom_time_modal'
             initialTime={selectedDateTime}
             header={
                 <FormattedMessage
@@ -93,6 +88,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             bodySuffix={bodySuffix}
             relativeDate={true}
             onCancel={onExited}
+            errorText={errorMessage}
         />
     );
 }

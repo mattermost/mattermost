@@ -9,7 +9,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost, ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
+import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 
 import {getConnectionId} from 'selectors/general';
 
@@ -73,7 +73,7 @@ export default function DraftListItem({
         />
     ), [channel.display_name, channel.name, channel.type, handleOnDelete, handleOnEdit, handleOnSend, itemId, user.id]);
 
-    const handleOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+    const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
         const updatedScheduledPost: ScheduledPost = {
             ...(item as ScheduledPost),
             scheduled_at: updatedScheduledAtTime,
@@ -85,12 +85,20 @@ export default function DraftListItem({
         };
     }, [connectionId, dispatch, item]);
 
+    const handleSchedulePostOnDelete = useCallback(async () => {
+        const scheduledPostId = (item as ScheduledPost).id;
+        const result = await dispatch(deleteScheduledPost(scheduledPostId, connectionId));
+        return {
+            error: result.error?.message,
+        };
+    }, [item, dispatch, connectionId]);
+
     const scheduledPostActions = useMemo(() => (
         <ScheduledPostActions
             scheduledPost={item as ScheduledPost}
             channelDisplayName={channel.display_name}
-            onReschedule={handleOnReschedule}
-            onDelete={() => {}}
+            onReschedule={handleSchedulePostOnReschedule}
+            onDelete={handleSchedulePostOnDelete}
             onSend={() => {}}
         />
     ), [channel.display_name, item]);

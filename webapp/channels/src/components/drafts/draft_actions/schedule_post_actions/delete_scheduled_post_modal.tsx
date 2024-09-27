@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import noop from 'lodash/noop';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
 type Props = {
     channelDisplayName: string;
-    onConfirm: () => void;
+    onConfirm: () => Promise<{error?: string}>;
     onExited: () => void;
 }
 
@@ -19,6 +19,7 @@ export default function DeleteScheduledPostModal({
     onConfirm,
 }: Props) {
     const {formatMessage} = useIntl();
+    const [errorMessage, setErrorMessage] = useState<string>();
 
     const title = formatMessage({
         id: 'scheduled_post.delete_modal.title',
@@ -31,26 +32,40 @@ export default function DeleteScheduledPostModal({
     });
 
     const message = (
-        <FormattedMessage
-            id={'scheduled_post.delete_modal.body'}
-            defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
-            values={{
-                strong: (chunk: string) => <strong>{chunk}</strong>,
-                displayName: channelDisplayName,
-            }}
-        />
+        <React.Fragment>
+            <FormattedMessage
+                id={'scheduled_post.delete_modal.body'}
+                defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
+                values={{
+                    strong: (chunk: string) => <strong>{chunk}</strong>,
+                    displayName: channelDisplayName,
+                }}
+            />
+        </React.Fragment>
     );
+
+    const handleOnConfirm = useCallback(async () => {
+        const response = await onConfirm();
+        if (response.error) {
+            setErrorMessage(response.error);
+        } else {
+            onExited();
+        }
+    }, [onConfirm, onExited]);
 
     return (
         <GenericModal
+            className='delete_scheduled_post_modal'
             confirmButtonText={confirmButtonText}
             handleCancel={noop}
-            handleConfirm={onConfirm}
+            handleConfirm={handleOnConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
             isDeleteModal={true}
             autoFocusConfirmButton={true}
+            autoCloseOnConfirmButton={false}
+            errorText={errorMessage}
         >
             {message}
         </GenericModal>

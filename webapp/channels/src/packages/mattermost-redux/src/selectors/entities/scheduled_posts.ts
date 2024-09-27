@@ -34,5 +34,5 @@ export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string,
 }
 
 export function hasScheduledPostError(state: GlobalState, teamId: string) {
-    return state.entities.scheduledPosts.errorsByTeamId[teamId] || state.entities.scheduledPosts.errorsByTeamId.directChannels;
+    return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }

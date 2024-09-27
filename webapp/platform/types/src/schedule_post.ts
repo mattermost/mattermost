@@ -20,6 +20,6 @@ export type ScheduledPostsState = {
         [teamId: string]: ScheduledPost[];
     };
     errorsByTeamId: {
-        [teamId: string]: boolean;
+        [teamId: string]: string[];
     };
 }
