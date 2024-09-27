@@ -109,7 +109,7 @@ const AdvancedTextEditor = ({
     const isRHS = Boolean(postId && !isThreadView);
 
     const currentUserId = useSelector(getCurrentUserId);
-    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, {id: channelId})?.display_name || '');
+    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, channelId)?.display_name || '');
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
@@ -254,7 +254,21 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+    const [handleSubmit, errorClass] = useSubmit(
+        draft,
+        postError,
+        channelId,
+        postId,
+        serverError,
+        lastBlurAt,
+        focusTextbox,
+        setServerError,
+        setShowPreview,
+        handleDraftChange,
+        prioritySubmitCheck,
+        undefined,
+        afterSubmit,
+    );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -272,6 +286,8 @@ const AdvancedTextEditor = ({
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
     );
+
+    const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -302,13 +318,6 @@ const AdvancedTextEditor = ({
             message,
         });
     }, [draft, handleDraftChange, serverError]);
-
-    const handleSubmitEvent = useCallback((e: React.FormEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        handleSubmit();
-    }, [handleSubmit]);
 
     /**
      * by getting the value directly from the textbox we eliminate all unnecessary
@@ -396,6 +405,7 @@ const AdvancedTextEditor = ({
     // Remove show preview when we switch channels or posts
     useEffect(() => {
         setShowPreview(false);
+        setServerError(null);
     }, [channelId, postId]);
 
     // Remove uploads in progress on mount
@@ -543,7 +553,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleSubmitEvent}
+            onSubmit={noArgumentHandleSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -668,7 +678,7 @@ const AdvancedTextEditor = ({
                     <MessageSubmitError
                         error={serverError}
                         submittedMessage={serverError.submittedMessage}
-                        handleSubmit={handleSubmitEvent}
+                        handleSubmit={noArgumentHandleSubmit}
                     />
                 )}
                 <MsgTyping

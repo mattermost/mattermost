@@ -378,9 +378,9 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, logerr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
-	if logerr != nil {
-		c.Err = logerr
+	logs, appErr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -388,11 +388,11 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var result interface{}
 	for node, logLines := range logs {
 		for _, log := range logLines {
-			err2 := json.Unmarshal([]byte(log), &result)
-			if err2 == nil {
-				logsJSON[node] = append(logsJSON[node], result)
+			err = json.Unmarshal([]byte(log), &result)
+			if err != nil {
+				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
 			} else {
-				c.Logger.Warn("Error parsing log line in Server Logs")
+				logsJSON[node] = append(logsJSON[node], result)
 			}
 		}
 	}

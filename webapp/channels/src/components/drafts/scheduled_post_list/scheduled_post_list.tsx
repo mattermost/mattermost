@@ -12,11 +12,12 @@ import {hasScheduledPostError} from 'mattermost-redux/selectors/entities/schedul
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import AlertBanner from 'components/alert_banner';
-import ScheduledPostItem from 'components/drafts/scheduled_post/scheduled_post';
 import NoScheduledPostsIllustration from 'components/drafts/scheduled_post_list/empty_scheduled_post_list_illustration';
 import NoResultsIndicator from 'components/no_results_indicator';
 
 import type {GlobalState} from 'types/store';
+
+import DraftRow from '../draft_row';
 
 import './style.scss';
 
@@ -27,7 +28,12 @@ type Props = {
     status: UserStatus['status'];
 }
 
-export default function ScheduledPostList({scheduledPosts, user, displayName}: Props) {
+export default function ScheduledPostList({
+    scheduledPosts,
+    user,
+    displayName,
+    status,
+}: Props) {
     const {formatMessage} = useIntl();
 
     const currentTeamId = useSelector(getCurrentTeamId);
@@ -50,13 +56,13 @@ export default function ScheduledPostList({scheduledPosts, user, displayName}: P
             }
 
             {
-                scheduledPosts.map((schedulePost) => (
-                    <ScheduledPostItem
-                        key={schedulePost.id}
-                        scheduledPost={schedulePost}
-                        user={user}
+                scheduledPosts.map((scheduledPost) => (
+                    <DraftRow
+                        key={scheduledPost.id}
+                        item={scheduledPost}
                         displayName={displayName}
                         status={status}
+                        user={user}
                     />
                 ))
             }

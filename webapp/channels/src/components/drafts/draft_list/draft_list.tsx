@@ -22,7 +22,7 @@ type Props = {
     className?: string;
 }
 
-export default function DraftList({drafts, user, displayName, draftRemotes, className}: Props) {
+export default function DraftList({drafts, user, displayName, draftRemotes, status, className}: Props) {
     const {formatMessage} = useIntl();
 
     return (
@@ -31,7 +31,7 @@ export default function DraftList({drafts, user, displayName, draftRemotes, clas
                 <DraftRow
                     key={d.key}
                     displayName={displayName}
-                    draft={d}
+                    item={d.value}
                     isRemote={draftRemotes?.[d.key]}
                     user={user}
                     status={status}

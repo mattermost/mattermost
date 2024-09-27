@@ -27,7 +27,7 @@ type SendButtonProps = {
 const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     const {formatMessage} = useIntl();
 
-    const sendMessage = useCallback((e?: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
+    const sendMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
         e?.stopPropagation();
         e?.preventDefault();
         handleSubmit(schedulingInfo);

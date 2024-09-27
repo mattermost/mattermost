@@ -31,7 +31,7 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {updateDraft, removeDraft} from 'actions/views/drafts';
+import {updateDraft} from 'actions/views/drafts';
 
 import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
@@ -58,7 +58,14 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft, afterSubmit?: (response: SubmitPostReturnType) => void, schedulingInfo?: SchedulingInfo): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+export function submitPost(
+    channelId: string,
+    rootId: string,
+    draft: PostDraft,
+    afterSubmit?: (response: SubmitPostReturnType) => void,
+    schedulingInfo?: SchedulingInfo,
+    afterOptimisticSubmit?: () => void,
+): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -124,7 +131,7 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft, 
             return dispatch(createSchedulePostFromDraft(scheduledPost));
         }
 
-        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit));
+        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, afterOptimisticSubmit));
     };
 }
 
@@ -168,50 +175,25 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => ActionFuncAsync<boolean, GlobalState> {
-    return (draft, options = {}) => async (dispatch, getState) => {
-        const {message} = draft;
-
-        dispatch(addMessageIntoHistory(message));
-
-        const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-        dispatch(removeDraft(key, channelId, rootId));
-
-        const isReaction = Utils.REACTION_PATTERN.exec(message);
-
-        const emojis = getCustomEmojisByName(getState());
-        const emojiMap = new EmojiMap(emojis);
-
-        if (isReaction && emojiMap.has(isReaction[2])) {
-            dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
-        } else if (message.indexOf('/') === 0 && !options.ignoreSlash) {
-            try {
-                await dispatch(submitCommand(channelId, rootId, draft));
-            } catch (err) {
-                dispatch(updateCommentDraft(rootId, draft, true));
-                throw err;
-            }
-        } else {
-            dispatch(submitPost(channelId, rootId, draft));
-        }
-        return {data: true};
-    };
-}
-
 export type SubmitPostReturnType = CreatePostReturnType & SubmitCommandRerturnType & SubmitReactionReturnType;
 export type OnSubmitOptions = {
     ignoreSlash?: boolean;
     afterSubmit?: (response: SubmitPostReturnType) => void;
-};
+    afterOptimisticSubmit?: () => void;
+}
 
-export function onSubmit(draft: PostDraft, options: OnSubmitOptions, schedulingInfo?: SchedulingInfo): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
+export function onSubmit(
+    draft: PostDraft,
+    options: OnSubmitOptions,
+    schedulingInfo?: SchedulingInfo,
+): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const {message, channelId, rootId} = draft;
         const state = getState();
 
         dispatch(addMessageIntoHistory(message));
 
-        if (!schedulingInfo) {
+        if (!schedulingInfo && !options.ignoreSlash) {
             const isReaction = Utils.REACTION_PATTERN.exec(message);
 
             const emojis = getCustomEmojisByName(state);
@@ -230,7 +212,7 @@ export function onSubmit(draft: PostDraft, options: OnSubmitOptions, schedulingI
             }
         }
 
-        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo));
+        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo, options.afterOptimisticSubmit));
     };
 }
 

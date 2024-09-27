@@ -17,6 +17,8 @@ describe('components/drafts/draft_actions', () => {
         onDelete: jest.fn(),
         onEdit: jest.fn(),
         onSend: jest.fn(),
+        canSend: true,
+        canEdit: true,
     };
 
     it('should match snapshot', () => {
