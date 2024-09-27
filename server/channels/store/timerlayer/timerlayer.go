@@ -7881,6 +7881,22 @@ func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, li
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetMobileSessionMetadata()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetMobileSessionMetadata", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
 	start := time.Now()
 

@@ -171,7 +171,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             <span className='resend-verification-wrapper'>
                 <LoadingWrapper
                     loading={this.state.showSpinner}
-                    text={Utils.localizeMessage('user.settings.general.sending', 'Sending')}
+                    text={Utils.localizeMessage({id: 'user.settings.general.sending', defaultMessage: 'Sending'})}
                 >
                     <a
                         onClick={() => {

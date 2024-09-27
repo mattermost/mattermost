@@ -221,7 +221,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                             <div className='user-groups-search'>
                                 <Input
                                     type='text'
-                                    placeholder={Utils.localizeMessage('search_bar.searchGroupMembers', 'Search group members')}
+                                    placeholder={Utils.localizeMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
                                     onChange={this.handleSearch}
                                     value={this.props.searchTerm}
                                     data-testid='searchInput'

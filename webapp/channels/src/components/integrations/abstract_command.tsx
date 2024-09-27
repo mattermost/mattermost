@@ -570,10 +570,10 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                     onChange={this.updateMethod}
                                 >
                                     <option value={REQUEST_POST}>
-                                        {Utils.localizeMessage('add_command.method.post', 'POST')}
+                                        {Utils.localizeMessage({id: 'add_command.method.post', defaultMessage: 'POST'})}
                                     </option>
                                     <option value={REQUEST_GET}>
-                                        {Utils.localizeMessage('add_command.method.get', 'GET')}
+                                        {Utils.localizeMessage({id: 'add_command.method.get', defaultMessage: 'GET'})}
                                     </option>
                                 </select>
                                 <div className='form__help'>
@@ -691,7 +691,7 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
+                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage({id: this.props.loading?.id ?? '', defaultMessage: this.props.loading?.defaultMessage as string})}
                                 onClick={this.handleSubmit}
                                 id='saveCommand'
                             >
