@@ -7,9 +7,7 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
-import type {ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 
-import ScheduledPostErrorCodeTag from 'components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
@@ -38,10 +36,18 @@ type Props = {
     timestamp: number;
     remote: boolean;
     title: React.ReactNode;
-    errorCode?: ScheduledPostErrorCode;
+    error?: string;
 };
 
-function PanelHeader({kind, actions, hover, timestamp, remote, title, errorCode}: Props) {
+function PanelHeader({
+    kind,
+    actions,
+    hover,
+    timestamp,
+    remote,
+    title,
+    error,
+}: Props) {
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -96,18 +102,21 @@ function PanelHeader({kind, actions, hover, timestamp, remote, title, errorCode}
                         }
                     </div>
 
-                    {
-                        kind === 'draft' &&
+                    {kind === 'draft' && !error && (
                         <Tag
                             variant={'danger'}
                             uppercase={true}
                             text={'draft'}
                         />
-                    }
-
-                    {
-                        kind === 'scheduledPost' && errorCode && <ScheduledPostErrorCodeTag errorCode={errorCode}/>
-                    }
+                    )}
+                    {error && (
+                        <Tag
+                            text={error}
+                            variant={'danger'}
+                            uppercase={true}
+                            icon={'alert-outline'}
+                        />
+                    )}
                 </div>
             </div>
         </header>

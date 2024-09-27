@@ -11,12 +11,16 @@ import './panel.scss';
 type Props = {
     children: ({hover}: {hover: boolean}) => React.ReactNode;
     onClick: () => void;
-    className?: string;
+    hasError: boolean;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
 
-function Panel({children, onClick, className}: Props) {
+function Panel({
+    children,
+    onClick,
+    hasError,
+}: Props) {
     const [hover, setHover] = useState(false);
 
     const handleMouseOver = () => {
@@ -35,7 +39,12 @@ function Panel({children, onClick, className}: Props) {
 
     return (
         <article
-            className={classNames('Panel', className)}
+            className={classNames(
+                'Panel',
+                {
+                    draftError: hasError,
+                },
+            )}
             onMouseOver={handleMouseOver}
             onClick={handleOnClick}
             onMouseLeave={handleMouseLeave}

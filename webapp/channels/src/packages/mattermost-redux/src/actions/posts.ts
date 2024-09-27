@@ -175,7 +175,11 @@ export type CreatePostReturnType = {
     error?: string;
 }
 
-export function createPost(post: Post, files: any[] = [], afterSubmit?: (response: any) => void): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+export function createPost(
+    post: Post,
+    files: any[] = [],
+    afterSubmit?: (response: any) => void,
+): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;

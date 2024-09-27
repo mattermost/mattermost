@@ -17,7 +17,7 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {scrollPostListToBottom} from 'actions/views/channel';
-import type {SubmitPostReturnType} from 'actions/views/create_comment';
+import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
@@ -58,11 +58,12 @@ const useSubmit = (
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
-    setPostError: (err: React.ReactNode) => void,
     setShowPreview: (showPreview: boolean) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
+    afterOptimisticSubmit?: () => void,
     afterSubmit?: (response: SubmitPostReturnType) => void,
+    skipCommands?: boolean,
 ): [
         (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
         string | null,
@@ -118,7 +119,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
+    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -134,6 +135,7 @@ const useSubmit = (
         }
 
         if (submittingDraft.message.trim().length === 0 && submittingDraft.fileInfos.length === 0) {
+            isDraftSubmitting.current = false;
             return;
         }
 
@@ -146,6 +148,7 @@ const useSubmit = (
         }
 
         if (serverError && !isErrorInvalidSlashCommand(serverError)) {
+            isDraftSubmitting.current = false;
             return;
         }
 
@@ -155,25 +158,25 @@ const useSubmit = (
 
         setServerError(null);
 
-        const ignoreSlash = isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message;
-        const options = {ignoreSlash, afterSubmit};
+        const ignoreSlash = skipCommands || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
+        const options: OnSubmitOptions = {ignoreSlash, afterSubmit, afterOptimisticSubmit};
 
         try {
-            const result = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
-            if (result.error && result.error.message) {
-                setPostError(result.error.message);
-            } else {
-                setServerError(null);
-                handleDraftChange({
-                    message: '',
-                    fileInfos: [],
-                    uploadsInProgress: [],
-                    createAt: 0,
-                    updateAt: 0,
-                    channelId,
-                    rootId: postId,
-                }, {instant: true});
+            const res = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+            if (res.error) {
+                throw res.error;
             }
+
+            setServerError(null);
+            handleDraftChange({
+                message: '',
+                fileInfos: [],
+                uploadsInProgress: [],
+                createAt: 0,
+                updateAt: 0,
+                channelId,
+                rootId: postId,
+            }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {
                 if (isErrorInvalidSlashCommand(err)) {
@@ -183,6 +186,8 @@ const useSubmit = (
                     ...err,
                     submittedMessage: submittingDraft.message,
                 });
+            } else {
+                setServerError(err as any);
             }
             isDraftSubmitting.current = false;
             return;
@@ -193,7 +198,22 @@ const useSubmit = (
         }
 
         isDraftSubmitting.current = false;
-    }, [handleDraftChange, dispatch, draft, focusTextbox, isRootDeleted, postError, serverError, showPostDeletedModal, channelId, postId, lastBlurAt, setPostError, setServerError, afterSubmit]);
+    }, [draft,
+        postError,
+        isRootDeleted,
+        serverError,
+        lastBlurAt,
+        focusTextbox,
+        setServerError,
+        skipCommands,
+        afterSubmit,
+        afterOptimisticSubmit,
+        postId,
+        showPostDeletedModal,
+        dispatch,
+        handleDraftChange,
+        channelId,
+    ]);
 
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
@@ -210,6 +230,10 @@ const useSubmit = (
 
     const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
         if (!channel) {
+            return;
+        }
+
+        if (isDraftSubmitting.current) {
             return;
         }
 
@@ -253,7 +277,7 @@ const useSubmit = (
             return;
         }
 
-        if (!schedulingInfo) {
+        if (!skipCommands && !schedulingInfo) {
             const status = getStatusFromSlashCommand(submittingDraft.message);
             if (userIsOutOfOffice && status) {
                 const resetStatusModalData = {
@@ -317,6 +341,7 @@ const useSubmit = (
         channelMembersCount,
         dispatch,
         enableConfirmNotificationsToChannel,
+        skipCommands,
         handleDraftChange,
         showNotifyAllModal,
         useChannelMentions,

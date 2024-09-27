@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
-
-import Tag from 'components/widgets/tag/tag';
 
 const errorCodeToErrorMessage = defineMessages<ScheduledPostErrorCode>({
     unknown: {
@@ -43,24 +41,6 @@ const errorCodeToErrorMessage = defineMessages<ScheduledPostErrorCode>({
     },
 });
 
-type Props = {
-    errorCode: ScheduledPostErrorCode;
-}
-
-export default function ScheduledPostErrorCodeTag({errorCode}: Props) {
-    const errorCodeTranslationID = errorCodeToErrorMessage[errorCode] || errorCodeToErrorMessage.unknown;
-
-    return (
-        <Tag
-            text={(
-                <FormattedMessage
-                    id={errorCodeTranslationID.id}
-                    defaultMessage={errorCodeTranslationID.defaultMessage}
-                />
-            )}
-            variant={'danger'}
-            uppercase={true}
-            icon='alert-outline'
-        />
-    );
+export function getErrorStringFromCode(intl: IntlShape, errorCode: ScheduledPostErrorCode = 'unknown') {
+    return intl.formatMessage(errorCodeToErrorMessage[errorCode]).toUpperCase();
 }

@@ -126,19 +126,9 @@ const useKeyHandler = (
         }
 
         if (allowSending && isValidPersistentNotifications) {
-            e.persist?.();
-
-            // textboxRef.current?.blur();
-
-            if (withClosedCodeBlock && message) {
-                handleSubmit({...draft, message});
-            } else {
-                handleSubmit();
-            }
-
-            // setTimeout(() => {
-            //     focusTextbox();
-            // });
+            e.preventDefault();
+            const updatedDraft = (withClosedCodeBlock && message) ? {...draft, message} : undefined;
+            handleSubmit(updatedDraft);
         }
 
         emitTypingEvent();

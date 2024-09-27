@@ -128,7 +128,12 @@ function addRecentEmojisForMessage(message: string): ActionFunc {
 }
 
 export type CreatePostAfterSubmitFunc = (response: SubmitPostReturnType) => void;
-export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePostAfterSubmitFunc): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+export function createPost(
+    post: Post,
+    files: FileInfo[],
+    afterSubmit?: (response: SubmitPostReturnType) => void,
+    afterOptimisticSubmit?: () => void,
+): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         dispatch(addRecentEmojisForMessage(post.message));
 
@@ -140,6 +145,7 @@ export function createPost(post: Post, files: FileInfo[], afterSubmit?: CreatePo
             dispatch(storeDraft(post.channel_id, null));
         }
 
+        afterOptimisticSubmit?.();
         return result;
     };
 }
