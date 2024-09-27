@@ -1595,7 +1595,16 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 // UpdateMembersRole updates all the members of teamID in the adminIDs string array to be admins and sets all other
 // users as not being admin.
 // It returns the list of userIDs whose roles got updated.
-func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error) {
+func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) (_ []*model.TeamMember, err error) {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// On MySQL it's not possible to update a table and select from it in the same query.
+	// A SELECT and a UPDATE query are needed.
+	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("TeamMembers").
@@ -1620,7 +1629,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*mo
 	}
 
 	var updatedMembers []*model.TeamMember
-	if err = s.GetMasterX().Select(&updatedMembers, query, args...); err != nil {
+	if err = transaction.Select(&updatedMembers, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get list of updated users")
 	}
 
@@ -1642,8 +1651,12 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*mo
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = transaction.Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to update TeamMembers")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return updatedMembers, nil

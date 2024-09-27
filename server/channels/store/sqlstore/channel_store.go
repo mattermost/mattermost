@@ -4176,7 +4176,16 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 // It returns the list of userIDs whose roles got updated.
 //
 // TODO: parameterize adminIDs
-func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) ([]*model.ChannelMember, error) {
+func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) (_ []*model.ChannelMember, err error) {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// On MySQL it's not possible to update a table and select from it in the same query.
+	// A SELECT and a UPDATE query are needed.
+	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("ChannelMembers").
@@ -4201,7 +4210,7 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 	}
 
 	var updatedMembers []*model.ChannelMember
-	if err = s.GetMasterX().Select(&updatedMembers, query, args...); err != nil {
+	if err = transaction.Select(&updatedMembers, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get list of updated users")
 	}
 
@@ -4223,8 +4232,12 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = transaction.Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to update ChannelMembers")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return updatedMembers, nil
