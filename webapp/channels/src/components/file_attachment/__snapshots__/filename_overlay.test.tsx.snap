@@ -35,7 +35,12 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
   <WithTooltip
     id="file-name__tooltip"
     placement="top"
-    title="Download"
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"
@@ -56,7 +61,12 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
   <WithTooltip
     id="file-name__tooltip"
     placement="top"
-    title="Download"
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"

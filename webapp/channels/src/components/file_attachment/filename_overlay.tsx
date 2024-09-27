@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -85,7 +86,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                 <div className={iconClass || 'post-image__name'}>
                     <WithTooltip
                         id='file-name__tooltip'
-                        title={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
+                        title={defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                         placement='top'
                     >
                         <ExternalLink
