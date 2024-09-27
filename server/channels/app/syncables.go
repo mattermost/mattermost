@@ -243,7 +243,7 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 		for _, member := range updatedMembers {
 			a.ClearSessionCacheForUser(member.UserId)
 
-			if appErr := a.sendUpdatedMemberRoleEvent(member); appErr != nil {
+			if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 				rctx.Logger().Warn("Error sending channel member updated websocket event", mlog.Err(appErr))
 			}
 		}
