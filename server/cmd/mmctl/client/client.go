@@ -159,4 +159,6 @@ type Client interface {
 	GetPreferenceByCategoryAndName(ctx context.Context, userId, category, preferenceName string) (*model.Preference, *model.Response, error)
 	UpdatePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
+	CreateDirectChannel(ctx context.Context, userId1, userId2 string) (*model.Channel, *model.Response, error)
+	GetMe(ctx context.Context, etag string) (*model.User, *model.Response, error)
 }

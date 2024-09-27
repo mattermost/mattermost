@@ -255,6 +255,10 @@ func (c *Client4) channelsRoute() string {
 	return "/channels"
 }
 
+func (c *Client4) directChannelRoute() string{
+	return "/channels/direct"
+}
+
 func (c *Client4) channelsForTeamRoute(teamId string) string {
 	return fmt.Sprintf(c.teamRoute(teamId) + "/channels")
 }
@@ -3032,6 +3036,26 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 	return ch, BuildResponse(r), nil
 }
 
+func (c *Client4) GetOrCreateDirectChannel( ctx context.Context, otherUserID string) (*Channel, *Response, error){
+
+	data,err := json.Marshal([]string{otherUserID})
+	if err!=nil{
+		return nil,nil, fmt.Errorf("could not decode post: %w", err)
+	}
+	r, err := c.DoAPIPost(ctx, c.directChannelRoute(), string(data))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *Channel
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("CreateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	channelJSON, err := json.Marshal(channel)
@@ -3108,7 +3132,17 @@ func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channe
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 string) (*Channel, *Response, error) {
-	requestBody := []string{userId1, userId2}
+	requestBody := []string{}
+
+	// when sending a direct message from mmctl, the sender's id is only gotten from app context info.
+	// Therefore let's add the ability for requestBody to contain a single item.
+	if userId1 != "" {
+		requestBody = append(requestBody, userId1)
+	}
+	if userId2!= "" {
+        requestBody = append(requestBody, userId2)
+    }
+
 	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/direct", ArrayToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
