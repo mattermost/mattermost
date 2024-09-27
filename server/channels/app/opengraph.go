@@ -149,14 +149,14 @@ func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 }
 
 func (a *App) parseOpenGraphFromOEmbed(requestURL string, body io.Reader) (*opengraph.OpenGraph, error) {
-	oEmbedResponse, err := oembed.ResponseFromJson(io.LimitReader(body, MaxOpenGraphResponseSize))
+	oEmbedResponse, err := oembed.ResponseFromJSON(io.LimitReader(body, MaxOpenGraphResponseSize))
 	if err != nil {
 		return nil, errors.Wrap(err, "parseOpenGraphFromOEmbed: Unable to parse oEmbed response")
 	}
 
 	og := &opengraph.OpenGraph{
 		Type:  "opengraph",
-		Title: oEmbedResponse.Title + " (oEmbed Edition)", // TODO remove this before merging the PR
+		Title: oEmbedResponse.Title,
 		URL:   requestURL,
 	}
 

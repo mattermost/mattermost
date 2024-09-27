@@ -36,7 +36,7 @@ type OEmbedResponse struct {
 	Height int `json:"height"`
 }
 
-func ResponseFromJson(r io.Reader) (*OEmbedResponse, error) {
+func ResponseFromJSON(r io.Reader) (*OEmbedResponse, error) {
 	var response OEmbedResponse
 
 	err := json.NewDecoder(r).Decode(&response)

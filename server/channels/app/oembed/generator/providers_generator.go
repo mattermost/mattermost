@@ -17,6 +17,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// To update the list of oEmbed providers that we support:
+// 1. Download the latest providers.json file from https://oembed.com/providers.json and place it in this folder
+// 2. If desired, update supportedProviders below to add the names of additional oEmbed providers that we want to use
+// 3. Run `go generate ./channels/app/oembed` from the server folder
+
 var (
 	// supportedProviders contains the names of all of the oEmbed providers that we currently support.
 	//
@@ -48,7 +53,7 @@ func main() {
 		panic(errors.Wrap(err, "Unable to read providers.json. Did you forget to put it next to providers_generator.go?"))
 	}
 
-	outputFile, err := os.Create("./providers.go")
+	outputFile, err := os.Create("./providers_gen.go")
 	if err != nil {
 		panic(errors.Wrap(err, "Unable to open output file"))
 	}
