@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"math"
 
@@ -21,6 +22,7 @@ func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("TestLogLeaveEvent", func(t *testing.T) { testLogLeaveEvent(t, rctx, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, rctx, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMembers", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, rctx, ss) })
+	t.Run("TestGetChannelsWithActivityDuring", func(t *testing.T) { testGetChannelsWithActivityDuring(t, rctx, ss) })
 	t.Run("TestPermanentDeleteBatch", func(t *testing.T) { testPermanentDeleteBatch(t, rctx, ss) })
 	t.Run("TestPermanentDeleteBatchForRetentionPolicies", func(t *testing.T) { testPermanentDeleteBatchForRetentionPolicies(t, rctx, ss) })
 	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, rctx, ss) })
@@ -79,6 +81,161 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
 	assert.NoError(t, err)
+}
+
+func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.Store) {
+	var channels []*model.Channel
+
+	// Need to wait to make sure channels and posts have nothing in them for this test.
+	time.Sleep(101 * time.Millisecond)
+
+	// create three test channels
+	ch1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Display " + model.NewId(),
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel1, err := ss.Channel().Save(rctx, ch1, -1)
+	require.NoError(t, err)
+	channels = append(channels, channel1)
+
+	// channel2 will have no activity until case 6 (shouldn't show up until then)
+	ch2 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Display " + model.NewId(),
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel2, err := ss.Channel().Save(rctx, ch2, -1)
+	require.NoError(t, err)
+	channels = append(channels, channel2)
+
+	// and two test users
+	user1 := model.User{
+		Email:    MakeEmail(),
+		Nickname: model.NewId(),
+		Username: model.NewUsername(),
+	}
+	userPtr, err := ss.User().Save(rctx, &user1)
+	require.NoError(t, err)
+	user1 = *userPtr
+
+	user2 := model.User{
+		Email:    MakeEmail(),
+		Nickname: model.NewId(),
+		Username: model.NewUsername(),
+	}
+	userPtr, err = ss.User().Save(rctx, &user2)
+	require.NoError(t, err)
+	user2 = *userPtr
+
+	now := model.GetMillis()
+	originalNow := now
+
+	// user2 joins channel2 before test
+	err = ss.ChannelMemberHistory().LogJoinEvent(user2.Id, channel2.Id, now-2000)
+	require.NoError(t, err)
+
+	// case 7: assert no activity for time period before channel activity
+	channelIds, err := ss.ChannelMemberHistory().GetChannelsWithActivityDuring(originalNow-100, originalNow)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
+
+	// case 1: user1 was in channel before period, doesn't show activity
+	err = ss.ChannelMemberHistory().LogJoinEvent(user1.Id, channel1.Id, now-1100)
+	require.NoError(t, err)
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now, now+1000)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
+
+	// case 2: user1 leaves, shows activity
+	err = ss.ChannelMemberHistory().LogLeaveEvent(user1.Id, channel1.Id, now+1)
+	require.NoError(t, err)
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now, now+1000)
+	require.NoError(t, err)
+	assert.Equal(t, channelIds, []string{channel1.Id})
+
+	// case 3: user1 joins, shows activity
+	err = ss.ChannelMemberHistory().LogJoinEvent(user1.Id, channel1.Id, now+2)
+	require.NoError(t, err)
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+2, now+1000)
+	require.NoError(t, err)
+	assert.Equal(t, channelIds, []string{channel1.Id})
+
+	// case 4: new post shows activity
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+3, now+1000)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
+
+	post := &model.Post{
+		ChannelId: channel1.Id,
+		Message:   "root post",
+		UserId:    user1.Id,
+		CreateAt:  now + 4,
+		UpdateAt:  now + 4,
+	}
+	post, err = ss.Post().Save(rctx, post)
+	require.NoError(t, err)
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+3, now+1000)
+	require.NoError(t, err)
+	assert.Equal(t, channelIds, []string{channel1.Id})
+
+	// case 5: update shows activity
+	// need to wait because update uses getMillis
+	time.Sleep(10 * time.Millisecond)
+	now = model.GetMillis()
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now-1, now+1000)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
+
+	newPost := post.Clone()
+	newPost.Message = "edited message"
+	post, err = ss.Post().Update(rctx, newPost, post)
+	require.NoError(t, err)
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now-1, now+1000)
+	require.NoError(t, err)
+	assert.Equal(t, channelIds, []string{channel1.Id})
+
+	// case 6: get both activity from posts and from join/leave;
+	//  - also, sql deduplicates two channel1 results (from post and channel history tables)
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+10, now+1000)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
+
+	post2 := &model.Post{
+		ChannelId: channel1.Id,
+		Message:   "root post",
+		UserId:    user1.Id,
+		CreateAt:  now + 11,
+		UpdateAt:  now + 11,
+	}
+	post2, err = ss.Post().Save(rctx, post2)
+	require.NoError(t, err)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(user1.Id, channel1.Id, now+12)
+	require.NoError(t, err)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(user2.Id, channel2.Id, now+13)
+	require.NoError(t, err)
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+10, now+1000)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, channelIds, []string{channel1.Id, channel2.Id})
+
+	// case 7: still no activity for period before tests
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(originalNow-100, originalNow)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
+
+	// case 8: no activity for period after tests
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+100, now+1000)
+	require.NoError(t, err)
+	assert.Empty(t, channelIds)
 }
 
 func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX, ss store.Store) {
