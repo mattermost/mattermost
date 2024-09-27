@@ -7,15 +7,10 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
-import type {
-    ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
-import {
-    SCHEDULED_POST_TIME_RANGES,
-    scheduledPostTimeFormat,
-} from '@mattermost/types/schedule_post';
+import type {ScheduledPostErrorCode} from '@mattermost/types/schedule_post';
 
 import ScheduledPostErrorCodeTag from 'components/drafts/scheduled_post_error_code_tag/scheduled_post_error_code_tag';
-import Timestamp from 'components/timestamp';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
@@ -27,6 +22,14 @@ const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     useTime: false,
     units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'],
 };
+
+export const SCHEDULED_POST_TIME_RANGES = [
+    RelativeRanges.TODAY_TITLE_CASE,
+    RelativeRanges.YESTERDAY_TITLE_CASE,
+    RelativeRanges.TOMORROW_TITLE_CASE,
+];
+
+export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
