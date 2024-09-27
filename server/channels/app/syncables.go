@@ -234,13 +234,13 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		var updatedMemers []*model.TeamMember
-		updatedMemers, err = a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
+		var updatedMembers []*model.TeamMember
+		updatedMembers, err = a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if err != nil {
 			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		for _, member := range updatedMemers {
+		for _, member := range updatedMembers {
 			a.ClearSessionCacheForUser(member.UserId)
 
 			if appErr := a.sendUpdatedMemberRoleEvent(member); appErr != nil {
@@ -248,13 +248,13 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 			}
 		}
 	case model.GroupSyncableTypeChannel:
-		var updatedMemers []*model.ChannelMember
-		updatedMemers, err = a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		var updatedMembers []*model.ChannelMember
+		updatedMembers, err = a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if err != nil {
 			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		for _, member := range updatedMemers {
+		for _, member := range updatedMembers {
 			a.ClearSessionCacheForUser(member.UserId)
 
 			if appErr := a.sendUpdateChannelMemberEvent(member); appErr != nil {
