@@ -142,82 +142,97 @@ describe('CRT Desktop notifications', () => {
 
     it('MM-T4417_2 Click on sameMobileSettingsDesktop and check if additional settings still appears', () => {
         cy.visit(testChannelUrl);
+
+        // # Open channel's notification preferences
         cy.uiOpenChannelMenu('Notification Preferences');
 
-        cy.get('#desktopNotification-mention').scrollIntoView().should('be.visible').click().then(() => {
-            cy.get('[data-testid="desktopReplyThreads"]').scrollIntoView().should('be.visible').click();
+        // * As per previous conditions the mobile and desktop settings should be the same
+        cy.get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().should('be.checked');
+
+        // * Verify that Notify me about section of mobile settings is not visible
+        cy.get('[data-testid="mobile-notify-me-radio-section"]').should('not.exist');
+
+        // # Now uncheck the sameMobileSettingsDesktop so that mobile and desktop settings are different
+        cy.get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().should('be.visible').click();
+
+        // * Verify that Notify me about section of mobile settings is visible
+        cy.get('[data-testid="mobile-notify-me-radio-section"]').should('be.visible').scrollIntoView().within(() => {
+            cy.findByText('Notify me about…').should('be.visible');
+
+            // # Click on mentions option
+            cy.get('[data-testid="MobileNotification-mention"]').should('be.visible').click();
         });
-        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
-        cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click().should('be.checked').then(() => {
-            cy.findByText('Notify me about…').should('not.be.visible');
+
+        // * Verify that Thread reply notifications section of mobile settings is visible
+        cy.get('[data-testid="mobile-reply-threads-checkbox-section"]').should('be.visible').scrollIntoView().within(() => {
+            cy.findByText('Notify me about replies to threads I’m following').should('be.visible');
         });
 
-        // check the box to see if the additional settings appears
-        cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click();
-        cy.get('.mm-modal-generic-section-item__title').should('be.visible').and('contain', 'Notify me about');
-
-        cy.get('#MobileNotification-all').should('be.visible').click();
-        cy.get('#MobileNotification-mention').should('be.visible').click().then(() => {
-            cy.get('[data-testid="mobileReplyThreads"]').should('be.visible').click();
-        });
-        cy.get('#MobileNotification-none').should('be.visible').click();
-
-        cy.get('[data-testid="autoFollowThreads"]').should('be.visible').click();
-
-        // # Save the changes
-        cy.findByText('Save').should('be.visible').click();
+        // # Close the modal
+        cy.get('body').type('{esc}');
     });
 
     it('MM-T4417_3 Trigger notifications only on mention replies when channel setting is unchecked', () => {
+        // # Visit the test channel
         cy.visit(testChannelUrl);
 
-        // Setup notification spy
-        spyNotificationAs('notifySpy', 'granted');
+        // # Setup notification spy
+        spyNotificationAs('notifySpy1', 'granted');
+
+        // # Open channel's notification preferences for test channel
         cy.uiOpenChannelMenu('Notification Preferences');
+
+        // # Select "Mentions, direct messages, and keywords only" as notify me about option
         cy.get('#desktopNotification-mention').scrollIntoView().should('be.visible').click();
+
+        // # Unselect "Notify me about replies to threads I’m following"
+        cy.get('[data-testid="desktopReplyThreads"]').scrollIntoView().should('be.visible').then(($el) => {
+            if ($el.is(':checked')) {
+                cy.wrap($el).click();
+            }
+        });
+
+        // # Select notification checkbox active
+        cy.get('[data-testid="desktopNotificationSoundsCheckbox"]').scrollIntoView().should('be.visible').then(($el) => {
+            if (!$el.is(':checked')) {
+                cy.wrap($el).click();
+            }
+        });
+
+        // # Select a notification sound from dropdown
+        cy.get('#desktopNotificationSoundsSelect').scrollIntoView().should('be.visible').click();
+        cy.findByText('Crackle').should('be.visible').click();
 
         // # Save the changes
         cy.findByText('Save').should('be.visible').click();
 
-        // # Post a root message as other user
-        cy.postMessageAs({sender, message: 'This is a not followed root message', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
-            // # Switch to town-square so that unread notifications in test channel may be triggered
-            cy.uiClickSidebarItem('town-square');
+        // # Go to the town-square channel
+        cy.visit(`/${testTeam.name}/channels/town-square`);
 
-            // # Post a message in unfollowed thread as another user
-            cy.postMessageAs({sender, message: 'This is a reply to the unfollowed thread', channelId: testChannelId, rootId: postId});
+        // # Post a root message as other user in the test channel
+        cy.postMessageAs({sender, message: 'This is the root message which will not have a at-mention in thread', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
+            // # Post a message in the thread without at-mention
+            cy.postMessageAs({sender, message: 'Reply without at-mention', channelId: testChannelId, rootId: postId}).then(() => {
+                // * Verify Notification stub was not called for threads which does not have at-mention as per channel settings
+                cy.get('@notifySpy1').should('not.be.called');
+            });
 
-            // * Verify stub was not called for unfollowed thread
-            cy.get('@notifySpy').should('not.be.called');
+            // # Cleanup
+            cy.apiDeletePost(postId);
         });
 
-        // # Visit channel
-        cy.visit(testChannelUrl);
+        // Setup another notification spy
+        spyNotificationAs('notifySpy2', 'granted');
 
-        // Setup notification spy
-        spyNotificationAs('notifySpy', 'granted');
+        // # Post another message in the test channel
+        cy.postMessageAs({sender, message: 'This is another root message which will have a at-mention in thread', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
+            const message = `Reply with at-mention @${receiver.username}`;
 
-        // # Post a message
-        cy.postMessage('Hi there, this is a root message');
-
-        // # Get post id of message
-        cy.getLastPostId().then((postId) => {
-            // # Switch to town-square so that unread notifications in test channel may be triggered
-            cy.uiClickSidebarItem('town-square');
-
-            // # Post a message in original thread as another user
-            cy.postMessageAs({sender, message: 'This is a reply to the root post', channelId: testChannelId, rootId: postId});
-
-            // * Verify stub was not called
-            cy.get('@notifySpy').should('not.be.called');
-
-            // # Post a mention message in original thread as another user
-            const message = `@${receiver.username} this is a mention to receiver`;
-
+            // # Post a message in the thread with at-mention
             cy.postMessageAs({sender, message, channelId: testChannelId, rootId: postId});
 
-            // * Verify stub was called with correct title and body
-            cy.get('@notifySpy').should('have.been.calledWithMatch', `Reply in ${testChannelName}`, (args) => {
+            // * Verify Notification stub was called with correct title and body with at-mention as per channel settings
+            cy.get('@notifySpy2').should('have.been.calledWithMatch', `Reply in ${testChannelName}`, (args) => {
                 expect(args.body, `Notification body: "${args.body}" should match: "${message}"`).to.equal(`@${sender.username}: ${message}`);
                 return true;
             });
