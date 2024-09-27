@@ -121,13 +121,16 @@ func postCreateDMCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	me,_, err := c.GetMe(ctx, "")
-
+	if err!=nil{
+		return fmt.Errorf("could not get current user: %s", err.Error())
+	}
+	
 	otherUser, err := getUserFromArg(c, args[0])
 	if err != nil {
 		return fmt.Errorf("could not find user: %s", err.Error())
 	}
 
-	directChannel,_, err := c.CreateDirectChannel(ctx, otherUser.Id,me.Id)
+	directChannel,_, err := c.CreateDirectChannel(ctx, otherUser.Id, me.Id)
 	if err != nil {
 		return fmt.Errorf("could not create direct channel:  %w", err)
 	}
