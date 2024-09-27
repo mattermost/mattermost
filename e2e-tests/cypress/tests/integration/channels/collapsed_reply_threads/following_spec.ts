@@ -275,13 +275,3 @@ function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> {
         }
     });
 }
-
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace Cypress {
-        interface Chainable {
-            postMessageWithReply: typeof postMessageWithReply;
-            scrollThreadsListToEnd: typeof scrollThreadsListToEnd;
-        }
-    }
-}
