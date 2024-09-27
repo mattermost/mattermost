@@ -51,7 +51,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       <span
                         className="option_forever"
                       >
-                        Keep forever
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
                       </span>
                     </div>,
                     "value": "FOREVER",
@@ -81,7 +84,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       "label": <span
                         className="option_hours"
                       >
-                        Hours
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Hours"
+                          id="admin.data_retention.form.hours"
+                        />
                       </span>,
                       "value": "HOURS",
                     },
@@ -89,7 +95,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       "label": <span
                         className="option_days"
                       >
-                        Days
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Days"
+                          id="admin.data_retention.form.days"
+                        />
                       </span>,
                       "value": "DAYS",
                     },
@@ -97,7 +106,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       "label": <span
                         className="option_years"
                       >
-                        Years
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Years"
+                          id="admin.data_retention.form.years"
+                        />
                       </span>,
                       "value": "YEARS",
                     },
@@ -109,7 +121,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                         <span
                           className="option_forever"
                         >
-                          Keep forever
+                          <Memo(MemoizedFormattedMessage)
+                            defaultMessage="Keep forever"
+                            id="admin.data_retention.form.keepForever"
+                          />
                         </span>
                       </div>,
                       "value": "FOREVER",
@@ -127,7 +142,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     "label": <span
                       className="option_days"
                     >
-                      Days
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Days"
+                        id="admin.data_retention.form.days"
+                      />
                     </span>,
                     "value": "DAYS",
                   }
@@ -148,7 +166,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       <span
                         className="option_forever"
                       >
-                        Keep forever
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
                       </span>
                     </div>,
                     "value": "FOREVER",
@@ -178,7 +199,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       "label": <span
                         className="option_hours"
                       >
-                        Hours
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Hours"
+                          id="admin.data_retention.form.hours"
+                        />
                       </span>,
                       "value": "HOURS",
                     },
@@ -186,7 +210,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       "label": <span
                         className="option_days"
                       >
-                        Days
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Days"
+                          id="admin.data_retention.form.days"
+                        />
                       </span>,
                       "value": "DAYS",
                     },
@@ -194,7 +221,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                       "label": <span
                         className="option_years"
                       >
-                        Years
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Years"
+                          id="admin.data_retention.form.years"
+                        />
                       </span>,
                       "value": "YEARS",
                     },
@@ -206,7 +236,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                         <span
                           className="option_forever"
                         >
-                          Keep forever
+                          <Memo(MemoizedFormattedMessage)
+                            defaultMessage="Keep forever"
+                            id="admin.data_retention.form.keepForever"
+                          />
                         </span>
                       </div>,
                       "value": "FOREVER",
@@ -224,7 +257,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     "label": <span
                       className="option_days"
                     >
-                      Days
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Days"
+                        id="admin.data_retention.form.days"
+                      />
                     </span>,
                     "value": "DAYS",
                   }

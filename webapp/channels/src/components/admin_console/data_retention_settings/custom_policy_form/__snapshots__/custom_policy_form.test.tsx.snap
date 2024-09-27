@@ -79,7 +79,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     <span
                       className="option_forever"
                     >
-                      Keep forever
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Keep forever"
+                        id="admin.data_retention.form.keepForever"
+                      />
                     </span>
                   </div>,
                   "value": "FOREVER",
@@ -109,7 +112,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     "label": <span
                       className="option_days"
                     >
-                      Days
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Days"
+                        id="admin.data_retention.form.days"
+                      />
                     </span>,
                     "value": "DAYS",
                   },
@@ -117,7 +123,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     "label": <span
                       className="option_years"
                     >
-                      Years
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Years"
+                        id="admin.data_retention.form.years"
+                      />
                     </span>,
                     "value": "YEARS",
                   },
@@ -129,7 +138,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                       <span
                         className="option_forever"
                       >
-                        Keep forever
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
                       </span>
                     </div>,
                     "value": "FOREVER",
@@ -151,7 +163,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     <span
                       className="option_forever"
                     >
-                      Keep forever
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Keep forever"
+                        id="admin.data_retention.form.keepForever"
+                      />
                     </span>
                   </div>,
                   "value": "FOREVER",
@@ -346,7 +361,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     <span
                       className="option_forever"
                     >
-                      Keep forever
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Keep forever"
+                        id="admin.data_retention.form.keepForever"
+                      />
                     </span>
                   </div>,
                   "value": "FOREVER",
@@ -376,7 +394,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     "label": <span
                       className="option_days"
                     >
-                      Days
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Days"
+                        id="admin.data_retention.form.days"
+                      />
                     </span>,
                     "value": "DAYS",
                   },
@@ -384,7 +405,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     "label": <span
                       className="option_years"
                     >
-                      Years
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Years"
+                        id="admin.data_retention.form.years"
+                      />
                     </span>,
                     "value": "YEARS",
                   },
@@ -396,7 +420,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                       <span
                         className="option_forever"
                       >
-                        Keep forever
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
                       </span>
                     </div>,
                     "value": "FOREVER",
@@ -414,7 +441,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   "label": <span
                     className="option_days"
                   >
-                    Days
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Days"
+                      id="admin.data_retention.form.days"
+                    />
                   </span>,
                   "value": "DAYS",
                 }

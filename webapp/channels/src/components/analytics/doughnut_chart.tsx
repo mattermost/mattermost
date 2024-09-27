@@ -5,7 +5,10 @@ import type {ChartData} from 'chart.js';
 import Chart from 'chart.js/auto';
 import deepEqual from 'fast-deep-equal';
 import React, {useEffect, useRef} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
+
+import {formatAsString} from 'utils/i18n';
 
 type Props = {
     title: React.ReactNode;
@@ -15,6 +18,8 @@ type Props = {
 };
 
 const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
+    const intl = useIntl();
+
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const chartRef = useRef<Chart<'doughnut'> | null>(null);
 
@@ -29,19 +34,22 @@ const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
             return;
         }
 
+        const translatedData = JSON.parse(JSON.stringify(data));
+        translatedData.labels = translatedData.labels?.map((message: MessageDescriptor) => formatAsString(intl.formatMessage, message));
+
         if (chartRef.current) {
-            if (!deepEqual(chartRef.current.data, data)) {
-                chartRef.current.data = JSON.parse(JSON.stringify(data));
+            if (!deepEqual(chartRef.current.data, translatedData)) {
+                chartRef.current.data = translatedData;
                 chartRef.current.update();
             }
         } else {
             chartRef.current = new Chart(ctx, {
                 type: 'doughnut',
-                data: JSON.parse(JSON.stringify(data)),
+                data: translatedData,
                 options: {},
             });
         }
-    }, [data]);
+    }, [data, intl]);
 
     useEffect(() => {
         return () => {
