@@ -237,16 +237,24 @@ word
             onChange={[Function]}
             value={0}
           >
-            <option
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "First word matches a trigger word exactly",
+                  "id": "add_outgoing_webhook.triggerWordsTriggerWhenFullWord",
+                }
+              }
               value="0"
-            >
-              First word matches a trigger word exactly
-            </option>
-            <option
+            />
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "First word starts with a trigger word",
+                  "id": "add_outgoing_webhook.triggerWordsTriggerWhenStartsWith",
+                }
+              }
               value="1"
-            >
-              First word starts with a trigger word
-            </option>
+            />
           </select>
           <div
             className="form__help"

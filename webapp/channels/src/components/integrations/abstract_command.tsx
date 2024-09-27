@@ -12,11 +12,11 @@ import type {Team} from '@mattermost/types/teams';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
+import LocalizedOption from 'components/localized_option';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SpinnerButton from 'components/spinner_button';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import OAuthConnectionAudienceInput from './outgoing_oauth_connections/oauth_connection_audience_input';
 
@@ -568,12 +568,14 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                     value={this.state.method}
                                     onChange={this.updateMethod}
                                 >
-                                    <option value={REQUEST_POST}>
-                                        {Utils.localizeMessage({id: 'add_command.method.post', defaultMessage: 'POST'})}
-                                    </option>
-                                    <option value={REQUEST_GET}>
-                                        {Utils.localizeMessage({id: 'add_command.method.get', defaultMessage: 'GET'})}
-                                    </option>
+                                    <LocalizedOption
+                                        text={defineMessage({id: 'add_command.method.post', defaultMessage: 'POST'})}
+                                        value={REQUEST_POST}
+                                    />
+                                    <LocalizedOption
+                                        text={defineMessage({id: 'add_command.method.get', defaultMessage: 'GET'})}
+                                        value={REQUEST_GET}
+                                    />
                                 </select>
                                 <div className='form__help'>
                                     <FormattedMessage

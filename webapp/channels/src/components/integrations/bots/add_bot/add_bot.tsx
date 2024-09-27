@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, FormEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot, BotPatch} from '@mattermost/types/bots';
@@ -17,6 +17,7 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
+import LocalizedOption from 'components/localized_option';
 import SpinnerButton from 'components/spinner_button';
 import WithTooltip from 'components/with_tooltip';
 
@@ -605,16 +606,14 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     disabled={!this.props.editingUserHasManageSystem}
                                     onChange={this.updateRole}
                                 >
-                                    <option
+                                    <LocalizedOption
+                                        text={defineMessage({id: 'bot.add.role.member', defaultMessage: 'Member'})}
                                         value={roleOptionMember}
-                                    >
-                                        {Utils.localizeMessage({id: 'bot.add.role.member', defaultMessage: 'Member'})}
-                                    </option>
-                                    <option
+                                    />
+                                    <LocalizedOption
+                                        text={defineMessage({id: 'bot.add.role.admin', defaultMessage: 'System Admin'})}
                                         value={roleOptionSystemAdmin}
-                                    >
-                                        {Utils.localizeMessage({id: 'bot.add.role.admin', defaultMessage: 'System Admin'})}
-                                    </option>
+                                    />
                                 </select>
                                 <div className='form__help'>
                                     <FormattedMessage

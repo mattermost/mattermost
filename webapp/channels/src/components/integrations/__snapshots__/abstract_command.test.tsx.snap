@@ -228,16 +228,24 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             onChange={[Function]}
             value="G"
           >
-            <option
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "POST",
+                  "id": "add_command.method.post",
+                }
+              }
               value="P"
-            >
-              POST
-            </option>
-            <option
+            />
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "GET",
+                  "id": "add_command.method.get",
+                }
+              }
               value="G"
-            >
-              GET
-            </option>
+            />
           </select>
           <div
             className="form__help"
@@ -711,16 +719,24 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             onChange={[Function]}
             value="G"
           >
-            <option
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "POST",
+                  "id": "add_command.method.post",
+                }
+              }
               value="P"
-            >
-              POST
-            </option>
-            <option
+            />
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "GET",
+                  "id": "add_command.method.get",
+                }
+              }
               value="G"
-            >
-              GET
-            </option>
+            />
           </select>
           <div
             className="form__help"
@@ -1189,16 +1205,24 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             onChange={[Function]}
             value="G"
           >
-            <option
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "POST",
+                  "id": "add_command.method.post",
+                }
+              }
               value="P"
-            >
-              POST
-            </option>
-            <option
+            />
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "GET",
+                  "id": "add_command.method.get",
+                }
+              }
               value="G"
-            >
-              GET
-            </option>
+            />
           </select>
           <div
             className="form__help"

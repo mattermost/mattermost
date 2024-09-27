@@ -191,16 +191,24 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             onChange={[Function]}
             value="Member"
           >
-            <option
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "Member",
+                  "id": "bot.add.role.member",
+                }
+              }
               value="Member"
-            >
-              Member
-            </option>
-            <option
+            />
+            <LocalizedOption
+              text={
+                Object {
+                  "defaultMessage": "System Admin",
+                  "id": "bot.add.role.admin",
+                }
+              }
               value="System Admin"
-            >
-              System Admin
-            </option>
+            />
           </select>
           <div
             className="form__help"
