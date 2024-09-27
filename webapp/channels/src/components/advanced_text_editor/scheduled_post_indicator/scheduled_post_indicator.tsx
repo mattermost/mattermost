@@ -27,7 +27,9 @@ type Props = {
 export default function ScheduledPostIndicator({location, channelId, postId}: Props) {
     // we use RHS_COMMENT for RHS and threads view, and CENTER for center channel.
     // get scheduled posts of a thread if in RHS or threads view,
-    // else, get those for the channel
+    // else, get those for the channel.
+    // Fetch scheduled posts for the thread when opening a thread, and fetch for channel
+    // when opening from center channel.
     const id = location === Locations.RHS_COMMENT ? postId : channelId;
     const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, id));
     const match: match<{team: string}> = useRouteMatch();
@@ -41,6 +43,7 @@ export default function ScheduledPostIndicator({location, channelId, postId}: Pr
         </NavLink>
     ), [match]);
 
+    // display scheduled post's details of there is only one scheduled post
     if (scheduledPostData.count === 1 && scheduledPostData.scheduledPost) {
         return (
             <div className='ScheduledPostIndicator'>
@@ -68,6 +71,7 @@ export default function ScheduledPostIndicator({location, channelId, postId}: Pr
         );
     }
 
+    // display scheduled post count if there are more than one scheduled post
     if (scheduledPostData.count > 1) {
         return (
             <div className='ScheduledPostIndicator'>
@@ -87,5 +91,7 @@ export default function ScheduledPostIndicator({location, channelId, postId}: Pr
             </div>
         );
     }
+
+    // display nothing if there are no scheduled posts
     return null;
 }
