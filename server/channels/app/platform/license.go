@@ -227,7 +227,16 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 		ps.licenseValue.Store(license)
 
 		ps.clientLicenseValue.Store(utils.GetClientLicense(license))
+
+		if oldLicense == nil || oldLicense.Id != license.Id {
+			ps.logLicense("Set license", license)
+		}
+
 		return true
+	}
+
+	if oldLicense != nil {
+		ps.logLicense("Cleared license", oldLicense)
 	}
 
 	ps.licenseValue.Store((*model.License)(nil))
@@ -343,4 +352,21 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 
 func (ps *PlatformService) getRequestTrialURL() string {
 	return fmt.Sprintf("%s/api/v1/trials", *ps.Config().CloudSettings.CWSURL)
+}
+
+func (ps *PlatformService) logLicense(message string, license *model.License) {
+	ps.logger.Info(
+		message,
+		mlog.String("id", license.Id),
+		mlog.Time("issued_at", model.GetTimeForMillis(license.IssuedAt)),
+		mlog.Time("starts_at", model.GetTimeForMillis(license.StartsAt)),
+		mlog.Time("expires_at", model.GetTimeForMillis(license.ExpiresAt)),
+		mlog.String("customer_id", license.Customer.Id),
+		mlog.Int("features.users", *license.Features.Users),
+		mlog.Map("features", license.Features.ToMap()),
+		mlog.String("sku_name", license.SkuName),
+		mlog.String("sku_short_name", license.SkuShortName),
+		mlog.Bool("is_trial", license.IsTrial),
+		mlog.Bool("is_gov_sku", license.IsGovSku),
+	)
 }
