@@ -5,12 +5,12 @@ import React from 'react';
 
 import TeamGroupsManageModal from 'components/team_groups_manage_modal/team_groups_manage_modal';
 
-import { TestHelper } from 'utils/test_helper';
-import { renderWithContext, userEvent } from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/TeamGroupsManageModal', () => {
-    const team = TestHelper.getTeamMock({ type: 'O', allowed_domains: '', allow_open_invite: false, scheme_id: undefined });
-    const group = TestHelper.getGroupMock({id: 'group1', display_name: 'group1'})
+    const team = TestHelper.getTeamMock({type: 'O', allowed_domains: '', allow_open_invite: false, scheme_id: undefined});
+    const group = TestHelper.getGroupMock({id: 'group1', display_name: 'group1'});
     const actions = {
         getGroupsAssociatedToTeam: jest.fn().mockResolvedValue({data: {groups: [group], totalGroupCount: 1}}),
         closeModal: jest.fn(),
@@ -25,7 +25,7 @@ describe('components/TeamGroupsManageModal', () => {
             formatMessage: jest.fn(),
         },
         team,
-        actions
+        actions,
     };
 
     test('should show confirm modal when remove-group button is clicked', async () => {
