@@ -112,12 +112,12 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 
 	// Create and set up the mock
 	mockDataRetentionInterface := &mocks.DataRetentionInterface{}
-	
+
 	// Set up the mock to return a count of 3 policies
 	mockDataRetentionInterface.On("GetPoliciesCount").Return(int64(3), (*model.AppError)(nil))
 
 	// Set the mock on the app
-	th.App.Channels().DataRetention =  (mockDataRetentionInterface)
+	th.App.Channels().DataRetention = (mockDataRetentionInterface)
 	t.Run("get policies count without permissions", func(t *testing.T) {
 		th.LoginBasic()
 		_, resp, err := th.Client.GetDataRetentionPoliciesCount(context.Background())
@@ -544,7 +544,7 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 		},
 		TotalCount: 2,
 	}
-	
+
 	// Update the mock to expect the correct parameters
 	mockDataRetentionInterface.On("GetTeamPoliciesForUser", th.BasicUser.Id, 0, 60).Return(samplePolicies, nil)
 	mockDataRetentionInterface.On("GetTeamPoliciesForUser", "nonexistent_user", 0, 60).Return(nil, model.NewAppError("GetTeamPoliciesForUser", "app.user.get.app_error", nil, "", http.StatusNotFound))
@@ -634,7 +634,7 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 		},
 		TotalCount: 2,
 	}
-	
+
 	// Update the mock to expect the correct parameters
 	mockDataRetentionInterface.On("GetChannelPoliciesForUser", th.BasicUser.Id, 0, 60).Return(samplePolicies, nil)
 	mockDataRetentionInterface.On("GetChannelPoliciesForUser", "nonexistent_user", 0, 60).Return(nil, model.NewAppError("GetChannelPoliciesForUser", "app.user.get.app_error", nil, "", http.StatusNotFound))
@@ -722,10 +722,10 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		},
 		TotalCount: 2,
 	}
-	
+
 	validPolicyId := model.NewId()
 	nonExistentPolicyId := model.NewId()
-	
+
 	mockDataRetentionInterface.On("GetTeamsForPolicy", validPolicyId, 0, 100).Return(sampleTeams, nil)
 	mockDataRetentionInterface.On("GetTeamsForPolicy", nonExistentPolicyId, 0, 100).Return(nil, model.NewAppError("GetTeamsForPolicy", "app.data_retention.get_teams_for_policy.app_error", nil, "", http.StatusNotFound))
 
