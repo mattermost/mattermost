@@ -4827,12 +4827,12 @@ func groupTestUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Sto
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			var updatedMemmbers []*model.TeamMember
-			updatedMemmbers, err = ss.Team().UpdateMembersRole(team.Id, tt.newAdmins)
+			var updatedMembers []*model.TeamMember
+			updatedMembers, err = ss.Team().UpdateMembersRole(team.Id, tt.newAdmins)
 			require.NoError(t, err)
 
 			var updatedUserIDs []string
-			for _, member := range updatedMemmbers {
+			for _, member := range updatedMembers {
 				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
 
 				if slices.Contains(tt.newAdmins, member.UserId) {
