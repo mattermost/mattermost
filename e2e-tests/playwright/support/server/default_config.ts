@@ -319,7 +319,7 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3Trace: false,
         AmazonS3RequestTimeoutMilliseconds: 30000,
         AmazonS3UploadPartSizeBytes: 5242880,
-        AmazonS3StorageClass: 'STANDARD',
+        AmazonS3StorageClass: '',
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -336,7 +336,7 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3RequestTimeoutMilliseconds: 30000,
         ExportAmazonS3PresignExpiresSeconds: 21600,
         ExportAmazonS3UploadPartSizeBytes: 104857600,
-        ExportAmazonS3StorageClass: 'STANDARD',
+        ExportAmazonS3StorageClass: '',
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,

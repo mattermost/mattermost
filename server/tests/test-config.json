@@ -137,7 +137,7 @@
         "AmazonS3SignV2": false,
         "AmazonS3SSE": false,
         "AmazonS3Trace": false,
-        "AmazonS3StorageClass": "STANDARD"
+        "AmazonS3StorageClass": ""
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
