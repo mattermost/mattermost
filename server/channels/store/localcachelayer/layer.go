@@ -579,3 +579,13 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
 }
+
+// allocateCacheTargets is used to fill target value types
+// for getting items from cache.
+func allocateCacheTargets[T any](l int) []any {
+	toPass := make([]any, 0, l)
+	for i := 0; i < l; i++ {
+		toPass = append(toPass, new(T))
+	}
+	return toPass
+}

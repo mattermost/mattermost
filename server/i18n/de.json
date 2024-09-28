@@ -7012,7 +7012,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Einladung angenommen | Online | Letzter Ping |"
+    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Standard Team | Einladung angenommen | Online | Letzter Ping | Gelöscht |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10164,5 +10164,13 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "Die Größe des hochgeladenen Plugins überschreitet das Limit. Dieses Limit kann in der Systemkonsole über Dateispeicher > Maximale Dateigröße geändert werden"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Datei kann nicht hochgeladen werden. Der Upload-Kanal wird nicht mit der Gegenstelle geteilt."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Es ist nicht möglich, die zusätzlichen Eigenschaften der Sitzung zu aktualisieren."
   }
 ]

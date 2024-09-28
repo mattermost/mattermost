@@ -78,7 +78,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
         const confirmButton = (
             <LoadingWrapper
                 loading={this.state.deleting}
-                text={Utils.localizeMessage('admin.permissions.permissionsSchemeSummary.deleting', 'Deleting...')}
+                text={Utils.localizeMessage({id: 'admin.permissions.permissionsSchemeSummary.deleting', defaultMessage: 'Deleting...'})}
             >
                 <FormattedMessage
                     id='admin.permissions.permissionsSchemeSummary.deleteConfirmButton'

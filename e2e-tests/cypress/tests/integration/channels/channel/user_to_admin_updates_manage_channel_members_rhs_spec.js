@@ -10,11 +10,7 @@
 // Stage: @prod
 // Group: @channels @channel
 
-import {getAdminAccount} from '../../../support/env';
-
 describe('View Members modal', () => {
-    const sysadmin = getAdminAccount();
-
     it('MM-20164 - Going from a Member to an Admin should update the modal', () => {
         cy.apiInitSetup().then(({team, user}) => {
             cy.apiCreateUser().then(({user: user1}) => {
@@ -24,26 +20,18 @@ describe('View Members modal', () => {
             // # Promote user as a system admin
             // # Visit default channel and verify members modal
             cy.apiLogin(user);
-            promoteToSysAdmin(user, sysadmin);
+            cy.externalUpdateUserRoles(user.id, 'system_user system_admin');
             cy.visit(`/${team.name}/channels/town-square`);
             verifyMemberDropdownAction(true);
 
             // # Make user a regular member
             // # Reload and verify members modal
-            demoteToMember(user, sysadmin);
+            cy.externalUpdateUserRoles(user.id, 'system_user');
             cy.reload();
             verifyMemberDropdownAction(false);
         });
     });
 });
-
-const demoteToMember = (user, sysadmin) => {
-    cy.externalRequest({user: sysadmin, method: 'put', path: `users/${user.id}/roles`, data: {roles: 'system_user'}});
-};
-
-const promoteToSysAdmin = (user, sysadmin) => {
-    cy.externalRequest({user: sysadmin, method: 'put', path: `users/${user.id}/roles`, data: {roles: 'system_user system_admin'}});
-};
 
 function verifyMemberDropdownAction(hasActionItem) {
     // # Click member count to open member rhs
