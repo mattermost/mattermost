@@ -758,7 +758,7 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			ExportAmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(1000)),
 			ExportAmazonS3PresignExpiresSeconds:      model.NewPointer(int64(60000)),
 			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
-			ExportAmazonS3StorageClass:               model.NewPointer("STANDARD"),
+			ExportAmazonS3StorageClass:               model.NewPointer(""),
 		}, enableComplianceFeature, skipVerify)
 
 		require.Equal(t, expected, actual)
@@ -785,7 +785,7 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			AmazonS3RequestTimeoutMilliseconds: 1000,
 			AmazonS3PresignExpiresSeconds:      60000,
 			AmazonS3UploadPartSizeBytes:        model.FileSettingsDefaultS3ExportUploadPartSizeBytes,
-			AmazonS3StorageClass:               "STANDARD",
+			AmazonS3StorageClass:               "",
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
@@ -803,7 +803,7 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 			ExportAmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(1000)),
 			ExportAmazonS3PresignExpiresSeconds:      model.NewPointer(int64(60000)),
 			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
-			ExportAmazonS3StorageClass:               model.NewPointer("STANDARD"),
+			ExportAmazonS3StorageClass:               model.NewPointer(""),
 		}, enableComplianceFeature, skipVerify)
 
 		require.Equal(t, expected, actual)
