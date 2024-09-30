@@ -524,7 +524,7 @@ function SharedChannelRemotesTable(props: {data: SharedChannelRemoteRow[]; filte
         renderFallbackValue: '',
         meta: {
             tableId: 'sharedChannelRemotes',
-            hasNoPagination: true,
+            disablePaginationControls: true,
         },
         manualPagination: true,
     });
