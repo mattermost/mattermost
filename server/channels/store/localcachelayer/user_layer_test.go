@@ -162,7 +162,24 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 	fakeChannelId := "123"
 	fakeUserId := "456"
 	fakeMap := map[string]*model.User{
-		fakeUserId: {Id: "456"},
+		fakeUserId: {
+			Id:          fakeUserId,
+			Props:       model.StringMap{},
+			NotifyProps: model.StringMap{},
+			Timezone:    model.StringMap{},
+		},
+		"user3": {
+			Id:          "user3",
+			Props:       model.StringMap{},
+			NotifyProps: model.StringMap{},
+			Timezone:    model.StringMap{},
+		},
+		"user4": {
+			Id:          "user4",
+			Props:       model.StringMap{},
+			NotifyProps: model.StringMap{},
+			Timezone:    model.StringMap{},
+		},
 	}
 	logger := mlog.CreateConsoleTestLogger(t)
 
@@ -229,6 +246,26 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		_, _ = cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
 	})
+}
+
+func BenchmarkInvalidateProfilesInChannelCacheByUser(b *testing.B) {
+	logger := mlog.CreateConsoleTestLogger(b)
+	fakeChannelId := "123"
+	mockStore := getMockStore(b)
+	cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+	require.NoError(b, err)
+
+	_, err = cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
+	require.NoError(b, err)
+	_, err = cachedStore.User().GetAllProfilesInChannel(context.Background(), "ch2", true)
+	require.NoError(b, err)
+	_, err = cachedStore.User().GetAllProfilesInChannel(context.Background(), "ch3", true)
+	require.NoError(b, err)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cachedStore.User().InvalidateProfilesInChannelCacheByUser("notfound")
+	}
 }
 
 func TestUserStoreGetCache(t *testing.T) {

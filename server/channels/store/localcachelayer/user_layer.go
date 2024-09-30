@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/dequeue"
 )
 
 type LocalCacheUserStore struct {
@@ -21,6 +22,9 @@ type LocalCacheUserStore struct {
 	rootStore                     *LocalCacheStore
 	userProfileByIdsMut           sync.Mutex
 	userProfileByIdsInvalidations map[string]bool
+
+	freeListMut     sync.Mutex
+	userMapFreeList *dequeue.List[model.UserMap]
 }
 
 const allUserKey = "ALL"
@@ -75,6 +79,29 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 	}
 }
 
+func (s *LocalCacheUserStore) getUserMap() model.UserMap {
+	s.freeListMut.Lock()
+	defer s.freeListMut.Unlock()
+	item := s.userMapFreeList.Front()
+	if item == nil {
+		return model.UserMap{}
+	}
+	s.userMapFreeList.Remove(item)
+	return item.Value
+}
+
+func (s *LocalCacheUserStore) putUserMap(item model.UserMap) {
+	// Clearing off the maps before putting it back.
+	for _, user := range item {
+		clear(user.Props)
+		clear(user.Timezone)
+		clear(user.NotifyProps)
+	}
+	s.freeListMut.Lock()
+	defer s.freeListMut.Unlock()
+	s.userMapFreeList.PushBack(item)
+}
+
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 	var toDelete []string
 	err := s.rootStore.profilesInChannelCache.Scan(func(keys []string) error {
@@ -82,7 +109,10 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			return nil
 		}
 
-		toPass := allocateCacheTargets[model.UserMap](len(keys))
+		toPass := make([]any, 0, len(keys))
+		for i := 0; i < len(keys); i++ {
+			toPass = append(toPass, model.NewPointer(s.getUserMap()))
+		}
 		errs := s.rootStore.doMultiReadCache(s.rootStore.profilesInChannelCache, keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -99,6 +129,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			if _, ok := gotMap[userId]; ok {
 				toDelete = append(toDelete, keys[i])
 			}
+			s.putUserMap(gotMap)
 		}
 		return nil
 	})

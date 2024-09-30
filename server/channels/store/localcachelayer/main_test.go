@@ -30,7 +30,7 @@ func getMockCacheProvider() cache.Provider {
 	return &mockCacheProvider
 }
 
-func getMockStore(t *testing.T) *mocks.Store {
+func getMockStore(tb testing.TB) *mocks.Store {
 	mockStore := mocks.Store{}
 
 	fakeReaction := model.Reaction{PostId: "123"}
@@ -79,13 +79,13 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockEmojiStore.On("Get", mock.Anything, "123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("Get", mock.Anything, "123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("Get", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
-	mockEmojiStore.On("Get", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", true).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("Get", sqlstore.RequestContextWithMaster(request.TestContext(tb)), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
 	mockEmojiStore.On("GetByName", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
-	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", false).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(tb)), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
 	mockEmojiStore.On("Delete", &ctxEmoji, int64(0)).Return(nil)
 	mockStore.On("Emoji").Return(&mockEmojiStore)
@@ -162,9 +162,28 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockUserStore.On("GetProfileByIds", mock.Anything, []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
 
 	fakeProfilesInChannelMap := map[string]*model.User{
-		"456": {Id: "456"},
+		"456": {
+			Id:          "456",
+			Props:       model.StringMap{},
+			NotifyProps: model.StringMap{},
+			Timezone:    model.StringMap{},
+		},
+		"user3": {
+			Id:          "user3",
+			Props:       model.StringMap{},
+			NotifyProps: model.StringMap{},
+			Timezone:    model.StringMap{},
+		},
+		"user4": {
+			Id:          "user4",
+			Props:       model.StringMap{},
+			NotifyProps: model.StringMap{},
+			Timezone:    model.StringMap{},
+		},
 	}
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "123", true).Return(fakeProfilesInChannelMap, nil)
+	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "ch2", true).Return(fakeProfilesInChannelMap, nil)
+	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "ch3", true).Return(fakeProfilesInChannelMap, nil)
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "123", false).Return(fakeProfilesInChannelMap, nil)
 	mockUserStore.On("GetAllProfiles", mock.AnythingOfType("*model.UserGetOptions")).Return(fakeUser, nil)
 
