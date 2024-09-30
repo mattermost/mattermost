@@ -17,6 +17,7 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 import {sendTestNotification} from 'actions/notification_actions';
 
 import ExternalLink from 'components/external_link';
+import SectionNotice from 'components/section_notice';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
@@ -42,6 +43,8 @@ type MultiInputValue = {
     label: string;
     value: string;
 }
+
+const sectionNoticeContainerStyle: React.CSSProperties = {marginTop: 20};
 
 export type OwnProps = {
     user: UserProfile;
@@ -969,6 +972,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         sendTestNotification();
     }
 
+    onGoToNotificationDocumentation() {
+        window.open('https://docs.mattermost.com/collaborate/mention-people.html');
+    }
+
     render() {
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
         const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
@@ -1099,10 +1106,25 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         </>
                     )}
                     <div className='divider-light'/>
-                    <button onClick={this.onSendTestNotificationClick}>
-                        {'Send test notification'}
-                    </button>
-                    <div className='divider-dark'/>
+                    <div style={sectionNoticeContainerStyle}>
+                        <SectionNotice
+                            text={this.props.intl.formatMessage({
+                                id: 'user_settings.notifications.test_notification.body',
+                                defaultMessage: 'Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.',
+                            })}
+                            title={this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
+                            primaryButton={{
+                                onClick: this.onSendTestNotificationClick,
+                                text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button', defaultMessage: 'Send a test notification'}),
+                            }}
+                            secondaryButton={{
+                                onClick: this.onGoToNotificationDocumentation,
+                                text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'}),
+                                isExternal: true,
+                            }}
+                            type='hint'
+                        />
+                    </div>
                 </div>
             </div>
 

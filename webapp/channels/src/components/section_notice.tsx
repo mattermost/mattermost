@@ -12,6 +12,7 @@ import './section_notice.scss';
 type Button = {
     onClick: () => void;
     text: string;
+    isExternal?: boolean;
 }
 type Props = {
     title: string;
@@ -19,13 +20,14 @@ type Props = {
     primaryButton?: Button;
     secondaryButton?: Button;
     linkButton?: Button;
-    type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning';
+    type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
     isDismissable?: boolean;
     onDismissClick?: () => void;
 };
 
 const iconByType = {
     info: 'icon-information-outline',
+    hint: 'icon-lightbulb-outline',
     success: 'icon-check',
     danger: 'icon-alert-outline',
     warning: 'icon-alert-outline',
@@ -46,6 +48,7 @@ const SectionNotice = ({
     const icon = iconByType[type];
     const showDismiss = Boolean(isDismissable && onDismissClick);
     const buttonClass = 'btn btn-sm sectionNoticeButton';
+    const externalIcon = (<i className={'icon icon-open-in-new'}/>);
     return (
         <div className={classNames('sectionNoticeContainer', type)}>
             <div className={'sectionNoticeContent'}>
@@ -60,14 +63,16 @@ const SectionNotice = ({
                             className={classNames(buttonClass, 'btn-primary')}
                         >
                             {primaryButton.text}
+                            {primaryButton.isExternal && externalIcon}
                         </button>
                         }
                         {secondaryButton &&
                         <button
                             onClick={secondaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-secondary')}
+                            className={classNames(buttonClass, 'btn-tertiary')}
                         >
                             {secondaryButton.text}
+                            {secondaryButton.isExternal && externalIcon}
                         </button>
                         }
                         {linkButton &&
@@ -76,6 +81,7 @@ const SectionNotice = ({
                             className={classNames(buttonClass, 'btn-link')}
                         >
                             {linkButton.text}
+                            {linkButton.isExternal && externalIcon}
                         </button>
                         }
                     </div>

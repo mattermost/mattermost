@@ -8,7 +8,7 @@
         margin: 0;
     }
 
-    &.info {
+    &.info, &.hint {
         border-color: rgba(var(--sidebar-text-active-border-rgb), 0.16);
         background: rgba(var(--sidebar-text-active-border-rgb), 0.08);
 
@@ -76,7 +76,7 @@
 .sectionNoticeIcon {
     font-size: 20px;
 
-    &.info {
+    &.info, &.hint {
         color: var(--sidebar-text-active-border);
     }
 
