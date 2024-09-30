@@ -23,16 +23,27 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	img, err := c.App.GetBrandImage(c.AppContext)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write(nil)
+		if _, writeErr := w.Write(nil); writeErr != nil {
+			c.Err = model.NewAppError("getBrandImage", "api.response_writer_error", nil, "", http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Write(img)
+	if _, writeErr := w.Write(img); writeErr != nil {
+		c.Err = model.NewAppError("getBrandImage", "api.response_writer_error", nil, "", http.StatusInternalServerError)
+		return
+	}
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Err = model.NewAppError("uploadBrandImage", "api.discard_request_body_error", nil, "", http.StatusInternalServerError)
+			return
+		}
+	}()
 
 	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
