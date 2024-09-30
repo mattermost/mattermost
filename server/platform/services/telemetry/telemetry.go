@@ -135,6 +135,10 @@ type EventFeature struct {
 	SKUS []TrackSKU   `json:"skus"`
 }
 
+var featureSKUS = map[TrackFeature][]TrackSKU{
+	TrackGuestFeature: {TrackProfessionalSKU, TrackEnterpriseSKU},
+}
+
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
 	service := &TelemetryService{
 		srv:          srv,
@@ -234,21 +238,25 @@ func (ts *TelemetryService) SendTelemetry(event string, properties map[string]an
 	}
 }
 
-func (ts *TelemetryService) SendTelemetryForFeature(featureName TrackFeature, skus []TrackSKU, event string, properties map[string]any) {
+func (ts *TelemetryService) SendTelemetryForFeature(featureName TrackFeature, event string, properties map[string]any) {
 	if ts.rudderClient != nil {
+		skus, ok := featureSKUS[featureName]
+		if !ok {
+			skus = []TrackSKU{}
+			mlog.Warn("Telemetry SKUS are not defined for the feature", mlog.String("feature", featureName))
+		}
 		feature := EventFeature{
 			Name: featureName,
 			SKUS: skus,
 		}
 
-		var context *rudder.Context
+		var context *rudder.Context = &rudder.Context{
+			Extra: map[string]any{"feature": feature},
+		}
 		// if we are part of a cloud installation, add it's ID to the tracked event's context
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
-			context = &rudder.Context{
-				Traits: map[string]any{"installationId": installationId},
-			}
+			context.Traits = map[string]any{"installationId": installationId}
 		}
-		context.Extra["feature"] = feature
 
 		err := ts.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
@@ -257,7 +265,7 @@ func (ts *TelemetryService) SendTelemetryForFeature(featureName TrackFeature, sk
 			Context:    context,
 		})
 		if err != nil {
-			ts.log.Warn("Error sending telemetry", mlog.Err(err))
+			ts.log.Warn("Error sending telemetry for feature", mlog.Err(err))
 		}
 	}
 }
