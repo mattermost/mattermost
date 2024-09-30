@@ -96,7 +96,7 @@ const UpdateUserGroupModal = (props: Props) => {
         const displayName = name;
 
         if (!displayName || !displayName.trim()) {
-            setNameInputErrorText(Utils.localizeMessage('user_groups_modal.nameIsEmpty', 'Name is a required field.'));
+            setNameInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.nameIsEmpty', defaultMessage: 'Name is a required field.'}));
             setSaving(false);
             return;
         }
@@ -106,20 +106,20 @@ const UpdateUserGroupModal = (props: Props) => {
         }
 
         if (newMention.length < 1) {
-            setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionIsEmpty', 'Mention is a required field.'));
+            setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionIsEmpty', defaultMessage: 'Mention is a required field.'}));
             setSaving(false);
             return;
         }
 
         if (Constants.SPECIAL_MENTIONS.includes(newMention.toLowerCase())) {
-            setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionReservedWord', 'Mention contains a reserved word.'));
+            setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionReservedWord', defaultMessage: 'Mention contains a reserved word.'}));
             setSaving(false);
             return;
         }
 
         const mentionRegEx = new RegExp(/^[a-z0-9.\-_]+$/);
         if (!mentionRegEx.test(newMention)) {
-            setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionInvalidError', 'Invalid character in mention.'));
+            setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionInvalidError', defaultMessage: 'Invalid character in mention.'}));
             setSaving(false);
             return;
         }
@@ -131,10 +131,10 @@ const UpdateUserGroupModal = (props: Props) => {
         const data = await props.actions.patchGroup(props.groupId, group);
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
-                setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionNotUnique', 'Mention needs to be unique.'));
+                setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'}));
                 setSaving(false);
             } else if (data.error?.server_error_id === 'app.group.username_conflict') {
-                setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionUsernameConflict', 'A username already exists with this name. Mention must be unique.'));
+                setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionUsernameConflict', defaultMessage: 'A username already exists with this name. Mention must be unique.'}));
                 setSaving(false);
             } else {
                 setShowUnknownError(true);
@@ -181,7 +181,7 @@ const UpdateUserGroupModal = (props: Props) => {
                     <div className='group-name-input-wrapper'>
                         <Input
                             type='text'
-                            placeholder={Utils.localizeMessage('user_groups_modal.name', 'Name')}
+                            placeholder={Utils.localizeMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                             onChange={updateNameState}
                             value={name}
                             data-testid='nameInput'
@@ -192,7 +192,7 @@ const UpdateUserGroupModal = (props: Props) => {
                     <div className='group-mention-input-wrapper'>
                         <Input
                             type='text'
-                            placeholder={Utils.localizeMessage('user_groups_modal.mention', 'Mention')}
+                            placeholder={Utils.localizeMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                             onChange={updateMentionState}
                             value={mention}
                             data-testid='nameInput'
@@ -217,7 +217,7 @@ const UpdateUserGroupModal = (props: Props) => {
                             }}
                             className='btn btn-tertiary'
                         >
-                            {Utils.localizeMessage('multiselect.backButton', 'Back')}
+                            {Utils.localizeMessage({id: 'multiselect.backButton', defaultMessage: 'Back'})}
                         </button>
                         <SaveButton
                             id='saveItems'
@@ -227,8 +227,8 @@ const UpdateUserGroupModal = (props: Props) => {
                                 e.preventDefault();
                                 patchGroup();
                             }}
-                            defaultMessage={Utils.localizeMessage('multiselect.saveDetailsButton', 'Save Details')}
-                            savingMessage={Utils.localizeMessage('multiselect.savingDetailsButton', 'Saving...')}
+                            defaultMessage={Utils.localizeMessage({id: 'multiselect.saveDetailsButton', defaultMessage: 'Save Details'})}
+                            savingMessage={Utils.localizeMessage({id: 'multiselect.savingDetailsButton', defaultMessage: 'Saving...'})}
                         />
                     </div>
                 </div>
