@@ -1826,6 +1826,10 @@ func runPostReminderJob(a *App) {
 }
 
 func runScheduledPostJob(a *App) {
+	if !a.Srv().Config().FeatureFlags.ScheduledPost {
+		return
+	}
+
 	if a.IsLeader() {
 		doRunScheduledPostJob(a)
 	}

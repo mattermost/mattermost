@@ -17,6 +17,10 @@ import (
 )
 
 func (api *API) InitScheduledPost() {
+	if api.srv.Config().FeatureFlags.ScheduledPost {
+		return
+	}
+
 	api.BaseRoutes.Posts.Handle("/schedule", api.APISessionRequired(createSchedulePost)).Methods(http.MethodPost)
 	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(updateScheduledPost)).Methods(http.MethodPut)
 	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteScheduledPost)).Methods(http.MethodDelete)
