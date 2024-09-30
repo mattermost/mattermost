@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
 import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
@@ -128,6 +128,15 @@ export function submitPost(
                 metadata: post.metadata,
                 priority: post.metadata.priority,
             };
+
+            if (draft.fileInfos?.length > 0) {
+                if (!scheduledPost.metadata) {
+                    scheduledPost.metadata = {} as PostMetadata;
+                }
+
+                scheduledPost.metadata.files = draft.fileInfos;
+            }
+
             return dispatch(createSchedulePostFromDraft(scheduledPost));
         }
 
