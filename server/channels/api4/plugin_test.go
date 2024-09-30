@@ -1321,13 +1321,13 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 	defer th.TearDown()
 
 	prepackagePlugins := []*plugin.PrepackagedPlugin{
-		&plugin.PrepackagedPlugin{
+		{
 			Manifest: &model.Manifest{
 				Version: "1.40.0",
 				Id:      "playbooks",
 			},
 		},
-		&plugin.PrepackagedPlugin{
+		{
 			Manifest: &model.Manifest{
 				Version: "2.0.1",
 				Id:      "playbooks",
