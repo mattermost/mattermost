@@ -1049,8 +1049,6 @@
   "delete_channel.confirm": "Vahvista kanavan ARKISTOINTI",
   "delete_channel.del": "Arkistoi",
   "delete_channel.viewArchived.question": "Tämä arkistoi kanavan tiimistä. Kanavan sisältö on edelleen kanavan jäsenien luettavissa.\n \nHaluatko varmasti arkistoida kanavan **{display_name}**?",
-  "delete_post.confirm": "Vahvista {term} poisto",
-  "delete_post.question": "Haluatko varmasti poistaa {term}?",
   "delete_post.warning": "Tällä viestillä on {count, number} {count, plural, one {kommentti} other {kommenttia}}.",
   "device_icons.android": "Android Ikoni",
   "device_icons.apple": "Apple Ikoni",
