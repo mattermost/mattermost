@@ -53,17 +53,14 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
 }
 
 export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData {
-    const data = {} as ChannelScheduledPostIndicatorData;
     const channelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || [];
+    const data = {
+        count: channelScheduledPosts.length,
+    } as ChannelScheduledPostIndicatorData;
 
-    if (channelScheduledPosts.length === 0) {
-        data.count = 0;
-    } else if (channelScheduledPosts.length === 1) {
+    if (data.count === 1) {
         const scheduledPostId = channelScheduledPosts[0];
         data.scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
-        data.count = 1;
-    } else {
-        data.count = channelScheduledPosts.length;
     }
 
     return data;

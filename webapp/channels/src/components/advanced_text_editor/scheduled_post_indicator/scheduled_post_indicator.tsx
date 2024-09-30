@@ -43,55 +43,53 @@ export default function ScheduledPostIndicator({location, channelId, postId}: Pr
         </NavLink>
     ), [match]);
 
+    if (!scheduledPostData || scheduledPostData.count === 0) {
+        return null;
+    }
+
+    let scheduledPostText: React.ReactNode;
+
     // display scheduled post's details of there is only one scheduled post
     if (scheduledPostData.count === 1 && scheduledPostData.scheduledPost) {
-        return (
-            <div className='ScheduledPostIndicator'>
-                <i
-                    data-testid='scheduledPostIcon'
-                    className='icon icon-draft-indicator icon-clock-send-outline'
-                />
-                <FormattedMessage
-                    id='scheduled_post.channel_indicator.single'
-                    defaultMessage='Message scheduled for {dateTime}.'
-                    values={{
-                        dateTime: (
-                            <Timestamp
-                                value={scheduledPostData.scheduledPost.scheduled_at}
-                                ranges={SCHEDULED_POST_TIME_RANGES}
-                                useSemanticOutput={false}
-                                useTime={scheduledPostTimeFormat}
-                            />
-                        ),
-                    }}
-                />
-
-                {link}
-            </div>
+        scheduledPostText = (
+            <FormattedMessage
+                id='scheduled_post.channel_indicator.single'
+                defaultMessage='Message scheduled for {dateTime}.'
+                values={{
+                    dateTime: (
+                        <Timestamp
+                            value={scheduledPostData.scheduledPost.scheduled_at}
+                            ranges={SCHEDULED_POST_TIME_RANGES}
+                            useSemanticOutput={false}
+                            useTime={scheduledPostTimeFormat}
+                        />
+                    ),
+                }}
+            />
         );
     }
 
     // display scheduled post count if there are more than one scheduled post
     if (scheduledPostData.count > 1) {
-        return (
-            <div className='ScheduledPostIndicator'>
-                <i
-                    data-testid='scheduledPostIcon'
-                    className='icon icon-draft-indicator icon-clock-send-outline'
-                />
-                <FormattedMessage
-                    id='scheduled_post.channel_indicator.multiple'
-                    defaultMessage='You have {count} scheduled messages.'
-                    values={{
-                        count: scheduledPostData.count,
-                    }}
-                />
-
-                {link}
-            </div>
+        scheduledPostText = (
+            <FormattedMessage
+                id='scheduled_post.channel_indicator.multiple'
+                defaultMessage='You have {count} scheduled messages.'
+                values={{
+                    count: scheduledPostData.count,
+                }}
+            />
         );
     }
 
-    // display nothing if there are no scheduled posts
-    return null;
+    return (
+        <div className='ScheduledPostIndicator'>
+            <i
+                data-testid='scheduledPostIcon'
+                className='icon icon-draft-indicator icon-clock-send-outline'
+            />
+            {scheduledPostText}
+            {link}
+        </div>
+    );
 }
