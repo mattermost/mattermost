@@ -1105,26 +1105,30 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
-                    <div className='divider-light'/>
-                    <div style={sectionNoticeContainerStyle}>
-                        <SectionNotice
-                            text={this.props.intl.formatMessage({
-                                id: 'user_settings.notifications.test_notification.body',
-                                defaultMessage: 'Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.',
-                            })}
-                            title={this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
-                            primaryButton={{
-                                onClick: this.onSendTestNotificationClick,
-                                text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button', defaultMessage: 'Send a test notification'}),
-                            }}
-                            secondaryButton={{
-                                onClick: this.onGoToNotificationDocumentation,
-                                text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'}),
-                                isExternal: true,
-                            }}
-                            type='hint'
-                        />
-                    </div>
+                    {!this.props.adminMode && (
+                        <>
+                            <div className='divider-light'/>
+                            <div style={sectionNoticeContainerStyle}>
+                                <SectionNotice
+                                    text={this.props.intl.formatMessage({
+                                        id: 'user_settings.notifications.test_notification.body',
+                                        defaultMessage: 'Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.',
+                                    })}
+                                    title={this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
+                                    primaryButton={{
+                                        onClick: this.onSendTestNotificationClick,
+                                        text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button', defaultMessage: 'Send a test notification'}),
+                                    }}
+                                    secondaryButton={{
+                                        onClick: this.onGoToNotificationDocumentation,
+                                        text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'}),
+                                        isExternal: true,
+                                    }}
+                                    type='hint'
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
