@@ -1316,6 +1316,69 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	})
 }
 
+func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	prepackagePlugins := []*plugin.PrepackagedPlugin{
+		&plugin.PrepackagedPlugin{
+			Manifest: &model.Manifest{
+				Version: "1.40.0",
+				Id:      "playbooks",
+			},
+		},
+		&plugin.PrepackagedPlugin{
+			Manifest: &model.Manifest{
+				Version: "2.0.1",
+				Id:      "playbooks",
+			},
+		},
+	}
+	env := th.App.GetPluginsEnvironment()
+	env.SetPrepackagedPlugins(prepackagePlugins, nil)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+	})
+
+	t.Run("playbooks v1 is returned if not licensed", func(t *testing.T) {
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := prepackagePlugins[0]
+
+		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Len(t, plugins, 1)
+	})
+
+	t.Run("playbooks v2 is returned if Enterprise licensed", func(t *testing.T) {
+		lic := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU("enterprise"))
+		defer th.App.Srv().SetLicense(lic)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := prepackagePlugins[1]
+		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Len(t, plugins, 1)
+	})
+
+	t.Run("playbooks v1 is returned if professional licensed", func(t *testing.T) {
+		lic := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU("professional"))
+		defer th.App.Srv().SetLicense(lic)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := prepackagePlugins[0]
+		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Len(t, plugins, 1)
+	})
+}
+
 func TestInstallMarketplacePlugin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

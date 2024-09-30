@@ -670,6 +670,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		return model.NewAppError("mergePrepackagedPlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	isEnterpriseLicense := a.License() != nil && a.License().IsE20OrEnterprise()
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
 		if prepackaged.Manifest == nil {
 			continue
@@ -682,6 +683,20 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 				ReleaseNotesURL: prepackaged.Manifest.ReleaseNotesURL,
 				Manifest:        prepackaged.Manifest,
 			},
+		}
+
+		if !isEnterpriseLicense {
+			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
+				version, err := semver.Parse(prepackaged.Manifest.Version)
+				if err != nil {
+					mlog.Error("Unable to verify prepackaged playbooks version", mlog.Err(err))
+					continue
+				}
+				// Do not show playbooks >=v2 if we do not have an enterprise license
+				if version.GTE(SemVerV2) {
+					continue
+				}
+			}
 		}
 
 		// If not available in marketplace, add the prepackaged
