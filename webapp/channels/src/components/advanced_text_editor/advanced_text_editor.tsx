@@ -41,8 +41,8 @@ import {SendMessageTour} from 'components/tours/onboarding_tour';
 
 import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -561,17 +561,18 @@ const AdvancedTextEditor = ({
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
             <div className='postBoxIndicator'>
-                <ScheduledPostIndicator
-                    location={location}
-                    channelId={channelId}
-                    postId={postId}
-                />
                 {showRemoteUserHour && (
                     <RemoteUserHour
                         teammateId={teammateId}
                         displayName={teammateDisplayName}
                     />
                 )}
+
+                <ScheduledPostIndicator
+                    location={location}
+                    channelId={channelId}
+                    postId={postId}
+                />
             </div>
             <div
                 className={classNames('AdvancedTextEditor', {
