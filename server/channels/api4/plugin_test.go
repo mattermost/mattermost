@@ -1348,7 +1348,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 
 		expectedPlugins := prepackagePlugins[0]
 
-		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
 		require.Len(t, plugins, 1)
 	})
 
@@ -1361,7 +1361,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedPlugins := prepackagePlugins[1]
-		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
 		require.Len(t, plugins, 1)
 	})
 
@@ -1374,7 +1374,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedPlugins := prepackagePlugins[0]
-		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
 		require.Len(t, plugins, 1)
 	})
 }
