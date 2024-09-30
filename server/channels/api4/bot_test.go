@@ -126,7 +126,7 @@ func TestCreateBot(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		defer func() {
-			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			appErr = th.App.PermanentDeleteBot(th.Context, bot.UserId)
 			assert.Nil(t, appErr)
 		}()
 		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -318,7 +318,7 @@ func TestPatchBot(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		defer func() {
-			appErr := th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+			appErr = th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 			assert.Nil(t, appErr)
 		}()
 
