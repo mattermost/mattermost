@@ -2,53 +2,48 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useRef, useState, useEffect } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import React, {useRef, useState, useEffect} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import { ArchiveOutlineIcon } from '@mattermost/compass-icons/components';
-import type { FileInfo } from '@mattermost/types/files';
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import type {FileInfo} from '@mattermost/types/files';
 
-import { getFileThumbnailUrl, getFileUrl } from 'mattermost-redux/utils/file_utils';
+import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
-import { Constants, FileTypes, ModalIdentifiers } from 'utils/constants';
-import { trimFilename } from 'utils/file_utils';
-import {
-    fileSizeToString,
-    getFileType,
-    loadImage,
-} from 'utils/utils';
+import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
+import {trimFilename} from 'utils/file_utils';
+import {fileSizeToString, getFileType, loadImage} from 'utils/utils';
 
 import ArchivedTooltip from './archived_tooltip';
 import FileThumbnail from './file_thumbnail';
 import FilenameOverlay from './filename_overlay';
 
-import type { PropsFromRedux } from './index';
+import type {PropsFromRedux} from './index';
 
 interface Props extends PropsFromRedux {
-
     /*
-    * File detailed information
-    */
+     * File detailed information
+     */
     fileInfo: FileInfo;
 
     /*
-    * The index of this attachment preview in the parent FileAttachmentList
-    */
+     * The index of this attachment preview in the parent FileAttachmentList
+     */
     index: number;
 
     /*
-    * Handler for when the thumbnail is clicked passed the index above
-    */
+     * Handler for when the thumbnail is clicked passed the index above
+     */
     handleImageClick?: (index: number) => void;
 
     /*
-    * Display in compact format
-    */
+     * Display in compact format
+     */
     compactDisplay?: boolean;
     disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
@@ -57,7 +52,7 @@ interface Props extends PropsFromRedux {
 export default function FileAttachment(props: Props) {
     const mounted = useRef(true);
 
-    const { formatMessage } = useIntl();
+    const {formatMessage} = useIntl();
 
     const [loaded, setLoaded] = useState(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE);
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
@@ -111,7 +106,10 @@ export default function FileAttachment(props: Props) {
 
     useEffect(() => {
         if (props.fileInfo.id) {
-            setLoaded(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE && !(props.enableSVGs && props.fileInfo.extension === FileTypes.SVG));
+            setLoaded(
+                getFileType(props.fileInfo.extension) !== FileTypes.IMAGE &&
+                    !(props.enableSVGs && props.fileInfo.extension === FileTypes.SVG)
+            );
         }
     }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs]);
 
@@ -155,7 +153,7 @@ export default function FileAttachment(props: Props) {
 
         const totalSpace = windowHeight - 80;
         const spaceOnTop = y - Constants.CHANNEL_HEADER_HEIGHT;
-        const spaceOnBottom = (totalSpace - (spaceOnTop + Constants.POST_AREA_HEIGHT));
+        const spaceOnBottom = totalSpace - (spaceOnTop + Constants.POST_AREA_HEIGHT);
 
         setOpenUp(spaceOnTop > spaceOnBottom);
     };
@@ -171,32 +169,37 @@ export default function FileAttachment(props: Props) {
     };
 
     const renderFileMenuItems = () => {
-        const { enablePublicLink, fileInfo, pluginMenuItems } = props;
+        const {enablePublicLink, fileInfo, pluginMenuItems} = props;
 
         let divider;
         const defaultItems = [];
         if (enablePublicLink) {
             defaultItems.push(
                 <Menu.ItemAction
-                    data-title='Public Image'
+                    data-title="Public Image"
                     key={fileInfo.id + '_publiclinkmenuitem'}
                     onClick={handleGetPublicLink}
-                    ariaLabel={formatMessage({ id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link' })}
-                    text={formatMessage({ id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link' })}
-                />,
+                    ariaLabel={formatMessage({
+                        id: 'view_image_popover.publicLink',
+                        defaultMessage: 'Get a public link',
+                    })}
+                    text={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
+                />
             );
         }
 
-        const pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
-            return (
-                <Menu.ItemAction
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={() => item?.action(fileInfo)}
-                    text={item.text}
-                />
-            );
-        });
+        const pluginItems = pluginMenuItems
+            ?.filter((item) => item?.match(fileInfo))
+            .map((item) => {
+                return (
+                    <Menu.ItemAction
+                        id={item.id + '_pluginmenuitem'}
+                        key={item.id + '_pluginmenuitem'}
+                        onClick={() => item?.action(fileInfo)}
+                        text={item.text}
+                    />
+                );
+            });
 
         const isMenuVisible = defaultItems?.length || pluginItems?.length;
         if (!isMenuVisible) {
@@ -205,44 +208,30 @@ export default function FileAttachment(props: Props) {
 
         const isDividerVisible = defaultItems?.length && pluginItems?.length;
         if (isDividerVisible) {
-            divider = (
-                <li
-                    id={`divider_file_${fileInfo.id}_plugins`}
-                    className='MenuItem__divider'
-                    role='menuitem'
-                />
-            );
+            divider = <li id={`divider_file_${fileInfo.id}_plugins`} className="MenuItem__divider" role="menuitem" />;
         }
 
         return (
-            <MenuWrapper
-                onToggle={handleDropdownOpened}
-                stopPropagationOnToggle={true}
-            >
+            <MenuWrapper onToggle={handleDropdownOpened} stopPropagationOnToggle={true}>
                 <WithTooltip
-                    id='file-name__tooltip'
-                    title={formatMessage({ id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions' })}
-                    placement='top'
+                    id="file-name__tooltip"
+                    title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                    placement="top"
                 >
                     <button
                         ref={buttonRef}
                         id={`file_action_button_${props.fileInfo.id}`}
-                        aria-label={formatMessage({ id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions' }).toLowerCase()}
-                        className={classNames(
-                            'file-dropdown-icon', 'dots-icon',
-                            { 'a11y--active': keepOpen },
-                        )}
+                        aria-label={formatMessage({
+                            id: 'file_search_result_item.more_actions',
+                            defaultMessage: 'More Actions',
+                        }).toLowerCase()}
+                        className={classNames('file-dropdown-icon', 'dots-icon', {'a11y--active': keepOpen})}
                         aria-expanded={keepOpen}
                     >
-                        <i className='icon icon-dots-vertical' />
+                        <i className="icon icon-dots-vertical" />
                     </button>
                 </WithTooltip>
-                <Menu
-                    id={`file_dropdown_${props.fileInfo.id}`}
-                    ariaLabel={'file menu'}
-                    openLeft={true}
-                    openUp={openUp}
-                >
+                <Menu id={`file_dropdown_${props.fileInfo.id}`} ariaLabel={'file menu'} openLeft={true} openUp={openUp}>
                     {defaultItems}
                     {divider}
                     {pluginItems}
@@ -251,28 +240,22 @@ export default function FileAttachment(props: Props) {
         );
     };
 
-    const { compactDisplay, fileInfo } = props;
+    const {compactDisplay, fileInfo} = props;
 
     let fileThumbnail;
     let fileDetail;
     let fileActions;
-    const ariaLabelImage = `${formatMessage({ id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail' })} ${fileInfo.name}`.toLowerCase();
+    const ariaLabelImage = `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${
+        fileInfo.name
+    }`.toLowerCase();
 
     if (!compactDisplay) {
         fileThumbnail = (
-            <a
-                aria-label={ariaLabelImage}
-                className='post-image__thumbnail'
-                href='#'
-                onClick={onAttachmentClick}
-            >
+            <a aria-label={ariaLabelImage} className="post-image__thumbnail" href="#" onClick={onAttachmentClick}>
                 {loaded ? (
-                    <FileThumbnail
-                        fileInfo={fileInfo}
-                        disablePreview={props.disablePreview}
-                    />
+                    <FileThumbnail fileInfo={fileInfo} disablePreview={props.disablePreview} />
                 ) : (
-                    <div className='post-image__load' />
+                    <div className="post-image__load" />
                 )}
             </a>
         );
@@ -282,17 +265,14 @@ export default function FileAttachment(props: Props) {
                 <ArchiveOutlineIcon
                     size={48}
                     color={'rgba(var(--center-channel-color-rgb), 0.48)'}
-                    data-testid='archived-file-icon'
+                    data-testid="archived-file-icon"
                 />
             );
         }
 
         fileDetail = (
-            <div
-                className='post-image__detail_wrapper'
-                onClick={onAttachmentClick}
-            >
-                <div className='post-image__detail'>
+            <div className="post-image__detail_wrapper" onClick={onAttachmentClick}>
+                <div className="post-image__detail">
                     <span
                         className={classNames('post-image__name', {
                             'post-image__name--archived': fileInfo.archived,
@@ -300,20 +280,20 @@ export default function FileAttachment(props: Props) {
                     >
                         {fileInfo.name}
                     </span>
-                    {fileInfo.extra_info && <span className={'post-image__extra-info'}>
-                        {fileInfo.extra_info}
-                    </span>}
-                    {fileInfo.archived ? <span className={'post-image__archived'}>
-
-                        <FormattedMessage
-                            id='workspace_limits.archived_file.archived'
-                            defaultMessage='This file is archived'
-                        />
-                    </span> : <>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
-                    </>
-                    }
+                    {fileInfo.extra_info && <span className={'post-image__extra-info'}>{fileInfo.extra_info}</span>}
+                    {fileInfo.archived ? (
+                        <span className={'post-image__archived'}>
+                            <FormattedMessage
+                                id="workspace_limits.archived_file.archived"
+                                defaultMessage="This file is archived"
+                            />
+                        </span>
+                    ) : (
+                        <>
+                            <span className="post-image__type">{fileInfo.extension.toUpperCase()}</span>
+                            <span className="post-image__size">{fileSizeToString(fileInfo.size)}</span>
+                        </>
+                    )}
                 </div>
             </div>
         );
@@ -333,7 +313,7 @@ export default function FileAttachment(props: Props) {
                 handleImageClick={onAttachmentClick}
                 iconClass={'post-image__download'}
             >
-                <i className='icon icon-download-outline' />
+                <i className="icon icon-download-outline" />
             </FilenameOverlay>
         );
     } else if (fileInfo.archived && compactDisplay) {
@@ -343,39 +323,38 @@ export default function FileAttachment(props: Props) {
             <ArchiveOutlineIcon
                 size={16}
                 color={'rgba(var(--center-channel-color-rgb), 0.48)'}
-                data-testid='archived-file-icon'
+                data-testid="archived-file-icon"
             />
         );
-        filenameOverlay =
-            (<span className='post-image__archived-name'>
-                <span className='post-image__archived-filename'>
-                    {trimmedFilename}
-                </span>
-                <span className='post-image__archived-label'>
+        filenameOverlay = (
+            <span className="post-image__archived-name">
+                <span className="post-image__archived-filename">{trimmedFilename}</span>
+                <span className="post-image__archived-label">
                     {formatMessage({
                         id: 'workspace_limits.archived_file.archived_compact',
                         defaultMessage: '(archived)',
                     })}
                 </span>
-            </span>);
+            </span>
+        );
     }
 
     return (
         <WithTooltip
-            id='fileAttachmentArchivedTooltip'
-            placement='top'
+            id="fileAttachmentArchivedTooltip"
+            placement="top"
             title={<ArchivedTooltip />}
             disabled={!fileInfo.archived}
         >
             <div
                 className={classNames([
                     'post-image__column',
-                    { 'keep-open': keepOpen },
-                    { 'post-image__column--archived': fileInfo.archived },
+                    {'keep-open': keepOpen},
+                    {'post-image__column--archived': fileInfo.archived},
                 ])}
             >
                 {fileThumbnail}
-                <div className='post-image__details'>
+                <div className="post-image__details">
                     {fileDetail}
                     {fileActions}
                     {filenameOverlay}

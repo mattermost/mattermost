@@ -251,6 +251,8 @@ channels/db/migrations/mysql/000126_sharedchannels_remotes_add_deleteat.down.sql
 channels/db/migrations/mysql/000126_sharedchannels_remotes_add_deleteat.up.sql
 channels/db/migrations/mysql/000127_add_mfa_used_ts_to_users.down.sql
 channels/db/migrations/mysql/000127_add_mfa_used_ts_to_users.up.sql
+channels/db/migrations/mysql/000128_add_extra_info_to_file_info.down.sql
+channels/db/migrations/mysql/000128_add_extra_info_to_file_info.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -503,3 +505,5 @@ channels/db/migrations/postgres/000126_sharedchannels_remotes_add_deleteat.down.
 channels/db/migrations/postgres/000126_sharedchannels_remotes_add_deleteat.up.sql
 channels/db/migrations/postgres/000127_add_mfa_used_ts_to_users.down.sql
 channels/db/migrations/postgres/000127_add_mfa_used_ts_to_users.up.sql
+channels/db/migrations/postgres/000128_add_extra_info_to_file_info.down.sql
+channels/db/migrations/postgres/000128_add_extra_info_to_file_info.up.sql

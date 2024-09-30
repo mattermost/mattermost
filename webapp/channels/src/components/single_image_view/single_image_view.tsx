@@ -3,21 +3,19 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 
-import type { FileInfo } from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
 
-import { getFilePreviewUrl, getFileUrl } from 'mattermost-redux/utils/file_utils';
+import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
-import { FileTypes, ModalIdentifiers } from 'utils/constants';
-import {
-    getFileType,
-} from 'utils/utils';
+import {FileTypes, ModalIdentifiers} from 'utils/constants';
+import {getFileType} from 'utils/utils';
 
-import type { PropsFromRedux } from './index';
+import type {PropsFromRedux} from './index';
 
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
@@ -38,7 +36,7 @@ type State = {
         width: number;
         height: number;
     };
-}
+};
 
 export default class SingleImageView extends React.PureComponent<Props, State> {
     private mounted = false;
@@ -62,7 +60,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
-        if ((props.fileInfo?.width !== state.dimensions.width) || props.fileInfo.height !== state.dimensions.height) {
+        if (props.fileInfo?.width !== state.dimensions.width || props.fileInfo.height !== state.dimensions.height) {
             return {
                 dimensions: {
                     width: props.fileInfo?.width,
@@ -79,11 +77,11 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
     imageLoaded = () => {
         if (this.mounted) {
-            this.setState({ loaded: true });
+            this.setState({loaded: true});
         }
     };
 
-    handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
+    handleImageClick = (e: KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>) => {
         e.preventDefault();
 
         this.props.actions.openModal({
@@ -106,16 +104,14 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const { fileInfo, compactDisplay, isInPermalink } = this.props;
-        const {
-            loaded,
-        } = this.state;
+        const {fileInfo, compactDisplay, isInPermalink} = this.props;
+        const {loaded} = this.state;
 
         if (fileInfo === undefined) {
             return <></>;
         }
 
-        const { has_preview_image: hasPreviewImage, id } = fileInfo;
+        const {has_preview_image: hasPreviewImage, id} = fileInfo;
         const fileURL = getFileUrl(id);
         const previewURL = hasPreviewImage ? getFilePreviewUrl(id) : fileURL;
 
@@ -125,8 +121,8 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         const hasDisproportionateHeight = previewHeight / previewWidth > DISPROPORTIONATE_HEIGHT_RATIO;
         let minPreviewClass = '';
         if (
-            (previewWidth < PREVIEW_IMAGE_MIN_DIMENSION ||
-                previewHeight < PREVIEW_IMAGE_MIN_DIMENSION) && !hasDisproportionateHeight
+            (previewWidth < PREVIEW_IMAGE_MIN_DIMENSION || previewHeight < PREVIEW_IMAGE_MIN_DIMENSION) &&
+            !hasDisproportionateHeight
         ) {
             minPreviewClass = 'min-preview ';
 
@@ -142,10 +138,10 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
         const toggle = (
             <button
-                key='toggle'
-                className='style--none single-image-view__toggle'
+                key="toggle"
+                className="style--none single-image-view__toggle"
                 data-expanded={this.props.isEmbedVisible}
-                aria-label='Toggle Embed Visibility'
+                aria-label="Toggle Embed Visibility"
                 onClick={this.toggleEmbedVisibility}
             >
                 <span
@@ -166,15 +162,12 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 {toggle}
                 {!this.props.isEmbedVisible && (
                     <div
-                        data-testid='image-name'
+                        data-testid="image-name"
                         className={classNames('image-name', {
                             'compact-display': compactDisplay,
                         })}
                     >
-                        <div
-                            id='image-name-text'
-                            onClick={this.handleImageClick}
-                        >
+                        <div id="image-name-text" onClick={this.handleImageClick}>
                             {fileInfo.name}
                         </div>
                     </div>
@@ -212,18 +205,11 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div
-                className={classNames('file-view--single', permalinkClass)}
-            >
-                <div
-                    className='file__image'
-                >
+            <div className={classNames('file-view--single', permalinkClass)}>
+                <div className="file__image">
                     {fileHeader}
-                    {this.props.isEmbedVisible &&
-                        <div
-                            className={classNames('image-container', permalinkClass)}
-                            style={imageContainerStyle}
-                        >
+                    {this.props.isEmbedVisible && (
+                        <div className={classNames('image-container', permalinkClass)} style={imageContainerStyle}>
                             <div
                                 className={classNames('image-loaded', fadeInClass, svgClass)}
                                 style={styleIfSvgWithDimensions}
@@ -245,7 +231,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                 </div>
                             </div>
                         </div>
-                    }
+                    )}
                 </div>
             </div>
         );
