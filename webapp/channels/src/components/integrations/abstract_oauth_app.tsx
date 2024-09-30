@@ -477,7 +477,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading?.id || '', (this.props.loading?.defaultMessage || '') as string)}
+                                spinningText={localizeMessage({id: this.props.loading?.id || '', defaultMessage: (this.props.loading?.defaultMessage || '') as string})}
                                 onClick={this.handleSubmit}
                                 id='saveOauthApp'
                             >

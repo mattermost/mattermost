@@ -19,6 +19,15 @@
     <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-64x64.png" sizes="64x64">
     <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-96x96.png" sizes="96x96">
 
+    <!--
+        This "empty" link element is used as a dynamic inject placeholder for the syntax highlighting css styles:
+        1. The highlight.js lib finds this element by its 'code_theme' class.
+        2. The lib dynamically defines the 'href' attribute and its value to load the required CSS for the detected language by its detection logic.
+        3. This allows it to do at runtime theme switching without havint to modifying the DOM structure.
+        4. The 'href' attribute is empty to prevent unnecessary HTTP requests.
+    -->
+    <link rel='stylesheet' class='code_theme'>
+
     <!-- We need this CSS first to show the initial loading screen -->
     <link id="initialLoadingScreenCSS" rel='stylesheet' href='/static/css/initial_loading_screen.css'>
 </head>
