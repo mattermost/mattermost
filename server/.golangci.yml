@@ -64,7 +64,6 @@ issues:
         channels/api4/brand.go|\
         channels/api4/brand_test.go|\
         channels/api4/channel.go|\
-        channels/api4/channel_category.go|\
         channels/api4/channel_test.go|\
         channels/api4/cloud.go|\
         channels/api4/cloud_test.go|\
