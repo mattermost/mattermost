@@ -9,6 +9,9 @@ import {NavLink, useRouteMatch} from 'react-router-dom';
 
 import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 
+import {
+    ShortScheduledPostIndicator,
+} from 'components/advanced_text_editor/scheduled_post_indicator/short_scheduled_post_indicator';
 import {SCHEDULED_POST_TIME_RANGES, scheduledPostTimeFormat} from 'components/drafts/panel/panel_header';
 import Timestamp from 'components/timestamp';
 
@@ -35,17 +38,28 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, id));
     const match: match<{team: string}> = useRouteMatch();
 
+    const scheduledPostLinkURL = `/${match.params.team}/scheduled_posts`;
+
     const link = useMemo(() => (
-        <NavLink to={`/${match.params.team}/scheduled_posts`}>
+        <NavLink to={scheduledPostLinkURL}>
             <FormattedMessage
                 id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
                 defaultMessage='See all scheduled messages'
             />
         </NavLink>
-    ), [match]);
+    ), [scheduledPostLinkURL]);
 
     if (!scheduledPostData || scheduledPostData.count === 0) {
         return null;
+    }
+
+    if (remoteUserHourDisplayed) {
+        return (
+            <ShortScheduledPostIndicator
+                scheduledPostData={scheduledPostData}
+                scheduledPostLinkURL={scheduledPostLinkURL}
+            />
+        );
     }
 
     let scheduledPostText: React.ReactNode;

@@ -4,7 +4,6 @@
 import {DateTime} from 'luxon';
 import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
-import Constants, {UserStatuses} from 'utils/constants';
 
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
@@ -12,6 +11,8 @@ import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/u
 
 import RemoteUserHour from 'components/advanced_text_editor/remote_user_hour';
 import ScheduledPostIndicator from 'components/advanced_text_editor/scheduled_post_indicator/scheduled_post_indicator';
+
+import Constants, {UserStatuses} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 

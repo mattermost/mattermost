@@ -47,31 +47,29 @@ const RemoteUserHour = ({displayName, timestamp, teammateTimezone}: Props) => {
     return (
         <Container className='RemoteUserHour'>
             <Icon className='icon moonIcon'/>
-            <span className='message'>
-                <FormattedMessage
-                    id='advanced_text_editor.remote_user_hour'
-                    defaultMessage='The time for {user} is {time}'
-                    values={{
-                        user: (
-                            <span className='userDisplayName'>
-                                {displayName}
-                            </span>
-                        ),
-                        time: (
-                            <Timestamp
-                                useRelative={false}
-                                value={timestamp}
-                                useDate={false}
-                                userTimezone={teammateTimezone}
-                                useTime={{
-                                    hour: 'numeric',
-                                    minute: 'numeric',
-                                }}
-                            />
-                        ),
-                    }}
-                />
-            </span>
+            <FormattedMessage
+                id='advanced_text_editor.remote_user_hour'
+                defaultMessage='The time for {user} is {time}'
+                values={{
+                    user: (
+                        <span className='userDisplayName'>
+                            {displayName}
+                        </span>
+                    ),
+                    time: (
+                        <Timestamp
+                            useRelative={false}
+                            value={timestamp}
+                            useDate={false}
+                            userTimezone={teammateTimezone}
+                            useTime={{
+                                hour: 'numeric',
+                                minute: 'numeric',
+                            }}
+                        />
+                    ),
+                }}
+            />
         </Container>
     );
 };

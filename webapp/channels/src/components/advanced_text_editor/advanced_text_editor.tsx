@@ -25,7 +25,7 @@ import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import ScheduledPostIndicator from 'components/advanced_text_editor/scheduled_post_indicator/scheduled_post_indicator';
+import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
@@ -41,8 +41,8 @@ import {SendMessageTour} from 'components/tours/onboarding_tour';
 
 import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -66,7 +66,6 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
