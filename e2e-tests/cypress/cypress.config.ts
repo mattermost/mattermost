@@ -21,15 +21,7 @@ export default defineConfig({
         adminPassword: 'Sys@dmin-sample1',
         allowedUntrustedInternalConnections: 'localhost',
         browserPermissions: {
-            notifications: "allow",
-            geolocation: "block",
-            camera: "block",
-            microphone: "block",
-            images: "allow",
-            javascript: "allow",
-            popups: "ask",
-            plugins: "ask",
-            cookies: "allow"
+            notifications: 'allow',
         },
         cwsURL: 'http://localhost:8076',
         cwsAPIURL: 'http://localhost:8076',
