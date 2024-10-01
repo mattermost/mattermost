@@ -16,10 +16,16 @@ export type ScheduledPost = Omit<Draft, 'delete_at'> & SchedulingInfo & {
 }
 
 export type ScheduledPostsState = {
+    byId: {
+        [scheduledPostId: string]: ScheduledPost;
+    };
     byTeamId: {
-        [teamId: string]: ScheduledPost[];
+        [teamId: string]: string[];
     };
     errorsByTeamId: {
         [teamId: string]: string[];
+    };
+    byChannelOrThreadId: {
+        [channelId: string]: string[];
     };
 }

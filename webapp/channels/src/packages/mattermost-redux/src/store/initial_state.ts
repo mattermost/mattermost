@@ -212,8 +212,10 @@ const state: GlobalState = {
             },
         },
         scheduledPosts: {
+            byId: {},
             byTeamId: {},
             errorsByTeamId: {},
+            byChannelOrThreadId: {},
         },
     },
     errors: [],

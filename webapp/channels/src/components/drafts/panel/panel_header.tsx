@@ -21,13 +21,13 @@ const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'],
 };
 
-const SCHEDULED_POST_TIME_RANGES = [
+export const SCHEDULED_POST_TIME_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
     RelativeRanges.YESTERDAY_TITLE_CASE,
     RelativeRanges.TOMORROW_TITLE_CASE,
 ];
 
-const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
+export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
 
 type Props = {
     kind: 'draft' | 'scheduledPost';

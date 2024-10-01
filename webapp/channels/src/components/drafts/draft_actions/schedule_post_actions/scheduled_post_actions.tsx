@@ -112,13 +112,17 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             {
                 !scheduledPost.error_code && (
                     <React.Fragment>
-                        <Action
-                            icon='icon-pencil-outline'
-                            id='edit'
-                            name='edit'
-                            tooltipText={editTooltipText}
-                            onClick={() => {}} // this will be implemented in an upcoming PR
-                        />
+                        <div className='hidden'>
+                            <Action
+                                icon='icon-pencil-outline'
+                                id='edit'
+                                name='edit'
+                                tooltipText={editTooltipText}
+                                onClick={() => {
+                                }} // this will be implemented in an upcoming PR
+
+                            />
+                        </div>
 
                         <Action
                             icon='icon-clock-send-outline'
@@ -128,13 +132,15 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             onClick={handleReschedulePost}
                         />
 
-                        <Action
-                            icon='icon-send-outline'
-                            id='sendNow'
-                            name='sendNow'
-                            tooltipText={sendNowTooltipText}
-                            onClick={handleSend}
-                        />
+                        <div className='hidden'>
+                            <Action
+                                icon='icon-send-outline'
+                                id='sendNow'
+                                name='sendNow'
+                                tooltipText={sendNowTooltipText}
+                                onClick={handleSend}
+                            />
+                        </div>
                     </React.Fragment>
                 )
             }
