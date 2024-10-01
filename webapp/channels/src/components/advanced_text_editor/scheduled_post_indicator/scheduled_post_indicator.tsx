@@ -49,7 +49,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
         </NavLink>
     ), [scheduledPostLinkURL]);
 
-    if (!scheduledPostData || scheduledPostData.count === 0) {
+    if (!scheduledPostData?.count) {
         return null;
     }
 
