@@ -39,8 +39,7 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if _, err := io.Copy(io.Discard, r.Body); err != nil {
-			c.Err = model.NewAppError("uploadBrandImage", "api.discard_request_body_error", nil, "", http.StatusInternalServerError)
-			return
+			c.Logger.Warn("Error discarding request body", mlog.Err(err))
 		}
 	}()
 
