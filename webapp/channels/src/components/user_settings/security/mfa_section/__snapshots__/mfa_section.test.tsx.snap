@@ -43,6 +43,7 @@ exports[`MfaSection rendering when section is collapsed and MFA is not active 1`
 exports[`MfaSection rendering when section is expanded and MFA is active and enforced 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   extraInfo={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately."
@@ -83,6 +84,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
 exports[`MfaSection rendering when section is expanded and MFA is active but not enforced 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   extraInfo={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account."
@@ -123,6 +125,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
 exports[`MfaSection rendering when section is expanded and MFA is not active 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   extraInfo={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in."
@@ -163,6 +166,7 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
 exports[`MfaSection rendering when section is expanded with a server error 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   extraInfo={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in."
