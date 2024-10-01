@@ -8,8 +8,6 @@ import (
 	"regexp"
 )
 
-//go:generate go run ./generator/providers_generator.go
-
 type ProviderEndpoint struct {
 	URL      string
 	Patterns []*regexp.Regexp
