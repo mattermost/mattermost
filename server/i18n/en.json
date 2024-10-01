@@ -172,10 +172,6 @@
     "translation": "S3 Bucket is required"
   },
   {
-    "id": "api.response_writer_error",
-    "translation": "Failed to write response"
-  },
-  {
     "id": "api.discard_request_body_error",
     "translation": "Error discarding request body"
   },

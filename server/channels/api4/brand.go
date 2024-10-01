@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
@@ -23,17 +24,15 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	img, err := c.App.GetBrandImage(c.AppContext)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		if _, writeErr := w.Write(nil); writeErr != nil {
-			c.Err = model.NewAppError("getBrandImage", "api.response_writer_error", nil, "", http.StatusInternalServerError)
-			return
+		if _, err := w.Write(nil); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	if _, writeErr := w.Write(img); writeErr != nil {
-		c.Err = model.NewAppError("getBrandImage", "api.response_writer_error", nil, "", http.StatusInternalServerError)
-		return
+	if _, err := w.Write(img); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
