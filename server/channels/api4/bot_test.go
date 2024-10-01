@@ -208,8 +208,9 @@ func TestPatchBot(t *testing.T) {
 				DisplayName: sToP("an updated bot"),
 				Description: sToP("updated bot"),
 			}
-			patchedBot, patchResp, err := client.PatchBot(context.Background(), createdBot.UserId, botPatch)
+			_, _, err = client.PatchBot(context.Background(), createdBot.UserId, botPatch)
 			require.NoError(t, err)
+			patchedBot, patchResp, _ := client.PatchBot(context.Background(), createdBot.UserId, botPatch)
 			CheckOKStatus(t, patchResp)
 			require.Equal(t, *botPatch.Username, patchedBot.Username)
 			require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
