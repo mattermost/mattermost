@@ -19,7 +19,7 @@ type UploadInfo = {
     name: string;
     percent?: number;
     type?: string;
-};
+}
 export type FilePreviewInfo = FileInfo & UploadInfo;
 
 type Props = {
@@ -28,7 +28,7 @@ type Props = {
     fileInfos: FilePreviewInfo[];
     uploadsInProgress?: string[];
     uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
-};
+}
 
 export default class FilePreview extends React.PureComponent<Props> {
     static defaultProps = {
@@ -50,16 +50,17 @@ export default class FilePreview extends React.PureComponent<Props> {
             let className = 'file-preview post-image__column';
             let previewImage;
             if (type === FileTypes.SVG && this.props.enableSVGs) {
-                previewImage = <img alt={'file preview'} className="post-image normal" src={getFileUrl(info.id)} />;
+                previewImage = (
+                    <img
+                        alt={'file preview'}
+                        className='post-image normal'
+                        src={getFileUrl(info.id)}
+                    />
+                );
             } else if (type === FileTypes.IMAGE) {
                 let imageClassName = 'post-image';
 
-                if (
-                    info.width &&
-                    info.width < Constants.THUMBNAIL_WIDTH &&
-                    info.height &&
-                    info.height < Constants.THUMBNAIL_HEIGHT
-                ) {
+                if ((info.width && info.width < Constants.THUMBNAIL_WIDTH) && (info.height && info.height < Constants.THUMBNAIL_HEIGHT)) {
                     imageClassName += ' small';
                 } else {
                     imageClassName += ' normal';
@@ -81,32 +82,42 @@ export default class FilePreview extends React.PureComponent<Props> {
                 );
             } else {
                 className += ' custom-file';
-                previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)} />;
+                previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
             }
 
             previews.push(
-                <div key={info.id} className={className}>
-                    <div className="post-image__thumbnail">{previewImage}</div>
-                    <div className="post-image__details">
-                        <div className="post-image__detail_wrapper">
-                            <div className="post-image__detail">
-                                <FilenameOverlay fileInfo={info} compactDisplay={false} canDownload={false} />
-                                {info.extra_info && <span className="post-image__extra-info">{info.extra_info}</span>}
-                                {info.extension && (
-                                    <span className="post-image__type">{info.extension.toUpperCase()}</span>
-                                )}
-                                <span className="post-image__size">{Utils.fileSizeToString(info.size)}</span>
+                <div
+                    key={info.id}
+                    className={className}
+                >
+                    <div className='post-image__thumbnail'>
+                        {previewImage}
+                    </div>
+                    <div className='post-image__details'>
+                        <div className='post-image__detail_wrapper'>
+                            <div className='post-image__detail'>
+                                <FilenameOverlay
+                                    fileInfo={info}
+                                    compactDisplay={false}
+                                    canDownload={false}
+                                />
+                                {info.extra_info && <span className='post-image__extra-info'>{info.extra_info}</span>}
+                                {info.extension && <span className='post-image__type'>{info.extension.toUpperCase()}</span>}
+                                <span className='post-image__size'>{Utils.fileSizeToString(info.size)}</span>
                             </div>
                         </div>
                         <div>
                             {Boolean(this.props.onRemove) && (
-                                <a className="file-preview__remove" onClick={this.handleRemove.bind(this, info.id)}>
-                                    <i className="icon icon-close" />
+                                <a
+                                    className='file-preview__remove'
+                                    onClick={this.handleRemove.bind(this, info.id)}
+                                >
+                                    <i className='icon icon-close'/>
                                 </a>
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
             );
         });
 
@@ -121,12 +132,16 @@ export default class FilePreview extends React.PureComponent<Props> {
                             clientId={clientId}
                             fileInfo={fileInfo}
                             handleRemove={this.handleRemove}
-                        />
+                        />,
                     );
                 }
             });
         }
 
-        return <div className="file-preview__container">{previews}</div>;
+        return (
+            <div className='file-preview__container'>
+                {previews}
+            </div>
+        );
     }
 }
