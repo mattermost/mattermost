@@ -374,6 +374,18 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             />
         );
 
+        const pinnedButton = this.props.pinnedPostsCount ? (
+            <HeaderIconWrapper
+                iconComponent={pinnedIcon}
+                buttonClass={pinnedIconClass}
+                buttonId={'channelHeaderPinButton'}
+                onClick={this.showPinnedPosts}
+                tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
+            />
+        ) : (
+            null
+        );
+
         let memberListButton = null;
         if (!isDirect) {
             const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
@@ -599,13 +611,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                 >
                                     {muteTrigger}
                                     {memberListButton}
-                                    <HeaderIconWrapper
-                                        iconComponent={pinnedIcon}
-                                        buttonClass={pinnedIconClass}
-                                        buttonId={'channelHeaderPinButton'}
-                                        onClick={this.showPinnedPosts}
-                                        tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
-                                    />
+                                    {pinnedButton}
                                     {this.props.isFileAttachmentsEnabled &&
                                         <HeaderIconWrapper
                                             iconComponent={channelFilesIcon}

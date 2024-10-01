@@ -106,9 +106,9 @@ func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
 	return r0
 }
 
-// GetClusterStats provides a mock function with given fields:
-func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
-	ret := _m.Called()
+// GetClusterStats provides a mock function with given fields: rctx
+func (_m *ClusterInterface) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
+	ret := _m.Called(rctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetClusterStats")
@@ -116,19 +116,19 @@ func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.App
 
 	var r0 []*model.ClusterStats
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func() ([]*model.ClusterStats, *model.AppError)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]*model.ClusterStats, *model.AppError)); ok {
+		return rf(rctx)
 	}
-	if rf, ok := ret.Get(0).(func() []*model.ClusterStats); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(request.CTX) []*model.ClusterStats); ok {
+		r0 = rf(rctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ClusterStats)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
+		r1 = rf(rctx)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -138,9 +138,9 @@ func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.App
 	return r0, r1
 }
 
-// GetLogs provides a mock function with given fields: page, perPage
-func (_m *ClusterInterface) GetLogs(page int, perPage int) ([]string, *model.AppError) {
-	ret := _m.Called(page, perPage)
+// GetLogs provides a mock function with given fields: ctx, page, perPage
+func (_m *ClusterInterface) GetLogs(ctx request.CTX, page int, perPage int) ([]string, *model.AppError) {
+	ret := _m.Called(ctx, page, perPage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLogs")
@@ -148,19 +148,19 @@ func (_m *ClusterInterface) GetLogs(page int, perPage int) ([]string, *model.App
 
 	var r0 []string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(int, int) ([]string, *model.AppError)); ok {
-		return rf(page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int, int) ([]string, *model.AppError)); ok {
+		return rf(ctx, page, perPage)
 	}
-	if rf, ok := ret.Get(0).(func(int, int) []string); ok {
-		r0 = rf(page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int, int) []string); ok {
+		r0 = rf(ctx, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
-		r1 = rf(page, perPage)
+	if rf, ok := ret.Get(1).(func(request.CTX, int, int) *model.AppError); ok {
+		r1 = rf(ctx, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -263,9 +263,9 @@ func (_m *ClusterInterface) NotifyMsg(buf []byte) {
 	_m.Called(buf)
 }
 
-// QueryLogs provides a mock function with given fields: page, perPage
-func (_m *ClusterInterface) QueryLogs(page int, perPage int) (map[string][]string, *model.AppError) {
-	ret := _m.Called(page, perPage)
+// QueryLogs provides a mock function with given fields: rctx, page, perPage
+func (_m *ClusterInterface) QueryLogs(rctx request.CTX, page int, perPage int) (map[string][]string, *model.AppError) {
+	ret := _m.Called(rctx, page, perPage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for QueryLogs")
@@ -273,19 +273,19 @@ func (_m *ClusterInterface) QueryLogs(page int, perPage int) (map[string][]strin
 
 	var r0 map[string][]string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(int, int) (map[string][]string, *model.AppError)); ok {
-		return rf(page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int, int) (map[string][]string, *model.AppError)); ok {
+		return rf(rctx, page, perPage)
 	}
-	if rf, ok := ret.Get(0).(func(int, int) map[string][]string); ok {
-		r0 = rf(page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int, int) map[string][]string); ok {
+		r0 = rf(rctx, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string][]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
-		r1 = rf(page, perPage)
+	if rf, ok := ret.Get(1).(func(request.CTX, int, int) *model.AppError); ok {
+		r1 = rf(rctx, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
