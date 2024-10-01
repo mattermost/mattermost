@@ -94,9 +94,12 @@ function DraftRow({
     const connectionId = useSelector(getConnectionId);
 
     let postError = '';
-    if ('error_code' in item && item.error_code) {
-        // TODO LOL verify this is the preferred / intended behavior
-        postError = getErrorStringFromCode(intl, item.error_code);
+
+    if ('scheduled_at' in item) {
+        // This is applicable only for scheduled post.
+        if (item.error_code) {
+            postError = getErrorStringFromCode(intl, item.error_code);
+        }
     } else if (rootPostDeleted) {
         postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
     } else if (tooLong) {
