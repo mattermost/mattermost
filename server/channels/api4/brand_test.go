@@ -80,7 +80,7 @@ func TestDeleteBrandImage(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, err = th.Client.Logout(context.Background())
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	resp, err = th.Client.DeleteBrandImage(context.Background())
 	require.Error(t, err)
