@@ -132,6 +132,7 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
 
+    // TODO LOL verify the types and handled it better
     const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
     const [handleOnSend] = useSubmit(
         item as any,
