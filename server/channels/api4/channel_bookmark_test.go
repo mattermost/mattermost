@@ -784,7 +784,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 				require.Nil(t, appErr)
 				defer func() {
 					_, err := th.App.UpdateChannelBookmarkSortOrder(originalBookmark.Id, originalBookmark.ChannelId, originalBookmark.SortOrder, "")
-					require.NoError(t, err)
+					require.Nil(t, err)
 				}()
 
 				bookmarks, resp, err := tc.userClient.UpdateChannelBookmarkSortOrder(context.Background(), tc.channelId, tc.bookmarkId, tc.sortOrder)
