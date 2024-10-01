@@ -48,6 +48,10 @@ const PostAttachmentContainer = (props: Props) => {
         const {tagName} = e.target;
         e.stopPropagation();
         const elements = ['A', 'IMG', 'BUTTON', 'I'];
+        if (e.target.closest('a')) {
+            e.stopPropagation();
+            return;
+        }
 
         if (
             !elements.includes(tagName) &&
