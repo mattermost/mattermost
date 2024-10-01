@@ -675,12 +675,12 @@ func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*mo
 	referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
 	// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 	if appErr != nil {
-		return nil, nil, nil, appErr
+		return nil, appErr
 	}
 
 	referencedChannel, appErr := a.GetChannel(c, referencedPost.ChannelId)
 	if appErr != nil {
-		return nil, nil, nil, appErr
+		return nil, appErr
 	}
 
 	var referencedTeam *model.Team
@@ -689,11 +689,12 @@ func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*mo
 	} else {
 		referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
 		if appErr != nil {
-			return nil, nil, nil, appErr
+			return nil, appErr
 		}
 	}
 
 	// Get metadata for embedded post
+	var permalink *model.Permalink
 	if a.containsPermalink(referencedPost) {
 		// referencedPost contains a permalink: we don't get its metadata
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
@@ -702,10 +703,6 @@ func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*mo
 		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
-} else {
-	var request *http.Request
-	// Make request for a web page or an image
-	request, err = http.NewRequest("GET", requestURL, nil)
 
 	return permalink, nil
 }
