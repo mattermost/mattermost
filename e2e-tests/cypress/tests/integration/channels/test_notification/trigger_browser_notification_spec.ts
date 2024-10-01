@@ -10,79 +10,102 @@
 // Group: @channels @account_settings
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-import { isPermissionAllowed, isPermissionBlocked, isPermissionAsk } from 'cypress-browser-permissions'
+import {isPermissionAllowed} from 'cypress-browser-permissions';
 
-describe('Verify users can recieve notification on browser', () => {
-    let testUser: Cypress.UserProfile;
-    let testTeam: Cypress.Team;
-    let offTopic: string;
-
-    before(function() {
-        if (isPermissionAllowed('notifications')) {
-            cy.apiInitSetup({userPrefix: 'other', loginAfter: true}).then(({offTopicUrl, user, team}) => {
-                offTopic = offTopicUrl;
-                testUser = user;
-                testTeam = team;
-            });
-        } else {
-            // If not allowed, skip the test and log the message
-            cy.log('Notification permissions are not allowed. Enable browser notifications settings.');
-            this.skip();
+declare global {
+    namespace Cypress {
+        interface Chainable {
+            stubNotifications(): Chainable<void>;
         }
-    });
+    }
+}
 
-    it('should be able to recieve notification when notifications are enabled on the browser', () => {
-        cy.visit(offTopic, {
-            onBeforeLoad(win) {
-                cy.stub(win.Notification, 'requestPermission').resolves('granted');
-                cy.stub(win, 'Notification').as('Notification');
-            },
+Cypress.Commands.add('stubNotifications', () => {
+    cy.window().then((win) => {
+        cy.stub(win, 'Notification').as('notificationStub').callsFake(() => {
+            return {
+                onclick: cy.stub().as('notificationOnClick'),
+                onerror: cy.stub().as('notificationOnError'),
+            };
         });
-        cy.get('#CustomizeYourExperienceTour > button').click();
-        cy.get('.sectionNoticeContent').scrollIntoView().should('be.visible');
-        cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
-        cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
-
-        cy.get('@Notification').should('have.been.calledWithNew').then((notificationCall) => {
-            const [title, options] = notificationCall.args[0];
-
-            // * Assert the title is correct
-            expect(title).to.equal('Direct Message');
-
-            // * Assert the body contains the expected message
-            expect(options.body).to.include('@system-bot: app.notifications.test_message');
-          });
-
-        cy.get('#accountSettingsHeader button.close').click();
-
-        // * Assert the unread count is correct
-        cy.get(`.SidebarLink:contains(system-bot)`).find('#unreadMentions').as('unreadCount').should('be.visible').should('have.text', '1');
-        cy.get(`.SidebarLink:contains(system-bot)`).find('.Avatar').should('exist').click().wait(TIMEOUTS.HALF_SEC);
-        cy.get('@unreadCount').should('not.exist');
-
-        // * Assert the notification message
-        cy.getLastPostId().then((postId) => {
-            cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', 'app.notifications.test_message');
-        });
-    });
-
-    it.('should not be able to recieve notification when notifications are disabled on the browser', () => {
-        cy.visit(offTopic, {
-            onBeforeLoad(win) {
-                cy.stub(win.Notification, 'requestPermission').resolves('denied');
-                cy.stub(win, 'Notification').as('Notification');
-            },
-        });
-        cy.get('#CustomizeYourExperienceTour > button').click();
-        cy.get('.sectionNoticeContent').scrollIntoView().should('be.visible');
-        cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
-        cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
-
-        cy.get('@Notification').should('not.be.called');
-
-        cy.get('#accountSettingsHeader button.close').click();
-
-        // * Assert the unread count is correct
-        cy.get(`.SidebarLink:contains(system-bot)`).find('#unreadMentions').as('unreadCount').should('not.exist');
     });
 });
+
+describe('Verify users can recieve notification on browser', () => {
+    let offTopic: string;
+    let permissionAllowed = false;
+
+    before(() => {
+        // Check if notification permissions are allowed
+        permissionAllowed = isPermissionAllowed('notifications');
+
+        cy.apiInitSetup({userPrefix: 'other', loginAfter: true}).then(({offTopicUrl}) => {
+            offTopic = offTopicUrl;
+        });
+    });
+
+    it('should be able to recieve notification when notifications are enabled on the browser', function() {
+        if (!permissionAllowed) {
+            this.skip(); // Skip the test if permission is not allowed
+        }
+
+        cy.visit(offTopic);
+        cy.stubNotifications();
+
+        cy.get('#CustomizeYourExperienceTour > button').click();
+        cy.get('.sectionNoticeContent').scrollIntoView().should('be.visible');
+        cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
+        cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
+
+        cy.get('@notificationStub').should('be.called');
+
+        cy.get('@notificationStub').should((stub) => {
+            expect(stub).to.have.been.calledWithMatch(
+                'Direct Message',
+                Cypress.sinon.match({
+                    body: '@@system-bot: app.notifications.test_message',
+                    tag: '@@system-bot: app.notifications.test_message',
+                    requireInteraction: false,
+                    silent: false,
+                }),
+            );
+        });
+
+        cy.get('#accountSettingsHeader button.close').click();
+        verifySystemBotMessageRecieved();
+    });
+
+    it('should not be able to receive notification when notifications are disabled on the browser', function() {
+        if (permissionAllowed) {
+            this.skip(); // Skip the test if permission is allowed
+        }
+
+        cy.visit(offTopic);
+        cy.stubNotifications();
+
+        cy.get('#CustomizeYourExperienceTour > button').click();
+        cy.get('.sectionNoticeContent').scrollIntoView().should('be.visible');
+        cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
+        cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
+
+        // Assert that the Notification constructor was not called
+        cy.get('@notificationStub').should('not.be.called');
+
+        cy.get('#accountSettingsHeader button.close').click();
+
+        verifySystemBotMessageRecieved();
+    });
+});
+
+function verifySystemBotMessageRecieved() {
+    // * Assert the unread count is correct
+    cy.get('.SidebarLink:contains(system-bot)').find('#unreadMentions').as('unreadCount').should('be.visible').should('have.text', '1');
+    cy.get('.SidebarLink:contains(system-bot)').find('.Avatar').should('exist').click().wait(TIMEOUTS.HALF_SEC);
+    cy.get('@unreadCount').should('not.exist');
+
+    // * Assert the notification message
+    cy.getLastPostId().then((postId) => {
+        cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', 'app.notifications.test_message');
+    });
+}
+
