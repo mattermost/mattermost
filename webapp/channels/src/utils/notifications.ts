@@ -117,3 +117,7 @@ export async function requestNotificationPermission() {
         return null;
     }
 }
+
+export const NotificationPermissionNeverGranted = 'default';
+export const NotificationPermissionGranted = 'granted';
+export const NotificationPermissionDenied = 'denied';

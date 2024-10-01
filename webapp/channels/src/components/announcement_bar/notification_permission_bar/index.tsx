@@ -1,57 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
+import NotificationPermissionNeverGrantedBar from 'components/announcement_bar/notification_permission_bar/notification_permission_never_granted_bar';
+import NotificationUnsupportedBar from 'components/announcement_bar/notification_permission_bar/notification_unsupported_bar';
 
-import {AnnouncementBarTypes} from 'utils/constants';
-import {requestNotificationPermission, isNotificationAPISupported} from 'utils/notifications';
+import {
+    isNotificationAPISupported,
+    NotificationPermissionDenied,
+    NotificationPermissionNeverGranted,
+} from 'utils/notifications';
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));
 
-    const [show, setShow] = useState(isNotificationAPISupported() ? Notification.permission === 'default' : false);
-
-    const handleClick = useCallback(async () => {
-        await requestNotificationPermission();
-        setShow(false);
-    }, []);
-
-    const handleClose = useCallback(() => {
-        // If the user closes the bar, don't show the notification bar any more for the rest of the session, but
-        // show it again on app refresh.
-        setShow(false);
-    }, []);
-
-    if (!show || !isLoggedIn || !isNotificationAPISupported()) {
+    if (!isLoggedIn) {
         return null;
     }
 
-    return (
-        <AnnouncementBar
-            showCloseButton={true}
-            handleClose={handleClose}
-            type={AnnouncementBarTypes.ANNOUNCEMENT}
-            message={
-                <FormattedMessage
-                    id='announcement_bar.notification.needs_permission'
-                    defaultMessage='We need your permission to show desktop notifications.'
-                />
-            }
-            ctaText={
-                <FormattedMessage
-                    id='announcement_bar.notification.enable_notifications'
-                    defaultMessage='Enable notifications'
-                />
-            }
-            showCTA={true}
-            showLinkAsButton={true}
-            onButtonClick={handleClick}
-        />
-    );
+    // When browser does not support notification API, we show the notification bar to update browser
+    if (!isNotificationAPISupported()) {
+        return <NotificationUnsupportedBar/>;
+    }
+
+    // When user has not granted permission, we show the notification bar to request permission
+    if (isNotificationAPISupported() && Notification.permission === NotificationPermissionNeverGranted) {
+        return <NotificationPermissionNeverGrantedBar/>;
+    }
+
+    // When user has denied permission, we don't show since user explicitly denied permission
+    if (isNotificationAPISupported() && Notification.permission === NotificationPermissionDenied) {
+        return null;
+    }
+
+    return null;
 }

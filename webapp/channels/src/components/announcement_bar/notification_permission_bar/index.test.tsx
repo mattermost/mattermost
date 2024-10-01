@@ -5,7 +5,7 @@ import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
-import {requestNotificationPermission, isNotificationAPISupported} from 'utils/notifications';
+import {requestNotificationPermission, isNotificationAPISupported, NotificationPermissionNeverGranted} from 'utils/notifications';
 
 import NotificationPermissionBar from './index';
 
@@ -29,7 +29,7 @@ describe('NotificationPermissionBar', () => {
 
     beforeEach(() => {
         (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
-        (window as any).Notification = {permission: 'default'};
+        (window as any).Notification = {permission: NotificationPermissionNeverGranted};
     });
 
     afterEach(() => {
@@ -37,31 +37,30 @@ describe('NotificationPermissionBar', () => {
         delete (window as any).Notification;
     });
 
-    test('should render the notification bar when conditions are met', () => {
+    test('should not render anything if user is not logged in', () => {
+        const {container} = renderWithContext(<NotificationPermissionBar/>);
+
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    test('should render the NotificationUnsupportedBar if notifications are not supported', () => {
+        delete (window as any).Notification;
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(false);
+
+        renderWithContext(<NotificationPermissionBar/>, initialState);
+
+        expect(screen.queryByText('Your browser does not support desktop notifications.')).toBeInTheDocument();
+        expect(screen.queryByText('Update your browser')).toBeInTheDocument();
+    });
+
+    test('should render the NotificationPermissionNeverGrantedBar when permission is never granted yet', () => {
         renderWithContext(<NotificationPermissionBar/>, initialState);
 
         expect(screen.getByText('We need your permission to show desktop notifications.')).toBeInTheDocument();
         expect(screen.getByText('Enable notifications')).toBeInTheDocument();
     });
 
-    test('should not render the notification bar if user is not logged in', () => {
-        renderWithContext(<NotificationPermissionBar/>);
-
-        expect(screen.queryByText('We need your permission to show desktop notifications.')).not.toBeInTheDocument();
-        expect(screen.queryByText('Enable notifications')).not.toBeInTheDocument();
-    });
-
-    test('should not render the notification bar if Notifications are not supported', () => {
-        delete (window as any).Notification;
-        (isNotificationAPISupported as jest.Mock).mockReturnValue(false);
-
-        renderWithContext(<NotificationPermissionBar/>, initialState);
-
-        expect(screen.queryByText('We need your permission to show desktop notifications.')).not.toBeInTheDocument();
-        expect(screen.queryByText('Enable notifications')).not.toBeInTheDocument();
-    });
-
-    test('should call requestNotificationPermission and hide the bar when the button is clicked', async () => {
+    test('should call requestNotificationPermission and hide the bar when the button is clicked in NotificationPermissionNeverGrantedBar', async () => {
         (requestNotificationPermission as jest.Mock).mockResolvedValue('granted');
 
         renderWithContext(<NotificationPermissionBar/>, initialState);
