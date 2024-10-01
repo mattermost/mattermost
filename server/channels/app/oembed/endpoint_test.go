@@ -4,16 +4,21 @@
 package oembed
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindEndpointForURL(t *testing.T) {
-	youtubeProvider := providers[slices.IndexFunc(providers, func(provider *ProviderEndpoint) bool {
-		return provider.URL == "https://www.youtube.com/oembed"
-	})]
+	var youtubeProvider *ProviderEndpoint
+	for _, provider := range providers {
+		if provider.URL == "https://www.youtube.com/oembed" {
+			youtubeProvider = provider
+		}
+	}
+
+	require.NotNil(t, youtubeProvider)
 
 	for _, testCase := range []struct {
 		Name     string
