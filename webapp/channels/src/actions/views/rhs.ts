@@ -17,11 +17,7 @@ import {
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
-import {
-    getCurrentChannelId,
-    getCurrentChannelNameForSearchShortcut,
-    getChannel as getChannelSelector,
-} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -58,10 +54,7 @@ function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): A
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(
-    post: Post,
-    previousRhsState?: RhsState
-): ActionFuncAsync<boolean, GlobalState> {
+function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -83,11 +76,12 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
             state: rhsState,
         };
 
-        if (
-            [RHSStates.PIN, RHSStates.CHANNEL_FILES, RHSStates.CHANNEL_INFO, RHSStates.CHANNEL_MEMBERS].includes(
-                rhsState
-            )
-        ) {
+        if ([
+            RHSStates.PIN,
+            RHSStates.CHANNEL_FILES,
+            RHSStates.CHANNEL_INFO,
+            RHSStates.CHANNEL_MEMBERS,
+        ].includes(rhsState)) {
             action.channelId = channelId || getCurrentChannelId(getState());
         }
         if (previousRhsState) {
@@ -156,21 +150,21 @@ export function setRhsSize(rhsSize?: SidebarSize) {
         const width = window.innerWidth;
 
         switch (true) {
-            case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
-                newSidebarSize = SidebarSize.SMALL;
-                break;
-            }
-            case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
-                newSidebarSize = SidebarSize.MEDIUM;
-                break;
-            }
-            case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
-                newSidebarSize = SidebarSize.LARGE;
-                break;
-            }
-            default: {
-                newSidebarSize = SidebarSize.XLARGE;
-            }
+        case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.SMALL;
+            break;
+        }
+        case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.MEDIUM;
+            break;
+        }
+        case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.LARGE;
+            break;
+        }
+        default: {
+            newSidebarSize = SidebarSize.XLARGE;
+        }
         }
     }
     return {
@@ -241,30 +235,9 @@ export function performSearch(terms: string, isMentionSearch?: boolean): ThunkAc
 
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
-        const timezoneOffset =
-            (userCurrentTimezone && userCurrentTimezone.length > 0
-                ? getUtcOffsetForTimeZone(userCurrentTimezone)
-                : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(
-            searchPostsWithParams(isMentionSearch ? '' : teamId, {
-                terms: searchTerms,
-                is_or_search: Boolean(isMentionSearch),
-                include_deleted_channels: viewArchivedChannels,
-                time_zone_offset: timezoneOffset,
-                page: 0,
-                per_page: 20,
-            })
-        );
-        const filesPromise = dispatch(
-            searchFilesWithParams(teamId, {
-                terms: termsWithExtensionsFilters,
-                is_or_search: Boolean(isMentionSearch),
-                include_deleted_channels: viewArchivedChannels,
-                time_zone_offset: timezoneOffset,
-                page: 0,
-                per_page: 20,
-            })
-        );
+        const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
+        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         return Promise.all([filesPromise, messagesPromise]);
     };
 }
@@ -368,22 +341,20 @@ export function showFlaggedPosts(): ActionFuncAsync {
             data = results.data;
         }
 
-        dispatch(
-            batchActions([
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                    data,
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data,
+            },
+            {
+                type: SearchTypes.RECEIVED_SEARCH_TERM,
+                data: {
+                    teamId,
+                    terms: null,
+                    isOrSearch: false,
                 },
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_TERM,
-                    data: {
-                        teamId,
-                        terms: null,
-                        isOrSearch: false,
-                    },
-                },
-            ])
-        );
+            },
+        ]));
 
         return {data: true};
     };
@@ -413,22 +384,20 @@ export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, Gl
             data = results.data;
         }
 
-        dispatch(
-            batchActions([
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                    data,
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data,
+            },
+            {
+                type: SearchTypes.RECEIVED_SEARCH_TERM,
+                data: {
+                    teamId,
+                    terms: null,
+                    isOrSearch: false,
                 },
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_TERM,
-                    data: {
-                        teamId,
-                        terms: null,
-                        isOrSearch: false,
-                    },
-                },
-            ])
-        );
+            },
+        ]));
 
         return {data: true};
     };
@@ -473,22 +442,20 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, Gl
             data = results[1].data;
         }
 
-        dispatch(
-            batchActions([
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                    data,
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data,
+            },
+            {
+                type: SearchTypes.RECEIVED_SEARCH_TERM,
+                data: {
+                    teamId,
+                    terms: null,
+                    isOrSearch: false,
                 },
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_TERM,
-                    data: {
-                        teamId,
-                        terms: null,
-                        isOrSearch: false,
-                    },
-                },
-            ])
-        );
+            },
+        ]));
 
         return {data: true};
     };
@@ -500,27 +467,21 @@ export function showMentions(): ActionFunc<boolean, GlobalState> {
             return key !== '@channel' && key !== '@all' && key !== '@here';
         });
 
-        const terms =
-            termKeys
-                .map(({key}) => key)
-                .join(' ')
-                .trim() + ' ';
+        const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
 
         trackEvent('api', 'api_posts_search_mention');
 
         dispatch(performSearch(terms, true));
-        dispatch(
-            batchActions([
-                {
-                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                    terms,
-                },
-                {
-                    type: ActionTypes.UPDATE_RHS_STATE,
-                    state: RHSStates.MENTION,
-                },
-            ])
-        );
+        dispatch(batchActions([
+            {
+                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                terms,
+            },
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.MENTION,
+            },
+        ]));
 
         return {data: true};
     };
@@ -554,20 +515,17 @@ export function closeRightHandSide(): ActionFunc {
     };
 }
 
-export const toggleMenu = (): ThunkActionFunc<unknown> => (dispatch) =>
-    dispatch({
-        type: ActionTypes.TOGGLE_RHS_MENU,
-    });
+export const toggleMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
+    type: ActionTypes.TOGGLE_RHS_MENU,
+});
 
-export const openMenu = (): ThunkActionFunc<unknown> => (dispatch) =>
-    dispatch({
-        type: ActionTypes.OPEN_RHS_MENU,
-    });
+export const openMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
+    type: ActionTypes.OPEN_RHS_MENU,
+});
 
-export const closeMenu = (): ThunkActionFunc<unknown> => (dispatch) =>
-    dispatch({
-        type: ActionTypes.CLOSE_RHS_MENU,
-    });
+export const closeMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
+    type: ActionTypes.CLOSE_RHS_MENU,
+});
 
 export function setRhsExpanded(expanded: boolean) {
     return {
@@ -597,8 +555,8 @@ export function selectPost(post: Post, previousRhsState?: RhsState) {
 export function selectPostById(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const post = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
-        if (post) {
+        const post: Post | undefined = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
+        if (post && post.state !== 'DELETED' && post.delete_at === 0) {
             const channel = getChannelSelector(state, post.channel_id);
             if (!channel) {
                 await dispatch(getChannel(post.channel_id));
@@ -627,7 +585,10 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
 
 export function selectPostAndHighlight(post: Post): ActionFunc {
     return (dispatch) => {
-        dispatch(batchActions([selectPost(post), highlightReply(post)]));
+        dispatch(batchActions([
+            selectPost(post),
+            highlightReply(post),
+        ]));
 
         debouncedClearHighlightReply(dispatch);
 
@@ -636,11 +597,7 @@ export function selectPostAndHighlight(post: Post): ActionFunc {
 }
 
 export function selectPostCard(post: Post) {
-    return {
-        type: ActionTypes.SELECT_POST_CARD,
-        postId: post.id,
-        channelId: post.channel_id,
-    };
+    return {type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id};
 }
 
 export function openRHSSearch(): ActionFunc {
@@ -680,15 +637,11 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown, GlobalSt
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post
-                ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState))
-                : dispatch(openRHSSearch());
+            return post ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post
-                ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState))
-                : dispatch(openRHSSearch());
+            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());

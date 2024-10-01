@@ -63,12 +63,7 @@ const previousSelectedPost = {
 } as Post;
 
 const UserSelectors = require('mattermost-redux/selectors/entities/users');
-UserSelectors.getCurrentUserMentionKeys = jest.fn(() => [
-    {key: '@here'},
-    {key: '@mattermost'},
-    {key: '@channel'},
-    {key: '@all'},
-]);
+UserSelectors.getCurrentUserMentionKeys = jest.fn(() => [{key: '@here'}, {key: '@mattermost'}, {key: '@channel'}, {key: '@all'}]);
 
 // Mock Date.now() to return a constant value.
 const POST_CREATED_TIME = Date.now();
@@ -76,21 +71,12 @@ global.Date.now = jest.fn(() => POST_CREATED_TIME);
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     getPostThread: (...args: any) => ({type: 'MOCK_GET_POST_THREAD', args}),
-    getMentionsAndStatusesForPosts: (...args: any) => ({
-        type: 'MOCK_GET_MENTIONS_AND_STATUSES_FOR_POSTS',
-        args,
-    }),
+    getMentionsAndStatusesForPosts: (...args: any) => ({type: 'MOCK_GET_MENTIONS_AND_STATUSES_FOR_POSTS', args}),
 }));
 
 jest.mock('mattermost-redux/actions/search', () => ({
-    searchPostsWithParams: (...args: any) => ({
-        type: 'MOCK_SEARCH_POSTS',
-        args,
-    }),
-    searchFilesWithParams: (...args: any) => ({
-        type: 'MOCK_SEARCH_FILES',
-        args,
-    }),
+    searchPostsWithParams: (...args: any) => ({type: 'MOCK_SEARCH_POSTS', args}),
+    searchFilesWithParams: (...args: any) => ({type: 'MOCK_SEARCH_FILES', args}),
     clearSearch: (...args: any) => ({type: 'MOCK_CLEAR_SEARCH', args}),
     getFlaggedPosts: jest.fn(),
     getPinnedPosts: jest.fn(),
@@ -244,26 +230,8 @@ describe('rhs view actions', () => {
             store.dispatch(performSearch(terms, false));
 
             const compareStore = mockStore(initialState);
-            compareStore.dispatch(
-                SearchActions.searchPostsWithParams(currentTeamId, {
-                    include_deleted_channels: false,
-                    terms,
-                    is_or_search: false,
-                    time_zone_offset: timeZoneOffset,
-                    page: 0,
-                    per_page: 20,
-                })
-            );
-            compareStore.dispatch(
-                SearchActions.searchFilesWithParams(currentTeamId, {
-                    include_deleted_channels: false,
-                    terms,
-                    is_or_search: false,
-                    time_zone_offset: timeZoneOffset,
-                    page: 0,
-                    per_page: 20,
-                })
-            );
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -285,26 +253,8 @@ describe('rhs view actions', () => {
 
             const filesExtTerms = '@here test search ext:txt ext:jpeg';
             const compareStore = mockStore(initialState);
-            compareStore.dispatch(
-                SearchActions.searchPostsWithParams(currentTeamId, {
-                    include_deleted_channels: false,
-                    terms,
-                    is_or_search: false,
-                    time_zone_offset: timeZoneOffset,
-                    page: 0,
-                    per_page: 20,
-                })
-            );
-            compareStore.dispatch(
-                SearchActions.searchFilesWithParams(currentTeamId, {
-                    include_deleted_channels: false,
-                    terms: filesExtTerms,
-                    is_or_search: false,
-                    time_zone_offset: timeZoneOffset,
-                    page: 0,
-                    per_page: 20,
-                })
-            );
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms: filesExtTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -315,26 +265,8 @@ describe('rhs view actions', () => {
 
             const mentionsQuotedTerms = `@here test search "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}"`;
             const compareStore = mockStore(initialState);
-            compareStore.dispatch(
-                SearchActions.searchPostsWithParams('', {
-                    include_deleted_channels: false,
-                    terms: mentionsQuotedTerms,
-                    is_or_search: true,
-                    time_zone_offset: timeZoneOffset,
-                    page: 0,
-                    per_page: 20,
-                })
-            );
-            compareStore.dispatch(
-                SearchActions.searchFilesWithParams(currentTeamId, {
-                    include_deleted_channels: false,
-                    terms,
-                    is_or_search: true,
-                    time_zone_offset: timeZoneOffset,
-                    page: 0,
-                    per_page: 20,
-                })
-            );
+            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -545,18 +477,16 @@ describe('rhs view actions', () => {
             const compareStore = mockStore(initialState);
 
             compareStore.dispatch(performSearch('@mattermost ', true));
-            compareStore.dispatch(
-                batchActions([
-                    {
-                        type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                        terms: '@mattermost ',
-                    },
-                    {
-                        type: ActionTypes.UPDATE_RHS_STATE,
-                        state: RHSStates.MENTION,
-                    },
-                ])
-            );
+            compareStore.dispatch(batchActions([
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                    terms: '@mattermost ',
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.MENTION,
+                },
+            ]));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -581,26 +511,24 @@ describe('rhs view actions', () => {
             store = mockStore(state);
             store.dispatch(closeRightHandSide());
 
-            const expectedActions = [
-                {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
-                    },
-                    payload: [
-                        {
-                            type: 'UPDATE_RHS_STATE',
-                            state: null,
-                        },
-                        {
-                            type: 'SELECT_POST',
-                            postId: '',
-                            channelId: '',
-                            timestamp: 0,
-                        },
-                    ],
+            const expectedActions = [{
+                type: 'BATCHING_REDUCER.BATCH',
+                meta: {
+                    batch: true,
                 },
-            ];
+                payload: [
+                    {
+                        type: 'UPDATE_RHS_STATE',
+                        state: null,
+                    },
+                    {
+                        type: 'SELECT_POST',
+                        postId: '',
+                        channelId: '',
+                        timestamp: 0,
+                    },
+                ],
+            }];
 
             expect(store.getActions()).toEqual(expectedActions);
         });
@@ -612,26 +540,24 @@ describe('rhs view actions', () => {
             store = mockStore(state);
             store.dispatch(closeRightHandSide());
 
-            const expectedActions = [
-                {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
-                    },
-                    payload: [
-                        {
-                            type: 'UPDATE_RHS_STATE',
-                            state: null,
-                        },
-                        {
-                            type: 'SELECT_POST',
-                            postId: '',
-                            channelId: '',
-                            timestamp: 0,
-                        },
-                    ],
+            const expectedActions = [{
+                type: 'BATCHING_REDUCER.BATCH',
+                meta: {
+                    batch: true,
                 },
-            ];
+                payload: [
+                    {
+                        type: 'UPDATE_RHS_STATE',
+                        state: null,
+                    },
+                    {
+                        type: 'SELECT_POST',
+                        postId: '',
+                        channelId: '',
+                        timestamp: 0,
+                    },
+                ],
+            }];
 
             expect(store.getActions()).toEqual(expectedActions);
         });
@@ -643,26 +569,24 @@ describe('rhs view actions', () => {
             store = mockStore(state);
             store.dispatch(closeRightHandSide());
 
-            const expectedActions = [
-                {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
-                    },
-                    payload: [
-                        {
-                            type: 'UPDATE_RHS_STATE',
-                            state: null,
-                        },
-                        {
-                            type: 'SELECT_POST',
-                            postId: '',
-                            channelId: '',
-                            timestamp: 0,
-                        },
-                    ],
+            const expectedActions = [{
+                type: 'BATCHING_REDUCER.BATCH',
+                meta: {
+                    batch: true,
                 },
-            ];
+                payload: [
+                    {
+                        type: 'UPDATE_RHS_STATE',
+                        state: null,
+                    },
+                    {
+                        type: 'SELECT_POST',
+                        postId: '',
+                        channelId: '',
+                        timestamp: 0,
+                    },
+                ],
+            }];
 
             expect(store.getActions()).toEqual(expectedActions);
         });
@@ -736,7 +660,7 @@ describe('rhs view actions', () => {
                 expect(store.getActions()).toEqual(compareStore.getActions());
             });
 
-            it("it doesn't dispatch the action when plugin rhs is closed", () => {
+            it('it doesn\'t dispatch the action when plugin rhs is closed', () => {
                 store = mockStore(stateWithoutPluginRhs);
 
                 store.dispatch(hideRHSPlugin(pluggableId));
@@ -746,7 +670,7 @@ describe('rhs view actions', () => {
                 expect(store.getActions()).toEqual(compareStore.getActions());
             });
 
-            it("it doesn't dispatch the action when other plugin rhs is opened", () => {
+            it('it doesn\'t dispatch the action when other plugin rhs is opened', () => {
                 store = mockStore(stateWithPluginRhs);
 
                 store.dispatch(hideRHSPlugin('pluggableId2'));
@@ -829,18 +753,16 @@ describe('rhs view actions', () => {
             const compareStore = mockStore(initialState);
 
             compareStore.dispatch(performSearch('@mattermost ', true));
-            compareStore.dispatch(
-                batchActions([
-                    {
-                        type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                        terms: '@mattermost ',
-                    },
-                    {
-                        type: ActionTypes.UPDATE_RHS_STATE,
-                        state: RHSStates.MENTION,
-                    },
-                ])
-            );
+            compareStore.dispatch(batchActions([
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                    terms: '@mattermost ',
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.MENTION,
+                },
+            ]));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -894,12 +816,7 @@ describe('rhs view actions', () => {
 
         it('opens selected post', async () => {
             const previousState = 'flag';
-            await store.dispatch(
-                openAtPrevious({
-                    selectedPostId: previousSelectedPost.id,
-                    previousRhsState: previousState,
-                })
-            );
+            await store.dispatch(openAtPrevious({selectedPostId: previousSelectedPost.id, previousRhsState: previousState}));
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch({
@@ -921,12 +838,7 @@ describe('rhs view actions', () => {
 
         it('opens selected post card', async () => {
             const previousState = 'flag';
-            await store.dispatch(
-                openAtPrevious({
-                    selectedPostCardId: previousSelectedPost.id,
-                    previousRhsState: previousState,
-                })
-            );
+            await store.dispatch(openAtPrevious({selectedPostCardId: previousSelectedPost.id, previousRhsState: previousState}));
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch({
@@ -983,12 +895,10 @@ describe('rhs view actions', () => {
         test('updateSearchType', () => {
             const store = mockStore(initialState);
             store.dispatch(updateSearchType('files'));
-            expect(store.getActions()).toEqual([
-                {
-                    type: ActionTypes.UPDATE_RHS_SEARCH_TYPE,
-                    searchType: 'files',
-                },
-            ]);
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_SEARCH_TYPE,
+                searchType: 'files',
+            }]);
         });
     });
 
@@ -1002,29 +912,26 @@ describe('rhs view actions', () => {
             jest.setSystemTime(POST_CREATED_TIME);
         });
 
-        const batchedActions = (postId: string, delay = 0) => [
-            {
-                meta: {batch: true},
-                payload: [
-                    {
-                        postId,
-                        timestamp: POST_CREATED_TIME + delay,
-                        type: ActionTypes.SELECT_POST,
-                    },
-                    {
-                        postId,
-                        type: ActionTypes.HIGHLIGHT_REPLY,
-                    },
-                ],
-                type: 'BATCHING_REDUCER.BATCH',
-            },
-        ];
+        const batchedActions = (postId: string, delay = 0) => [{
+            meta: {batch: true},
+            payload: [{
+                postId,
+                timestamp: POST_CREATED_TIME + delay,
+                type: ActionTypes.SELECT_POST,
+            }, {
+                postId,
+                type: ActionTypes.HIGHLIGHT_REPLY,
+            }],
+            type: 'BATCHING_REDUCER.BATCH',
+        }];
 
         it('should select, and highlight a post, and after a delay clear the highlight', () => {
             const store = mockStore(initialState);
             store.dispatch(selectPostAndHighlight(post1));
 
-            expect(store.getActions()).toEqual([...batchedActions('42')]);
+            expect(store.getActions()).toEqual([
+                ...batchedActions('42'),
+            ]);
 
             expect(jest.getTimerCount()).toBe(1);
 
@@ -1032,7 +939,10 @@ describe('rhs view actions', () => {
 
             expect(jest.getTimerCount()).toBe(0);
 
-            expect(store.getActions()).toEqual([...batchedActions('42'), {type: ActionTypes.CLEAR_HIGHLIGHT_REPLY}]);
+            expect(store.getActions()).toEqual([
+                ...batchedActions('42'),
+                {type: ActionTypes.CLEAR_HIGHLIGHT_REPLY},
+            ]);
         });
 
         it('should clear highlight only once after last call no matter how many times called', () => {
@@ -1067,20 +977,16 @@ describe('rhs view actions', () => {
             const store = mockStore(initialState);
             store.dispatch(suppressRHS);
 
-            expect(store.getActions()).toEqual([
-                {
-                    type: ActionTypes.SUPPRESS_RHS,
-                },
-            ]);
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SUPPRESS_RHS,
+            }]);
         });
 
         it('should unsuppresses rhs', () => {
             store.dispatch(unsuppressRHS);
-            expect(store.getActions()).toEqual([
-                {
-                    type: ActionTypes.UNSUPPRESS_RHS,
-                },
-            ]);
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.UNSUPPRESS_RHS,
+            }]);
         });
     });
 
@@ -1090,12 +996,10 @@ describe('rhs view actions', () => {
             testState.views.rhs.previousRhsStates = [RHSStates.CHANNEL_FILES as RhsState];
             const store = mockStore(testState);
             store.dispatch(goBack());
-            expect(store.getActions()).toEqual([
-                {
-                    type: ActionTypes.RHS_GO_BACK,
-                    state: RHSStates.CHANNEL_FILES as RhsState,
-                },
-            ]);
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.RHS_GO_BACK,
+                state: RHSStates.CHANNEL_FILES as RhsState,
+            }]);
         });
     });
 });
