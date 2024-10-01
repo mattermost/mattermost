@@ -11,7 +11,7 @@ import {localizeMessage} from 'utils/utils';
 const ChannelHeaderDropdown = () => (
     <Menu
         id='channelHeaderDropdownMenu'
-        ariaLabel={localizeMessage('channel_header.menuAriaLabel', 'Channel Menu').toLowerCase()}
+        ariaLabel={localizeMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
     >
         <ChannelHeaderDropdownItems isMobile={false}/>
     </Menu>

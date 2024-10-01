@@ -19,7 +19,7 @@ type Props = {
 const NavbarInfoButton: React.FunctionComponent<Props> = ({channel, actions}: Props): JSX.Element => (
     <button
         className='navbar-toggle navbar-right__icon navbar-info-button pull-right'
-        aria-label={localizeMessage('accessibility.button.Info', 'Info')}
+        aria-label={localizeMessage({id: 'accessibility.button.Info', defaultMessage: 'Info'})}
         onClick={() => actions.showChannelInfo(channel.id)}
     >
         <InfoIcon

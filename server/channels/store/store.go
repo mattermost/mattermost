@@ -417,6 +417,8 @@ type UserStore interface {
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
+	StoreMfaUsedTimestamps(userID string, ts []int) error
+	GetMfaUsedTimestamps(userID string) ([]int, error)
 	Get(ctx context.Context, id string) (*model.User, error)
 	GetMany(ctx context.Context, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
@@ -501,6 +503,7 @@ type SessionStore interface {
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
+	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error

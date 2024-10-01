@@ -7849,6 +7849,22 @@ func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, li
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetMobileSessionMetadata()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetMobileSessionMetadata", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
 	start := time.Now()
 
@@ -10661,6 +10677,22 @@ func (s *TimerLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetMfaUsedTimestamps(userID string) ([]int, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetMfaUsedTimestamps(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetMfaUsedTimestamps", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	start := time.Now()
 
@@ -11280,6 +11312,22 @@ func (s *TimerLayerUserStore) SearchWithoutTeam(term string, options *model.User
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchWithoutTeam", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerUserStore) StoreMfaUsedTimestamps(userID string, ts []int) error {
+	start := time.Now()
+
+	err := s.UserStore.StoreMfaUsedTimestamps(userID, ts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.StoreMfaUsedTimestamps", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerUserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {

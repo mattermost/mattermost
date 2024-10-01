@@ -37,11 +37,11 @@ function validateDisplayName(displayNameParam: string) {
     const displayName = displayNameParam.trim();
 
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
+        errors.push(localizeMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 2 characters.'}));
     }
 
     if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
+        errors.push(localizeMessage({id: 'channel_modal.name.shorter', defaultMessage: 'Channel names must have maximum 64 characters.'}));
     }
 
     return errors;

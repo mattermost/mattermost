@@ -43,6 +43,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 			"LastPostDate",
 			"DaysActive",
 			"TotalPosts",
+			"DeletedAt",
 		},
 		getData(app),
 	)
