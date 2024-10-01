@@ -27,9 +27,17 @@ type Props = {
     timestamp: number;
     remote: boolean;
     title: React.ReactNode;
+    error?: string;
 };
 
-function PanelHeader({actions, hover, timestamp, remote, title}: Props) {
+function PanelHeader({
+    actions,
+    hover,
+    timestamp,
+    remote,
+    title,
+    error,
+}: Props) {
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -62,11 +70,21 @@ function PanelHeader({actions, hover, timestamp, remote, title}: Props) {
                             />
                         )}
                     </div>
-                    <Tag
-                        variant={'danger'}
-                        uppercase={true}
-                        text={'draft'}
-                    />
+                    {!error && (
+                        <Tag
+                            variant={'danger'}
+                            uppercase={true}
+                            text={'draft'}
+                        />
+                    )}
+                    {error && (
+                        <Tag
+                            text={error}
+                            variant={'danger'}
+                            uppercase={true}
+                            icon={'alert-outline'}
+                        />
+                    )}
                 </div>
             </div>
         </header>
