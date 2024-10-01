@@ -129,7 +129,9 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 		// Create a pending job with same options
 		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, options)
-		defer app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+		defer func() {
+			_ = app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+		}()
 		require.Nil(t, err)
 		require.NotNil(t, job)
 
@@ -155,7 +157,9 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 		// Create an in-progress job with same options
 		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, options)
-		defer app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+		defer func() {
+			_ = app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+		}()
 		require.Nil(t, err)
 		require.NotNil(t, job)
 
