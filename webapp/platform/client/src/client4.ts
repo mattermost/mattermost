@@ -2098,8 +2098,8 @@ export default class Client4 {
         );
     };
 
-    createRemoteCluster = (remoteCluster: PartialExcept<RemoteClusterWithPassword, 'name' | 'display_name' | 'password'>) => {
-        return this.doFetch<{invite: string; remote_cluster: RemoteCluster}>(
+    createRemoteCluster = (remoteCluster: PartialExcept<RemoteClusterWithPassword, 'name' | 'display_name'>) => {
+        return this.doFetch<{invite: string; password: string; remote_cluster: RemoteCluster}>(
             `${this.getRemoteClustersRoute()}`,
             {method: 'POST', body: JSON.stringify(remoteCluster)},
         );
@@ -2126,7 +2126,7 @@ export default class Client4 {
         );
     };
 
-    generateInviteRemoteCluster = (remoteId: string, remoteCluster: Pick<RemoteClusterWithPassword, 'password'>) => {
+    generateInviteRemoteCluster = (remoteId: string, remoteCluster: Partial<Pick<RemoteClusterWithPassword, 'password'>>) => {
         return this.doFetch<string>(
             `${this.getRemoteClusterRoute(remoteId)}/generate_invite`,
             {method: 'POST', body: JSON.stringify(remoteCluster)},

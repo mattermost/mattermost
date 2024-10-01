@@ -43,19 +43,17 @@ export const useRemoteClusterCreate = () => {
                 dialogType: SecureConnectionCreateInviteModal,
                 dialogProps: {
                     creating: true,
-                    password: makePassword(),
-                    onConfirm: async (password: string) => {
+                    onConfirm: async () => {
                         try {
                             setSaving(true);
                             const response = await Client4.createRemoteCluster({
                                 ...patch,
                                 name: cleanUpUrlable(patch.display_name),
-                                password,
                             });
                             setSaving(false);
 
                             if (response) {
-                                const {invite, remote_cluster: remoteCluster} = response;
+                                const {invite, password, remote_cluster: remoteCluster} = response;
 
                                 resolve(remoteCluster);
                                 return {remoteCluster, share: {invite, password}};
@@ -85,9 +83,9 @@ export const useRemoteClusterCreateInvite = (remoteCluster: RemoteCluster) => {
                 modalId: ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE,
                 dialogType: SecureConnectionCreateInviteModal,
                 dialogProps: {
-                    password: makePassword(),
-                    onConfirm: async (password: string) => {
+                    onConfirm: async () => {
                         try {
+                            const password = makePassword();
                             setSaving(true);
                             const invite = await Client4.generateInviteRemoteCluster(remoteCluster.remote_id, {password});
                             setSaving(false);
