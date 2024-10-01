@@ -22,9 +22,10 @@ type Props = {
     location: string;
     channelId: string;
     postId: string;
+    remoteUserHourDisplayed?: boolean;
 }
 
-export default function ScheduledPostIndicator({location, channelId, postId}: Props) {
+export default function ScheduledPostIndicator({location, channelId, postId, remoteUserHourDisplayed}: Props) {
     // we use RHS_COMMENT for RHS and threads view, and CENTER for center channel.
     // get scheduled posts of a thread if in RHS or threads view,
     // else, get those for the channel.
