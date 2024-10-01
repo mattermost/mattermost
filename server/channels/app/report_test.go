@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/require"
 )
 
@@ -114,7 +115,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 	t.Run("should return error if job with same options exists in pending jobs", func(t *testing.T) {
 		app := th.App
-		rctx := th.Context
+		rctx := request.TestContext(t)
 		options := map[string]string{
 			"date_range":         "last_30_days",
 			"requesting_user_id": th.BasicUser.Id,
@@ -140,7 +141,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 	t.Run("should return error if job with same options exists in in-progress jobs", func(t *testing.T) {
 		app := th.App
-		rctx := th.Context
+		rctx := request.TestContext(t)
 		options := map[string]string{
 			"date_range":         "last_30_days",
 			"requesting_user_id": th.BasicUser.Id,
@@ -170,7 +171,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 	t.Run("should not return error if existing jobs have different options", func(t *testing.T) {
 		app := th.App
-		rctx := th.Context
+		rctx := request.TestContext(t)
 		options := map[string]string{
 			"date_range":         "last_30_days",
 			"requesting_user_id": th.BasicUser.Id,
