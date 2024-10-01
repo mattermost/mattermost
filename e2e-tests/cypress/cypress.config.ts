@@ -20,9 +20,6 @@ export default defineConfig({
         adminUsername: 'sysadmin',
         adminPassword: 'Sys@dmin-sample1',
         allowedUntrustedInternalConnections: 'localhost',
-        browserPermissions: {
-            notifications: 'allow',
-        },
         cwsURL: 'http://localhost:8076',
         cwsAPIURL: 'http://localhost:8076',
         dbClient: 'postgres',

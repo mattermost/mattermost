@@ -4,7 +4,6 @@
 /* eslint-disable no-console */
 
 const fs = require('fs');
-const {cypressBrowserPermissionsPlugin} = require('cypress-browser-permissions');
 
 const clientRequest = require('./client_request');
 const {
@@ -88,8 +87,6 @@ module.exports = (on, config) => {
             }
         }
     });
-
-    config = cypressBrowserPermissionsPlugin(on, config);
 
     return config;
 };
