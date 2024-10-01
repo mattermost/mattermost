@@ -3226,9 +3226,9 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 
 		for key := range settings {
 			if manifest == nil {
-				// Sanitize plugin settings for plugins that are not installed
-				settings[key] = FakeSetting
-				continue
+				// Don't return plugin settings for plugins that are not installed
+				delete(s.Plugins, id)
+				break
 			}
 
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
