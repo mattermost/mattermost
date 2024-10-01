@@ -14,7 +14,7 @@ import * as Menu from 'components/menu';
 
 import {ConnectionStatusLabel} from './controls';
 import {useRemoteClusterCreateInvite, useRemoteClusterDelete} from './modals/modal_utils';
-import {getEditLocation} from './utils';
+import {getEditLocation, isConfirmed} from './utils';
 
 type Props = {
     remoteCluster: RemoteCluster;
@@ -69,17 +69,19 @@ const RowMenu = ({remoteCluster: rc, onDeleteSuccess, disabled}: Props) => {
                 'aria-label': formatMessage({id: 'admin.secure_connection_row.menu.aria_label', defaultMessage: 'secure connection row menu'}),
             }}
         >
-            <Menu.Item
-                id={`${menuId}-generate_invite`}
-                leadingElement={<CodeTagsIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='admin.secure_connection_row.menu.share'
-                        defaultMessage='Generate invitation code'
-                    />
-                )}
-                onClick={handleCreateInvite}
-            />
+            {!isConfirmed(rc) && (
+                <Menu.Item
+                    id={`${menuId}-generate_invite`}
+                    leadingElement={<CodeTagsIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.secure_connection_row.menu.share'
+                            defaultMessage='Generate invitation code'
+                        />
+                    )}
+                    onClick={handleCreateInvite}
+                />
+            )}
             <Menu.Item
                 id={`${menuId}-edit`}
                 leadingElement={<PencilOutlineIcon size={18}/>}

@@ -31,8 +31,9 @@ export type RemoteCluster = {
     display_name: string;
     site_url: string;
     create_at: number;
+    delete_at: number;
     last_ping_at: number;
-    token: string;
+    token?: string;
     remote_token?: string;
     topics: string;
     creator_id: string;

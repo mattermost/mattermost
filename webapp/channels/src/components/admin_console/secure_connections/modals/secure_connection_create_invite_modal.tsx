@@ -17,9 +17,7 @@ import {Button, ModalFieldset, ModalNoticeWrapper, ModalParagraph} from '../cont
 
 type Props = {
     creating?: boolean;
-    password?: string;
-    allowCustomPassword?: boolean;
-    onConfirm: (password: string) => Promise<{remoteCluster: RemoteCluster; share: {invite: string; password: string}} | undefined>;
+    onConfirm: () => Promise<{remoteCluster: RemoteCluster; share: {invite: string; password: string}} | undefined>;
     onCancel?: () => void;
     onExited: () => void;
 }
@@ -28,27 +26,22 @@ const noop = () => {};
 
 function SecureConnectionCreateInviteModal({
     creating,
-    password: generatedPassword,
-    allowCustomPassword,
     onExited,
     onCancel,
     onConfirm,
 }: Props) {
     const {formatMessage} = useIntl();
     const [inviteCode, setInviteCode] = useState('');
-    const [password, setPassword] = useState(generatedPassword ?? '');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
     const {copiedRecently: inviteCopied, onClick: copyInvite} = useCopyText({text: inviteCode});
     const {copiedRecently: passwordCopied, onClick: copyPassword} = useCopyText({text: password});
 
     useEffect(() => {
-        if (password && !allowCustomPassword) {
-            handleConfirm();
-        }
+        handleConfirm();
     }, []);
 
-    const needPassword = !password;
     const done = Boolean(inviteCode && password);
 
     const handleConfirm = async () => {
@@ -58,7 +51,7 @@ function SecureConnectionCreateInviteModal({
 
         setLoading(true);
 
-        const result = await onConfirm(password);
+        const result = await onConfirm();
         setLoading(false);
 
         if (result) {
@@ -118,7 +111,7 @@ function SecureConnectionCreateInviteModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            isConfirmDisabled={needPassword}
+            isConfirmDisabled={!done}
             handleCancel={onCancel ?? noop}
             handleConfirm={handleConfirm}
             handleEnterKeyPress={handleConfirm}
@@ -128,7 +121,7 @@ function SecureConnectionCreateInviteModal({
             autoCloseOnConfirmButton={done}
             backdrop='static'
         >
-            {!allowCustomPassword && loading ? (
+            {loading ? (
                 <LoadingScreen/>
             ) : (
                 <>
@@ -168,7 +161,6 @@ function SecureConnectionCreateInviteModal({
                                 defaultMessage: 'Password',
                             })}
                             value={password}
-                            autoFocus={!password}
                             onChange={handlePasswordChange}
                             data-testid='password'
                             readOnly={done}

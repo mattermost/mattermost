@@ -58,11 +58,11 @@ export type TableMeta = {
     onRowClick?: (row: string) => void;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
+    disablePaginationControls?: boolean;
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
     paginationInfo?: ReactNode;
     hasDualSidedPagination?: boolean;
-    hasNoPagination?: boolean;
 };
 
 interface TableMandatoryTypes {
@@ -88,6 +88,8 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     const headerIdPrefix = `${tableMeta.tableId}-header-`;
     const rowIdPrefix = `${tableMeta.tableId}-row-`;
     const cellIdPrefix = `${tableMeta.tableId}-cell-`;
+
+    const hasPagination = !tableMeta.disablePaginationControls;
 
     const pageSizeOptions = useMemo(() => {
         return PAGE_SIZES.map((size) => {
@@ -120,7 +122,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     return (
         <div className='adminConsoleListTableContainer'>
-            {!tableMeta.hasNoPagination && (
+            {hasPagination && (
                 <div className='adminConsoleListTabletOptionalHead'>
                     {tableMeta.hasDualSidedPagination && (
                         <>
@@ -272,7 +274,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     ))}
                 </tfoot>
             </table>
-            {!tableMeta.hasNoPagination && (
+            {hasPagination && (
                 <div className='adminConsoleListTabletOptionalFoot'>
                     {tableMeta.paginationInfo}
                     <div
