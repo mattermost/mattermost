@@ -40,7 +40,7 @@ export default defineConfig({
         screenshot: 'only-on-failure',
         timezoneId: 'America/Los_Angeles',
         trace: 'off',
-        video: 'on-first-retry',
+        video: 'retain-on-failure',
         actionTimeout: duration.half_min,
         storageState: {
             cookies: [],

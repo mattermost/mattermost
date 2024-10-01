@@ -3,7 +3,6 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
-# Initialize Playwright report directory
 mme2e_log "Prepare Playwright: clean and initialize report and logs directory"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
 cd e2e-tests/playwright
@@ -12,13 +11,13 @@ mkdir -p logs
 touch logs/mattermost.log
 EOF
 
-# Install webapp dependencies
-mme2e_log "Prepare Playwright: install webapp dependencies"
-${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd webapp && npm install --cache /tmp/empty-cache"
-
-# Install Playwright dependencies
 mme2e_log "Prepare Playwright: install dependencies"
-${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && rm -rf node_modules && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --cache /tmp/empty-cache"
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
+cd webapp/
+npm install --cache /tmp/empty-cache
+cd ../e2e-tests/playwright
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --cache /tmp/empty-cache
+EOF
 
 mme2e_log "Prepare Playwright: environment info"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<"EOF"
@@ -38,7 +37,7 @@ EOF
 
 # Run Playwright test
 # Note: Run on chrome but eventually will enable to all projects which include firefox and ipad.
-${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test -- --project=chrome" | tee ../playwright/logs/playwright.log
+${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test -- ${TEST_FILTER}" | tee ../playwright/logs/playwright.log
 
 # Collect server logs
 ${MME2E_DC_SERVER} logs --no-log-prefix -- server >../playwright/logs/mattermost.log 2>&1

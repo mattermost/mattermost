@@ -89,11 +89,24 @@ if [ -n "${AWS_S3_BUCKET:-}" ]; then
   mme2e_log "S3 report upload enabled."
 fi
 
-cd ../cypress/
-if [ ! -d "results/" ]; then
-  mme2e_log "Error: 'results/' directory does not exist. Aborting report generation." >&2
-  exit 1
-fi
-
-npm i
-node save_report.js
+case "$TEST" in
+  cypress)
+    cd ../cypress/
+    if [ ! -d "results/" ]; then
+      mme2e_log "Error: 'results/' directory does not exist. Aborting report generation." >&2
+      exit 1
+    fi
+    npm i
+    node save_report.js
+    ;;
+  playwright)
+    cd ../playwright/
+    REPORT_FILE=playwright-report/results.json
+    if [ ! -f "$REPORT_FILE" ]; then
+      mme2e_log "Error: report file '$REPORT_FILE' does not exist in the playwright directory. Aborting report generation." >&2
+    fi
+    FAILURES=$(jq '[ .suites[].specs[].tests[].results[] | select(.status | test("^(passed|skipped)$") == false) ] | length' "$REPORT_FILE")
+    echo "Failures: $FAILURES"
+    # TODO complete
+    ;;
+esac
