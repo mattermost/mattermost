@@ -685,6 +685,8 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 			},
 		}
 
+		// If not enterprise, check version.
+		// Playbooks is not listed in the marketplace, this only handles prepackaged.
 		if !isEnterpriseLicense {
 			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
 				version, err := semver.Parse(prepackaged.Manifest.Version)
