@@ -244,16 +244,24 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	// user needs to be a system admin
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
 		return
 	}
 
-	trialLicense, appErr := c.App.Srv().GetPrevTrialLicense()
-	if appErr != nil {
-		c.Err = appErr
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("getPrevTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
-	ReturnJSON(w, trialLicense)
+	trialLicenseHistory, err := c.App.Channels().GetPrevTrialLicense()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(trialLicenseHistory); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
