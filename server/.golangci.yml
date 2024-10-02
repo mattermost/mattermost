@@ -62,9 +62,7 @@ issues:
         channels/api4/apitestlib.go|\
         channels/api4/bot_test.go|\
         channels/api4/brand.go|\
-        channels/api4/brand_test.go|\
         channels/api4/channel.go|\
-        channels/api4/channel_bookmark_test.go|\
         channels/api4/channel_category.go|\
         channels/api4/channel_test.go|\
         channels/api4/cloud.go|\
