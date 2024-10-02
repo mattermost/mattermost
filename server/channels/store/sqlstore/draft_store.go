@@ -182,12 +182,12 @@ func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
 }
 
 // DeleteDraftsAssociatedWithPost deletes all drafts associated with a post.
-func (s *SqlDraftStore) DeleteDraftsAssociatedWithPost(channelID, rootID string) error {
+func (s *SqlDraftStore) DeleteDraftsAssociatedWithPost(channelID, postID string) error {
 	query := s.getQueryBuilder().
 		Delete("Drafts").
 		Where(sq.Eq{
 			"ChannelId": channelID,
-			"RootId":    rootID,
+			"PostId":    postID,
 		})
 
 	sql, args, err := query.ToSql()
