@@ -1997,7 +1997,6 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, m)
 		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
-
 	})
 
 	t.Run("should not clear non primitive types", func(t *testing.T) {
