@@ -117,14 +117,14 @@ describe('Verify users can receive notification on browser', () => {
     it('should not show notification when Focus Mode is enabled (simulating no notification pop-up)', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('granted');
+
         cy.window().then((win) => {
-            // Check if Notification is already wrapped by checking if it has a restore method
-            if (win.Notification.restore) {
-                cy.log('Restoring already wrapped Notification');
-                win.Notification.restore();
-            }
+            win.Notification = function() {
+                // Do nothing to simulate Focus Mode
+            };
+
             cy.stub(win, 'Notification').as('notificationStub').callsFake(() => {
-                return {}; // No notification details are returned in Focus Mode
+                return null; // Prevent the notification from being created
             });
         });
 
@@ -134,7 +134,7 @@ describe('Verify users can receive notification on browser', () => {
         cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
 
         // Assert that the Notification constructor was not called in macOS Focus Mode
-        cy.get('@notificationStub').should('not.be.called');
+        cy.get('@notificationStub').should('not.be.called'); // Should not be called at all
         cy.get('#accountSettingsHeader button.close').click();
         cy.verifySystemBotMessageRecieved();
     });
