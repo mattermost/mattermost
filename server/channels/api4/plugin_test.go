@@ -1320,6 +1320,14 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
 	prepackagePlugins := []*plugin.PrepackagedPlugin{
 		{
 			Manifest: &model.Manifest{
@@ -1340,6 +1348,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.MarketplaceURL = testServer.URL
 	})
 
 	t.Run("playbooks v1 is returned if not licensed", func(t *testing.T) {
