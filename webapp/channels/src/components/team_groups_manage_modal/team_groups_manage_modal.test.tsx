@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitForElementToBeRemoved} from '@testing-library/react';
 import React from 'react';
 
 import TeamGroupsManageModal from 'components/team_groups_manage_modal/team_groups_manage_modal';
@@ -48,6 +49,7 @@ describe('components/TeamGroupsManageModal', () => {
         userEvent.click(wrapper.getByTestId('remove-group-button'));
         expect(wrapper.getByTestId('confirm-modal')).toBeInTheDocument();
         userEvent.click(wrapper.getByTestId('cancel-button'));
-        expect(wrapper.getByTestId('confirm-modal')).toBeNull();
+        await waitForElementToBeRemoved(() => wrapper.queryByTestId('confirm-modal'));
+        expect(wrapper.queryByTestId('confirm-modal')).toBeNull();
     });
 });
