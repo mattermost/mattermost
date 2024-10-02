@@ -26,7 +26,7 @@ export default function NoPermissionsView(props: Props) {
                 <Modal.Title className='NoPermissionsView__title'>
                     <FormattedMessage
                         id='invite_modal.no_permissions.title'
-                        defaultMessage='Unable to continue'
+                        defaultMessage='Unable to invite people'
                     />
                 </Modal.Title>
             </Modal.Header>
