@@ -46,7 +46,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
-	    c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -96,11 +96,9 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
-	    c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	    return
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
 	}
-
-	
 
 	licenseBytes := buf.Bytes()
 	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
@@ -246,27 +244,16 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().Platform().LicenseManager() == nil {
-		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
 		return
 	}
 
-	license, err := c.App.Srv().Platform().LicenseManager().GetPrevTrial()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	trialLicense, appErr := c.App.Srv().GetPrevTrialLicense()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	var clientLicense map[string]string
-
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
-		clientLicense = utils.GetClientLicense(license)
-	} else {
-		clientLicense = utils.GetSanitizedClientLicense(utils.GetClientLicense(license))
-	}
-
-	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
-	    c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-
+	ReturnJSON(w, trialLicense)
 }
