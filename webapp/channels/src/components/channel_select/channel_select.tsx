@@ -18,6 +18,7 @@ type Props = {
     selectDm: boolean;
 };
 
+
 const ChannelSelect = ({
     channels,
     selectOpen,
@@ -27,6 +28,8 @@ const ChannelSelect = ({
     onChange,
 }: Props) => {
     const intl = useIntl();
+
+    const activeChannels = channels.filter((channel: Channel) => channel.delete_at === 0);
 
     const options = [
         <option
@@ -40,7 +43,7 @@ const ChannelSelect = ({
         </option>,
     ];
 
-    channels.forEach((channel: Channel) => {
+    activeChannels.forEach((channel: Channel) => {
         const channelName = channel.display_name || channel.name;
         if (channel.type === Constants.OPEN_CHANNEL && selectOpen) {
             options.push(
