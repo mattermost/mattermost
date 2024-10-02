@@ -3063,7 +3063,7 @@
   "channel_bookmarks.create.error.generic_save": "There was an error trying to save the bookmark.",
   "channel_bookmarks.create.error.invalid_url": "Please enter a valid link. Could not parse: {link}.",
   "channel_bookmarks.create.error.invalid_url.continue_anyway": "Could not find: {url}. Please enter a valid link, or <Confirm>continue anyway</Confirm>.",
-  "channel_bookmarks.create.error.invalid_url.continuing_anyway": "Could not find: {url}.",
+  "channel_bookmarks.create.error.invalid_url.continuing_anyway": "This may not be a valid link: {url}.",
   "channel_bookmarks.create.file_input.edit": "Edit",
   "channel_bookmarks.create.file_input.label": "Attachment",
   "channel_bookmarks.create.link_info": "Add a link to any post, file, or any external link",
