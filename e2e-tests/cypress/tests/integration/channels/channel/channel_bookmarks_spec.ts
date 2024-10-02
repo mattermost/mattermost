@@ -14,6 +14,9 @@ import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Channel Bookmarks', () => {
+    const SpaceKeyCode = 32;
+    const RightArrowKeyCode = 39;
+
     let testTeam: Cypress.Team;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,11 +55,11 @@ describe('Channel Bookmarks', () => {
     });
 
     it('create link bookmark, with emoji and custom title', () => {
-        const {realLink, displayName, emojiName} = createLinkBookmark({displayName: 'custom display name', emojiName: 'smile'});
+        const {realLink, displayName, emojiName} = createLinkBookmark({displayName: 'custom display name', emojiName: 'smiling_face_with_3_hearts'});
 
         cy.findByTestId('channel-bookmarks-container').within(() => {
             // * Verify emoji, displayname, and href
-            cy.findAllByRole('link', {name: `:${emojiName}: ${displayName}`}).should('have.attr', 'href', realLink);
+            cy.findByRole('link', {name: `:${emojiName}: ${displayName}`}).should('have.attr', 'href', realLink);
         });
     });
 
@@ -65,7 +68,7 @@ describe('Channel Bookmarks', () => {
         const {file} = createFileBookmark({file: 'small-image.png'});
 
         // * Verify preview icon
-        cy.findAllByRole('link', {name: file}).as('link').find('.file-icon.image');
+        cy.findByRole('link', {name: file}).as('link').find('.file-icon.image');
 
         // # Open preview
         cy.get('@link').click();
@@ -114,15 +117,15 @@ describe('Channel Bookmarks', () => {
         editModalCreate();
 
         // * Verify bookmark created
-        cy.findAllByRole('link', {name: file});
+        cy.findByRole('link', {name: file});
     });
 
     it('create file bookmark, with emoji and custom title', () => {
         // # Create bookmark
-        const {file, displayName, emojiName} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smile'});
+        const {file, displayName, emojiName} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smiling_face_with_3_hearts'});
 
         // * Verify emoji and custom display name
-        cy.findAllByRole('link', {name: `:${emojiName}: ${displayName}`}).click();
+        cy.findByRole('link', {name: `:${emojiName}: ${displayName}`}).click();
 
         // * Verify preview opened
         cy.get('.file-preview-modal').findByRole('heading', {name: file});
@@ -153,6 +156,27 @@ describe('Channel Bookmarks', () => {
         cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realNextLink);
     });
 
+    it('edit link bookmark, only display name and emoji', () => {
+        // # Create link
+        const {displayName, realLink} = createLinkBookmark();
+
+        const nextDisplayName = 'Next custom display name 2';
+        const nextEmojiName = 'handshake';
+
+        // # Open edit
+        openEditModal(displayName);
+
+        // # Change link, displayname, emoji
+        editTextInput('titleInput', nextDisplayName);
+        selectEmoji(nextEmojiName);
+
+        // # Save
+        editModalSave();
+
+        // * Verify changes
+        cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realLink);
+    });
+
     it('delete bookmark', () => {
         const {displayName} = createLinkBookmark();
 
@@ -174,6 +198,30 @@ describe('Channel Bookmarks', () => {
         // * Verify bookmark deleted
         cy.findByRole('link', {name: displayName}).should('not.exist');
     });
+
+    it('reorder bookmark', () => {
+        const {displayName: name1} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname 1'});
+        const {displayName: name2} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname 2'});
+
+        // # Start reorder bookmark flow
+        cy.findByTestId('channel-bookmarks-container').within(() => {
+            cy.findAllByRole('link').should('be.visible').as('bookmarks');
+            cy.get('@bookmarks').eq(-1).scrollIntoView();
+            cy.get('@bookmarks').eq(-2).should('contain', name1);
+            cy.get('@bookmarks').eq(-1).should('contain', name2);
+
+            // # Perform drag using keyboard
+            cy.get(`a:contains(${name1})`).
+                trigger('keydown', {keyCode: SpaceKeyCode}).
+                trigger('keydown', {keyCode: RightArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+                trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
+
+            // * Verify correct order
+            cy.findAllByRole('link').should('be.visible').as('bookmarks-after');
+            cy.get('@bookmarks-after').eq(-2).should('contain', name2);
+            cy.get('@bookmarks-after').eq(-1).should('contain', name1);
+        });
+    });
 });
 
 function promptAddLink() {
@@ -190,7 +238,7 @@ function openDotMenu(name: string) {
     cy.findByTestId('channel-bookmarks-container').within(() => {
         // # open menu
         cy.findByRole('link', {name}).scrollIntoView().focus().
-            parent('div').find('button').click();
+            parent('div').findByRole('button', {name: 'Bookmark menu'}).click();
     });
 }
 
@@ -271,6 +319,11 @@ function editTextInput(testid: string, nextValue: string) {
         should('have.value', nextValue);
 }
 
+/**
+ *
+ * @param emojiName Name of emoji to select. Be overly specific
+ * e.g `smile` will have overlapping results, but `smiling_face_with_3_hearts` is unique with no overlapping results
+ */
 function selectEmoji(emojiName: string) {
     cy.findByRole('button', {name: 'select an emoji'}).click();
     cy.focused().type(`${emojiName}{downArrow}{enter}`);

@@ -38,7 +38,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         if (threadIsLimited) {
             return null;
         }
-        return getChannel(state, {id: rootPost.channel_id});
+        return getChannel(state, rootPost.channel_id);
     });
     if (!channel || threadIsLimited) {
         return null;

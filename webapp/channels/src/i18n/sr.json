@@ -487,7 +487,6 @@
   "channel_header.userHelpGuide": "Помоћ",
   "channel_members_modal.addNew": "Сви чланови тима",
   "create_comment.addComment": "Додај коментар...",
-  "delete_post.question": "Да ли сте сигурни да желите да обришете ставку {term}?",
   "edit_channel_header_modal.description": "Уреди текст који се појављује поред имена канала, у заглављу канала.",
   "edit_channel_header_modal.title": "Уреди заглавље за канал {channel}",
   "edit_channel_purpose_modal.body": "Описује како овај канал треба да се користи. Овај текст се појављује у списку канала, у менију „Више...“ и помаже другима да се одлуче о приступању тиму.",
