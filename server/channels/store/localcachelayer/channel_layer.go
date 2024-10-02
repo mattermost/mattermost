@@ -211,7 +211,6 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	}
 
 	count, err := s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
-
 	if err != nil {
 		return 0, err
 	}
@@ -244,27 +243,24 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	var foundChannels []*model.Channel
 	var channelsToQuery []string
 
-	if allowFromCache {
-		var toPass []any
-		for i := 0; i < len(ids); i++ {
-			var channel *model.Channel
-			toPass = append(toPass, &channel)
-		}
+	if !allowFromCache {
+		return s.ChannelStore.GetMany(ids, allowFromCache)
+	}
 
-		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
-		for i, err := range errs {
-			if err != nil {
-				if err != cache.ErrKeyNotFound {
-					s.rootStore.logger.Warn("Error in Channelstore.GetMany: ", mlog.Err(err))
-				}
-				channelsToQuery = append(channelsToQuery, ids[i])
+	toPass := allocateCacheTargets[*model.Channel](len(ids))
+	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				s.rootStore.logger.Warn("Error in Channelstore.GetMany: ", mlog.Err(err))
+			}
+			channelsToQuery = append(channelsToQuery, ids[i])
+		} else {
+			gotChannel := *(toPass[i].(**model.Channel))
+			if gotChannel != nil {
+				foundChannels = append(foundChannels, gotChannel)
 			} else {
-				gotChannel := *(toPass[i].(**model.Channel))
-				if gotChannel != nil {
-					foundChannels = append(foundChannels, gotChannel)
-				} else {
-					s.rootStore.logger.Warn("Found nil channel in GetMany. This is not expected")
-				}
+				s.rootStore.logger.Warn("Found nil channel in GetMany. This is not expected")
 			}
 		}
 	}
@@ -352,12 +348,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 			newKeys = append(newKeys, teamId+name)
 		}
 
-		toPass := make([]any, 0, len(newKeys))
-		for i := 0; i < len(newKeys); i++ {
-			var channel *model.Channel
-			toPass = append(toPass, &channel)
-		}
-
+		toPass := allocateCacheTargets[*model.Channel](len(newKeys))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, newKeys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -474,12 +465,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	counts := make(map[string]int64)
 	remainingChannels := make([]string, 0)
 
-	toPass := make([]any, 0, len(channelIDs))
-	for i := 0; i < len(channelIDs); i++ {
-		var cacheItem int64
-		toPass = append(toPass, &cacheItem)
-	}
-
+	toPass := allocateCacheTargets[int64](len(channelIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.reaction.rootStore.channelMemberCountsCache, channelIDs, toPass)
 	for i, err := range errs {
 		if err != nil {

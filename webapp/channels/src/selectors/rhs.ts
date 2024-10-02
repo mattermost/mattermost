@@ -57,7 +57,7 @@ export const getSelectedChannel = (() => {
     return (state: GlobalState) => {
         const channelId = getSelectedChannelId(state);
 
-        return getChannel(state, {id: channelId});
+        return getChannel(state, channelId);
     };
 })();
 
