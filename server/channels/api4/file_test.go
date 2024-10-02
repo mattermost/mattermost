@@ -755,7 +755,8 @@ func TestUploadFiles(t *testing.T) {
 						}
 					}
 
-					th.cleanupTestFile(dbInfo)
+					err = th.cleanupTestFile(dbInfo)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -796,7 +797,8 @@ func TestGetFile(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFile(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -904,18 +906,21 @@ func TestGetFileThumbnail(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFileThumbnail(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFileThumbnail(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -968,24 +973,28 @@ func TestGetFileLink(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFileLink(context.Background(), fileId)
 	require.NoError(t, err)
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
 	require.NoError(t, err)
-	th.cleanupTestFile(fileInfo)
+	err = th.cleanupTestFile(fileInfo)
+	require.NoError(t, err)
 }
 
 func TestGetFilePreview(t *testing.T) {
@@ -1017,18 +1026,21 @@ func TestGetFilePreview(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFilePreview(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFilePreview(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -1071,18 +1083,21 @@ func TestGetFileInfo(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFileInfo(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFileInfo(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -1147,7 +1162,8 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, th.cleanupTestFile(fileInfo))
 
-	th.cleanupTestFile(info)
+	err = th.cleanupTestFile(info)
+	require.NoError(t, err)
 	link = th.App.GeneratePublicLink(client.URL, info)
 	resp, err = http.Get(link)
 	require.NoError(t, err)
@@ -1204,7 +1220,8 @@ func TestSearchFiles(t *testing.T) {
 	require.NoError(t, err)
 	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
-	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
+	_, err = th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
+	require.NoError(t, err)
 
 	terms := "search"
 	isOrSearch := false
@@ -1296,7 +1313,8 @@ func TestSearchFiles(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)

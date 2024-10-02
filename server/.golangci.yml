@@ -79,7 +79,6 @@ issues:
         channels/api4/export.go|\
         channels/api4/export_test.go|\
         channels/api4/file.go|\
-        channels/api4/file_test.go|\
         channels/api4/group.go|\
         channels/api4/group_local.go|\
         channels/api4/group_test.go|\
