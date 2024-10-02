@@ -58,11 +58,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             cmdLength = msg.length;
         }
         const cmd = msg.substring(0, cmdLength).toLowerCase();
-        if (cmd === '/code') {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trimEnd();
-        } else {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
-        }
+        msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
 
         // Add track event for certain slash commands
         const commandsWithTelemetry = [
@@ -82,7 +78,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             return {data: {frontendHandled: true}};
         case '/shortcuts':
             if (UserAgent.isMobile()) {
-                const error = {message: localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
+                const error = {message: localizeMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device'})};
                 return {error};
             }
 
@@ -136,12 +132,12 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         case '/marketplace':
             // check if user has permissions to access the read plugins
             if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)) {
-                return {error: {message: localizeMessage('marketplace_command.no_permission', 'You do not have the appropriate permissions to access the marketplace.')}};
+                return {error: {message: localizeMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'})}};
             }
 
             // check config to see if marketplace is enabled
             if (!isMarketplaceEnabled(state)) {
-                return {error: {message: localizeMessage('marketplace_command.disabled', 'The marketplace is disabled. Please contact your System Administrator for details.')}};
+                return {error: {message: localizeMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
             }
 
             dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));

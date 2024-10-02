@@ -7029,7 +7029,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | ID połączenia | Adres URL | Zaproszenie zaakceptowane | Online | Ostatni ping |"
+    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | Identyfikator połączenia | Adres URL witryny | Domyślny zespół | Akceptacja zaproszenia | Online | Ostatni ping | Usunięto |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10118,5 +10118,61 @@
   {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Nie można uzyskać webhooka dla teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Użytkownik nie jest użytkownikiem OAuth lub SAML."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Nie udało się uzyskać członków kanału dla kanału bezpośredniego"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Nie ma członków dla kanału bezpośredniego"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Nie można pobrać członków wątku do eksportu."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Nieprawidłowy identyfikator posta."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Nieprawidłowe ID użytkownika."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Nie można pobrać pilotów kanału współdzielonego"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Nie można odblokować zdalnego do kanału"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Nie można zapisać członkostwa w wątku dla postu."
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Nie można określić, czy kanał jest współdzielony ze zdalnym"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Nie można zaprosić zdalnego do kanału"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Rozmiar przesłanej wtyczki przekracza limit. Limit ten można zmienić w konsoli systemowej poprzez Magazyn plików > Maksymalny rozmiar pliku"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Nie udało się przesłać pliku. Kanał przesyłania nie jest współdzielony ze zdalnym."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Nie można zaktualizować dodatkowych właściwości sesji."
   }
 ]

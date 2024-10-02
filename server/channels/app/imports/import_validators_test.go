@@ -646,6 +646,7 @@ func TestImportValidateUserAuth(t *testing.T) {
 		{model.NewPointer("foo"), model.NewPointer("foo"), false},
 		{nil, model.NewPointer(""), true},
 		{model.NewPointer(""), nil, true},
+		{model.NewPointer(model.ServiceOpenid), model.NewPointer("foo@bar.baz"), true},
 
 		{model.NewPointer("foo"), nil, false},
 		{model.NewPointer("foo"), model.NewPointer(""), false},

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -24,9 +24,9 @@ import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
@@ -65,6 +65,8 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
+
+const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
 function isDraftEmpty(draft: PostDraft) {
     return draft.message === '' && draft.fileInfos.length === 0 && draft.uploadsInProgress.length === 0;
@@ -106,7 +108,7 @@ const AdvancedTextEditor = ({
     const isRHS = Boolean(postId && !isThreadView);
 
     const currentUserId = useSelector(getCurrentUserId);
-    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, {id: channelId})?.display_name || '');
+    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, channelId)?.display_name || '');
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
@@ -251,7 +253,21 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+    const [handleSubmit, errorClass] = useSubmit(
+        draft,
+        postError,
+        channelId,
+        postId,
+        serverError,
+        lastBlurAt,
+        focusTextbox,
+        setServerError,
+        setShowPreview,
+        handleDraftChange,
+        prioritySubmitCheck,
+        undefined,
+        afterSubmit,
+    );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -269,6 +285,8 @@ const AdvancedTextEditor = ({
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
     );
+
+    const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -386,6 +404,7 @@ const AdvancedTextEditor = ({
     // Remove show preview when we switch channels or posts
     useEffect(() => {
         setShowPreview(false);
+        setServerError(null);
     }, [channelId, postId]);
 
     // Remove uploads in progress on mount
@@ -530,7 +549,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleSubmit}
+            onSubmit={noArgumentHandleSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -655,7 +674,7 @@ const AdvancedTextEditor = ({
                     <MessageSubmitError
                         error={serverError}
                         submittedMessage={serverError.submittedMessage}
-                        handleSubmit={handleSubmit}
+                        handleSubmit={noArgumentHandleSubmit}
                     />
                 )}
                 <MsgTyping

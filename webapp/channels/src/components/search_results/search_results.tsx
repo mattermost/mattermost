@@ -263,7 +263,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         contentItems = (
             <div className='sidebar--right__subheader a11y__section'>
                 <div className='sidebar--right__loading'>
-                    <LoadingSpinner text={Utils.localizeMessage('search_header.loading', 'Searching')}/>
+                    <LoadingSpinner text={Utils.localizeMessage({id: 'search_header.loading', defaultMessage: 'Searching'})}/>
                 </div>
             </div>
         );

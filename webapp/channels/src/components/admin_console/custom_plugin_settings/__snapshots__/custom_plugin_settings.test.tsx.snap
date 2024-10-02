@@ -188,15 +188,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
+        <Memo(FormError)
           error=""
-          errors={Array []}
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
         />
       </div>
     </WithTooltip>
@@ -242,15 +240,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
+        <Memo(FormError)
           error=""
-          errors={Array []}
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
         />
       </div>
     </WithTooltip>
@@ -446,15 +442,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
+        <Memo(FormError)
           error=""
-          errors={Array []}
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
         />
       </div>
     </WithTooltip>

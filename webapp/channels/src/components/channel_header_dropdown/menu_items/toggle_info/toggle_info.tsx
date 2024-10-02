@@ -30,7 +30,7 @@ const ToggleInfo = ({show, channel, rhsOpen, actions}: Props) => {
         actions.showChannelInfo(channel.id);
     };
 
-    const text = rhsOpen ? localizeMessage('channelHeader.hideInfo', 'Close Info') : localizeMessage('channelHeader.viewInfo', 'View Info');
+    const text = rhsOpen ? localizeMessage({id: 'channelHeader.hideInfo', defaultMessage: 'Close Info'}) : localizeMessage({id: 'channelHeader.viewInfo', defaultMessage: 'View Info'});
 
     return (
         <Menu.ItemAction
