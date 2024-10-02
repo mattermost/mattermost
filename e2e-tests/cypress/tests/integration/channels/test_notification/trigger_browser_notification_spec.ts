@@ -7,51 +7,8 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Group: @channels @account_settings
-
-/* eslint-disable @typescript-eslint/no-namespace */ // temp change
-
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
-declare global {
-    namespace Cypress {
-        interface Chainable {
-            stubNotificationPermission(permission: string): Chainable<void>;
-            verifySystemBotMessageRecieved(): Chainable<void>;
-        }
-    }
-}
-
-/**
- * permission can be 'granted', 'denied', or 'default'
- */
-Cypress.Commands.add('stubNotificationPermission', (permission) => {
-    cy.window().then((win) => {
-        cy.stub(win.Notification, 'permission').value(permission);
-        cy.stub(win.Notification, 'requestPermission').resolves(permission);
-        cy.stub(win, 'Notification').as('notificationStub').callsFake(() => {
-            return {
-                onclick: cy.stub().as('notificationOnClick'),
-                onerror: cy.stub().as('notificationOnError'),
-            };
-        });
-    });
-});
-
-/**
- * Verify the system bot message was received
- */
-Cypress.Commands.add('verifySystemBotMessageRecieved', () => {
-    // * Assert the unread count is correct
-    cy.get('.SidebarLink:contains(system-bot)').find('#unreadMentions').as('unreadCount').should('be.visible').should('have.text', '1');
-    cy.get('.SidebarLink:contains(system-bot)').find('.Avatar').should('exist').click().wait(TIMEOUTS.HALF_SEC);
-    cy.get('@unreadCount').should('not.exist');
-
-    // * Assert the notification message
-    cy.getLastPostId().then((postId) => {
-        cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', 'app.notifications.test_message');
-    });
-});
+// Stage: @prod
+// Group: @channels @notification
 
 describe('Verify users can receive notification on browser', () => {
     let offTopic: string;
@@ -133,8 +90,8 @@ describe('Verify users can receive notification on browser', () => {
         cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
         cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
 
-        // Assert that the Notification constructor was not called in macOS Focus Mode
-        cy.get('@notificationStub').should('not.be.called'); // Should not be called at all
+        // Assert that the Notification constructor was not called in Focus Mode
+        cy.get('@notificationStub').should('not.be.called');
         cy.get('#accountSettingsHeader button.close').click();
         cy.verifySystemBotMessageRecieved();
     });

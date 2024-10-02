@@ -1,0 +1,33 @@
+
+import * as TIMEOUTS from '../fixtures/timeouts';
+
+/**
+ * permission can be 'granted', 'denied', or 'default'
+ */
+Cypress.Commands.add('stubNotificationPermission', (permission) => {
+    cy.window().then((win) => {
+        cy.stub(win.Notification, 'permission').value(permission);
+        cy.stub(win.Notification, 'requestPermission').resolves(permission);
+        cy.stub(win, 'Notification').as('notificationStub').callsFake(() => {
+            return {
+                onclick: cy.stub().as('notificationOnClick'),
+                onerror: cy.stub().as('notificationOnError'),
+            };
+        });
+    });
+});
+
+/**
+ * Verify the system bot message was received
+ */
+Cypress.Commands.add('verifySystemBotMessageRecieved', () => {
+    // * Assert the unread count is correct
+    cy.get('.SidebarLink:contains(system-bot)').find('#unreadMentions').as('unreadCount').should('be.visible').should('have.text', '1');
+    cy.get('.SidebarLink:contains(system-bot)').find('.Avatar').should('exist').click().wait(TIMEOUTS.HALF_SEC);
+    cy.get('@unreadCount').should('not.exist');
+
+    // * Assert the notification message
+    cy.getLastPostId().then((postId) => {
+        cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', 'app.notifications.test_message');
+    });
+});
