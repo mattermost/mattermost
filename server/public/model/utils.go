@@ -631,6 +631,12 @@ func IsValidEmail(email string) bool {
 		return false
 	}
 
+	// mail.ParseAddress accepts quoted strings for the address
+	// which can lead to sending to the wrong email address
+	// We won't accept quoted strings.
+	if strings.ContainsAny(email, "\"") {
+		return false
+	}
 	return true
 }
 
