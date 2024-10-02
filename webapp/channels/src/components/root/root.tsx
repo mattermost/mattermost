@@ -194,9 +194,10 @@ export default class Root extends React.PureComponent<Props, State> {
 
     private showLandingPageIfNecessary = () => {
         // Only show Landing Page if enabled
-        if(!this.props.enableDesktopLandingPage) {
+        if (!this.props.enableDesktopLandingPage) {
             return;
         }
+
         // We have nothing to redirect to if we're already on Desktop App
         // Chromebook has no Desktop App to switch to
         if (isDesktopApp() || isChromebook()) {
