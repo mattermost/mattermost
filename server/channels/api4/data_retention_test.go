@@ -1046,9 +1046,46 @@ func TestAddChannelsToPolicy(t *testing.T) {
 	validChannelIDs := []string{model.NewId(), model.NewId()}
 	invalidChannelIDs := []string{"invalid_channel_id"}
 
-	mockDataRetentionInterface.On("AddChannelsToPolicy", validPolicyId, validChannelIDs).Return(nil)
-	mockDataRetentionInterface.On("AddChannelsToPolicy", nonExistentPolicyId, validChannelIDs).Return(model.NewAppError("AddChannelsToPolicy", "app.data_retention.add_channels_to_policy.app_error", nil, "", http.StatusNotFound))
-	mockDataRetentionInterface.On("AddChannelsToPolicy", validPolicyId, invalidChannelIDs).Return(model.NewAppError("AddChannelsToPolicy", "app.data_retention.add_channels_to_policy.app_error", nil, "", http.StatusBadRequest))
+	// Custom function to compare slices regardless of order
+	unorderedSlicesEqual := func(a, b []string) bool {
+		if len(a) != len(b) {
+			return false
+		}
+		counts := make(map[string]int)
+		for _, item := range a {
+			counts[item]++
+		}
+		for _, item := range b {
+			counts[item]--
+			if counts[item] < 0 {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Custom matcher for unordered slice comparison
+	unorderedSliceMatcher := func(expected []string) func(actual []string) bool {
+		return func(actual []string) bool {
+			return unorderedSlicesEqual(expected, actual)
+		}
+	}
+
+	mockDataRetentionInterface.On(
+		"AddChannelsToPolicy",
+		validPolicyId,
+		mock.MatchedBy(unorderedSliceMatcher(validChannelIDs)),
+	).Return(nil)
+	mockDataRetentionInterface.On(
+		"AddChannelsToPolicy",
+		nonExistentPolicyId,
+		mock.MatchedBy(unorderedSliceMatcher(validChannelIDs)),
+	).Return(model.NewAppError("AddChannelsToPolicy", "app.data_retention.add_channels_to_policy.app_error", nil, "", http.StatusNotFound))
+	mockDataRetentionInterface.On(
+		"AddChannelsToPolicy",
+		validPolicyId,
+		mock.MatchedBy(unorderedSliceMatcher(invalidChannelIDs)),
+	).Return(model.NewAppError("AddChannelsToPolicy", "app.data_retention.add_channels_to_policy.app_error", nil, "", http.StatusBadRequest))
 
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
