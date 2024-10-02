@@ -2027,8 +2027,8 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'ServiceSettings.EnableDesktopLandingPage',
-                            label: defineMessage({id: 'admin.customization.EnableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
-                            help_text: defineMessage({id: 'admin.customization.EnableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
+                            label: defineMessage({id: 'admin.customization.enableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                     ],
