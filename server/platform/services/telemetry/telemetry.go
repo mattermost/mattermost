@@ -102,7 +102,7 @@ const (
 
 type TrackFeature string
 
-const TrackGuestFeature TrackFeature = "guest"
+const TrackGuestFeature TrackFeature = "guest_accounts"
 
 type ServerIface interface {
 	Config() *model.Config

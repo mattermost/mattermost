@@ -473,7 +473,7 @@ func TestRudderTelemetry(t *testing.T) {
 				result,
 				testEvent,
 				map[string]any{"prop": testProperty},
-				map[string]any{"skus": []any{"professional", "enterprise"}, "name": "guest"},
+				map[string]any{"skus": []any{"professional", "enterprise"}, "name": "guest_accounts"},
 			)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "Did not receive telemetry")
