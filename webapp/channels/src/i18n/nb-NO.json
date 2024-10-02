@@ -395,6 +395,8 @@
   "admin.custom_terms_of_service_feature_discovery.title": "Opprett egendefinerte vilkår for bruk med Mattermost Enterprise",
   "admin.customization.allowSyncedDrafts": "Aktiver serversynkronisering av meldingsutkast:",
   "admin.customization.allowSyncedDraftsDesc": "Når aktivert, vil brukernes meldingsutkast synkroniseres med serveren slik at de kan nås fra hvilken som helst enhet. Brukere kan denne funksjonaliteten i kontoinnstillingene.",
+  "admin.customization.customUrlSchemesPlaceholder": "F.eks.: \"git,smtp\"",
+  "admin.customization.enableCustomEmojiTitle": "Slå på egendefinert emoji:",
   "admin.data_retention.form.days": "Dager",
   "admin.data_retention.form.fileRetention": "Filoppbevaring",
   "admin.data_retention.form.hours": "Timer",
