@@ -32,28 +32,28 @@ issues:
     - channels/store/storetest/mocks
   exclude-rules:
     - linters:
-      # ignore unused warnings from enterprise code
-      # add more as required.
-      - unused
+        # ignore unused warnings from enterprise code
+        # add more as required.
+        - unused
       text: "SetupEnterprise"
 
     - linters:
-      - revive
+        - revive
       text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
       # We need to fix the unused parameter issues and remove the exception.
 
     # Use a seperate set of exception for the enterprise code to allow community members to fix only the open source issues.
     - linters:
-      - revive
+        - revive
       path: "enterprise"
       text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
 
     - linters:
-      - misspell
+        - misspell
       path: "platform/shared/markdown/html_entities.go"
 
     - linters:
-      - staticcheck
+        - staticcheck
       text: SA1019
 
     - linters:
