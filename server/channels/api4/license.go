@@ -244,24 +244,33 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	// user needs to be a system admin
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
+	// Check if the LicenseManager is initialized
+	if c.App.Srv().Platform().LicenseManager() == nil {
+		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("getPrevTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	trialLicenseHistory, err := c.App.Channels().GetPrevTrialLicense()
+	// Retrieve the previous trial license
+	license, err := c.App.Srv().Platform().LicenseManager().GetPrevTrial()
 	if err != nil {
-		c.Err = err
+		c.Logger.Error("Error retrieving previous trial license", mlog.Err(err))
+		http.Error(w, "Failed to retrieve previous trial license", http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(trialLicenseHistory); err != nil {
+	var clientLicense map[string]string
+
+	// Check permissions to read license information
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
+		clientLicense = utils.GetClientLicense(license)
+	} else {
+		clientLicense = utils.GetSanitizedClientLicense(utils.GetClientLicense(license))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
 }
+
