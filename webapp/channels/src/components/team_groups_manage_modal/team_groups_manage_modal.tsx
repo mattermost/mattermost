@@ -129,7 +129,10 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     height='32'
                 />
                 <div className='more-modal__details'>
-                    <div className='more-modal__name'>{item.display_name} <Nbsp/> {'-'} <Nbsp/>
+                    <div
+                        className='more-modal__name'
+                        data-testid='group-name'
+                    >{item.display_name} <Nbsp/> {'-'} <Nbsp/>
                         <span className='more-modal__name_count'>
                             <FormattedMessage
                                 id='numMembers'
@@ -148,6 +151,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                             className='dropdown-toggle theme color--link style--none'
                             type='button'
                             aria-expanded='true'
+                            data-testid='menu-button'
                         >
                             <span>{title} </span>
                             <DropdownIcon/>
@@ -167,6 +171,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                                 text={Utils.localizeMessage({id: 'team_members_dropdown.makeTeamMembers', defaultMessage: 'Make Team Members'})}
                             />
                             <Menu.ItemAction
+                                id='remove-group'
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
                                 text={Utils.localizeMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
                             />
@@ -191,6 +196,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     onHide={this.onHide}
                     titleBarButtonText={formatMessage({id: 'group_list_modal.addGroupButton', defaultMessage: 'Add Groups'})}
                     titleBarButtonOnClick={this.titleButtonOnClick}
+                    data-testid='list-modal'
                 />
                 <ConfirmModal
                     show={this.state.showConfirmModal}
@@ -199,6 +205,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     confirmButtonText={formatMessage({id: 'remove_group_confirm_button', defaultMessage: 'Yes, Remove Group and {memberCount, plural, one {Member} other {Members}}'}, {memberCount})}
                     onConfirm={this.handleDeleteConfirmed}
                     onCancel={this.handleDeleteCanceled}
+                    id='confirm-modal'
                 />
             </>
         );
