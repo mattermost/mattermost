@@ -4,17 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ChannelNotifyProps} from '@mattermost/types/channels';
-import type {UserNotifyProps} from '@mattermost/types/users';
-
 import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox_setting_item';
 import type {FieldsetRadio} from 'components/widgets/modals/components/radio_setting_item';
 import type {FieldsetReactSelect} from 'components/widgets/modals/components/react_select_item';
 
-import {DesktopSound, NotificationLevels} from 'utils/constants';
+import {NotificationLevels} from 'utils/constants';
 import {optionsOfMessageNotificationSoundsSelect} from 'utils/notification_sounds';
-
-export type ChannelMemberNotifyProps = Partial<ChannelNotifyProps> & Pick<UserNotifyProps, 'desktop_threads' | 'push_threads'>
 
 const MuteChannelInputFieldData: FieldsetCheckbox = {
     name: 'mute channel',
@@ -53,52 +48,58 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                 dataTestId: `desktopNotification-${NotificationLevels.ALL}`,
                 title: (
                     <FormattedMessage
-                        id='channel_notifications.desktopNotificationAllLabel'
-                        defaultMessage='All new messages'
+                        id='channelNotifications.desktopNotification.allMessages'
+                        defaultMessage='All new messages {optionalDefault}'
+                        values={{
+                            optionalDefault: defaultOption === NotificationLevels.ALL ? (
+                                <FormattedMessage
+                                    id='channel_notifications.default'
+                                    defaultMessage='(default)'
+                                />) : undefined,
+                        }}
                     />
                 ),
                 name: `desktopNotification-${NotificationLevels.ALL}`,
                 key: `desktopNotification-${NotificationLevels.ALL}`,
                 value: NotificationLevels.ALL,
-                suffix: defaultOption === NotificationLevels.ALL ? (
-                    <FormattedMessage
-                        id='channel_notifications.default'
-                        defaultMessage='(default)'
-                    />) : undefined,
             },
             {
                 dataTestId: `desktopNotification-${NotificationLevels.MENTION}`,
                 title: (
                     <FormattedMessage
-                        id='channel_notifications.desktopNotificationMentionLabel'
-                        defaultMessage='Mentions, direct messages, and keywords only'
+                        id='channelNotifications.desktopNotification.mention'
+                        defaultMessage='Mentions, direct messages, and keywords only {optionalDefault}'
+                        values={{
+                            optionalDefault: defaultOption === NotificationLevels.MENTION ? (
+                                <FormattedMessage
+                                    id='channel_notifications.default'
+                                    defaultMessage='(default)'
+                                />) : undefined,
+                        }}
                     />
                 ),
                 name: `desktopNotification-${NotificationLevels.MENTION}`,
                 key: `desktopNotification-${NotificationLevels.MENTION}`,
                 value: NotificationLevels.MENTION,
-                suffix: defaultOption === NotificationLevels.MENTION ? (
-                    <FormattedMessage
-                        id='channel_notifications.default'
-                        defaultMessage='(default)'
-                    />) : undefined,
             },
             {
                 dataTestId: `desktopNotification-${NotificationLevels.NONE}`,
                 title: (
                     <FormattedMessage
-                        id='channel_notifications.desktopNotificationNothingLabel'
-                        defaultMessage='Nothing'
+                        id='channelNotifications.desktopNotification.nothing'
+                        defaultMessage='Nothing {optionalDefault}'
+                        values={{
+                            optionalDefault: defaultOption === NotificationLevels.NONE ? (
+                                <FormattedMessage
+                                    id='channel_notifications.default'
+                                    defaultMessage='(default)'
+                                />) : undefined,
+                        }}
                     />
                 ),
                 name: `desktopNotification-${NotificationLevels.NONE}`,
                 key: `desktopNotification-${NotificationLevels.NONE}`,
                 value: NotificationLevels.NONE,
-                suffix: defaultOption === NotificationLevels.NONE ? (
-                    <FormattedMessage
-                        id='channel_notifications.default'
-                        defaultMessage='(default)'
-                    />) : undefined,
             },
         ],
     };
@@ -122,74 +123,64 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                 dataTestId: `MobileNotification-${NotificationLevels.ALL}`,
                 title: (
                     <FormattedMessage
-                        id='channel_notifications.MobileNotificationAllLabel'
-                        defaultMessage='All new messages'
+                        id='channelNotifications.mobileNotification.newMessages'
+                        defaultMessage='All new messages {optionalDefault}'
+                        values={{
+                            optionalDefault: defaultOption === NotificationLevels.ALL ? (
+                                <FormattedMessage
+                                    id='channel_notifications.default'
+                                    defaultMessage='(default)'
+                                />) : undefined,
+                        }}
                     />
                 ),
                 name: `MobileNotification-${NotificationLevels.ALL}`,
                 key: `MobileNotification-${NotificationLevels.ALL}`,
                 value: NotificationLevels.ALL,
-                suffix: defaultOption === NotificationLevels.ALL ? (
-                    <FormattedMessage
-                        id='channel_notifications.default'
-                        defaultMessage='(default)'
-                    />) : undefined,
             },
             {
                 dataTestId: `MobileNotification-${NotificationLevels.MENTION}`,
                 title: (
                     <FormattedMessage
-                        id='channel_notifications.MobileNotificationMentionLabel'
-                        defaultMessage='Mentions, direct messages, and keywords only'
+                        id='channelNotifications.mobileNotification.mention'
+                        defaultMessage='Mentions, direct messages, and keywords only {optionalDefault}'
+                        values={{
+                            optionalDefault: defaultOption === NotificationLevels.MENTION ? (
+                                <FormattedMessage
+                                    id='channel_notifications.default'
+                                    defaultMessage='(default)'
+                                />) : undefined,
+                        }}
                     />
                 ),
                 name: `MobileNotification-${NotificationLevels.MENTION}`,
                 key: `MobileNotification-${NotificationLevels.MENTION}`,
                 value: NotificationLevels.MENTION,
-                suffix: defaultOption === NotificationLevels.MENTION ? (
-                    <FormattedMessage
-                        id='channel_notifications.default'
-                        defaultMessage='(default)'
-                    />) : undefined,
             },
             {
                 dataTestId: `MobileNotification-${NotificationLevels.NONE}`,
                 title: (
                     <FormattedMessage
-                        id='channel_notifications.MobileNotificationNothingLabel'
-                        defaultMessage='Nothing'
+                        id='channelNotifications.mobileNotification.nothing'
+                        defaultMessage='Nothing {optionalDefault}'
+                        values={{
+                            optionalDefault: defaultOption === NotificationLevels.NONE ? (
+                                <FormattedMessage
+                                    id='channel_notifications.default'
+                                    defaultMessage='(default)'
+                                />) : undefined,
+                        }}
                     />
                 ),
                 name: `MobileNotification-${NotificationLevels.NONE}`,
                 key: `MobileNotification-${NotificationLevels.NONE}`,
                 value: NotificationLevels.NONE,
-                suffix: defaultOption === NotificationLevels.NONE ? (
-                    <FormattedMessage
-                        id='channel_notifications.default'
-                        defaultMessage='(default)'
-                    />) : undefined,
             },
         ],
     };
 };
 
-/**
- * This conversion is needed because User's preference for desktop sound is stored as either true or false. On the other hand,
- * Channel's specific desktop sound is stored as either On or Off.
- */
-export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktopSound?: UserNotifyProps['desktop_sound']) {
-    if (!userNotifyDesktopSound) {
-        return DesktopSound.OFF;
-    }
-
-    if (userNotifyDesktopSound === 'true') {
-        return DesktopSound.ON;
-    }
-
-    return DesktopSound.ON;
-}
-
-const utils = {
+export default {
     desktopNotificationInputFieldData,
     desktopNotificationSoundsCheckboxFieldData,
     desktopNotificationSoundsSelectFieldData,
@@ -201,5 +192,3 @@ const utils = {
     AutoFollowThreadsInputFieldData,
     sameMobileSettingsDesktopInputFieldData,
 };
-
-export default utils;
