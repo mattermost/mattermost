@@ -154,13 +154,6 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         };
     }, [hideSearchBar, currentChannelName]);
 
-    // TEMPORARY force search team to current team
-    useEffect(() => {
-        if (currentChannel) {
-            actions.updateSearchTeam(currentChannel.team_id);
-        }
-    }, [currentChannel]);
-
     useEffect((): void => {
         if (!isMobileView) {
             setVisibleSearchHintOptions(determineVisibleSearchHintOptions(searchTerms, searchType));

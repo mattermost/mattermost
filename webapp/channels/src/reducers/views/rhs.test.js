@@ -287,7 +287,7 @@ describe('Reducers.RHS', () => {
             {},
             {
                 type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
-                team: 'team_id',
+                teamId: 'team_id',
             },
         );
 

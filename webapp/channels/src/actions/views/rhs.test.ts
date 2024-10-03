@@ -39,6 +39,7 @@ import {
     goBack,
     showChannelMembers,
     openShowEditHistory,
+    updateSearchTeam,
 } from 'actions/views/rhs';
 
 import mockStore from 'tests/test_store';
@@ -730,6 +731,7 @@ describe('rhs view actions', () => {
 
             compareStore.dispatch(SearchActions.clearSearch());
             compareStore.dispatch(updateSearchTerms(''));
+            compareStore.dispatch(updateSearchTeam(null));
             compareStore.dispatch({
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms: '',

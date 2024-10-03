@@ -602,6 +602,7 @@ export function openRHSSearch(): ActionFunc {
     return (dispatch) => {
         dispatch(clearSearch());
         dispatch(updateSearchTerms(''));
+        dispatch(updateSearchTeam(null));
         dispatch(updateSearchResultsTerms(''));
 
         dispatch(updateRhsState(RHSStates.SEARCH));
