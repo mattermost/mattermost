@@ -273,4 +273,3 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
 }
-
