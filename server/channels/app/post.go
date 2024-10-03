@@ -1361,13 +1361,13 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	return postList, nil
 }
 
-func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(c), postID, false)
+func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, appErr := a.GetChannel(c, post.ChannelId)
+	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1376,7 +1376,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
-	err = a.Srv().Store().Post().Delete(c, postID, model.GetMillis(), deleteByID)
+	err = a.Srv().Store().Post().Delete(rctx, postID, model.GetMillis(), deleteByID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1389,13 +1389,13 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 
 	if len(post.FileIds) > 0 {
 		a.Srv().Go(func() {
-			a.deletePostFiles(c, post.Id)
+			a.deletePostFiles(rctx, post.Id)
 		})
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 
-	appErr = a.CleanUpAfterPostDeletion(c, post, deleteByID)
+	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2604,25 +2604,25 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 	return nil
 }
 
-func (a *App) PermanentDeletePost(c request.CTX, postID, deleteByID string) *model.AppError {
-	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(c), postID, true)
+func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *model.AppError {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, true)
 	if err != nil {
 		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if len(post.FileIds) > 0 {
-		appErr := a.PermanentDeleteFilesByPost(c, post.Id)
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
 		if appErr != nil {
 			return appErr
 		}
 	}
 
-	err = a.Srv().Store().Post().PermanentDelete(c, post.Id)
+	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appErr := a.CleanUpAfterPostDeletion(c, post, deleteByID)
+	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return appErr
 	}

@@ -4559,11 +4559,11 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID 
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteForPost(c request.CTX, postID string) error {
+func (s *RetryLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.PermanentDeleteForPost(c, postID)
+		err := s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
 		if err == nil {
 			return nil
 		}

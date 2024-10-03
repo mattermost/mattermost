@@ -3610,7 +3610,7 @@ func (a *OpenTracingAppLayer) DeletePluginKey(pluginID string, key string) *mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeletePost(c request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) DeletePost(rctx request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePost")
 
@@ -3622,7 +3622,7 @@ func (a *OpenTracingAppLayer) DeletePost(c request.CTX, postID string, deleteByI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeletePost(c, postID, deleteByID)
+	resultVar0, resultVar1 := a.app.DeletePost(rctx, postID, deleteByID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13640,7 +13640,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteChannel(c request.CTX, channel *mod
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteFilesByPost")
 
@@ -13652,7 +13652,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteFilesByPost(c request.CTX, postID s
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteFilesByPost(c, postID)
+	resultVar0 := a.app.PermanentDeleteFilesByPost(rctx, postID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13662,7 +13662,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteFilesByPost(c request.CTX, postID s
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeletePost(c request.CTX, postID string, deleteByID string) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeletePost(rctx request.CTX, postID string, deleteByID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeletePost")
 
@@ -13674,7 +13674,7 @@ func (a *OpenTracingAppLayer) PermanentDeletePost(c request.CTX, postID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeletePost(c, postID, deleteByID)
+	resultVar0 := a.app.PermanentDeletePost(rctx, postID, deleteByID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13728,7 +13728,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteTeamId(c request.CTX, teamID string
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteUser")
 
@@ -13740,7 +13740,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteUser(c request.CTX, user *model.Use
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteUser(c, user)
+	resultVar0 := a.app.PermanentDeleteUser(rctx, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14520,7 +14520,7 @@ func (a *OpenTracingAppLayer) RemoveFile(path string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveFileFromFileStore(c request.CTX, path string) {
+func (a *OpenTracingAppLayer) RemoveFileFromFileStore(rctx request.CTX, path string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveFileFromFileStore")
 
@@ -14532,10 +14532,10 @@ func (a *OpenTracingAppLayer) RemoveFileFromFileStore(c request.CTX, path string
 	}()
 
 	defer span.Finish()
-	a.app.RemoveFileFromFileStore(c, path)
+	a.app.RemoveFileFromFileStore(rctx, path)
 }
 
-func (a *OpenTracingAppLayer) RemoveFilesFromFileStore(c request.CTX, fileInfos []*model.FileInfo) {
+func (a *OpenTracingAppLayer) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveFilesFromFileStore")
 
@@ -14547,7 +14547,7 @@ func (a *OpenTracingAppLayer) RemoveFilesFromFileStore(c request.CTX, fileInfos 
 	}()
 
 	defer span.Finish()
-	a.app.RemoveFilesFromFileStore(c, fileInfos)
+	a.app.RemoveFilesFromFileStore(rctx, fileInfos)
 }
 
 func (a *OpenTracingAppLayer) RemoveLdapPrivateCertificate() *model.AppError {
