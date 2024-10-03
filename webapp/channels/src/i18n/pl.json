@@ -552,7 +552,7 @@
   "admin.cluster.status_table.url": "Adres Gossip",
   "admin.cluster.status_table.version": "Wersja",
   "admin.cluster.unknown": "nieznany",
-  "admin.cluster.version_mismatch_warning": "OSTRZEŻENIE: W klastrze HA wykryto wiele wersji Mattermost. Jeśli nie przeprowadzasz właśnie aktualizacji, upewnij się, że wszystkie węzły w klastrze mają tę samą wersję Mattermost, aby uniknąć zakłóceń w działaniu platformy.",
+  "admin.cluster.version_mismatch_warning": "OSTRZEŻENIE: W Twoim klastrze HA wykryto wiele wersji Mattermost. Jeśli nie przeprowadzasz obecnie aktualizacji, upewnij się, że wszystkie węzły w klastrze korzystają z tej samej wersji Mattermost, aby uniknąć zakłóceń platformy.",
   "admin.compliance.complianceMonitoring": "Monitorowanie zgodności",
   "admin.compliance.directoryDescription": "Katalog, w którym zapisywane są raporty zgodności. Jeśli pusty, zostanie ustawiony na ./data/.",
   "admin.compliance.directoryExample": "Np. \"./data/\"",
