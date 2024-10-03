@@ -1026,8 +1026,8 @@ export default class Client4 {
         );
     };
 
-    startUsersBatchExport = (dateRange: string) => {
-        const queryString = buildQueryString({date_range: dateRange});
+    startUsersBatchExport = (filter: UserReportFilter) => {
+        const queryString = buildQueryString(filter);
         return this.doFetch<StatusOK>(
             `${this.getReportsRoute()}/users/export${queryString}`,
             {method: 'post'},
