@@ -19,7 +19,7 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
-import {removeDraft, updateDraft} from 'actions/views/drafts';
+import {makeDraftsLinkVisible, removeDraft, updateDraft} from 'actions/views/drafts';
 import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -186,15 +186,9 @@ const AdvancedTextEditor = ({
 
             if (isDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
-                return;
-            }
-
-            if (options.show) {
-                dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
-                return;
-            }
-
+            } else {
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
+            }
         };
 
         delayedSaveDraft.startTimeout(saveDraft);
@@ -425,7 +419,11 @@ const AdvancedTextEditor = ({
     // Set the draft from store when changing post or channels, and store the previus one
     useEffect(() => {
         setDraft(draftFromStore);
-        return () => delayedSaveDraft.fireNow();
+
+        return () => {
+            delayedSaveDraft.fireNow();
+            dispatch(makeDraftsLinkVisible(channelId, postId));
+        };
     }, [channelId, postId]);
 
     // Keep track of the previous draft

@@ -85,6 +85,30 @@ function storage(state: Record<string, any> = {}, action: AnyAction) {
         return {...state, ...action.data};
     }
 
+    case DraftTypes.MAKE_DRAFTS_LINK_VISIBLE: {
+        let key = `${StoragePrefixes.DRAFT}${action.channelId}`;
+        if (action.rootId) {
+            key = `${StoragePrefixes.COMMENT_DRAFT}${action.rootId}`;
+        }
+
+        if (!state[key]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [key]: {
+                value: {
+                    ...state[key].value,
+                    show: true,
+                },
+
+                // TODO reducers shouldn't have side effects
+                timestamp: new Date(),
+            },
+        };
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
