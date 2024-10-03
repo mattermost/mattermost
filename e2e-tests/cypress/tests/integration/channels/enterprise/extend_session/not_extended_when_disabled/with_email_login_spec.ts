@@ -7,10 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Group: @channels @enterprise @not_cloud @extend_session @ldap
+// Group: @channels @enterprise @not_cloud @extend_session
 
-import ldapUsers from '../../../../../fixtures/ldap_users.json';
-
+import {UserProfile} from '@mattermost/types/users';
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';
 
 describe('Extended Session Length', () => {
@@ -18,10 +17,11 @@ describe('Extended Session Length', () => {
     const setting = {
         ServiceSettings: {
             SessionLengthWebInHours: sessionLengthInHours,
+            ExtendSessionLengthWithActivity: false,
         },
     };
-    let testLdapUser;
-    let offTopicUrl;
+    let emailUser: UserProfile;
+    let offTopicUrl: string;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -30,37 +30,32 @@ describe('Extended Session Length', () => {
         // * Server database should match with the DB client and config at "cypress.json"
         cy.apiRequireServerDBToMatch();
 
-        const ldapUser = ldapUsers['test-1'];
-        cy.apiSyncLDAPUser({ldapUser}).then((user) => {
-            testLdapUser = user;
-        });
-
-        cy.apiInitSetup().then(({team, offTopicUrl: url}) => {
+        cy.apiInitSetup().then(({user, offTopicUrl: url}) => {
+            emailUser = user;
             offTopicUrl = url;
-            cy.apiAddUserToTeam(team.id, testLdapUser.id);
         });
     });
 
     beforeEach(() => {
         cy.apiAdminLogin();
-        cy.apiRevokeUserSessions(testLdapUser.id);
+        cy.apiRevokeUserSessions(emailUser.id);
     });
 
-    it('MM-T4046_1 LDAP user session should have extended due to user activity when enabled', () => {
+    it('MM-T4045_1 Email user session should have extended due to user activity when enabled', () => {
         // # Enable ExtendSessionLengthWithActivity
         setting.ServiceSettings.ExtendSessionLengthWithActivity = true;
         cy.apiUpdateConfig(setting);
 
-        cy.apiLogin(testLdapUser);
-        verifyExtendedSession(testLdapUser, sessionLengthInHours, offTopicUrl);
+        cy.apiLogin(emailUser);
+        verifyExtendedSession(emailUser, sessionLengthInHours, offTopicUrl);
     });
 
-    it('MM-T4046_2 LDAP user session should not extend even with user activity when disabled', () => {
+    it('MM-T4045_2 Email user session should not extend even with user activity when disabled', () => {
         // # Disable ExtendSessionLengthWithActivity
         setting.ServiceSettings.ExtendSessionLengthWithActivity = false;
         cy.apiUpdateConfig(setting);
 
-        cy.apiLogin(testLdapUser);
-        verifyNotExtendedSession(testLdapUser, offTopicUrl);
+        cy.apiLogin(emailUser);
+        verifyNotExtendedSession(emailUser, offTopicUrl);
     });
 });
