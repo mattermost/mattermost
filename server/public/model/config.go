@@ -388,6 +388,7 @@ type ServiceSettings struct {
 	EnableAPITriggerAdminNotifications                *bool
 	EnableAPIUserDeletion                             *bool
 	EnableAPIPostDeletion                             *bool
+	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
@@ -828,6 +829,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewPointer(false)
+	}
+
+	if s.EnableDesktopLandingPage == nil {
+		s.EnableDesktopLandingPage = NewPointer(true)
 	}
 
 	if s.EnableSVGs == nil {
@@ -3231,9 +3236,9 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 
 		for key := range settings {
 			if manifest == nil {
-				// Sanitize plugin settings for plugins that are not installed
-				settings[key] = FakeSetting
-				continue
+				// Don't return plugin settings for plugins that are not installed
+				delete(s.Plugins, id)
+				break
 			}
 
 			for _, definedSetting := range manifest.SettingsSchema.Settings {

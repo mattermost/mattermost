@@ -61,7 +61,7 @@ class DataGridSearch extends React.PureComponent<Props, State> {
 
         let {placeholder} = this.props;
         if (!placeholder) {
-            placeholder = Utils.localizeMessage('search_bar.search', 'Search');
+            placeholder = Utils.localizeMessage({id: 'search_bar.search', defaultMessage: 'Search'});
         }
 
         let filter;
@@ -81,7 +81,7 @@ class DataGridSearch extends React.PureComponent<Props, State> {
 
                     <input
                         type='text'
-                        placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
+                        placeholder={Utils.localizeMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                         onChange={this.handleSearch}
                         value={this.props.term}
                         data-testid='searchInput'

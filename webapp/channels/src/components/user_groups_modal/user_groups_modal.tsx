@@ -198,7 +198,7 @@ const UserGroupsModal = (props: Props) => {
                 <div className='user-groups-search'>
                     <Input
                         type='text'
-                        placeholder={Utils.localizeMessage('user_groups_modal.searchGroups', 'Search Groups')}
+                        placeholder={Utils.localizeMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
                         onChange={handleSearch}
                         value={props.searchTerm}
                         data-testid='searchInput'

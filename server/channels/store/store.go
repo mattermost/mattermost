@@ -168,7 +168,8 @@ type TeamStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(teamID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error)
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
 	GroupSyncedTeamCount() (int64, error)
@@ -300,7 +301,8 @@ type ChannelStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(channelID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error)
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
@@ -504,6 +506,7 @@ type SessionStore interface {
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
+	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error

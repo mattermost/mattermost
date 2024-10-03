@@ -15,18 +15,20 @@ import SendDraftModal from './send_draft_modal';
 
 type Props = {
     displayName: string;
-    draftId: string;
-    onDelete: (draftId: string) => void;
+    onDelete: () => void;
     onEdit: () => void;
-    onSend: (draftId: string) => void;
+    onSend: () => void;
+    canEdit: boolean;
+    canSend: boolean;
 }
 
 function DraftActions({
     displayName,
-    draftId,
     onDelete,
     onEdit,
     onSend,
+    canEdit,
+    canSend,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -36,10 +38,10 @@ function DraftActions({
             dialogType: DeleteDraftModal,
             dialogProps: {
                 displayName,
-                onConfirm: () => onDelete(draftId),
+                onConfirm: onDelete,
             },
         }));
-    }, [displayName]);
+    }, [dispatch, displayName, onDelete]);
 
     const handleSend = useCallback(() => {
         dispatch(openModal({
@@ -47,10 +49,10 @@ function DraftActions({
             dialogType: SendDraftModal,
             dialogProps: {
                 displayName,
-                onConfirm: () => onSend(draftId),
+                onConfirm: onSend,
             },
         }));
-    }, [displayName]);
+    }, [dispatch, displayName, onSend]);
 
     return (
         <>
@@ -66,30 +68,34 @@ function DraftActions({
                 )}
                 onClick={handleDelete}
             />
-            <Action
-                icon='icon-pencil-outline'
-                id='edit'
-                name='edit'
-                tooltipText={(
-                    <FormattedMessage
-                        id='drafts.actions.edit'
-                        defaultMessage='Edit draft'
-                    />
-                )}
-                onClick={onEdit}
-            />
-            <Action
-                icon='icon-send-outline'
-                id='send'
-                name='send'
-                tooltipText={(
-                    <FormattedMessage
-                        id='drafts.actions.send'
-                        defaultMessage='Send draft'
-                    />
-                )}
-                onClick={handleSend}
-            />
+            {canEdit && (
+                <Action
+                    icon='icon-pencil-outline'
+                    id='edit'
+                    name='edit'
+                    tooltipText={(
+                        <FormattedMessage
+                            id='drafts.actions.edit'
+                            defaultMessage='Edit draft'
+                        />
+                    )}
+                    onClick={onEdit}
+                />
+            )}
+            {canSend && (
+                <Action
+                    icon='icon-send-outline'
+                    id='send'
+                    name='send'
+                    tooltipText={(
+                        <FormattedMessage
+                            id='drafts.actions.send'
+                            defaultMessage='Send draft'
+                        />
+                    )}
+                    onClick={handleSend}
+                />
+            )}
         </>
     );
 }
