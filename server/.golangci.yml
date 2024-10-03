@@ -59,7 +59,6 @@ issues:
     - linters:
         - errcheck
       path: "\
-        channels/api4/apitestlib.go|\
         channels/api4/bot_test.go|\
         channels/api4/brand.go|\
         channels/api4/channel.go|\
