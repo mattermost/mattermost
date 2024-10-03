@@ -114,7 +114,8 @@ func TestImportInLocalMode(t *testing.T) {
 	th := SetupWithServerOptions(t, []app.Option{app.RunEssentialJobs})
 	defer th.TearDown()
 
-	testsDir, _ := fileutils.FindDir("tests")
+	testsDir, err := fileutils.FindDir("tests")
+	require.NoError(t, err, "Failed to find the tests directory")
 	require.NotEmpty(t, testsDir)
 
 	job := &model.Job{
@@ -127,7 +128,11 @@ func TestImportInLocalMode(t *testing.T) {
 
 	received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().Job().Delete(received.Id)
+
+	defer func() {
+		err := th.App.Srv().Store().Job().Delete(received.Id)
+		require.NoError(t, err, "Failed to delete job")
+	}()
 
 	cnt1, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UsersPostsOnly: true})
 	require.NoError(t, err)
@@ -144,6 +149,8 @@ func TestImportInLocalMode(t *testing.T) {
 
 	cnt2, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UsersPostsOnly: true})
 	require.NoError(t, err)
-	// Just a sanity check to ensure new posts are actually added in the system.
+
+	// Sanity check to ensure new posts are actually added in the system.
 	require.Greater(t, cnt2, cnt1)
 }
+
