@@ -87,7 +87,8 @@ func TestGetPolicies(t *testing.T) {
 	})
 
 	t.Run("GetPolicies_Unauthorized", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		policies, resp, err := th.Client.GetDataRetentionPolicies(context.Background(), 0, 100)
 		require.Error(t, err)
@@ -221,7 +222,8 @@ func TestGetPolicy(t *testing.T) {
 	})
 
 	t.Run("GetPolicy_Unauthorized", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		policy, resp, err := th.Client.GetDataRetentionPolicyByID(context.Background(), validPolicyId)
 		require.Error(t, err)
@@ -316,7 +318,8 @@ func TestCreatePolicy(t *testing.T) {
 	})
 
 	t.Run("CreatePolicy_Unauthorized", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
