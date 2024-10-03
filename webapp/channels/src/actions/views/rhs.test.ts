@@ -876,7 +876,7 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
             });
-            compareStore.dispatch(performSearch(terms));
+            compareStore.dispatch(performSearch(terms, ''));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
