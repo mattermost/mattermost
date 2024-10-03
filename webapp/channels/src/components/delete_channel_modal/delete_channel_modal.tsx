@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
@@ -77,19 +75,24 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 <Modal.Body>
                     <div className='alert alert-danger'>
                         {!canViewArchivedChannels &&
-                            <FormattedMarkdownMessage
-                                id='delete_channel.question'
-                                defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again. \n \nAre you sure you wish to archive the {display_name} channel?'
+                            <FormattedMessage
+                                id='deleteChannelModal.cannotViewArchivedChannelsWarning'
+                                defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again.{br}{br}Are you sure you wish to archive the <b>{display_name}</b> channel?'
                                 values={{
                                     display_name: this.props.channel.display_name,
+                                    br: <br/>,
+                                    b: (chunks: string) => <b>{chunks}</b>,
                                 }}
-                            />}
+                            />
+                        }
                         {canViewArchivedChannels &&
-                            <FormattedMarkdownMessage
-                                id='delete_channel.viewArchived.question'
-                                defaultMessage={'This will archive the channel from the team. Channel contents will still be accessible by channel members.\n \nAre you sure you wish to archive the **{display_name}** channel?'}
+                            <FormattedMessage
+                                id='deleteChannelModal.canViewArchivedChannelsWarning'
+                                defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.{br}{br}Are you sure you wish to archive the <b>{display_name}</b> channel?'
                                 values={{
                                     display_name: this.props.channel.display_name,
+                                    br: <br/>,
+                                    b: (chunks: string) => <b>{chunks}</b>,
                                 }}
                             />}
                     </div>
