@@ -17,6 +17,7 @@ import Constants, {UserStatuses} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './style.scss';
+import {isScheduledPostsEnabled} from "mattermost-redux/selectors/entities/scheduled_posts";
 
 const DEFAULT_TIMEZONE = {
     useAutomaticTimezone: true,
@@ -60,6 +61,8 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
         return () => clearInterval(interval);
     }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone]);
 
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
+
     const showRemoteUserHour = isDM && showIt && timestamp !== 0;
 
     return (
@@ -73,12 +76,16 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
                 />
             }
 
-            <ScheduledPostIndicator
-                location={location}
-                channelId={channelId}
-                postId={postId}
-                remoteUserHourDisplayed={showRemoteUserHour}
-            />
+            {
+
+                isScheduledPostEnabled &&
+                <ScheduledPostIndicator
+                    location={location}
+                    channelId={channelId}
+                    postId={postId}
+                    remoteUserHourDisplayed={showRemoteUserHour}
+                />
+            }
         </div>
     );
 }

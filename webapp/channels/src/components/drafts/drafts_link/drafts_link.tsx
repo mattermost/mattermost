@@ -6,11 +6,12 @@ import React, {memo, useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
+import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
-    getScheduledPostsByTeamCount, hasScheduledPostError,
+    getScheduledPostsByTeamCount, hasScheduledPostError, isScheduledPostsEnabled,
 } from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -19,8 +20,6 @@ import {makeGetDraftsCount} from 'selectors/drafts';
 
 import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
-
-import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -51,8 +50,9 @@ function DraftsLink() {
     const draftCount = useSelector(getDraftsCount);
     const teamId = useSelector(getCurrentTeamId);
     const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId, true));
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
-    const itemsExist = draftCount > 0 || teamScheduledPostCount > 0;
+    const itemsExist = isScheduledPostEnabled ? draftCount > 0 || teamScheduledPostCount > 0 : draftCount > 0;
 
     const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, teamId));
 
@@ -70,9 +70,13 @@ function DraftsLink() {
 
     useEffect(() => {
         const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
-        dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
+
+        if (isScheduledPostEnabled) {
+            dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
+        }
+
         initialScheduledPostsLoaded.current = true;
-    }, [dispatch, teamId]);
+    }, [dispatch, isScheduledPostEnabled, teamId]);
 
     if (!itemsExist && !urlMatches) {
         return null;
@@ -111,7 +115,7 @@ function DraftsLink() {
                     }
 
                     {
-                        teamScheduledPostCount > 0 &&
+                        isScheduledPostEnabled && teamScheduledPostCount > 0 &&
                         <ChannelMentionBadge
                             unreadMentions={teamScheduledPostCount}
                             icon={scheduleIcon}

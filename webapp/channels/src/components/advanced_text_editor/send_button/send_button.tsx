@@ -17,6 +17,7 @@ import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
 import './style.scss';
+import {isScheduledPostsEnabled} from "mattermost-redux/selectors/entities/scheduled_posts";
 
 type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
@@ -26,6 +27,7 @@ type SendButtonProps = {
 
 const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     const {formatMessage} = useIntl();
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     const sendMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
         e?.stopPropagation();
@@ -86,11 +88,14 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                 </button>
             </WithTooltip>
 
-            <SendPostOptions
-                disabled={disabled}
-                onSelect={handleSubmit}
-                channelId={channelId}
-            />
+            {
+                isScheduledPostEnabled &&
+                <SendPostOptions
+                    disabled={disabled}
+                    onSelect={handleSubmit}
+                    channelId={channelId}
+                />
+            }
         </div>
     );
 };

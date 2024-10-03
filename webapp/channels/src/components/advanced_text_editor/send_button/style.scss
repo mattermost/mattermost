@@ -6,6 +6,7 @@
     border-radius: 4px;
     background: var(--button-bg);
     color: var(--button-color);
+    justify-content: center;
 
     &.disabled {
         background: rgba(var(--center-channel-color-rgb), 0.08);

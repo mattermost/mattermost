@@ -23,6 +23,11 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
 	rctx.Logger().Debug("ProcessScheduledPosts called...")
 
+	if !*a.Config().ServiceSettings.ScheduledPosts {
+		rctx.Logger().Debug("ProcessScheduledPosts exiting as the feature is turned off via ServiceSettings.ScheduledPosts setting...")
+		return
+	}
+
 	beforeTime := model.GetMillis()
 	lastScheduledPostId := ""
 

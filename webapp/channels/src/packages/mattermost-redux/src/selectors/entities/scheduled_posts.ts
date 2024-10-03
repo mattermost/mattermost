@@ -5,6 +5,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from "mattermost-redux/selectors/entities/general";
 
 export type ChannelScheduledPostIndicatorData = {
     scheduledPost?: ScheduledPost;
@@ -16,8 +17,8 @@ export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: stri
         'makeGetScheduledPostsByTeam',
         (state: GlobalState) => state,
         (state: GlobalState, teamId: string, includeDirectChannels: boolean) => includeDirectChannels,
-        (state: GlobalState, teamId: string) => state.entities.scheduledPosts.byTeamId[teamId],
-        (state: GlobalState) => state.entities.scheduledPosts.byTeamId.directChannels,
+        (state: GlobalState, teamId: string) => state.entities.scheduledPosts.byTeamId[teamId] || [],
+        (state: GlobalState) => state.entities.scheduledPosts.byTeamId.directChannels || [],
         (state: GlobalState, includeDirectChannels: boolean, teamScheduledPostsIDs: string[], directChannelScheduledPostsIDs: string[]) => {
             const scheduledPosts: ScheduledPost[] = [];
 
@@ -64,4 +65,8 @@ export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, ch
     }
 
     return data;
+}
+
+export function isScheduledPostsEnabled(state: GlobalState) {
+    return getConfig(state).ScheduledPosts === 'true';
 }
