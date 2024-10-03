@@ -43,6 +43,6 @@ declare namespace Cypress {
          * @example
          *   cy.apiSyncLDAPUser();
          */
-        apiSyncLDAPUser(): Chainable<UserProfile>;
+        apiSyncLDAPUser({ldapUser = {}, bypassTutorial = true}): Chainable<UserProfile>;
     }
 }
