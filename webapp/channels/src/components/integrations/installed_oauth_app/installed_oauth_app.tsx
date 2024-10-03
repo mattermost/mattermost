@@ -160,9 +160,9 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
 
         let isTrusted;
         if (oauthApp.is_trusted) {
-            isTrusted = Utils.localizeMessage('installed_oauth_apps.trusted.yes', 'Yes');
+            isTrusted = Utils.localizeMessage({id: 'installed_oauth_apps.trusted.yes', defaultMessage: 'Yes'});
         } else {
-            isTrusted = Utils.localizeMessage('installed_oauth_apps.trusted.no', 'No');
+            isTrusted = Utils.localizeMessage({id: 'installed_oauth_apps.trusted.no', defaultMessage: 'No'});
         }
 
         let showHide;

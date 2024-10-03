@@ -409,7 +409,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/oauth/google/signup"
             />
             <ExternalLoginButton
-              icon={<LoginOffice365Icon />}
+              icon={<EntraIdIcon />}
               id="office365"
               key="office365"
               label="Entra ID"

@@ -8900,15 +8900,21 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote, includeDeleted bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, filter SharedChannelRemoteFilterOpts, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
 	v := url.Values{}
-	if excludeHome {
+	if filter.IncludeUnconfirmed {
+		v.Set("include_unconfirmed", "true")
+	}
+	if filter.ExcludeConfirmed {
+		v.Set("exclude_confirmed", "true")
+	}
+	if filter.ExcludeHome {
 		v.Set("exclude_home", "true")
 	}
-	if excludeRemote {
+	if filter.ExcludeRemote {
 		v.Set("exclude_remote", "true")
 	}
-	if includeDeleted {
+	if filter.IncludeDeleted {
 		v.Set("include_deleted", "true")
 	}
 	if page != 0 {

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {KatexOptions} from 'katex';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 type Katex = typeof import('katex');
@@ -12,64 +12,57 @@ type Props = {
     enableInlineLatex: boolean;
 };
 
-type State = {
-    katex?: Katex;
-}
+const LatexInline = ({content, enableInlineLatex}: Props) => {
+    const [katex, setKatex] = useState<Katex | undefined>(undefined);
 
-export default class LatexInline extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            katex: undefined,
-        };
-    }
-
-    componentDidMount(): void {
-        import('katex').then((katex) => {
-            this.setState({katex: katex.default});
+    useEffect(() => {
+        import('katex').then((katexModule) => {
+            setKatex(katexModule.default);
         });
+    }, []);
+
+    if (!enableInlineLatex || katex === undefined) {
+        return (
+            <span
+                className='post-body--code inline-tex'
+                data-testid='latex-disabled'
+            >
+                {'$' + content + '$'}
+            </span>
+        );
     }
 
-    render(): React.ReactNode {
-        if (!this.props.enableInlineLatex || this.state.katex === undefined) {
-            return (
-                <span
-                    className='post-body--code inline-tex'
-                >
-                    {'$' + this.props.content + '$'}
-                </span>
-            );
-        }
+    try {
+        const katexOptions: KatexOptions = {
+            throwOnError: false,
+            displayMode: false,
+            maxSize: 200,
+            maxExpand: 100,
+            fleqn: true,
+        };
 
-        try {
-            const katexOptions: KatexOptions = {
-                throwOnError: false,
-                displayMode: false,
-                maxSize: 200,
-                maxExpand: 100,
-                fleqn: true,
-            };
+        const html = katex.renderToString(content, katexOptions);
 
-            const html = this.state.katex.renderToString(this.props.content, katexOptions);
-
-            return (
-                <span
-                    className='post-body--code inline-tex'
-                    dangerouslySetInnerHTML={{__html: html}}
+        return (
+            <span
+                className='post-body--code inline-tex'
+                data-testid='latex-enabled'
+                dangerouslySetInnerHTML={{__html: html}}
+            />
+        );
+    } catch (e) {
+        return (
+            <span
+                className='post-body--code inline-tex'
+                data-testid='latex-error'
+            >
+                <FormattedMessage
+                    id='katex.error'
+                    defaultMessage='Could not compile your Latex code. Please review the syntax and try again.'
                 />
-            );
-        } catch (e) {
-            return (
-                <span
-                    className='post-body--code inline-tex'
-                >
-                    <FormattedMessage
-                        id='katex.error'
-                        defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
-                    />
-                </span>
-            );
-        }
+            </span>
+        );
     }
-}
+};
+
+export default React.memo(LatexInline);

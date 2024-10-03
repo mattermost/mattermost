@@ -239,7 +239,7 @@ const GroupMemberList = (props: Props) => {
         } else if (searchState === Load.FAILED) {
             return (
                 <LoadFailedItem>
-                    <span>{Utils.localizeMessage('group_member_list.searchError', 'There was a problem getting results. Clear your search term and try again.')}</span>
+                    <span>{Utils.localizeMessage({id: 'group_member_list.searchError', defaultMessage: 'There was a problem getting results. Clear your search term and try again.'})}</span>
                 </LoadFailedItem>
             );
         } else if (isSearching && members.length === 0) {
@@ -255,12 +255,12 @@ const GroupMemberList = (props: Props) => {
             return (
                 <LoadFailedItem>
                     <span>
-                        {Utils.localizeMessage('group_member_list.loadError', 'Oops! Something went wrong while loading this group.')}
+                        {Utils.localizeMessage({id: 'group_member_list.loadError', defaultMessage: 'Oops! Something went wrong while loading this group.'})}
                         {' '}
                         <RetryButton
                             onClick={loadMoreItems}
                         >
-                            {Utils.localizeMessage('group_member_list.retryLoadButton', 'Retry')}
+                            {Utils.localizeMessage({id: 'group_member_list.retryLoadButton', defaultMessage: 'Retry'})}
                         </RetryButton>
                     </span>
                 </LoadFailedItem>
