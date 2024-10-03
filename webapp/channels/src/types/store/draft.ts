@@ -28,3 +28,7 @@ export type PostDraft = {
         };
     };
 };
+
+export function isDraftEmpty(draft: PostDraft) {
+    return draft.message === '' && draft.fileInfos.length === 0 && draft.uploadsInProgress.length === 0;
+}

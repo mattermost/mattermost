@@ -62,6 +62,7 @@ import {Constants, StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+import {isDraftEmpty} from 'types/store/draft';
 
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
@@ -308,7 +309,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
 
     return {
         channelMember: getMyChannelMemberships(state)[channelId],
-        hasDraft: draft && Boolean(draft.message.trim() || draft.fileInfos.length || draft.uploadsInProgress.length),
+        hasDraft: draft && !isDraftEmpty(draft),
         dmChannelTeammate,
         status,
         collapsedThreads,
