@@ -32,8 +32,6 @@ issues:
     - channels/store/storetest/mocks
   exclude-rules:
     - linters:
-        # ignore unused warnings from enterprise code
-        # add more as required.
         - unused
       text: "SetupEnterprise"
 
