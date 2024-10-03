@@ -26,6 +26,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import {useDelayedAction} from 'components/common/hooks/useDelayedAction';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
@@ -149,7 +150,6 @@ const AdvancedTextEditor = ({
     const editorBodyRef = useRef<HTMLDivElement>(null);
     const textboxRef = useRef<TextboxClass>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
-    const saveDraftFrame = useRef<NodeJS.Timeout>();
     const previousDraft = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
@@ -174,11 +174,8 @@ const AdvancedTextEditor = ({
         GlobalActions.emitLocalUserTypingEvent(channelId, postId);
     }, [channelId, postId]);
 
+    const delayedSaveDraft = useDelayedAction(Constants.SAVE_DRAFT_TIMEOUT);
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
-        }
-
         setDraft(draftToChange);
 
         const saveDraft = () => {
@@ -200,12 +197,10 @@ const AdvancedTextEditor = ({
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
         };
 
+        delayedSaveDraft.startTimeout(saveDraft);
+
         if (options.instant) {
-            saveDraft();
-        } else {
-            saveDraftFrame.current = setTimeout(() => {
-                saveDraft();
-            }, Constants.SAVE_DRAFT_TIMEOUT);
+            delayedSaveDraft.fireNow();
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
@@ -420,17 +415,17 @@ const AdvancedTextEditor = ({
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
-        const callback = () => handleDraftChange(draft, {instant: true, show: true});
+        const callback = () => delayedSaveDraft.fireNow();
         window.addEventListener('beforeunload', callback);
         return () => {
             window.removeEventListener('beforeunload', callback);
         };
-    }, [handleDraftChange, draft]);
+    }, []);
 
     // Set the draft from store when changing post or channels, and store the previus one
     useEffect(() => {
         setDraft(draftFromStore);
-        return () => handleDraftChange(previousDraft.current, {instant: true, show: true});
+        return () => delayedSaveDraft.fireNow();
     }, [channelId, postId]);
 
     // Keep track of the previous draft
