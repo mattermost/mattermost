@@ -9104,7 +9104,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(rctx request.CTX
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteCluster")
 
@@ -9116,7 +9116,7 @@ func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.R
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRemoteCluster(remoteClusterId)
+	resultVar0, resultVar1 := a.app.GetRemoteCluster(remoteClusterId, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17236,7 +17236,7 @@ func (a *OpenTracingAppLayer) SoftDeleteTeam(teamID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError {
+func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOptions, startAt int64, endAt int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StartUsersBatchExport")
 
@@ -17248,7 +17248,7 @@ func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, dateRange 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.StartUsersBatchExport(rctx, dateRange, startAt, endAt)
+	resultVar0 := a.app.StartUsersBatchExport(rctx, ro, startAt, endAt)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

@@ -243,7 +243,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
             />
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
+        const buttonSubmitText = localizeMessage({id: 'multiselect.add', defaultMessage: 'Add'});
 
         let teams = [] as Team[];
         if (this.props.teams) {
@@ -313,7 +313,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                         buttonSubmitText={buttonSubmitText}
                         saving={false}
                         loading={this.state.loadingTeams}
-                        placeholderText={localizeMessage('multiselect.addTeamsPlaceholder', 'Search and add teams')}
+                        placeholderText={localizeMessage({id: 'multiselect.addTeamsPlaceholder', defaultMessage: 'Search and add teams'})}
                     />
                 </Modal.Body>
             </Modal>

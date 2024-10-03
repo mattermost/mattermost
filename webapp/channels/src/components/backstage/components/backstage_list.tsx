@@ -51,7 +51,7 @@ const getPaging = (remainingProps: Props, childCount: number, hasFilter: boolean
     return {startCount, endCount, total, isFirstPage, isLastPage};
 };
 
-const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.search', 'Search'), ...remainingProps}: Props) => {
+const BackstageList = ({searchPlaceholder = localizeMessage({id: 'backstage_list.search', defaultMessage: 'Search'}), ...remainingProps}: Props) => {
     const {formatMessage} = useIntl();
 
     const [filter, setFilter] = useState('');

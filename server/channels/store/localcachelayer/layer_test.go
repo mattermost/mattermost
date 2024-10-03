@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -108,7 +109,7 @@ func initStores(logger mlog.LoggerIFace) {
 			if err != nil {
 				return err
 			}
-			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider(), logger)
+			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, cache.NewProvider(), logger)
 			if err != nil {
 				return err
 			}

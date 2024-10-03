@@ -242,7 +242,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.NotZero(t, rcWithInvite.Password)
 		require.Len(t, rcWithInvite.Password, 16)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamNoPassword.Name, rc.Name)
 
@@ -266,7 +266,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		// by the endpoint
 		require.Zero(t, rcWithInvite.Password)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamAndPassword.Name, rc.Name)
 
@@ -358,7 +358,7 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
-		SiteURL: "http://example.com",
+		SiteURL: model.SiteURLPending + model.NewId(),
 		Token:   model.NewId(),
 	}
 
@@ -428,6 +428,18 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, invite.RemoteId)
 		require.Equal(t, rc.Token, invite.Token)
+	})
+
+	t.Run("should return bad request if the cluster is already confirmed", func(t *testing.T) {
+		rc.SiteURL = "http://example.com"
+		savedRC, appErr := th.App.UpdateRemoteCluster(rc)
+		require.Nil(t, appErr)
+		require.Equal(t, rc.SiteURL, savedRC.SiteURL)
+
+		inviteCode, resp, err := th.SystemAdminClient.GenerateRemoteClusterInvite(context.Background(), rc.RemoteId, password)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, inviteCode)
 	})
 }
 
@@ -599,7 +611,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 
 	t.Run("should correctly delete the remote cluster", func(t *testing.T) {
 		// ensure the remote cluster is not deleted
-		initialRC, appErr := th.App.GetRemoteCluster(rc.RemoteId)
+		initialRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, false)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, initialRC)
 		require.Zero(t, initialRC.DeleteAt)
@@ -608,7 +620,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
-		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId)
+		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, deletedRC)
 		require.NotZero(t, deletedRC.DeleteAt)

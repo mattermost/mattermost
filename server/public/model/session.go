@@ -26,6 +26,7 @@ const (
 	SessionPropIsBotValue                 = "true"
 	SessionPropOAuthAppID                 = "oauth_app_id"
 	SessionPropMattermostAppID            = "mattermost_app_id"
+	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
 	SessionTypeUserAccessToken            = "UserAccessToken"
@@ -38,6 +39,13 @@ const (
 
 //msgp:tuple StringMap
 type StringMap map[string]string
+
+type MobileSessionMetadata struct {
+	Version              string
+	Platform             string
+	Count                float64
+	NotificationDisabled string
+}
 
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
