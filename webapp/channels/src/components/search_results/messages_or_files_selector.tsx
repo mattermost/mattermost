@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 

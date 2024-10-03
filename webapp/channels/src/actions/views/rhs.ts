@@ -250,7 +250,6 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         if (teamId === null) {
             teamId = getCurrentTeamId(state);
         }
-        console.log('searchTeam', teamId);
 
         if (isMentionSearch) {
             dispatch(updateRhsState(RHSStates.MENTION));
