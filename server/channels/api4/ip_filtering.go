@@ -81,7 +81,10 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	go c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId)
+	if err := c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
+		c.Err = model.NewAppError("SendIPFiltersChangedEmail", "api.context.ip_filtering.send_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
 	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -106,5 +109,7 @@ func myIP(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
