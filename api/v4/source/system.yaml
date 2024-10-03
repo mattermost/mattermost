@@ -237,7 +237,7 @@
       operationId: TestNotification
       responses:
         "200":
-          desription: Notification successfully sent
+          description: Notification successfully sent
           content:
             application/json:
               schema:
