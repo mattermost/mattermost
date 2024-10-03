@@ -244,23 +244,19 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Check if the LicenseManager is initialized
 	if c.App.Srv().Platform().LicenseManager() == nil {
 		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	// Retrieve the previous trial license
 	license, err := c.App.Srv().Platform().LicenseManager().GetPrevTrial()
 	if err != nil {
-		c.Logger.Error("Error retrieving previous trial license", mlog.Err(err))
-		http.Error(w, "Failed to retrieve previous trial license", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	var clientLicense map[string]string
 
-	// Check permissions to read license information
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
 		clientLicense = utils.GetClientLicense(license)
 	} else {
@@ -270,6 +266,5 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
 }
