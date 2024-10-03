@@ -429,7 +429,7 @@ func TestDeleteEmoji(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic2()
 
@@ -440,7 +440,7 @@ func TestDeleteEmoji(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic()
 
@@ -453,7 +453,7 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic2()
 
@@ -461,7 +461,7 @@ func TestDeleteEmoji(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic()
 
@@ -477,14 +477,14 @@ func TestDeleteEmoji(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic2()
 
 	_, err = client.DeleteEmoji(context.Background(), newEmoji.Id)
 	require.NoError(t, err)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic()
 
@@ -514,7 +514,7 @@ func TestDeleteEmoji(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.TeamUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic2()
 
@@ -573,7 +573,7 @@ func TestGetEmojiByName(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	_, resp, err = client.GetEmojiByName(context.Background(), newEmoji.Name)
 	require.Error(t, err)
