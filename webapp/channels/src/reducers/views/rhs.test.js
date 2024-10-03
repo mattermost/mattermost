@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {SearchTypes} from 'mattermost-redux/action_types';
+import { searchTeams } from 'mattermost-redux/actions/teams';
 
 import rhsReducer from 'reducers/views/rhs';
 
@@ -29,6 +30,7 @@ describe('Reducers.RHS', () => {
         isSidebarExpanded: false,
         editChannelMembers: false,
         shouldFocusRHS: false,
+        searchTeam: null,
     };
 
     test('Initial state', () => {
@@ -626,6 +628,7 @@ describe('Reducers.RHS', () => {
             isSidebarExpanded: true,
             editChannelMembers: false,
             shouldFocusRHS: false,
+            searchTeam: null,
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});
