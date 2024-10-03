@@ -62,10 +62,7 @@ issues:
         channels/api4/apitestlib.go|\
         channels/api4/bot_test.go|\
         channels/api4/brand.go|\
-        channels/api4/brand_test.go|\
         channels/api4/channel.go|\
-        channels/api4/channel_bookmark_test.go|\
-        channels/api4/channel_category.go|\
         channels/api4/channel_test.go|\
         channels/api4/cloud.go|\
         channels/api4/cloud_test.go|\
@@ -81,13 +78,11 @@ issues:
         channels/api4/emoji_test.go|\
         channels/api4/export.go|\
         channels/api4/export_test.go|\
-        channels/api4/file.go|\
         channels/api4/file_test.go|\
         channels/api4/group.go|\
         channels/api4/group_local.go|\
         channels/api4/group_test.go|\
         channels/api4/handlers_test.go|\
-        channels/api4/image_test.go|\
         channels/api4/import_test.go|\
         channels/api4/integration_action.go|\
         channels/api4/integration_action_test.go|\
