@@ -81,9 +81,8 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	if err := c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
+	if err := go c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
 		c.Err = model.NewAppError("SendIPFiltersChangedEmail", "api.context.ip_filtering.send_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
 	}
 
 	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
