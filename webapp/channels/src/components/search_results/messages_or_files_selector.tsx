@@ -81,7 +81,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                 }
             </div>
             {props.crossTeamSearchEnabled && (
-                <div>
+                <div className='team-selector-container'>
                     <select
                         value={searchTeam}
                         onChange={onTeamChange}
