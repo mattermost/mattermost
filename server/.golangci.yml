@@ -97,7 +97,6 @@ issues:
         channels/api4/oauth.go|\
         channels/api4/oauth_test.go|\
         channels/api4/outgoing_oauth_connection_test.go|\
-        channels/api4/permission.go|\
         channels/api4/plugin.go|\
         channels/api4/plugin_test.go|\
         channels/api4/post.go|\
