@@ -150,7 +150,6 @@ func TestImportInLocalMode(t *testing.T) {
 	cnt2, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UsersPostsOnly: true})
 	require.NoError(t, err)
 
-	// Sanity check to ensure new posts are actually added in the system.
+	// Just a sanity check to ensure new posts are actually added in the system.
 	require.Greater(t, cnt2, cnt1)
 }
-
