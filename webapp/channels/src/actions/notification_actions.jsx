@@ -112,7 +112,7 @@ export function sendDesktopNotification(post, msgProps) {
         const userStatus = getStatusForUserId(state, user.id);
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
-        const skipChecks = Boolean(post.props?.notification_test_message);
+        const skipChecks = Boolean(post.props?.force_notification);
 
         if (!member) {
             return {status: 'error', reason: 'no_member'};

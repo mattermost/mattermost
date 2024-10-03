@@ -456,7 +456,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -471,7 +471,7 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -491,7 +491,7 @@ func (th *TestHelper) CreatePostReply(root *model.Post) *model.Post {
 	if err != nil {
 		panic(err)
 	}
-	if post, err = th.App.CreatePost(th.Context, post, ch, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post

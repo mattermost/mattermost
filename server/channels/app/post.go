@@ -51,7 +51,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		return nil, err
 	}
 
-	rp, err := a.CreatePost(c, post, channel, true, setOnline)
+	rp, err := a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" {
@@ -95,7 +95,7 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 		}
 	}
 
-	return a.CreatePost(c, post, channel, triggerWebhooks, setOnline)
+	return a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -140,7 +140,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
+func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError) {
 	foundPost, err := a.deduplicateCreatePost(c, post)
 	if err != nil {
 		return nil, err
@@ -206,9 +206,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
-	// if isTestMessage {
-	// 	post.AddProp(model.PostPropsNotificationTestMessage, model.NewId())
-	// }
+	if flags.ForceNotification {
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+	}
 
 	if c.Session().IsOAuth {
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
@@ -384,7 +384,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
-	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
+	if err := a.handlePostEvents(c, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
 		c.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
@@ -2266,7 +2266,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 				},
 			}
 
-			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
+			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Error("Failed to post reminder message", mlog.Err(err))
 			}
 		}
@@ -2506,14 +2506,14 @@ func (a *App) CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, t
 		newPost.ChannelId = targetChannel.Id
 
 		if i == 0 {
-			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, model.CreatePostFlags{})
 			if appErr != nil {
 				return nil, appErr
 			}
 			newRootPost = newPost.Clone()
 		} else {
 			newPost.RootId = newRootPost.Id
-			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, model.CreatePostFlags{})
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -2595,7 +2595,7 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 		ChannelId: channelID,
 		Message:   T("app.post.move_thread.from_another_channel"),
 		Props:     ephemeralPostProps,
-	}, targetChannel, false, false)
+	}, targetChannel, model.CreatePostFlags{})
 	if appErr != nil {
 		return appErr
 	}
@@ -2642,7 +2642,7 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 		ChannelId: originalChannel.Id,
 		Message:   msg,
 		Props:     ephemeralPostProps,
-	}, originalChannel, false, false)
+	}, originalChannel, model.CreatePostFlags{})
 	if appErr != nil {
 		return appErr
 	}

@@ -22,10 +22,10 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channel, err := s.th.App.CreateChannel(s.th.Context, &model.Channel{Name: channelName, DisplayName: channelDisplayName, Type: model.ChannelTypePrivate, TeamId: s.th.BasicTeam.Id}, false)
 		s.Require().Nil(err)
 
-		post1, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, false, false)
+		post1, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, model.CreatePostFlags{})
 		s.Require().Nil(err)
 
-		post2, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, false, false)
+		post2, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, model.CreatePostFlags{})
 		s.Require().Nil(err)
 
 		return channelName, post1, post2

@@ -754,7 +754,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		th.TestLogger.Flush()

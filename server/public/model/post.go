@@ -75,7 +75,7 @@ const (
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
-	PostPropsNotificationTestMessage  = "notification_test_message"
+	PostPropsForceNotification        = "force_notification"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -336,6 +336,12 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 	return json.NewEncoder(w).Encode(o)
 }
 
+type CreatePostFlags struct {
+	TriggerWebhooks   bool
+	SetOnline         bool
+	ForceNotification bool
+}
+
 type GetPostsSinceOptions struct {
 	UserId                   string
 	ChannelId                string
@@ -493,7 +499,7 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
-		// PostPropsNotificationTestMessage,
+		PostPropsForceNotification,
 	}
 
 	for _, member := range membersToSanitize {
