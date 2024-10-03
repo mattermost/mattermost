@@ -282,6 +282,21 @@ describe('Reducers.RHS', () => {
         });
     });
 
+    test('should match searchTeam state', () => {
+        const nextState = rhsReducer(
+            {},
+            {
+                type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                team: 'team_id',
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            searchTeam: 'team_id',
+        });
+    });
+
     test('should match select_post state', () => {
         const nextState1 = rhsReducer(
             {},
