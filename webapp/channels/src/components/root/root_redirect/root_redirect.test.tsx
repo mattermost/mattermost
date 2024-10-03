@@ -4,7 +4,7 @@
 import {createMemoryHistory} from 'history';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
-import {Redirect, useHistory} from 'react-router-dom';
+import {Redirect} from 'react-router-dom';
 
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
 
@@ -32,7 +32,6 @@ jest.mock('react-router-dom', () => {
     return {
         ...actual,
         Redirect: jest.fn(() => null),
-        useHistory: jest.fn(),
     };
 });
 
@@ -86,13 +85,9 @@ describe('components/RootRedirect', () => {
 
     test('should redirect to preparing-workspace when eligible for first admin onboarding and no teams created', async () => {
         const history = createMemoryHistory({initialEntries: ['/']});
-        const mockHistoryPush = jest.fn();
-        (useHistory as jest.Mock).mockReturnValue({
-            push: mockHistoryPush,
-        });
+        const mockHistoryPush = jest.spyOn(history, 'push');
 
         const props = {
-            ...defaultProps,
             currentUserId: 'test-user-id',
             isElegibleForFirstAdmingOnboarding: true,
             isFirstAdmin: true,
@@ -113,10 +108,6 @@ describe('components/RootRedirect', () => {
 
     test('should NOT redirect to preparing-workspace when there are teams created, even if system value for first admin onboarding complete is false', async () => {
         const history = createMemoryHistory({initialEntries: ['/']});
-        const mockHistoryPush = jest.fn();
-        (useHistory as jest.Mock).mockReturnValue({
-            push: mockHistoryPush,
-        });
 
         const props = {
             ...defaultProps,
