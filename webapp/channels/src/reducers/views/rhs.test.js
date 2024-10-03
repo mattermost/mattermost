@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {SearchTypes} from 'mattermost-redux/action_types';
-import { searchTeams } from 'mattermost-redux/actions/teams';
 
 import rhsReducer from 'reducers/views/rhs';
 
