@@ -9,6 +9,7 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {DraftTypes} from 'mattermost-redux/action_types';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
@@ -91,7 +92,7 @@ export function removeDraft(key: string, channelId: string, rootId = ''): Action
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean, GlobalState> {
+export function updateDraft(key: string, value: PostDraft|null, rootId = ''): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         let updatedValue: PostDraft|null = null;
@@ -107,7 +108,7 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
 
         dispatch(setGlobalDraft(key, updatedValue, false));
 
-        if (syncedDraftsAreAllowedAndEnabled(state) && save && updatedValue) {
+        if (syncedDraftsAreAllowedAndEnabled(state) && updatedValue) {
             const connectionId = getConnectionId(state);
             const userId = getCurrentUserId(state);
             try {
@@ -203,5 +204,13 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             metadata,
             show: true,
         },
+    };
+}
+
+export function makeDraftsLinkVisible(channelId: string, rootId: string) {
+    return {
+        type: DraftTypes.MAKE_DRAFTS_LINK_VISIBLE,
+        channelId,
+        rootId,
     };
 }

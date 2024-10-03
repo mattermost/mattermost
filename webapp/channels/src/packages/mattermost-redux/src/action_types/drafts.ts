@@ -13,4 +13,6 @@ export default keyMirror({
     GET_DRAFTS_FAILURE: null,
     UPSERT_DRAFT_FAILURE: null,
     DELETE_DRAFT_FAILURE: null,
+
+    MAKE_DRAFTS_LINK_VISIBLE: null,
 });
