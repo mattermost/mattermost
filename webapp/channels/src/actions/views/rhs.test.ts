@@ -862,6 +862,7 @@ describe('rhs view actions', () => {
                 views: {
                     rhs: {
                         searchTerms: terms,
+                        searchTeam: null,
                         filesSearchExtFilter: [] as string[],
                     },
                 },
@@ -876,7 +877,7 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
             });
-            compareStore.dispatch(performSearch(terms, ''));
+            compareStore.dispatch(performSearch(terms, currentTeamId));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
