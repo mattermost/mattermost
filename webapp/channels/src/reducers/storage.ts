@@ -7,11 +7,13 @@ import {combineReducers} from 'redux';
 import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 import type {MigrationManifest, PersistedState} from 'redux-persist';
 
-import {UserTypes} from 'mattermost-redux/action_types';
+import {DraftTypes, UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
+
+import {isDraftEmpty} from 'types/store/draft';
 
 type StorageEntry = {
     timestamp: Date;
@@ -91,7 +93,7 @@ function storage(state: Record<string, any> = {}, action: AnyAction) {
             key = `${StoragePrefixes.COMMENT_DRAFT}${action.rootId}`;
         }
 
-        if (!state[key]) {
+        if (!state[key] || isDraftEmpty(state[key].value)) {
             return state;
         }
 

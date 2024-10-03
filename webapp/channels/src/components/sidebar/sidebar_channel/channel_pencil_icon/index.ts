@@ -12,7 +12,7 @@ import {getPostDraft} from 'selectors/rhs';
 import {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
+import {isDraftEmpty, type PostDraft} from 'types/store/draft';
 
 import ChannelPencilIcon from './channel_pencil_icon';
 
@@ -25,7 +25,7 @@ function hasDraft(draft: PostDraft|null, id: Channel['id'], currentChannelId?: s
         return false;
     }
 
-    return Boolean(draft.message.trim() || draft.fileInfos.length || draft.uploadsInProgress.length) && currentChannelId !== id;
+    return currentChannelId !== id && !isDraftEmpty(draft);
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

@@ -46,7 +46,7 @@ import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
+import {isDraftEmpty, type PostDraft} from 'types/store/draft';
 
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import FormattingBar from './formatting_bar';
@@ -68,10 +68,6 @@ import useUploadFiles from './use_upload_files';
 import './advanced_text_editor.scss';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
-
-function isDraftEmpty(draft: PostDraft) {
-    return draft.message === '' && draft.fileInfos.length === 0 && draft.uploadsInProgress.length === 0;
-}
 
 type Props = {
 
@@ -187,7 +183,7 @@ const AdvancedTextEditor = ({
             if (isDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
             } else {
-            dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
+                dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
             }
         };
 
