@@ -58,7 +58,8 @@ import type {
     AutocompleteSuggestion,
     AutocompleteStaticSelect,
     Channel,
-    ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
+    ExtendedAutocompleteSuggestion,
+    intlShim} from './app_command_parser_dependencies';
 
 export enum ParseState {
     Start = 'Start',
@@ -95,9 +96,7 @@ interface FormsCache {
     getSubmittableForm: (location: string, binding: AppBinding) => Promise<{form?: AppForm; error?: string} | undefined>;
 }
 
-interface Intl {
-    formatMessage(config: {id: string; defaultMessage: string}, values?: {[name: string]: any}): string;
-}
+type Intl = typeof intlShim;
 
 const getCommandBindings = makeAppBindingsSelector(AppBindingLocations.COMMAND);
 const getRHSCommandBindings = makeRHSAppBindingSelector(AppBindingLocations.COMMAND);

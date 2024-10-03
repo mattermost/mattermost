@@ -10122,5 +10122,9 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "Пользователь не является пользователем OAuth или SAML."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Размер загруженного плагина превышает лимит. Этот лимит можно изменить в Системной консоли через File Storage > Maximum File Size"
   }
 ]

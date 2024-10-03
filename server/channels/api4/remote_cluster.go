@@ -57,7 +57,7 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId, false)
 	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
@@ -110,7 +110,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId, false)
 	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
@@ -158,7 +158,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
+	rc, err := c.App.GetRemoteCluster(frame.RemoteId, false)
 	if err != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
@@ -527,9 +527,14 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId)
+	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if rc.IsConfirmed() {
+		c.Err = model.NewAppError("generateRemoteClusterInvite", "api.remote_cluster.generate_invite_cluster_is_confirmed", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -561,7 +566,7 @@ func getRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	rc, err := c.App.GetRemoteCluster(c.Params.RemoteId, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -601,7 +606,7 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "remotecluster_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
-	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -645,7 +650,7 @@ func deleteRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
 	defer c.LogAuditRec(auditRec)
 
-	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId)
+	orc, err := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if err != nil {
 		c.Err = err
 		return

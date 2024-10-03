@@ -107,7 +107,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         const displayName = this.state.name;
 
         if (!displayName || !displayName.trim()) {
-            this.setState({nameInputErrorText: Utils.localizeMessage('user_groups_modal.nameIsEmpty', 'Name is a required field.'), saving: false});
+            this.setState({nameInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.nameIsEmpty', defaultMessage: 'Name is a required field.'}), saving: false});
             return;
         }
 
@@ -120,18 +120,18 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         }
 
         if (mention.length < 1) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionIsEmpty', 'Mention is a required field.'), saving: false});
+            this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionIsEmpty', defaultMessage: 'Mention is a required field.'}), saving: false});
             return;
         }
 
         if (Constants.SPECIAL_MENTIONS.includes(mention.toLowerCase())) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionReservedWord', 'Mention contains a reserved word.'), saving: false});
+            this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionReservedWord', defaultMessage: 'Mention contains a reserved word.'}), saving: false});
             return;
         }
 
         const mentionRegEx = new RegExp(/^[a-z0-9.\-_]+$/);
         if (!mentionRegEx.test(mention)) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionInvalidError', 'Invalid character in mention.'), saving: false});
+            this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionInvalidError', defaultMessage: 'Invalid character in mention.'}), saving: false});
             return;
         }
 
@@ -149,9 +149,9 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
 
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
-                this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionNotUnique', 'Mention needs to be unique.')});
+                this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'})});
             } else if (data.error?.server_error_id === 'app.group.username_conflict') {
-                this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionUsernameConflict', 'A username already exists with this name. Mention must be unique.')});
+                this.setState({mentionInputErrorText: Utils.localizeMessage({id: 'user_groups_modal.mentionUsernameConflict', defaultMessage: 'A username already exists with this name. Mention must be unique.'})});
             } else {
                 this.setState({showUnknownError: true});
             }
@@ -217,7 +217,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <div className='group-name-input-wrapper'>
                             <Input
                                 type='text'
-                                placeholder={Utils.localizeMessage('user_groups_modal.name', 'Name')}
+                                placeholder={Utils.localizeMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                                 onChange={this.updateNameState}
                                 value={this.state.name}
                                 data-testid='nameInput'
@@ -229,7 +229,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <div className='group-mention-input-wrapper'>
                             <Input
                                 type='text'
-                                placeholder={Utils.localizeMessage('user_groups_modal.mention', 'Mention')}
+                                placeholder={Utils.localizeMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                                 onChange={this.updateMentionState}
                                 value={this.state.mention}
                                 maxLength={64}
@@ -251,7 +251,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 savingEnabled={this.isSaveEnabled()}
                                 addUserCallback={this.addUserCallback}
                                 deleteUserCallback={this.deleteUserCallback}
-                                backButtonText={localizeMessage('multiselect.cancelButton', 'Cancel')}
+                                backButtonText={localizeMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
                                 backButtonClick={
                                     typeof this.props.backButtonCallback === 'function' ? this.goBack : this.doHide
                                 }

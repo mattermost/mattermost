@@ -53,13 +53,8 @@ function createChannel(channelType, teamId, userToAdd = null) {
         if (userToAdd) {
             // # Get user profile by email
             return cy.apiGetUserByEmail(userToAdd.email).then(({user}) => {
-                // # Add user to team
-                cy.externalRequest({
-                    user: admin,
-                    method: 'post',
-                    path: `channels/${channel.id}/members`,
-                    data: {user_id: user.id},
-                }).then(() => {
+                // # Add user to channel
+                cy.externalAddUserToChannel(user.id, channel.id).then(() => {
                     // # Explicitly wait to give some time to index before searching
                     cy.wait(TIMEOUTS.TWO_SEC);
                     return cy.wrap(channel);

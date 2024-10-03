@@ -21,7 +21,7 @@ var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
@@ -33,11 +33,11 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		} else {
-			c.Logger().Error("Could not get cluster info")
+			rctx.Logger().Error("Could not get cluster info")
 		}
 	}
 
-	melines, err := s.GetLogsSkipSend(page, perPage, &model.LogFilter{})
+	melines, err := s.GetLogsSkipSend(rctx, page, perPage, &model.LogFilter{})
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 	lines = append(lines, melines...)
 
 	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.platform.Cluster().GetLogs(page, perPage)
+		clines, err := s.platform.Cluster().GetLogs(rctx, page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 	return lines, nil
 }
 
-func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
 	serverName := "default"
@@ -66,7 +66,7 @@ func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.Lo
 		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			serverName = info.Hostname
 		} else {
-			c.Logger().Error("Could not get cluster info")
+			rctx.Logger().Error("Could not get cluster info")
 		}
 	}
 
@@ -74,15 +74,15 @@ func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.Lo
 	if len(serverNames) > 0 {
 		for _, nodeName := range serverNames {
 			if nodeName == "default" {
-				AddLocalLogs(logData, s, page, perPage, nodeName, logFilter)
+				AddLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
 			}
 		}
 	} else {
-		AddLocalLogs(logData, s, page, perPage, serverName, logFilter)
+		AddLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
 	}
 
 	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
-		clusterLogs, err := s.platform.Cluster().QueryLogs(page, perPage)
+		clusterLogs, err := s.platform.Cluster().QueryLogs(rctx, page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -101,8 +101,8 @@ func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.Lo
 	return logData, nil
 }
 
-func AddLocalLogs(logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
-	currentServerLogs, err := s.GetLogsSkipSend(page, perPage, logFilter)
+func AddLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
+	currentServerLogs, err := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
 	if err != nil {
 		return err
 	}
@@ -119,12 +119,12 @@ func (a *App) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.App
 	return a.Srv().GetLogs(rctx, page, perPage)
 }
 
-func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
-	return s.platform.GetLogsSkipSend(page, perPage, logFilter)
+func (s *Server) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+	return s.platform.GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
 func (a *App) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
-	return a.Srv().GetLogsSkipSend(page, perPage, logFilter)
+	return a.Srv().GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
 func (a *App) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
