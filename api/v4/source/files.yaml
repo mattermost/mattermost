@@ -414,7 +414,6 @@
   "/api/v4/files/search":
     post:
       tags:
-        - teams
         - files
         - search
       summary: Search files across the teams of the current user
