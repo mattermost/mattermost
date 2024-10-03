@@ -61,7 +61,6 @@ func TestCreateEmoji(t *testing.T) {
 	// try to create an emoji when they're disabled
 	_, resp, err := client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.Error(t, err)
-	require.NotNil(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	// enable emoji creation for next cases
@@ -523,7 +522,7 @@ func TestDeleteEmoji(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.TeamUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
 	th.LoginBasic2()
 
