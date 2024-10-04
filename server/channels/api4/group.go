@@ -79,9 +79,8 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
 		api.APISessionRequired(getGroupsByTeam)).Methods(http.MethodGet)
 
-	// GET /api/v4/teams/:team_id/groups
-	api.BaseRoutes.Teams.Handle("/{name:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByNames)).Methods(http.MethodPost)
+	// POST /api/v4/groups/names
+	api.BaseRoutes.Groups.Handle("/names", api.APISessionRequired(getGroupsByNames)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames)).Methods(http.MethodPost)
 
@@ -857,7 +856,7 @@ func getGroupsByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("usernames")
 		return
 	}
-
+	//TODO: Implement restrictions
 	// restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	// if appErr != nil {
 	// 	c.Err = appErr
