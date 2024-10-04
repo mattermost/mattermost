@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
+import {Team} from '@mattermost/types/teams';
 import {getRandomLetter} from '../../../../utils';
 import {doTestDMChannelSidebar, doTestUserChannelSection} from '../../autocomplete/common_test';
-import {createSearchData, enableElasticSearch} from '../../autocomplete/helpers';
+import {createSearchData, enableElasticSearch, SimpleUser} from '../../autocomplete/helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {
     const prefix = getRandomLetter(3);
-    let testUsers;
-    let testTeam;
+    let testUsers: Record<string, SimpleUser>;
+    let testTeam: Team;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
