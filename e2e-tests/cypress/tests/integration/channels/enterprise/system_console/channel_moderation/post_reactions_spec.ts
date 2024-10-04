@@ -54,7 +54,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
                 });
 
                 // Post a few messages in the channel
-                visitChannel(admin, testChannel, testTeam);
+                visitChannel(admin as UserProfile, testChannel, testTeam);
                 for (let i = 0; i < 3; i++) {
                     cy.postMessage(`test message ${Date.now()}`);
                 }

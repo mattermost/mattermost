@@ -3,7 +3,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {getAdminAccount, User} from '../../../../../support/env';
+import {getAdminAccount} from '../../../../../support/env';
 
 import {checkBoxes} from './constants';
 import {UserProfile} from '@mattermost/types/users';
@@ -65,8 +65,8 @@ export const saveConfigForChannel = (channelName: string = null, clickConfirmati
 };
 
 // # Visits a channel as the member specified
-export const visitChannel = (user: User, channel: Channel, team: Team) => {
-    cy.apiLogin(user as UserProfile);
+export const visitChannel = (user: UserProfile, channel: Channel, team: Team) => {
+    cy.apiLogin(user);
     cy.visit(`/${team.name}/channels/${channel.name}`);
     cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
 };
