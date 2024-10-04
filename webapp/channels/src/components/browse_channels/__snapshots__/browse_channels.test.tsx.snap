@@ -18,18 +18,18 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
       }
       teamId="team_1"
     >
-      <button
-        aria-label="Create New Channel"
-        className="btn btn-secondary btn-sm"
-        id="createNewChannelButton"
+      <Button
+        emphasis="secondary"
+        label={
+          Object {
+            "defaultMessage": "Create New Channel",
+            "id": "more_channels.create",
+          }
+        }
         onClick={[Function]}
-        type="button"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Create New Channel"
-          id="more_channels.create"
-        />
-      </button>
+        size="small"
+        testId="createNewChannelButton"
+      />
     </Memo(TeamPermissionGate)>
   }
   id="browseChannelsModal"
@@ -136,21 +136,19 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           }
           teamId="team_1"
         >
-          <button
-            aria-label="Create New Channel"
-            className="btn btn-primary"
-            id="createNewChannelButton"
+          <Button
+            emphasis="primary"
+            label={
+              Object {
+                "defaultMessage": "Create New Channel",
+                "id": "more_channels.create",
+              }
+            }
+            leadingIcon="icon-plus"
             onClick={[Function]}
-            type="button"
-          >
-            <i
-              className="icon-plus"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Create New Channel"
-              id="more_channels.create"
-            />
-          </button>
+            size="medium"
+            testId="createNewChannelButton"
+          />
         </Memo(TeamPermissionGate)>
       </React.Fragment>
     }

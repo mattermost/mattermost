@@ -373,6 +373,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             onClick={this.nextPage}
                             label={messages.next}
                             pull='right'
+                            testId={'filter-control__next'}
                         />
                     );
                 }

@@ -55,7 +55,7 @@ describe('components/GetLinkModal', () => {
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.state('copiedLink')).toBe(true);
 
-        wrapper.find('#linkModalCloseButton').simulate('click');
+        wrapper.find('[testId="linkModalCloseButton"]').simulate('click');
         expect(newOnHide).toHaveBeenCalledTimes(2);
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.state('copiedLink')).toBe(false);
