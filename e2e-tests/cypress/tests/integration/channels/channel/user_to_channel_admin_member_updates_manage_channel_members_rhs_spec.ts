@@ -9,6 +9,7 @@
 
 // Group: @channels @channel
 
+import {UserProfile} from '@mattermost/types/users';
 import {getAdminAccount} from '../../../support/env';
 
 const demoteToChannelMember = (user, channelId, admin) => {
@@ -37,8 +38,8 @@ const promoteToChannelAdmin = (user, channelId, admin) => {
 
 describe('Change Roles', () => {
     const admin = getAdminAccount();
-    let testUser;
-    let testChannelId;
+    let testUser: UserProfile;
+    let testChannelId: string;
 
     beforeEach(() => {
         // # Login as test user and visit test channel
@@ -57,7 +58,7 @@ describe('Change Roles', () => {
                     return !(['manage_public_channel_members', 'manage_private_channel_members', 'manage_public_channel_properties', 'manage_private_channel_properties'].includes(permission));
                 });
 
-                if (permissions.length !== role.permissions) {
+                if (permissions.length !== role.permissions.length) {
                     cy.apiPatchRole(role.id, {permissions});
                 }
             });

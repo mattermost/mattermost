@@ -10,12 +10,15 @@
 // Stage: @prod
 // Group: @channels @channel
 
+import {Channel, ServerChannel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
 
 describe('Leave an archived channel', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Team;
+    let testUser: UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -45,12 +48,12 @@ describe('Leave an archived channel', () => {
                 name: channelName,
                 team_id: testTeam.id,
                 type: 'P',
-            })).then(async (channel) => {
+            } as Channel)).then(async (channel: ServerChannel) => {
                 // # Then invite us to it
                 await client.addToChannel(testUser.id, channel.id);
 
-                cy.wrap(channel);
-            }).then((channel) => {
+                return Promise.resolve(channel);
+            }).then((channel: Channel) => {
                 // * Verify that the newly created channel is in the sidebar
                 cy.get(`#sidebarItem_${channel.name}`).should('be.visible');
 

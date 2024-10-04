@@ -10,7 +10,9 @@
 // Stage: @prod
 // Group: @channels @channel @not_cloud
 
+import { UserProfile } from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
+import { Team } from '@mattermost/types/teams';
 
 const timestamp = Date.now();
 
@@ -35,9 +37,9 @@ function verifyChannel(channel, verifyExistence = true) {
 }
 
 describe('channel name tooltips', () => {
-    let loggedUser;
-    let longUser;
-    let testTeam;
+    let loggedUser: UserProfile;
+    let longUser: UserProfile;
+    let testTeam: Team;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();

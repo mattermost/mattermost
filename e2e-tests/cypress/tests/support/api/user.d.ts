@@ -248,7 +248,7 @@ declare namespace Cypress {
          *       // do something with users
          *   });
          */
-        apiGetUsers(queryParams: Record<string, any>): Chainable<UserProfile[]>;
+        apiGetUsers(queryParams: Record<string, any>): Chainable<{users: UserProfile[]}>;
 
         /**
          * Get list of users that are not team members.
