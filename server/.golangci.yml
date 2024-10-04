@@ -81,7 +81,6 @@ issues:
         channels/api4/file_test.go|\
         channels/api4/group.go|\
         channels/api4/group_local.go|\
-        channels/api4/group_test.go|\
         channels/api4/handlers_test.go|\
         channels/api4/import_test.go|\
         channels/api4/integration_action.go|\
@@ -94,7 +93,6 @@ issues:
         channels/api4/license.go|\
         channels/api4/license_local.go|\
         channels/api4/license_test.go|\
-        channels/api4/oauth.go|\
         channels/api4/oauth_test.go|\
         channels/api4/outgoing_oauth_connection_test.go|\
         channels/api4/permission.go|\
