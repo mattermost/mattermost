@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
+const fs = require('fs');
+const dayjs = require('dayjs');
+const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 
 const {TYPE, SERVER_TYPE, BRANCH, PULL_REQUEST, BUILD_ID, MM_ENV, MM_DOCKER_IMAGE, MM_DOCKER_TAG, RELEASE_DATE} =
