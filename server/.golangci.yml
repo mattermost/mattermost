@@ -75,7 +75,6 @@ issues:
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
         channels/api4/emoji.go|\
-        channels/api4/emoji_test.go|\
         channels/api4/export.go|\
         channels/api4/export_test.go|\
         channels/api4/file_test.go|\
