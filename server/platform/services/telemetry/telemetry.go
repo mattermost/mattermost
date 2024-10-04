@@ -222,7 +222,7 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 func (ts *TelemetryService) SendTelemetry(event string, properties map[string]any) {
 	if ts.rudderClient != nil {
 		var context *rudder.Context
-		// if we are part of a cloud installation, add it's ID to the tracked event's context
+		// if we are part of a cloud installation, add its ID to the tracked event's context
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
 			context = &rudder.Context{Traits: map[string]any{"installationId": installationId}}
 		}
@@ -253,7 +253,7 @@ func (ts *TelemetryService) SendTelemetryForFeature(featureName TrackFeature, ev
 		var context *rudder.Context = &rudder.Context{
 			Extra: map[string]any{"feature": feature},
 		}
-		// if we are part of a cloud installation, add it's ID to the tracked event's context
+		// if we are part of a cloud installation, add its ID to the tracked event's context
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
 			context.Traits = map[string]any{"installationId": installationId}
 		}
