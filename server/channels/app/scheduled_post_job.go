@@ -28,6 +28,11 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 		return
 	}
 
+	if a.License() == nil {
+		rctx.Logger().Debug("ProcessScheduledPosts exiting as no license is available")
+		return
+	}
+
 	beforeTime := model.GetMillis()
 	lastScheduledPostId := ""
 
