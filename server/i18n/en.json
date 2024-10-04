@@ -7975,6 +7975,10 @@
     "translation": "Failed to get file info for a post."
   },
   {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Failed to convert a value from the job's data field."
+  },
+  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Failed to select message export data."
   },
