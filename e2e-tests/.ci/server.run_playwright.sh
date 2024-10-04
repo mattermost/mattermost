@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 mme2e_log "Prepare Playwright: clean and initialize report and logs directory"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
 cd e2e-tests/playwright
-rm -rf logs playwright-report test-results storage_state
+rm -rf logs results storage_state
 mkdir -p logs
 touch logs/mattermost.log
 EOF
@@ -36,8 +36,17 @@ EOF
 # export DEBUG=pw:protocol,pw:browser,pw:api
 
 # Run Playwright test
-# Note: Run on chrome but eventually will enable to all projects which include firefox and ipad.
 ${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test -- ${TEST_FILTER}" | tee ../playwright/logs/playwright.log
+
+# Collect run results
+# Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
+jq -f /dev/stdin ../playwright/results/results.json > ../playwright/results/summary.json <<EOF
+{
+  passed: .stats.expected,
+  failed: .stats.unexpected,
+  failed_expected: (.stats.skipped + .stats.flaky)
+}
+EOF
 
 # Collect server logs
 ${MME2E_DC_SERVER} logs --no-log-prefix -- server >../playwright/logs/mattermost.log 2>&1

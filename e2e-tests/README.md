@@ -42,6 +42,7 @@ Instructions, detailed:
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
   * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machines (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
+  * This script will also parse the local test results, and write a `e2e-tests/${TEST}/results/summary.json` file containing the following keys: `passed`, `failed` and `failed_expected` (the total number of testcases that were run is the sum of these three numbers)
 4. `make stop`: tears down the server (and the dashboard, if running)
   * This will stop and cleanup all of the E2E testing containers, including the database and its persistent volume.
   * This also implicitly runs `make clean`, which also removes any generated environment or docker-compose files.

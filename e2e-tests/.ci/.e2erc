@@ -94,7 +94,7 @@ export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
 export BUILD_ID_DEFAULT=$(date +%s)
 export CI_BASE_URL_DEFAULT="localhost"
 # Test tool default overrides
-case $TEST in
+case "${TEST:-$TEST_DEFAULT}" in
   cypress )
     export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke' ;;
   playwright )

@@ -24,7 +24,7 @@ if [ "$TYPE" = "PR" ]; then
 fi
 
 # Env vars used during the test. Their values will be included in the report
-: ${TEST:?} # See E2E tests' readme; usually set to 'cypress'
+: ${TEST:?} # See E2E tests' readme
 : ${BRANCH:?} # May be either a ref, a commit hash, or 'server-pr-PR_NUMBER' (if TYPE=PR)
 : ${BUILD_ID:?}
 : ${SERVER:?} # May be either 'onprem' or 'cloud'
@@ -89,24 +89,22 @@ if [ -n "${AWS_S3_BUCKET:-}" ]; then
   mme2e_log "S3 report upload enabled."
 fi
 
+# Double check that the "results/" subdirectory to collect report informations from exists
+cd "../${TEST}/"
+if [ ! -d "results/" ]; then
+  mme2e_log "Error: 'results/' directory does not exist. Aborting report data collection." >&2
+  exit 1
+fi
+
 case "$TEST" in
   cypress)
-    cd ../cypress/
-    if [ ! -d "results/" ]; then
-      mme2e_log "Error: 'results/' directory does not exist. Aborting report generation." >&2
-      exit 1
-    fi
     npm i
     node save_report.js
     ;;
   playwright)
-    cd ../playwright/
-    REPORT_FILE=playwright-report/results.json
-    if [ ! -f "$REPORT_FILE" ]; then
-      mme2e_log "Error: report file '$REPORT_FILE' does not exist in the playwright directory. Aborting report generation." >&2
+    if [ -n "$WEBHOOK_URL" ]; then
+      # Utilize environment data and report files to generate the webhook body
+      ./report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
     fi
-    FAILURES=$(jq '[ .suites[].specs[].tests[].results[] | select(.status | test("^(passed|skipped)$") == false) ] | length' "$REPORT_FILE")
-    echo "Failures: $FAILURES"
-    # TODO complete
     ;;
 esac
