@@ -3404,6 +3404,7 @@ func (s *MessageExportSettings) SetDefaults() {
 type DisplaySettings struct {
 	CustomURLSchemes []string `access:"site_posts"`
 	MaxMarkdownNodes *int     `access:"site_posts"`
+	SuggestionDebounceDelay *int `access: "site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3683,6 +3684,11 @@ func (o *Config) isUpdate() bool {
 
 func (o *Config) SetDefaults() {
 	isUpdate := o.isUpdate()
+
+	if o.DisplaySettings.SuggestionDebounceDelay == nil {
+		defaultDelay := 100
+		o.DisplaySettings.SuggestionDebounceDelay = &defaultDelay
+	}
 
 	o.LdapSettings.SetDefaults()
 	o.SamlSettings.SetDefaults()
