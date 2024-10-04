@@ -17,17 +17,25 @@ import (
 )
 
 func (api *API) InitScheduledPost() {
-	if !*api.srv.Config().ServiceSettings.ScheduledPosts {
-		return
-	}
-
 	api.BaseRoutes.Posts.Handle("/schedule", api.APISessionRequired(createSchedulePost)).Methods(http.MethodPost)
 	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(updateScheduledPost)).Methods(http.MethodPut)
 	api.BaseRoutes.Posts.Handle("/schedule/{scheduled_post_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteScheduledPost)).Methods(http.MethodDelete)
 	api.BaseRoutes.Posts.Handle("/scheduled/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTeamScheduledPosts)).Methods(http.MethodGet)
 }
 
+func requireScheduledPostsEnabled(c *Context) {
+	if !*c.App.Srv().Config().ServiceSettings.ScheduledPosts {
+		c.Err = model.NewAppError("", "api.scheduled_posts.feature_disabled", nil, "", http.StatusBadRequest)
+		return
+	}
+}
+
 func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	var scheduledPost model.ScheduledPost
 	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
 		c.SetInvalidParamWithErr("schedule_post", err)
@@ -63,6 +71,11 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -102,6 +115,11 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
 	if scheduledPostId == "" {
 		c.SetInvalidURLParam("scheduled_post_id")
@@ -142,6 +160,11 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
 	if scheduledPostId == "" {
 		c.SetInvalidURLParam("scheduled_post_id")
