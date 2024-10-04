@@ -1122,7 +1122,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     secondaryButton={{
                                         onClick: this.onGoToNotificationDocumentation,
                                         text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'}),
-                                        isExternal: true,
+                                        trailingIcon: 'icon-open-in-new',
                                     }}
                                     type='hint'
                                 />
