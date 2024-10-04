@@ -11,6 +11,7 @@ if ! [ -f "$TEST_ENV_FILE" ]; then
   exit 1
 fi
 set -a
+# shellcheck disable=SC1090
 . "$TEST_ENV_FILE"
 
 if [ -z "${AUTOMATION_DASHBOARD_URL:-}" ]; then

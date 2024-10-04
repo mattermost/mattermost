@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e -u -o pipefail
+# shellcheck disable=SC2038
+set -e -u -o pipefail -x
 cd "$(dirname "$0")"
 . .e2erc
 
