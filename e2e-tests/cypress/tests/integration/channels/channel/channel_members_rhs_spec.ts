@@ -3,7 +3,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
-import { UserProfile } from '@mattermost/types/users';
+import {UserProfile} from '@mattermost/types/users';
 
 const {generateRandomUser} = require('../../../support/api/user');
 

@@ -10,13 +10,14 @@
 // Stage: @prod
 // Group: @channels @channel @not_cloud
 
-import { UserProfile } from '@mattermost/types/users';
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-import { Team } from '@mattermost/types/teams';
 
 const timestamp = Date.now();
 
-function verifyChannel(channel, verifyExistence = true) {
+function verifyChannel(channel: Channel, verifyExistence = true) {
     // # Wait for Channel to be created
     cy.wait(TIMEOUTS.HALF_SEC);
 

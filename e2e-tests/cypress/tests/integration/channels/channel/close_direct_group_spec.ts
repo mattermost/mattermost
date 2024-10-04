@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+import {ChainableT} from '../../../types';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -16,7 +18,7 @@ import {UserProfile} from '@mattermost/types/users';
 // Make sure that the current channel is Town Square and that the
 // channel identified by the passed name is no longer in the channel
 // sidebar
-function verifyChannelWasProperlyClosed(channelName) {
+function verifyChannelWasProperlyClosed(channelName: string) {
     // * Make sure that we have switched channels
     cy.get('#channelHeaderTitle').should('contain', 'Town Square');
 
@@ -57,7 +59,7 @@ describe('Close direct messages', () => {
         });
     });
 
-    function createAndVisitDMChannel(userIds) {
+    function createAndVisitDMChannel(userIds: string[]): ChainableT<Channel> {
         return cy.apiCreateDirectChannel(userIds).then(({channel}) => {
             // # Visit the new channel
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
