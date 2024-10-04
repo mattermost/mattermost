@@ -3,10 +3,10 @@
     width: 56px;
     height: 32px;
     flex-direction: row;
+    justify-content: center;
     border-radius: 4px;
     background: var(--button-bg);
     color: var(--button-color);
-    justify-content: center;
 
     &.disabled {
         background: rgba(var(--center-channel-color-rgb), 0.08);

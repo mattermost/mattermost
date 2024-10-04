@@ -6,6 +6,7 @@ import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -17,7 +18,6 @@ import Constants, {UserStatuses} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './style.scss';
-import {isScheduledPostsEnabled} from "mattermost-redux/selectors/entities/scheduled_posts";
 
 const DEFAULT_TIMEZONE = {
     useAutomaticTimezone: true,

@@ -5,7 +5,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig} from "mattermost-redux/selectors/entities/general";
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 export type ChannelScheduledPostIndicatorData = {
     scheduledPost?: ScheduledPost;

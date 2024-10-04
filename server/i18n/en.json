@@ -1818,14 +1818,6 @@
     "translation": "custom groups feature is disabled"
   },
   {
-    "id": "api.scheduled_posts.feature_disabled",
-    "translation": "scheduled posts feature is disabled"
-  },
-  {
-    "id": "api.scheduled_posts.license_error",
-    "translation": "scheduled posts feature requires a license"
-  },
-  {
     "id": "api.custom_groups.license_error",
     "translation": "not licensed for custom groups"
   },
@@ -2825,6 +2817,14 @@
   {
     "id": "api.saml.invalid_email_token.app_error",
     "translation": "Invalid email_token"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "scheduled posts feature is disabled"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "scheduled posts feature requires a license"
   },
   {
     "id": "api.scheme.create_scheme.license.error",

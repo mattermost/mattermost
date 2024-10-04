@@ -6,7 +6,6 @@ import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
-import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
@@ -26,6 +25,8 @@ import ScheduledPostList from 'components/drafts/scheduled_post_list/scheduled_p
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 import Header from 'components/widgets/header';
+
+import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
