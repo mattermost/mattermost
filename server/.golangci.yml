@@ -81,7 +81,6 @@ issues:
         channels/api4/file_test.go|\
         channels/api4/group.go|\
         channels/api4/group_local.go|\
-        channels/api4/group_test.go|\
         channels/api4/handlers_test.go|\
         channels/api4/import_test.go|\
         channels/api4/integration_action.go|\
