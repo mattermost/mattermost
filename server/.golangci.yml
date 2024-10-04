@@ -98,7 +98,6 @@ issues:
         channels/api4/permission.go|\
         channels/api4/plugin.go|\
         channels/api4/plugin_test.go|\
-        channels/api4/post.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction.go|\
