@@ -234,6 +234,8 @@ const (
 	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
 	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
 
+	ComplianceExportDirectoryFormat    = "compliance-export-2006-01-02-15h04m"
+	ComplianceExportPath               = "export"
 	ComplianceExportTypeCsv            = "csv"
 	ComplianceExportTypeActiance       = "actiance"
 	ComplianceExportTypeGlobalrelay    = "globalrelay"
