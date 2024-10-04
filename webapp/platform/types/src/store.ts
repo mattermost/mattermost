@@ -19,10 +19,13 @@ import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {
-    AdminRequestsStatuses, ChannelsRequestsStatuses,
-    FilesRequestsStatuses, GeneralRequestsStatuses,
-    PostsRequestsStatuses, RolesRequestsStatuses,
-    TeamsRequestsStatuses, UsersRequestsStatuses,
+    AdminRequestsStatuses,
+    ChannelsRequestsStatuses,
+    GeneralRequestsStatuses,
+    PostsRequestsStatuses,
+    RolesRequestsStatuses,
+    TeamsRequestsStatuses,
+    UsersRequestsStatuses,
 } from './requests';
 import type {Role} from './roles';
 import type {SchemesState} from './schemes';
@@ -84,7 +87,6 @@ export type GlobalState = {
         teams: TeamsRequestsStatuses;
         users: UsersRequestsStatuses;
         admin: AdminRequestsStatuses;
-        files: FilesRequestsStatuses;
         roles: RolesRequestsStatuses;
     };
     websocket: {

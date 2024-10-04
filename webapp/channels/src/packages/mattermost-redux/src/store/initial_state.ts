@@ -282,12 +282,6 @@ const state: GlobalState = {
                 error: null,
             },
         },
-        files: {
-            uploadFiles: {
-                status: 'not_started',
-                error: null,
-            },
-        },
         roles: {
             getRolesByNames: {
                 status: 'not_started',

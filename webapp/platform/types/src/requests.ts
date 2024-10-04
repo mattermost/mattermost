@@ -50,10 +50,6 @@ export type EmojisRequestsStatuses = {
     getCustomEmoji: RequestStatusType;
 };
 
-export type FilesRequestsStatuses = {
-    uploadFiles: RequestStatusType;
-};
-
 export type RolesRequestsStatuses = {
     getRolesByNames: RequestStatusType;
     getRoleByName: RequestStatusType;
