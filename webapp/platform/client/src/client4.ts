@@ -60,7 +60,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
-import type {Draft} from '@mattermost/types/drafts';
+import type {ServerDraft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
@@ -4240,8 +4240,8 @@ export default class Client4 {
         }
     }
 
-    upsertDraft = async (draft: Draft, connectionId: string) => {
-        const result = await this.doFetch<Draft>(
+    upsertDraft = async (draft: ServerDraft, connectionId: string) => {
+        const result = await this.doFetch<ServerDraft>(
             `${this.getDraftsRoute()}`,
             {
                 method: 'post',
@@ -4256,7 +4256,7 @@ export default class Client4 {
     };
 
     getUserDrafts = (teamId: Team['id']) => {
-        return this.doFetch<Draft[]>(
+        return this.doFetch<ServerDraft[]>(
             `${this.getUserRoute('me')}/teams/${teamId}/drafts`,
             {method: 'get'},
         );

@@ -3,7 +3,11 @@
 
 import type {PostMetadata, PostPriorityMetadata} from './posts';
 
-export type Draft = {
+/**
+ * ServerDraft corresponds to model.Draft on the server and how draft information is sent to and from the server. It's
+ * different from the PostDraft type defined in the web app which matches how drafts are stored in its state.
+ */
+export type ServerDraft = {
     create_at: number;
     update_at: number;
     delete_at: number;

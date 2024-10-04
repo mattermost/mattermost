@@ -9,6 +9,10 @@ export type DraftInfo = {
     type: 'channel' | 'thread';
 }
 
+/**
+ * PostDraft is the used for storing post drafts in Redux state and in browser storage. It's different from the
+ * ServerDraft type defined in @mattermost/types which is used by the server's draft APIs.
+ */
 export type PostDraft = {
     message: string;
     fileInfos: FileInfo[];

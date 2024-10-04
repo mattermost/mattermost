@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Draft as ServerDraft} from '@mattermost/types/drafts';
+import type {ServerDraft} from '@mattermost/types/drafts';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
