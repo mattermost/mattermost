@@ -9,7 +9,7 @@ import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
+import type {FileUploadResponse} from '@mattermost/types/files';
 
 import type {UploadFile} from 'actions/file_actions';
 
@@ -103,11 +103,6 @@ export type Props = {
     onClick?: () => void;
 
     /**
-     * Function to be called when file upload is complete
-     */
-    onFileUpload: (fileInfos: FileInfo[], clientIds: string[], channelId: string, currentRootId: string) => void;
-
-    /**
      * Function to be called when file upload input's change event is fired
      */
     onFileUploadChange: () => void;
@@ -199,10 +194,8 @@ export class FileUpload extends PureComponent<Props, State> {
         this.unbindDragsterEvents?.();
     }
 
-    fileUploadSuccess = (data: FileUploadResponse, channelId: string, currentRootId: string) => {
+    fileUploadSuccess = (data: FileUploadResponse) => {
         if (data) {
-            this.props.onFileUpload(data.file_infos, data.client_ids, channelId, currentRootId);
-
             const requests = Object.assign({}, this.state.requests);
             for (let j = 0; j < data.client_ids.length; j++) {
                 Reflect.deleteProperty(requests, data.client_ids[j]);

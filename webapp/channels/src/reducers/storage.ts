@@ -7,11 +7,11 @@ import {combineReducers} from 'redux';
 import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 import type {MigrationManifest, PersistedState} from 'redux-persist';
 
-import {DraftTypes, UserTypes} from 'mattermost-redux/action_types';
+import {DraftTypes, FileTypes, UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
-import {getDraftInfoFromKey} from 'utils/storage_utils';
+import {ensureDraft, getDraftInfoFromKey, getDraftKey} from 'utils/storage_utils';
 
 import {isDraftEmpty} from 'types/store/draft';
 
@@ -87,11 +87,93 @@ function storage(state: Record<string, any> = {}, action: AnyAction) {
         return {...state, ...action.data};
     }
 
+    case FileTypes.FILE_UPLOAD_STARTED: {
+        const key = getDraftKey(action.channelId, action.rootId);
+
+        const draft = ensureDraft(state[key].value, action.channelId, action.rootId);
+        const nextDraft = {
+            ...draft,
+            uploadsInProgress: [...draft.uploadsInProgress, ...action.clientIds],
+        };
+
+        return {
+            ...state,
+            [key]: {
+                value: nextDraft,
+
+                // TODO reducers shouldn't have side effects
+                timestamp: new Date(),
+            },
+        };
+    }
+    case FileTypes.FILE_UPLOAD_COMPLETED: {
+        const key = getDraftKey(action.channelId, action.rootId);
+        const clientIdsSet = new Set(action.clientIds);
+
+        const draft = ensureDraft(state[key].value, action.channelId, action.rootId);
+
+        const nextDraft = {
+            ...draft,
+            fileInfos: [...draft.fileInfos, ...action.fileInfos],
+            uploadsInProgress: draft.uploadsInProgress.filter((id) => !clientIdsSet.has(id)),
+        };
+
+        return {
+            ...state,
+            [key]: {
+                value: nextDraft,
+
+                // TODO reducers shouldn't have side effects
+                timestamp: new Date(),
+            },
+        };
+    }
+    case FileTypes.FILE_UPLOAD_FAILED: {
+        const key = getDraftKey(action.channelId, action.rootId);
+        const clientIdsSet = new Set(action.clientIds);
+
+        const draft = ensureDraft(state[key].value, action.channelId, action.rootId);
+
+        const nextDraft = {
+            ...draft,
+            uploadsInProgress: draft.uploadsInProgress.filter((id) => !clientIdsSet.has(id)),
+        };
+
+        return {
+            ...state,
+            [key]: {
+                value: nextDraft,
+
+                // TODO reducers shouldn't have side effects
+                timestamp: new Date(),
+            },
+        };
+    }
+    case FileTypes.FILE_UPLOAD_REMOVED: {
+        const key = getDraftKey(action.channelId, action.rootId);
+        const fileIdsSet = new Set(action.fileIds);
+
+        const draft = ensureDraft(state[key].value, action.channelId, action.rootId);
+
+        const nextDraft = {
+            ...draft,
+            fileInfos: draft.fileInfos.filter((info) => !fileIdsSet.has(info.id)),
+            uploadsInProgress: draft.uploadsInProgress.filter((id) => !fileIdsSet.has(id)),
+        };
+
+        return {
+            ...state,
+            [key]: {
+                value: nextDraft,
+
+                // TODO reducers shouldn't have side effects
+                timestamp: new Date(),
+            },
+        };
+    }
+
     case DraftTypes.MAKE_DRAFTS_LINK_VISIBLE: {
-        let key = `${StoragePrefixes.DRAFT}${action.channelId}`;
-        if (action.rootId) {
-            key = `${StoragePrefixes.COMMENT_DRAFT}${action.rootId}`;
-        }
+        const key = getDraftKey(action.channelId, action.rootId);
 
         if (!state[key] || isDraftEmpty(state[key].value)) {
             return state;

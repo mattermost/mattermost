@@ -3,11 +3,10 @@
 
 import keyMirror from 'mattermost-redux/utils/key_mirror';
 export default keyMirror({
-
-    UPLOAD_FILES_REQUEST: null,
-    UPLOAD_FILES_SUCCESS: null,
-    UPLOAD_FILES_FAILURE: null,
-    UPLOAD_FILES_CANCEL: null,
+    FILE_UPLOAD_STARTED: null,
+    FILE_UPLOAD_COMPLETED: null,
+    FILE_UPLOAD_FAILED: null,
+    FILE_UPLOAD_REMOVED: null,
 
     RECEIVED_FILES_FOR_SEARCH: null,
     RECEIVED_FILES_FOR_POST: null,

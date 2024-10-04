@@ -226,7 +226,7 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
-    const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, readOnlyChannel, textboxRef, handleDraftChange, focusTextbox, setServerError);
+    const [attachmentPreview, fileUploadJSX] = useUploadFiles(postId, channelId, isThreadView, readOnlyChannel, textboxRef, focusTextbox, setServerError);
     const {
         emojiPicker,
         enableEmojiPicker,

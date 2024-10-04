@@ -4,17 +4,22 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo} from '@mattermost/types/files';
+import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 
 import {FileTypes} from 'mattermost-redux/action_types';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
+import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
+
+import {getCurrentLocale} from 'selectors/i18n';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 export interface UploadFile {
     file: File;
@@ -24,13 +29,18 @@ export interface UploadFile {
     channelId: string;
     clientId: string;
     onProgress: (filePreviewInfo: FilePreviewInfo) => void;
-    onSuccess: (data: any, channelId: string, rootId: string) => void;
+    onSuccess: (data: any) => void;
     onError: (err: string | ServerError, clientId: string, channelId: string, rootId: string) => void;
 }
 
-export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile, isBookmark?: boolean): ThunkActionFunc<XMLHttpRequest> {
+export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile, isBookmark?: boolean): ThunkActionFunc<XMLHttpRequest, GlobalState> {
     return (dispatch, getState) => {
-        dispatch({type: FileTypes.UPLOAD_FILES_REQUEST});
+        dispatch({
+            type: FileTypes.FILE_UPLOAD_STARTED,
+            channelId,
+            rootId,
+            clientIds: [clientId],
+        });
 
         let url = Client4.getFilesRoute();
         if (isBookmark) {
@@ -72,7 +82,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
         if (onSuccess) {
             xhr.onload = () => {
                 if (xhr.status === 201 && xhr.readyState === 4) {
-                    const response = JSON.parse(xhr.response);
+                    const response: FileUploadResponse = JSON.parse(xhr.response);
                     const data = response.file_infos.map((fileInfo: FileInfo, index: number) => {
                         return {
                             ...fileInfo,
@@ -88,11 +98,15 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                             rootId,
                         },
                         {
-                            type: FileTypes.UPLOAD_FILES_SUCCESS,
+                            type: FileTypes.FILE_UPLOAD_COMPLETED,
+                            channelId,
+                            rootId,
+                            clientIds: response.client_ids,
+                            fileInfos: sortFileInfos(response.file_infos, getCurrentLocale(getState())),
                         },
                     ]));
 
-                    onSuccess(response, channelId, rootId);
+                    onSuccess(response);
                 } else if (xhr.status >= 400 && xhr.readyState === 4) {
                     let errorMessage = '';
                     try {
@@ -104,7 +118,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     }
 
                     dispatch({
-                        type: FileTypes.UPLOAD_FILES_FAILURE,
+                        type: FileTypes.FILE_UPLOAD_FAILED,
                         clientIds: [clientId],
                         channelId,
                         rootId,
@@ -123,7 +137,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     forceLogoutIfNecessary(errorResponse, dispatch, getState);
 
                     const uploadFailureAction = {
-                        type: FileTypes.UPLOAD_FILES_FAILURE,
+                        type: FileTypes.FILE_UPLOAD_FAILED,
                         clientIds: [clientId],
                         channelId,
                         rootId,
@@ -136,7 +150,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     const errorMessage = xhr.status === 0 || !xhr.status ? localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'}) : localizeMessage({id: 'channel_loader.unknown_error', defaultMessage: 'We received an unexpected status code from the server.'}) + ' (' + xhr.status + ')';
 
                     dispatch({
-                        type: FileTypes.UPLOAD_FILES_FAILURE,
+                        type: FileTypes.FILE_UPLOAD_FAILED,
                         clientIds: [clientId],
                         channelId,
                         rootId,
@@ -150,5 +164,17 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
         xhr.send(formData);
 
         return xhr;
+    };
+}
+
+/**
+ * Removes a file upload on a draft. This can be called if the actual upload is in progress or has been completed.
+ */
+export function removeFileUpload(channelId: string, rootId: string, fileId: string) {
+    return {
+        type: FileTypes.FILE_UPLOAD_REMOVED,
+        channelId,
+        rootId,
+        fileIds: [fileId],
     };
 }

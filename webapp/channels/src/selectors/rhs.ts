@@ -13,6 +13,7 @@ import {getGlobalItem, makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'se
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {PostTypes, StoragePrefixes} from 'utils/constants';
+import {makeEmptyDraft} from 'utils/storage_utils';
 import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -139,10 +140,11 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
 }
 
 export function makeGetDraft() {
-    let defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''};
+    let defaultDraft = makeEmptyDraft('', '');
+
     return (state: GlobalState, channelId: string, rootId = ''): PostDraft => {
         if (defaultDraft.channelId !== channelId || defaultDraft.rootId !== rootId) {
-            defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId, rootId};
+            defaultDraft = makeEmptyDraft(channelId, rootId);
         }
         const prefix = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
         const suffix = rootId || channelId;
@@ -192,11 +194,8 @@ export function makeGetChannelDraft() {
 }
 
 export function getPostDraft(state: GlobalState, prefixId: string, suffixId: string): PostDraft {
-    const defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''};
+    const defaultDraft = makeEmptyDraft('', prefixId === StoragePrefixes.COMMENT_DRAFT ? suffixId : '');
 
-    if (prefixId === StoragePrefixes.COMMENT_DRAFT) {
-        defaultDraft.rootId = suffixId;
-    }
     const draft = makeGetGlobalItem(prefixId + suffixId, defaultDraft)(state);
 
     if (

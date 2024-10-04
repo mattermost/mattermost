@@ -24,6 +24,7 @@ import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
+import {makeGetDraft} from 'selectors/rhs';
 
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
@@ -145,6 +146,13 @@ export function onSubmit(
         const {message, channelId, rootId} = draft;
         const state = getState();
 
+        const storedDraft = makeGetDraft()(state, channelId, rootId);
+        const draftWithFiles = {
+            ...draft,
+            fileInfos: storedDraft.fileInfos,
+            uploadsInProgress: storedDraft.uploadsInProgress,
+        };
+
         dispatch(addMessageIntoHistory(message));
 
         const isReaction = Utils.REACTION_PATTERN.exec(message);
@@ -161,10 +169,10 @@ export function onSubmit(
         }
 
         if (message.indexOf('/') === 0 && !options.ignoreSlash) {
-            return dispatch(submitCommand(channelId, rootId, draft));
+            return dispatch(submitCommand(channelId, rootId, draftWithFiles));
         }
 
-        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, options.afterOptimisticSubmit));
+        return dispatch(submitPost(channelId, rootId, draftWithFiles, options.afterSubmit, options.afterOptimisticSubmit));
     };
 }
 
