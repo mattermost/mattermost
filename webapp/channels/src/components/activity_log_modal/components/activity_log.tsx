@@ -9,6 +9,8 @@ import type {Session} from '@mattermost/types/sessions';
 
 import {General} from 'mattermost-redux/constants';
 
+import Button from 'components/button';
+
 import {getMonthLong} from 'utils/i18n';
 
 import DeviceIcon from './device_icon';
@@ -218,15 +220,11 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='activity-log__action'>
-                    <button
+                    <Button
                         onClick={this.submitRevoke}
-                        className='btn btn-primary'
-                    >
-                        <FormattedMessage
-                            id='activity_log.logout'
-                            defaultMessage='Log Out'
-                        />
-                    </button>
+                        emphasis='primary'
+                        label={messages.logout}
+                    />
                 </div>
             </div>
         );
@@ -249,5 +247,9 @@ const messages = defineMessages({
     windowsIcon: {
         id: 'device_icons.windows',
         defaultMessage: 'Windows Icon',
+    },
+    logout: {
+        id: 'activity_log.logout',
+        defaultMessage: 'Log Out',
     },
 });

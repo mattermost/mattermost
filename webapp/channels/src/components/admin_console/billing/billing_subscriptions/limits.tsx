@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -11,6 +11,7 @@ import {
     getSubscriptionProduct,
 } from 'mattermost-redux/selectors/entities/cloud';
 
+import Button from 'components/button';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
@@ -23,6 +24,17 @@ import LimitCard from './limit_card';
 
 import './limits.scss';
 
+const messages = {
+    viewPlanOptions: {
+        id: 'workspace_limits.modals.view_plan_options',
+        defaultMessage: 'View plan options',
+    },
+    contactSales: {
+        id: 'admin.license.trialCard.contactSales',
+        defaultMessage: 'Contact sales',
+    },
+};
+
 const Limits = (): JSX.Element | null => {
     const intl = useIntl();
     const subscription = useSelector(getCloudSubscription);
@@ -32,6 +44,8 @@ const Limits = (): JSX.Element | null => {
     const usage = useGetUsage();
     const [openSalesLink] = useOpenSalesLink();
     const openPricingModal = useOpenPricingModal();
+
+    const onViewPlansClick = useCallback(() => openPricingModal({trackingLocation: 'billing_subscriptions_limits_dashboard'}), [openPricingModal]);
 
     if (!subscriptionProduct || !limitsLoaded || !hasSomeLimits(cloudLimits)) {
         return null;
@@ -133,24 +147,16 @@ const Limits = (): JSX.Element | null => {
             <div className={actionsClassname}>
                 {subscriptionProduct.sku === CloudProducts.STARTER && (
                     <>
-                        <button
-                            onClick={() => openPricingModal({trackingLocation: 'billing_subscriptions_limits_dashboard'})}
-                            className='btn btn-primary'
-                        >
-                            {intl.formatMessage({
-                                id: 'workspace_limits.modals.view_plan_options',
-                                defaultMessage: 'View plan options',
-                            })}
-                        </button>
-                        <button
+                        <Button
+                            onClick={onViewPlansClick}
+                            emphasis='primary'
+                            label={messages.viewPlanOptions}
+                        />
+                        <Button
                             onClick={openSalesLink}
-                            className='btn btn-secondary'
-                        >
-                            {intl.formatMessage({
-                                id: 'admin.license.trialCard.contactSales',
-                                defaultMessage: 'Contact sales',
-                            })}
-                        </button>
+                            emphasis='secondary'
+                            label={messages.contactSales}
+                        />
                     </>
                 )}
             </div>

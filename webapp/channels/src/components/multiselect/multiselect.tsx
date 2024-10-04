@@ -5,11 +5,12 @@ import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {IntlShape} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
 
+import Button from 'components/button';
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -76,6 +77,11 @@ export type State = {
 }
 
 const KeyCodes = Constants.KeyCodes;
+
+const messages = defineMessages({
+    next: {id: 'filtered_user_list.next', defaultMessage: 'Next'},
+    previous: {id: 'filtered_user_list.prev', defaultMessage: 'Previous'},
+});
 
 export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
     private listRef = React.createRef<MultiSelectList<T>>();
@@ -361,29 +367,24 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
                     nextButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                        <Button
+                            emphasis='tertiary'
+                            size='small'
                             onClick={this.nextPage}
-                        >
-                            <FormattedMessage
-                                id='filtered_user_list.next'
-                                defaultMessage='Next'
-                            />
-                        </button>
+                            label={messages.next}
+                            pull='right'
+                        />
                     );
                 }
 
                 if (this.state.page > 0) {
                     previousButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                        <Button
+                            emphasis='tertiary'
+                            size='small'
                             onClick={this.prevPage}
-                        >
-                            <FormattedMessage
-                                id='filtered_user_list.prev'
-                                defaultMessage='Previous'
-                            />
-                        </button>
+                            label={messages.previous}
+                        />
                     );
                 }
             }

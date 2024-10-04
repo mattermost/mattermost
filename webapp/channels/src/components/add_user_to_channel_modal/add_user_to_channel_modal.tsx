@@ -4,7 +4,7 @@
 import React from 'react';
 import type {ChangeEvent, FormEvent} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -13,6 +13,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFullName} from 'mattermost-redux/utils/user_utils';
 
+import Button from 'components/button';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
@@ -93,6 +94,11 @@ type State = {
     */
     submitError: string;
 }
+
+const messages = defineMessages({
+    cancel: {id: 'add_user_to_channel_modal.cancel', defaultMessage: 'Cancel'},
+    add: {id: 'add_user_to_channel_modal.add', defaultMessage: 'Add'},
+});
 
 export default class AddUserToChannelModal extends React.PureComponent<Props, State> {
     private suggestionProviders: SearchChannelWithPermissionsProvider[];
@@ -321,28 +327,18 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
-                        <button
-                            type='button'
-                            className='btn btn-tertiary'
+                        <Button
+                            emphasis='tertiary'
                             onClick={this.onHide}
-                        >
-                            <FormattedMessage
-                                id='add_user_to_channel_modal.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
-                        <button
-                            type='button'
-                            id='add-user-to-channel-modal__add-button'
-                            className='btn btn-primary'
+                            label={messages.cancel}
+                        />
+                        <Button
+                            testId='add-user-to-channel-modal__add-button'
+                            emphasis='primary'
                             onClick={this.handleSubmit}
                             disabled={shouldDisableAddButton}
-                        >
-                            <FormattedMessage
-                                id='add_user_to_channel_modal.add'
-                                defaultMessage='Add'
-                            />
-                        </button>
+                            label={messages.add}
+                        />
                     </Modal.Footer>
                 </form>
             </Modal>

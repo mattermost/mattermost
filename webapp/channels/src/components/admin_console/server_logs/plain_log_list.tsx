@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
+import Button from 'components/button';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
@@ -19,6 +19,11 @@ interface Props extends WrappedComponentProps {
 type State = {
     nextDisabled: boolean;
 };
+
+const messages = defineMessages({
+    next: {id: 'admin.logs.next', defaultMessage: 'Next'},
+    prev: {id: 'admin.logs.prev', defaultMessage: 'Previous'},
+});
 
 class PlainLogList extends React.PureComponent<Props, State> {
     private logPanel: React.RefObject<HTMLDivElement>;
@@ -71,37 +76,25 @@ class PlainLogList extends React.PureComponent<Props, State> {
 
         if (this.props.logs.length >= this.props.perPage) {
             nextButton = (
-                <button
-                    type='button'
-                    className='btn btn-tertiary filter-control filter-control__next pull-right'
+                <Button
+                    emphasis='tertiary'
                     onClick={this.nextPage}
                     disabled={this.state.nextDisabled}
-                >
-                    <FormattedMessage
-                        id='admin.logs.next'
-                        defaultMessage='Next'
-                    />
-                    <NextIcon additionalClassName='ml-2'/>
-                </button>
+                    trailingIcon='icon-chevron-right'
+                    label={messages.next}
+                    pull='right'
+                />
             );
         }
 
         if (this.props.page > 0) {
             previousButton = (
-                <button
-                    type='button'
-                    className='btn btn-tertiary filter-control filter-control__prev'
+                <Button
+                    emphasis='tertiary'
                     onClick={this.previousPage}
-                >
-                    <i
-                        className='fa fa-angle-left'
-                        title={this.props.intl.formatMessage({id: 'generic_icons.previous', defaultMessage: 'Previous Icon'})}
-                    />
-                    <FormattedMessage
-                        id='admin.logs.prev'
-                        defaultMessage='Previous'
-                    />
-                </button>
+                    leadingIcon='icon-chevron-left'
+                    label={messages.prev}
+                />
             );
         }
 

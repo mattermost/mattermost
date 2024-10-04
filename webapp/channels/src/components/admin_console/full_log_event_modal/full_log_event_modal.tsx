@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button, Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {Modal} from 'react-bootstrap';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {LogObject} from '@mattermost/types/admin';
+
+import Button from 'components/button';
 
 type Props = {
     log: LogObject | null;
@@ -16,6 +18,11 @@ type Props = {
 type State = {
     copySuccess: boolean;
 }
+
+const messages = defineMessages({
+    cancel: {id: 'admin.manage_roles.cancel', defaultMessage: 'Cancel'},
+    copyLog: {id: 'admin.server_logs.CopyLog', defaultMessage: 'Copy log'},
+});
 
 export default class FullLogEventModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -84,28 +91,22 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                             defaultMessage='Data copied'
                         />
                     ) : (
-                        <Button onClick={this.copyLog}>
-                            <FormattedMessage
-                                id='admin.server_logs.CopyLog'
-                                defaultMessage='Copy log'
-                            />
-                        </Button>
+                        <Button
+                            emphasis='link'
+                            onClick={this.copyLog}
+                            label={messages.copyLog}
+                        />
                     )}
                 </Modal.Header>
                 <Modal.Body>
                     {this.renderContents()}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={this.props.onModalDismissed}
-                    >
-                        <FormattedMessage
-                            id='admin.manage_roles.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </button>
+                        label={messages.cancel}
+                    />
                 </Modal.Footer>
             </Modal>
         );
