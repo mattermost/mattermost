@@ -88,12 +88,12 @@ export default function AddToChannels(props: Props) {
             <span className='InviteView__sectionTitleParenthetical'>
                 {(props.channelToInvite && props.inviteType === InviteType.MEMBER) ? (
                     <FormattedMessage
-                        id='invite_modal.add_channels_title_c'
+                        id='invite_modal.add_channels_title_member'
                         defaultMessage='<b>(Optional)</b>'
                     />
                 ) : (
                     <FormattedMessage
-                        id='invite_modal.add_channels_title_b'
+                        id='invite_modal.add_channels_title_nonmember'
                         defaultMessage='<b>(required)</b>'
                     />
                 )}

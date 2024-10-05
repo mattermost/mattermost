@@ -3996,6 +3996,8 @@
   "invite_modal.add_channels_title_a": "Add to channels",
   "invite_modal.add_channels_title_b": "<b>(required)</b>",
   "invite_modal.add_channels_title_c": "<b>(Optional)</b>",
+  "invite_modal.add_channels_title_nonmember": "<b>(required)</b>",
+  "invite_modal.add_channels_title_member": "<b>(Optional)</b>",
   "invite_modal.add_invites": "Enter a name or email address",
   "invite_modal.as": "Invite as",
   "invite_modal.choose_guest_a": "Guest",
