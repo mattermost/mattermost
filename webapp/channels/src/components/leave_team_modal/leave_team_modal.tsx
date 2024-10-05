@@ -2,17 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import { Modal } from 'react-bootstrap';
+import { FormattedMessage } from 'react-intl';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from '@mattermost/types/users';
 
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
+import { isKeyPressed } from 'utils/keyboard';
 
 type Props = {
     currentUser: UserProfile;
@@ -83,66 +82,70 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
         if (isGuest) {
             if (numOfPublicChannels !== 0 && numOfPrivateChannels !== 0) {
                 modalMessage = (
-                    <FormattedMarkdownMessage
-                        id='leave_team_modal_guest.desc'
-                        defaultMessage="** You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels}} and {num_of_private_channels} private { num_of_private_channels,plural,one {channel} other {channels}} on this team.** You won't be able to rejoin it without an invitation from another team member. Are you sure?"
+                    <FormattedMessage
+                        id='leave_team_modal_guest.desc_updated'
+                        defaultMessage="You will be removed from <strong>{num_of_public_channels}</strong> public {num_of_public_channels,plural,one {channel} other {channels}} and <strong>{num_of_private_channels}</strong> private {num_of_private_channels,plural,one {channel} other {channels}} on this team. You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
                             num_of_private_channels: numOfPrivateChannels,
+                            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                         }}
                     />
                 );
             } else if (numOfPublicChannels === 0) {
                 modalMessage = (
-                    <FormattedMarkdownMessage
-                        id='leave_team_modal_guest_only_private.desc'
-                        defaultMessage="** You will be removed from {num_of_private_channels} private { num_of_private_channels,plural,one {channel} other {channels}} on this team.** You won't be able to rejoin it without an invitation from another team member. Are you sure?"
+                    <FormattedMessage
+                        id='leave_team_modal_guest_only_private.desc_updated'
+                        defaultMessage="You will be removed from <strong>{num_of_private_channels}</strong> private {num_of_private_channels,plural,one {channel} other {channels}} on this team. You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
-                            num_of_public_channels: numOfPublicChannels,
                             num_of_private_channels: numOfPrivateChannels,
+                            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                         }}
                     />
                 );
             } else {
                 modalMessage = (
-                    <FormattedMarkdownMessage
-                        id='leave_team_modal_guest_only_public.desc'
-                        defaultMessage="** You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels}} on this team.** You won't be able to rejoin it without an invitation from another team member. Are you sure?"
+                    <FormattedMessage
+                        id='leave_team_modal_guest_only_public.desc_updated'
+                        defaultMessage="You will be removed from <strong>{num_of_public_channels}</strong> public {num_of_public_channels,plural,one {channel} other {channels}} on this team. You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
-                            num_of_private_channels: numOfPrivateChannels,
+                            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                         }}
-                    />);
+                    />
+                );
             }
         } else if (numOfPublicChannels !== 0 && numOfPrivateChannels !== 0) {
             modalMessage = (
-                <FormattedMarkdownMessage
-                    id='leave_team_modal.desc'
-                    defaultMessage="**You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels} } and {num_of_private_channels} private {num_of_private_channels,one {channel} other {channels}} on this team.** If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
-
+                <FormattedMessage
+                    id='leave_team_modal.desc_updated'
+                    defaultMessage="You will be removed from <strong>{num_of_public_channels}</strong> public {num_of_public_channels,plural,one {channel} other {channels}} and <strong>{num_of_private_channels}</strong> private {num_of_private_channels,plural,one {channel} other {channels}} on this team. If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
                     values={{
                         num_of_public_channels: numOfPublicChannels,
                         num_of_private_channels: numOfPrivateChannels,
+                        strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                     }}
-                />);
+                />
+            );
         } else if (numOfPublicChannels === 0) {
             modalMessage = (
-                <FormattedMarkdownMessage
-                    id='leave_team_modal_private.desc'
-                    defaultMessage="**You will be removed from {num_of_private_channels} private {num_of_private_channels,one {channel} other {channels}} on this team.** If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
+                <FormattedMessage
+                    id='leave_team_modal_private.desc_updated'
+                    defaultMessage="You will be removed from <strong>{num_of_private_channels}</strong> private {num_of_private_channels,plural,one {channel} other {channels}} on this team. If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
                     values={{
-                        num_of_public_channels: numOfPublicChannels,
                         num_of_private_channels: numOfPrivateChannels,
+                        strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                     }}
-                />);
+                />
+            );
         } else {
             modalMessage = (
-                <FormattedMarkdownMessage
-                    id='leave_team_modal_public.desc'
-                    defaultMessage='**You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels} } on this team.** Are you sure?'
+                <FormattedMessage
+                    id='leave_team_modal_public.desc_updated'
+                    defaultMessage="You will be removed from <strong>{num_of_public_channels}</strong> public {num_of_public_channels,plural,one {channel} other {channels}} on this team. Are you sure?"
                     values={{
                         num_of_public_channels: numOfPublicChannels,
-                        num_of_private_channels: numOfPrivateChannels,
+                        strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                     }}
                 />
             );
