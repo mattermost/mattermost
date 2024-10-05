@@ -84,7 +84,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		if err := c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
-			c.Err = model.NewAppError("SendIPFiltersChangedEmail", "api.context.ip_filtering.send_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Logger.Warn("Failed to send IP filters changed email", mlog.Err(err))
 		}
 	}()
 
