@@ -46,7 +46,10 @@ func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/xml")
 	w.Header().Set("Content-Disposition", "attachment; filename=\"metadata.xml\"")
-	w.Write([]byte(metadata))
+	if _, err := w.Write([]byte(metadata)); err != nil {
+		c.Err = model.NewAppError("getSamlMetadata", "api.admin.saml.get_metadata.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
@@ -82,7 +85,13 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", audit.Fail)
-	defer c.LogAuditRec(auditRec)
+	defer func() {
+		if c.Err == nil {
+			auditRec.Success()
+		}
+		c.LogAuditRec(auditRec)
+	}()
+
 	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
@@ -106,7 +115,13 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", audit.Fail)
-	defer c.LogAuditRec(auditRec)
+	defer func() {
+		if c.Err == nil {
+			auditRec.Success()
+		}
+		c.LogAuditRec(auditRec)
+	}()
+
 	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
@@ -135,7 +150,13 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", audit.Fail)
-	defer c.LogAuditRec(auditRec)
+	defer func() {
+		if c.Err == nil {
+			auditRec.Success()
+		}
+		c.LogAuditRec(auditRec)
+	}()
+
 	auditRec.AddMeta("type", d)
 
 	if d == "application/x-pem-file" {
@@ -177,7 +198,12 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	auditRec := c.MakeAuditRecord("removeSamlPublicCertificate", audit.Fail)
-	defer c.LogAuditRec(auditRec)
+	defer func() {
+		if c.Err == nil {
+			auditRec.Success()
+		}
+		c.LogAuditRec(auditRec)
+	}()
 
 	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
 		c.Err = err
@@ -195,7 +221,12 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	auditRec := c.MakeAuditRecord("removeSamlPrivateCertificate", audit.Fail)
-	defer c.LogAuditRec(auditRec)
+	defer func() {
+		if c.Err == nil {
+			auditRec.Success()
+		}
+		c.LogAuditRec(auditRec)
+	}()
 
 	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
 		c.Err = err
@@ -213,7 +244,12 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	auditRec := c.MakeAuditRecord("removeSamlIdpCertificate", audit.Fail)
-	defer c.LogAuditRec(auditRec)
+	defer func() {
+		if c.Err == nil {
+			auditRec.Success()
+		}
+		c.LogAuditRec(auditRec)
+	}()
 
 	if err := c.App.RemoveSamlIdpCertificate(); err != nil {
 		c.Err = err
