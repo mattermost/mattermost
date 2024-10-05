@@ -8,7 +8,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
@@ -88,14 +87,14 @@ export default function AddToChannels(props: Props) {
             {' '}
             <span className='InviteView__sectionTitleParenthetical'>
                 {(props.channelToInvite && props.inviteType === InviteType.MEMBER) ? (
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='invite_modal.add_channels_title_c'
-                        defaultMessage='**(Optional)**'
+                        defaultMessage='<b>(Optional)</b>'
                     />
                 ) : (
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='invite_modal.add_channels_title_b'
-                        defaultMessage='**(required)**'
+                        defaultMessage='<b>(required)</b>'
                     />
                 )}
             </span>
