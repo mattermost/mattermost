@@ -192,8 +192,8 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
             </div>
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        const buttonSubmitText = localizeMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+        const buttonSubmitLoadingText = localizeMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
         let addError = null;
         if (this.state.addError) {
@@ -259,7 +259,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loading}
-                        placeholderText={localizeMessage('multiselect.placeholder', 'Search and add members')}
+                        placeholderText={localizeMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
                     />
                 </Modal.Body>
             </Modal>

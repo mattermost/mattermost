@@ -82,12 +82,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			// Note: keep https://github.com/mattermost/mattermost/pull/27830 in mind.
-			var userMap map[string]*model.User
-			toPass = append(toPass, &userMap)
-		}
+		toPass := allocateCacheTargets[model.UserMap](len(keys))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.profilesInChannelCache, keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -96,7 +91,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 				}
 				continue
 			}
-			gotMap := *(toPass[i].(*map[string]*model.User))
+			gotMap := *(toPass[i].(*model.UserMap))
 			if gotMap == nil {
 				s.rootStore.logger.Warn("Found nil userMap in InvalidateProfilesInChannelCacheByUser. This is not expected")
 				continue
@@ -147,7 +142,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
-		var cachedMap map[string]*model.User
+		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
 			return cachedMap, nil
 		}
@@ -178,11 +173,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	remainingUserIds := make([]string, 0)
 
 	fromMaster := false
-	toPass := make([]any, 0, len(userIds))
-	for i := 0; i < len(userIds); i++ {
-		var user *model.User
-		toPass = append(toPass, &user)
-	}
+	toPass := allocateCacheTargets[*model.User](len(userIds))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, userIds, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -264,12 +255,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	uniqIDs := dedup(ids)
 
 	fromMaster := false
-	toPass := make([]any, 0, len(uniqIDs))
-	for i := 0; i < len(uniqIDs); i++ {
-		var user *model.User
-		toPass = append(toPass, &user)
-	}
-
+	toPass := allocateCacheTargets[*model.User](len(uniqIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, uniqIDs, toPass)
 	for i, err := range errs {
 		if err != nil {

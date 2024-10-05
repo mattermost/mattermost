@@ -365,7 +365,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 }
             } else {
                 // display a progress indicator when the preview for an image is still loading
-                const loading = Utils.localizeMessage('view_image.loading', 'Loading');
+                const loading = Utils.localizeMessage({id: 'view_image.loading', defaultMessage: 'Loading'});
                 const progress = Math.floor(this.state.progress[this.state.imageIndex]);
 
                 content = (

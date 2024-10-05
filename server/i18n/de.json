@@ -7012,7 +7012,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Einladung angenommen | Online | Letzter Ping |"
+    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Standard Team | Einladung angenommen | Online | Letzter Ping | Gelöscht |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10120,5 +10120,57 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "Der Benutzer ist kein OAuth- oder SAML-Benutzer."
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Es konnte nicht festgestellt werden, ob der Kanal mit der Gegenstelle geteilt wird"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Kanalmitglieder für den direkten Kanal konnten nicht ermittelt werden"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Es gibt keine Mitglieder für den direkten Kanal"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Es ist nicht möglich, Mitglieder der Unterhaltung für den Export zu erhalten."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Ungültige Post-ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Ungültige Benutzer-ID."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Gemeinsame Channel-Remotes konnten nicht abgerufen werden"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Konnte die Gegenseite nicht zum Kanal einladen"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Die Mitgliedschaft in der Unterhaltung kann für den Beitrag nicht gespeichert werden."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Die Größe des hochgeladenen Plugins überschreitet das Limit. Dieses Limit kann in der Systemkonsole über Dateispeicher > Maximale Dateigröße geändert werden"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Datei kann nicht hochgeladen werden. Der Upload-Kanal wird nicht mit der Gegenstelle geteilt."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Es ist nicht möglich, die zusätzlichen Eigenschaften der Sitzung zu aktualisieren."
   }
 ]

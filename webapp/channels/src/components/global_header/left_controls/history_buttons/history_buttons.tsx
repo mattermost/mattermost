@@ -83,7 +83,7 @@ const HistoryButtons = (): JSX.Element => {
                     compact={true}
                     inverted={true}
                     disabled={!canGoBack}
-                    aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goBackLabel', 'Back')}
+                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
                 />
             </WithTooltip>
             <WithTooltip
@@ -98,7 +98,7 @@ const HistoryButtons = (): JSX.Element => {
                     compact={true}
                     inverted={true}
                     disabled={!canGoForward}
-                    aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goForwardLabel', 'Forward')}
+                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 />
             </WithTooltip>
         </HistoryButtonsContainer>

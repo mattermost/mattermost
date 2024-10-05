@@ -1027,15 +1027,29 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
-		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+		isWebhook := post.GetProp("from_webhook") == "true"
 
-		_, ok := profileMap[otherUserId]
-		if ok {
-			mentions.addMention(otherUserId, DMMention)
+		// A bot can post in a DM where it doesn't belong to.
+		// Therefore, we cannot "guess" who is the other user,
+		// so we add the mention to any user that is not the
+		// poster unless the post comes from a webhook.
+		user1, user2 := channel.GetBothUsersForDM()
+		if (post.UserId != user1) || isWebhook {
+			if _, ok := profileMap[user1]; ok {
+				mentions.addMention(user1, DMMention)
+			} else {
+				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user1), mlog.String("channelId", channel.Id))
+			}
 		}
 
-		if post.GetProp("from_webhook") == "true" {
-			mentions.addMention(post.UserId, DMMention)
+		if user2 != "" {
+			if (post.UserId != user2) || isWebhook {
+				if _, ok := profileMap[user2]; ok {
+					mentions.addMention(user2, DMMention)
+				} else {
+					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user2), mlog.String("channelId", channel.Id))
+				}
+			}
 		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
@@ -1046,16 +1060,23 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		// Add a GM mention to all members of a GM channel
 		if channel.Type == model.ChannelTypeGroup {
 			for id := range channelMemberNotifyPropsMap {
-				mentions.addMention(id, GMMention)
+				if _, ok := profileMap[id]; ok {
+					mentions.addMention(id, GMMention)
+				} else {
+					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("userId", id), mlog.String("channelId", channel.Id))
+				}
 			}
 		}
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.PostTypeAddToChannel {
-			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
-			if ok {
-				mentions.addMention(addedUserId, KeywordMention)
+			if addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string); ok {
+				if _, ok := profileMap[addedUserId]; ok {
+					mentions.addMention(addedUserId, KeywordMention)
+				} else {
+					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("userId", addedUserId), mlog.String("channelId", channel.Id))
+				}
 			}
 		}
 
@@ -1064,6 +1085,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile == nil {
+					// Not logging missing profile since this is relatively expected
 					continue
 				}
 
@@ -1409,6 +1431,12 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 		}
 		if attachment.Text != "" {
 			ret = append(ret, attachment.Text)
+		}
+
+		for _, field := range attachment.Fields {
+			if valueString, ok := field.Value.(string); ok && valueString != "" {
+				ret = append(ret, valueString)
+			}
 		}
 	}
 	return ret
