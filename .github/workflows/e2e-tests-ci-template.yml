@@ -218,7 +218,7 @@ jobs:
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
-          echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json"
+          echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
     runs-on: ubuntu-latest
@@ -434,7 +434,7 @@ jobs:
       - name: ci/report-calculate-results
         id: calculate-results
         run: |
-          AD_CYCLE_FILE: "${TEST}/results/ad_cycle.json"
+          AD_CYCLE_FILE="${TEST}/results/ad_cycle.json"
           if [ -f "$AD_CYCLE_FILE" ]; then
             # Prefer using the Automation Dashboard's results to calculate failures
             export PASSED=$(jq -r .pass "$AD_CYCLE_FILE")
