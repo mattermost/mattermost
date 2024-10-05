@@ -900,6 +900,7 @@ export type PluginSettings = {
 export type DisplaySettings = {
     CustomURLSchemes: string[];
     MaxMarkdownNodes: number;
+    SuggestionDebounceDelay: number;
 };
 
 export type GuestAccountsSettings = {
