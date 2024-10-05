@@ -980,6 +980,8 @@
   "admin.experimental.samlSettingsLoginButtonColor.title": "SAML Login Button Color:",
   "admin.experimental.samlSettingsLoginButtonTextColor.desc": "Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
   "admin.experimental.samlSettingsLoginButtonTextColor.title": "SAML login Button Text Color:",
+  "admin.experimental.suggestionDebounceDelay.desc": "The number of milliseconds to wait after a user has stopped typing before showing autocomplete options or searching for suggestions. Affects components such as the message textbox, the Channel Members list and the Browse Channels modal.",
+  "admin.experimental.suggestionDebounceDelay.title": "Suggestion Debounce Delay:",
   "admin.experimental.threadAutoFollow.desc": "This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.",
   "admin.experimental.threadAutoFollow.title": "Automatically Follow Threads",
   "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.desc": "The number of milliseconds to wait between emitting user typing websocket events.",
