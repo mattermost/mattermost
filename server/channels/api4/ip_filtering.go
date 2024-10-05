@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -81,9 +82,11 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	if err := go c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
-		c.Err = model.NewAppError("SendIPFiltersChangedEmail", "api.context.ip_filtering.send_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
+	go func() {
+		if err := c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId); err != nil {
+			c.Err = model.NewAppError("SendIPFiltersChangedEmail", "api.context.ip_filtering.send_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}()
 
 	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
