@@ -432,7 +432,8 @@ func TestPatchPolicy(t *testing.T) {
 	})
 
 	t.Run("PatchPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
@@ -509,7 +510,8 @@ func TestDeletePolicy(t *testing.T) {
 	})
 
 	t.Run("DeletePolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		resp, err := th.Client.DeleteDataRetentionPolicy(context.Background(), validPolicyId)
 		require.Error(t, err)
@@ -599,7 +601,8 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 	})
 
 	t.Run("GetTeamPoliciesForUser_Unauthorized", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		policies, resp, err := th.Client.GetTeamPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.Error(t, err)
@@ -686,7 +689,8 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 	})
 
 	t.Run("GetChannelPoliciesForUser_Unauthorized", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		policies, resp, err := th.Client.GetChannelPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.Error(t, err)
@@ -777,7 +781,8 @@ func TestGetTeamsForPolicy(t *testing.T) {
 	})
 
 	t.Run("GetTeamsForPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		teams, resp, err := th.Client.GetTeamsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.Error(t, err)
@@ -848,7 +853,8 @@ func TestAddTeamsToPolicy(t *testing.T) {
 	})
 
 	t.Run("AddTeamsToPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		resp, err := th.Client.AddTeamsToRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.Error(t, err)
@@ -919,7 +925,8 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 	})
 
 	t.Run("RemoveTeamsFromPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		resp, err := th.Client.RemoveTeamsFromRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.Error(t, err)
@@ -1019,7 +1026,8 @@ func TestGetChannelsForPolicy(t *testing.T) {
 	})
 
 	t.Run("GetChannelsForPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		channels, resp, err := th.Client.GetChannelsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.Error(t, err)
@@ -1141,7 +1149,8 @@ func TestAddChannelsToPolicy(t *testing.T) {
 	})
 
 	t.Run("AddChannelsToPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		resp, err := th.Client.AddChannelsToRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.Error(t, err)
@@ -1244,7 +1253,8 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 	})
 
 	t.Run("RemoveChannelsFromPolicy_NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		resp, err := th.Client.RemoveChannelsFromRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.Error(t, err)
