@@ -433,6 +433,8 @@ jobs:
           overwrite: true
       - name: ci/report-calculate-results
         id: calculate-results
+        env:
+          TEST: "${{ inputs.TEST }}"
         run: |
           AD_CYCLE_FILE="${TEST}/results/ad_cycle.json"
           if [ -f "$AD_CYCLE_FILE" ]; then
@@ -442,6 +444,7 @@ jobs:
             export FAILED_EXPECTED=$(jq -r ".known + .flaky + .skipped" "$AD_CYCLE_FILE")
           else
             # Otherwise, utilize summary.json to calculate the failures
+            # NB: in this job, this file only makes sense if a single worker is used, as with Playwright
             export PASSED=$(jq '.passed' "${TEST}/results/summary.json")
             export FAILED=$(jq '.failed' "${TEST}/results/summary.json")
             export FAILED_EXPECTED=$(jq '.failed_expected' "${TEST}/results/summary.json")
@@ -475,7 +478,7 @@ jobs:
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: |
-            Completed with pass rate: ${{ needs.report.outputs.pass_rate }} (excluding ${{ needs.report.outputs.failed_expected }} unrelated failures)
+            Completed with pass rate: ${{ needs.report.outputs.pass_rate || 'unknown' }} (excluding ${{ needs.report.outputs.failed_expected || '0' }} unrelated failures)
           status: failure
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
@@ -495,6 +498,6 @@ jobs:
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: |
-            Completed with pass rate: ${{ needs.report.outputs.pass_rate }} (excluding ${{ needs.report.outputs.failed_expected }} unrelated failures)
+            Completed with pass rate: ${{ needs.report.outputs.pass_rate || 'unkown'}} (excluding ${{ needs.report.outputs.failed_expected || '0' }} unrelated failures)
           status: success
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
