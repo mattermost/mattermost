@@ -103,7 +103,6 @@ issues:
         channels/api4/role_test.go|\
         channels/api4/saml.go|\
         channels/api4/scheme.go|\
-        channels/api4/scheme_test.go|\
         channels/api4/shared_channel.go|\
         channels/api4/shared_channel_test.go|\
         channels/api4/status.go|\
