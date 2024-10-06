@@ -57,7 +57,7 @@ jobs:
       SERVER: "${{ steps.generate.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER_CYPRESS: "${{ steps.generate.outputs.TEST_FILTER_CYPRESS }}"
-      TEST_FILTER_PLAYWRIGHT: "tests/ --chrome" # Note: Run on chrome but eventually will enable to all projects which include firefox and ipad.
+      TEST_FILTER_PLAYWRIGHT: "tests/ --project=chrome" # Note: Run on chrome but eventually will enable to all projects which include firefox and ipad.
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
@@ -200,9 +200,9 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           You can check its progress by either:
-          - Looking at the corresponding commit status, which will be available in a few moments: \`${STATUS_CHECK_CONTEXT}\`.
+          - Looking at the corresponding commit statuses: \`${STATUS_CHECK_CONTEXT}\` and \`${STATUS_CHECK_CONTEXT}-playwright\`.
           - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
-          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL).
+          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL). (Cypress only)
           EOF
           fi
 

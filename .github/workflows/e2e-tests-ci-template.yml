@@ -92,7 +92,7 @@ on:
       failed_expected:
         value: "${{ jobs.report.outputs.failed_expected }}"
       pass_rate:
-        value: "${{ jobs.report.outputs.pass_rate }}%"
+        value: "${{ jobs.report.outputs.pass_rate }}"
 
 jobs:
   update-initial-status:
@@ -454,7 +454,7 @@ jobs:
           echo "passed=${PASSED:?}" >> $GITHUB_OUTPUT
           echo "failed=${FAILED:?}" >> $GITHUB_OUTPUT
           echo "failed_expected=${FAILED_EXPECTED:?}" >> $GITHUB_OUTPUT
-          echo "pass_rate=${PASS_RATE:?}" >> $GITHUB_OUTPUT
+          echo "pass_rate=${PASS_RATE:?}%" >> $GITHUB_OUTPUT
           echo "E2E Test complete with pass rate: $PASS_RATE (excluding ${FAILURES_EXPECTED} unrelated failures)"
       - name: ci/e2e-test-assert-results
         if: "${{ inputs.testcase_failure_fatal }}"
