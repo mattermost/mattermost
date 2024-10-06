@@ -41,7 +41,10 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
-	w.Write([]byte("{}"))
+	if _, err := w.Write([]byte("{}")); err != nil {
+		mlog.Error("Failed to write response", mlog.Err(err))
+		return
+	}
 	w.WriteHeader(200)
 }
 
