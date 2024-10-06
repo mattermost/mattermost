@@ -728,13 +728,16 @@ func TestUploadFiles(t *testing.T) {
 
 					if !tc.skipPayloadValidation {
 						compare := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
-							data, _, err := get(context.Background(), ri.Id)
+							var data []byte
+							data, _, err = get(context.Background(), ri.Id)
 							require.NoError(t, err)
 
-							expected, err := os.ReadFile(filepath.Join(testDir, name))
+							var expected []byte
+							expected, err = os.ReadFile(filepath.Join(testDir, name))
 							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
-								tf, err := os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
+								var tf *os.File
+								tf, err = os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.NoError(t, err)
 								defer tf.Close()
 								_, err = io.Copy(tf, bytes.NewReader(data))
