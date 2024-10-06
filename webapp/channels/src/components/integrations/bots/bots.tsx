@@ -59,7 +59,7 @@ type Props = {
         /**
          * Ensure we have bot accounts
          */
-        loadBots: (page?: number, perPage?: number) => Promise<{data: BotType[]; error?: Error}>;
+        loadBots: (page?: number, perPage?: number) => Promise<ActionResult<BotType[]>>;
 
         /**
         * Load access tokens for bot accounts
@@ -69,14 +69,11 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<{
-            data: {token: string; description: string; id: string; is_active: boolean} | null;
-            error?: Error;
-        }>;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
 
-        revokeUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        enableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        disableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
+        revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
 
         /**
         * Load owner of bot account
@@ -121,7 +118,7 @@ export default class Bots extends React.PureComponent<Props, State> {
     public componentDidMount(): void {
         this.props.actions.loadBots(
             Constants.Integrations.START_PAGE_NUM,
-            parseInt(Constants.Integrations.PAGE_SIZE, 10),
+            Constants.Integrations.PAGE_SIZE,
         ).then(
             (result) => {
                 if (result.data) {
@@ -195,12 +192,12 @@ export default class Bots extends React.PureComponent<Props, State> {
         );
     };
 
-    bots = (filter?: string): Array<boolean | JSX.Element> => {
+    bots = (filter?: string): [JSX.Element[], boolean] => {
         const bots = Object.values(this.props.bots).sort((a, b) => a.username.localeCompare(b.username));
         const match = (bot: BotType) => matchesFilter(bot, filter, this.props.owners[bot.user_id]);
         const enabledBots = bots.filter((bot) => bot.delete_at === 0).filter(match).map(this.botToJSX);
         const disabledBots = bots.filter((bot) => bot.delete_at > 0).filter(match).map(this.botToJSX);
-        const sections = (
+        const sections = [(
             <div key='sections'>
                 <this.EnabledSection
                     enabledBots={enabledBots}
@@ -210,7 +207,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                     disabledBots={disabledBots}
                 />
             </div>
-        );
+        )];
 
         return [sections, enabledBots.length > 0 || disabledBots.length > 0];
     };
@@ -272,7 +269,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                         />
                     </React.Fragment>
                 }
-                searchPlaceholder={Utils.localizeMessage('bots.manage.search', 'Search Bot Accounts')}
+                searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
             >
                 {this.bots}

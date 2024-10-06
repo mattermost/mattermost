@@ -114,7 +114,6 @@
   "channel_header.setHeader": "Группын товч тайлбар/уриаг өөрчлөх",
   "channel_header.viewMembers": "Гишүүдийн жагсаалт",
   "channel_notifications.preferences": "Дохионы тохируулга",
-  "edit_channel_header.editHeader": "Группын товч тайлбар/уриаг өөрчлөх",
   "edit_channel_header_modal.description": "Группын нэрний ард харагдах богино хэмжээний текстэн мэдээллийг өөрчлөх",
   "edit_channel_header_modal.title": "{channel} группын товч тайлбар/уриаг өөрчлөх",
   "emoji_list.image": "Зураг",

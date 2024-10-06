@@ -7,6 +7,8 @@ import CloseIcon from 'components/widgets/icons/close_icon';
 
 import './hint_toast.scss';
 
+export const HINT_TOAST_TESTID = 'hint-toast';
+
 type Props = {
     children: React.ReactNode;
     onDismiss: () => void;
@@ -20,23 +22,24 @@ export const HintToast: React.FC<Props> = ({children, onDismiss}: Props) => {
     };
 
     return (
-        <div className='hint-toast__wrapper'>
-            <div className='hint-toast'>
-                <div
-                    className='hint-toast__message'
-                >
-                    {children}
-                </div>
-                <div
-                    className='hint-toast__dismiss'
-                    onClick={handleDismiss}
-                    data-testid='dismissHintToast'
-                >
-                    <CloseIcon
-                        className='close-btn'
-                        id='dismissHintToast'
-                    />
-                </div>
+        <div
+            data-testid={HINT_TOAST_TESTID}
+            className='hint-toast'
+        >
+            <div
+                className='hint-toast__message'
+            >
+                {children}
+            </div>
+            <div
+                className='hint-toast__dismiss'
+                onClick={handleDismiss}
+                data-testid='dismissHintToast'
+            >
+                <CloseIcon
+                    className='close-btn'
+                    id='dismissHintToast'
+                />
             </div>
         </div>
     );

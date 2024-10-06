@@ -16,10 +16,10 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -42,50 +42,50 @@ const (
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
-	TrackConfigService           = "config_service"
-	TrackConfigTeam              = "config_team"
-	TrackConfigClientReq         = "config_client_requirements"
-	TrackConfigSQL               = "config_sql"
-	TrackConfigLog               = "config_log"
-	TrackConfigAudit             = "config_audit"
-	TrackConfigNotificationLog   = "config_notifications_log"
-	TrackConfigFile              = "config_file"
-	TrackConfigRate              = "config_rate"
-	TrackConfigEmail             = "config_email"
-	TrackConfigPrivacy           = "config_privacy"
-	TrackConfigTheme             = "config_theme"
-	TrackConfigOAuth             = "config_oauth"
-	TrackConfigLDAP              = "config_ldap"
-	TrackConfigCompliance        = "config_compliance"
-	TrackConfigLocalization      = "config_localization"
-	TrackConfigSAML              = "config_saml"
-	TrackConfigPassword          = "config_password"
-	TrackConfigCluster           = "config_cluster"
-	TrackConfigMetrics           = "config_metrics"
-	TrackConfigSupport           = "config_support"
-	TrackConfigNativeApp         = "config_nativeapp"
-	TrackConfigExperimental      = "config_experimental"
-	TrackConfigAnalytics         = "config_analytics"
-	TrackConfigAnnouncement      = "config_announcement"
-	TrackConfigElasticsearch     = "config_elasticsearch"
-	TrackConfigPlugin            = "config_plugin"
-	TrackConfigDataRetention     = "config_data_retention"
-	TrackConfigMessageExport     = "config_message_export"
-	TrackConfigDisplay           = "config_display"
-	TrackConfigGuestAccounts     = "config_guest_accounts"
-	TrackConfigImageProxy        = "config_image_proxy"
-	TrackConfigBleve             = "config_bleve"
-	TrackConfigExport            = "config_export"
-	TrackFeatureFlags            = "config_feature_flags"
-	TrackConfigProducts          = "products"
-	TrackPermissionsGeneral      = "permissions_general"
-	TrackPermissionsSystemScheme = "permissions_system_scheme"
-	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
-	TrackPermissionsSystemRoles  = "permissions_system_roles"
-	TrackElasticsearch           = "elasticsearch"
-	TrackGroups                  = "groups"
-	TrackChannelModeration       = "channel_moderation"
-	TrackWarnMetrics             = "warn_metrics"
+	TrackConfigService             = "config_service"
+	TrackConfigTeam                = "config_team"
+	TrackConfigClientReq           = "config_client_requirements"
+	TrackConfigSQL                 = "config_sql"
+	TrackConfigLog                 = "config_log"
+	TrackConfigAudit               = "config_audit"
+	TrackConfigNotificationLog     = "config_notifications_log"
+	TrackConfigFile                = "config_file"
+	TrackConfigRate                = "config_rate"
+	TrackConfigEmail               = "config_email"
+	TrackConfigPrivacy             = "config_privacy"
+	TrackConfigTheme               = "config_theme"
+	TrackConfigOAuth               = "config_oauth"
+	TrackConfigLDAP                = "config_ldap"
+	TrackConfigCompliance          = "config_compliance"
+	TrackConfigLocalization        = "config_localization"
+	TrackConfigSAML                = "config_saml"
+	TrackConfigPassword            = "config_password"
+	TrackConfigCluster             = "config_cluster"
+	TrackConfigMetrics             = "config_metrics"
+	TrackConfigSupport             = "config_support"
+	TrackConfigNativeApp           = "config_nativeapp"
+	TrackConfigExperimental        = "config_experimental"
+	TrackConfigAnalytics           = "config_analytics"
+	TrackConfigAnnouncement        = "config_announcement"
+	TrackConfigElasticsearch       = "config_elasticsearch"
+	TrackConfigPlugin              = "config_plugin"
+	TrackConfigDataRetention       = "config_data_retention"
+	TrackConfigMessageExport       = "config_message_export"
+	TrackConfigDisplay             = "config_display"
+	TrackConfigGuestAccounts       = "config_guest_accounts"
+	TrackConfigImageProxy          = "config_image_proxy"
+	TrackConfigBleve               = "config_bleve"
+	TrackConfigExport              = "config_export"
+	TrackConfigWrangler            = "config_wrangler"
+	TrackConfigConnectedWorkspaces = "config_connected_workspaces"
+	TrackFeatureFlags              = "config_feature_flags"
+	TrackPermissionsGeneral        = "permissions_general"
+	TrackPermissionsSystemScheme   = "permissions_system_scheme"
+	TrackPermissionsTeamSchemes    = "permissions_team_schemes"
+	TrackPermissionsSystemRoles    = "permissions_system_roles"
+	TrackElasticsearch             = "elasticsearch"
+	TrackGroups                    = "groups"
+	TrackChannelModeration         = "channel_moderation"
 
 	TrackActivity = "activity"
 	TrackLicense  = "license"
@@ -196,7 +196,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackElasticsearch()
 		ts.trackGroups()
 		ts.trackChannelModeration()
-		ts.trackWarnMetrics()
 	}
 }
 
@@ -280,17 +279,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	activeUsersDailyCountChan := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	activeUsersMonthlyCountChan := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -353,7 +352,7 @@ func (ts *TelemetryService) trackActivity() {
 
 	slashCommandsCount, _ = ts.dbStore.Command().AnalyticsCommandCount("")
 
-	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := ts.dbStore.Webhook().AnalyticsIncomingCount("", ""); err == nil {
 		incomingWebhooksCount = c
 	}
 
@@ -361,12 +360,12 @@ func (ts *TelemetryService) trackActivity() {
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.NErr == nil {
-		activeUsersDailyCount = r.Data.(int64)
+		activeUsersDailyCount = r.Data
 	}
 
 	var activeUsersMonthlyCount int64
 	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+		activeUsersMonthlyCount = r.Data
 	}
 
 	activity := map[string]any{
@@ -409,7 +408,9 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
+		"enable_outgoing_oauth_connections":                       cfg.ServiceSettings.EnableOutgoingOAuthConnections,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
+		"outgoing_integrations_requests_timeout":                  cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
@@ -430,6 +431,7 @@ func (ts *TelemetryService) trackConfig() {
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
 		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
+		"terminate_sessions_on_password_change":                   *cfg.ServiceSettings.TerminateSessionsOnPasswordChange,
 		"session_length_web_in_hours":                             *cfg.ServiceSettings.SessionLengthWebInHours,
 		"session_length_mobile_in_hours":                          *cfg.ServiceSettings.SessionLengthMobileInHours,
 		"session_length_sso_in_hours":                             *cfg.ServiceSettings.SessionLengthSSOInHours,
@@ -455,7 +457,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
-		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
@@ -490,8 +491,10 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
 		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
-		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
+		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
+		"maximum_url_length":                                      *cfg.ServiceSettings.MaximumURLLength,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -550,18 +553,16 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 		"advanced_logging_json":    len(cfg.LogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config":  cfg.LogSettings.AdvancedLoggingConfig != nil && *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigAudit, map[string]any{
-		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
-		"advanced_logging_json":   len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != nil && *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_json": len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
 	})
 
 	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
@@ -573,7 +574,6 @@ func (ts *TelemetryService) trackConfig() {
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
-		"advanced_logging_config": cfg.NotificationLogSettings.AdvancedLoggingConfig != nil && *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigPassword, map[string]any{
@@ -757,8 +757,9 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
-		"enable":             *cfg.MetricsSettings.Enable,
-		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
+		"enable":                *cfg.MetricsSettings.Enable,
+		"block_profile_rate":    *cfg.MetricsSettings.BlockProfileRate,
+		"enable_client_metrics": *cfg.MetricsSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{
@@ -773,12 +774,10 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
-		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
+		"youtube_referrer_policy":             *cfg.ExperimentalSettings.YoutubeReferrerPolicy,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
@@ -825,7 +824,9 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"message_retention_hours":       *cfg.DataRetentionSettings.MessageRetentionHours,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
+		"file_retention_hours":          *cfg.DataRetentionSettings.FileRetentionHours,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
 		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
@@ -849,7 +850,6 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
-		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
 		"isdefault_max_markdown_nodes": isDefault(*cfg.DisplaySettings.MaxMarkdownNodes, 0),
 	})
@@ -878,6 +878,23 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
+	})
+
+	ts.SendTelemetry(TrackConfigWrangler, map[string]any{
+		"permitted_wrangler_users":                       cfg.WranglerSettings.PermittedWranglerRoles,
+		"allowed_email_domain":                           cfg.WranglerSettings.AllowedEmailDomain,
+		"move_thread_max_count":                          cfg.WranglerSettings.MoveThreadMaxCount,
+		"move_thread_to_another_team_enable":             cfg.WranglerSettings.MoveThreadToAnotherTeamEnable,
+		"move_thread_from_private_channel_enable":        cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable,
+		"move_thread_from_direct_message_channel_enable": cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable,
+		"move_thread_from_group_message_channel_enable":  cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable,
+	})
+
+	ts.SendTelemetry(TrackConfigConnectedWorkspaces, map[string]any{
+		"enable_shared_channels":              *cfg.ConnectedWorkspacesSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
+		"max_posts_per_sync":                  *cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
 	})
 
 	// Convert feature flags to map[string]any for sending
@@ -1383,22 +1400,6 @@ func (ts *TelemetryService) Shutdown() error {
 	return nil
 }
 
-func (ts *TelemetryService) trackWarnMetrics() {
-	systemDataList, nErr := ts.dbStore.System().Get()
-	if nErr != nil {
-		return
-	}
-	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
-			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.SendTelemetry(TrackWarnMetrics, map[string]any{
-					key: value != "false",
-				})
-			}
-		}
-	}
-}
-
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 	pluginConfigData := map[string]any{
 		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, model.PluginIdNPS, "enablesurvey", true),
@@ -1441,15 +1442,12 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"skype4business",
 		"zoom",
 		"focalboard",
+		"com.mattermost.msteams-sync",
 	}
 
 	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
-
-		for _, id := range knownPluginIDs {
-			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
-		}
 	} else {
 		for _, p := range marketplacePlugins {
 			id := p.Manifest.Id
@@ -1458,26 +1456,31 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		}
 	}
 
+	for _, id := range knownPluginIDs {
+		pluginIdStr := fmt.Sprintf("enable_%s", id)
+		_, exists := pluginConfigData[pluginIdStr]
+		if !exists {
+			pluginConfigData[pluginIdStr] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	}
 	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			ts.log.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
-			// If marketplace request failed, use predefined list
-			if marketplacePlugins == nil {
-				for _, id := range knownPluginIDs {
-					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
-				}
-			} else {
-				for _, p := range marketplacePlugins {
-					id := p.Manifest.Id
-
-					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
+			for _, p := range marketplacePlugins {
+				id := p.Manifest.Id
+				pluginConfigData["version_"+id] = pluginVersion(plugins, id)
+			}
+			for _, id := range knownPluginIDs {
+				pluginVersionStr := fmt.Sprintf("version_%s", id)
+				_, exists := pluginConfigData[pluginVersionStr]
+				if !exists {
+					pluginConfigData[pluginVersionStr] = pluginVersion(plugins, id)
 				}
 			}
 		}
 	}
-
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 

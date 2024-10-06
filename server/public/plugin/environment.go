@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -53,7 +54,7 @@ type Environment struct {
 	logger                           *mlog.Logger
 	metrics                          metricsInterface
 	newAPIImpl                       apiImplCreatorFunc
-	dbDriver                         Driver
+	dbDriver                         AppDriver
 	pluginDir                        string
 	webappPluginDir                  string
 	prepackagedPlugins               []*PrepackagedPlugin
@@ -63,7 +64,7 @@ type Environment struct {
 
 func NewEnvironment(
 	newAPIImpl apiImplCreatorFunc,
-	dbDriver Driver,
+	dbDriver AppDriver,
 	pluginDir string,
 	webappPluginDir string,
 	logger *mlog.Logger,
@@ -196,6 +197,15 @@ func (env *Environment) setPluginState(id string, state int) {
 	}
 }
 
+// setPluginSupervisor records the supervisor for a registered plugin.
+func (env *Environment) setPluginSupervisor(id string, supervisor *supervisor) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.supervisor = supervisor
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) PublicFilesPath(id string) (string, error) {
@@ -254,6 +264,46 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	return nil, ErrNotFound
 }
 
+func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
+	if pluginInfo.Manifest.MinServerVersion == "" {
+		return nil
+	}
+
+	fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
+	if err != nil {
+		return fmt.Errorf("%v: %v", err.Error(), pluginInfo.Manifest.Id)
+	}
+	if !fulfilled {
+		return fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, pluginInfo.Manifest.Id)
+	}
+
+	return nil
+}
+
+func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*supervisor, *plugin.ClientConfig) error) error {
+	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
+	if err != nil {
+		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)
+	}
+
+	// We pre-emptively set the state to running to prevent re-entrancy issues.
+	// The plugin's OnActivate hook can in-turn call UpdateConfiguration
+	// which again calls this method. This method is guarded against multiple calls,
+	// but fails if it is called recursively.
+	//
+	// Therefore, setting the state to running prevents this from happening,
+	// and in case there is an error, the defer clause will set the proper state anyways.
+	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
+
+	if err := sup.Hooks().OnActivate(); err != nil {
+		sup.Shutdown()
+		return err
+	}
+	env.setPluginSupervisor(pluginInfo.Manifest.Id, sup)
+
+	return nil
+}
+
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	defer func() {
 		if reterr != nil {
@@ -296,20 +346,16 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		}
 	}()
 
-	if pluginInfo.Manifest.MinServerVersion != "" {
-		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
-		if err != nil {
-			return nil, false, fmt.Errorf("%v: %v", err.Error(), id)
-		}
-		if !fulfilled {
-			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
-		}
+	err = checkMinServerVersion(pluginInfo)
+	if err != nil {
+		return nil, false, err
 	}
 
 	componentActivated := false
 
 	if pluginInfo.Manifest.HasWebapp() {
-		updatedManifest, err := env.UnpackWebappBundle(id)
+		var updatedManifest *model.Manifest
+		updatedManifest, err = env.UnpackWebappBundle(id)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to generate webapp bundle: %v", id)
 		}
@@ -319,27 +365,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics)
+		err = env.startPluginServer(pluginInfo, WithExecutableFromManifest(pluginInfo))
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
-		}
-
-		// We pre-emptively set the state to running to prevent re-entrancy issues.
-		// The plugin's OnActivate hook can in-turn call UpdateConfiguration
-		// which again calls this method. This method is guarded against multiple calls,
-		// but fails if it is called recursively.
-		//
-		// Therefore, setting the state to running prevents this from happening,
-		// and in case there is an error, the defer clause will set the proper state anyways.
-		env.setPluginState(id, model.PluginStateRunning)
-
-		if err := sup.Hooks().OnActivate(); err != nil {
-			sup.Shutdown()
 			return nil, false, err
 		}
-		rp.supervisor = sup
-		env.registeredPlugins.Store(id, rp)
-
 		componentActivated = true
 	}
 
@@ -350,6 +379,64 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	mlog.Debug("Plugin activated", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
 
 	return pluginInfo.Manifest, true, nil
+}
+
+// Reattach allows the server to bind to an existing plugin instance launched elsewhere.
+func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) (reterr error) {
+	id := manifest.Id
+
+	defer func() {
+		if reterr != nil {
+			env.SetPluginError(id, reterr.Error())
+		} else {
+			env.SetPluginError(id, "")
+		}
+	}()
+
+	// Check if we are already active
+	if env.IsActive(id) {
+		return nil
+	}
+
+	pluginInfo := &model.BundleInfo{
+		Path:          "",
+		Manifest:      manifest,
+		ManifestPath:  "",
+		ManifestError: nil,
+	}
+
+	rp := newRegisteredPlugin(pluginInfo)
+	env.registeredPlugins.Store(id, rp)
+
+	defer func() {
+		if reterr == nil {
+			env.setPluginState(id, model.PluginStateRunning)
+		} else {
+			env.setPluginState(id, model.PluginStateFailedToStart)
+		}
+	}()
+
+	err := checkMinServerVersion(pluginInfo)
+	if err != nil {
+		return nil
+	}
+
+	if !pluginInfo.Manifest.HasServer() {
+		return errors.New("cannot reattach plugin without server component")
+	}
+
+	if pluginInfo.Manifest.HasWebapp() {
+		env.logger.Warn("Ignoring webapp for reattached plugin", mlog.String("plugin_id", id))
+	}
+
+	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
+	if err != nil {
+		return nil
+	}
+
+	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
+
+	return nil
 }
 
 func (env *Environment) RemovePlugin(id string) {

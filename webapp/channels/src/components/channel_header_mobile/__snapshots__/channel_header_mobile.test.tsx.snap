@@ -16,7 +16,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       <div
         className="navbar-brand"
       >
-        <Connect(injectIntl(MobileChannelHeaderDropdown)) />
+        <Connect(Component) />
       </div>
       <div
         className="spacer"
@@ -42,7 +42,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
           }
         }
       />
-      <Connect(ShowSearchButton) />
+      <Connect(Component) />
       <Connect(injectIntl(MobileChannelHeaderPlug))
         channel={
           Object {
@@ -87,7 +87,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       <div
         className="navbar-brand"
       >
-        <Connect(injectIntl(MobileChannelHeaderDropdown)) />
+        <Connect(Component) />
       </div>
       <div
         className="spacer"
@@ -113,7 +113,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
           }
         }
       />
-      <Connect(ShowSearchButton) />
+      <Connect(Component) />
       <Connect(injectIntl(MobileChannelHeaderPlug))
         channel={
           Object {
@@ -158,7 +158,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       <div
         className="navbar-brand"
       >
-        <Connect(injectIntl(MobileChannelHeaderDropdown)) />
+        <Connect(Component) />
       </div>
       <div
         className="spacer"
@@ -184,7 +184,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
           }
         }
       />
-      <Connect(ShowSearchButton) />
+      <Connect(Component) />
       <Connect(injectIntl(MobileChannelHeaderPlug))
         channel={
           Object {
@@ -229,7 +229,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       <div
         className="navbar-brand"
       >
-        <Connect(injectIntl(MobileChannelHeaderDropdown)) />
+        <Connect(Component) />
       </div>
       <div
         className="spacer"
@@ -255,7 +255,7 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
           }
         }
       />
-      <Connect(ShowSearchButton) />
+      <Connect(Component) />
       <Connect(injectIntl(MobileChannelHeaderPlug))
         channel={
           Object {

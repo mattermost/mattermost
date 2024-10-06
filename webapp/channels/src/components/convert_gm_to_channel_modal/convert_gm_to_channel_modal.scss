@@ -7,7 +7,7 @@
         transition: height 200ms ease;
 
         &.multi-team {
-            height: 340px;
+            min-height: 340px;
         }
 
         &.single-team {

@@ -26,7 +26,6 @@ import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
-import {localizeMessage} from 'utils/utils';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
@@ -92,7 +91,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const setTimeAndOptions = () => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
-        if (time.date() === currentTime.date()) {
+        if (currentTime.isSame(time, 'date')) {
             startTime = getRoundedTime(currentTime);
         }
         setTimeOptions(getTimeInIntervals(startTime));
@@ -172,7 +171,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                             id='customStatus__calendar-input'
                             readOnly={true}
                             className='dateTime__calendar-input'
-                            label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                            label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                             onClick={() => handlePopperOpenState(true)}
                             tabIndex={-1}
                             inputPrefix={inputIcon}

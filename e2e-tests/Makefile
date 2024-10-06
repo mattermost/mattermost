@@ -1,76 +1,54 @@
-# Load environment variables from .env file
--include .ci/.env
-export
-
 SHELL := /bin/bash
-TEST ?= cypress
-SERVER ?= self-hosted
-ENABLED_DOCKER_SERVICES ?= postgres inbucket
 
-define log_message
-    @echo "[$(shell date '+%Y-%m-%dT%H:%M:%S%Z')]$1"
-endef
-
-.PHONY: all run stop
+.PHONY: all run stop clean
 all: run
-run: info generate-docker-compose create-cloud-customer start-server-test prepare-server run-test delete-cloud-customer
-stop: stop-server stop-dashboard clean-env-placeholders
+run: generate-server start-server run-test
+stop: stop-server stop-dashboard clean
+report: collect-report-data publish-report
+clean:
+	rm -fv .ci/server.yml
+	rm -fv .ci/.env.{server,dashboard,cypress,playwright}
 
-.PHONY: info generate-docker-compose start-server-test run-test start-server prepare-server stop-server restart-server
-generate-docker-compose:
-	bash ./.ci/docker_compose_generator.sh
-start-server-test:
+.PHONY: generate-server start-server run-test stop-server restart-server
+generate-server:
+	bash ./.ci/server.generate.sh
+start-server: generate-server
 	bash ./.ci/server.start.sh
-prepare-server:
 	bash ./.ci/server.prepare.sh
 run-test:
-	@if [ "$(TEST)" = "cypress" ]; then bash ./.ci/server.run_cypress.sh; \
-    elif [ "$(TEST)" = "playwright" ]; then bash ./.ci/server.run_playwright.sh; \
-    else $(call log_message, "TEST: $(TEST)"); fi
-info:
-	$(call log_message, "TEST: $(TEST)")
-	$(call log_message, "SERVER: $(SERVER)")
-	$(call log_message, "ENABLED_DOCKER_SERVICES: $(ENABLED_DOCKER_SERVICES)")
-
-start-server: generate-docker-compose
-	TEST=server bash ./.ci/server.start.sh
-stop-server:
+	bash ./.ci/server.run_test.sh
+stop-server: generate-server
 	bash ./.ci/server.stop.sh
 restart-server: stop-server start-server
 
-.PHONY: start-dashboard stop-dashboard
+.PHONY: start-dashboard generate-test-cycle stop-dashboard
 start-dashboard:
 	bash ./.ci/dashboard.start.sh
+generate-test-cycle: requirecmd-node generate-server
+	bash ./.ci/dashboard.generate_test_cycle.sh
 stop-dashboard:
 	bash ./.ci/dashboard.stop.sh
 
-.PHONY: print-env-placeholders clean-env-placeholders
-print-env-placeholders:
-	find .ci -maxdepth 1 -name '.env.*'  | xargs --verbose -l cat
-clean-env-placeholders:
-	git reset .ci/.env.{cypress,server,server.cloud,dashboard}
-	git checkout .ci/.env.{cypress,server,server.cloud,dashboard}
+.PHONY: cloud-init cloud-teardown
+cloud-init: requirecmd-jq requirecmd-curl
+	bash ./.ci/server.cloud_init.sh
+cloud-teardown:
+	bash ./.ci/server.cloud_teardown.sh
 
-.PHONY: create-cloud-customer delete-cloud-customer
-create-cloud-customer:
-	@if [ "$(SERVER)" = "cloud" ]; then bash ./.ci/server.cloud_customer_create.sh; fi
-delete-cloud-customer:
-	@if [ "$(SERVER)" = "cloud" ]; then bash ./.ci/server.cloud_customer_delete.sh; fi
+.PHONY: collect-report-data publish-report
+collect-report-data:
+	bash ./.ci/report.collect.sh
+publish-report: requirecmd-node
+	bash ./.ci/report.publish.sh
 
-.PHONY: prettier fmt-ci
-# Install with https://webinstall.dev/shellcheck/
-HAVE_SHELLCHECK ?= $(shell command -v shellcheck >/dev/null 2>&1 && echo yes)
-
-# Install with https://webinstall.dev/shfmt/
-HAVE_SHFMT ?= $(shell command -v shfmt >/dev/null  2>&1 && echo yes)
-
-prettier:
-	# formats yaml files
+.PHONY: check-shell fmt-shell fmt-node fmt
+requirecmd-%:
+	@which "$(*)" >/dev/null || { echo "Error, missing required CLI tool: $(*). Aborting." >&2; exit 1; }
+check-shell: requirecmd-shellcheck
+	shellcheck ./.ci/*.sh ./.ci/.e2erc* # Install with https://webinstall.dev/shfmt/
+fmt-shell: requirecmd-shfmt
+	shfmt -w -s -i 2 ./.ci/*.sh         # Install with https://webinstall.dev/shellcheck/
+fmt-node: requirecmd-npx
+	# Formats yaml files
 	npx prettier ./.ci "!./.ci/dashboard" --write --cache
-fmt-ci: prettier
-ifeq ($(HAVE_SHFMT),yes)
-	shfmt -w -s -i 2 ./.ci/*.sh
-endif
-ifeq ($(HAVE_SHELLCHECK),yes)
-	shellcheck ./.ci/*.sh ./.ci/.e2erc*
-endif
+fmt: fmt-node fmt-shell

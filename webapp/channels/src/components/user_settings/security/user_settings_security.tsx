@@ -4,29 +4,32 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
 import ExternalLink from 'components/external_link';
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ToggleModalButton from 'components/toggle_modal_button';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
+import {isValidPassword} from 'utils/password';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const SECTION_MFA = 'mfa';
 const SECTION_PASSWORD = 'password';
@@ -54,7 +57,7 @@ type Props = {
     setRequireConfirm: () => void;
     canUseAccessTokens: boolean;
     enableOAuthServiceProvider: boolean;
-    enableSignUpWithEmail: boolean;
+    allowedToSwitchToEmail: boolean;
     enableSignUpWithGitLab: boolean;
     enableSignUpWithGoogle: boolean;
     enableSignUpWithOpenId: boolean;
@@ -62,9 +65,10 @@ type Props = {
     enableSaml: boolean;
     enableSignUpWithOffice365: boolean;
     experimentalEnableAuthenticationTransfer: boolean;
-    passwordConfig: ReturnType<typeof Utils.getPasswordConfig>;
+    passwordConfig: PasswordConfig;
     militaryTime: boolean;
     actions: Actions;
+    intl: IntlShape;
 };
 
 type State = {
@@ -78,7 +82,7 @@ type State = {
     authorizedApps: OAuthApp[];
 };
 
-export default class SecurityTab extends React.PureComponent<Props, State> {
+export class SecurityTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = this.getDefaultState();
@@ -123,16 +127,16 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
 
         if (currentPassword === '') {
             this.setState({
-                passwordError: Utils.localizeMessage(
-                    'user.settings.security.currentPasswordError',
-                    'Please enter your current password.',
-                ),
+                passwordError: this.props.intl.formatMessage({
+                    id: 'user.settings.security.currentPasswordError',
+                    defaultMessage: 'Please enter your current password.',
+                }),
                 serverError: '',
             });
             return;
         }
 
-        const {valid, error} = Utils.isValidPassword(
+        const {valid, error} = isValidPassword(
             newPassword,
             this.props.passwordConfig,
         );
@@ -146,10 +150,11 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
 
         if (newPassword !== confirmPassword) {
             const defaultState = Object.assign(this.getDefaultState(), {
-                passwordError: Utils.localizeMessage(
-                    'user.settings.security.passwordMatchError',
-                    'The new passwords you entered do not match.',
-                ),
+                passwordError: this.props.intl.formatMessage({
+                    id: 'user.settings.security.passwordMatchError',
+                    defaultMessage:
+                        'The new passwords you entered do not match.',
+                }),
                 serverError: '',
             });
             this.setState(defaultState);
@@ -267,10 +272,10 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                                 type='password'
                                 onChange={this.updateCurrentPassword}
                                 value={this.state.currentPassword}
-                                aria-label={Utils.localizeMessage(
-                                    'user.settings.security.currentPassword',
-                                    'Current Password',
-                                )}
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'user.settings.security.currentPassword',
+                                    defaultMessage: 'Current Password',
+                                })}
                             />
                         </div>
                     </div>,
@@ -293,10 +298,10 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                                 type='password'
                                 onChange={this.updateNewPassword}
                                 value={this.state.newPassword}
-                                aria-label={Utils.localizeMessage(
-                                    'user.settings.security.newPassword',
-                                    'New Password',
-                                )}
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'user.settings.security.newPassword',
+                                    defaultMessage: 'New Password',
+                                })}
                             />
                         </div>
                     </div>,
@@ -319,10 +324,10 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                                 type='password'
                                 onChange={this.updateConfirmPassword}
                                 value={this.state.confirmPassword}
-                                aria-label={Utils.localizeMessage(
-                                    'user.settings.security.retypePassword',
-                                    'Retype New Password',
-                                )}
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'user.settings.security.retypePassword',
+                                    defaultMessage: 'Retype New Password',
+                                })}
                             />
                         </div>
                     </div>,
@@ -402,7 +407,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         <div className='pb-3'>
                             <FormattedMessage
                                 id='user.settings.security.passwordOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Password cannot be updated.'
+                                defaultMessage='Login occurs through Entra ID. Password cannot be updated.'
                             />
                         </div>
                     </div>,
@@ -490,7 +495,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
-                    defaultMessage='Login done through Office 365'
+                    defaultMessage='Login done through Entra ID'
                 />
             );
         }
@@ -592,7 +597,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchOffice365'
-                                    defaultMessage='Switch to Using Office 365 SSO'
+                                    defaultMessage='Switch to Using Entra ID SSO'
                                 />
                             </Link>
                             <br/>
@@ -667,7 +672,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.enableSignUpWithEmail) {
+            } else if (this.props.allowedToSwitchToEmail) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -721,10 +726,10 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
-                    title={Utils.localizeMessage(
-                        'user.settings.security.method',
-                        'Sign-in Method',
-                    )}
+                    title={this.props.intl.formatMessage({
+                        id: 'user.settings.security.method',
+                        defaultMessage: 'Sign-in Method',
+                    })}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     serverError={this.state.serverError}
@@ -759,7 +764,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.office365'
-                    defaultMessage='Office 365'
+                    defaultMessage='Entra ID'
                 />
             );
         } else if (
@@ -791,10 +796,10 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
             <SettingItem
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
-                title={Utils.localizeMessage(
-                    'user.settings.security.method',
-                    'Sign-in Method',
-                )}
+                title={this.props.intl.formatMessage({
+                    id: 'user.settings.security.method',
+                    defaultMessage: 'Sign-in Method',
+                })}
                 describe={describe}
                 section={SECTION_SIGNIN}
                 updateSection={this.handleUpdateSection}
@@ -914,7 +919,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
-                    width='full'
+                    isFullWidth={true}
                     cancelButtonText={
                         <FormattedMessage
                             id='user.settings.security.close'
@@ -929,10 +934,10 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
             <SettingItem
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
-                title={Utils.localizeMessage(
-                    'user.settings.security.oauthApps',
-                    'OAuth 2.0 Applications',
-                )}
+                title={this.props.intl.formatMessage({
+                    id: 'user.settings.security.oauthApps',
+                    defaultMessage: 'OAuth 2.0 Applications',
+                })}
                 describe={
                     <FormattedMessage
                         id='user.settings.security.oauthAppsDescription'
@@ -962,7 +967,7 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
         // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
         if (
-            (this.props.enableSignUpWithEmail || user.auth_service === '') &&
+            (this.props.allowedToSwitchToEmail || user.auth_service === '') &&
             numMethods > 0 &&
             this.props.experimentalEnableAuthenticationTransfer
         ) {
@@ -989,39 +994,25 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label={Utils.localizeMessage('user.settings.security.close', 'Close')}
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                    >
-                        <div className='modal-back'>
-                            <LocalizedIcon
-                                className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.security.title'
                             defaultMessage='Security Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='user.settings.security.title'
-                            defaultMessage='Security Settings'
-                        />
-                    </h3>
+                    <SettingDesktopHeader
+                        text={
+                            <FormattedMessage
+                                id='user.settings.security.title'
+                                defaultMessage='Security Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {passwordSection}
                     <div className='divider-light'/>
@@ -1044,9 +1035,12 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         dialogType={AccessHistoryModal}
                         id='viewAccessHistory'
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-clock-o'
-                            title={{id: t('user.settings.security.viewHistory.icon'), defaultMessage: 'Access History Icon'}}
+                            title={this.props.intl.formatMessage({
+                                id: 'user.settings.security.viewHistory.icon',
+                                defaultMessage: 'Access History Icon',
+                            })}
                         />
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
@@ -1059,9 +1053,12 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
                         dialogType={ActivityLogModal}
                         id='viewAndLogOutOfActiveSessions'
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-clock-o'
-                            title={{id: t('user.settings.security.logoutActiveSessions.icon'), defaultMessage: 'Active Sessions Icon'}}
+                            title={this.props.intl.formatMessage({
+                                id: 'user.settings.security.logoutActiveSessions.icon',
+                                defaultMessage: 'Active Sessions Icon',
+                            })}
                         />
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'
@@ -1073,3 +1070,5 @@ export default class SecurityTab extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SecurityTab);

@@ -59,14 +59,10 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
               loading="lazy"
               onError={[Function]}
               src="/api/v4/users/userid2/image?_=0"
-              tabIndex={0}
             />
           </Memo(Avatar)>
         </span>
-        <StatusIcon
-          button={false}
-          className=""
-        />
+        <Memo(StatusIcon) />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -76,7 +72,9 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         >
           @user2
         </span>
-        a b (c)
+        <span>
+          a b (c)
+        </span>
         <Component
           emojiSize={15}
           emojiStyle={
@@ -156,14 +154,10 @@ exports[`at mention suggestion Should not display nick name of the signed in use
               loading="lazy"
               onError={[Function]}
               src="/api/v4/users/userid1/image?_=0"
-              tabIndex={0}
             />
           </Memo(Avatar)>
         </span>
-        <StatusIcon
-          button={false}
-          className=""
-        />
+        <Memo(StatusIcon) />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -173,7 +167,9 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         >
           @user
         </span>
-        a b
+        <span>
+          a b
+        </span>
         <FormattedMessage
           defaultMessage="(you)"
           id="suggestion.user.isCurrent"

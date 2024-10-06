@@ -55,7 +55,7 @@ export type Props = {
     direction?: 'left' | 'right';
     openUp?: boolean;
     styleSelectableItem?: boolean;
-    extraText?: string;
+    extraText?: string| JSX.Element;
     rightDecorator?: React.ReactNode;
     isHeader?: boolean;
     tabIndex?: number;
@@ -95,7 +95,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         this.setState({show: false});
     };
 
-    private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
+    private onClick = (event: React.SyntheticEvent<HTMLElement>| React.BaseSyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
         const isMobile = isMobileViewHack();
@@ -112,8 +112,13 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             } else if (action) { // leaf node in the tree handles action only
                 action(postId);
             }
-        } else if (event.currentTarget.id === id && action) {
-            action(postId);
+        } else {
+            const shouldCallAction =
+                (event.type === 'keydown' && event.currentTarget.id === id) ||
+                event.target.parentElement.id === id;
+            if (shouldCallAction && action) {
+                action(postId);
+            }
         }
     };
 
@@ -186,7 +191,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
                         let aria = ariaLabel;
                         if (s.action) {
-                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') : s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
+                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage({id: 'sidebar.menu.item.selected', defaultMessage: 'selected'}) : s.text + ' ' + Utils.localizeMessage({id: 'sidebar.menu.item.notSelected', defaultMessage: 'not selected'});
                         }
                         return (
                             <span
@@ -233,7 +238,6 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
                     onMouseLeave={this.hide}
-                    onClick={this.onClick}
                     tabIndex={tabIndex ?? 0}
                     onKeyDown={this.handleKeyDown}
                 >
@@ -244,7 +248,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                             <span
                                 id={'channelHeaderDropdownIconRight_' + id}
                                 className={classNames([`fa fa-angle-right SubMenu__icon-right${hasSubmenu ? '' : '-empty'}`, {mobile: isMobile}])}
-                                aria-label={Utils.localizeMessage('post_info.submenu.icon', 'submenu icon').toLowerCase()}
+                                aria-label={Utils.localizeMessage({id: 'post_info.submenu.icon', defaultMessage: 'submenu icon'}).toLowerCase()}
                             />
                         }
                     </div>

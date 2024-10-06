@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
@@ -16,8 +17,6 @@ import AdminPanelWithLink from 'components/widgets/admin_console/admin_panel_wit
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {DocLinks, LicenseSkus} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';
 
@@ -37,7 +36,7 @@ export type Props = {
         loadSchemeTeams: (id: string) => Promise<ActionResult>;
     };
     isDisabled?: boolean;
-};
+} & WrappedComponentProps;
 
 type State = {
     loading: boolean;
@@ -45,7 +44,32 @@ type State = {
     page: number;
     phase2MigrationIsComplete: boolean;
 };
-export default class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+
+const messages = defineMessages({
+    teamOverrideSchemesNoSchemes: {id: 'admin.permissions.teamOverrideSchemesNoSchemes', defaultMessage: 'No team override schemes created.'},
+    loadMoreSchemes: {id: 'admin.permissions.loadMoreSchemes', defaultMessage: 'Load more schemes'},
+    introBanner: {id: 'admin.permissions.introBanner', defaultMessage: 'Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our <link>documentation</link>.'},
+    systemSchemeBannerTitle: {id: 'admin.permissions.systemSchemeBannerTitle', defaultMessage: 'System Scheme'},
+    systemSchemeBannerText: {id: 'admin.permissions.systemSchemeBannerText', defaultMessage: 'Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.'},
+    systemSchemeBannerButton: {id: 'admin.permissions.systemSchemeBannerButton', defaultMessage: 'Edit Scheme'},
+    teamOverrideSchemesTitle: {id: 'admin.permissions.teamOverrideSchemesTitle', defaultMessage: 'Team Override Schemes'},
+    teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>'},
+    teamOverrideSchemesNewButton: {id: 'admin.permissions.teamOverrideSchemesNewButton', defaultMessage: 'New Team Override Scheme'},
+});
+
+export const searchableStrings = [
+    messages.teamOverrideSchemesNoSchemes,
+    messages.loadMoreSchemes,
+    messages.introBanner,
+    messages.systemSchemeBannerTitle,
+    messages.systemSchemeBannerText,
+    messages.systemSchemeBannerButton,
+    messages.teamOverrideSchemesTitle,
+    messages.teamOverrideSchemesBannerText,
+    messages.teamOverrideSchemesNewButton,
+];
+
+class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -98,41 +122,39 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
             return null;
         }
 
-        const docLink = (
-            <ExternalLink
-                href='https://docs.mattermost.com/administration/config-settings.html#jobs'
-                location='permission_scheme_settings'
-            >
-                <FormattedMessage
-                    id='admin.permissions.documentationLinkText'
-                    defaultMessage='documentation'
-                />
-            </ExternalLink>
-        );
-
         if (this.props.jobsAreEnabled && !this.props.clusterIsEnabled) {
             return this.teamOverrideUnavalableView(
-                t('admin.permissions.teamOverrideSchemesInProgress'),
-                'Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the {documentationLink}.',
-                docLink,
+                defineMessage({
+                    id: 'admin.permissions.teamOverrideSchemesInProgress',
+                    defaultMessage: 'Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the <link>documentation</link>.',
+                }),
             );
         }
 
         return this.teamOverrideUnavalableView(
-            t('admin.permissions.teamOverrideSchemesNoJobsEnabled'),
-            'Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the {documentationLink}.',
-            docLink,
+            defineMessage({
+                id: 'admin.permissions.teamOverrideSchemesNoJobsEnabled',
+                defaultMessage: 'Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the <link>documentation</link>.',
+            }),
         );
     };
 
-    teamOverrideUnavalableView = (id: string, defaultMsg: string, documentationLink: React.ReactNode) => {
+    teamOverrideUnavalableView = (message: MessageDescriptor) => {
         return (
             <div className='team-override-unavailable'>
                 <div className='team-override-unavailable__inner'>
                     <FormattedMessage
-                        id={id}
-                        defaultMessage={defaultMsg}
-                        values={{documentationLink}}
+                        {...message}
+                        values={{
+                            link: (chunks) => (
+                                <ExternalLink
+                                    href='https://docs.mattermost.com/administration/config-settings.html#jobs'
+                                    location='permission_scheme_settings'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
+                        }}
                     />
                 </div>
             </div>
@@ -158,10 +180,8 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                 <AdminPanelWithLink
                     id='team-override-schemes'
                     className='permissions-block'
-                    titleId={t('admin.permissions.teamOverrideSchemesTitle')}
-                    titleDefault='Team Override Schemes'
-                    subtitleId={t('admin.permissions.teamOverrideSchemesBannerText')}
-                    subtitleDefault='Use when specific teams need permission exceptions to the <link>System Scheme</link>'
+                    title={messages.teamOverrideSchemesTitle}
+                    subtitle={messages.teamOverrideSchemesBannerText}
                     subtitleValues={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -174,14 +194,12 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                     }}
                     url='/admin_console/user_management/permissions/team_override_scheme'
                     disabled={(teamOverrideView !== null) || this.props.isDisabled}
-                    linkTextId={t('admin.permissions.teamOverrideSchemesNewButton')}
-                    linkTextDefault='New Team Override Scheme'
+                    linkText={messages.teamOverrideSchemesNewButton}
                 >
                     {schemes.length === 0 && teamOverrideView === null &&
                         <div className='no-team-schemes'>
                             <FormattedMessage
-                                id='admin.permissions.teamOverrideSchemesNoSchemes'
-                                defaultMessage='No team override schemes created.'
+                                {...messages.teamOverrideSchemesNoSchemes}
                             />
                         </div>}
                     {teamOverrideView}
@@ -195,12 +213,9 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                         >
                             <LoadingWrapper
                                 loading={this.state.loadingMore}
-                                text={Utils.localizeMessage('admin.permissions.loadingMoreSchemes', 'Loading...')}
+                                text={this.props.intl.formatMessage({id: 'admin.permissions.loadingMoreSchemes', defaultMessage: 'Loading...'})}
                             >
-                                <FormattedMessage
-                                    id='admin.permissions.loadMoreSchemes'
-                                    defaultMessage='Load more schemes'
-                                />
+                                <FormattedMessage {...messages.loadMoreSchemes}/>
                             </LoadingWrapper>
                         </button>}
                 </AdminPanelWithLink>
@@ -230,8 +245,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                             <div className='banner__content'>
                                 <span>
                                     <FormattedMessage
-                                        id='admin.permissions.introBanner'
-                                        defaultMessage='Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our <link>documentation</link>.'
+                                        {...messages.introBanner}
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
@@ -249,10 +263,8 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
 
                         <AdminPanelWithLink
                             id='systemScheme'
-                            titleId={t('admin.permissions.systemSchemeBannerTitle')}
-                            titleDefault='System Scheme'
-                            subtitleId={t('admin.permissions.systemSchemeBannerText')}
-                            subtitleDefault='Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.'
+                            title={messages.systemSchemeBannerTitle}
+                            subtitle={messages.systemSchemeBannerText}
                             subtitleValues={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
@@ -265,8 +277,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                             }}
                             url='/admin_console/user_management/permissions/system_scheme'
                             disabled={teamOverrideView !== null}
-                            linkTextId={t('admin.permissions.systemSchemeBannerButton')}
-                            linkTextDefault='Edit Scheme'
+                            linkText={messages.systemSchemeBannerButton}
                         />
 
                         {this.renderTeamOverrideSchemes()}
@@ -277,182 +288,4 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
     };
 }
 
-t('admin.permissions.group.delete_posts.description');
-t('admin.permissions.group.delete_posts.name');
-t('admin.permissions.group.integrations.description');
-t('admin.permissions.group.integrations.name');
-t('admin.permissions.group.posts.description');
-t('admin.permissions.group.posts.name');
-t('admin.permissions.group.private_channel.description');
-t('admin.permissions.group.private_channel.name');
-t('admin.permissions.group.public_channel.description');
-t('admin.permissions.group.public_channel.name');
-t('admin.permissions.group.reactions.description');
-t('admin.permissions.group.reactions.name');
-t('admin.permissions.group.send_invites.description');
-t('admin.permissions.group.send_invites.name');
-t('admin.permissions.group.teams.description');
-t('admin.permissions.group.teams.name');
-t('admin.permissions.group.edit_posts.description');
-t('admin.permissions.group.edit_posts.name');
-t('admin.permissions.group.teams_team_scope.description');
-t('admin.permissions.group.teams_team_scope.name');
-t('admin.permissions.permission.assign_system_admin_role.description');
-t('admin.permissions.permission.assign_system_admin_role.name');
-t('admin.permissions.permission.convert_public_channel_to_private.description');
-t('admin.permissions.permission.convert_public_channel_to_private.name');
-t('admin.permissions.permission.convert_private_channel_to_public.description');
-t('admin.permissions.permission.convert_private_channel_to_public.name');
-t('admin.permissions.permission.create_direct_channel.description');
-t('admin.permissions.permission.create_direct_channel.name');
-t('admin.permissions.permission.create_group_channel.description');
-t('admin.permissions.permission.create_group_channel.name');
-t('admin.permissions.permission.create_post.description');
-t('admin.permissions.permission.create_post.name');
-t('admin.permissions.permission.create_private_channel.description');
-t('admin.permissions.permission.create_private_channel.name');
-t('admin.permissions.permission.create_public_channel.description');
-t('admin.permissions.permission.create_public_channel.name');
-t('admin.permissions.permission.create_team.description');
-t('admin.permissions.permission.create_team.name');
-t('admin.permissions.permission.create_user_access_token.description');
-t('admin.permissions.permission.create_user_access_token.name');
-t('admin.permissions.permission.delete_others_posts.description');
-t('admin.permissions.permission.delete_others_posts.name');
-t('admin.permissions.permission.delete_post.description');
-t('admin.permissions.permission.delete_post.name');
-t('admin.permissions.permission.delete_private_channel.description');
-t('admin.permissions.permission.delete_private_channel.name');
-t('admin.permissions.permission.delete_public_channel.description');
-t('admin.permissions.permission.delete_public_channel.name');
-t('admin.permissions.permission.edit_other_users.description');
-t('admin.permissions.permission.edit_other_users.name');
-t('admin.permissions.permission.edit_post.description');
-t('admin.permissions.group.guest_reactions.description');
-t('admin.permissions.group.guest_reactions.name');
-t('admin.permissions.group.guest_create_post.description');
-t('admin.permissions.group.guest_create_post.name');
-t('admin.permissions.group.guest_create_private_channel.description');
-t('admin.permissions.group.guest_create_private_channel.name');
-t('admin.permissions.group.guest_delete_post.description');
-t('admin.permissions.group.guest_delete_post.name');
-t('admin.permissions.group.guest_edit_post.description');
-t('admin.permissions.group.guest_edit_post.name');
-t('admin.permissions.group.guest_use_channel_mentions.description');
-t('admin.permissions.group.guest_use_channel_mentions.name');
-t('admin.permissions.group.guest_use_group_mentions.description');
-t('admin.permissions.group.guest_use_group_mentions.name');
-t('admin.permissions.permission.edit_post.name');
-t('admin.permissions.permission.import_team.description');
-t('admin.permissions.permission.import_team.name');
-t('admin.permissions.permission.list_team_channels.description');
-t('admin.permissions.permission.list_team_channels.name');
-t('admin.permissions.permission.list_users_without_team.description');
-t('admin.permissions.permission.list_users_without_team.name');
-t('admin.permissions.permission.manage_channel_roles.description');
-t('admin.permissions.permission.manage_channel_roles.name');
-t('admin.permissions.permission.create_emojis.description');
-t('admin.permissions.permission.create_emojis.name');
-t('admin.permissions.permission.delete_emojis.description');
-t('admin.permissions.permission.delete_emojis.name');
-t('admin.permissions.permission.delete_others_emojis.description');
-t('admin.permissions.permission.delete_others_emojis.name');
-t('admin.permissions.permission.manage_jobs.description');
-t('admin.permissions.permission.manage_jobs.name');
-t('admin.permissions.permission.manage_oauth.description');
-t('admin.permissions.permission.manage_oauth.name');
-t('admin.permissions.group.manage_private_channel_members_and_read_groups.description');
-t('admin.permissions.group.manage_private_channel_members_and_read_groups.name');
-t('admin.permissions.permission.manage_private_channel_properties.description');
-t('admin.permissions.permission.manage_private_channel_properties.name');
-t('admin.permissions.group.manage_public_channel_members_and_read_groups.description');
-t('admin.permissions.group.manage_public_channel_members_and_read_groups.name');
-t('admin.permissions.group.convert_public_channel_to_private.description');
-t('admin.permissions.group.convert_public_channel_to_private.name');
-t('admin.permissions.permission.manage_public_channel_properties.description');
-t('admin.permissions.permission.manage_public_channel_properties.name');
-t('admin.permissions.permission.manage_roles.description');
-t('admin.permissions.permission.manage_roles.name');
-t('admin.permissions.permission.manage_slash_commands.description');
-t('admin.permissions.permission.manage_slash_commands.name');
-t('admin.permissions.permission.manage_system.description');
-t('admin.permissions.permission.manage_system.name');
-t('admin.permissions.permission.manage_team.description');
-t('admin.permissions.permission.manage_team.name');
-t('admin.permissions.permission.manage_team_roles.description');
-t('admin.permissions.permission.manage_team_roles.name');
-t('admin.permissions.permission.manage_incoming_webhooks.description');
-t('admin.permissions.permission.manage_incoming_webhooks.name');
-t('admin.permissions.permission.manage_outgoing_webhooks.description');
-t('admin.permissions.permission.manage_outgoing_webhooks.name');
-t('admin.permissions.permission.permanent_delete_user.description');
-t('admin.permissions.permission.permanent_delete_user.name');
-t('admin.permissions.permission.read_channel.description');
-t('admin.permissions.permission.read_channel.name');
-t('admin.permissions.permission.read_user_access_token.description');
-t('admin.permissions.permission.read_user_access_token.name');
-t('admin.permissions.permission.remove_user_from_team.description');
-t('admin.permissions.permission.remove_user_from_team.name');
-t('admin.permissions.permission.revoke_user_access_token.description');
-t('admin.permissions.permission.revoke_user_access_token.name');
-t('admin.permissions.permission.upload_file.description');
-t('admin.permissions.permission.upload_file.name');
-t('admin.permissions.permission.use_channel_mentions.description');
-t('admin.permissions.permission.use_channel_mentions.name');
-t('admin.permissions.permission.use_group_mentions.description');
-t('admin.permissions.permission.use_group_mentions.name');
-t('admin.permissions.permission.view_team.description');
-t('admin.permissions.permission.view_team.name');
-t('admin.permissions.permission.edit_others_posts.description');
-t('admin.permissions.permission.edit_others_posts.name');
-t('admin.permissions.permission.invite_guest.name');
-t('admin.permissions.permission.invite_guest.description');
-t('admin.permissions.roles.all_users.name');
-t('admin.permissions.roles.channel_admin.name');
-t('admin.permissions.roles.channel_user.name');
-t('admin.permissions.roles.system_admin.name');
-t('admin.permissions.roles.system_user.name');
-t('admin.permissions.roles.team_admin.name');
-t('admin.permissions.roles.team_user.name');
-t('admin.permissions.group.manage_shared_channels.name');
-t('admin.permissions.group.manage_shared_channels.description');
-t('admin.permissions.permission.manage_shared_channels.name');
-t('admin.permissions.permission.manage_shared_channels.description');
-t('admin.permissions.permission.manage_secure_connections.name');
-t('admin.permissions.permission.manage_secure_connections.description');
-t('admin.permissions.group.playbook_public.name');
-t('admin.permissions.group.playbook_public.description');
-t('admin.permissions.permission.playbook_public_create.name');
-t('admin.permissions.permission.playbook_public_create.description');
-t('admin.permissions.permission.playbook_public_manage_properties.name');
-t('admin.permissions.permission.playbook_public_manage_properties.description');
-t('admin.permissions.permission.playbook_public_manage_members.name');
-t('admin.permissions.permission.playbook_public_manage_members.description');
-t('admin.permissions.permission.playbook_public_make_private.name');
-t('admin.permissions.permission.playbook_public_make_private.description');
-t('admin.permissions.group.playbook_private.name');
-t('admin.permissions.group.playbook_private.description');
-t('admin.permissions.permission.playbook_private_create.name');
-t('admin.permissions.permission.playbook_private_create.description');
-t('admin.permissions.permission.playbook_private_manage_properties.name');
-t('admin.permissions.permission.playbook_private_manage_properties.description');
-t('admin.permissions.permission.playbook_private_manage_members.name');
-t('admin.permissions.permission.playbook_private_manage_members.description');
-t('admin.permissions.permission.playbook_private_make_public.name');
-t('admin.permissions.permission.playbook_private_make_public.description');
-t('admin.permissions.group.runs.name');
-t('admin.permissions.group.runs.description');
-t('admin.permissions.permission.run_create.name');
-t('admin.permissions.permission.run_create.description');
-t('admin.permissions.group.custom_groups.name');
-t('admin.permissions.group.custom_groups.description');
-t('admin.permissions.permission.create_custom_group.name');
-t('admin.permissions.permission.create_custom_group.description');
-t('admin.permissions.permission.manage_custom_group_members.name');
-t('admin.permissions.permission.manage_custom_group_members.description');
-t('admin.permissions.permission.delete_custom_group.name');
-t('admin.permissions.permission.delete_custom_group.description');
-t('admin.permissions.permission.restore_custom_group.name');
-t('admin.permissions.permission.restore_custom_group.description');
-t('admin.permissions.permission.edit_custom_group.name');
-t('admin.permissions.permission.edit_custom_group.description');
+export default injectIntl(PermissionSchemesSettings);

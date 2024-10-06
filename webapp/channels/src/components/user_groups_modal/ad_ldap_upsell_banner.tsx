@@ -14,7 +14,6 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
@@ -89,7 +88,7 @@ function ADLDAPUpsellBanner() {
         return null;
     }
 
-    let btn = (
+    let btn: JSX.Element | null = (
         <StartTrialBtn
             btnClass='ad-ldap-banner-btn'
             message={formatMessage({id: 'adldap_upsell_banner.trial_btn', defaultMessage: 'Start trial'})}
@@ -98,18 +97,7 @@ function ADLDAPUpsellBanner() {
             onClick={() => setConfirmed(true)}
         />);
 
-    if (isCloud) {
-        btn = (
-            <CloudStartTrialButton
-                extraClass='ad-ldap-banner-btn'
-                message={formatMessage({id: 'adldap_upsell_banner.trial_btn', defaultMessage: 'Start trial'})}
-                telemetryId={'start_cloud_trial_from_adldap_upsell_banner'}
-                onClick={() => setConfirmed(true)}
-            />
-        );
-    }
-
-    if (prevTrialed) {
+    if (prevTrialed || isCloud) {
         btn = (
             <button
                 className='ad-ldap-banner-btn'

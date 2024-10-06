@@ -21,7 +21,7 @@ const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};
 const LOADING = {id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'};
 
 type Actions = {
-    getOAuthApp: (id: string) => OAuthApp;
+    getOAuthApp: (id: string) => void;
     editOAuthApp: (app: OAuthApp) => Promise<ActionResult>;
 };
 
@@ -127,6 +127,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={this.state.showConfirmModal}
                 onConfirm={this.submitOAuthApp}
                 onCancel={this.confirmModalDismissed}

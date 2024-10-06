@@ -7,7 +7,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -23,7 +22,7 @@ type Props = {
     numOfPrivateChannels: number;
     onExited: () => void;
     actions: {
-        leaveTeam: (teamId: string, userId: string) => ActionFunc;
+        leaveTeam: (teamId: string, userId: string) => void;
         toggleSideBarRightMenu: () => void;
     };
 };

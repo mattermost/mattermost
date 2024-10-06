@@ -3,12 +3,10 @@
 
 import React from 'react';
 import {createIntl, useIntl} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
-import {render, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {mockStore} from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import LatestPostReader from './latest_post_reader';
@@ -58,14 +56,11 @@ describe('LatestPostReader', () => {
     };
 
     test('should render aria-label as a child in the given locale', () => {
-        const store = mockStore(baseState);
-
         (useIntl as jest.Mock).mockImplementation(() => createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
-        const {rerender} = render(
-            <Provider store={store.store}>
-                <LatestPostReader {...baseProps}/>
-            </Provider>,
+        const {rerender} = renderWithContext(
+            <LatestPostReader {...baseProps}/>,
+            baseState,
         );
 
         const prevMessage = screen.getByText(`January 1, ${author.username} wrote, This is a test`, {exact: false});
@@ -74,7 +69,7 @@ describe('LatestPostReader', () => {
 
         (useIntl as jest.Mock).mockImplementation(() => createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'}));
 
-        rerender(<Provider store={store.store}> <LatestPostReader {...baseProps}/></Provider>);
+        rerender(<LatestPostReader {...baseProps}/>);
         const januaryInSpanish = 'enero';
         const message = screen.getByText(`${januaryInSpanish}, ${author.username} wrote, This is a test`, {exact: false});
 
@@ -88,7 +83,7 @@ describe('LatestPostReader', () => {
             postIds: [],
         };
 
-        renderWithIntlAndStore(<LatestPostReader {...props}/>, baseState);
+        renderWithContext(<LatestPostReader {...props}/>, baseState);
 
         // body should be empty
         const message = screen.queryByText('This is a test');

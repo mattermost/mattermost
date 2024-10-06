@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 #ldap_groups {
     overflow: visible;
 }
@@ -23,8 +25,8 @@
             height: 30px;
             flex-grow: 1;
             border: 1px solid rgba(0, 0, 0, 0.1);
-            margin-top: 2px;
             border-radius: 15px;
+            margin-top: 2px;
             stroke: $dark-gray;
 
             input {
@@ -82,8 +84,8 @@
                 width: 18px;
                 height: 18px;
                 border: 2px solid $dark-gray;
-                margin-right: 7px;
                 border-radius: 3px;
+                margin-right: 7px;
                 vertical-align: middle;
 
                 &.checked {
@@ -183,8 +185,8 @@
         align-items: center;
         justify-content: space-around;
         border: 2px solid $dark-gray;
-        margin: 5px 5px 4px 14px;
         border-radius: 3px;
+        margin: 5px 5px 4px 14px;
 
         &.checked {
             border: 0;
@@ -215,7 +217,7 @@
         width: 150px;
         height: 100%;
         align-items: center;
-        opacity: 0.65;
+        opacity: 0.75;
 
         &.adjusted {
             width: 120px;
@@ -235,8 +237,8 @@
             text-decoration: none;
 
             &:hover {
-                background-color: $light-gray;
                 border-radius: 3px;
+                background-color: $light-gray;
             }
 
             &.warning {
@@ -262,7 +264,7 @@
 
     .group {
         &.checked {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
 
             .group-description {
                 opacity: 1;
@@ -274,7 +276,7 @@
         }
 
         &.checked:nth-child(even) {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
         }
 
         .group-row {
@@ -295,7 +297,7 @@
 
         &:hover {
             border-left: 2px solid $primary-color;
-            background-color: lighten($primary-color, 45%);
+            background-color: color.adjust($primary-color, $lightness: 45%);
 
             .group-description {
                 opacity: 1;
@@ -392,8 +394,8 @@
             .profile-picture {
                 width: 32px;
                 height: 32px;
-                margin: 5px 10px;
                 border-radius: 100%;
+                margin: 5px 10px;
             }
 
             .user-data {
@@ -494,8 +496,8 @@
                 height: 18px;
                 padding: 0;
                 border: 2px solid $dark-gray;
-                background: none;
                 border-radius: 3px;
+                background: none;
 
                 > * {
                     pointer-events: none;
@@ -653,8 +655,8 @@
         width: 100%;
         padding: 5px 8px;
         border: 1px solid $gray;
-        background: $white;
         border-radius: 2px;
+        background: $white;
 
         a {
             display: block;
@@ -667,8 +669,8 @@
 .group-user-profile-picture {
     width: 32px;
     height: 32px;
-    margin: 5px 10px;
     border-radius: 100%;
+    margin: 5px 10px;
 }
 
 .group-users-to-remove-modal-description {
@@ -764,8 +766,8 @@ $unarchived-color: #f74343;
 .ArchiveButton {
     border-width: 1px;
     border-style: solid;
-    background-color: transparent;
     border-radius: 4px;
+    background-color: transparent;
 }
 
 .ArchiveButton___unarchived:hover {

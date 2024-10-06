@@ -16,6 +16,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamButton from 'components/team_sidebar/components/team_button';
 
+import WebSocketClient from 'client/web_websocket_client';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -146,6 +147,13 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         }
     };
 
+    componentDidUpdate(prevProps: Props) {
+        // TODO: debounce
+        if (prevProps.currentTeamId !== this.props.currentTeamId && this.props.enableWebSocketEventScope) {
+            WebSocketClient.updateActiveTeam(this.props.currentTeamId);
+        }
+    }
+
     componentDidMount() {
         this.props.actions.getTeams(0, 200);
         document.addEventListener('keydown', this.handleKeyDown);
@@ -238,7 +246,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             <i
                 className='icon icon-plus'
                 role={'img'}
-                aria-label={Utils.localizeMessage('sidebar.team_menu.button.plusIcon', 'Plus Icon')}
+                aria-label={Utils.localizeMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
             />
         );
 

@@ -208,7 +208,7 @@ func UpgradeToE0() error {
 			os.Remove(filename)
 		}
 		setUpgradeError(fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", getUpgradePercentage()))
-		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", getUpgradePercentage()), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
+		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int("percentage", getUpgradePercentage()), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
 		setUpgradePercentage(0)
 		return err
 	}

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
@@ -18,7 +19,25 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) CreateSession(c *request.Context, session *model.Session) (*model.Session, *model.AppError) {
+// maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
+const maxSessionsLimit = 500
+
+func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
+	if appErr := a.limitNumberOfSessions(c, session.UserId); appErr != nil {
+		return nil, appErr
+	}
+
+	// remote/synthetic users cannot create sessions. This lookup will already be cached.
+	// Some unit tests rely on sessions being created for users that don't exist, therefore
+	// missing users are allowed.
+	user, appErr := a.GetUser(session.UserId)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return nil, appErr
+	}
+	if user != nil && user.IsRemote() {
+		return nil, model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+	}
+
 	session, err := a.ch.srv.platform.CreateSession(c, session)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -49,8 +68,8 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
-	rc, appErr := a.GetRemoteCluster(remoteId)
-	if appErr == nil && rc.Token == token {
+	rc, appErr := a.GetRemoteCluster(remoteId, false)
+	if appErr == nil && subtle.ConstantTimeCompare([]byte(rc.Token), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,
@@ -127,7 +146,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	return session, nil
 }
 
-func (a *App) GetSessions(c *request.Context, userID string) ([]*model.Session, *model.AppError) {
+func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *model.AppError) {
 	sessions, err := a.ch.srv.platform.GetSessions(c, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -136,7 +155,41 @@ func (a *App) GetSessions(c *request.Context, userID string) ([]*model.Session, 
 	return sessions, nil
 }
 
-func (a *App) RevokeAllSessions(c *request.Context, userID string) *model.AppError {
+// limitNumberOfSessions revokes userId's least recently used sessions to keep the number below
+// maxSessionsLimit; MM-55320
+func (a *App) limitNumberOfSessions(c request.CTX, userId string) *model.AppError {
+	const returnLimit = 100
+	sessions, appErr := a.GetLRUSessions(c, userId, returnLimit, maxSessionsLimit-1)
+	if appErr != nil {
+		return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// Revoke any sessions over the limit to make room for new sessions
+	for _, sess := range sessions {
+		if err := a.RevokeSession(c, sess); err != nil {
+			return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		c.Logger().Debug("Session revoked; user's number of sessions were over the maxSessionsLimit",
+			mlog.String("user_id", userId),
+			mlog.String("session_id", sess.Id))
+	}
+
+	return nil
+}
+
+// GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
+// number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
+func (a *App) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, *model.AppError) {
+	sessions, err := a.ch.srv.platform.GetLRUSessions(c, userID, limit, offset)
+	if err != nil {
+		return nil, model.NewAppError("GetLRUSessions", "app.session.get_lru_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return sessions, nil
+}
+
+func (a *App) RevokeAllSessions(c request.CTX, userID string) *model.AppError {
 	if err := a.ch.srv.platform.RevokeAllSessions(c, userID); err != nil {
 		switch {
 		case errors.Is(err, platform.GetSessionError):
@@ -190,7 +243,7 @@ func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
 	a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend()
 }
 
-func (a *App) RevokeSessionsForDeviceId(c *request.Context, userID string, deviceID string, currentSessionId string) *model.AppError {
+func (a *App) RevokeSessionsForDeviceId(c request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {
 	if err := a.ch.srv.platform.RevokeSessionsForDeviceId(c, userID, deviceID, currentSessionId); err != nil {
 		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -198,7 +251,7 @@ func (a *App) RevokeSessionsForDeviceId(c *request.Context, userID string, devic
 	return nil
 }
 
-func (a *App) GetSessionById(c *request.Context, sessionID string) (*model.Session, *model.AppError) {
+func (a *App) GetSessionById(c request.CTX, sessionID string) (*model.Session, *model.AppError) {
 	session, err := a.ch.srv.platform.GetSessionByID(c, sessionID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessionById", "app.session.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -207,7 +260,7 @@ func (a *App) GetSessionById(c *request.Context, sessionID string) (*model.Sessi
 	return session, nil
 }
 
-func (a *App) RevokeSessionById(c *request.Context, sessionID string) *model.AppError {
+func (a *App) RevokeSessionById(c request.CTX, sessionID string) *model.AppError {
 	session, err := a.GetSessionById(c, sessionID)
 	if err != nil {
 		return model.NewAppError("RevokeSessionById", "app.session.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -216,7 +269,7 @@ func (a *App) RevokeSessionById(c *request.Context, sessionID string) *model.App
 	return a.RevokeSession(c, session)
 }
 
-func (a *App) RevokeSession(c *request.Context, session *model.Session) *model.AppError {
+func (a *App) RevokeSession(c request.CTX, session *model.Session) *model.AppError {
 	if err := a.ch.srv.platform.RevokeSession(c, session); err != nil {
 		switch {
 		case errors.Is(err, platform.DeleteSessionError):
@@ -238,10 +291,33 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	return nil
 }
 
+func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	changed := false
+	for k, v := range newProps {
+		if session.Props[k] == v {
+			continue
+		}
+
+		session.AddProp(k, v)
+		changed = true
+	}
+
+	if !changed {
+		return nil
+	}
+
+	err := a.Srv().Store().Session().UpdateProps(session)
+	if err != nil {
+		return model.NewAppError("SetExtraSessionProps", "app.session.set_extra_session_prop.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
-func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
+func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Session) bool {
 	if !*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 		return false
 	}
@@ -268,19 +344,23 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 		return false
 	}
 
-	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
-	defer a.LogAuditRec(auditRec, nil)
+	auditRec := a.MakeAuditRecord(rctx, "extendSessionExpiry", audit.Fail)
+	defer a.LogAuditRec(rctx, auditRec, nil)
 	auditRec.AddEventPriorState(session)
 
 	newExpiry := now + sessionLength
 	if err := a.ch.srv.platform.ExtendSessionExpiry(session, newExpiry); err != nil {
-		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		rctx.Logger().Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
 		return false
 	}
 
-	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
-		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
+	rctx.Logger().Debug("Session extended",
+		mlog.String("user_id", session.UserId),
+		mlog.String("session_id", session.Id),
+		mlog.Int("newExpiry", newExpiry),
+		mlog.Int("session_length", sessionLength),
+	)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(session)
@@ -312,7 +392,7 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
-func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -344,14 +424,14 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	// Don't send emails to bot users.
 	if !user.IsBot {
 		if err := a.Srv().EmailService.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
-			a.Log().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
+			rctx.Logger().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
 		}
 	}
 
 	return token, nil
 }
 
-func (a *App) createSessionForUserAccessToken(c *request.Context, tokenString string) (*model.Session, *model.AppError) {
+func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string) (*model.Session, *model.AppError) {
 	token, nErr := a.Srv().Store().UserAccessToken().GetByToken(tokenString)
 	if nErr != nil {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "", http.StatusUnauthorized).Wrap(nErr)
@@ -378,6 +458,10 @@ func (a *App) createSessionForUserAccessToken(c *request.Context, tokenString st
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	if appErr := a.limitNumberOfSessions(c, user.Id); appErr != nil {
+		return nil, appErr
 	}
 
 	session := &model.Session{
@@ -415,7 +499,7 @@ func (a *App) createSessionForUserAccessToken(c *request.Context, tokenString st
 	return session, nil
 }
 
-func (a *App) RevokeUserAccessToken(c *request.Context, token *model.UserAccessToken) *model.AppError {
+func (a *App) RevokeUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError {
 	var session *model.Session
 	session, _ = a.ch.srv.platform.GetSessionContext(c, token.Token)
 
@@ -430,7 +514,7 @@ func (a *App) RevokeUserAccessToken(c *request.Context, token *model.UserAccessT
 	return a.RevokeSession(c, session)
 }
 
-func (a *App) DisableUserAccessToken(c *request.Context, token *model.UserAccessToken) *model.AppError {
+func (a *App) DisableUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError {
 	var session *model.Session
 	session, _ = a.ch.srv.platform.GetSessionContext(c, token.Token)
 
@@ -445,7 +529,7 @@ func (a *App) DisableUserAccessToken(c *request.Context, token *model.UserAccess
 	return a.RevokeSession(c, session)
 }
 
-func (a *App) EnableUserAccessToken(c *request.Context, token *model.UserAccessToken) *model.AppError {
+func (a *App) EnableUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError {
 	var session *model.Session
 	session, _ = a.ch.srv.platform.GetSessionContext(c, token.Token)
 

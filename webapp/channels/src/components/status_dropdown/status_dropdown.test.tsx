@@ -44,7 +44,6 @@ describe('components/StatusDropdown', () => {
             manualTimezone: '',
         },
         status: 'away',
-        isTimezoneEnabled: true,
         isMilitaryTime: false,
         isCustomStatusEnabled: false,
         isCustomStatusExpired: false,

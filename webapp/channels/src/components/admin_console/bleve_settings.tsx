@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
@@ -12,7 +12,6 @@ import {blevePurgeIndexes} from 'actions/admin_actions.jsx';
 import ExternalLink from 'components/external_link';
 
 import {JobStatuses, JobTypes} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AdminSettings from './admin_settings';
 import type {BaseProps, BaseState} from './admin_settings';
@@ -34,6 +33,32 @@ type State = BaseState & {
     canSave: boolean;
     canPurgeAndIndex: boolean;
 };
+
+const messages = defineMessages({
+    title: {id: 'admin.bleve.title', defaultMessage: 'Bleve'},
+    enableIndexingTitle: {id: 'admin.bleve.enableIndexingTitle', defaultMessage: 'Enable Bleve Indexing:'},
+    enableIndexingDescription: {id: 'admin.bleve.enableIndexingDescription', defaultMessage: 'When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Bleve for search queries" is enabled. <link>Learn more about Bleve in our documentation.</link>'},
+    bulkIndexingTitle: {id: 'admin.bleve.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
+    createJob_help: {id: 'admin.bleve.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Bleve is available during indexing but search results may be incomplete until the indexing job is complete.'},
+    purgeIndexesHelpText: {id: 'admin.bleve.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the content of the Bleve index directory. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
+    purgeIndexesButton: {id: 'admin.bleve.purgeIndexesButton', defaultMessage: 'Purge Index'},
+    purgeIndexesButton_label: {id: 'admin.bleve.purgeIndexesButton.label', defaultMessage: 'Purge Indexes:'},
+    enableSearchingTitle: {id: 'admin.bleve.enableSearchingTitle', defaultMessage: 'Enable Bleve for search queries:'},
+    enableSearchingDescription: {id: 'admin.bleve.enableSearchingDescription', defaultMessage: 'When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'},
+});
+
+export const searchableStrings = [
+    messages.title,
+    messages.enableIndexingTitle,
+    messages.enableIndexingDescription,
+    messages.bulkIndexingTitle,
+    messages.createJob_help,
+    messages.purgeIndexesHelpText,
+    messages.purgeIndexesButton,
+    messages.purgeIndexesButton_label,
+    messages.enableSearchingTitle,
+    messages.enableSearchingDescription,
+];
 
 export default class BleveSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: Props['config']) => {
@@ -101,12 +126,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
     }
 
     renderTitle() {
-        return (
-            <FormattedMessage
-                id='admin.bleve.title'
-                defaultMessage='Bleve'
-            />
-        );
+        return (<FormattedMessage {...messages.title}/>);
     }
 
     renderSettings = () => {
@@ -114,26 +134,17 @@ export default class BleveSettings extends AdminSettings<Props, State> {
             <SettingsGroup>
                 <BooleanSetting
                     id='enableIndexing'
-                    label={
-                        <FormattedMessage
-                            id='admin.bleve.enableIndexingTitle'
-                            defaultMessage='Enable Bleve Indexing:'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.enableIndexingTitle}/>}
                     helpText={
                         <FormattedMessage
-                            id='admin.bleve.enableIndexingDescription'
-                            defaultMessage='When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Bleve for search queries" is enabled. {documentationLink}'
+                            {...messages.enableIndexingDescription}
                             values={{
-                                documentationLink: (
+                                link: (chunks) => (
                                     <ExternalLink
                                         href='https://docs.mattermost.com/deploy/bleve-search.html'
                                         location='bleve_settings'
                                     >
-                                        <FormattedMessage
-                                            id='admin.bleve.enableIndexingDescription.documentationLinkText'
-                                            defaultMessage='Learn more about Bleve in our documentation.'
-                                        />
+                                        {chunks}
                                     </ExternalLink>
                                 ),
                             }}
@@ -164,13 +175,8 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                     disabled={this.props.isDisabled}
                 />
                 <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                    >
-                        <FormattedMessage
-                            id='admin.bleve.bulkIndexingTitle'
-                            defaultMessage='Bulk Indexing:'
-                        />
+                    <label className='control-label col-sm-4'>
+                        <FormattedMessage {...messages.bulkIndexingTitle}/>
                     </label>
                     <div className='col-sm-8'>
                         <div className='job-table-setting'>
@@ -183,12 +189,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                                         defaultMessage='Index Now'
                                     />
                                 }
-                                createJobHelpText={
-                                    <FormattedMessage
-                                        id='admin.bleve.createJob.help'
-                                        defaultMessage='All users, channels and posts in the database will be indexed from oldest to newest. Bleve is available during indexing but search results may be incomplete until the indexing job is complete.'
-                                    />
-                                }
+                                createJobHelpText={<FormattedMessage {...messages.createJob_help}/>}
                                 getExtraInfoText={this.getExtraInfo}
                             />
                         </div>
@@ -197,48 +198,23 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                 <RequestButton
                     id='purgeIndexesSection'
                     requestAction={blevePurgeIndexes}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.bleve.purgeIndexesHelpText'
-                            defaultMessage='Purging will entirely remove the content of the Bleve index directory. Search results may be incomplete until a bulk index of the existing database is rebuilt.'
-                        />
-                    }
-                    buttonText={
-                        <FormattedMessage
-                            id='admin.bleve.purgeIndexesButton'
-                            defaultMessage='Purge Index'
-                        />
-                    }
-                    successMessage={{
-                        id: t('admin.bleve.purgeIndexesButton.success'),
+                    helpText={<FormattedMessage {...messages.purgeIndexesHelpText}/>}
+                    buttonText={<FormattedMessage {...messages.purgeIndexesButton}/>}
+                    successMessage={defineMessage({
+                        id: 'admin.bleve.purgeIndexesButton.success',
                         defaultMessage: 'Indexes purged successfully.',
-                    }}
-                    errorMessage={{
-                        id: t('admin.bleve.purgeIndexesButton.error'),
+                    })}
+                    errorMessage={defineMessage({
+                        id: 'admin.bleve.purgeIndexesButton.error',
                         defaultMessage: 'Failed to purge indexes: {error}',
-                    }}
+                    })}
                     disabled={!this.state.canPurgeAndIndex || this.props.isDisabled}
-                    label={(
-                        <FormattedMessage
-                            id='admin.bleve.purgeIndexesButton.label'
-                            defaultMessage='Purge Indexes:'
-                        />
-                    )}
+                    label={<FormattedMessage {...messages.purgeIndexesButton_label}/>}
                 />
                 <BooleanSetting
                     id='enableSearching'
-                    label={
-                        <FormattedMessage
-                            id='admin.bleve.enableSearchingTitle'
-                            defaultMessage='Enable Bleve for search queries:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.bleve.enableSearchingDescription'
-                            defaultMessage='When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.enableSearchingTitle}/>}
+                    helpText={<FormattedMessage {...messages.enableSearchingDescription}/>}
                     value={this.state.enableSearching}
                     disabled={!this.state.enableIndexing || this.props.isDisabled}
                     onChange={this.handleSettingChanged}

@@ -7,18 +7,17 @@ import {
     UserTypes,
 } from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/search';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type SearchState = ReturnType<typeof reducer>;
 
 describe('reducers.entities.search', () => {
     describe('results', () => {
         it('initial state', () => {
-            const inputState = undefined; // eslint-disable-line no-undef
-            const action = {};
+            const inputState = undefined;
+            const action = {type: undefined};
             const expectedState: any = [];
 
-            const actualState = reducer({results: inputState} as SearchState, action as GenericAction);
+            const actualState = reducer({results: inputState} as SearchState, action);
             expect(actualState.results).toEqual(expectedState);
         });
 
@@ -116,11 +115,11 @@ describe('reducers.entities.search', () => {
 
     describe('fileResults', () => {
         it('initial state', () => {
-            const inputState = undefined; // eslint-disable-line no-undef
-            const action = {};
+            const inputState = undefined;
+            const action = {type: undefined};
             const expectedState: string[] = [];
 
-            const actualState = reducer({fileResults: inputState} as SearchState, action as GenericAction);
+            const actualState = reducer({fileResults: inputState} as SearchState, action);
             expect(actualState.fileResults).toEqual(expectedState);
         });
 
@@ -187,11 +186,11 @@ describe('reducers.entities.search', () => {
 
     describe('matches', () => {
         it('initial state', () => {
-            const inputState = undefined; // eslint-disable-line no-undef
-            const action = {};
+            const inputState = undefined;
+            const action = {type: undefined};
             const expectedState = {};
 
-            const actualState = reducer({matches: inputState} as SearchState, action as GenericAction);
+            const actualState = reducer({matches: inputState} as SearchState, action);
             expect(actualState.matches).toEqual(expectedState);
         });
 

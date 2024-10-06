@@ -4,15 +4,11 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
+import type {Dispatch} from 'redux';
 
 import {getCustomEmojis, searchCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {incrementEmojiPickerPage, setUserSkinTone} from 'actions/emoji_actions';
 import {getEmojiMap, getRecentEmojisNames, getUserSkinTone} from 'selectors/emojis';
@@ -32,16 +28,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
-    searchCustomEmojis: (term: string, options?: any, loadUsers?: boolean) => ActionFunc;
-    incrementEmojiPickerPage: () => void;
-    setUserSkinTone: (skin: string) => void;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             getCustomEmojis,
             searchCustomEmojis,
             incrementEmojiPickerPage,

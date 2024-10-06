@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import isEmpty from 'lodash/isEmpty';
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
+import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getProfiles} from 'mattermost-redux/actions/users';
@@ -12,10 +15,8 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 
-import {migrateRecentEmojis} from 'actions/emoji_actions';
-import {loadConfigAndMe, registerCustomPostRenderer} from 'actions/views/root';
+import {loadRecentlyUsedCustomEmojis, migrateRecentEmojis} from 'actions/emoji_actions';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
 import {
@@ -29,8 +30,13 @@ import {initializeProducts} from 'plugins/products';
 
 import type {GlobalState} from 'types/store/index';
 
+import {
+    loadConfigAndMe,
+    registerCustomPostRenderer,
+    handleLoginLogoutSignal,
+    redirectToOnboardingOrDefaultTeam,
+} from './actions';
 import Root from './root';
-import type {Actions} from './root';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -42,11 +48,20 @@ function mapStateToProps(state: GlobalState) {
     const teamId = LocalStorageStore.getPreviousTeamId(userId);
     const permalinkRedirectTeam = getTeam(state, teamId!);
 
+    const isConfigLoaded = config && !isEmpty(config);
+
     return {
         theme: getTheme(state),
+        isConfigLoaded,
         telemetryEnabled: config.DiagnosticsEnabled === 'true',
         noAccounts: config.NoAccounts === 'true',
         telemetryId: config.DiagnosticId,
+        serviceEnvironment: config.ServiceEnvironment,
+        siteURL: config.SiteURL,
+        iosDownloadLink: config.IosAppDownloadLink,
+        androidDownloadLink: config.AndroidAppDownloadLink,
+        appDownloadLink: config.AppDownloadLink,
+        enableDesktopLandingPage: config.EnableDesktopLandingPage === 'true',
         permalinkRedirectTeamName: permalinkRedirectTeam ? permalinkRedirectTeam.name : '',
         showTermsOfService,
         plugins,
@@ -62,15 +77,22 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             loadConfigAndMe,
             getFirstAdminSetupComplete,
             getProfiles,
+            loadRecentlyUsedCustomEmojis,
             migrateRecentEmojis,
             registerCustomPostRenderer,
             initializeProducts,
+            handleLoginLogoutSignal,
+            redirectToOnboardingOrDefaultTeam,
         }, dispatch),
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Root);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default withRouter(connector(Root));

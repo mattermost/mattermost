@@ -9,9 +9,9 @@ import (
 )
 
 type SamlInterface interface {
-	ConfigureSP(c *request.Context) error
-	BuildRequest(c *request.Context, relayState string) (*model.SamlAuthRequest, *model.AppError)
-	DoLogin(c *request.Context, encodedXML string, relayState map[string]string) (*model.User, *model.AppError)
-	GetMetadata(c *request.Context) (string, *model.AppError)
-	CheckProviderAttributes(c *request.Context, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
+	ConfigureSP(c request.CTX) error
+	BuildRequest(c request.CTX, relayState string) (*model.SamlAuthRequest, *model.AppError)
+	DoLogin(c request.CTX, encodedXML string, relayState map[string]string) (*model.User, *model.AppError)
+	GetMetadata(c request.CTX) (string, *model.AppError)
+	CheckProviderAttributes(c request.CTX, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
 }

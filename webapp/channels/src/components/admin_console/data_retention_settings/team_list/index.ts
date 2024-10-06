@@ -3,15 +3,14 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import {getDataRetentionCustomPolicyTeams, searchDataRetentionCustomPolicyTeams as searchTeams} from 'mattermost-redux/actions/admin';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getTeamsInPolicy, searchTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {teamListToMap, filterTeamsStartingWithTerm} from 'mattermost-redux/utils/team_utils';
 
 import {setTeamListSearch} from 'actions/views/search';
@@ -23,12 +22,6 @@ import TeamList from './team_list';
 type OwnProps = {
     policyId?: string;
     teamsToAdd: Record<string, Team>;
-}
-
-type Actions = {
-    getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[] }>;
-    searchTeams: (id: string, term: string, opts: TeamSearchOpts) => Promise<{ data: Team[] }>;
-    setTeamListSearch: (term: string) => ActionResult;
 }
 
 function searchTeamsToAdd(teams: Record<string, Team>, term: string): Record<string, Team> {
@@ -66,7 +59,7 @@ function mapStateToProps() {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getDataRetentionCustomPolicyTeams,
             searchTeams,
             setTeamListSearch,

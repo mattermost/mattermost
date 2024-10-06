@@ -6,6 +6,7 @@ import {combineReducers} from 'redux';
 import admin from './admin';
 import apps from './apps';
 import bots from './bots';
+import channelBookmarks from './channel_bookmarks';
 import channelCategories from './channel_categories';
 import channels from './channels';
 import cloud from './cloud';
@@ -16,6 +17,7 @@ import groups from './groups';
 import hostedCustomer from './hosted_customer';
 import integrations from './integrations';
 import jobs from './jobs';
+import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
 import roles from './roles';
@@ -30,6 +32,7 @@ import users from './users';
 export default combineReducers({
     general,
     users,
+    limits,
     teams,
     channels,
     posts,
@@ -51,4 +54,5 @@ export default combineReducers({
     cloud,
     usage,
     hostedCustomer,
+    channelBookmarks,
 });

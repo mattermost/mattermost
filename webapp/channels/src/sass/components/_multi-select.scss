@@ -3,11 +3,12 @@
 .multi-select__container {
     display: flex;
     width: 100%;
+    min-height: 40px;
     justify-content: space-between;
     padding: 0 15px;
 
     .btn {
-        height: 36px;
+        height: 40px;
         margin-left: 16px;
     }
 }
@@ -34,7 +35,7 @@
 
     > div:not(.multi-select__note),
     > span {
-        opacity: 0.6;
+        opacity: 0.73;
     }
 }
 
@@ -42,8 +43,8 @@
     display: table;
     width: 100%;
     padding: 8px 13px;
-    background: rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: 3px;
+    background: rgba(var(--center-channel-color-rgb), 0.12);
 
     > div {
         display: table-cell;

@@ -4,14 +4,14 @@
 import styled, {keyframes} from 'styled-components';
 
 const skeletonFade = keyframes`
-    0% { 
-        background-color: rgba(var(--center-channel-color-rgb), 0.08); 
+    0% {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
     }
-    50% { 
-        background-color: rgba(var(--center-channel-color-rgb), 0.16); 
+    50% {
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
     }
-    100% { 
-        background-color: rgba(var(--center-channel-color-rgb), 0.08); 
+    100% {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
     }
 `;
 

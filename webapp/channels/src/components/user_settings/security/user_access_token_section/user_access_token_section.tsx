@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -16,7 +17,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
@@ -38,30 +39,10 @@ type Props = {
     setRequireConfirm: (isRequiredConfirm: boolean, confirmCopyToken: (confirmAction: () => void) => void) => void;
     actions: {
         getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;
-        createUserAccessToken: (userId: string, description: string) => Promise<{
-            data: {token: string; description: string; id: string; is_active: boolean} | null;
-            error?: {
-                message: string;
-            };
-        }>;
-        revokeUserAccessToken: (tokenId: string) => Promise<{
-            data: string;
-            error?: {
-                message: string;
-            };
-        }>;
-        enableUserAccessToken: (tokenId: string) => Promise<{
-            data: string;
-            error?: {
-                message: string;
-            };
-        }>;
-        disableUserAccessToken: (tokenId: string) => Promise<{
-            data: string;
-            error?: {
-                message: string;
-            };
-        }>;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         clearUserAccessTokens: () => void;
     };
 }
@@ -69,7 +50,7 @@ type Props = {
 type State = {
     active?: boolean;
     showConfirmModal: boolean;
-    newToken?: {token: string; description: string; id: string; is_active: boolean} | null;
+    newToken?: UserAccessToken | null;
     tokenCreationState?: string;
     tokenError?: string;
     serverError?: string|null;
@@ -146,7 +127,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         const description = this.newtokendescriptionRef ? this.newtokendescriptionRef.current!.value : '';
 
         if (description === '') {
-            this.setState({tokenError: Utils.localizeMessage('user.settings.tokens.nameRequired', 'Please enter a description.')});
+            this.setState({tokenError: Utils.localizeMessage({id: 'user.settings.tokens.nameRequired', defaultMessage: 'Please enter a description.'})});
             return;
         }
 
@@ -335,11 +316,11 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         let tokenListClass = '';
 
         if (!this.props.active) {
-            const describe = Utils.localizeMessage('user.settings.tokens.clickToEdit', "Click 'Edit' to manage your personal access tokens");
+            const describe = Utils.localizeMessage({id: 'user.settings.tokens.clickToEdit', defaultMessage: "Click 'Edit' to manage your personal access tokens"});
 
             return (
                 <SettingItemMin
-                    title={Utils.localizeMessage('user.settings.tokens.title', 'Personal Access Tokens')}
+                    title={Utils.localizeMessage({id: 'user.settings.tokens.title', defaultMessage: 'Personal Access Tokens'})}
                     describe={describe}
                     section={SECTION_TOKENS}
                     updateSection={this.props.updateSection}
@@ -640,13 +621,13 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         return (
             <div>
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.tokens.title', 'Personal Access Tokens')}
+                    title={Utils.localizeMessage({id: 'user.settings.tokens.title', defaultMessage: 'Personal Access Tokens'})}
                     inputs={inputs}
                     extraInfo={extraInfo}
                     infoPosition='top'
                     serverError={this.state.serverError}
                     updateSection={this.props.updateSection}
-                    width='full'
+                    isFullWidth={true}
                     saving={this.state.saving}
                     cancelButtonText={
                         <FormattedMessage

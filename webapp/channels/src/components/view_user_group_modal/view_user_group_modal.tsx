@@ -37,8 +37,8 @@ export type Props = {
     backButtonCallback: () => void;
     backButtonAction: () => void;
     actions: {
-        getGroup: (groupId: string, includeMemberCount: boolean) => Promise<{data: Group}>;
-        getUsersInGroup: (groupId: string, page: number, perPage: number) => Promise<{data: UserProfile[]}>;
+        getGroup: (groupId: string, includeMemberCount: boolean) => Promise<ActionResult<Group>>;
+        getUsersInGroup: (groupId: string, page: number, perPage: number) => Promise<ActionResult<UserProfile[]>>;
         setModalSearchTerm: (term: string) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
@@ -221,7 +221,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                             <div className='user-groups-search'>
                                 <Input
                                     type='text'
-                                    placeholder={Utils.localizeMessage('search_bar.searchGroupMembers', 'Search group members')}
+                                    placeholder={Utils.localizeMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
                                     onChange={this.handleSearch}
                                     value={this.props.searchTerm}
                                     data-testid='searchInput'
@@ -247,8 +247,8 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                                 }
                                 {(users.length === 0 && this.props.searchTerm) &&
                                 <NoResultsIndicator
-                                    variant={NoResultsVariant.ChannelSearch}
-                                    titleValues={{channelName: `"${this.props.searchTerm}"`}}
+                                    variant={NoResultsVariant.Search}
+                                    titleValues={{channelName: `${this.props.searchTerm}`}}
                                 />
                                 }
                                 {users.map((user) => {

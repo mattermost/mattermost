@@ -13,7 +13,7 @@ import {
     useRole,
     flip,
     shift,
-} from '@floating-ui/react-dom-interactions';
+} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {memo, useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
@@ -22,7 +22,7 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import useTooltip from 'components/common/hooks/useTooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import PostPriorityPicker from './post_priority_picker';
 
@@ -42,16 +42,6 @@ function PostPriorityPickerOverlay({
     const [pickerOpen, setPickerOpen] = useState(false);
     const {formatMessage} = useIntl();
 
-    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
-    const {
-        reference: tooltipRef,
-        getReferenceProps: getTooltipReferenceProps,
-        tooltip,
-    } = useTooltip({
-        placement: 'top',
-        message: messagePriority,
-    });
-
     const handleClose = useCallback(() => {
         setPickerOpen(false);
         onClose();
@@ -60,10 +50,12 @@ function PostPriorityPickerOverlay({
     const {
         x: pickerX,
         y: pickerY,
-        reference: pickerRef,
-        floating: pickerFloating,
         strategy: pickerStrategy,
         context: pickerContext,
+        refs: {
+            setReference: setPickerReference,
+            setFloating: setPickerFloating,
+        },
     } = useFloating({
         open: pickerOpen,
         onOpenChange: setPickerOpen,
@@ -89,15 +81,18 @@ function PostPriorityPickerOverlay({
         useRole(pickerContext),
     ]);
 
+    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
+
     return (
         <>
-            <div
-                ref={tooltipRef}
-                {...getTooltipReferenceProps()}
+            <WithTooltip
+                id='postPriorityPickerOverlayTooltip'
+                placement='top'
+                title={messagePriority}
             >
                 <IconContainer
                     id='messagePriority'
-                    ref={pickerRef}
+                    ref={setPickerReference}
                     className={classNames({control: true, active: pickerOpen})}
                     disabled={disabled}
                     type='button'
@@ -109,7 +104,7 @@ function PostPriorityPickerOverlay({
                         color='currentColor'
                     />
                 </IconContainer>
-            </div>
+            </WithTooltip>
             <FloatingPortal id='root-portal'>
                 {pickerOpen && (
                     <FloatingFocusManager
@@ -119,7 +114,7 @@ function PostPriorityPickerOverlay({
                         initialFocus={-1}
                     >
                         <div
-                            ref={pickerFloating}
+                            ref={setPickerFloating}
                             style={{
                                 width: 'max-content',
                                 position: pickerStrategy,
@@ -138,7 +133,6 @@ function PostPriorityPickerOverlay({
                     </FloatingFocusManager>
                 )}
             </FloatingPortal>
-            {!pickerOpen && tooltip}
         </>
     );
 }

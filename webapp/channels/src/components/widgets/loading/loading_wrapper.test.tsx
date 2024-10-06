@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import LoadingWrapper from './loading_wrapper';
 
@@ -31,7 +32,7 @@ describe('components/widgets/loading/LoadingWrapper', () => {
     ];
     for (const testCase of testCases) {
         test(testCase.name, () => {
-            const wrapper = mount(
+            const wrapper = mountWithIntl(
                 <LoadingWrapper
                     loading={testCase.loading}
                     text={testCase.text}

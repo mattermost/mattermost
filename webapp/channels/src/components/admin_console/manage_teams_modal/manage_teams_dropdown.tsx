@@ -62,13 +62,13 @@ const ManageTeamsDropdown = (props: Props) => {
     const {team} = props;
     let title;
     if (isSysAdmin) {
-        title = localizeMessage('admin.user_item.sysAdmin', 'System Admin');
+        title = localizeMessage({id: 'admin.user_item.sysAdmin', defaultMessage: 'System Admin'});
     } else if (isTeamAdmin) {
-        title = localizeMessage('admin.user_item.teamAdmin', 'Team Admin');
+        title = localizeMessage({id: 'admin.user_item.teamAdmin', defaultMessage: 'Team Admin'});
     } else if (isGuestUser) {
-        title = localizeMessage('admin.user_item.guest', 'Guest');
+        title = localizeMessage({id: 'admin.user_item.guest', defaultMessage: 'Guest'});
     } else {
-        title = localizeMessage('admin.user_item.teamMember', 'Team Member');
+        title = localizeMessage({id: 'admin.user_item.teamMember', defaultMessage: 'Team Member'});
     }
 
     return (
@@ -79,22 +79,22 @@ const ManageTeamsDropdown = (props: Props) => {
             </a>
             <Menu
                 openLeft={true}
-                ariaLabel={localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}
+                ariaLabel={localizeMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
             >
                 <Menu.ItemAction
                     show={!isTeamAdmin && !isGuestUser}
                     onClick={makeTeamAdmin}
-                    text={localizeMessage('admin.user_item.makeTeamAdmin', 'Make Team Admin')}
+                    text={localizeMessage({id: 'admin.user_item.makeTeamAdmin', defaultMessage: 'Make Team Admin'})}
                 />
                 <Menu.ItemAction
                     show={isTeamAdmin}
                     onClick={makeMember}
-                    text={localizeMessage('admin.user_item.makeMember', 'Make Team Member')}
+                    text={localizeMessage({id: 'admin.user_item.makeMember', defaultMessage: 'Make Team Member'})}
                 />
                 <Menu.ItemAction
                     show={!team.group_constrained}
                     onClick={removeFromTeam}
-                    text={localizeMessage('team_members_dropdown.leave_team', 'Remove from Team')}
+                    text={localizeMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove from Team'})}
                 />
             </Menu>
         </MenuWrapper>

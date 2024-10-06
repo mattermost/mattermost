@@ -10,6 +10,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
@@ -20,6 +22,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	s3 "github.com/minio/minio-go/v7"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -116,15 +119,36 @@ func TestTimeout(t *testing.T) {
 		AmazonS3RequestTimeoutMilliseconds: 0,
 	}
 
-	fileBackend, err := NewS3FileBackend(cfg)
-	require.NoError(t, err)
+	t.Run("MakeBucket", func(t *testing.T) {
+		fileBackend, err := NewS3FileBackend(cfg)
+		require.NoError(t, err)
 
-	err = fileBackend.MakeBucket()
-	require.True(t, errors.Is(err, context.DeadlineExceeded))
+		err = fileBackend.MakeBucket()
+		require.True(t, errors.Is(err, context.DeadlineExceeded))
+	})
 
-	path := "tests/" + randomString() + ".png"
-	_, err = fileBackend.WriteFile(bytes.NewReader([]byte("testimage")), path)
-	require.True(t, errors.Is(err, context.DeadlineExceeded))
+	t.Run("WriteFile", func(t *testing.T) {
+		cfg.AmazonS3RequestTimeoutMilliseconds = 1000
+
+		fileBackend, err := NewS3FileBackend(cfg)
+		require.NoError(t, err)
+
+		err = fileBackend.MakeBucket()
+		require.NoError(t, err)
+
+		r, w := io.Pipe()
+		go func() {
+			defer w.Close()
+			for i := 0; i < 10; i++ {
+				_, writeErr := w.Write([]byte("data"))
+				require.NoError(t, writeErr)
+				time.Sleep(time.Millisecond * 200)
+			}
+		}()
+
+		_, err = fileBackend.WriteFile(r, "tests/"+randomString()+".png")
+		require.True(t, errors.Is(err, context.DeadlineExceeded))
+	})
 }
 
 func TestInsecureMakeBucket(t *testing.T) {
@@ -298,4 +322,60 @@ func (fc fauxCloser) Close() error {
 	fc.s3WithCancel.timer.Stop()
 	fc.s3WithCancel.cancel()
 	return fc.closeErr
+}
+
+func TestListDirectory(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	cfg := FileBackendSettings{
+		DriverName:                         driverS3,
+		AmazonS3AccessKeyId:                "minioaccesskey",
+		AmazonS3SecretAccessKey:            "miniosecretkey",
+		AmazonS3Bucket:                     "mattermost-test-1",
+		AmazonS3Region:                     "",
+		AmazonS3Endpoint:                   s3Endpoint,
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		AmazonS3SSE:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 5000,
+	}
+
+	fileBackend, err := NewS3FileBackend(cfg)
+	require.NoError(t, err)
+
+	found, err := fileBackend.client.BucketExists(context.Background(), cfg.AmazonS3Bucket)
+	require.NoError(t, err)
+
+	if !found {
+		err = fileBackend.MakeBucket()
+		require.NoError(t, err)
+	}
+
+	fileBackend.pathPrefix = "19700101/"
+	require.NoError(t, err)
+	b := []byte("test")
+
+	path1 := "19700101/" + randomString() + ".txt"
+	_, err = fileBackend.WriteFile(bytes.NewReader(b), path1)
+	require.NoError(t, err, "Failed to write file1 to S3")
+
+	_, err = fileBackend.ListDirectory("")
+	var pErr *fs.PathError
+	assert.True(t, errors.As(err, &pErr), "error is not of type fs.PathError")
+
+	err = fileBackend.RemoveFile(path1)
+	require.NoError(t, err, "Failed to remove file1 from S3")
+
+	err = fileBackend.RemoveDirectory("19700101")
+	require.NoError(t, err)
 }

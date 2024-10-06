@@ -3,18 +3,11 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
-
-import PurchaseModal from 'components/purchase_modal';
-
-import {ModalIdentifiers} from 'utils/constants';
 
 import './link.scss';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 export interface UpgradeLinkProps {
     telemetryInfo?: string;
@@ -24,26 +17,17 @@ export interface UpgradeLinkProps {
 }
 
 const UpgradeLink = (props: UpgradeLinkProps) => {
-    const dispatch = useDispatch<DispatchFunc>();
     const styleButton = props.styleButton ? ' style-button' : '';
     const styleLink = props.styleLink ? ' style-link' : '';
+
+    const [openSalesLink] = useOpenSalesLink();
 
     const handleLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         if (props.telemetryInfo) {
             trackEvent('upgrade_mm_cloud', props.telemetryInfo);
         }
-        try {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.CLOUD_PURCHASE,
-                dialogType: PurchaseModal,
-                dialogProps: {
-                    callerCTA: props.telemetryInfo,
-                },
-            }));
-        } catch (error) {
-            // do nothing
-        }
+        openSalesLink();
     };
     const buttonText = (
         <FormattedMessage

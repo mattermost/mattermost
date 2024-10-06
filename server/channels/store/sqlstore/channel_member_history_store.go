@@ -103,10 +103,9 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 		return false, err
 	} else if result.Min.Valid {
 		return result.Min.Int64 <= time, nil
-	} else {
-		// if the result was null, there are no rows in the table, so there is no data from before
-		return false, nil
 	}
+	// if the result was null, there are no rows in the table, so there is no data from before
+	return false, nil
 }
 
 func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
@@ -154,7 +153,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	// we have to fill in the join/leave times, because that data doesn't exist in the channel members table
 	for _, channelMemberHistory := range histories {
 		channelMemberHistory.JoinTime = startTime
-		channelMemberHistory.LeaveTime = model.NewInt64(endTime)
+		channelMemberHistory.LeaveTime = model.NewPointer(endTime)
 	}
 	return histories, nil
 }

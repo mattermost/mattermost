@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {findKey} from 'lodash';
+import findKey from 'lodash/findKey';
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {Threads, ActionTypes} from 'utils/constants';
 
 import type {ViewsState} from 'types/store/views';
 
-export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: GenericAction) => {
+export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: AnyAction) => {
     switch (action.type) {
     case PostTypes.POST_REMOVED: {
         const key = findKey(state, (id) => id === action.data.id);
@@ -36,7 +36,7 @@ export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThr
     }
 };
 
-export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, action: GenericAction) => {
+export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, action: AnyAction) => {
     switch (action.type) {
     case Threads.CHANGED_LAST_VIEWED_AT:
         return {
@@ -51,7 +51,7 @@ export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, 
     }
 };
 
-export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = {}, action: GenericAction) {
+export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = {}, action: AnyAction) {
     switch (action.type) {
     case Threads.CHANGED_LAST_VIEWED_AT:
         return {
@@ -71,7 +71,7 @@ export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = 
     }
 }
 
-export function toastStatus(state: ViewsState['threads']['toastStatus'] = false, action: GenericAction) {
+export function toastStatus(state: ViewsState['threads']['toastStatus'] = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return false;

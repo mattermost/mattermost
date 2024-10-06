@@ -6,10 +6,10 @@ import React from 'react';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 
@@ -27,7 +27,7 @@ type Props = {
     size: number;
     defaultEmojis: Emoji[];
     actions: {
-        addReaction: (postId: string, emojiName: string) => void;
+        toggleReaction: (postId: string, emojiName: string) => void;
     };
 }
 
@@ -41,9 +41,9 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
         size: 3,
     };
 
-    handleAddEmoji = (emoji: Emoji): void => {
-        const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
-        this.props.actions.addReaction(this.props.postId, emojiName);
+    handleToggleEmoji = (emoji: Emoji): void => {
+        const emojiName = getEmojiName(emoji);
+        this.props.actions.toggleReaction(this.props.postId, emojiName);
     };
 
     complementEmojis = (emojis: Emoji[]): (Emoji[]) => {
@@ -69,7 +69,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
         function capitalizeFirstLetter(s: string) {
             return s[0].toLocaleUpperCase(locale) + s.slice(1);
         }
-        const name = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const name = getEmojiName(emoji);
         return capitalizeFirstLetter(name.replace(/_/g, ' '));
     };
 
@@ -91,29 +91,23 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                 teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
+                <WithTooltip
+                    id='post_info.emoji.tooltip'
+                    title={this.emojiName(emoji, this.props.locale)}
+                    emoji={getEmojiName(emoji)}
+                    emojiStyle='large'
                     placement='top'
-                    overlay={
-                        <Tooltip
-                            id='post_info.emoji.tooltip'
-                            className='hidden-xs'
-                        >
-                            {this.emojiName(emoji, this.props.locale)}
-                        </Tooltip>
-                    }
                 >
                     <div>
                         <React.Fragment>
                             <EmojiItem
                                 emoji={emoji}
-                                onItemClick={this.handleAddEmoji}
+                                onItemClick={this.handleToggleEmoji}
                                 order={n}
                             />
                         </React.Fragment>
                     </div>
-                </OverlayTrigger>
+                </WithTooltip>
             </ChannelPermissionGate>
         ),
         );

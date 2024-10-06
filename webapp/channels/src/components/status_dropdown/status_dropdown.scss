@@ -1,3 +1,9 @@
+.logout__icon {
+    &:hover {
+        fill: rgba(255, 0, 0, 0.75);
+    }
+}
+
 #statusDropdownMenu {
     .icon {
         position: relative;
@@ -75,7 +81,7 @@ button.custom_status__row {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
 
         .custom-status-emoji {
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 
@@ -88,6 +94,7 @@ button.custom_status__row {
     &__container {
         display: flex;
         padding: 7px 0;
+        color: rgba(var(--center-channel-color-rgb), 1);
         line-height: 20px;
     }
 
@@ -131,7 +138,11 @@ button.custom_status__row {
 
 .custom-status {
     &-emoji {
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        fill: rgba(var(--center-channel-color-rgb), 0.75);
+
+        &:hover {
+            fill: rgba(var(--center-channel-color-rgb), 0.88);
+        }
     }
 
     &-suggestion-emoji > span:first-child {
@@ -142,11 +153,6 @@ button.custom_status__row {
 .status-dropdown-menu-global-header {
     padding: 4px 8px;
     border-radius: 4px;
-
-    .icon > i:not(.status-icon) {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-family: "compass-icons";
-    }
 
     &:hover {
         background: var(--sidebar-text-08);
@@ -187,6 +193,7 @@ button.custom_status__row {
 
     .custom_status__container {
         align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         line-height: 14px;
     }
 
@@ -199,7 +206,13 @@ button.custom_status__row {
             text-overflow: ellipsis;
             white-space: nowrap;
 
+            &.contrast {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+
             &.bold {
+                font-family: 'Metropolis', sans-serif;
+                font-size: 16px;
                 font-weight: 600;
             }
         }
@@ -324,7 +337,7 @@ button.custom_status__row {
 
 .status-dropdpwn-menu .status-dropdown-menu__clear-container .input-clear {
     position: absolute;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
 

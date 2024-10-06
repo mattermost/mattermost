@@ -23,13 +23,6 @@ describe('Settings > Display > Clock Display Mode', () => {
     let testChannel;
 
     before(() => {
-        // # Enable Timezone
-        cy.apiUpdateConfig({
-            DisplaySettings: {
-                ExperimentalTimezone: true,
-            },
-        });
-
         // # Login as new user, visit off-topic and post a message
         cy.apiInitSetup({loginAfter: true}).then(({team, channel, offTopicUrl}) => {
             testTeam = team;

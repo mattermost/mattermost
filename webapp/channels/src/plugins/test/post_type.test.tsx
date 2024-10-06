@@ -8,11 +8,9 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
 
-class PostTypePlugin extends React.PureComponent {
-    render() {
-        return <span id='pluginId'>{'PostTypePlugin'}</span>;
-    }
-}
+const PostTypePlugin = () => (
+    <span id='pluginId'>{'PostTypePlugin'}</span>
+);
 
 describe('plugins/PostMessageView', () => {
     const post = {type: 'testtype', message: 'this is some text', id: 'post_id'} as any;

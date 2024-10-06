@@ -7,7 +7,7 @@ import type {PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -76,7 +76,7 @@ describe('components/dot_menu/DotMenu', () => {
                 },
                 currentUserId: 'current_user_id',
                 profilesInChannel: {
-                    current_user_id: ['user_1'],
+                    current_user_id: new Set(['user_1']),
                 },
             },
             teams: {
@@ -146,6 +146,7 @@ describe('components/dot_menu/DotMenu', () => {
         threadReplyCount: 0,
         userId: 'user_id_1',
         isMilitaryTime: false,
+        canMove: true,
     };
 
     test('should match snapshot, on Center', () => {
@@ -172,7 +173,33 @@ describe('components/dot_menu/DotMenu', () => {
             canEdit: true,
             canDelete: true,
         };
-        const wrapper = renderWithIntlAndStore(
+        const wrapper = renderWithContext(
+            <DotMenu {...props}/>,
+            initialState,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, can move', () => {
+        const props = {
+            ...baseProps,
+            canMove: true,
+        };
+        const wrapper = renderWithContext(
+            <DotMenu {...props}/>,
+            initialState,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, cannot move', () => {
+        const props = {
+            ...baseProps,
+            canMove: false,
+        };
+        const wrapper = renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -185,7 +212,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.CENTER,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -200,7 +227,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             channelIsArchived: true,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -215,7 +242,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.SEARCH,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -235,7 +262,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -256,7 +283,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -277,7 +304,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...caseProps,
                 location: Locations.RHS_ROOT,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );

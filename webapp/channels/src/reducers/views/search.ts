@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {SearchTypes} from 'utils/constants';
 
 import type {ViewsState} from 'types/store/views';
 
-function modalSearch(state = '', action: GenericAction) {
+function modalSearch(state = '', action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_MODAL_SEARCH: {
         return action.data.trim();
@@ -23,7 +23,7 @@ function modalSearch(state = '', action: GenericAction) {
     }
 }
 
-function popoverSearch(state = '', action: GenericAction) {
+function popoverSearch(state = '', action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_POPOVER_SEARCH: {
         return action.data.trim();
@@ -34,7 +34,7 @@ function popoverSearch(state = '', action: GenericAction) {
     }
 }
 
-function channelMembersRhsSearch(state = '', action: GenericAction) {
+function channelMembersRhsSearch(state = '', action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_CHANNEL_MEMBERS_RHS_SEARCH: {
         return action.data;
@@ -47,7 +47,7 @@ function channelMembersRhsSearch(state = '', action: GenericAction) {
     }
 }
 
-function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: GenericAction) {
+function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_MODAL_FILTERS: {
         const filters = action.data;
@@ -63,20 +63,7 @@ function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: 
     }
 }
 
-function systemUsersSearch(state: Partial<ViewsState['search']['systemUsersSearch']> = {}, action: GenericAction) {
-    switch (action.type) {
-    case SearchTypes.SET_SYSTEM_USERS_SEARCH: {
-        return action.data;
-    }
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
-function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> = {}, action: GenericAction) {
+function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> = {}, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_USER_GRID_SEARCH: {
         const term = action.data.trim();
@@ -100,7 +87,7 @@ function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> =
     }
 }
 
-function teamListSearch(state = '', action: GenericAction) {
+function teamListSearch(state = '', action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_TEAM_LIST_SEARCH: {
         return action.data.trim();
@@ -113,7 +100,7 @@ function teamListSearch(state = '', action: GenericAction) {
     }
 }
 
-function channelListSearch(state: Partial<ViewsState['search']['channelListSearch']> = {}, action: GenericAction) {
+function channelListSearch(state: Partial<ViewsState['search']['channelListSearch']> = {}, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SET_CHANNEL_LIST_SEARCH: {
         const term = action.data.trim();
@@ -142,7 +129,6 @@ export default combineReducers({
     popoverSearch,
     channelMembersRhsSearch,
     modalFilters,
-    systemUsersSearch,
     userGridSearch,
     teamListSearch,
     channelListSearch,

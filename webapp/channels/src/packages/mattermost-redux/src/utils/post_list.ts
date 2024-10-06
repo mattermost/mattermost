@@ -6,13 +6,11 @@ import moment from 'moment-timezone';
 import type {ActivityEntry, Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {Posts, Preferences} from 'mattermost-redux/constants';
+import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {makeGetPostsForIds} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
+import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
 import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook} from 'mattermost-redux/utils/post_utils';
@@ -21,16 +19,8 @@ import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
 export const CREATE_COMMENT = 'create-comment';
 export const DATE_LINE = 'date-';
-export const START_OF_NEW_MESSAGES = 'start-of-new-messages';
+export const START_OF_NEW_MESSAGES = 'start-of-new-messages-';
 export const MAX_COMBINED_SYSTEM_POSTS = 100;
-
-export function shouldShowJoinLeaveMessages(state: GlobalState) {
-    const config = getConfig(state);
-    const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
-
-    // This setting is true or not set if join/leave messages are to be displayed
-    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
-}
 
 interface PostFilterOptions {
     postIds: string[];
@@ -59,11 +49,10 @@ export function makeFilterPostsAndAddSeparators() {
         (state: GlobalState, {postIds}: PostFilterOptions) => getPostsForIds(state, postIds),
         (state: GlobalState, {lastViewedAt}: PostFilterOptions) => lastViewedAt,
         (state: GlobalState, {indicateNewMessages}: PostFilterOptions) => indicateNewMessages,
-        (state) => state.entities.posts.selectedPostId,
+        () => '', // This previously returned state.entities.posts.selectedPostId which stopped being set at some point
         getCurrentUser,
         shouldShowJoinLeaveMessages,
-        isTimezoneEnabled,
-        (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave, timeZoneEnabled) => {
+        (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave) => {
             if (posts.length === 0 || !currentUser) {
                 return [];
             }
@@ -90,15 +79,13 @@ export function makeFilterPostsAndAddSeparators() {
 
                 // Push on a date header if the last post was on a different day than the current one
                 const postDate = new Date(post.create_at);
-                if (timeZoneEnabled) {
-                    const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
-                    const timezone = getUserCurrentTimezone(currentUser.timezone);
-                    if (timezone) {
-                        const zone = moment.tz.zone(timezone);
-                        if (zone) {
-                            const timezoneOffset = zone.utcOffset(post.create_at) * 60 * 1000;
-                            postDate.setTime(post.create_at + (currentOffset - timezoneOffset));
-                        }
+                const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
+                const timezone = getUserCurrentTimezone(currentUser.timezone);
+                if (timezone) {
+                    const zone = moment.tz.zone(timezone);
+                    if (zone) {
+                        const timezoneOffset = zone.utcOffset(postDate.getTime()) * 60 * 1000;
+                        postDate.setTime(postDate.getTime() + (currentOffset - timezoneOffset));
                     }
                 }
 
@@ -115,7 +102,7 @@ export function makeFilterPostsAndAddSeparators() {
                     !addedNewMessagesIndicator &&
                     indicateNewMessages
                 ) {
-                    out.push(START_OF_NEW_MESSAGES);
+                    out.push(START_OF_NEW_MESSAGES + lastViewedAt);
                     addedNewMessagesIndicator = true;
                 }
 
@@ -144,7 +131,7 @@ export function makeCombineUserActivityPosts() {
             for (let i = 0; i < postIds.length; i++) {
                 const postId = postIds[i];
 
-                if (postId === START_OF_NEW_MESSAGES || postId.startsWith(DATE_LINE) || isCreateComment(postId)) {
+                if (isStartOfNewMessages(postId) || isDateLine(postId) || isCreateComment(postId)) {
                     // Not a post, so it won't be combined
                     out.push(postId);
 
@@ -191,7 +178,15 @@ export function makeCombineUserActivityPosts() {
 }
 
 export function isStartOfNewMessages(item: string) {
-    return item === START_OF_NEW_MESSAGES;
+    return item.startsWith(START_OF_NEW_MESSAGES);
+}
+
+export function getTimestampForStartOfNewMessages(item: string) {
+    return parseInt(item.substring(START_OF_NEW_MESSAGES.length), 10);
+}
+
+export function getNewMessagesIndex(postListIds: string[]): number {
+    return postListIds.findIndex(isStartOfNewMessages);
 }
 
 export function isCreateComment(item: string) {

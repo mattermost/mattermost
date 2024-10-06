@@ -35,7 +35,7 @@
         "DeveloperFlags": "",
         "EnableClientPerformanceDebugging": false,
         "EnableOpenTracing": false,
-        "EnableSecurityFixAlert": true,
+        "EnableSecurityFixAlert": false,
         "EnableInsecureOutgoingConnections": false,
         "AllowedUntrustedInternalConnections": "localhost",
         "EnableMultifactorAuthentication": false,
@@ -72,7 +72,6 @@
         "EnableUserStatuses": true,
         "ExperimentalEnableAuthenticationTransfer": true,
         "ClusterLogTimeoutMilliseconds": 2000,
-        "EnablePreviewFeatures": true,
         "EnableTutorial": true,
         "EnableOnboardingFlow": false,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
@@ -105,8 +104,11 @@
         "CollapsedThreads": "disabled",
         "ManagedResourcePaths": "",
         "EnableCustomGroups": true,
-        "SelfHostedPurchase": true,
-        "AllowSyncedDrafts": true
+        "AllowSyncedDrafts": true,
+        "UniqueEmojiReactionLimitPerPost": 50,
+        "RefreshPostStatsRunTime": "00:00",
+        "MaximumPayloadSizeBytes": 100000,
+        "MaximumURLLength": 2048
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -167,8 +169,6 @@
         "ConnectionSecurity": "",
         "SendPushNotifications": true,
         "PushNotificationServer": "https://push-test.mattermost.com",
-        "PushNotificationServerType": "custom",
-        "PushNotificationServerLocation": "us",
         "PushNotificationContents": "generic",
         "PushNotificationBuffer": 1000,
         "EnableEmailBatching": false,
@@ -296,8 +296,7 @@
         "LoginFieldName": "",
         "LoginButtonColor": "#0000",
         "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7",
-        "Trace": false
+        "LoginButtonTextColor": "#2389D7"
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -366,7 +365,9 @@
         "EnableFileDeletion": false,
         "EnableBoardsDeletion": false,
         "MessageRetentionDays": 365,
+        "MessageRetentionHours": 0,
         "FileRetentionDays": 365,
+        "FileRetentionHours": 0,
         "BoardsRetentionDays": 365,
         "DeletionJobStartTime": "02:00",
         "BatchSize": 3000,
@@ -385,10 +386,11 @@
             "SMTPUsername": "",
             "SMTPPassword": "",
             "EmailAddress": "",
-            "SMTPServerTimeout": 1800
+            "SMTPServerTimeout": 1800,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
         }
     },
-    "ProductSettings": {},
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": true,
@@ -418,8 +420,7 @@
     },
     "DisplaySettings": {
         "CustomURLSchemes": [],
-        "MaxMarkdownNodes": 0,
-        "ExperimentalTimezone": false
+        "MaxMarkdownNodes": 0
     },
     "GuestAccountsSettings": {
         "Enable": true,
@@ -441,5 +442,14 @@
     "ExportSettings": {
         "Directory": "./export",
         "RetentionDays": 30
+    },
+    "WranglerSettings": {
+        "PermittedWranglerRoles": [],
+        "AllowedEmailDomain": [],
+        "MoveThreadMaxCount": 100,
+        "MoveThreadToAnotherTeamEnable": false,
+        "MoveThreadFromPrivateChannelEnable": false,
+        "MoveThreadFromDirectMessageChannelEnable": false,
+        "MoveThreadFromGroupMessageChannelEnable": false
     }
 }

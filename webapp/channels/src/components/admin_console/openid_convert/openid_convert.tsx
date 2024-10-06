@@ -5,8 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {BaseProps} from 'components/admin_console/admin_settings';
 import ExternalLink from 'components/external_link';
@@ -21,16 +22,11 @@ import './openid_convert.scss';
 type Props = BaseProps & {
     disabled?: boolean;
     actions: {
-        updateConfig: (config: AdminConfig) => ActionFunc & Partial<{error?: ClientErrorPlaceholder}>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
 };
 type State = {
     serverError?: string;
-}
-
-type ClientErrorPlaceholder = {
-    message: string;
-    server_error_id: string;
 }
 
 export default class OpenIdConvert extends React.PureComponent<Props, State> {
@@ -64,7 +60,7 @@ export default class OpenIdConvert extends React.PureComponent<Props, State> {
             newConfig[setting].TokenEndpoint = '';
         });
 
-        const {error: err} = await this.props.actions.updateConfig(newConfig);
+        const {error: err} = await this.props.actions.patchConfig(newConfig);
         if (err) {
             this.setState({serverError: err.message});
         } else {

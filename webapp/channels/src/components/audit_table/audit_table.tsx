@@ -8,8 +8,6 @@ import type {IntlShape} from 'react-intl';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import FormatAudit from './format_audit';
 
 type Props = {
@@ -20,7 +18,7 @@ type Props = {
     showSession?: boolean;
     currentUser: UserProfile;
     actions: {
-        getMissingProfilesByIds: (userIds: string[]) => ActionFunc;
+        getMissingProfilesByIds: (userIds: string[]) => void;
     };
 };
 

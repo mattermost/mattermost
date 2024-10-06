@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -35,13 +36,27 @@ func TestCreateUser(t *testing.T) {
 	defer th.TearDown()
 
 	user := model.User{
-		Email:         th.GenerateTestEmail(),
-		Nickname:      "Corey Hulen",
-		Password:      "hello1",
-		Username:      GenerateTestUsername(),
-		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
-		EmailVerified: true,
-		DeleteAt:      1,
+		Id:       model.NewId(),
+		Email:    th.GenerateTestEmail(),
+		Nickname: "Corey Hulen",
+		Password: "hello1",
+		Username: GenerateTestUsername(),
+	}
+	_, resp, err := th.Client.CreateUser(context.Background(), &user)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	user = model.User{
+		Email:          th.GenerateTestEmail(),
+		Nickname:       "Corey Hulen",
+		Password:       "hello1",
+		Username:       GenerateTestUsername(),
+		Roles:          model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		EmailVerified:  true,
+		DeleteAt:       1,
+		CreateAt:       1,
+		UpdateAt:       1,
+		LastActivityAt: 1,
 	}
 
 	ruser, resp, err := th.Client.CreateUser(context.Background(), &user)
@@ -55,6 +70,9 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, user.Nickname, ruser.Nickname, "nickname didn't match")
 	require.Equal(t, model.SystemUserRoleId, ruser.Roles, "did not clear roles")
 	require.Equal(t, int64(0), ruser.DeleteAt, "did not reset deleteAt")
+	require.NotEqual(t, user.UpdateAt, ruser.UpdateAt, "did not reset updateAt")
+	require.NotEqual(t, user.CreateAt, ruser.CreateAt, "did not reset createAt")
+	require.NotEqual(t, user.LastActivityAt, ruser.LastActivityAt, "did not reset LastActivityAt")
 
 	CheckUserSanitization(t, ruser)
 
@@ -115,6 +133,33 @@ func TestCreateUser(t *testing.T) {
 		_, appErr = th.App.GetUserByUsername(user3.Username)
 		require.NotNil(t, appErr)
 	}, "Should not be able to create two users with the same email but spaces in it")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		email := th.GenerateTestEmail()
+		newUser := &model.User{
+			Id:            model.NewId(),
+			RemoteId:      model.NewPointer(model.NewId()),
+			Email:         email,
+			Password:      "Password1",
+			Username:      GenerateTestUsername(),
+			EmailVerified: true,
+		}
+
+		_, resp, err = client.CreateUser(context.Background(), newUser)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Must call update for existing user")
+		CheckBadRequestStatus(t, resp)
+		_, appErr := th.App.GetUserByEmail(email)
+		require.NotNil(t, appErr)
+
+		newUser.Id = ""
+		_, resp, err = client.CreateUser(context.Background(), newUser)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		createdUser, appErr := th.App.GetUserByEmail(email)
+		require.Nil(t, appErr)
+		require.Zero(t, *createdUser.RemoteId)
+	}, "Should not be able to define the RemoteID of a user through the API")
 }
 
 func TestCreateUserAudit(t *testing.T) {
@@ -156,6 +201,47 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NotContains(t, string(data), password)
 }
 
+func TestUserLoginAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "adv.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptions(t, options)
+	defer th.TearDown()
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	user, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Equal(t, th.BasicUser.Id, user.Id)
+
+	sess, resp, err := th.Client.GetSessions(context.Background(), user.Id, "")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, sess, 1)
+	assert.Equal(t, th.BasicUser.Id, sess[0].UserId)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Audit.Flush()
+	require.NoError(t, err)
+
+	require.NoError(t, logFile.Sync())
+
+	data, err := io.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+
+	// ensure we are auditing the user_id and session_id
+	require.Contains(t, string(data), fmt.Sprintf("\"event_name\":\"login\",\"status\":\"success\",\"actor\":{\"user_id\":\"%s\",\"session_id\":\"%s\"", user.Id, sess[0].Id))
+}
+
 func TestCreateUserInputFilter(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -195,7 +281,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestriction@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewString("999099"),
+					AuthData:    model.NewPointer("999099"),
 				}
 				u, _, err := th.SystemAdminClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -207,7 +293,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestrictionlocalclient@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewString("999100"),
+					AuthData:    model.NewPointer("999100"),
 				}
 				u, _, err := th.LocalClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -612,12 +698,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("GroupConstrainedTeam", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			th.BasicTeam.GroupConstrained = model.NewPointer(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -631,12 +717,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			th.BasicTeam.GroupConstrained = model.NewPointer(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -916,7 +1002,7 @@ func TestGetBotUser(t *testing.T) {
 	createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(createdBot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 	botUser, _, err := th.Client.GetUser(context.Background(), createdBot.UserId, "")
 	require.NoError(t, err)
@@ -1295,10 +1381,10 @@ func TestSearchUsers(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1335,10 +1421,10 @@ func TestSearchUsers(t *testing.T) {
 	id = model.NewId()
 	group, appErr = th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1746,14 +1832,14 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 		defer th.TearDown()
 
 		// Users before the timestamp shouldn't be returned
-		user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		require.Nil(t, appErr)
 
-		user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		require.Nil(t, appErr)
 
 		// Users not in the list of IDs shouldn't be returned
-		_, appErr = th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		_, appErr = th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		require.Nil(t, appErr)
 
 		users, _, err := th.Client.GetUsersByIdsWithOptions(context.Background(), []string{user1.Id, user2.Id}, &model.UserGetByIdsOptions{
@@ -1975,10 +2061,10 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	patch := &model.UserPatch{}
-	patch.Password = model.NewString("testpassword")
-	patch.Nickname = model.NewString("Joram Wilander")
-	patch.FirstName = model.NewString("Joram")
-	patch.LastName = model.NewString("Wilander")
+	patch.Password = model.NewPointer("testpassword")
+	patch.Nickname = model.NewPointer("Joram Wilander")
+	patch.FirstName = model.NewPointer("Joram")
+	patch.LastName = model.NewPointer("Wilander")
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
@@ -2002,30 +2088,30 @@ func TestPatchUser(t *testing.T) {
 	require.Equal(t, "America/New_York", ruser.Timezone["automaticTimezone"], "automaticTimezone should update properly")
 	require.Empty(t, ruser.Timezone["manualTimezone"], "manualTimezone should update properly")
 
-	appErr := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
+	appErr := th.App.CheckPasswordAndAllCriteria(th.Context, user, *patch.Password, "")
 	require.NotNil(t, appErr, "Password should not match")
 
 	currentPassword := user.Password
 	user, appErr = th.App.GetUser(ruser.Id)
 	require.Nil(t, appErr)
 
-	appErr = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
+	appErr = th.App.CheckPasswordAndAllCriteria(th.Context, user, currentPassword, "")
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
 	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	patch.Password = model.NewString(currentPassword)
+	patch.Password = model.NewPointer(currentPassword)
 	ruser, _, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
 
 	require.Equal(t, *patch.Email, ruser.Email, "Email should update properly")
 
-	patch.Username = model.NewString(th.BasicUser2.Username)
+	patch.Username = model.NewPointer(th.BasicUser2.Username)
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -2049,7 +2135,7 @@ func TestPatchUser(t *testing.T) {
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2078,7 +2164,7 @@ func TestPatchBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient()
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString("newemail@test.com")
+	patch.Email = model.NewPointer("newemail@test.com")
 
 	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
 	require.NoError(t, err)
@@ -2097,7 +2183,7 @@ func TestPatchAdminUser(t *testing.T) {
 	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
 	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -2158,9 +2244,9 @@ func TestUserUnicodeNames(t *testing.T) {
 		client.Login(context.Background(), user.Email, user.Password)
 
 		patch := &model.UserPatch{}
-		patch.Nickname = model.NewString("\U000E0000Ender\u206d Wiggin\U000E007F")
-		patch.FirstName = model.NewString("\U0001d173Andrew\U0001d17a")
-		patch.LastName = model.NewString("\u2028Wiggin\u2029")
+		patch.Nickname = model.NewPointer("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = model.NewPointer("\U0001d173Andrew\U0001d17a")
+		patch.LastName = model.NewPointer("\u2028Wiggin\u2029")
 
 		ruser, _, err := client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2193,7 +2279,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = model.NewString("test@test.com")
+	userAuth.AuthData = model.NewPointer("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -2283,7 +2369,7 @@ func TestDeleteBotUser(t *testing.T) {
 
 	_, err := th.Client.DeleteUser(context.Background(), bot.UserId)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
+	require.Equal(t, err.Error(), "You do not have the appropriate permissions.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
@@ -2419,17 +2505,17 @@ func TestUpdateUserRoles(t *testing.T) {
 	})
 }
 
-func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
+func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event model.WebsocketEventType, test func(*model.WebSocketEvent)) {
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
-			require.Truef(t, ok, "channel closed before receiving expected event %s", event)
+			require.Truef(t, ok, "channel closed before receiving expected event %s", string(event))
 			if resp.EventType() == event {
 				test(resp)
 				return
 			}
 		case <-time.After(5 * time.Second):
-			require.Failf(t, "failed to receive expected event %s", event)
+			require.Failf(t, "failed to receive expected event %s", string(event))
 		}
 	}
 }
@@ -2469,7 +2555,7 @@ func TestUpdateUserActive(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		resp, err = th.Client.UpdateUserActive(context.Background(), GenerateTestId(), true)
+		resp, err = th.Client.UpdateUserActive(context.Background(), GenerateTestID(), true)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -2630,16 +2716,16 @@ func TestGetUsers(t *testing.T) {
 		// Check role params validity
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "in_channel=random_channel_id&channel_roles=random_role_doesnt_exist", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing channelRoles in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing channelRoles in request body.")
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "in_team=random_channel_id&team_roles=random_role_doesnt_exist", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing teamRoles in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing teamRoles in request body.")
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "roles=random_role_doesnt_exist%2Csystem_user", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing roles in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing roles in request body.")
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "role=random_role_doesnt_exist", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing role in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing role in request body.")
 	})
 
 	th.Client.Logout(context.Background())
@@ -2744,7 +2830,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	require.NoError(t, err)
 	th.LinkUserToTeam(user, th.BasicTeam)
-	defer th.App.Srv().Store().User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
 
 	user2, _, err := th.Client.CreateUser(context.Background(), &model.User{
 		Username: "a000000001" + model.NewId(),
@@ -2752,7 +2838,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	require.NoError(t, err)
-	defer th.App.Srv().Store().User().PermanentDelete(user2.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user2.Id)
 
 	rusers, _, err := th.SystemAdminClient.GetUsersWithoutTeam(context.Background(), 0, 100, "")
 	require.NoError(t, err)
@@ -2982,20 +3068,20 @@ func TestGetUsersInGroup(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
 	cid := model.NewId()
 	customGroup, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + cid,
-		Name:        model.NewString("name" + cid),
+		Name:        model.NewPointer("name" + cid),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + cid,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3059,10 +3145,10 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3089,7 +3175,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 		Value:    model.ShowUsername,
 	}
 
-	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	err = th.App.UpdatePreferences(th.Context, th.SystemAdminUser.Id, model.Preferences{preference})
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group in right order for username", func(t *testing.T) {
@@ -3099,7 +3185,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	})
 
 	preference.Value = model.ShowNicknameFullName
-	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	err = th.App.UpdatePreferences(th.Context, th.SystemAdminUser.Id, model.Preferences{preference})
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group in right order for nickname", func(t *testing.T) {
@@ -3605,7 +3691,7 @@ func TestAttachDeviceId(t *testing.T) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
 				})
 
-				resp, err := th.Client.AttachDeviceId(context.Background(), deviceId)
+				resp, err := th.Client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceId})
 				require.NoError(t, err)
 
 				cookies := resp.Header.Get("Set-Cookie")
@@ -3618,18 +3704,87 @@ func TestAttachDeviceId(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid device id", func(t *testing.T) {
-		resp, err := th.Client.AttachDeviceId(context.Background(), "")
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
 	t.Run("not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
 
-		resp, err := th.Client.AttachDeviceId(context.Background(), "")
+		resp, err := th.Client.AttachDeviceProps(context.Background(), map[string]string{})
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+
+	// Props related tests
+
+	client := th.CreateClient()
+	th.LoginBasicWithClient(client)
+
+	resetSession := func(session *model.Session) {
+		session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
+		session.AddProp(model.SessionPropMobileVersion, "")
+		th.Server.Store().Session().UpdateProps(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	t.Run("No props will return ok and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Unknown props will be ignored, returning ok and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"unknownProp": "foo"})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Invalid disabled notification prop will return an error and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropDeviceNotificationDisabled: "foo"})
+		assert.Error(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Invalid version will return an error and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropMobileVersion: "foo"})
+		assert.Error(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Will update props", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropDeviceNotificationDisabled: "true", model.SessionPropMobileVersion: "2.19.0"})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, "true", updatedSession.Props[model.SessionPropDeviceNotificationDisabled])
+		assert.Equal(t, "true", storeSession.Props[model.SessionPropDeviceNotificationDisabled])
+		assert.Equal(t, "2.19.0", updatedSession.Props[model.SessionPropMobileVersion])
+		assert.Equal(t, "2.19.0", storeSession.Props[model.SessionPropMobileVersion])
 	})
 }
 
@@ -3672,7 +3827,7 @@ func TestVerifyUserEmail(t *testing.T) {
 	_, err = th.Client.VerifyUserEmail(context.Background(), token.Token)
 	require.NoError(t, err)
 
-	resp, err := th.Client.VerifyUserEmail(context.Background(), GenerateTestId())
+	resp, err := th.Client.VerifyUserEmail(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -3844,13 +3999,15 @@ func TestLogin(t *testing.T) {
 
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
-		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewPointer("remote-id")}
+		ruser, appErr := th.App.CreateUser(th.Context, &user)
+		require.Nil(t, appErr)
 
+		// remote user cannot reset password
 		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
-		require.NoError(t, err)
+		require.Error(t, err)
 
-		_, _, err = th.Client.Login(context.Background(), ruser.Email, "password")
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, "hello1")
 		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
 	})
 
@@ -4272,6 +4429,91 @@ func TestSwitchAccount(t *testing.T) {
 	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
 	require.NoError(t, appErr)
 
+	t.Run("From GitLab to Email", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceGitlab,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
+	t.Run("From LDAP to Email", func(t *testing.T) {
+		_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceLdap, &fakeAuthData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+			require.NoError(t, err)
+		})
+
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceLdap,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from LDAP to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+		t.Run("Switching from LDAP to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
 	sr = &model.SwitchRequest{
 		CurrentService: model.UserAuthServiceGitlab,
 		NewService:     model.UserAuthServiceEmail,
@@ -4328,6 +4570,23 @@ func TestSwitchAccount(t *testing.T) {
 	_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.UserAuthServiceEmail,
+		NewService:     model.UserAuthServiceSaml,
+		Email:          th.BasicUser.Email,
+		Password:       th.BasicUser.Password,
+	}
+
+	link, _, err = th.Client.SwitchAccountType(context.Background(), sr)
+	require.NoError(t, err)
+
+	values, parseErr := url.ParseQuery(link)
+	require.NoError(t, parseErr)
+
+	appToken, tokenErr := th.App.Srv().Store().Token().GetByToken(values.Get("email_token"))
+	require.NoError(t, tokenErr)
+	require.Equal(t, th.BasicUser.Email, appToken.Extra)
 }
 
 func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
@@ -4503,6 +4762,26 @@ func TestCreateUserAccessToken(t *testing.T) {
 		assertToken(t, th, rtoken, th.BasicUser.Id)
 	})
 
+	t.Run("create user access token for remote user as a system admin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		// make a remote user
+		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
+			Username: "remoteuser",
+			RemoteId: model.NewPointer(model.NewId()),
+			Password: model.NewId(),
+			Email:    "remoteuser@example.com",
+		})
+		require.Nil(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), remoteUser.Id, "test token")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp) // remote users are not allowed to have access tokens
+	})
+
 	t.Run("create access token as oauth session", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -4539,7 +4818,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		t.Run("without MANAGE_BOT permission", func(t *testing.T) {
 			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
@@ -4581,7 +4860,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
 			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
@@ -4686,7 +4965,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -4734,7 +5013,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -4959,7 +5238,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5003,7 +5282,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5078,7 +5357,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5122,7 +5401,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5205,7 +5484,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5252,7 +5531,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -6090,8 +6369,6 @@ func TestUpdatePasswordAudit(t *testing.T) {
 }
 
 func TestGetThreadsForUser(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -6109,7 +6386,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
@@ -6126,7 +6403,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
@@ -6145,7 +6422,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Extended: true,
@@ -6167,7 +6444,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
@@ -6198,7 +6475,6 @@ func TestGetThreadsForUser(t *testing.T) {
 	t.Run("throw error when post-priority service-setting is off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = false
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		client := th.Client
@@ -6208,7 +6484,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testMsg",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6219,12 +6495,11 @@ func TestGetThreadsForUser(t *testing.T) {
 	t.Run("throw error when post-priority is set for a reply", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		client := th.Client
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 		require.NoError(t, err)
@@ -6236,7 +6511,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testReply",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6247,7 +6522,6 @@ func TestGetThreadsForUser(t *testing.T) {
 	t.Run("isUrgent, 1 thread", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		client := th.Client
@@ -6257,7 +6531,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testMsg",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6267,7 +6541,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
@@ -6289,7 +6563,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 		}
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:  false,
@@ -6316,7 +6590,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		rootIdBefore := rootIds[14].Id
 		rootIdAfter := rootIds[16].Id
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:  false,
@@ -6367,8 +6641,8 @@ func TestGetThreadsForUser(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 		}
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:    false,
@@ -6403,8 +6677,8 @@ func TestGetThreadsForUser(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 		}
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:     false,
@@ -6426,7 +6700,7 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 
 	t.Run("setting both threadsOnly, and totalsOnly params is not allowed", func(t *testing.T) {
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		_, resp, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			ThreadsOnly: true,
@@ -6553,8 +6827,8 @@ func TestThreadSocketEvents(t *testing.T) {
 
 	replyPost, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
 	require.Nil(t, appErr)
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser2.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser2.Id)
 
 	t.Run("Listed for update event", func(t *testing.T) {
 		var caught bool
@@ -6573,35 +6847,12 @@ func TestThreadSocketEvents(t *testing.T) {
 							}
 						}
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
 		}()
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
-	})
-
-	resp, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
-
-	t.Run("Listed for follow event", func(t *testing.T) {
-		var caught bool
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadFollowChanged {
-						caught = true
-						require.Equal(t, ev.GetData()["state"], false)
-						require.Equal(t, ev.GetData()["reply_count"], float64(1))
-					}
-				case <-time.After(1 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadFollowChanged)
 	})
 
 	_, resp, err = th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, replyPost.CreateAt+1)
@@ -6624,7 +6875,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(0), data["unread_replies"])
 						require.EqualValues(t, float64(0), data["unread_mentions"])
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6633,6 +6884,31 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
 	})
 
+	resp, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	t.Run("Listed for follow event", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadFollowChanged {
+						caught = true
+						require.Equal(t, ev.GetData()["state"], false)
+						require.Equal(t, ev.GetData()["reply_count"], float64(1))
+					}
+				case <-time.After(2 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadFollowChanged)
+	})
+
+	_, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, true)
+	require.NoError(t, err)
 	_, resp, err = th.Client.SetThreadUnreadByPostId(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, rpost.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -6653,7 +6929,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(1), data["unread_replies"])
 						require.EqualValues(t, float64(1), data["unread_mentions"])
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6741,7 +7017,7 @@ func TestThreadSocketEvents(t *testing.T) {
 							require.Equal(t, tc.replies, thread.UnreadReplies)
 							require.Equal(t, tc.mentions, thread.UnreadMentions)
 						}
-					case <-time.After(1 * time.Second):
+					case <-time.After(2 * time.Second):
 						return
 					}
 				}
@@ -6786,7 +7062,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.Equal(t, int64(3), thread.UnreadReplies)
 						require.Equal(t, int64(1), thread.UnreadMentions)
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6815,7 +7091,7 @@ func TestFollowThreads(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 		var uss *model.Threads
 		uss, _, err = th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
@@ -6914,8 +7190,8 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	})
 
 	client := th.Client
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6969,8 +7245,8 @@ func TestThreadCounts(t *testing.T) {
 	})
 
 	client := th.Client
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6989,7 +7265,7 @@ func TestThreadCounts(t *testing.T) {
 	})
 
 	// delete first thread
-	th.App.Srv().Store().Post().Delete(rpost.Id, model.GetMillis(), th.BasicUser.Id)
+	th.App.Srv().Store().Post().Delete(th.Context, rpost.Id, model.GetMillis(), th.BasicUser.Id)
 
 	// we should now have 1 thread with 2 replies
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 1, &model.GetUserThreadsOpts{
@@ -7002,9 +7278,6 @@ func TestThreadCounts(t *testing.T) {
 }
 
 func TestSingleThreadGet(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -7014,14 +7287,13 @@ func TestSingleThreadGet(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		*cfg.ServiceSettings.PostPriority = true
-		cfg.FeatureFlags.PostPriority = true
 	})
 
 	client := th.Client
 
 	t.Run("get single thread", func(t *testing.T) {
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 		// create a post by regular user
 		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -7034,7 +7306,7 @@ func TestSingleThreadGet(t *testing.T) {
 			Message:   "testMsg2",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -7060,7 +7332,6 @@ func TestSingleThreadGet(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		tr, _, err = th.Client.GetUserThread(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
@@ -7108,8 +7379,8 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		return uss, resp
 	}
 
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 	// create regular post
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -7162,7 +7433,7 @@ func TestReadThreads(t *testing.T) {
 		_, resp, err = client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
 
 		var uss, uss2 *model.Threads
 		uss, _, err = th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
@@ -7184,8 +7455,8 @@ func TestReadThreads(t *testing.T) {
 	})
 
 	t.Run("1 thread by timestamp", func(t *testing.T) {
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC1"})
 		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
@@ -7212,8 +7483,8 @@ func TestReadThreads(t *testing.T) {
 	})
 
 	t.Run("1 thread by post id", func(t *testing.T) {
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
 
 		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC1"})
 		reply1, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
@@ -7388,7 +7659,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			model.ServiceOpenid,
 		} {
 			user := th.CreateUserWithAuth(authService)
-			patch := &model.UserPatch{Username: model.NewString("something new")}
+			patch := &model.UserPatch{Username: model.NewPointer("something new")}
 			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
@@ -7574,5 +7845,77 @@ func TestUserUpdateEvents(t *testing.T) {
 			// assert eventUser.NotifyProps is an empty map
 			require.Empty(t, eventUser.NotifyProps, "user event for non-source users should be sanitized")
 		})
+	})
+}
+
+func TestLoginWithDesktopToken(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("login SAML User with desktop token", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), samlUser)
+		assert.Nil(t, appErr)
+
+		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.NoError(t, err)
+		assert.Equal(t, samlUser.Id, user.Id)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, "true", sessions[0].Props["isSaml"])
+		assert.Equal(t, "false", sessions[0].Props["isOAuthUser"])
+	})
+
+	t.Run("login OAuth User with desktop token", func(t *testing.T) {
+		gitlabUser := th.CreateUserWithAuth(model.UserAuthServiceGitlab)
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), gitlabUser)
+		assert.Nil(t, appErr)
+
+		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.NoError(t, err)
+		assert.Equal(t, gitlabUser.Id, user.Id)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), gitlabUser.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, "false", sessions[0].Props["isSaml"])
+		assert.Equal(t, "true", sessions[0].Props["isOAuthUser"])
+	})
+
+	t.Run("login email user with desktop token", func(t *testing.T) {
+		// Sleep to avoid rate limit error
+		time.Sleep(time.Second)
+		user := th.CreateUser()
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		assert.Nil(t, appErr)
+
+		_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("invalid desktop token on login", func(t *testing.T) {
+		user := th.CreateUser()
+
+		_, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		assert.Nil(t, appErr)
+
+		invalidToken := "testinvalidToken"
+		token := &invalidToken
+
+		_, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), user.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 0)
 	})
 }

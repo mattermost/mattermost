@@ -5,10 +5,12 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -40,11 +42,47 @@ var LdapIDMigrate = &cobra.Command{
 	RunE:    withClient(ldapIDMigrateCmdF),
 }
 
+var LdapJobCmd = &cobra.Command{
+	Use:   "job",
+	Short: "List and show LDAP sync jobs",
+}
+
+var LdapJobListCmd = &cobra.Command{
+	Use:     "list",
+	Example: "  ldap job list",
+	Short:   "List LDAP sync jobs",
+	// Alisases cause error in zsh. Supposedly, completion V2 will fix that: https://github.com/spf13/cobra/pull/1146
+	// https://mattermost.atlassian.net/browse/MM-57062
+	// Aliases: []string{"ls"},
+	Args:              cobra.NoArgs,
+	ValidArgsFunction: noCompletion,
+	RunE:              withClient(ldapJobListCmdF),
+}
+
+var LdapJobShowCmd = &cobra.Command{
+	Use:               "show [ldapJobID]",
+	Example:           " import ldap show f3d68qkkm7n8xgsfxwuo498rah",
+	Short:             "Show LDAP sync job",
+	ValidArgsFunction: validateArgsWithClient(ldapJobShowCompletionF),
+	RunE:              withClient(ldapJobShowCmdF),
+}
+
 func init() {
 	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
+
+	LdapJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
+	LdapJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
+	LdapJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
+
+	LdapJobCmd.AddCommand(
+		LdapJobListCmd,
+		LdapJobShowCmd,
+	)
+
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
 		LdapIDMigrate,
+		LdapJobCmd,
 	)
 	RootCmd.AddCommand(LdapCmd)
 }
@@ -80,4 +118,28 @@ func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	return nil
+}
+
+func ldapJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
+	return jobListCmdF(c, command, model.JobTypeLdapSync, "")
+}
+
+func ldapJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
+	job, _, err := c.GetJob(context.TODO(), args[0])
+	if err != nil {
+		return fmt.Errorf("failed to get LDAP sync job: %w", err)
+	}
+
+	printJob(job)
+
+	return nil
+}
+
+func ldapJobShowCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.Job, *model.Response, error) {
+			return c.GetJobsByType(ctx, model.JobTypeLdapSync, page, perPage)
+		},
+		func(t *model.Job) []string { return []string{t.Id} },
+	)(ctx, c, cmd, args, toComplete)
 }

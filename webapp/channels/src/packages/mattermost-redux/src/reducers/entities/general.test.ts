@@ -3,7 +3,6 @@
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/general';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type ReducerState = ReturnType<typeof reducer>
 
@@ -11,10 +10,10 @@ describe('reducers.entities.general', () => {
     describe('firstAdminVisitMarketplaceStatus', () => {
         it('initial state', () => {
             const state = {};
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {};
 
-            const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action as GenericAction);
+            const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action);
             expect(actualState.firstAdminVisitMarketplaceStatus).toEqual(expectedState);
         });
 

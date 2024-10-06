@@ -116,7 +116,6 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                 status={statusProp}
                 size='md'
                 userId={user.id}
-                hasMention={true}
                 username={user.username}
             />
             <div
@@ -130,7 +129,6 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                     >
                         <UserProfile
                             userId={user.id}
-                            hasMention={true}
                             displayUsername={true}
                         />
                         {

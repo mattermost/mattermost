@@ -7,12 +7,15 @@ import type {ChangeEvent} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import CustomThemeChooser from 'components/user_settings/display/user_settings_theme/custom_theme_chooser/custom_theme_chooser';
+import {CustomThemeChooser} from 'components/user_settings/display/user_settings_theme/custom_theme_chooser/custom_theme_chooser';
+
+import {type MockIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/user_settings/display/CustomThemeChooser', () => {
     const baseProps = {
         theme: Preferences.THEMES.denim,
         updateTheme: jest.fn(),
+        intl: {formatMessage: jest.fn()} as MockIntl,
     };
 
     it('should match, init', () => {

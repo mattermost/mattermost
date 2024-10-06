@@ -3128,14 +3128,6 @@
     "translation": "無法解碼搜尋結果"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "建立 Elasticsearch 批次處理器時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "啟動 Elasticsearch 批次處理器時失敗"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch 已停止"
   },
@@ -3316,16 +3308,8 @@
     "translation": "建立與身分識別提供者連接的要求時發生錯誤。請聯繫系統管理員。"
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "對與身分識別提供者連接的要求編碼時發生錯誤。請聯繫系統管理員。"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "由於沒有啟用加密，SAML 登入失敗。請聯繫系統管理員。"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "找不到身份識別提供者公開憑證檔案。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3336,20 +3320,12 @@
     "translation": "由於身份識別提供者的回應未加密，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "由於解碼身份識別提供者的回應時發生錯誤，SAML 登入失敗。請聯繫系統管理員。"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "身份識別提供者的回應為空值"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "解析身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "驗證身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4460,10 +4436,6 @@
     "translation": "請輸入有效的電子郵件位址。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "密碼最短必須有{{.Min}}個字元。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
   },
@@ -4954,10 +4926,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "超過大小限制。請檢查[最大分頁大小](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)。"
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "刪除團隊或頻道成員資格時錯誤"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5538,10 +5506,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "企業授權已過期，部份功能已被停用。請更新授權。"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "更新授權"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6164,10 +6128,6 @@
     "translation": "無法刪除個人存取 Token"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "須填入 SMTP 伺服器"
-  },
-  {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
   },
@@ -6178,66 +6138,6 @@
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
     "translation": "無法更新側邊欄以符合刪除的偏好設定"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "寄送電子郵件給我們"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "感謝您對 Mattermost 有興趣，我們會盡快聯絡。"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "無法發送訊息。"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "請寄送電子郵件給我們。"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost 聯絡我們 要求"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "站台網址：{{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "總活躍使用者：{{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "如果有其他的查詢，請聯絡 support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "電子郵件：{{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "診斷 ID：{{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "聯絡：{{.Contact}}"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "找不到警告計量。"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "寄送管理員通知郵件時失敗"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost 聯絡我們 要求"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "如果有其他的查詢，請聯絡 support@mattermost.com"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6274,26 +6174,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "刪除偏好設定時遇到錯誤"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "站台網址："
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "總活躍使用者"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "電子郵件地址："
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "升級至企業版"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost 強烈建議將使用者數量超過 {limit} 的佈署升級至企業版，企業版提供使用者管理、伺服器叢集、效能監控等功能。\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -6380,28 +6260,12 @@
     "translation": "無法計算內送 Webhook 數量"
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "儲存 {{.WarnMetricName}} 的值失敗"
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "config.json 當中的 DownloadExportResults 設定為 false。請設為 true 才能下載此工作的結果。"
   },
   {
     "id": "api.job.unable_to_download_job",
     "translation": "無法下載此工作"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "聯絡： "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "整合 AD/LDAP"
   },
   {
     "id": "app.role.save.invalid_role.app_error",
@@ -6496,10 +6360,6 @@
     "translation": "找不到系統變數"
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "尋找系統參數時遇到錯誤"
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "無法用空的電子郵件地址完成 SAML 登入。"
   },
@@ -6522,10 +6382,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "AD/LDAP 同步工作逾時。"
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "找不到叢集 API 端點。"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -7048,16 +6904,8 @@
     "translation": "已升級至 Mattermost 企業版。請重新啟動伺服器以完成升級。"
   },
   {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "診斷 ID： "
-  },
-  {
     "id": "api.migrate_to_saml.error",
     "translation": "遷移至 SAML 失敗。"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "一共有 200 位使用者在此 Mattermost。隨著使用者數量的增長，準備新帳號將耗費更多的時間。我們建議與您組織的 Active Directory/LDAP 進行整合，如此將讓任何有帳號的人存取 Mattermost。\n\n[了解更多有關與 AD/LDAP 整合](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
@@ -7150,30 +6998,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "取得頻道成員時失敗"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "升級至企業版"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "一共有 200 位使用者在此 Mattermost。隨著使用者數量的增長，準備新帳號將耗費更多的時間。我們建議與您組織的 Active Directory/LDAP 進行整合，如此將讓任何有帳號的人存取 Mattermost。\n\n[了解更多有關與 AD/LDAP 整合](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "強制使用多重要素驗證："
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7296,10 +7120,6 @@
     "translation": "輸入的文本超出字數限制。頻道標題不得超過 {{.MaxLength}} 個字數。"
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "缺少發送拖欠電子郵件的必要欄位。"
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook 事件未處理。事件可能遺失或無效。"
   },
@@ -7334,10 +7154,6 @@
   {
     "id": "api.command_remote.cluster_removed",
     "translation": "安全連線 {{.RemoteId}} {{.Result}}。"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "無法解密邀請。密碼錯誤或邀請損毀: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

@@ -11,8 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import {getCurrentUser, getDndEndTimeForUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 import {setStatusDropdown} from 'actions/views/status_dropdown';
@@ -54,11 +53,12 @@ function makeMapStateToProps() {
             showCustomStatusPulsatingDot: showStatusDropdownPulsatingDot(state),
             showCompleteYourProfileTour,
             timezone: getCurrentTimezone(state),
+            dndEndTime: getDndEndTimeForUserId(state, userId),
         };
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

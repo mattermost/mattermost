@@ -190,9 +190,9 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 }
 
 func ValidateUserImportData(data *UserImportData) *model.AppError {
-	if data.ProfileImage != nil {
+	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
-			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -320,6 +320,7 @@ var validAuthServices = []string{
 	model.UserAuthServiceLdap,
 	model.ServiceGoogle,
 	model.ServiceOffice365,
+	model.ServiceOpenid,
 }
 
 func validateAuthService(authService *string) *model.AppError {
@@ -436,7 +437,7 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
-		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int64("reply_create_at", *data.CreateAt), mlog.Int64("parent_create_at", parentCreateAt))
+		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int("reply_create_at", *data.CreateAt), mlog.Int("parent_create_at", parentCreateAt))
 	}
 
 	return nil
@@ -489,11 +490,19 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 }
 
 func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppError {
-	if data.Members == nil {
+	if data.Participants == nil && data.Members == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_required.error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*data.Members) != 2 {
+	if data.Participants != nil && len(data.Participants) != 2 {
+		if len(data.Participants) < model.ChannelGroupMinUsers {
+			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
+		} else if len(data.Participants) > model.ChannelGroupMaxUsers {
+			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if data.Members != nil && len(*data.Members) != 2 {
 		if len(*data.Members) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
 		} else if len(*data.Members) > model.ChannelGroupMaxUsers {
@@ -508,10 +517,18 @@ func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
 			found := false
-			for _, member := range *data.Members {
-				if favoriter == member {
+			for _, member := range data.Participants {
+				if favoriter == *member.Username {
 					found = true
 					break
+				}
+			}
+			if data.Members != nil {
+				for _, member := range *data.Members {
+					if favoriter == member {
+						found = true
+						break
+					}
 				}
 			}
 			if !found {

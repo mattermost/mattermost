@@ -11,7 +11,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -37,7 +36,7 @@ const ShowThreeDaysLeftTrialModal = () => {
     const subscription = useSelector(getCloudSubscription);
     const isFreeTrial = subscription?.is_free_trial === 'true';
 
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const hadAdminDismissedModal = useSelector((state: GlobalState) => getPreference(state, Preferences.CLOUD_TRIAL_BANNER, CloudBanners.THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED)) === 'true';
 
     const trialEndDate = new Date(subscription?.trial_end_at || 0);

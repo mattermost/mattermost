@@ -19,7 +19,7 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner with text 1`]
   loading={true}
   text="test"
 >
-  <LoadingSpinner
+  <Memo(LoadingSpinner)
     text="test"
   >
     <span
@@ -27,24 +27,13 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner with text 1`]
       data-testid="loadingSpinner"
       id="loadingSpinner"
     >
-      <LocalizedIcon
+      <span
         className="fa fa-spinner fa-fw fa-pulse spinner"
-        component="span"
-        title={
-          Object {
-            "defaultMessage": "Loading Icon",
-            "id": "generic_icons.loading",
-          }
-        }
-      >
-        <span
-          className="fa fa-spinner fa-fw fa-pulse spinner"
-          title="Loading Icon"
-        />
-      </LocalizedIcon>
+        title="Loading Icon"
+      />
       test
     </span>
-  </LoadingSpinner>
+  </Memo(LoadingSpinner)>
 </Memo(LoadingWrapper)>
 `;
 
@@ -52,7 +41,7 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner without text 
 <Memo(LoadingWrapper)
   loading={true}
 >
-  <LoadingSpinner
+  <Memo(LoadingSpinner)
     text={null}
   >
     <span
@@ -60,22 +49,11 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner without text 
       data-testid="loadingSpinner"
       id="loadingSpinner"
     >
-      <LocalizedIcon
+      <span
         className="fa fa-spinner fa-fw fa-pulse spinner"
-        component="span"
-        title={
-          Object {
-            "defaultMessage": "Loading Icon",
-            "id": "generic_icons.loading",
-          }
-        }
-      >
-        <span
-          className="fa fa-spinner fa-fw fa-pulse spinner"
-          title="Loading Icon"
-        />
-      </LocalizedIcon>
+        title="Loading Icon"
+      />
     </span>
-  </LoadingSpinner>
+  </Memo(LoadingSpinner)>
 </Memo(LoadingWrapper)>
 `;

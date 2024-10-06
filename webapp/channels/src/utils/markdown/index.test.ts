@@ -44,8 +44,7 @@ x^2 + y^2 = z^2
             const input = `- a
 - b
 - c`;
-            const expected = `<ul className="markdown__list">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>`;
+            const expected = '<ul className="markdown__list"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -55,8 +54,7 @@ x^2 + y^2 = z^2
             const input = `1. a
 2. b
 3. c`;
-            const expected = `<ol className="markdown__list" style="counter-reset: list 0">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>`;
+            const expected = '<ol className="markdown__list" style="counter-reset: list 0"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -66,8 +64,7 @@ x^2 + y^2 = z^2
             const input = `0. a
 1. b
 2. c`;
-            const expected = `<ol className="markdown__list" style="counter-reset: list -1">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>`;
+            const expected = '<ol className="markdown__list" style="counter-reset: list -1"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -77,8 +74,7 @@ x^2 + y^2 = z^2
             const input = `999. a
 1. b
 1. c`;
-            const expected = `<ol className="markdown__list" style="counter-reset: list 998">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>`;
+            const expected = '<ol className="markdown__list" style="counter-reset: list 998"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -165,6 +161,25 @@ this is long text this is long text this is long text this is long text this is 
                     expect(output).toContain('rel="noreferrer" target="_blank"');
                 }
             });
+        }
+    });
+
+    test('unsafe mode links are rendered as text : link', () => {
+        const testCases = [
+            {input: '[link text](http://markdownlink.com)', expected: '<p>link text : http://markdownlink.com</p>'},
+            {input: '[link text](//markdownlink.com/test)', expected: '<p>link text : //markdownlink.com/test</p>'},
+            {input: '[link text](http://my.site.com/whatever)', expected: '<p>link text : http://my.site.com/whatever</p>'},
+            {input: '[link text](http://my.site.com/api/v4/image?url=ohno)', expected: '<p>link text : http://my.site.com/api/v4/image?url=ohno</p>'},
+            {input: '[link text](http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a class="theme markdown__link" href="http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/_redirect/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
+            {input: '[link text](http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a class="theme markdown__link" href="http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/someteam/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
+            {input: '[link text](http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur/ohno)', expected: '<p>link text : http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur/ohno</p>'},
+            {input: '[link text](http://my.site.com/more/stuff/here/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p>link text : http://my.site.com/more/stuff/here/pl/c18xpcpusjd88en1g4j7us31ur</p>'},
+            {input: '[link text](http://myqsite.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p>link text : http://myqsite.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur</p>'},
+
+        ];
+        for (const testCase of testCases) {
+            const output = format(testCase.input, {unsafeLinks: true, siteURL: 'http://my.site.com'});
+            expect(output).toEqual(testCase.expected);
         }
     });
 });

@@ -3,25 +3,27 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
+import React, {PureComponent} from 'react';
 import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -107,26 +109,10 @@ export type Props = {
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
-        updateMe: (user: UserProfile) => Promise<{
-            data: boolean;
-            error?: {
-                server_error_id: string;
-                message: string;
-            };
-        }>;
-        sendVerificationEmail: (email: string) => Promise<{
-            data: boolean;
-            error?: {
-                err: string;
-            };
-        }>;
+        updateMe: (user: UserProfile) => Promise<ActionResult>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
-        uploadProfileImage: (id: string, file: File) => Promise<{
-            data: boolean;
-            error?: {
-                message: string;
-            };
-        }>;
+        uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -160,7 +146,7 @@ type State = {
     emailError?: string;
 }
 
-export class UserSettingsGeneralTab extends React.Component<Props, State> {
+export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
 
     constructor(props: Props) {
@@ -185,7 +171,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             <span className='resend-verification-wrapper'>
                 <LoadingWrapper
                     loading={this.state.showSpinner}
-                    text={Utils.localizeMessage('user.settings.general.sending', 'Sending')}
+                    text={Utils.localizeMessage({id: 'user.settings.general.sending', defaultMessage: 'Sending'})}
                 >
                     <a
                         onClick={() => {
@@ -640,7 +626,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         <div className='setting-list__hint pb-3'>
                             <FormattedMessage
                                 id='user.settings.general.emailOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through Entra ID. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -749,7 +735,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.general.loginOffice365'
-                    defaultMessage='Login done through Office 365 ({email})'
+                    defaultMessage='Login done through Entra ID ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -1369,8 +1355,6 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
     };
 
     render() {
-        const {formatMessage} = this.props.intl;
-
         const nameSection = this.createNameSection();
         const nicknameSection = this.createNicknameSection();
         const usernameSection = this.createUsernameSection();
@@ -1380,41 +1364,26 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
         return (
             <div id='generalSettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeUserSettings'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label={formatMessage(holders.close)}
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
-                            <LocalizedIcon
-                                className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.modal.profile'
                             defaultMessage='Profile'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3
+                    <SettingDesktopHeader
                         id='generalSettingsTitle'
-                        className='tab-header'
-                    >
-                        <FormattedMessage
-                            id='user.settings.modal.profile'
-                            defaultMessage='Profile'
-                        />
-                    </h3>
+                        text={
+                            <FormattedMessage
+                                id='user.settings.modal.profile'
+                                defaultMessage='Profile'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>

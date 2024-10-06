@@ -1,8 +1,10 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 // Color Variables
 $primary-color: #166de0;
-$primary-color--hover: darken($primary-color, 10%);
+$primary-color--hover: color.adjust($primary-color, $lightness: -10%);
 $bg--gray: rgb(245, 245, 245);
 $white: rgb(255, 255, 255);
 $black: rgb(0, 0, 0);
@@ -24,7 +26,6 @@ $announcement-bar-height: 40px;
 $backstage-bar-height: 43px;
 
 // Random variables
-$border-rad: 2px;
 $emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in emoji_picker.jsx
 
 // Transition timing defaults

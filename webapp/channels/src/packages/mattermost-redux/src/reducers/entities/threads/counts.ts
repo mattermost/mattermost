@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import type {Channel} from '@mattermost/types/channels';
 import type {Team, TeamUnread} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread} from '@mattermost/types/threads';
 
 import {ChannelTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {ExtraData} from './types';
 
@@ -15,7 +16,7 @@ function isDmGmChannel(channelType: Channel['type']) {
     return channelType === General.DM_CHANNEL || channelType === General.GM_CHANNEL;
 }
 
-function handleAllTeamThreadsRead(state: ThreadsState['counts'], action: GenericAction): ThreadsState['counts'] {
+function handleAllTeamThreadsRead(state: ThreadsState['counts'], action: AnyAction): ThreadsState['counts'] {
     const counts = state[action.data.team_id] ?? {};
     return {
         ...state,
@@ -28,7 +29,7 @@ function handleAllTeamThreadsRead(state: ThreadsState['counts'], action: Generic
     };
 }
 
-function isEqual(state: ThreadsState['counts'], action: GenericAction, unreads: boolean) {
+function isEqual(state: ThreadsState['counts'], action: AnyAction, unreads: boolean) {
     const counts = state[action.data.team_id] ?? {};
 
     const {
@@ -56,7 +57,7 @@ function isEqual(state: ThreadsState['counts'], action: GenericAction, unreads: 
     return true;
 }
 
-function handleReadChangedThread(state: ThreadsState['counts'], action: GenericAction, teamId: string, isUrgent: boolean): ThreadsState['counts'] {
+function handleReadChangedThread(state: ThreadsState['counts'], action: AnyAction, teamId: string, isUrgent: boolean): ThreadsState['counts'] {
     const {
         prevUnreadMentions = 0,
         newUnreadMentions = 0,
@@ -91,7 +92,7 @@ function handleReadChangedThread(state: ThreadsState['counts'], action: GenericA
     };
 }
 
-function handleLeaveTeam(state: ThreadsState['counts'], action: GenericAction): ThreadsState['counts'] {
+function handleLeaveTeam(state: ThreadsState['counts'], action: AnyAction): ThreadsState['counts'] {
     const team: Team = action.data;
 
     if (!state[team.id]) {
@@ -104,7 +105,7 @@ function handleLeaveTeam(state: ThreadsState['counts'], action: GenericAction): 
     return nextState;
 }
 
-function handleLeaveChannel(state: ThreadsState['counts'] = {}, action: GenericAction, extra: ExtraData) {
+function handleLeaveChannel(state: ThreadsState['counts'] = {}, action: AnyAction, extra: ExtraData) {
     if (!extra.threadsToDelete || extra.threadsToDelete.length === 0) {
         return state;
     }
@@ -135,7 +136,7 @@ function handleLeaveChannel(state: ThreadsState['counts'] = {}, action: GenericA
     };
 }
 
-function handleDecrementThreadCounts(state: ThreadsState['counts'], action: GenericAction) {
+function handleDecrementThreadCounts(state: ThreadsState['counts'], action: AnyAction) {
     const {teamId, replies, mentions} = action;
     const counts = state[teamId];
     if (!counts) {
@@ -152,7 +153,7 @@ function handleDecrementThreadCounts(state: ThreadsState['counts'], action: Gene
     };
 }
 
-export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {}, action: GenericAction, extra: ExtraData) {
+export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {}, action: AnyAction, extra: ExtraData) {
     switch (action.type) {
     case ThreadTypes.ALL_TEAM_THREADS_READ:
         return handleAllTeamThreadsRead(state, action);
@@ -219,7 +220,7 @@ export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {},
     return state;
 }
 
-export function countsReducer(state: ThreadsState['counts'] = {}, action: GenericAction, extra: ExtraData) {
+export function countsReducer(state: ThreadsState['counts'] = {}, action: AnyAction, extra: ExtraData) {
     switch (action.type) {
     case ThreadTypes.ALL_TEAM_THREADS_READ:
         return handleAllTeamThreadsRead(state, action);

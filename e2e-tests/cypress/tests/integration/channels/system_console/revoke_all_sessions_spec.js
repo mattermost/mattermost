@@ -16,39 +16,47 @@ import {getAdminAccount} from '../../../support/env';
 describe('System Console > User Management > Users', () => {
     const admin = getAdminAccount();
 
-    it('MM-T940 Users - Revoke all sessions', () => {
+    it('MM-T940 Users - Revoke all sessions from a button in admin console', () => {
         // # Login as System Admin
         cy.apiAdminLogin();
 
         cy.visit('/admin_console/user_management/users');
 
-        // * Verify the presence of Revoke All Sessions button
-        cy.get('#revoke-all-users').should('be.visible').and('not.have.class', 'btn-danger').click();
+        // * Verify the presence of Revoke All Sessions button and click on it
+        cy.findByText('Revoke All Sessions').should('be.visible').click();
 
         // * Verify the confirmation message when users clicks on the Revoke All Sessions button
-        cy.get('#confirmModalLabel').should('be.visible').and('have.text', 'Revoke all sessions in the system');
-        cy.get('.modal-body').should('be.visible').and('have.text', 'This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?');
-        cy.get('#confirmModalButton').should('be.visible').and('have.class', 'btn-danger');
+        cy.get('#confirmModal').should('be.visible').within(() => {
+            // * Verify the presence of confirmation messages and buttons
+            cy.findByText('Revoke all sessions in the system').should('be.visible');
+            cy.findByText('This action revokes all sessions in the system. All users will be logged out from all devices, including your session. Are you sure you want to revoke all sessions?').should('be.visible');
+            cy.findByText('Cancel').should('be.visible');
+            cy.findByText('Revoke All Sessions').should('be.visible');
 
-        // # Click on Cancel button in the confirmation message
-        cy.get('#cancelModalButton').click();
+            // # Click on Cancel button in the confirmation message
+            cy.findByText('Cancel').click();
+        });
 
         // * Verify if Confirmation message is closed
         cy.get('#confirmModal').should('not.exist');
 
-        // * Verify if the Admin's session is still active and user is still in the same page
+        // * Since we have cancelled the confirmation message, verify if the Admin's session is still active and user is still in the same page
         cy.url().should('contain', '/admin_console/user_management/users');
 
-        // * Verify if the Admin's Session is still active and click on it and then confirm
-        cy.get('#revoke-all-users').should('be.visible').click();
-        cy.get('#confirmModalButton').click();
+        // # Open revoke all sessions modal again
+        cy.findByText('Revoke All Sessions').should('be.visible').click();
+
+        cy.get('#confirmModal').should('be.visible').within(() => {
+            // # Click on Revoke All Sessions button in the confirmation message
+            cy.findByText('Revoke All Sessions').click();
+        });
 
         // * Verify if Admin User's session is expired and is redirected to login page
         cy.url({timeout: TIMEOUTS.HALF_MIN}).should('include', '/login');
-        cy.get('.login-body-card', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
+        cy.findByText('Log in to your account').should('be.visible');
     });
 
-    it('Verify for Regular Member', () => {
+    it('MM-T940-1 Users - Revoke all sessions with an API call', () => {
         // # Login as System Admin
         cy.apiAdminLogin();
 
@@ -65,7 +73,7 @@ describe('System Console > User Management > Users', () => {
 
                 // * Verify if the regular member is logged out and redirected to login page
                 cy.url({timeout: TIMEOUTS.HALF_MIN}).should('include', '/login');
-                cy.get('.login-body-card', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
+                cy.findByText('Log in to your account').should('be.visible');
             });
         });
     });

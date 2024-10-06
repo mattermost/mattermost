@@ -385,10 +385,11 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </Link>
                             <SpinnerButton
+                                data-testid='save-button'
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage('add_emoji.saving', 'Saving...')}
+                                spinningText={localizeMessage({id: 'add_emoji.saving', defaultMessage: 'Saving...'})}
                                 onClick={this.handleSaveButtonClick}
                             >
                                 <FormattedMessage

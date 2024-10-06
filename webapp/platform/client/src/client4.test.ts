@@ -4,7 +4,7 @@
 import nock from 'nock';
 
 import Client4, {ClientError, HEADER_X_VERSION_ID} from './client4';
-import {TelemetryHandler} from './telemetry';
+import type {TelemetryHandler} from './telemetry';
 
 describe('Client4', () => {
     beforeAll(() => {

@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent, memo} from 'react';
+import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
 
-import {t} from 'utils/i18n';
-
 type SendButtonProps = {
-    handleSubmit: (e: React.FormEvent) => void;
+    handleSubmit: () => void;
     disabled: boolean;
 }
 
@@ -48,7 +46,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
     const sendMessage = (e: React.FormEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        handleSubmit(e);
+        handleSubmit();
     };
 
     return (
@@ -66,7 +64,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
                 size={18}
                 color='currentColor'
                 aria-label={formatMessage({
-                    id: t('create_post.icon'),
+                    id: 'create_post.icon',
                     defaultMessage: 'Create a post',
                 })}
             />

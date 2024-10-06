@@ -14,7 +14,7 @@ export function getFormattedFileSize(file: FileInfo): string {
         ['GB', 1024 * 1024 * 1024],
         ['MB', 1024 * 1024],
         ['KB', 1024],
-    ];
+    ] as const;
     const size = fileSizes.find((unitAndMinBytes) => {
         const minBytes = unitAndMinBytes[1];
         return bytes > minBytes;

@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -56,7 +57,7 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool, options ..
 	return a, nil
 }
 
-func initStoreCommandContextCobra(command *cobra.Command) (store.Store, error) {
+func initStoreCommandContextCobra(logger mlog.LoggerIFace, command *cobra.Command) (store.Store, error) {
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
@@ -64,5 +65,5 @@ func initStoreCommandContextCobra(command *cobra.Command) (store.Store, error) {
 	}
 
 	config := cfgStore.Get()
-	return sqlstore.New(config.SqlSettings, nil)
+	return sqlstore.New(config.SqlSettings, logger, nil)
 }

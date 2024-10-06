@@ -18,12 +18,10 @@ type Props = {
     compactDisplay?: boolean;
     enablePostIconOverride: boolean;
     hasImageProxy: boolean;
-    isBusy?: boolean;
     post: Post;
     status?: string;
     user: UserProfile;
     isBot?: boolean;
-    postIconOverrideURL?: string;
     overwriteIcon?: string;
 }
 
@@ -81,7 +79,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         const {
             availabilityStatusOnPosts,
             compactDisplay,
-            isBusy,
             post,
             user,
             isBot,
@@ -95,7 +92,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         }
         const fromAutoResponder = PostUtils.fromAutoResponder(post);
 
-        const hasMention = !fromAutoResponder && !fromWebhook;
         const profileSrc = this.getProfilePictureURL();
         const src = this.getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
 
@@ -106,8 +102,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
 
         return (
             <ProfilePicture
-                hasMention={hasMention}
-                isBusy={isBusy}
                 size='md'
                 src={src}
                 profileSrc={profileSrc}

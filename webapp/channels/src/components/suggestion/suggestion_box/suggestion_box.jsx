@@ -21,7 +21,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The list component to render, usually SuggestionList
          */
-        listComponent: PropTypes.func.isRequired,
+        listComponent: PropTypes.any.isRequired,
 
         /**
          * Where the list will be displayed relative to the input box, defaults to 'top'
@@ -36,7 +36,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The date component to render
          */
-        dateComponent: PropTypes.func,
+        dateComponent: PropTypes.any,
 
         /**
          * The value of in the input
@@ -152,6 +152,26 @@ export default class SuggestionBox extends React.PureComponent {
         actions: PropTypes.shape({
             addMessageIntoHistory: PropTypes.func.isRequired,
         }).isRequired,
+
+        /**
+         * Props for input
+         */
+        id: PropTypes.string,
+        className: PropTypes.string,
+        placeholder: PropTypes.string,
+        maxLength: PropTypes.string,
+        delayInputUpdate: PropTypes.bool,
+        spellCheck: PropTypes.string,
+        onMouseUp: PropTypes.func,
+        onKeyUp: PropTypes.func,
+        onHeightChange: PropTypes.func,
+        onWidthChange: PropTypes.func,
+        onPaste: PropTypes.func,
+        style: PropTypes.object,
+        tabIndex: PropTypes.string,
+        type: PropTypes.string,
+        clearable: PropTypes.bool,
+        onClear: PropTypes.func,
     };
 
     static defaultProps = {
@@ -228,6 +248,10 @@ export default class SuggestionBox extends React.PureComponent {
         }
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.timeoutId);
+    }
+
     getTextbox = () => {
         if (!this.inputRef.current) {
             return null;
@@ -239,6 +263,7 @@ export default class SuggestionBox extends React.PureComponent {
     handleEmitClearSuggestions = (delay = 0) => {
         setTimeout(() => {
             this.clear();
+            this.handlePretextChanged('');
         }, delay);
     };
 
@@ -271,7 +296,7 @@ export default class SuggestionBox extends React.PureComponent {
         this.setState({focused: false});
 
         if (this.props.onBlur) {
-            this.props.onBlur();
+            this.props.onBlur(e);
         }
     };
 
@@ -366,15 +391,14 @@ export default class SuggestionBox extends React.PureComponent {
             prefix = pretext.substring(0, pretext.length - overlap.length - matchedPretext.length);
         }
 
-        const suffix = text.substring(caret);
-
-        let newValue;
         if (keepPretext) {
-            newValue = pretext;
-        } else {
-            newValue = prefix + term + ' ' + suffix;
+            // The term no longer fits the pretext, so don't change anything or else we might erase something
+            return;
         }
 
+        const suffix = text.substring(caret);
+
+        const newValue = prefix + term + ' ' + suffix;
         textbox.value = newValue;
 
         if (this.props.onChange) {
@@ -445,6 +469,7 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         this.clear();
+        this.handlePretextChanged('');
 
         if (openCommandInModal) {
             const appProvider = this.props.providers.find((p) => p.openAppsModalFromCommand);
@@ -536,7 +561,6 @@ export default class SuggestionBox extends React.PureComponent {
                 selection: '',
                 suggestionBoxAlgn: undefined,
             });
-            this.handlePretextChanged('');
         }
     };
 
@@ -641,11 +665,16 @@ export default class SuggestionBox extends React.PureComponent {
         return {selection, matchedPretext: suggestions.matchedPretext};
     };
 
-    handleReceivedSuggestionsAndComplete = (suggestions) => {
-        const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
-        if (selection) {
-            this.handleCompleteWord(selection, matchedPretext);
-        }
+    makeHandleReceivedSuggestionsAndComplete = () => {
+        let firstComplete = true;
+        return (suggestions) => {
+            const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
+
+            if (selection && firstComplete) {
+                this.handleCompleteWord(selection, matchedPretext);
+                firstComplete = false;
+            }
+        };
     };
 
     nonDebouncedPretextChanged = (pretext, complete = false) => {
@@ -654,7 +683,7 @@ export default class SuggestionBox extends React.PureComponent {
         let handled = false;
         let callback = this.handleReceivedSuggestions;
         if (complete) {
-            callback = this.handleReceivedSuggestionsAndComplete;
+            callback = this.makeHandleReceivedSuggestionsAndComplete();
         }
         for (const provider of this.props.providers) {
             handled = provider.handlePretextChanged(pretext, callback) || handled;

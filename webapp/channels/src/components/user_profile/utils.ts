@@ -4,27 +4,44 @@
 import ColorContrastChecker from 'color-contrast-checker';
 import ColorHash from 'color-hash';
 
-const cachedColors = new Map<string, string>();
+const REQUIRED_COLOR_RATIO = 4.5;
+
+export const cachedUserNameColors = new Map<string, string>();
 
 export function generateColor(username: string, background: string): string {
     const cacheKey = `${username}-${background}`;
-    const cachedColor = cachedColors.get(cacheKey);
+    const cachedColor = cachedUserNameColors.get(cacheKey);
     if (cachedColor) {
         return cachedColor;
     }
 
     let userColor = background;
+    let contrastRatio = 1;
     let userAndSalt = username;
     const checker = new ColorContrastChecker();
     const colorHash = new ColorHash();
 
-    let tries = 3;
-    while (!checker.isLevelCustom(userColor, background, 4.5) && tries > 0) {
-        userColor = colorHash.hex(userAndSalt);
+    const backgroundLuminance = checker.hexToLuminance(background);
+    for (let tries = 10; tries > 0; tries--) {
+        const textColor = colorHash.hex(userAndSalt);
+
+        const cr = checker.getContrastRatio(
+            checker.hexToLuminance(textColor),
+            backgroundLuminance,
+        );
+
+        if (cr > contrastRatio) {
+            userColor = textColor;
+            contrastRatio = cr;
+        }
+
+        if (cr >= REQUIRED_COLOR_RATIO) {
+            break;
+        }
+
         userAndSalt += 'salt';
-        tries--;
     }
 
-    cachedColors.set(cacheKey, userColor);
+    cachedUserNameColors.set(cacheKey, userColor);
     return userColor;
 }

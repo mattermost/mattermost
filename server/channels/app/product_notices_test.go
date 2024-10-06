@@ -217,7 +217,6 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
-
 		{
 			name: "notice with server version check that matches a const",
 			args: args{
@@ -231,77 +230,6 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
-
-		{
-			name: "notice with server version check that has rc",
-			args: args{
-				serverVersion: "99.1.1-rc2",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
-		{
-			name: "notice with server version check that has rc and hash",
-			args: args{
-				serverVersion: "99.1.1-rc2.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
-		{
-			name: "notice with server version check that has release and hash",
-			args: args{
-				serverVersion: "release-99.1.1.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
-		{
-			name: "notice with server version check that has cloud version",
-			args: args{
-				serverVersion: "cloud.54.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
-			name: "notice with server version check on cloud should ignore version",
-			args: args{
-				cloud:         true,
-				serverVersion: "cloud.54.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
 		{
 			name: "notice with server version check that is invalid",
 			args: args{
@@ -320,7 +248,7 @@ func TestNoticeValidation(t *testing.T) {
 				userCount: 300,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewInt64(400),
+						NumberOfUsers: model.NewPointer(int64(400)),
 					},
 				},
 			},
@@ -334,8 +262,8 @@ func TestNoticeValidation(t *testing.T) {
 				postCount: 2000,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewInt64(400),
-						NumberOfPosts: model.NewInt64(3000),
+						NumberOfUsers: model.NewPointer(int64(400)),
+						NumberOfPosts: model.NewPointer(int64(3000)),
 					},
 				},
 			},
@@ -347,7 +275,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -359,7 +287,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
+						DisplayDate: model.NewPointer(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
 					},
 				},
 			},
@@ -371,7 +299,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -383,7 +311,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -565,7 +493,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				dbmsName:      "mysql",
 				dbmsVer:       "5.6",
-				serverVersion: "5.32",
+				serverVersion: "5.32.1",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
 						ServerVersion: []string{">=v5.33"},
@@ -637,18 +565,18 @@ func TestNoticeValidation(t *testing.T) {
 			if clientVersion == "" {
 				clientVersion = "1.2.3"
 			}
-			model.BuildNumber = tt.args.serverVersion
-			if model.BuildNumber == "" {
-				model.BuildNumber = "5.26.1"
-				defer func() {
-					model.BuildNumber = ""
-				}()
+
+			serverVersion := tt.args.serverVersion
+			if serverVersion == "" {
+				serverVersion = "5.26.1"
 			}
+
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),
 				th.App.Srv().Store().Preference(),
 				"test",
 				tt.args.client,
+				serverVersion,
 				clientVersion,
 				tt.args.postCount,
 				tt.args.userCount,
@@ -690,7 +618,7 @@ func TestNoticeFetch(t *testing.T) {
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
-			NumberOfPosts: model.NewInt64(99999),
+			NumberOfPosts: model.NewPointer(int64(99999)),
 		},
 		ID: "333",
 		LocalizedMessages: map[string]model.NoticeMessageInternal{

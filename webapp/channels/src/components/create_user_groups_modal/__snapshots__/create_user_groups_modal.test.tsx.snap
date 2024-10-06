@@ -36,32 +36,30 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
     closeButton={true}
     closeLabel="Close"
   >
-    <button
-      aria-label="Back"
-      className="modal-header-back-button btn btn-icon"
-      onClick={[Function]}
-      type="button"
+    <div
+      className="d-flex align-items-center"
     >
-      <LocalizedIcon
-        ariaLabel={
-          Object {
-            "defaultMessage": "Back",
-            "id": "user_groups_modal.goBackLabel",
-          }
-        }
-        className="icon icon-arrow-left"
-      />
-    </button>
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="createGroupsModalTitleWithBack"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Create Group"
-        id="user_groups_modal.createTitle"
-      />
-    </ModalTitle>
+      <button
+        aria-label="Back"
+        className="modal-header-back-button btn btn-icon"
+        onClick={[Function]}
+        type="button"
+      >
+        <i
+          className="icon icon-arrow-left"
+        />
+      </button>
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="createGroupsModalTitleWithBack"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Create Group"
+          id="user_groups_modal.createTitle"
+        />
+      </ModalTitle>
+    </div>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
@@ -116,7 +114,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
       <div
         className="group-add-user"
       >
-        <Connect(AddUserToGroupMultiSelect)
+        <Connect(injectIntl(AddUserToGroupMultiSelect))
           addUserCallback={[Function]}
           backButtonClass="multiselect-back"
           backButtonClick={[Function]}
@@ -234,7 +232,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
       <div
         className="group-add-user"
       >
-        <Connect(AddUserToGroupMultiSelect)
+        <Connect(injectIntl(AddUserToGroupMultiSelect))
           addUserCallback={[Function]}
           backButtonClass="multiselect-back"
           backButtonClick={[Function]}

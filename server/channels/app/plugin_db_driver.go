@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // DriverImpl implements the plugin.Driver interface on the server-side.
@@ -21,7 +22,7 @@ import (
 type DriverImpl struct {
 	s       *Server
 	connMut sync.RWMutex
-	connMap map[string]*sql.Conn
+	connMap map[string]*connMeta
 	txMut   sync.Mutex
 	txMap   map[string]driver.Tx
 	stMut   sync.RWMutex
@@ -30,10 +31,15 @@ type DriverImpl struct {
 	rowsMap map[string]driver.Rows
 }
 
+type connMeta struct {
+	pluginID string
+	conn     *sql.Conn
+}
+
 func NewDriverImpl(s *Server) *DriverImpl {
 	return &DriverImpl{
 		s:       s,
-		connMap: make(map[string]*sql.Conn),
+		connMap: make(map[string]*connMeta),
 		txMap:   make(map[string]driver.Tx),
 		stMap:   make(map[string]driver.Stmt),
 		rowsMap: make(map[string]driver.Rows),
@@ -41,6 +47,14 @@ func NewDriverImpl(s *Server) *DriverImpl {
 }
 
 func (d *DriverImpl) Conn(isMaster bool) (string, error) {
+	return d.conn(isMaster, "")
+}
+
+func (d *DriverImpl) ConnWithPluginID(isMaster bool, pluginID string) (string, error) {
+	return d.conn(isMaster, pluginID)
+}
+
+func (d *DriverImpl) conn(isMaster bool, pluginID string) (string, error) {
 	dbFunc := d.s.Platform().Store.GetInternalMasterDB
 	if !isMaster {
 		dbFunc = d.s.Platform().Store.GetInternalReplicaDB
@@ -54,7 +68,7 @@ func (d *DriverImpl) Conn(isMaster bool) (string, error) {
 	}
 	connID := model.NewId()
 	d.connMut.Lock()
-	d.connMap[connID] = conn
+	d.connMap[connID] = &connMeta{pluginID: pluginID, conn: conn}
 	d.connMut.Unlock()
 	return connID, nil
 }
@@ -70,13 +84,13 @@ func (d *DriverImpl) Conn(isMaster bool) (string, error) {
 
 func (d *DriverImpl) ConnPing(connID string) error {
 	d.connMut.RLock()
-	conn, ok := d.connMap[connID]
+	entry, ok := d.connMap[connID]
 	d.connMut.RUnlock()
 	if !ok {
 		return driver.ErrBadConn
 	}
 
-	return conn.Raw(func(innerConn any) error {
+	return entry.conn.Raw(func(innerConn any) error {
 		return innerConn.(driver.Pinger).Ping(context.Background())
 	})
 }
@@ -84,13 +98,13 @@ func (d *DriverImpl) ConnPing(connID string) error {
 func (d *DriverImpl) ConnQuery(connID, q string, args []driver.NamedValue) (_ string, err error) {
 	var rows driver.Rows
 	d.connMut.RLock()
-	conn, ok := d.connMap[connID]
+	entry, ok := d.connMap[connID]
 	d.connMut.RUnlock()
 	if !ok {
 		return "", driver.ErrBadConn
 	}
 
-	err = conn.Raw(func(innerConn any) error {
+	err = entry.conn.Raw(func(innerConn any) error {
 		rows, err = innerConn.(driver.QueryerContext).QueryContext(context.Background(), q, args)
 		return err
 	})
@@ -110,13 +124,13 @@ func (d *DriverImpl) ConnExec(connID, q string, args []driver.NamedValue) (_ plu
 	var res driver.Result
 	var ret plugin.ResultContainer
 	d.connMut.RLock()
-	conn, ok := d.connMap[connID]
+	entry, ok := d.connMap[connID]
 	d.connMut.RUnlock()
 	if !ok {
 		return ret, driver.ErrBadConn
 	}
 
-	err = conn.Raw(func(innerConn any) error {
+	err = entry.conn.Raw(func(innerConn any) error {
 		res, err = innerConn.(driver.ExecerContext).ExecContext(context.Background(), q, args)
 		return err
 	})
@@ -132,7 +146,7 @@ func (d *DriverImpl) ConnExec(connID, q string, args []driver.NamedValue) (_ plu
 
 func (d *DriverImpl) ConnClose(connID string) error {
 	d.connMut.Lock()
-	conn, ok := d.connMap[connID]
+	entry, ok := d.connMap[connID]
 	if !ok {
 		d.connMut.Unlock()
 		return driver.ErrBadConn
@@ -140,19 +154,35 @@ func (d *DriverImpl) ConnClose(connID string) error {
 	delete(d.connMap, connID)
 	d.connMut.Unlock()
 
-	return conn.Close()
+	return entry.conn.Close()
+}
+
+// ShutdownConns will close any remaining connections for the given pluginID
+// if they weren't already closed by the plugin itself.
+func (d *DriverImpl) ShutdownConns(pluginID string) {
+	d.connMut.Lock()
+	defer d.connMut.Unlock()
+	for connID, entry := range d.connMap {
+		if entry.pluginID == pluginID {
+			err := entry.conn.Close()
+			if err != nil {
+				d.s.Log().Error("Error while closing DB connection", mlog.Err(err), mlog.String("pluginID", pluginID))
+			}
+			delete(d.connMap, connID)
+		}
+	}
 }
 
 func (d *DriverImpl) Tx(connID string, opts driver.TxOptions) (_ string, err error) {
 	var tx driver.Tx
 	d.connMut.RLock()
-	conn, ok := d.connMap[connID]
+	entry, ok := d.connMap[connID]
 	d.connMut.RUnlock()
 	if !ok {
 		return "", driver.ErrBadConn
 	}
 
-	err = conn.Raw(func(innerConn any) error {
+	err = entry.conn.Raw(func(innerConn any) error {
 		tx, err = innerConn.(driver.ConnBeginTx).BeginTx(context.Background(), opts)
 		return err
 	})
@@ -188,13 +218,13 @@ func (d *DriverImpl) TxRollback(txID string) error {
 func (d *DriverImpl) Stmt(connID, q string) (_ string, err error) {
 	var stmt driver.Stmt
 	d.connMut.RLock()
-	conn, ok := d.connMap[connID]
+	entry, ok := d.connMap[connID]
 	d.connMut.RUnlock()
 	if !ok {
 		return "", driver.ErrBadConn
 	}
 
-	err = conn.Raw(func(innerConn any) error {
+	err = entry.conn.Raw(func(innerConn any) error {
 		stmt, err = innerConn.(driver.Conn).Prepare(q)
 		return err
 	})

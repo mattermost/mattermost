@@ -3,23 +3,13 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post, PostType, PostMetadata, PostEmbed} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {getPreferenceKey} from './preference_utils';
-
 import {Posts, Preferences, Permissions} from '../constants';
-
-export function isPostFlagged(postId: Post['id'], myPreferences: {
-    [x: string]: PreferenceType;
-}): boolean {
-    const key = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, postId);
-    return myPreferences.hasOwnProperty(key);
-}
 
 export function isSystemMessage(post: Post): boolean {
     return Boolean(post.type && post.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX));
@@ -106,7 +96,11 @@ const joinLeavePostTypes = [
     Posts.POST_TYPES.COMBINED_USER_ACTIVITY,
 ];
 
-// Returns true if a post should be hidden when the user has Show Join/Leave Messages disabled
+/**
+ * If the user has "Show Join/Leave Messages" disabled, this function will return true if the post should be hidden if it's of type join/leave.
+ * The post object passed in must be not null/undefined.
+ * @returns Returns true if a post should be hidden
+ */
 export function shouldFilterJoinLeavePost(post: Post, showJoinLeave: boolean, currentUsername: string): boolean {
     if (showJoinLeave) {
         return false;

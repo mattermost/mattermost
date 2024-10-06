@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
@@ -12,7 +11,10 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import {General} from 'mattermost-redux/constants';
 
 import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_modal';
+import type {ChannelInviteModal as ChannelInviteModalClass} from 'components/channel_invite_modal/channel_invite_modal';
 import type {Value} from 'components/multiselect/multiselect';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -91,7 +93,7 @@ describe('components/channel_invite_modal', () => {
     };
 
     test('should match snapshot for channel_invite_modal with profiles', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -104,7 +106,7 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={[]}
@@ -117,7 +119,7 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should match snapshot with exclude and include users', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -150,7 +152,7 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should match snapshot for channel_invite_modal with userStatuses', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -159,23 +161,26 @@ describe('components/channel_invite_modal', () => {
                 profilesFromRecentDMs={[]}
             />,
         );
-        const instance = wrapper.instance() as ChannelInviteModal;
+        const instance = wrapper.instance() as ChannelInviteModalClass;
         expect(instance.renderOption(users[0], true, jest.fn(), jest.fn())).toMatchSnapshot();
     });
 
     test('should match state when onHide is called', () => {
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal {...baseProps}/>,
         );
 
         wrapper.setState({show: true});
-        wrapper.instance().onHide();
+
+        const instance = wrapper.instance() as ChannelInviteModalClass;
+        instance.onHide();
+
         expect(wrapper.state('show')).toEqual(false);
     });
 
     test('should have called props.onHide when Modal.onExited is called', () => {
         const props = {...baseProps};
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -184,16 +189,19 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should fail to add users on handleSubmit', (done) => {
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
             />,
         );
 
         wrapper.setState({selectedUsers: users, show: true});
-        wrapper.instance().handleSubmit();
+
+        const instance = wrapper.instance() as ChannelInviteModalClass;
+        instance.handleSubmit();
+
         expect(wrapper.state('saving')).toEqual(true);
-        expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('inviteError')).toEqual('Failed');
             expect(wrapper.state('saving')).toEqual(false);
@@ -213,16 +221,19 @@ describe('components/channel_invite_modal', () => {
             },
         };
 
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...props}
             />,
         );
 
         wrapper.setState({selectedUsers: users, show: true});
-        wrapper.instance().handleSubmit();
+
+        const instance = wrapper.instance() as ChannelInviteModalClass;
+        instance.handleSubmit();
+
         expect(wrapper.state('saving')).toEqual(true);
-        expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('inviteError')).toBeUndefined();
             expect(wrapper.state('saving')).toEqual(false);
@@ -239,24 +250,28 @@ describe('components/channel_invite_modal', () => {
             onAddCallback,
         };
 
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...props}
             />,
         );
 
         wrapper.setState({selectedUsers: users, show: true});
-        wrapper.instance().handleSubmit();
+        const instance = wrapper.instance() as ChannelInviteModalClass;
+        instance.handleSubmit();
+
         expect(onAddCallback).toHaveBeenCalled();
-        expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(0);
+        expect(instance.props.actions.addUsersToChannel).toHaveBeenCalledTimes(0);
     });
 
     test('should trim the search term', () => {
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal {...baseProps}/>,
         );
 
-        wrapper.instance().search(' something ');
+        const instance = wrapper.instance() as ChannelInviteModalClass;
+
+        instance.search(' something ');
         expect(wrapper.state('term')).toEqual('something');
     });
 
@@ -266,7 +281,7 @@ describe('components/channel_invite_modal', () => {
             canInviteGuests: true,
             emailInvitationsEnabled: true,
         };
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -283,7 +298,7 @@ describe('components/channel_invite_modal', () => {
             canInviteGuests: false,
             emailInvitationsEnabled: false,
         };
-        const wrapper = shallow<ChannelInviteModal>(
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal {...props}/>,
         );
 

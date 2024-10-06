@@ -6,20 +6,21 @@ package storetest
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestDesktopTokensStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("GetUserId", func(t *testing.T) { testGetUserId(t, ss) })
-	t.Run("Insert", func(t *testing.T) { testInsert(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testDeleteToken(t, ss) })
-	t.Run("DeleteByUserId", func(t *testing.T) { testDeleteByUserId(t, ss) })
-	t.Run("DeleteOlderThan", func(t *testing.T) { testDeleteOlderThan(t, ss) })
+func TestDesktopTokensStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("GetUserId", func(t *testing.T) { testGetUserId(t, rctx, ss) })
+	t.Run("Insert", func(t *testing.T) { testInsert(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testDeleteToken(t, rctx, ss) })
+	t.Run("DeleteByUserId", func(t *testing.T) { testDeleteByUserId(t, rctx, ss) })
+	t.Run("DeleteOlderThan", func(t *testing.T) { testDeleteOlderThan(t, rctx, ss) })
 }
 
-func testGetUserId(t *testing.T, ss store.Store) {
+func testGetUserId(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.DesktopTokens().Insert("token_with_id", 1000, "user_id")
 	require.NoError(t, err)
 
@@ -37,7 +38,7 @@ func testGetUserId(t *testing.T, ss store.Store) {
 	})
 }
 
-func testInsert(t *testing.T, ss store.Store) {
+func testInsert(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("insert", func(t *testing.T) {
 		err := ss.DesktopTokens().Insert("token", 1000, "user_id")
 		assert.NoError(t, err)
@@ -53,7 +54,7 @@ func testInsert(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteToken(t *testing.T, ss store.Store) {
+func testDeleteToken(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.DesktopTokens().Insert("deleteable_token", 3000, "user_id")
 	require.NoError(t, err)
 
@@ -70,7 +71,7 @@ func testDeleteToken(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteByUserId(t *testing.T, ss store.Store) {
+func testDeleteByUserId(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.DesktopTokens().Insert("deleteable_token_2", 4000, "deleteable_user_id")
 	require.NoError(t, err)
 
@@ -87,7 +88,7 @@ func testDeleteByUserId(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteOlderThan(t *testing.T, ss store.Store) {
+func testDeleteOlderThan(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.DesktopTokens().Insert("deleteable_token_old", 1000, "deleteable_user_id")
 	require.NoError(t, err)
 	err = ss.DesktopTokens().Insert("deleteable_token_new", 5000, "deleteable_user_id")

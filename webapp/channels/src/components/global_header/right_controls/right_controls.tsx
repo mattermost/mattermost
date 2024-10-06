@@ -40,6 +40,16 @@ const RightControlsContainer = styled.div`
     }
 `;
 
+const StyledCustomizeYourExperienceTour = styled.div`
+    display: flex;
+    align-items: center;
+    height: 100%
+`;
+
+const StyledStatusDropdown = styled.div`
+    margin-left: 8px;
+`;
+
 export type Props = {
     productId?: ProductIdentifier;
 }
@@ -60,8 +70,6 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                 <>
                     <AtMentionsButton/>
                     <SavedPostsButton/>
-                    <SettingsButton/>
-                    {showCustomizeTip && <CustomizeYourExperienceTour/>}
                 </>
             ) : (
                 <Pluggable
@@ -70,7 +78,19 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
-            <StatusDropdown/>
+            <StyledCustomizeYourExperienceTour id='CustomizeYourExperienceTour'>
+                {
+                    isChannels(productId) ? (
+                        <>
+                            <SettingsButton/>
+                            {showCustomizeTip && <CustomizeYourExperienceTour/>}
+                        </>
+                    ) : null
+                }
+                <StyledStatusDropdown>
+                    <StatusDropdown/>
+                </StyledStatusDropdown>
+            </StyledCustomizeYourExperienceTour>
         </RightControlsContainer>
     );
 };

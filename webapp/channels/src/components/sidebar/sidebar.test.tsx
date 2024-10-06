@@ -9,7 +9,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Preferences} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -141,7 +141,7 @@ describe('components/sidebar', () => {
                         channel2,
                     },
                     channelsInTeam: {
-                        [currentTeamId]: [channel1.id, channel2.id],
+                        [currentTeamId]: new Set([channel1.id, channel2.id]),
                     },
                     messageCounts: {
                         channel1: {total: 10},
@@ -164,8 +164,8 @@ describe('components/sidebar', () => {
             },
         };
 
-        test('should not render unreads category when disabled by user preference', () => {
-            const testState = mergeObjects(baseState, {
+        test('should not render unreads category when disabled by user preference', async () => {
+            const testState = {
                 entities: {
                     channels: {
                         messageCounts: {
@@ -178,17 +178,19 @@ describe('components/sidebar', () => {
                         ]),
                     },
                 },
-            });
+            };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).not.toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.queryByText('UNREADS')).not.toBeInTheDocument();
+            });
         });
 
-        test('should render unreads category when there are unread channels', () => {
+        test('should render unreads category when there are unread channels', async () => {
             const testState: DeepPartial<GlobalState> = {
                 entities: {
                     channels: {
@@ -204,15 +206,17 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.queryByText('UNREADS')).toBeInTheDocument();
+            });
         });
 
-        test('should not render unreads category when there are no unread channels', () => {
+        test('should not render unreads category when there are no unread channels', async () => {
             const testState: DeepPartial<GlobalState> = {
                 entities: {
                     preferences: {
@@ -223,15 +227,17 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).not.toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.queryByText('UNREADS')).not.toBeInTheDocument();
+            });
         });
 
-        test('should render unreads category when there are no unread channels but the current channel was previously unread', () => {
+        test('should render unreads category when there are no unread channels but the current channel was previously unread', async () => {
             const testState: DeepPartial<GlobalState> = {
                 entities: {
                     preferences: {
@@ -242,17 +248,19 @@ describe('components/sidebar', () => {
                 },
                 views: {
                     channel: {
-                        lastUnreadChannel: {id: channel1.id},
+                        lastUnreadChannel: {id: channel1.id} as any,
                     },
                 },
             };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.queryByText('UNREADS')).toBeInTheDocument();
+            });
         });
     });
 });

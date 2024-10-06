@@ -36,28 +36,29 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     closeButton={true}
     closeLabel="Close"
     id="channelInviteModalLabel"
-  />
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {channel}"
+        id="channel_invite.addNewMembers"
+        values={
+          Object {
+            "channel": "testing",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
   <ModalBody
     bsClass="modal-body"
     className="overflow--visible"
     componentClass="div"
     role="application"
   >
-    <div
-      className="channel-invite__header"
-    >
-      <h1>
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {channel}"
-          id="channel_invite.addNewMembers"
-          values={
-            Object {
-              "channel": "testing",
-            }
-          }
-        />
-      </h1>
-    </div>
     <div
       className="channel-invite__content"
     >
@@ -73,6 +74,44 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         handleInput={[Function]}
         handlePageChange={[Function]}
         handleSubmit={[Function]}
+        intl={
+          Object {
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
+            },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
+          }
+        }
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
@@ -135,28 +174,29 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     closeButton={true}
     closeLabel="Close"
     id="channelInviteModalLabel"
-  />
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {channel}"
+        id="channel_invite.addNewMembers"
+        values={
+          Object {
+            "channel": "testing",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
   <ModalBody
     bsClass="modal-body"
     className="overflow--visible"
     componentClass="div"
     role="application"
   >
-    <div
-      className="channel-invite__header"
-    >
-      <h1>
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {channel}"
-          id="channel_invite.addNewMembers"
-          values={
-            Object {
-              "channel": "testing",
-            }
-          }
-        />
-      </h1>
-    </div>
     <div
       className="channel-invite__content"
     >
@@ -172,6 +212,44 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         handleInput={[Function]}
         handlePageChange={[Function]}
         handleSubmit={[Function]}
+        intl={
+          Object {
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
+            },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
+          }
+        }
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
@@ -256,28 +334,29 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     closeButton={true}
     closeLabel="Close"
     id="channelInviteModalLabel"
-  />
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {channel}"
+        id="channel_invite.addNewMembers"
+        values={
+          Object {
+            "channel": "testing",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
   <ModalBody
     bsClass="modal-body"
     className="overflow--visible"
     componentClass="div"
     role="application"
   >
-    <div
-      className="channel-invite__header"
-    >
-      <h1>
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {channel}"
-          id="channel_invite.addNewMembers"
-          values={
-            Object {
-              "channel": "testing",
-            }
-          }
-        />
-      </h1>
-    </div>
     <div
       className="channel-invite__content"
     >
@@ -293,6 +372,44 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         handleInput={[Function]}
         handlePageChange={[Function]}
         handleSubmit={[Function]}
+        intl={
+          Object {
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
+            },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
+          }
+        }
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}

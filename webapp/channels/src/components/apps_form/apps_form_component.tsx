@@ -111,7 +111,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
         if (fieldErrors && Object.keys(fieldErrors).length >= 0) {
             hasErrors = true;
-            if (checkIfErrorsMatchElements(fieldErrors as any, elements)) {
+            if (checkIfErrorsMatchElements(fieldErrors, elements)) {
                 state.fieldErrors = {};
                 for (const [key, value] of Object.entries(fieldErrors)) {
                     state.fieldErrors[key] = (<Markdown message={value}/>);
@@ -518,10 +518,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 autoFocus={!fields || fields.length === 0}
                 className='btn btn-primary save-button'
                 spinning={Boolean(this.state.submitting)}
-                spinningText={localizeMessage(
-                    'interactive_dialog.submitting',
-                    'Submitting...',
-                )}
+                spinningText={localizeMessage({
+                    id: 'interactive_dialog.submitting',
+                    defaultMessage: 'Submitting...',
+                })}
             >
                 {submitText}
             </SpinnerButton>

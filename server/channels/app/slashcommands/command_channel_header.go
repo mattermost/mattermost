@@ -35,7 +35,7 @@ func (*HeaderProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*HeaderProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{

@@ -55,7 +55,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		err := renameTeamCmdF(s.th.Client, cmd, args)
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
-		s.ErrorContains(err, "Cannot rename team '"+s.th.BasicTeam.Name+"', error : : You do not have the appropriate permissions.")
+		s.ErrorContains(err, "Cannot rename team '"+s.th.BasicTeam.Name+"', error : You do not have the appropriate permissions.")
 	})
 }
 
@@ -86,7 +86,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		_ = deleteTeamsCmdF(s.th.Client, cmd, args)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: : You do not have the appropriate permissions.", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: You do not have the appropriate permissions.", printer.GetErrorLines()[0])
 		team, _ := s.th.App.GetTeam(s.th.BasicTeam.Id)
 		s.Equal(team.Name, s.th.BasicTeam.Name)
 	})
@@ -140,7 +140,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: : Permanent team deletion feature is not enabled. Please contact your System Administrator.", printer.GetErrorLines()[0])
+		s.Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: Permanent team deletion feature is not enabled. Please contact your System Administrator.", printer.GetErrorLines()[0])
 
 		// verify team still exists
 		team, _ := s.th.App.GetTeam(s.th.BasicTeam.Id)
@@ -182,10 +182,12 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("private", true, "")
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
-		s.Require().NoError(err)
+
+		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to modify team '%s' error: : You do not have the appropriate permissions.", s.th.BasicTeam.Name),
+			expectedError,
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
@@ -199,10 +201,12 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		cmd.Flags().Bool("private", true, "")
 		s.th.LoginBasic2()
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
-		s.Require().NoError(err)
+
+		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to modify team '%s' error: : You do not have the appropriate permissions.", s.th.BasicTeam.Name),
+			expectedError,
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
@@ -363,7 +367,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		printer.Clean()
 
 		err := archiveTeamsCmdF(c, cmd, []string{"unknown-team"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to find team 'unknown-team'", printer.GetErrorLines()[0])
@@ -391,7 +395,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		printer.Clean()
 
 		err := archiveTeamsCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Name})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions.")

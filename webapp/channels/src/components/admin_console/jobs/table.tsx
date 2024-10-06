@@ -28,7 +28,9 @@ export type Props = {
     downloadExportResults?: boolean;
     className?: string;
     hideJobCreateButton?: boolean;
-    createJobButtonText: React.ReactElement;
+    createJobButtonText: React.ReactNode;
+    hideTable?: boolean;
+    jobData?: any;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -75,6 +77,7 @@ class JobTable extends React.PureComponent<Props> {
         e.preventDefault();
         const job = {
             type: this.props.jobType,
+            data: this.props.jobData,
         };
 
         await this.props.actions.createJob(job);
@@ -131,53 +134,56 @@ class JobTable extends React.PureComponent<Props> {
                         {this.props.createJobHelpText}
                     </div>
                 </div>
-                <div className='job-table__table'>
-                    <table
-                        className='table'
-                        data-testid='jobTable'
-                    >
-                        <thead>
-                            <tr>
-                                <th className='cancel-button-field'/>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerStatus'
-                                        defaultMessage='Status'
-                                    />
-                                </th>
-                                {showFilesColumn &&
+                {
+                    !this.props.hideTable &&
+                    <div className='job-table__table'>
+                        <table
+                            className='table'
+                            data-testid='jobTable'
+                        >
+                            <thead>
+                                <tr>
+                                    <th className='cancel-button-field'/>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerStatus'
+                                            defaultMessage='Status'
+                                        />
+                                    </th>
+                                    {showFilesColumn &&
                                     <th>
                                         <FormattedMessage
                                             id='admin.jobTable.headerFiles'
                                             defaultMessage='Files'
                                         />
                                     </th>
-                                }
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerFinishAt'
-                                        defaultMessage='Finish Time'
-                                    />
-                                </th>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerRunTime'
-                                        defaultMessage='Run Time'
-                                    />
-                                </th>
-                                <th colSpan={3}>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerExtraInfo'
-                                        defaultMessage='Details'
-                                    />
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items}
-                        </tbody>
-                    </table>
-                </div>
+                                    }
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerFinishAt'
+                                            defaultMessage='Finish Time'
+                                        />
+                                    </th>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerRunTime'
+                                            defaultMessage='Run Time'
+                                        />
+                                    </th>
+                                    <th colSpan={3}>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerExtraInfo'
+                                            defaultMessage='Details'
+                                        />
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items}
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         );
     }

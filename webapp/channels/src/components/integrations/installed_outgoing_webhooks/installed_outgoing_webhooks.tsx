@@ -10,6 +10,8 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -60,17 +62,17 @@ export type Props = {
         /**
         * The function to call for removing outgoingWebhook
         */
-        removeOutgoingHook: (hookId: string) => Promise<void>;
+        removeOutgoingHook: (hookId: string) => Promise<ActionResult>;
 
         /**
         * The function to call for outgoingWebhook List and for the status of api
         */
-        loadOutgoingHooksAndProfilesForTeam: (teamId: string, page: number, perPage: number) => Promise<void>;
+        loadOutgoingHooksAndProfilesForTeam: (teamId: string, page: number, perPage: number) => Promise<ActionResult>;
 
         /**
         * The function to call for regeneration of webhook token
         */
-        regenOutgoingHookToken: (hookId: string) => Promise<void>;
+        regenOutgoingHookToken: (hookId: string) => Promise<ActionResult>;
     };
 
     /**
@@ -97,7 +99,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             this.props.actions.loadOutgoingHooksAndProfilesForTeam(
                 this.props.teamId,
                 Constants.Integrations.START_PAGE_NUM,
-                parseInt(Constants.Integrations.PAGE_SIZE, 10),
+                Constants.Integrations.PAGE_SIZE,
             ).then(
                 () => this.setState({loading: false}),
             );
@@ -119,7 +121,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = localizeMessage('installed_outgoing_webhooks.unknown_channel', 'A Private Webhook');
+                displayNameA = localizeMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
 
@@ -129,7 +131,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             if (channelB) {
                 displayNameB = channelB.display_name;
             } else {
-                displayNameB = localizeMessage('installed_outgoing_webhooks.unknown_channel', 'A Private Webhook');
+                displayNameB = localizeMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
         return displayNameA.localeCompare(displayNameB);
@@ -218,10 +220,10 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={localizeMessage(
-                    'installed_outgoing_webhooks.search',
-                    'Search Outgoing Webhooks',
-                )}
+                searchPlaceholder={localizeMessage({
+                    id: 'installed_outgoing_webhooks.search',
+                    defaultMessage: 'Search Outgoing Webhooks',
+                })}
                 loading={this.state.loading}
             >
                 {(filter: string) => {

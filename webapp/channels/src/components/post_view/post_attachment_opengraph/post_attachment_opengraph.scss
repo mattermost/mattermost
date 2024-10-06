@@ -16,9 +16,9 @@
     max-width: 700px;
     padding: 16px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
     margin: 5px 0;
     background-color: var(--center-channel-bg);
-    border-radius: 4px;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
 
     /**
@@ -55,13 +55,13 @@
         left: -28px;
         display: none;
         padding: 5px;
-        background-color: rgba(var(--center-channel-color-rgb), 0);
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        background-color: rgba(var(--center-channel-color-rgb), 0);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         &:hover:not(:active) {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:active {
@@ -80,7 +80,7 @@
         }
 
         .sitename {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 11px;
             font-weight: 400;
             line-height: 16px;
@@ -159,9 +159,9 @@
             width: 24px;
             height: 24px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background-color: var(--center-channel-bg);
             border-radius: 50%;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            background-color: var(--center-channel-bg);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             place-content: center;
             place-items: center;
@@ -178,8 +178,8 @@
                 display: flex;
                 width: auto;
                 border: none;
-                background-color: transparent;
                 border-radius: 0;
+                background-color: transparent;
             }
         }
 

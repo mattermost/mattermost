@@ -10,7 +10,6 @@ import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {verifyUserEmail, getMe} from 'mattermost-redux/actions/users';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -32,7 +31,7 @@ const enum VerifyStatus {
 
 const DoVerifyEmail = () => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
 

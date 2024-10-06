@@ -18,6 +18,8 @@ describe('components/UserProfile', () => {
         user: {username: 'username'} as UserProfileType,
         userId: 'user_id',
         theme: Preferences.THEMES.onyx,
+        isShared: false,
+        dispatch: jest.fn(),
     };
 
     test('should match snapshot', () => {

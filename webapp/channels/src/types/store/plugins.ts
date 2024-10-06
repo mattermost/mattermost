@@ -15,6 +15,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
@@ -48,6 +49,7 @@ export type PluginsState = {
     postTypes: {
         [postType: string]: PostPluginComponent;
     };
+
     postCardTypes: {
         [postType: string]: PostPluginComponent;
     };
@@ -55,13 +57,25 @@ export type PluginsState = {
     adminConsoleReducers: {
         [pluginId: string]: any;
     };
+
     adminConsoleCustomComponents: {
         [pluginId: string]: {
             [settingName: string]: AdminConsolePluginComponent;
         };
     };
+
+    adminConsoleCustomSections: {
+        [pluginId: string]: {
+            [sectionKey: string]: AdminConsolePluginCustomSection;
+        };
+    };
+
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
+    };
+
+    userSettings: {
+        [pluginId: string]: PluginConfiguration;
     };
 };
 
@@ -98,6 +112,7 @@ export type PluginComponent = {
     filter?: (id: string) => boolean;
     action?: (...args: any) => void; // TODO Add more concrete types?
     shouldRender?: (state: GlobalState) => boolean;
+    hook?: (post: Post, message?: string) => string;
 };
 
 export type AppBarComponent = PluginComponent & {
@@ -141,6 +156,12 @@ export type AdminConsolePluginComponent = {
     options: {
         showTitle: boolean;
     };
+};
+
+export type AdminConsolePluginCustomSection = {
+    pluginId: string;
+    key: string;
+    component: React.Component;
 };
 
 export type PostWillRenderEmbedPluginComponent = {

@@ -5,12 +5,13 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {EmojiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {parseNeededCustomEmojisFromText} from 'mattermost-redux/utils/emoji_utils';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {parseEmojiNamesFromText} from 'mattermost-redux/utils/emoji_utils';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -23,7 +24,7 @@ export function setSystemEmojis(emojis: Set<string>) {
     systemEmojis = emojis;
 }
 
-export function createCustomEmoji(emoji: any, image: any): ActionFunc {
+export function createCustomEmoji(emoji: any, image: any) {
     return bindClientFunc({
         clientFunc: Client4.createCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -34,7 +35,7 @@ export function createCustomEmoji(emoji: any, image: any): ActionFunc {
     });
 }
 
-export function getCustomEmoji(emojiId: string): ActionFunc {
+export function getCustomEmoji(emojiId: string) {
     return bindClientFunc({
         clientFunc: Client4.getCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -44,8 +45,8 @@ export function getCustomEmoji(emojiId: string): ActionFunc {
     });
 }
 
-export function getCustomEmojiByName(name: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getCustomEmojiByName(name: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
 
         try {
@@ -71,9 +72,11 @@ export function getCustomEmojiByName(name: string): ActionFunc {
     };
 }
 
-export function getCustomEmojisByName(names: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        if (!names || names.length === 0) {
+export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const neededNames = filterNeededCustomEmojis(getState(), names);
+
+        if (neededNames.length === 0) {
             return {data: true};
         }
 
@@ -82,7 +85,7 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
 
         const batches = [];
         for (let i = 0; i < names.length; i += batchSize) {
-            batches.push(names.slice(i, i + batchSize));
+            batches.push(neededNames.slice(i, i + batchSize));
         }
 
         let results;
@@ -102,10 +105,10 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
             data,
         }];
 
-        if (data.length !== names.length) {
+        if (data.length !== neededNames.length) {
             const foundNames = new Set(data.map((emoji) => emoji.name));
 
-            for (const name of names) {
+            for (const name of neededNames) {
                 if (foundNames.has(name)) {
                     continue;
                 }
@@ -117,23 +120,28 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
             }
         }
 
-        return dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
+        dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
+
+        return {data: true};
     };
 }
 
-export function getCustomEmojisInText(text: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function filterNeededCustomEmojis(state: GlobalState, names: string[]) {
+    const nonExistentEmoji = state.entities.emojis.nonExistentEmoji;
+    const customEmojisByName = selectCustomEmojisByName(state);
+
+    return names.filter((name) => {
+        return !systemEmojis.has(name) && !nonExistentEmoji.has(name) && !customEmojisByName.has(name);
+    });
+}
+
+export function getCustomEmojisInText(text: string): ActionFuncAsync {
+    return async (dispatch) => {
         if (!text) {
             return {data: true};
         }
 
-        const state = getState();
-        const nonExistentEmoji = state.entities.emojis.nonExistentEmoji;
-        const customEmojisByName = selectCustomEmojisByName(state);
-
-        const emojisToLoad = parseNeededCustomEmojisFromText(text, systemEmojis, customEmojisByName, nonExistentEmoji);
-
-        return getCustomEmojisByName(Array.from(emojisToLoad))(dispatch, getState);
+        return dispatch(getCustomEmojisByName(parseEmojiNamesFromText(text)));
     };
 }
 
@@ -142,8 +150,8 @@ export function getCustomEmojis(
     perPage: number = General.PAGE_SIZE_DEFAULT,
     sort: string = Emoji.SORT_BY_NAME,
     loadUsers = false,
-): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+): ActionFuncAsync<CustomEmoji[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getCustomEmojis(page, perPage, sort);
@@ -167,8 +175,8 @@ export function getCustomEmojis(
     };
 }
 
-export function loadProfilesForCustomEmojis(emojis: CustomEmoji[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesForCustomEmojis(emojis: CustomEmoji[]): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const usersToLoad: Record<string, boolean> = {};
         emojis.forEach((emoji: CustomEmoji) => {
             if (!getState().entities.users.profiles[emoji.creator_id]) {
@@ -186,8 +194,8 @@ export function loadProfilesForCustomEmojis(emojis: CustomEmoji[]): ActionFunc {
     };
 }
 
-export function deleteCustomEmoji(emojiId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteCustomEmoji(emojiId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteCustomEmoji(emojiId);
         } catch (error) {
@@ -206,8 +214,8 @@ export function deleteCustomEmoji(emojiId: string): ActionFunc {
     };
 }
 
-export function searchCustomEmojis(term: string, options: any = {}, loadUsers = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchCustomEmojis(term: string, options: any = {}, loadUsers = false): ActionFuncAsync<CustomEmoji[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.searchCustomEmoji(term, options);
@@ -231,8 +239,8 @@ export function searchCustomEmojis(term: string, options: any = {}, loadUsers = 
     };
 }
 
-export function autocompleteCustomEmojis(name: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function autocompleteCustomEmojis(name: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.autocompleteCustomEmoji(name);

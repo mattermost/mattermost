@@ -68,7 +68,7 @@ export async function initializePlugins() {
         return;
     }
 
-    const {data, error} = await getPlugins()(store.dispatch);
+    const {data, error} = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
@@ -153,6 +153,7 @@ export function loadPlugin(manifest) {
         script.id = 'plugin_' + manifest.id;
         script.type = 'text/javascript';
         script.src = getSiteURL() + bundlePath;
+        script.defer = true;
         script.onload = onLoad;
         script.onerror = onError;
 
@@ -214,7 +215,7 @@ export async function loadPluginsIfNecessary() {
 
     const oldManifests = store.getState().plugins.plugins;
 
-    const {error} = await getPlugins()(store.dispatch);
+    const {error} = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;

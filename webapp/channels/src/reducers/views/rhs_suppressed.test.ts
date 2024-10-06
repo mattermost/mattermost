@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import rhsSuppressed from 'reducers/views/rhs_suppressed';
 
 import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.views.rhsSuppressed', () => {
     test('initialState', () => {
-        expect(rhsSuppressed(undefined, {} as GenericAction)).toBe(false);
+        expect(rhsSuppressed(undefined, {type: undefined})).toBe(false);
     });
 
     test('should handle SUPPRESS_RHS', () => {

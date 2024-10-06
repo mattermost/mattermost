@@ -37,22 +37,35 @@ func TestCache(t *testing.T) {
 	th.Service.sessionCache.SetWithExpiry(session.Token, session, 5*time.Minute)
 	th.Service.sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
 
-	keys, err := th.Service.sessionCache.Keys()
+	var keys []string
+	err := th.Service.sessionCache.Scan(func(in []string) error {
+		keys = append(keys, in...)
+		return nil
+	})
 	require.NoError(t, err)
 	require.NotEmpty(t, keys)
 
 	th.Service.ClearUserSessionCache(session.UserId)
 
-	rkeys, err := th.Service.sessionCache.Keys()
+	var rkeys []string
+	err = th.Service.sessionCache.Scan(func(in []string) error {
+		rkeys = append(rkeys, in...)
+		return nil
+	})
 	require.NoError(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
+	clear(rkeys)
+	rkeys = []string{}
 
 	th.Service.ClearAllUsersSessionCache()
 
-	rkeys, err = th.Service.sessionCache.Keys()
+	err = th.Service.sessionCache.Scan(func(in []string) error {
+		rkeys = append(rkeys, in...)
+		return nil
+	})
 	require.NoError(t, err)
-	require.Empty(t, rkeys)
+	require.Len(t, rkeys, 0)
 }
 
 func TestSetSessionExpireInHours(t *testing.T) {
@@ -131,4 +144,60 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 
 	err = th.Service.RevokeAccessToken(th.Context, accessData.Token)
 	require.NoError(t, err)
+}
+
+func TestUpdateSessionsIsGuest(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Test session is demoted", func(t *testing.T) {
+		user := th.CreateUserOrGuest(false)
+
+		session := &model.Session{}
+		session.CreateAt = model.GetMillis()
+		session.UserId = user.Id
+		session.Token = model.NewId()
+		session.Roles = "fake_role"
+		th.Service.SetSessionExpireInHours(session, 24)
+
+		session, _ = th.Service.CreateSession(th.Context, session)
+
+		demotedUser, err := th.Service.Store.User().DemoteUserToGuest(user.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.SystemGuestRoleId, demotedUser.Roles)
+
+		err = th.Service.UpdateSessionsIsGuest(th.Context, demotedUser, true)
+		require.NoError(t, err)
+
+		session, err = th.Service.GetSession(th.Context, session.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.SystemGuestRoleId, session.Roles)
+		require.Equal(t, "true", session.Props[model.SessionPropIsGuest])
+	})
+
+	t.Run("Test session is promoted", func(t *testing.T) {
+		user := th.CreateUserOrGuest(true)
+
+		session := &model.Session{}
+		session.CreateAt = model.GetMillis()
+		session.UserId = user.Id
+		session.Token = model.NewId()
+		session.Roles = "fake_role"
+		th.Service.SetSessionExpireInHours(session, 24)
+
+		session, _ = th.Service.CreateSession(th.Context, session)
+
+		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
+		require.NoError(t, err)
+
+		promotedUser, err := th.Service.Store.User().Get(th.Context.Context(), user.Id)
+		require.NoError(t, err)
+		err = th.Service.UpdateSessionsIsGuest(th.Context, promotedUser, false)
+		require.NoError(t, err)
+
+		session, err = th.Service.GetSession(th.Context, session.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.SystemUserRoleId, session.Roles)
+		require.Equal(t, "false", session.Props[model.SessionPropIsGuest])
+	})
 }

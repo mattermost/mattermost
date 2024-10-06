@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -25,13 +26,13 @@ func getNextLinkMetadataTimestamp() int64 {
 	return linkMetadataTimestamp
 }
 
-func TestLinkMetadataStore(t *testing.T, ss store.Store) {
-	t.Run("Save", func(t *testing.T) { testLinkMetadataStoreSave(t, ss) })
-	t.Run("Get", func(t *testing.T) { testLinkMetadataStoreGet(t, ss) })
-	t.Run("Types", func(t *testing.T) { testLinkMetadataStoreTypes(t, ss) })
+func TestLinkMetadataStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Save", func(t *testing.T) { testLinkMetadataStoreSave(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testLinkMetadataStoreGet(t, rctx, ss) })
+	t.Run("Types", func(t *testing.T) { testLinkMetadataStoreTypes(t, rctx, ss) })
 }
 
-func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
+func testLinkMetadataStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should save item", func(t *testing.T) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
@@ -122,7 +123,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 	})
 }
 
-func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
+func testLinkMetadataStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should get value", func(t *testing.T) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
@@ -178,7 +179,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 	})
 }
 
-func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
+func testLinkMetadataStoreTypes(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should save and get image metadata", func(t *testing.T) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",

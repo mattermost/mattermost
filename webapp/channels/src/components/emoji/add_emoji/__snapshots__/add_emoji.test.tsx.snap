@@ -107,9 +107,8 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
           type="backstage"
         />
         <Link
@@ -121,8 +120,9 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
             id="add_emoji.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
+          data-testid="save-button"
           onClick={[Function]}
           spinning={false}
           spinningText="Saving..."
@@ -132,7 +132,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
             defaultMessage="Save"
             id="add_emoji.save"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -282,9 +282,8 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
       <div
         className="backstage-form__footer"
       >
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
           type="backstage"
         />
         <Link
@@ -296,8 +295,9 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
             id="add_emoji.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
+          data-testid="save-button"
           onClick={[Function]}
           spinning={false}
           spinningText="Saving..."
@@ -307,7 +307,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
             defaultMessage="Save"
             id="add_emoji.save"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -421,9 +421,8 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
       <div
         className="backstage-form__footer"
       >
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
           type="backstage"
         />
         <Link
@@ -435,8 +434,9 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
             id="add_emoji.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
+          data-testid="save-button"
           onClick={[Function]}
           spinning={false}
           spinningText="Saving..."
@@ -446,7 +446,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
             defaultMessage="Save"
             id="add_emoji.save"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>

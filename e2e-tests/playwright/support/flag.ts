@@ -5,6 +5,7 @@ import os from 'node:os';
 
 import {expect} from '@playwright/test';
 
+import {test} from './test_fixture';
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
 
@@ -32,4 +33,46 @@ export async function shouldHaveFeatureFlag(name: string, value: string | boolea
 export async function shouldRunInLinux() {
     const platform = os.platform();
     await expect(platform, 'Run in Linux or Playwright docker image only').toBe('linux');
+}
+
+export async function ensureLicense() {
+    const {adminClient} = await getAdminClient();
+    let license = await adminClient.getClientLicenseOld();
+
+    if (license?.IsLicensed !== 'true') {
+        const config = await adminClient.getClientConfigOld();
+        await expect(
+            config.ServiceEnvironment === 'dev',
+            'The trial license request fails in the local development environment. Please manually upload the test license.',
+        ).toBeFalsy();
+
+        await requestTrialLicense();
+
+        license = await adminClient.getClientLicenseOld();
+    }
+
+    await expect(license?.IsLicensed === 'true', 'Ensure server has license').toBeTruthy();
+}
+
+export async function requestTrialLicense() {
+    const {adminClient} = await getAdminClient();
+    try {
+        // @ts-expect-error This may fail requesting for trial license
+        await adminClient.requestTrialLicense({
+            receive_emails_accepted: true,
+            terms_accepted: true,
+            users: 100,
+        });
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        expect(error, 'Failed to request trial license').toBeFalsy();
+        throw error;
+    }
+}
+
+export async function skipIfNoLicense() {
+    const {adminClient} = await getAdminClient();
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
 }

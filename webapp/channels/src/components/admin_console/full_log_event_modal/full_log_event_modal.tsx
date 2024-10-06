@@ -15,7 +15,6 @@ type Props = {
 
 type State = {
     copySuccess: boolean;
-    exportSuccess: boolean;
 }
 
 export default class FullLogEventModal extends React.PureComponent<Props, State> {
@@ -24,7 +23,6 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
 
         this.state = {
             copySuccess: false,
-            exportSuccess: false,
         };
     }
 
@@ -49,14 +47,6 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
         this.showCopySuccess();
     };
 
-    exportToCsv = () => {
-        const file = navigator.clipboard.writeText(JSON.stringify(this.props.log, undefined, 2));
-        const csvContent = 'data:text/csv;charset=utf-8,' + file;
-        const encodedUri = encodeURI(csvContent);
-        window.open(encodedUri);
-        this.showExportSuccess();
-    };
-
     showCopySuccess = () => {
         this.setState({
             copySuccess: true,
@@ -65,18 +55,6 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
         setTimeout(() => {
             this.setState({
                 copySuccess: false,
-            });
-        }, 3000);
-    };
-
-    showExportSuccess = () => {
-        this.setState({
-            exportSuccess: true,
-        });
-
-        setTimeout(() => {
-            this.setState({
-                exportSuccess: false,
             });
         }, 3000);
     };
@@ -128,19 +106,6 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                             defaultMessage='Cancel'
                         />
                     </button>
-                    {this.state.exportSuccess ? (
-                        <FormattedMessage
-                            id='admin.server_logs.Exported'
-                            defaultMessage='Exported'
-                        />
-                    ) : (
-                        <Button onClick={this.exportToCsv}>
-                            <FormattedMessage
-                                id='admin.server_logs.Export'
-                                defaultMessage='Export'
-                            />
-                        </Button>
-                    )}
                 </Modal.Footer>
             </Modal>
         );

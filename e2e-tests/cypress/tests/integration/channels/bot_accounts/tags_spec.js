@@ -73,21 +73,21 @@ describe('Bot tags', () => {
         rhsPostHasBotBadge(postId);
     });
 
-    it('MM-T1833 BOT tag is visible in Pinned Posts', () => {
+    it('MM-T1833 BOT tag is visible in Pinned Messages', () => {
         // # Open pinned posts
         cy.uiGetChannelPinButton().click();
 
         // * Verify bot badge
-        cy.get('.sidebar--right__title').should('contain.text', 'Pinned Posts');
+        cy.get('.sidebar--right__title').should('contain.text', 'Pinned messages');
         rhsPostHasBotBadge(postId);
     });
 
-    it('MM-T3659 BOT tag is visible in Saved Posts', () => {
+    it('MM-T3659 BOT tag is visible in Saved Messages', () => {
         // # Open saved posts
         cy.uiGetSavedPostButton().click();
 
         // * Verify bot badge
-        cy.get('.sidebar--right__title').should('contain.text', 'Saved Posts');
+        cy.get('.sidebar--right__title').should('contain.text', 'Saved messages');
         rhsPostHasBotBadge(postId);
     });
 });

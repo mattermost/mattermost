@@ -30,14 +30,14 @@
         }
 
         :last-child {
-            color: rgba(63, 69, 80, 0.72);
+            color: rgba(63, 69, 80, 0.64);
         }
     }
 
     button {
         width: 100%;
-        margin: 5px auto;
         border-radius: 4px;
+        margin: 5px auto;
     }
 
     .upgrade-error {

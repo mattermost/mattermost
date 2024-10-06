@@ -3,23 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {TermsOfService} from '@mattermost/types/terms_of_service';
+import type {Dispatch} from 'redux';
 
 import {getTermsOfService, createTermsOfService} from 'mattermost-redux/actions/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 
-type Actions = {
-    getTermsOfService: () => Promise<{data: TermsOfService}>;
-    createTermsOfService: (text: string) => Promise<{data: TermsOfService; error?: Error}>;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getTermsOfService,
             createTermsOfService,
         }, dispatch),

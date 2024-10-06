@@ -7,8 +7,8 @@
         min-height: 440px;
         padding: 0 !important;
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
-        background: var(--center-channel-bg);
         border-radius: 8px;
+        background: var(--center-channel-bg);
         color: var(--center-channel-color);
     }
 
@@ -19,7 +19,7 @@
             &:focus,
             &:active:focus {
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
                 opacity: 1;
             }
 
@@ -28,7 +28,7 @@
             width: 4rem;
             height: 4rem;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            color: rgba(var(--center-channel-color-rgb), 0.75) !important;
             font-family:
                 'Open Sans',
                 sans-serif;
@@ -40,8 +40,8 @@
         min-height: 48px;
         padding: 0;
         border: 0;
-        background: var(--center-channel-bg) !important;
         border-radius: 8px;
+        background: var(--center-channel-bg) !important;
         color: var(--center-channel-color);
     }
 
@@ -61,8 +61,8 @@
                 &:focus,
                 &:active:focus {
                     border: none;
-                    background: rgba(var(--button-bg-rgb), 0.08);
                     border-radius: 4px;
+                    background: rgba(var(--button-bg-rgb), 0.08);
                 }
 
                 height: 30px;
@@ -70,8 +70,8 @@
                 align-self: center;
                 padding: 8px 16px;
                 border: none;
-                background: rgba(var(--button-bg-rgb), 0.08);
                 border-radius: 4px;
+                background: rgba(var(--button-bg-rgb), 0.08);
                 color: var(--button-bg);
                 font-size: 14px;
                 font-weight: 600;
@@ -92,9 +92,9 @@
                 flex: none;
                 padding: 8px 16px;
                 border: none;
+                border-radius: 4px;
                 margin-left: 8px;
                 background: var(--button-bg);
-                border-radius: 4px;
                 color: var(--sys-button-color);
                 font-size: 14px;
                 font-weight: 600;

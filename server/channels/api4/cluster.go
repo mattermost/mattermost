@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitCluster() {
-	api.BaseRoutes.Cluster.Handle("/status", api.APISessionRequired(getClusterStatus)).Methods("GET")
+	api.BaseRoutes.Cluster.Handle("/status", api.APISessionRequired(getClusterStatus)).Methods(http.MethodGet)
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos := c.App.GetClusterStatus()
+	infos := c.App.GetClusterStatus(c.AppContext)
 	js, err := json.Marshal(infos)
 	if err != nil {
 		c.Err = model.NewAppError("getClusterStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-function remotes(state: Record<string, boolean> = {}, action: GenericAction) {
+function remotes(state: Record<string, boolean> = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SET_DRAFT_SOURCE:
         return {

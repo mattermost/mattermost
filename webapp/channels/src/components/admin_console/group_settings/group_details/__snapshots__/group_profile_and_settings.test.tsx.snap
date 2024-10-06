@@ -2,20 +2,31 @@
 
 exports[`components/admin_console/group_settings/group_details/GroupProfileAndSettings should match snapshot, with toggle off 1`] = `
 <AdminPanel
-  className=""
   id="group_profile"
-  subtitleDefault="The name for this group."
-  subtitleId="admin.group_settings.group_detail.groupProfileDescription"
-  titleDefault="Group Profile"
-  titleId="admin.group_settings.group_detail.groupProfileTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "The name for this group.",
+      "id": "admin.group_settings.group_detail.groupProfileDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Group Profile",
+      "id": "admin.group_settings.group_detail.groupProfileTitle",
+    }
+  }
 >
-  <GroupProfile
+  <Memo(GroupProfile)
     customID="groupDisplayName"
     isDisabled={true}
     name="GroupProfileAndSettings"
     showAtMention={false}
-    title="admin.group_settings.group_details.group_profile.name"
-    titleDefault="Name:"
+    title={
+      Object {
+        "defaultMessage": "Name:",
+        "id": "admin.group_settings.group_details.group_profile.name",
+      }
+    }
   />
   <div
     className="group-settings"
@@ -42,20 +53,31 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
 
 exports[`components/admin_console/group_settings/group_details/GroupProfileAndSettings should match snapshot, with toggle on 1`] = `
 <AdminPanel
-  className=""
   id="group_profile"
-  subtitleDefault="The name for this group."
-  subtitleId="admin.group_settings.group_detail.groupProfileDescription"
-  titleDefault="Group Profile"
-  titleId="admin.group_settings.group_detail.groupProfileTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "The name for this group.",
+      "id": "admin.group_settings.group_detail.groupProfileDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Group Profile",
+      "id": "admin.group_settings.group_detail.groupProfileTitle",
+    }
+  }
 >
-  <GroupProfile
+  <Memo(GroupProfile)
     customID="groupDisplayName"
     isDisabled={true}
     name="GroupProfileAndSettings"
     showAtMention={false}
-    title="admin.group_settings.group_details.group_profile.name"
-    titleDefault="Name:"
+    title={
+      Object {
+        "defaultMessage": "Name:",
+        "id": "admin.group_settings.group_details.group_profile.name",
+      }
+    }
   />
   <div
     className="group-settings"
@@ -77,13 +99,17 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
       />
     </div>
   </div>
-  <GroupProfile
+  <Memo(GroupProfile)
     customID="groupMention"
     name="GroupProfileAndSettings"
     onChange={[MockFunction]}
     showAtMention={true}
-    title="admin.group_settings.group_details.group_mention.name"
-    titleDefault="Group Mention:"
+    title={
+      Object {
+        "defaultMessage": "Group Mention:",
+        "id": "admin.group_settings.group_details.group_mention.name",
+      }
+    }
   />
 </AdminPanel>
 `;

@@ -106,7 +106,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -223,8 +223,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -242,7 +241,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -254,7 +253,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -367,7 +366,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -484,8 +483,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -503,7 +501,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -515,7 +513,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -628,7 +626,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -745,8 +743,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -767,7 +764,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -779,7 +776,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -892,7 +889,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -976,8 +973,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -995,7 +991,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -1007,7 +1003,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -1120,7 +1116,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -1204,8 +1200,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1223,7 +1218,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -1235,7 +1230,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -1348,7 +1343,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -1465,8 +1460,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "serverError",
@@ -1484,7 +1478,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -1496,7 +1490,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>

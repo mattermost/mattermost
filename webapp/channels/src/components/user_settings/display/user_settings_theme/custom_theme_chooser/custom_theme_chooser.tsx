@@ -3,19 +3,15 @@
 
 import React, {createRef} from 'react';
 import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
-import Popover from 'components/widgets/popover';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import ColorChooser from '../color_chooser/color_chooser';
 
@@ -123,19 +119,19 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
 type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
+    intl: IntlShape;
 };
 
 type State = {
     copyTheme: string;
 };
 
-export default class CustomThemeChooser extends React.PureComponent<Props, State> {
+export class CustomThemeChooser extends React.PureComponent<Props, State> {
     textareaRef: RefObject<HTMLTextAreaElement>;
     sidebarStylesHeaderRef: RefObject<HTMLDivElement>;
     centerChannelStylesHeaderRef: RefObject<HTMLDivElement>;
     linkAndButtonStylesHeaderRef: RefObject<HTMLDivElement>;
     sidebarStylesRef: RefObject<HTMLDivElement>;
-    headerOverlayRef: RefObject<BaseOverlayTrigger>;
     centerChannelStylesRef: RefObject<HTMLDivElement>;
     linkAndButtonStylesRef: RefObject<HTMLDivElement>;
 
@@ -146,7 +142,6 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
         this.centerChannelStylesHeaderRef = createRef();
         this.linkAndButtonStylesHeaderRef = createRef();
         this.sidebarStylesRef = createRef();
-        this.headerOverlayRef = createRef();
         this.centerChannelStylesRef = createRef();
         this.linkAndButtonStylesRef = createRef();
 
@@ -289,8 +284,7 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
     };
 
     render() {
-        const theme = this.props.theme;
-
+        const {intl, theme} = this.props;
         const sidebarElements: JSX.Element[] = [];
         const centerChannelElements: JSX.Element[] = [];
         const linkAndButtonElements: JSX.Element[] = [];
@@ -313,20 +307,6 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                     );
                 });
 
-                const popoverContent = (
-                    <Popover
-                        popoverStyle='info'
-                        id='code-popover'
-                        className='code-popover'
-                    >
-                        <img
-                            width='200'
-                            alt={'code theme image'}
-                            src={codeThemeURL}
-                        />
-                    </Popover>
-                );
-
                 centerChannelElements.push(
                     <div
                         className='col-sm-6 form-group'
@@ -347,10 +327,18 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                             >
                                 {codeThemeOptions}
                             </select>
-                            <OverlayTrigger
+                            <WithTooltip
                                 placement='top'
-                                overlay={popoverContent}
-                                ref={this.headerOverlayRef}
+                                id='code-popover'
+                                title={
+                                    <div className='code-popover'>
+                                        <img
+                                            width='200'
+                                            alt={'code theme image'}
+                                            src={codeThemeURL}
+                                        />
+                                    </div>
+                                }
                             >
                                 <span className='input-group-addon'>
                                     <img
@@ -358,7 +346,7 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                                         src={codeThemeURL}
                                     />
                                 </span>
-                            </OverlayTrigger>
+                            </WithTooltip>
                         </div>
                     </div>,
                 );
@@ -469,13 +457,13 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                             defaultMessage='Sidebar Styles'
                         />
                         <div className='header__icon'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-plus'
-                                title={{id: t('generic_icons.expand'), defaultMessage: 'Expand Icon'}}
+                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                             />
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-minus'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
                     </div>
@@ -498,13 +486,13 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                             defaultMessage='Center Channel Styles'
                         />
                         <div className='header__icon'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-plus'
-                                title={{id: t('generic_icons.expand'), defaultMessage: 'Expand Icon'}}
+                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                             />
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-minus'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
                     </div>
@@ -528,13 +516,13 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                             defaultMessage='Link and Button Styles'
                         />
                         <div className='header__icon'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-plus'
-                                title={{id: t('generic_icons.expand'), defaultMessage: 'Expand Icon'}}
+                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                             />
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-minus'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
                     </div>
@@ -552,3 +540,5 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
         );
     }
 }
+
+export default injectIntl(CustomThemeChooser);

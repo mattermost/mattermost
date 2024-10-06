@@ -1,0 +1,128 @@
+.mm-save-changes-panel {
+    position: fixed;
+    z-index: 1000;
+    display: flex;
+    width: calc(63%);
+    align-items: center;
+    padding: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    animation-duration: 300ms;
+    animation-fill-mode: forwards;
+    animation-name: entry-animation;
+    animation-timing-function: ease;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-3);
+    font-family: 'Open Sans', sans-serif;
+    transition: all 300ms ease;
+
+    @keyframes entry-animation {
+        from {
+            bottom: 0;
+        }
+
+        to {
+            bottom: 20px;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        width: calc(95%);
+    }
+
+    &.error {
+        border-color: var(--dnd-indicator);
+        background: var(--dnd-indicator);
+    }
+
+    &.saved {
+        border-color: var(--online-indicator);
+        background: var(--online-indicator);
+    }
+
+    &__message {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: inherit;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 20px;
+
+        span {
+            margin-left: 8px;
+        }
+
+        svg {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        &.error,
+        &.saved {
+            color: var(--button-color);
+
+            svg {
+                color: var(--button-color);
+            }
+        }
+    }
+
+    &__btn-ctr {
+        display: flex;
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        gap: 8px;
+
+        #panelCloseButton {
+            color: rgba(var(--button-color-rgb), 0.64);
+            font-size: 16px;
+        }
+    }
+
+    &__cancel-btn {
+        display: flex;
+        min-width: 64px;
+        height: 32px;
+        align-items: center;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        background: rgba(var(--denim-button-bg-rgb), 0.08);
+        color: var(--denim-button-bg);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 10px;
+        line-height: 10px;
+
+        &.error {
+            background: rgba(var(--button-color-rgb), 0.12);
+            color: var(--button-color);
+        }
+    }
+
+    &__save-btn {
+        display: flex;
+        min-width: 59px;
+        height: 32px;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        background: var(--denim-button-bg);
+        color: var(--button-color);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 10px;
+        line-height: 10px;
+
+        &.error {
+            background-color: var(--button-color);
+            color: var(--denim-button-bg);
+        }
+    }
+}

@@ -9,10 +9,11 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
@@ -22,7 +23,7 @@ type AppIface interface {
 	configservice.ConfigService
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
 type ResendInvitationEmailWorker struct {
@@ -175,6 +176,8 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, 
 }
 
 func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) {
+	rctx := request.EmptyContext(logger)
+
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 	channelListData := job.Data["channelList"]
@@ -203,7 +206,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		memberInvite.ChannelIds = channelList
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(logger, job, appErr)

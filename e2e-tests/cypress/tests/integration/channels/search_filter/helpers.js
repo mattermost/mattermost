@@ -34,7 +34,7 @@ export function searchAndValidate(query, expectedResults = []) {
                 });
             } else {
                 // * If we expect no results, verify results message
-                cy.get('.no-results__title').should('be.visible').and('have.text', `No results for "${query}"`);
+                cy.get('.no-results__title').should('be.visible').and('have.text', `No results for “${query}”`);
             }
         });
 
@@ -98,8 +98,7 @@ export function setupTestData(data, {team, channel, admin, anotherAdmin}) {
     } = data;
 
     // # Create another admin user so we can create override create_at of posts
-    const baseUrl = Cypress.config('baseUrl');
-    cy.externalRequest({user: admin, method: 'put', baseUrl, path: `users/${anotherAdmin.id}/roles`, data: {roles: 'system_user system_admin'}});
+    cy.externalUpdateUserRoles(anotherAdmin.id, 'system_user system_admin');
 
     // # Create a post from today
     cy.get('#postListContent', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');

@@ -6,7 +6,7 @@ import {General} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
@@ -33,8 +33,8 @@ export function stopDragging() {
     return {type: ActionTypes.SIDEBAR_DRAGGING_STOP};
 }
 
-export function createCategory(teamId: string, displayName: string, channelIds?: string[]) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function createCategory(teamId: string, displayName: string, channelIds?: string[]): ActionFuncAsync<unknown, GlobalState> {
+    return async (dispatch, getState) => {
         if (channelIds) {
             const state = getState() as GlobalState;
             const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
@@ -45,10 +45,10 @@ export function createCategory(teamId: string, displayName: string, channelIds?:
             });
         }
 
-        const result: any = await dispatch(createCategoryRedux(teamId, displayName, channelIds));
+        const result = await dispatch(createCategoryRedux(teamId, displayName, channelIds));
         return dispatch({
             type: ActionTypes.ADD_NEW_CATEGORY_ID,
-            data: result.data.id,
+            data: result.data!.id,
         });
     };
 }
@@ -61,9 +61,9 @@ export function addChannelsInSidebar(categoryId: string, channelId: string) {
 
 // moveChannelsInSidebar moves channels to a given category in the sidebar, but it accounts for when the target index
 // may have changed due to archived channels not being shown in the sidebar.
-export function moveChannelsInSidebar(categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting = true) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function moveChannelsInSidebar(categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting = true): ActionFuncAsync<unknown, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
         const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
         let channelIds = [];
 
@@ -137,24 +137,26 @@ export function adjustTargetIndexForMove(state: GlobalState, categoryId: string,
     return Math.max(newIndex - removedChannelsAboveInsert.length, 0);
 }
 
-export function clearChannelSelection() {
-    return (dispatch: DispatchFunc, getState: () => GlobalState) => {
+export function clearChannelSelection(): ActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
 
         if (state.views.channelSidebar.multiSelectedChannelIds.length === 0) {
             // No selection to clear
-            return Promise.resolve({data: true});
+            return {data: false};
         }
 
-        return dispatch({
+        dispatch({
             type: ActionTypes.MULTISELECT_CHANNEL_CLEAR,
         });
+
+        return {data: true};
     };
 }
 
-export function multiSelectChannelAdd(channelId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function multiSelectChannelAdd(channelId: string): ActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
         const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
 
         // Nothing already selected, so we include the active channel
@@ -173,20 +175,11 @@ export function multiSelectChannelAdd(channelId: string) {
     };
 }
 
-export function setFirstChannelName(channelName: string) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.FIRST_CHANNEL_NAME,
-            data: channelName,
-        });
-    };
-}
-
 // Much of this logic was pulled from the react-beautiful-dnd sample multiselect implementation
 // Found here: https://github.com/atlassian/react-beautiful-dnd/tree/master/stories/src/multi-drag
-export function multiSelectChannelTo(channelId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function multiSelectChannelTo(channelId: string): ActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
         const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
         let lastSelected = state.views.channelSidebar.lastSelectedChannel;
 
@@ -209,7 +202,7 @@ export function multiSelectChannelTo(channelId: string) {
 
         // nothing to do here
         if (indexOfNew === indexOfLast) {
-            return null;
+            return {data: false};
         }
 
         const start: number = Math.min(indexOfLast, indexOfNew);

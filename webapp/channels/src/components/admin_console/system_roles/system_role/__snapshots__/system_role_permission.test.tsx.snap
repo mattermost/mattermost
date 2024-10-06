@@ -6,7 +6,7 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
 >
   <div
     className="PermissionSection"
-    key="environemnt"
+    key="environment"
   >
     <div
       className="PermissionSectionText"
@@ -15,16 +15,16 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
         className="PermissionSectionText_title"
       >
         <MemoizedFormattedMessage
-          defaultMessage="environemnt"
-          id="admin.permissions.sysconsole_section_environemnt.name"
+          defaultMessage="Environment"
+          id="admin.permissions.sysconsole_section_environment.name"
         />
       </div>
       <div
         className="PermissionSection_description"
       >
         <MemoizedFormattedMessage
-          defaultMessage=""
-          id="admin.permissions.sysconsole_section_environemnt.description"
+          defaultMessage="Review server environment configuration such as URLs, database and performance."
+          id="admin.permissions.sysconsole_section_environment.description"
         />
       </div>
     </div>
@@ -32,12 +32,12 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
       className="PermissionSectionDropdown"
     >
       <SystemRolePermissionDropdown
-        access={false}
+        access="read"
         isDisabled={true}
         section={
           Object {
             "hasDescription": true,
-            "name": "environemnt",
+            "name": "environment",
             "subsections": Array [],
           }
         }

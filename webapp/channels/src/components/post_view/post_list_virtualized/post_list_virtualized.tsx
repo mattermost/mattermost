@@ -9,7 +9,7 @@ import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
-import {isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
+import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
@@ -22,7 +22,7 @@ import ToastWrapper from 'components/toast_wrapper';
 import Pluggable from 'plugins/pluggable';
 import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
-import {getPreviousPostId, getLatestPostId, getNewMessageIndex} from 'utils/post_utils';
+import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import LatestPostReader from './latest_post_reader';
@@ -141,6 +141,8 @@ type State = {
     isSearchHintDismissed: boolean;
     isMobileView?: boolean;
     isNewMessageLineReached: boolean;
+    showScrollToBottomToast: boolean;
+    isScrollToBottomDismissed: boolean;
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
@@ -175,6 +177,8 @@ export default class PostList extends React.PureComponent<Props, State> {
             showSearchHint: false,
             isSearchHintDismissed: false,
             isNewMessageLineReached: false,
+            showScrollToBottomToast: false,
+            isScrollToBottomDismissed: false,
         };
 
         this.listRef = React.createRef();
@@ -189,9 +193,9 @@ export default class PostList extends React.PureComponent<Props, State> {
         if (props.focusedPostId) {
             postIndex = (this.props.postListIds || []).findIndex((postId) => postId === this.props.focusedPostId);
         } else {
-            postIndex = this.getNewMessagesSeparatorIndex(props.postListIds || []);
+            postIndex = getNewMessagesIndex(props.postListIds || []);
         }
-        this.newMessageLineIndex = this.getNewMessagesSeparatorIndex(props.postListIds || []);
+        this.newMessageLineIndex = getNewMessagesIndex(props.postListIds || []);
 
         const maxPostsForSlicing = props.focusedPostId ? MAXIMUM_POSTS_FOR_SLICING.permalink : MAXIMUM_POSTS_FOR_SLICING.channel;
         this.initRangeToRender = [
@@ -237,7 +241,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         const prevPostsCount = (prevProps.postListIds || []).length;
         const presentPostsCount = (this.props.postListIds || []).length;
 
-        this.newMessageLineIndex = this.getNewMessagesSeparatorIndex(this.props.postListIds || []);
+        this.newMessageLineIndex = getNewMessagesIndex(this.props.postListIds || []);
 
         if (snapshot) {
             const postlistScrollHeight = this.postListRef.current.scrollHeight;
@@ -305,12 +309,6 @@ export default class PostList extends React.PureComponent<Props, State> {
         return nextState;
     }
 
-    getNewMessagesSeparatorIndex = (postListIds: string[]) => {
-        return postListIds.findIndex(
-            (item) => item.indexOf(PostListRowListIds.START_OF_NEW_MESSAGES) === 0,
-        );
-    };
-
     handleWindowResize = () => {
         this.showSearchHintThreshold = this.getShowSearchHintThreshold();
     };
@@ -373,7 +371,6 @@ export default class PostList extends React.PureComponent<Props, State> {
                     isLastPost={isLastPost}
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
-                    lastViewedAt={this.props.lastViewedAt}
                     channelId={this.props.channelId}
                 />
             </div>
@@ -408,7 +405,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         const didUserScrollBackwards = scrollDirection === 'backward' && !scrollUpdateWasRequested;
         const didUserScrollForwards = scrollDirection === 'forward' && !scrollUpdateWasRequested;
         const isOffsetWithInRange = scrollOffset < HEIGHT_TRIGGER_FOR_MORE_POSTS;
-        const offsetFromBottom = (scrollHeight - clientHeight) - scrollOffset;
+        const offsetFromBottom = this.getOffsetFromBottom(scrollOffset, scrollHeight, clientHeight);
         const shouldLoadNewPosts = offsetFromBottom < HEIGHT_TRIGGER_FOR_MORE_POSTS;
 
         if (didUserScrollBackwards && isOffsetWithInRange && !this.props.atOldestPost) {
@@ -458,6 +455,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                 showSearchHint: offsetFromBottom > this.showSearchHintThreshold,
             });
         }
+
+        this.updateScrollToBottomToastVisibility(scrollOffset, scrollHeight, clientHeight);
     };
 
     getShowSearchHintThreshold = () => {
@@ -468,9 +467,11 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.updateAtBottom(this.isAtBottom(scrollOffset, scrollHeight, clientHeight));
     };
 
+    // Calculate how far the post list is from being scrolled to the bottom
+    getOffsetFromBottom = (scrollOffset: number, scrollHeight: number, clientHeight: number) => scrollHeight - clientHeight - scrollOffset;
+
     isAtBottom = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
-        // Calculate how far the post list is from being scrolled to the bottom
-        const offsetFromBottom = scrollHeight - clientHeight - scrollOffset;
+        const offsetFromBottom = this.getOffsetFromBottom(scrollOffset, scrollHeight, clientHeight);
 
         return offsetFromBottom <= BUFFER_TO_BE_CONSIDERED_BOTTOM && scrollHeight > 0;
     };
@@ -510,6 +511,40 @@ export default class PostList extends React.PureComponent<Props, State> {
             showSearchHint: false,
             isSearchHintDismissed: true,
         });
+    };
+
+    handleScrollToBottomToastDismiss = () => {
+        this.setState({
+            showScrollToBottomToast: false,
+            isScrollToBottomDismissed: true,
+        });
+    };
+
+    hideScrollToBottomToast = () => {
+        this.setState({
+            showScrollToBottomToast: false,
+        });
+    };
+
+    /*
+     * - Show the scroll-to-bottom toast at the same time as the search-hint toast.
+     * - Only show if the user hasn't dismissed it before, within a session.
+     * - Hide it if the user is at the bottom of the list.
+     */
+    updateScrollToBottomToastVisibility = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
+        if (this.state.showScrollToBottomToast && this.state.atBottom) {
+            this.setState({
+                showScrollToBottomToast: false,
+            });
+            return;
+        }
+
+        if (!this.state.isScrollToBottomDismissed) {
+            const offsetFromBottom = this.getOffsetFromBottom(scrollOffset, scrollHeight, clientHeight);
+            this.setState({
+                showScrollToBottomToast: offsetFromBottom > this.showSearchHintThreshold,
+            });
+        }
     };
 
     updateFloatingTimestamp = (visibleTopItem: number) => {
@@ -557,7 +592,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             };
         }
 
-        const newMessagesSeparatorIndex = getNewMessageIndex(this.state.postListIds);
+        const newMessagesSeparatorIndex = getNewMessagesIndex(this.state.postListIds);
 
         if (newMessagesSeparatorIndex > 0) {
             // if there is a dateLine above START_OF_NEW_MESSAGES then scroll to date line
@@ -599,7 +634,7 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     scrollToNewMessage = () => {
-        this.listRef.current?.scrollToItem(getNewMessageIndex(this.state.postListIds), 'start', OFFSET_TO_SHOW_TOAST);
+        this.listRef.current?.scrollToItem(getNewMessagesIndex(this.state.postListIds), 'start', OFFSET_TO_SHOW_TOAST);
     };
 
     updateNewMessagesAtInChannel = (lastViewedAt = Date.now()) => {
@@ -627,6 +662,9 @@ export default class PostList extends React.PureComponent<Props, State> {
                 initScrollOffsetFromBottom={this.state.initScrollOffsetFromBottom}
                 onSearchHintDismiss={this.handleSearchHintDismiss}
                 showSearchHintToast={this.state.showSearchHint}
+                showScrollToBottomToast={this.state.showScrollToBottomToast}
+                onScrollToBottomToastDismiss={this.handleScrollToBottomToastDismiss}
+                hideScrollToBottomToast={this.hideScrollToBottomToast}
             />
         );
     };
@@ -642,7 +680,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                 data-a11y-focus-child={true}
                 data-a11y-order-reversed={true}
                 data-a11y-loop-navigation={false}
-                aria-label={Utils.localizeMessage('accessibility.sections.centerContent', 'message list main region')}
+                aria-label={Utils.localizeMessage({id: 'accessibility.sections.centerContent', defaultMessage: 'message list main region'})}
             >
                 {this.props.isMobileView && (
                     <React.Fragment>

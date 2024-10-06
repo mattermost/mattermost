@@ -3,14 +3,13 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {clearChannelSelection} from 'actions/views/channel_sidebar';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -23,7 +22,6 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
@@ -61,17 +59,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    fetchMyCategories: (teamId: string) => {data: boolean};
-    openModal: <P>(modalData: ModalData<P>) => void;
-    clearChannelSelection: () => void;
-    closeModal: (modalId: string) => void;
-    closeRightHandSide: () => void;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             clearChannelSelection,
             fetchMyCategories,
             openModal,

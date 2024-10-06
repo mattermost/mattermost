@@ -52,11 +52,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       className="CommercialSupportModal"
     >
       <FormattedMarkdownMessage
-        defaultMessage="If you're experiencing issues, [submit a support ticket.](!{supportLink})
- 
-**Download Support Packet**
- 
-We recommend that you download additional environment details about your Mattermost environment to help with troubleshooting. Once downloaded, attach the packet to your support ticket to share with our Customer Support team."
+        defaultMessage="If you're experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
         id="commercial_support.description"
         values={
           Object {
@@ -64,26 +60,41 @@ We recommend that you download additional environment details about your Matterm
           }
         }
       />
-      <a
-        className="btn btn-primary DownloadSupportPacket"
-        href="/api/v4/system/support_packet"
-        rel="noopener noreferrer"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Download Support Packet"
-          id="commercial_support.download_support_packet"
-        />
-      </a>
       <AlertBanner
         message={
           <FormattedMarkdownMessage
-            defaultMessage="Before downloading the support packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
+            defaultMessage="Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
             id="commercial_support.warning.banner"
           />
         }
         mode="info"
         onDismiss={[Function]}
       />
+      <div
+        className="CommercialSupportModal__packet_contents_download"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="**Select your Support Packet contents to download**"
+          id="commercial_support.download_contents"
+        />
+      </div>
+      <div
+        className="CommercialSupportModal__download"
+      >
+        <a
+          className="btn btn-primary DownloadSupportPacket"
+          onClick={[Function]}
+          rel="noopener noreferrer"
+        >
+          <i
+            className="icon icon-download-outline"
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Download Support Packet"
+            id="commercial_support.download_support_packet"
+          />
+        </a>
+      </div>
     </div>
   </ModalBody>
 </Modal>

@@ -2,21 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {RHSStates} from 'utils/constants';
-import {t} from 'utils/i18n';
+import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
 type Props = {
+    intl: IntlShape;
     previousRhsState?: RhsState;
     isExpanded: boolean;
     actions: {
@@ -29,8 +27,8 @@ type Props = {
     };
 };
 
-export default class RhsCardHeader extends React.PureComponent<Props> {
-    handleBack = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+class RhsCardHeader extends React.PureComponent<Props> {
+    handleBack = (e: React.MouseEvent<HTMLButtonElement>): void => {
         e.preventDefault();
 
         switch (this.props.previousRhsState) {
@@ -56,53 +54,38 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
 
     render(): React.ReactNode {
         let back;
-        let backToResultsTooltip;
+        let title;
 
         switch (this.props.previousRhsState) {
         case RHSStates.SEARCH:
         case RHSStates.MENTION:
-            backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
-                    <FormattedMessage
-                        id='rhs_header.backToResultsTooltip'
-                        defaultMessage='Back to search results'
-                    />
-                </Tooltip>
+            title = (
+                <FormattedMessage
+                    id='rhs_header.backToResultsTooltip'
+                    defaultMessage='Back to search results'
+                />
             );
             break;
         case RHSStates.FLAG:
-            backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
-                    <FormattedMessage
-                        id='rhs_header.backToFlaggedTooltip'
-                        defaultMessage='Back to saved posts'
-                    />
-                </Tooltip>
+            title = (
+                <FormattedMessage
+                    id='rhs_header.backToFlaggedTooltip'
+                    defaultMessage='Back to saved messages'
+                />
             );
             break;
         case RHSStates.PIN:
-            backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
-                    <FormattedMessage
-                        id='rhs_header.backToPinnedTooltip'
-                        defaultMessage='Back to pinned posts'
-                    />
-                </Tooltip>
+            title = (
+                <FormattedMessage
+                    id='rhs_header.backToPinnedTooltip'
+                    defaultMessage='Back to pinned messages'
+                />
             );
             break;
         }
 
-        const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
-                <FormattedMessage
-                    id='rhs_header.closeSidebarTooltip'
-                    defaultMessage='Close'
-                />
-            </Tooltip>
-        );
-
         const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
+            <>
                 <FormattedMessage
                     id='rhs_header.expandSidebarTooltip'
                     defaultMessage='Expand the right sidebar'
@@ -112,11 +95,11 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     hideDescription={true}
                     isInsideTooltip={true}
                 />
-            </Tooltip>
+            </>
         );
 
         const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
+            <>
                 <FormattedMessage
                     id='rhs_header.collapseSidebarTooltip'
                     defaultMessage='Collapse the right sidebar'
@@ -126,27 +109,26 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     hideDescription={true}
                     isInsideTooltip={true}
                 />
-            </Tooltip>
+            </>
         );
 
-        if (backToResultsTooltip) {
+        if (title) {
             back = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id='backToResultsTooltip'
+                    title={title}
                     placement='top'
-                    overlay={backToResultsTooltip}
                 >
-                    <a
-                        href='#'
+                    <button
+                        className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={this.handleBack}
-                        className='sidebar--right__back'
+                        aria-label={this.props.intl.formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     >
-                        <LocalizedIcon
+                        <i
                             className='icon icon-arrow-back-ios'
-                            ariaLabel={{id: t('generic_icons.back'), defaultMessage: 'Back Icon'}}
                         />
-                    </a>
-                </OverlayTrigger>
+                    </button>
+                </WithTooltip>
             );
         }
 
@@ -160,10 +142,10 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                     />
                 </span>
                 <div className='pull-right'>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
+                        title={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
                         placement='bottom'
-                        overlay={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
                     >
                         <button
                             type='button'
@@ -171,20 +153,25 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                             aria-label='Expand'
                             onClick={this.props.actions.toggleRhsExpanded}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-arrow-expand'
-                                ariaLabel={{id: t('rhs_header.expandSidebarTooltip.icon'), defaultMessage: 'Expand Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-arrow-collapse'
-                                ariaLabel={{id: t('rhs_header.collapseSidebarTooltip.icon'), defaultMessage: 'Collapse Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='top'
-                        overlay={closeSidebarTooltip}
+                    </WithTooltip>
+                    <WithTooltip
+                        id='closeSidebarTooltip'
+                        title={
+                            <FormattedMessage
+                                id='rhs_header.closeSidebarTooltip'
+                                defaultMessage='Close'
+                            />
+                        }
+                        placement={'top'}
                     >
                         <button
                             type='button'
@@ -192,14 +179,16 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                             aria-label='Close'
                             onClick={this.props.actions.closeRightHandSide}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-close'
-                                ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </div>
             </div>
         );
     }
 }
+
+export default injectIntl(RhsCardHeader);

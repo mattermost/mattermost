@@ -7,7 +7,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ActionButton from './action_button';
 
@@ -19,7 +19,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
     };
 
     test('should match default component state with given props', () => {
-        render(<ActionButton {...baseProps}/>);
+        renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
         expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
@@ -30,7 +30,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
     });
 
     test('should call handleAction on click', () => {
-        render(<ActionButton {...baseProps}/>);
+        renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
 
@@ -45,7 +45,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'onlineIndicator'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
 
         const button = screen.getByRole('button');
 
@@ -60,7 +60,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'danger'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
 
         const button = screen.getByRole('button');
 
@@ -74,7 +74,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'success'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
@@ -87,7 +87,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: '#28a745'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
@@ -100,7 +100,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: '#wrong'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button.style.length).toBe(0);
@@ -112,7 +112,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: undefined},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button.style.length).toBe(0);

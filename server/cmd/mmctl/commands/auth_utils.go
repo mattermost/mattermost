@@ -5,7 +5,6 @@ package commands
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -105,7 +104,7 @@ func ReadCredentialsList() (*CredentialsList, error) {
 		return nil, errors.WithMessage(err, "cannot read user credentials, maybe you need to use login first")
 	}
 
-	fileContents, err := ioutil.ReadFile(configPath)
+	fileContents, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, errors.WithMessage(err, "there was a problem reading the credentials file")
 	}
@@ -167,7 +166,7 @@ func SaveCredentialsList(credentialsList *CredentialsList) error {
 
 	marshaledCredentialsList, _ := json.MarshalIndent(credentialsList, "", "    ")
 
-	if err := ioutil.WriteFile(configPath, marshaledCredentialsList, 0600); err != nil {
+	if err := os.WriteFile(configPath, marshaledCredentialsList, 0600); err != nil {
 		return errors.WithMessage(err, "cannot save the credentials")
 	}
 
@@ -220,7 +219,7 @@ func SetUser(newUser *user.User) {
 // will read the scret from file, if there is one
 func readSecretFromFile(file string, secret *string) error {
 	if file != "" {
-		b, err := ioutil.ReadFile(file)
+		b, err := os.ReadFile(file)
 		if err != nil {
 			return err
 		}

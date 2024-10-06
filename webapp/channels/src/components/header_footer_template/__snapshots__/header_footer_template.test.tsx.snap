@@ -1,10 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/HeaderFooterTemplate should match snapshot with about link 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -59,10 +56,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with about link 1
 `;
 
 exports[`components/HeaderFooterTemplate should match snapshot with all links 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -147,10 +141,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
 `;
 
 exports[`components/HeaderFooterTemplate should match snapshot with children 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -198,10 +189,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with children 1`]
 `;
 
 exports[`components/HeaderFooterTemplate should match snapshot with help link 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -256,10 +244,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with help link 1`
 `;
 
 exports[`components/HeaderFooterTemplate should match snapshot with privacy policy link 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -314,10 +299,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with privacy poli
 `;
 
 exports[`components/HeaderFooterTemplate should match snapshot with term of service link 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -372,10 +354,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with term of serv
 `;
 
 exports[`components/HeaderFooterTemplate should match snapshot without children 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -419,10 +398,7 @@ exports[`components/HeaderFooterTemplate should match snapshot without children 
 `;
 
 exports[`components/HeaderFooterTemplate should set classes on body and #root on mount and unset on unmount 1`] = `
-<div
-  data-testid="root-testid"
-  id="root"
->
+<div>
   <div
     class="inner-wrap"
   >
@@ -506,9 +482,4 @@ exports[`components/HeaderFooterTemplate should set classes on body and #root on
 </div>
 `;
 
-exports[`components/HeaderFooterTemplate should set classes on body and #root on mount and unset on unmount 2`] = `
-<div
-  data-testid="root-testid"
-  id="root"
-/>
-`;
+exports[`components/HeaderFooterTemplate should set classes on body and #root on mount and unset on unmount 2`] = `<div />`;

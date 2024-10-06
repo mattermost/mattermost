@@ -8,7 +8,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/compliance/data_retention_settings"
       />
@@ -229,7 +229,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -237,17 +236,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         />
       }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
-    <Connect(BlockableLink)
+    <Connect(Component)
       className="cancel-button"
       to="/admin_console/compliance/data_retention_settings"
     >
@@ -255,7 +247,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         defaultMessage="Cancel"
         id="admin.data_retention.custom_policy.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
   </div>
 </div>
 `;
@@ -268,7 +260,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/compliance/data_retention_settings"
       />
@@ -486,7 +478,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -494,17 +485,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         />
       }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
-    <Connect(BlockableLink)
+    <Connect(Component)
       className="cancel-button"
       to="/admin_console/compliance/data_retention_settings"
     >
@@ -512,7 +496,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         defaultMessage="Cancel"
         id="admin.data_retention.custom_policy.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
   </div>
 </div>
 `;

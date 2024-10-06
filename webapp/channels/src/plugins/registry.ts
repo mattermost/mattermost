@@ -15,6 +15,7 @@ import {
     registerAdminConsolePlugin,
     unregisterAdminConsolePlugin,
     registerAdminConsoleCustomSetting,
+    registerAdminConsoleCustomSection,
 } from 'actions/admin_actions';
 import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
 import {
@@ -864,6 +865,12 @@ export default class PluginRegistry {
         store.dispatch(registerAdminConsolePlugin(this.id, func));
     });
 
+    // Unregister a previously registered admin console definition override function.
+    // Returns undefined.
+    unregisterAdminConsolePlugin() {
+        store.dispatch(unregisterAdminConsolePlugin(this.id));
+    }
+
     // Register a custom React component to manage the plugin configuration for the given setting key.
     // Accepts the following:
     // - key - A key specified in the settings_schema.settings block of the plugin's manifest.
@@ -888,11 +895,22 @@ export default class PluginRegistry {
         store.dispatch(registerAdminConsoleCustomSetting(this.id, key, component, {showTitle}));
     });
 
-    // Unregister a previously registered admin console definition override function.
-    // Returns undefined.
-    unregisterAdminConsolePlugin() {
-        store.dispatch(unregisterAdminConsolePlugin(this.id));
-    }
+    // Register a custom React component to render as a section in the plugin configuration page.
+    // Accepts the following:
+    // - key - A key specified in the settings_schema.sections block of the plugin's manifest.
+    // - component - A react component to render in place of the default handling.
+    registerAdminConsoleCustomSection = reArg([
+        'key',
+        'component',
+    ], ({
+        key,
+        component,
+    }: {
+        key: string;
+        component: PluginComponent['component'];
+    }) => {
+        store.dispatch(registerAdminConsoleCustomSection(this.id, key, component));
+    });
 
     // Register a Right-Hand Sidebar component by providing a title for the right hand component.
     // Accepts the following:
@@ -1224,5 +1242,23 @@ export default class PluginRegistry {
         });
 
         return id;
+    });
+
+    // Register a schema for user settings. This will show in the user settings modals
+    // and all values will be stored in the preferences with cateogry pp_${pluginId} and
+    // the name of the setting.
+    //
+    // The settings definition can be found in /src/types/plugins/user_settings.ts
+    //
+    // Malformed settings will be filtered out.
+    registerUserSettings = reArg(['setting'], ({setting}) => {
+        const data = {
+            pluginId: this.id,
+            setting,
+        };
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
+            data,
+        });
     });
 }

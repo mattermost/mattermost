@@ -15,7 +15,7 @@ describe('admin_console/system_role_permission', () => {
             readOnly: true,
             setSectionVisible: jest.fn(),
             section: {
-                name: 'environemnt',
+                name: 'environment',
                 hasDescription: true,
                 subsections: [],
             },

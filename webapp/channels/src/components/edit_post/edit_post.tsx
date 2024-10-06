@@ -5,11 +5,12 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -28,6 +29,7 @@ import {
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
+import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -98,10 +100,12 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         draft.message || editingPost?.post?.message_source || editingPost?.post?.message || '',
     );
     const [selectionRange, setSelectionRange] = useState<State['selectionRange']>({start: editText.length, end: editText.length});
+    const caretPosition = useRef<number>(editText.length);
     const [postError, setPostError] = useState<React.ReactNode | null>(null);
     const [errorClass, setErrorClass] = useState<string>('');
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
+    const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
     const textboxRef = useRef<TextboxClass>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
@@ -136,6 +140,9 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         saveDraftFrame.current = window.setTimeout(() => {
             actions.setDraft(draftStorageId, draftRef.current);
         }, Constants.SAVE_DRAFT_TIMEOUT);
+
+        const isMentions = allAtMentions(editText).length > 0;
+        setShowMentionHelper(isMentions);
     }, [actions, draftStorageId, editText]);
 
     useEffect(() => {
@@ -154,7 +161,12 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     }, [selectionRange]);
 
     // just a helper so it's not always needed to update with setting both properties to the same value
-    const setCaretPosition = (position: number) => setSelectionRange({start: position, end: position});
+    const setSelectionRangeByCaretPosition = (position: number) => setSelectionRange({start: position, end: position});
+
+    const handleBlur = (e: React.FocusEvent<TextboxElement, Element>) => {
+        const target = e.target as HTMLTextAreaElement;
+        caretPosition.current = target.selectionEnd;
+    };
 
     const handlePaste = useCallback((e: ClipboardEvent) => {
         const {clipboardData, target} = e;
@@ -188,7 +200,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         setEditText(message);
-        setCaretPosition(newCaretPosition);
+        setSelectionRangeByCaretPosition(newCaretPosition);
     }, [canEditPost, selectionRange, editText]);
 
     const isSaveDisabled = () => {
@@ -326,11 +338,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
         const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
+        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
+        const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.stopPropagation(); // perhaps this should happen in all of these cases? or perhaps Modal should not be listening?
-            setEditText(Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>));
+            setEditText(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
@@ -356,6 +370,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
+        } else if (lastMessageReactionKeyCombo) {
+            // Stop document from handling the hotkey and opening the reaction
+            e.stopPropagation();
+            e.preventDefault();
         }
     };
 
@@ -384,8 +402,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleEmojiClick = (emoji?: Emoji) => {
-        const emojiAlias = emoji && (((emoji as SystemEmoji).short_names && (emoji as SystemEmoji).short_names[0]) || emoji.name);
+        if (!emoji) {
+            return;
+        }
 
+        const emojiAlias = getEmojiName(emoji);
         if (!emojiAlias) {
             //Oops.. There went something wrong
             return;
@@ -396,7 +417,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         if (editText.length > 0) {
             const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(
-                selectionRange.start,
+                caretPosition.current,
                 editText,
             );
 
@@ -412,7 +433,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         setEditText(newMessage);
-        setCaretPosition(newCaretPosition);
+        setSelectionRangeByCaretPosition(newCaretPosition);
         setShowEmojiPicker(false);
         textboxRef.current?.focus();
     };
@@ -442,7 +463,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
-    const getEmojiContainerRef = useCallback(() => textboxRef.current, [textboxRef]);
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
@@ -452,7 +472,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             <>
                 <EmojiPickerOverlay
                     show={showEmojiPicker}
-                    container={getEmojiContainerRef}
                     target={getEmojiTargetRef}
                     onHide={hideEmojiPicker}
                     onEmojiClick={handleEmojiClick}
@@ -495,6 +514,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
                 onHeightChange={handleHeightChange}
                 handlePostError={handlePostError}
                 onPaste={handlePaste}
@@ -512,6 +532,22 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             <div className='post-body__actions'>
                 {emojiPicker}
             </div>
+            { showMentionHelper ? (
+                <div className='post-body__info'>
+                    <span className='post-body__info__icon'>
+                        <InformationOutlineIcon
+                            size={14}
+                            color='currentColor'
+                        />
+                    </span>
+                    <span>{
+                        formatMessage({
+                            id: 'edit_post.no_notification_trigger_on_mention',
+                            defaultMessage: "Editing this message with an '@mention' will not notify the recipient.",
+                        })
+                    }</span>
+                </div>) : null
+            }
             <EditPostFooter
                 onSave={handleEdit}
                 onCancel={handleAutomatedRefocusAndExit}

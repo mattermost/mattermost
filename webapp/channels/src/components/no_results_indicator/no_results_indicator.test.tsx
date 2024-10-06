@@ -86,7 +86,7 @@ describe('components/no_results_indicator', () => {
     test('should match snapshot when expanded', () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                variant={NoResultsVariant.ChannelSearch}
+                variant={NoResultsVariant.Search}
                 expanded={true}
             />,
         );

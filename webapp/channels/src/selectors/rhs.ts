@@ -8,7 +8,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {getGlobalItem, makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -57,7 +57,7 @@ export const getSelectedChannel = (() => {
     return (state: GlobalState) => {
         const channelId = getSelectedChannelId(state);
 
-        return getChannel(state, {id: channelId});
+        return getChannel(state, channelId);
     };
 })();
 
@@ -91,9 +91,10 @@ export const getSelectedPost = createSelector(
             id: selectedPostId,
             exists: false,
             type: PostTypes.FAKE_PARENT_DELETED as PostType,
-            message: localizeMessage('rhs_thread.rootPostDeletedMessage.body', 'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.'),
+            message: localizeMessage({id: 'rhs_thread.rootPostDeletedMessage.body', defaultMessage: 'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.'}),
             channel_id: selectedPostChannelId,
             user_id: currentUserId,
+            reply_count: 0,
         };
     },
 );
@@ -137,11 +138,46 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
 }
 
+export function makeGetDraft() {
+    let defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''};
+    return (state: GlobalState, channelId: string, rootId = ''): PostDraft => {
+        if (defaultDraft.channelId !== channelId || defaultDraft.rootId !== rootId) {
+            defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId, rootId};
+        }
+        const prefix = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
+        const suffix = rootId || channelId;
+        const draft = getGlobalItem(state, `${prefix}${suffix}`, defaultDraft);
+
+        let toReturn = defaultDraft;
+        if (
+            typeof draft.message !== 'undefined' &&
+            typeof draft.uploadsInProgress !== 'undefined' &&
+            typeof draft.fileInfos !== 'undefined'
+        ) {
+            toReturn = draft;
+        }
+
+        if (draft.rootId !== rootId || draft.channelId !== channelId) {
+            toReturn = {
+                ...draft,
+                rootId,
+                channelId,
+            };
+        }
+
+        return toReturn;
+    };
+}
+
 export function makeGetChannelDraft() {
     const defaultDraft = Object.freeze({message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''});
     const getDraft = makeGetGlobalItemWithDefault(defaultDraft);
 
-    return (state: GlobalState, channelId: string): PostDraft => {
+    return (state: GlobalState, channelId?: string): PostDraft => {
+        if (!channelId) {
+            return defaultDraft;
+        }
+
         const draft = getDraft(state, StoragePrefixes.DRAFT + channelId);
         if (
             typeof draft.message !== 'undefined' &&
@@ -172,10 +208,6 @@ export function getPostDraft(state: GlobalState, prefixId: string, suffixId: str
     }
 
     return defaultDraft;
-}
-
-export function getIsRhsSuppressed(state: GlobalState): boolean {
-    return state.views.rhsSuppressed;
 }
 
 export function getIsRhsOpen(state: GlobalState): boolean {

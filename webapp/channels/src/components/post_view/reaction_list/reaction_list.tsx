@@ -2,27 +2,32 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import Reaction from 'components/post_view/reaction';
-import Tooltip from 'components/tooltip';
 import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 const DEFAULT_EMOJI_PICKER_RIGHT_OFFSET = 15;
 const EMOJI_PICKER_WIDTH_OFFSET = 260;
+
+const messages = defineMessages({
+    addAReaction: {
+        id: 'reaction_list.addReactionTooltip',
+        defaultMessage: 'Add a reaction',
+    },
+});
 
 type Props = {
 
@@ -51,7 +56,7 @@ type Props = {
         /**
          * Function to add a reaction to the post
          */
-        addReaction: (postId: string, emojiName: string) => void;
+        toggleReaction: (postId: string, emojiName: string) => void;
     };
 };
 
@@ -90,8 +95,8 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
     handleEmojiClick = (emoji: Emoji): void => {
         this.setState({showEmojiPicker: false});
-        const emojiName = isSystemEmoji(emoji) ? emoji.short_names[0] : emoji.name;
-        this.props.actions.addReaction(this.props.post.id, emojiName);
+        const emojiName = getEmojiName(emoji);
+        this.props.actions.toggleReaction(this.props.post.id, emojiName);
     };
 
     hideEmojiPicker = (): void => {
@@ -148,15 +153,6 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
         let emojiPicker = null;
         if (this.props.canAddReactions) {
-            const addReactionTooltip = (
-                <Tooltip id='addReactionTooltip'>
-                    <FormattedMessage
-                        id='reaction_list.addReactionTooltip'
-                        defaultMessage='Add a reaction'
-                    />
-                </Tooltip>
-            );
-
             emojiPicker = (
                 <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
@@ -172,13 +168,13 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                         teamId={this.props.teamId}
                         permissions={[Permissions.ADD_REACTION]}
                     >
-                        <OverlayTrigger
+                        <WithTooltip
+                            id='addReactionTooltip'
+                            title={messages.addAReaction}
                             placement='top'
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                            overlay={addReactionTooltip}
                         >
                             <button
-                                aria-label={localizeMessage('reaction.add.ariaLabel', 'Add a reaction')}
+                                aria-label={localizeMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'})}
                                 className='Reaction'
                                 onClick={this.toggleEmojiPicker}
                             >
@@ -190,7 +186,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                                     <AddReactionIcon/>
                                 </span>
                             </button>
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </ChannelPermissionGate>
                 </span>
             );
@@ -203,7 +199,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
         return (
             <div
-                aria-label={localizeMessage('reaction.container.ariaLabel', 'reactions')}
+                aria-label={localizeMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'})}
                 className='post-reaction-list'
             >
                 {reactions}

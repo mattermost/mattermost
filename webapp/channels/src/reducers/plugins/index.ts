@@ -2,17 +2,24 @@
 // See LICENSE.txt for license information.
 
 import remove from 'lodash/remove';
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ClientPluginManifest} from '@mattermost/types/plugins';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
+import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
 
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
+import type {
+    PluginsState,
+    PluginComponent,
+    AdminConsolePluginComponent,
+    AdminConsolePluginCustomSection,
+    Menu,
+} from 'types/store/plugins';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     if (!menu.subMenu) {
@@ -56,7 +63,7 @@ function sortComponents(a: PluginComponent, b: PluginComponent) {
     return 0;
 }
 
-function removePostPluginComponents(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponents(state: PluginsState['postTypes'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -78,7 +85,7 @@ function removePostPluginComponents(state: PluginsState['postTypes'], action: Ge
     return state;
 }
 
-function removePostPluginComponent(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponent(state: PluginsState['postTypes'], action: AnyAction) {
     const nextState = {...state};
     const keys = Object.keys(nextState);
     for (let i = 0; i < keys.length; i++) {
@@ -92,7 +99,7 @@ function removePostPluginComponent(state: PluginsState['postTypes'], action: Gen
     return state;
 }
 
-function removePluginComponents(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponents(state: PluginsState['components'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -120,7 +127,7 @@ function removePluginComponents(state: PluginsState['components'], action: Gener
     return state;
 }
 
-function removePluginComponent(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponent(state: PluginsState['components'], action: AnyAction) {
     let newState = state;
     const types = Object.keys(state);
     for (let i = 0; i < types.length; i++) {
@@ -137,7 +144,7 @@ function removePluginComponent(state: PluginsState['components'], action: Generi
     return newState;
 }
 
-function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: GenericAction) {
+function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
         if (action.data) {
@@ -194,7 +201,7 @@ const initialComponents: PluginsState['components'] = {
     DesktopNotificationHooks: [],
 };
 
-function components(state: PluginsState['components'] = initialComponents, action: GenericAction) {
+function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
         if (action.name && action.data) {
@@ -231,7 +238,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
     }
 }
 
-function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
         if (action.data) {
@@ -260,7 +267,7 @@ function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction)
     }
 }
 
-function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
         if (action.data) {
@@ -289,7 +296,7 @@ function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAct
     }
 }
 
-function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: GenericAction) {
+function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
         if (action.data) {
@@ -322,7 +329,7 @@ function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: Gen
     }
 }
 
-function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: GenericAction) {
+function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
         if (!action.data) {
@@ -360,7 +367,45 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
     }
 }
 
-function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: GenericAction) {
+function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, AdminConsolePluginCustomSection>} = {}, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: {
+        if (!action.data) {
+            return state;
+        }
+
+        const pluginId = action.data.pluginId;
+        const key = action.data.key.toLowerCase();
+
+        const nextState = {...state};
+        let nextObject: Record<string, AdminConsolePluginCustomSection> = {};
+        if (nextState[pluginId]) {
+            nextObject = {...nextState[pluginId]};
+        }
+        nextObject[key] = action.data;
+        nextState[pluginId] = nextObject;
+
+        return nextState;
+    }
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
+        if (!action.data || !state[action.data.id]) {
+            return state;
+        }
+
+        const pluginId = action.data.id;
+        const nextState = {...state};
+        delete nextState[pluginId];
+        return nextState;
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
         if (action.data) {
@@ -370,6 +415,36 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
         }
         return state;
 
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+        if (action.data) {
+            const nextState = {...state};
+            delete nextState[action.data.id];
+            return nextState;
+        }
+        return state;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function userSettings(state: PluginsState['userSettings'] = {}, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
+        if (action.data) {
+            const extractedConfiguration = extractPluginConfiguration(action.data.setting, action.data.pluginId);
+            if (!extractedConfiguration) {
+                // eslint-disable-next-line no-console
+                console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
+                return state;
+            }
+            const nextState = {...state};
+            nextState[action.data.pluginId] = extractedConfiguration;
+            return nextState;
+        }
+        return state;
     case ActionTypes.REMOVED_WEBAPP_PLUGIN:
         if (action.data) {
             const nextState = {...state};
@@ -410,7 +485,15 @@ export default combineReducers({
     // React component to render on the plugin's system console.
     adminConsoleCustomComponents,
 
+    // objects where every key is a plugin id and the value is an object mapping keys to a custom
+    // React component to render on the plugin's system console as custom section.
+    adminConsoleCustomSections,
+
     // objects where every key is a plugin id and the value is a promise to fetch stats from
     // a plugin to render on system console
     siteStatsHandlers,
+
+    // objects where every key is a plugin id and the value is configuration schema to show in
+    // the user settings modal
+    userSettings,
 });

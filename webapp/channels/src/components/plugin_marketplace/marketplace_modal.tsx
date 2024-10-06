@@ -18,7 +18,6 @@ import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
 import {getFirstAdminVisitMarketplaceStatus, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -82,7 +81,7 @@ const MarketplaceModal = ({
     const [serverError, setServerError] = React.useState(false);
 
     const doFetchListing = useCallback(async () => {
-        const {error} = await dispatch(fetchListing()) as ActionResult;
+        const {error} = await dispatch(fetchListing());
 
         if (error) {
             setServerError(true);
@@ -94,7 +93,7 @@ const MarketplaceModal = ({
     const doSearch = useCallback(async () => {
         trackEvent('plugins', 'ui_marketplace_search', {filter});
 
-        const {error} = await dispatch(filterListing(filter)) as ActionResult;
+        const {error} = await dispatch(filterListing(filter));
 
         if (error) {
             setServerError(true);

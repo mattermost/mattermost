@@ -20,7 +20,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
-	AppContext    *request.Context
+	AppContext    request.CTX
 	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
@@ -29,6 +29,15 @@ type Context struct {
 
 // LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
+	// finish populating the context data, in case the session wasn't available during MakeAuditRecord
+	// (e.g., api4/user.go login)
+	if rec.Actor.UserId == "" {
+		rec.Actor.UserId = c.AppContext.Session().UserId
+	}
+	if rec.Actor.SessionId == "" {
+		rec.Actor.SessionId = c.AppContext.Session().Id
+	}
+
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
 
@@ -195,7 +204,7 @@ func (c *Context) MfaRequired() {
 // ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
 // Session cookies will be resent to the client with updated max age.
 func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
-	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext.Session()); ok {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext, c.AppContext.Session()); ok {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 }
@@ -305,7 +314,7 @@ func NewJSONEncodingError(err error) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	c.Err = c.App.MakePermissionError(c.AppContext.Session(), permissions)
+	c.Err = model.MakePermissionError(c.AppContext.Session(), permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -449,6 +458,17 @@ func (c *Context) RequireAppId() *Context {
 
 	if !model.IsValidId(c.Params.AppId) {
 		c.SetInvalidURLParam("app_id")
+	}
+	return c
+}
+
+func (c *Context) RequireOutgoingOAuthConnectionId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.OutgoingOAuthConnectionID) {
+		c.SetInvalidURLParam("outgoing_oauth_connection_id")
 	}
 	return c
 }

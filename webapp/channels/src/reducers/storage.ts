@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import localForage from 'localforage';
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 import type {MigrationManifest, PersistedState} from 'redux-persist';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
@@ -18,7 +18,7 @@ type StorageEntry = {
     data: any;
 }
 
-function storage(state: Record<string, any> = {}, action: GenericAction) {
+function storage(state: Record<string, any> = {}, action: AnyAction) {
     switch (action.type) {
     case REHYDRATE: {
         if (!action.payload || action.key !== 'storage') {
@@ -36,25 +36,6 @@ function storage(state: Record<string, any> = {}, action: GenericAction) {
             nextState[key] = nextValue;
         }
 
-        return nextState;
-    }
-    case StorageTypes.SET_ITEM: {
-        if (!state[action.data.prefix + action.data.name] ||
-            !state[action.data.prefix + action.data.name].timestamp ||
-            state[action.data.prefix + action.data.name].timestamp < action.data.timestamp
-        ) {
-            const nextState = {...state};
-            nextState[action.data.prefix + action.data.name] = {
-                timestamp: action.data.timestamp,
-                value: action.data.value,
-            };
-            return nextState;
-        }
-        return state;
-    }
-    case StorageTypes.REMOVE_ITEM: {
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, action.data.prefix + action.data.name);
         return nextState;
     }
     case StorageTypes.SET_GLOBAL_ITEM: {
@@ -153,7 +134,7 @@ function migrateDrafts(state: any) {
     return drafts;
 }
 
-function initialized(state = false, action: GenericAction) {
+function initialized(state = false, action: AnyAction) {
     switch (action.type) {
     case General.STORE_REHYDRATION_COMPLETE:
         return state || action.complete;

@@ -4,14 +4,18 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type * as Utils from 'utils/utils';
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
-import UserSettingsSecurity from './user_settings_security';
+import type {MockIntl} from 'tests/helpers/intl-test-helper';
+import Constants from 'utils/constants';
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
+import {SecurityTab} from './user_settings_security';
+
+jest.mock('utils/password', () => {
+    const original = jest.requireActual('utils/password');
     return {...original, isValidPassword: () => ({valid: true})};
 });
 
@@ -35,7 +39,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         },
         canUseAccessTokens: true,
         enableOAuthServiceProvider: false,
-        enableSignUpWithEmail: true,
+        allowedToSwitchToEmail: true,
         enableSignUpWithGitLab: false,
         enableSignUpWithGoogle: true,
         enableSignUpWithOpenId: false,
@@ -43,42 +47,57 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enableSaml: true,
         enableSignUpWithOffice365: false,
         experimentalEnableAuthenticationTransfer: true,
-        passwordConfig: {} as ReturnType<typeof Utils.getPasswordConfig>,
+        passwordConfig: {} as PasswordConfig,
         militaryTime: false,
+        intl: {
+            formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
+        } as MockIntl,
     };
 
     test('should match snapshot, enable google', () => {
         const props = {...requiredProps, enableSaml: false};
 
-        const wrapper = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, enable gitlab', () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithGitLab: true};
 
-        const wrapper = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, enable office365', () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOffice365: true};
 
-        const wrapper = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, enable openID', () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOpenId: true};
 
-        const wrapper = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, to email', () => {
+        const user = {
+            id: 'user_id',
+            auth_service: Constants.OPENID_SERVICE,
+        };
+
+        const props = {...requiredProps, user: user as UserProfile};
+
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('componentDidMount() should have called getAuthorizedOAuthApps', () => {
         const props = {...requiredProps, enableOAuthServiceProvider: true};
 
-        shallow(<UserSettingsSecurity {...props}/>);
+        shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         expect(requiredProps.actions.getAuthorizedOAuthApps).toHaveBeenCalled();
     });
@@ -93,7 +112,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             enableOAuthServiceProvider: true,
         };
 
-        const wrapper = shallow<UserSettingsSecurity>(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         await promise;
 
@@ -110,7 +129,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             enableOAuthServiceProvider: true,
         };
 
-        const wrapper = shallow<UserSettingsSecurity>(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         await promise;
 
@@ -118,9 +137,9 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('submitPassword() should not have called updateUserPassword', async () => {
-        const wrapper = shallow(<UserSettingsSecurity {...requiredProps}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...requiredProps}/>);
 
-        await (wrapper.instance() as UserSettingsSecurity).submitPassword();
+        await wrapper.instance().submitPassword();
         expect(requiredProps.actions.updateUserPassword).toHaveBeenCalledTimes(0);
     });
 
@@ -130,7 +149,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             ...requiredProps,
             actions: {...requiredProps.actions, updateUserPassword},
         };
-        const wrapper = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         const password = 'psw';
         const state = {
@@ -140,7 +159,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         };
         wrapper.setState(state);
 
-        await (wrapper.instance() as UserSettingsSecurity).submitPassword();
+        await wrapper.instance().submitPassword();
 
         expect(updateUserPassword).toHaveBeenCalled();
         expect(updateUserPassword).toHaveBeenCalledWith(
@@ -160,9 +179,9 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             preventDefault: jest.fn(),
         };
 
-        const wrapper = shallow(<UserSettingsSecurity {...requiredProps}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...requiredProps}/>);
         wrapper.setState({authorizedApps: []});
-        (wrapper.instance() as UserSettingsSecurity).deauthorizeApp(event);
+        wrapper.instance().deauthorizeApp(event);
 
         expect(requiredProps.actions.deauthorizeOAuthApp).toHaveBeenCalled();
         expect(requiredProps.actions.deauthorizeOAuthApp).toHaveBeenCalledWith(
@@ -177,16 +196,16 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             actions: {...requiredProps.actions, deauthorizeOAuthApp: () => promise},
         };
 
-        const wrapper: any = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         const appId = 'appId';
-        const apps = [{id: appId}, {id: '2'}];
+        const apps = [{id: appId}, {id: '2'}] as OAuthApp[];
         const event: any = {
             currentTarget: {getAttribute: jest.fn().mockReturnValue(appId)},
             preventDefault: jest.fn(),
         };
         wrapper.setState({authorizedApps: apps});
-        (wrapper.instance() as UserSettingsSecurity).deauthorizeApp(event);
+        wrapper.instance().deauthorizeApp(event);
 
         await promise;
 
@@ -201,13 +220,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             actions: {...requiredProps.actions, deauthorizeOAuthApp: () => promise},
         };
 
-        const wrapper: any = shallow(<UserSettingsSecurity {...props}/>);
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
 
         const event: any = {
             currentTarget: {getAttribute: jest.fn().mockReturnValue('appId')},
             preventDefault: jest.fn(),
         };
-        (wrapper.instance() as UserSettingsSecurity).deauthorizeApp(event);
+        wrapper.instance().deauthorizeApp(event);
 
         await promise;
 

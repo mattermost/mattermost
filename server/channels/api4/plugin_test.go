@@ -25,6 +25,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -123,6 +125,23 @@ func TestPlugin(t *testing.T) {
 		_, resp, err = client.UploadPlugin(context.Background(), bytes.NewReader([]byte("badfile")))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+
+		plugin_sz := int64(111 * 1024 * 1024)
+		fd, err := os.Create(filepath.Join(path, "big_testplugin.tar.gz"))
+		require.NoError(t, err)
+		_, err = fd.Seek(plugin_sz-1, 0)
+		require.NoError(t, err)
+		_, err = fd.Write([]byte{0})
+		require.NoError(t, err)
+		err = fd.Close()
+		require.NoError(t, err)
+		bigData, err := os.ReadFile(filepath.Join(path, "big_testplugin.tar.gz"))
+		require.NoError(t, err)
+		_, resp, err = client.UploadPlugin(context.Background(), bytes.NewReader(bigData))
+		require.Error(t, err)
+		CheckRequestEntityTooLargeStatus(t, resp)
+		err = os.Remove(filepath.Join(path, "big_testplugin.tar.gz"))
+		require.NoError(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 		_, resp, err = client.UploadPlugin(context.Background(), bytes.NewReader(tarData))
@@ -1297,6 +1316,78 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	})
 }
 
+func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
+	prepackagePlugins := []*plugin.PrepackagedPlugin{
+		{
+			Manifest: &model.Manifest{
+				Version: "1.40.0",
+				Id:      "playbooks",
+			},
+		},
+		{
+			Manifest: &model.Manifest{
+				Version: "2.0.1",
+				Id:      "playbooks",
+			},
+		},
+	}
+	env := th.App.GetPluginsEnvironment()
+	env.SetPrepackagedPlugins(prepackagePlugins, nil)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.MarketplaceURL = testServer.URL
+	})
+
+	t.Run("playbooks v1 is returned if not licensed", func(t *testing.T) {
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := prepackagePlugins[0]
+
+		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
+		require.Len(t, plugins, 1)
+	})
+
+	t.Run("playbooks v2 is returned if Enterprise licensed", func(t *testing.T) {
+		lic := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU("enterprise"))
+		defer th.App.Srv().SetLicense(lic)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := prepackagePlugins[1]
+		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
+		require.Len(t, plugins, 1)
+	})
+
+	t.Run("playbooks v1 is returned if professional licensed", func(t *testing.T) {
+		lic := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU("professional"))
+		defer th.App.Srv().SetLicense(lic)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := prepackagePlugins[0]
+		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
+		require.Len(t, plugins, 1)
+	})
+}
+
 func TestInstallMarketplacePlugin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1979,4 +2070,101 @@ func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage)
 		}
 	}
 	return result
+}
+
+func TestPluginWebSocketSession(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.websocket_session_test"
+
+	// Compile plugin
+	fullPath := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests", "manual.test_websocket_session", "main.go")
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+	pluginDir, err := filepath.Abs(*th.App.Config().PluginSettings.Directory)
+	require.NoError(t, err)
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, string(pluginCode), backend)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+
+	// Activate the plugin
+	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	// Connect through WebSocket and send a message
+	reqURL := fmt.Sprintf("ws://localhost:%d", th.Server.ListenAddr.Port)
+	wsc, err := model.NewWebSocketClient4(reqURL, th.Client.AuthToken)
+	require.NoError(t, err)
+	require.NotNil(t, wsc)
+	wsc.Listen()
+	defer wsc.Close()
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+	wsc.SendMessage("custom_action", map[string]any{"value": "test"})
+
+	// Get session for user
+	sessions, _, err := th.Client.GetSessions(context.Background(), th.BasicUser.Id, "")
+	require.NoError(t, err)
+	require.NotEmpty(t, sessions)
+
+	// Verify the session has been set correctly. Check plugin code in
+	// channels/app/plugin_api_tests/manual.test_websocket_session
+	//
+	// Here the MessageWillBePosted hook is used purely as a way to
+	// communicate with the plugin side.
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+	require.NoError(t, err)
+	require.NotNil(t, hooks)
+	_, sessionID := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, sessions[0].Id, sessionID)
+}
+
+func TestPluginWebSocketRemoteAddress(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.websocket_remote_address_test"
+
+	// Compile plugin
+	fullPath := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests", "manual.test_websocket_remote_address", "main.go")
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+	pluginDir, err := filepath.Abs(*th.App.Config().PluginSettings.Directory)
+	require.NoError(t, err)
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, string(pluginCode), backend)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+
+	// Activate the plugin
+	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	// Connect through WebSocket and send a message
+	reqURL := fmt.Sprintf("ws://localhost:%d", th.Server.ListenAddr.Port)
+	wsc, err := model.NewWebSocketClient4(reqURL, th.Client.AuthToken)
+	require.NoError(t, err)
+	require.NotNil(t, wsc)
+	wsc.Listen()
+	defer wsc.Close()
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+	wsc.SendMessage("custom_action", map[string]any{"value": "test"})
+
+	// Verify the remote address has been set correctly. Check plugin code in
+	// channels/app/plugin_api_tests/manual.test_websocket_remote_address
+	//
+	// Here the MessageWillBePosted hook is used purely as a way to
+	// communicate with the plugin side.
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+	require.NoError(t, err)
+	require.NotNil(t, hooks)
+	_, remoteAddr := hooks.MessageWillBePosted(nil, nil)
+	require.NotEmpty(t, remoteAddr)
 }

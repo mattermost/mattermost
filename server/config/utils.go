@@ -104,24 +104,21 @@ func fixConfig(cfg *model.Config) {
 		}
 	}
 
-	FixInvalidLocales(cfg)
+	fixInvalidLocales(cfg)
 }
 
-// FixInvalidLocales checks and corrects the given config for invalid locale-related settings.
-//
-// Ideally, this function would be completely internal, but it's currently exposed to allow the cli
-// to test the config change before allowing the save.
-func FixInvalidLocales(cfg *model.Config) bool {
+// fixInvalidLocales checks and corrects the given config for invalid locale-related settings.
+func fixInvalidLocales(cfg *model.Config) bool {
 	var changed bool
 
 	locales := i18n.GetSupportedLocales()
-	if !locales[*cfg.LocalizationSettings.DefaultServerLocale] {
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
 		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.", mlog.String("locale", *cfg.LocalizationSettings.DefaultServerLocale))
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DefaultLocale
 		changed = true
 	}
 
-	if !locales[*cfg.LocalizationSettings.DefaultClientLocale] {
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
 		mlog.Warn("DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value.", mlog.String("locale", *cfg.LocalizationSettings.DefaultClientLocale))
 		*cfg.LocalizationSettings.DefaultClientLocale = model.DefaultLocale
 		changed = true
@@ -130,7 +127,7 @@ func FixInvalidLocales(cfg *model.Config) bool {
 	if *cfg.LocalizationSettings.AvailableLocales != "" {
 		isDefaultClientLocaleInAvailableLocales := false
 		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
-			if !locales[word] {
+			if _, ok := locales[word]; !ok {
 				*cfg.LocalizationSettings.AvailableLocales = ""
 				isDefaultClientLocaleInAvailableLocales = true
 				mlog.Warn("AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value.")

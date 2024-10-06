@@ -1,36 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {StatusOK} from '@mattermost/types/client4';
-import type {ServerError} from '@mattermost/types/errors';
-import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
+import {ReportDuration} from '@mattermost/types/reports';
 
-import {logError} from 'mattermost-redux/actions/errors';
-import {getTeams, getTeamStats} from 'mattermost-redux/actions/teams';
-import {
-    getUser,
-    getUserAccessToken,
-    getProfiles,
-    searchProfiles,
-    revokeSessionsForAllUsers,
-    getFilteredUsersStats,
-} from 'mattermost-redux/actions/users';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import Preferences from 'mattermost-redux/constants/preferences';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {getFilteredUsersStats as selectFilteredUserStats, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {get as getPreferences} from 'mattermost-redux/selectors/entities/preferences';
 
-import {loadProfilesAndTeamMembers, loadProfilesWithoutTeam} from 'actions/user_actions';
-import {setSystemUsersSearch} from 'actions/views/search';
-
-import {SearchUserTeamFilter} from 'utils/constants';
+import {getUserCountForReporting, getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {adminConsoleUserManagementTablePropertiesInitialState} from 'reducers/views/admin';
+import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
 import type {GlobalState} from 'types/store';
 
+import {RoleFilters, StatusFilter, TeamFilters} from './constants';
 import SystemUsers from './system_users';
 
 function mapStateToProps(state: GlobalState) {
@@ -40,77 +28,61 @@ function mapStateToProps(state: GlobalState) {
     const mfaEnabled = config.EnableMultifactorAuthentication === 'true';
     const enableUserAccessTokens = config.EnableUserAccessTokens === 'true';
     const experimentalEnableAuthenticationTransfer = config.ExperimentalEnableAuthenticationTransfer === 'true';
+    const isMySql = config.SQLDriverName === 'mysql';
+    const hideMySqlNotification = getPreferences(state, Preferences.CATEGORY_REPORTING, Preferences.HIDE_MYSQL_STATS_NOTIFICATION, '') === 'true';
 
-    const search = state.views.search.systemUsersSearch;
-    let totalUsers = 0;
-    let searchTerm = '';
-    let teamId = '';
-    let filter = '';
-    if (search) {
-        searchTerm = search.term || '';
-        teamId = search.team || '';
-        filter = search.filter || '';
+    const currentUser = getCurrentUser(state);
 
-        if (!teamId || teamId === SearchUserTeamFilter.ALL_USERS) {
-            totalUsers = selectFilteredUserStats(state)?.total_users_count || 0;
-        } else if (teamId === SearchUserTeamFilter.NO_TEAM) {
-            totalUsers = 0;
-        } else {
-            const stats = state.entities.teams.stats[teamId] || {total_member_count: 0};
-            totalUsers = stats.total_member_count;
-        }
-    }
+    const tableProperties = getAdminConsoleUserManagementTableProperties(state);
+    const tablePropertySortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
+    const tablePropertySortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
+    const tablePropertyPageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
+    const tablePropertyPageIndex = tableProperties?.pageIndex ?? adminConsoleUserManagementTablePropertiesInitialState.pageIndex;
+    const tablePropertyCursorDirection = tableProperties?.cursorDirection ?? adminConsoleUserManagementTablePropertiesInitialState.cursorDirection;
+    const tablePropertyCursorUserId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
+    const tablePropertyCursorColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
+    const tablePropertyColumnVisibility = tableProperties?.columnVisibility ?? adminConsoleUserManagementTablePropertiesInitialState.columnVisibility;
+    const tablePropertySearchTerm = tableProperties?.searchTerm ?? adminConsoleUserManagementTablePropertiesInitialState.searchTerm;
+    const tablePropertyFilterTeam = tableProperties?.filterTeam ?? TeamFilters.AllTeams;
+    const tablePropertyFilterTeamLabel = tableProperties?.filterTeamLabel ?? '';
+    const tablePropertyFilterRole = tableProperties?.filterRole ?? RoleFilters.Any;
+    const tablePropertyFilterStatus = tableProperties?.filterStatus ?? StatusFilter.Any;
+    const tablePropertyDateRange = tableProperties?.dateRange ?? ReportDuration.AllTime;
 
     return {
-        teams: getTeamsList(state),
         siteName,
         mfaEnabled,
-        totalUsers,
-        searchTerm,
-        teamId,
-        filter,
         enableUserAccessTokens,
-        users: getUsers(state),
         experimentalEnableAuthenticationTransfer,
+        currentUser,
+        isMySql,
+        hideMySqlNotification,
+        tablePropertySortColumn,
+        tablePropertySortIsDescending,
+        tablePropertyPageSize,
+        tablePropertyPageIndex,
+        tablePropertyCursorDirection,
+        tablePropertyCursorUserId,
+        tablePropertyCursorColumnValue,
+        tablePropertyColumnVisibility,
+        tablePropertySearchTerm,
+        tablePropertyFilterTeam,
+        tablePropertyFilterTeamLabel,
+        tablePropertyFilterRole,
+        tablePropertyFilterStatus,
+        tablePropertyDateRange,
     };
 }
 
-type StatusOKFunc = () => Promise<StatusOK>;
-type PromiseStatusFunc = () => Promise<{status: string}>;
-type ActionCreatorTypes = Action | PromiseStatusFunc | StatusOKFunc;
+const mapDispatchToProps = {
+    getUserReports,
+    getUserCountForReporting,
+    savePreferences,
+    setAdminConsoleUsersManagementTableProperties,
+};
 
-type Actions = {
-    getTeams: (startInde: number, endIndex: number) => void;
-    getTeamStats: (teamId: string) => ActionFunc<any, any>;
-    getUser: (id: string) => ActionFunc<any, any>;
-    getUserAccessToken: (tokenId: string) => Promise<any> | ActionFunc;
-    loadProfilesAndTeamMembers: (page: number, maxItemsPerPage: number, teamId: string, options: Record<string, string | boolean>) => void;
-    loadProfilesWithoutTeam: (page: number, maxItemsPerPage: number, options: Record<string, string | boolean>) => void;
-    getProfiles: (page: number, maxItemsPerPage: number, options: Record<string, string | boolean>) => void;
-    setSystemUsersSearch: (searchTerm: string, teamId: string, filter: string) => void;
-    searchProfiles: (term: string, options?: any) => Promise<any> | ActionFunc;
-    revokeSessionsForAllUsers: () => any;
-    logError: (error: {type: string; message: string}) => void;
-    getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{ data?: UsersStats | undefined; error?: ServerError | undefined}>;
-}
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
-    return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionCreatorTypes>, Actions>({
-            getTeams,
-            getTeamStats,
-            getUser,
-            getUserAccessToken,
-            loadProfilesAndTeamMembers,
-            setSystemUsersSearch,
-            loadProfilesWithoutTeam,
-            getProfiles,
-            searchProfiles,
-            revokeSessionsForAllUsers,
-            logError,
-            getFilteredUsersStats,
-        }, dispatch),
-    };
-}
+export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connect(mapStateToProps, mapDispatchToProps)(SystemUsers);

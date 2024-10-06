@@ -14,10 +14,34 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	post, err := a.GetSinglePost(reaction.PostId, false)
+func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	post, err := a.GetSinglePost(c, reaction.PostId, false)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check whether this is a valid emoji
+	if _, ok := model.GetSystemEmojiId(reaction.EmojiName); !ok {
+		if _, emojiErr := a.GetEmojiByName(c, reaction.EmojiName); emojiErr != nil {
+			return nil, emojiErr
+		}
+	}
+
+	existing, dErr := a.Srv().Store().Reaction().ExistsOnPost(reaction.PostId, reaction.EmojiName)
+	if dErr != nil {
+		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(dErr)
+	}
+
+	// If it exists already, we don't need to check for the limit
+	if !existing {
+		count, dErr := a.Srv().Store().Reaction().GetUniqueCountForPost(reaction.PostId)
+		if dErr != nil {
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(dErr)
+		}
+
+		if count >= *a.Config().ServiceSettings.UniqueEmojiReactionLimitPerPost {
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.too_many_reactions", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
@@ -28,7 +52,8 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	if channel.DeleteAt > 0 {
 		return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
-
+	// Pre-populating the channelID to save a DB call in store.
+	reaction.ChannelId = post.ChannelId
 	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -42,12 +67,20 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 
 	if post.RootId == "" {
 		if appErr := a.ResolvePersistentNotification(c, post, reaction.UserId); appErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+			a.NotificationsLog().Error("Error resolving persistent notification",
+				mlog.String("sender_id", reaction.UserId),
+				mlog.String("post_id", post.RootId),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
+				mlog.Err(appErr),
+			)
 			return nil, appErr
 		}
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
@@ -57,9 +90,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		}, plugin.ReactionHasBeenAddedID)
 	})
 
-	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
-	})
+	a.sendReactionEvent(c, model.WebsocketEventReactionAdded, reaction, post)
 
 	return reaction, nil
 }
@@ -100,8 +131,8 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 	return reactions
 }
 
-func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
-	post, err := a.GetSinglePost(reaction.PostId, false)
+func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
+	post, err := a.GetSinglePost(c, reaction.PostId, false)
 	if err != nil {
 		return err
 	}
@@ -120,7 +151,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
@@ -130,19 +161,17 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 		}, plugin.ReactionHasBeenRemovedID)
 	})
 
-	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
-	})
+	a.sendReactionEvent(c, model.WebsocketEventReactionRemoved, reaction, post)
 
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
+func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)
 	if err != nil {
-		a.Log().Warn("Failed to encode reaction to JSON", mlog.Err(err))
+		rctx.Logger().Warn("Failed to encode reaction to JSON", mlog.Err(err))
 	}
 	message.Add("reaction", string(reactionJSON))
 	a.Publish(message)

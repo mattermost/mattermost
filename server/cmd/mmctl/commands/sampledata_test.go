@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -49,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 	s.Run("should not fail with less than 6 users and no group channels", func() {
 		printer.Clean()
 
-		tmpFile, err := ioutil.TempFile("", "mmctl-sampledata-test-")
+		tmpFile, err := os.CreateTemp("", "mmctl-sampledata-test-")
 		s.Require().NoError(err)
 		tmpFile.Close()
 		defer os.Remove(tmpFile.Name())

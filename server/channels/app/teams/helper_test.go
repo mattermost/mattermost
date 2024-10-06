@@ -113,7 +113,7 @@ func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
 
 func (th *TestHelper) CreateUser(u *model.User) *model.User {
 	u.EmailVerified = true
-	user, err := th.dbStore.User().Save(u)
+	user, err := th.dbStore.User().Save(th.Context, u)
 	if err != nil {
 		panic(err)
 	}
@@ -122,7 +122,7 @@ func (th *TestHelper) CreateUser(u *model.User) *model.User {
 }
 
 func (th *TestHelper) DeleteUser(u *model.User) {
-	err := th.dbStore.User().PermanentDelete(u.Id)
+	err := th.dbStore.User().PermanentDelete(th.Context, u.Id)
 	if err != nil {
 		panic(err)
 	}

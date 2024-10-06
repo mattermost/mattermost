@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {RefObject} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
@@ -17,6 +17,10 @@ export interface StarterEditionProps {
     fileInputRef: RefObject<HTMLInputElement>;
     handleChange: () => void;
 }
+
+export const messages = defineMessages({
+    key: {id: 'admin.license.key', defaultMessage: 'License Key: '},
+});
 
 const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     openEELicenseModal,
@@ -86,13 +90,8 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                 }
             </div>
             <div className='licenseInformation'>
-                <div
-                    className='licenseKeyTitle'
-                >
-                    <FormattedMessage
-                        id='admin.license.key'
-                        defaultMessage='License Key: '
-                    />
+                <div className='licenseKeyTitle'>
+                    <FormattedMessage {...messages.key}/>
                 </div>
                 <div className='uploadButtons'>
                     <button

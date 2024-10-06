@@ -17,6 +17,8 @@ import SpinnerButton from 'components/spinner_button';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import OAuthConnectionAudienceInput from './outgoing_oauth_connections/oauth_connection_audience_input';
+
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
@@ -65,7 +67,7 @@ type Props = {
     intl: IntlShape;
 }
 
-type State= {
+type State = {
     saving: boolean;
     clientError: null | JSX.Element | string;
     trigger: string;
@@ -87,7 +89,7 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
         this.state = this.getStateFromCommand(this.props.initialCommand || {});
     }
 
-    getStateFromCommand = (command: Props['initialCommand']) => {
+    getStateFromCommand = (command: Props['initialCommand']): State => {
         return {
             displayName: command?.display_name ?? '',
             description: command?.description ?? '',
@@ -523,11 +525,7 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
-                                    id='url'
-                                    type='text'
-                                    maxLength={1024}
-                                    className='form-control'
+                                <OAuthConnectionAudienceInput
                                     value={this.state.url}
                                     onChange={this.updateUrl}
                                     placeholder={this.props.intl.formatMessage({
@@ -539,6 +537,17 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                     <FormattedMessage
                                         id='add_command.url.help'
                                         defaultMessage='Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run.'
+                                    />
+                                </div>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id={'add_command.outgoing_oauth_connections.help_text'}
+                                        defaultMessage={'You can connect commands to <link>outgoing OAuth connections</link>.'}
+                                        values={{
+                                            link: (text: string) => (
+                                                <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
+                                            ),
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -561,10 +570,10 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                     onChange={this.updateMethod}
                                 >
                                     <option value={REQUEST_POST}>
-                                        {Utils.localizeMessage('add_command.method.post', 'POST')}
+                                        {Utils.localizeMessage({id: 'add_command.method.post', defaultMessage: 'POST'})}
                                     </option>
                                     <option value={REQUEST_GET}>
-                                        {Utils.localizeMessage('add_command.method.get', 'GET')}
+                                        {Utils.localizeMessage({id: 'add_command.method.get', defaultMessage: 'GET'})}
                                     </option>
                                 </select>
                                 <div className='form__help'>
@@ -682,7 +691,7 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
+                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage({id: this.props.loading?.id ?? '', defaultMessage: this.props.loading?.defaultMessage as string})}
                                 onClick={this.handleSubmit}
                                 id='saveCommand'
                             >

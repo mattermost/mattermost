@@ -25,7 +25,17 @@
           description: The number of jobs per page.
           schema:
             type: integer
-            default: 60
+            default: 5
+        - name: job_type
+          in: query
+          description: The type of jobs to fetch.
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: The status of jobs to fetch.
+          schema:
+            type: string
       responses:
         "200":
           description: Job list retrieval successful
@@ -217,6 +227,54 @@
                 type: array
                 items:
                   $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/jobs/{job_id}/status":
+    patch:
+      tags:
+        - jobs
+      summary: Update the status of a job
+      description: >
+        Update the status of a job. Valid status updates:
+        - 'in_progress' -> 'pending'
+        - 'in_progress' | 'pending' -> 'cancel_requested'
+        - 'cancel_requested' -> 'canceled'
+
+        Add force to the body of the PATCH request to bypass the given rules, the only statuses you can go to are: pending, cancel_requested and canceled. This can have unexpected consequences and should be used with caution.
+      operationId: UpdateJobStatus
+      parameters:
+        - name: job_id
+          in: path
+          description: Job GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: The status you want to set
+                force:
+                  type: boolean
+                  description: Set this to true to bypass status restrictions
+      responses:
+        "200":
+          description: Status successfully set.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

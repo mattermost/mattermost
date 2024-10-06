@@ -4,12 +4,11 @@
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {Modal, Button} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
@@ -18,7 +17,7 @@ import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
@@ -27,7 +26,6 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
 
@@ -45,13 +43,32 @@ enum TrialLoadStatus {
     Failed = 'FAILED'
 }
 
-// Marker functions so i18n-extract doesn't remove strings
-t('ONE_TO_50');
-t('FIFTY_TO_100');
-t('ONE_HUNDRED_TO_500');
-t('FIVE_HUNDRED_TO_1000');
-t('ONE_THOUSAND_TO_2500');
-t('TWO_THOUSAND_FIVE_HUNDRED_AND_UP');
+defineMessages({
+    ONE_TO_50: {
+        id: 'ONE_TO_50',
+        defaultMessage: '1-50',
+    },
+    FIFTY_TO_100: {
+        id: 'FIFTY_TO_100',
+        defaultMessage: '51-100',
+    },
+    ONE_HUNDRED_TO_500: {
+        id: 'ONE_HUNDRED_TO_500',
+        defaultMessage: '101-500',
+    },
+    FIVE_HUNDRED_TO_1000: {
+        id: 'FIVE_HUNDRED_TO_1000',
+        defaultMessage: '501-1000',
+    },
+    ONE_THOUSAND_TO_2500: {
+        id: 'ONE_THOUSAND_TO_2500',
+        defaultMessage: '1001-2500',
+    },
+    TWO_THOUSAND_FIVE_HUNDRED_AND_UP: {
+        id: 'TWO_THOUSAND_FIVE_HUNDRED_AND_UP',
+        defaultMessage: '2501+',
+    },
+});
 
 export enum OrgSize {
     ONE_TO_50 = '1-50',
@@ -69,7 +86,7 @@ type Props = {
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
     const [name, setName] = useState('');
     const [email, setEmail] = useState(currentUser.email);
@@ -78,7 +95,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
     const {formatMessage} = useIntl();
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
@@ -149,7 +166,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
-            if (data.status === 422) {
+            if ((data as any).status === 422) {
                 title = (<></>);
                 subtitle = (
                     <FormattedMessage
@@ -236,7 +253,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         status === TrialLoadStatus.Success
     );
 
-    if (typeof canReachCWS !== 'undefined' && !canReachCWS) {
+    if (cwsAvailability === CSWAvailabilityCheckTypes.Unavailable) {
         return (
             <AirGappedModal
                 onClose={handleOnClose}

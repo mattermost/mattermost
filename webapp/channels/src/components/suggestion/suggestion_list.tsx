@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
@@ -12,7 +12,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {Constants} from 'utils/constants';
 import {isEmptyObject} from 'utils/utils';
 
-interface Props {
+export interface Props {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
@@ -28,7 +28,7 @@ interface Props {
     items: any[];
     terms: string[];
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
+    components: Array<React.ComponentType<any>>;
     wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret

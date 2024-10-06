@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {Team} from '@mattermost/types/teams';
+import type {Team, TeamMemberWithError} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
@@ -15,12 +15,12 @@ import {getUser} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Preferences} from 'utils/constants';
 
-export function removeUserFromTeamAndGetStats(teamId: Team['id'], userId: UserProfile['id']): ActionFunc {
+export function removeUserFromTeamAndGetStats(teamId: Team['id'], userId: UserProfile['id']): ActionFuncAsync {
     return async (dispatch, getState) => {
         const response = await dispatch(TeamActions.removeUserFromTeam(teamId, userId));
         dispatch(getUser(userId));
@@ -30,7 +30,7 @@ export function removeUserFromTeamAndGetStats(teamId: Team['id'], userId: UserPr
     };
 }
 
-export function addUserToTeamFromInvite(token: string, inviteId: string): ActionFunc {
+export function addUserToTeamFromInvite(token: string, inviteId: string): ActionFuncAsync<Team> {
     return async (dispatch) => {
         const {data: member, error} = await dispatch(TeamActions.addUserToTeamFromInvite(token, inviteId));
         if (member) {
@@ -52,7 +52,7 @@ export function addUserToTeamFromInvite(token: string, inviteId: string): Action
     };
 }
 
-export function addUserToTeam(teamId: Team['id'], userId: UserProfile['id']): ActionFunc<Team, ServerError> {
+export function addUserToTeam(teamId: Team['id'], userId: UserProfile['id']): ActionFuncAsync<Team> {
     return async (dispatch) => {
         const {data: member, error} = await dispatch(TeamActions.addUserToTeam(teamId, userId));
         if (member) {
@@ -74,7 +74,7 @@ export function addUserToTeam(teamId: Team['id'], userId: UserProfile['id']): Ac
     };
 }
 
-export function addUsersToTeam(teamId: Team['id'], userIds: Array<UserProfile['id']>): ActionFunc {
+export function addUsersToTeam(teamId: Team['id'], userIds: Array<UserProfile['id']>): ActionFuncAsync<TeamMemberWithError[]> {
     return async (dispatch, getState) => {
         const {data, error} = await dispatch(TeamActions.addUsersToTeamGracefully(teamId, userIds));
 
@@ -88,8 +88,8 @@ export function addUsersToTeam(teamId: Team['id'], userIds: Array<UserProfile['i
     };
 }
 
-export function switchTeam(url: string, team?: Team) {
-    return (dispatch: DispatchFunc) => {
+export function switchTeam(url: string, team?: Team): ThunkActionFunc<void> {
+    return (dispatch) => {
         // In Channels, the team argument is undefined, and team switching is done by pushing a URL onto history.
         // In other products, a team is passed instead of a URL because the current team isn't tied to the page URL.
         //
@@ -103,8 +103,8 @@ export function switchTeam(url: string, team?: Team) {
     };
 }
 
-export function updateTeamsOrderForUser(teamIds: Array<Team['id']>) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateTeamsOrderForUser(teamIds: Array<Team['id']>): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const teamOrderPreferences = [{
@@ -113,11 +113,11 @@ export function updateTeamsOrderForUser(teamIds: Array<Team['id']>) {
             category: Preferences.TEAMS_ORDER,
             value: teamIds.join(','),
         }];
-        dispatch(savePreferences(currentUserId, teamOrderPreferences));
+        return dispatch(savePreferences(currentUserId, teamOrderPreferences));
     };
 }
 
-export function getGroupMessageMembersCommonTeams(channelId: string): ActionFunc<Team[], ServerError> {
+export function getGroupMessageMembersCommonTeams(channelId: string): ActionFuncAsync<Team[]> {
     return async (dispatch) => {
         let teams: Team[];
 

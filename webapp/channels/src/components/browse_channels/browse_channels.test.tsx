@@ -15,7 +15,7 @@ import SearchableChannelList from 'components/searchable_channel_list';
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
-jest.useFakeTimers('legacy');
+jest.useFakeTimers({legacyFakeTimers: true});
 
 describe('components/BrowseChannels', () => {
     const searchResults = {

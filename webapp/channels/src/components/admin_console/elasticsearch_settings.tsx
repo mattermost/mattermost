@@ -2,18 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
-import {elasticsearchPurgeIndexes, elasticsearchTest} from 'actions/admin_actions.jsx';
+import {elasticsearchPurgeIndexes, elasticsearchTest, rebuildChannelsIndex} from 'actions/admin_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import type {BaseProps, BaseState} from './admin_settings';
@@ -25,6 +24,7 @@ import TextSetting from './text_setting';
 
 interface State extends BaseState {
     connectionUrl: string;
+    backend: string;
     skipTLSVerification: boolean;
     ca: string;
     clientCert: string;
@@ -45,9 +45,63 @@ type Props = BaseProps & {
     config: AdminConfig;
 };
 
+export const messages = defineMessages({
+    title: {id: 'admin.elasticsearch.title', defaultMessage: 'Elasticsearch'},
+    enableIndexingTitle: {id: 'admin.elasticsearch.enableIndexingTitle', defaultMessage: 'Enable Elasticsearch Indexing:'},
+    enableIndexingDescription: {id: 'admin.elasticsearch.enableIndexingDescription', defaultMessage: 'When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>'},
+    connectionUrlTitle: {id: 'admin.elasticsearch.connectionUrlTitle', defaultMessage: 'Server Connection Address:'},
+    connectionUrlDescription: {id: 'admin.elasticsearch.connectionUrlDescription', defaultMessage: 'The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>'},
+    skipTLSVerificationTitle: {id: 'admin.elasticsearch.skipTLSVerificationTitle', defaultMessage: 'Skip TLS Verification:'},
+    skipTLSVerificationDescription: {id: 'admin.elasticsearch.skipTLSVerificationDescription', defaultMessage: 'When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.'},
+    usernameTitle: {id: 'admin.elasticsearch.usernameTitle', defaultMessage: 'Server Username:'},
+    usernameDescription: {id: 'admin.elasticsearch.usernameDescription', defaultMessage: '(Optional) The username to authenticate to the Elasticsearch server.'},
+    passwordTitle: {id: 'admin.elasticsearch.passwordTitle', defaultMessage: 'Server Password:'},
+    passwordDescription: {id: 'admin.elasticsearch.passwordDescription', defaultMessage: '(Optional) The password to authenticate to the Elasticsearch server.'},
+    sniffTitle: {id: 'admin.elasticsearch.sniffTitle', defaultMessage: 'Enable Cluster Sniffing:'},
+    sniffDescription: {id: 'admin.elasticsearch.sniffDescription', defaultMessage: 'When true, sniffing finds and connects to all data nodes in your cluster automatically.'},
+    testHelpText: {id: 'admin.elasticsearch.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle "Enable Elasticsearch Indexing".'},
+    elasticsearch_test_button: {id: 'admin.elasticsearch.elasticsearch_test_button', defaultMessage: 'Test Connection'},
+    bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
+    help: {id: 'admin.elasticsearch.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'},
+    rebuildChannelsIndexTitle: {id: 'admin.elasticsearch.rebuildChannelsIndexTitle', defaultMessage: 'Rebuild Channels Index'},
+    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>'},
+    rebuildChannelsIndexButtonText: {id: 'admin.elasticsearch.rebuildChannelsIndex.title', defaultMessage: 'Rebuild Channels Index'},
+    purgeIndexesHelpText: {id: 'admin.elasticsearch.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
+    purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Index'},
+    label: {id: 'admin.elasticsearch.purgeIndexesButton.label', defaultMessage: 'Purge Indexes:'},
+    enableSearchingTitle: {id: 'admin.elasticsearch.enableSearchingTitle', defaultMessage: 'Enable Elasticsearch for search queries:'},
+    enableSearchingDescription: {id: 'admin.elasticsearch.enableSearchingDescription', defaultMessage: 'Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.connectionUrlDescription, {documentationLink: ''}],
+    [messages.enableIndexingDescription, {documentationLink: ''}],
+    messages.title,
+    messages.enableIndexingTitle,
+    messages.connectionUrlTitle,
+    messages.skipTLSVerificationTitle,
+    messages.skipTLSVerificationDescription,
+    messages.usernameTitle,
+    messages.usernameDescription,
+    messages.passwordTitle,
+    messages.passwordDescription,
+    messages.sniffTitle,
+    messages.sniffDescription,
+    messages.testHelpText,
+    messages.elasticsearch_test_button,
+    messages.bulkIndexingTitle,
+    messages.help,
+    messages.purgeIndexesHelpText,
+    messages.purgeIndexesButton,
+    messages.label,
+    messages.enableSearchingTitle,
+    messages.enableSearchingDescription,
+];
+
 export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
+        config.ElasticsearchSettings.Backend = this.state.backend;
         config.ElasticsearchSettings.SkipTLSVerification = this.state.skipTLSVerification;
         config.ElasticsearchSettings.CA = this.state.ca;
         config.ElasticsearchSettings.ClientCert = this.state.clientCert;
@@ -66,6 +120,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getStateFromConfig(config: AdminConfig) {
         return {
             connectionUrl: config.ElasticsearchSettings.ConnectionURL,
+            backend: config.ElasticsearchSettings.Backend,
             skipTLSVerification: config.ElasticsearchSettings.SkipTLSVerification,
             ca: config.ElasticsearchSettings.CA,
             clientCert: config.ElasticsearchSettings.ClientCert,
@@ -98,7 +153,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             }
         }
 
-        if (id === 'connectionUrl' || id === 'skipTLSVerification' || id === 'username' || id === 'password' || id === 'sniff' || id === 'ca' || id === 'clientCert' || id === 'clientKey') {
+        if (id === 'connectionUrl' || id === 'backend' || id === 'skipTLSVerification' || id === 'username' || id === 'password' || id === 'sniff' || id === 'ca' || id === 'clientCert' || id === 'clientKey') {
             this.setState({
                 configTested: false,
                 canSave: false,
@@ -124,7 +179,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
         return this.state.canSave;
     };
 
-    doTestConfig = (success: () => void, error: (error: string) => void): void => {
+    doTestConfig = (success: () => void, error: (error: {message: string; detailed_message?: string}) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -137,7 +192,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 });
                 success();
             },
-            (err: string) => {
+            (err: {message: string; detailed_message?: string}) => {
                 this.setState({
                     configTested: false,
                     canSave: false,
@@ -148,8 +203,22 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     };
 
     getExtraInfo(job: Job) {
+        let jobSubType = null;
+        if (job.data?.sub_type === 'channels_index_rebuild') {
+            jobSubType = (
+                <span>
+                    {'. '}
+                    <FormattedMessage
+                        id='admin.elasticsearch.channelIndexRebuildJobTitle'
+                        defaultMessage='Channels index rebuild job.'
+                    />
+                </span>
+            );
+        }
+
+        let jobProgress = null;
         if (job.status === JobStatuses.IN_PROGRESS) {
-            return (
+            jobProgress = (
                 <FormattedMessage
                     id='admin.elasticsearch.percentComplete'
                     defaultMessage='{percent}% Complete'
@@ -158,15 +227,12 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             );
         }
 
-        return null;
+        return (<span>{jobProgress}{jobSubType}</span>);
     }
 
     renderTitle() {
         return (
-            <FormattedMessage
-                id='admin.elasticsearch.title'
-                defaultMessage='Elasticsearch'
-            />
+            <FormattedMessage {...messages.title}/>
         );
     }
 
@@ -176,25 +242,18 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 <BooleanSetting
                     id='enableIndexing'
                     label={
-                        <FormattedMessage
-                            id='admin.elasticsearch.enableIndexingTitle'
-                            defaultMessage='Enable Elasticsearch Indexing:'
-                        />
+                        <FormattedMessage {...messages.enableIndexingTitle}/>
                     }
                     helpText={
                         <FormattedMessage
-                            id='admin.elasticsearch.enableIndexingDescription'
-                            defaultMessage='When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. {documentationLink}'
+                            {...messages.enableIndexingDescription}
                             values={{
-                                documentationLink: (
+                                link: (chunks) => (
                                     <ExternalLink
                                         location='elasticsearch_settings'
                                         href={DocLinks.ELASTICSEARCH}
                                     >
-                                        <FormattedMessage
-                                            id='admin.elasticsearch.enableIndexingDescription.documentationLinkText'
-                                            defaultMessage='Learn more about Elasticsearch in our documentation.'
-                                        />
+                                        {chunks}
                                     </ExternalLink>
                                 ),
                             }}
@@ -206,28 +265,41 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     disabled={this.props.isDisabled}
                 />
                 <TextSetting
-                    id='connectionUrl'
+                    id='backend'
                     label={
                         <FormattedMessage
-                            id='admin.elasticsearch.connectionUrlTitle'
-                            defaultMessage='Server Connection Address:'
+                            id='admin.elasticsearch.backendTitle'
+                            defaultMessage='Backend type:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.connectionUrlExample', 'E.g.: "https://elasticsearch.example.org:9200"')}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.backendExample', defaultMessage: 'E.g.: "elasticsearch"'})}
                     helpText={
                         <FormattedMessage
-                            id='admin.elasticsearch.connectionUrlDescription'
-                            defaultMessage='The address of the Elasticsearch server. {documentationLink}'
+                            id='admin.elasticsearch.backendDescription'
+                            defaultMessage='The type of the search backend.'
+                        />
+                    }
+                    value={this.state.backend}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.Backend')}
+                />
+                <TextSetting
+                    id='connectionUrl'
+                    label={
+                        <FormattedMessage {...messages.connectionUrlTitle}/>
+                    }
+                    placeholder={defineMessage({id: 'admin.elasticsearch.connectionUrlExample', defaultMessage: 'E.g.: "https://elasticsearch.example.org:9200"'})}
+                    helpText={
+                        <FormattedMessage
+                            {...messages.connectionUrlDescription}
                             values={{
-                                documentationLink: (
+                                link: (chunks) => (
                                     <ExternalLink
                                         location='elasticsearch_settings'
                                         href={DocLinks.ELASTICSEARCH}
                                     >
-                                        <FormattedMessage
-                                            id='admin.elasticsearch.connectionUrlExample.documentationLinkText'
-                                            defaultMessage='Please see documentation with server setup instructions.'
-                                        />
+                                        {chunks}
                                     </ExternalLink>
                                 ),
                             }}
@@ -246,7 +318,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='CA path:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.caExample', 'E.g.: "./elasticsearch/ca.pem"')}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.caExample', defaultMessage: 'E.g.: "./elasticsearch/ca.pem"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.caDescription'
@@ -266,7 +338,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Client Certificate path:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.clientCertExample', 'E.g.: "./elasticsearch/client-cert.pem"')}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.clientCertExample', defaultMessage: 'E.g.: "./elasticsearch/client-cert.pem"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientCertDescription'
@@ -286,7 +358,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Client Certificate Key path:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.clientKeyExample', 'E.g.: "./elasticsearch/client-key.pem"')}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.clientKeyExample', defaultMessage: 'E.g.: "./elasticsearch/client-key.pem"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientKeyDescription'
@@ -300,18 +372,8 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 />
                 <BooleanSetting
                     id='skipTLSVerification'
-                    label={
-                        <FormattedMessage
-                            id='admin.elasticsearch.skipTLSVerificationTitle'
-                            defaultMessage='Skip TLS Verification:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.skipTLSVerificationDescription'
-                            defaultMessage='When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.skipTLSVerificationTitle}/>}
+                    helpText={<FormattedMessage {...messages.skipTLSVerificationDescription}/>}
                     value={this.state.skipTLSVerification}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
                     onChange={this.handleSettingChanged}
@@ -319,19 +381,9 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 />
                 <TextSetting
                     id='username'
-                    label={
-                        <FormattedMessage
-                            id='admin.elasticsearch.usernameTitle'
-                            defaultMessage='Server Username:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.usernameExample', 'E.g.: "elastic"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.usernameDescription'
-                            defaultMessage='(Optional) The username to authenticate to the Elasticsearch server.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.usernameTitle}/>}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.usernameExample', defaultMessage: 'E.g.: "elastic"'})}
+                    helpText={<FormattedMessage {...messages.usernameDescription}/>}
                     value={this.state.username}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
                     onChange={this.handleSettingChanged}
@@ -339,19 +391,9 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 />
                 <TextSetting
                     id='password'
-                    label={
-                        <FormattedMessage
-                            id='admin.elasticsearch.passwordTitle'
-                            defaultMessage='Server Password:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.password', 'E.g.: "yourpassword"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.passwordDescription'
-                            defaultMessage='(Optional) The password to authenticate to the Elasticsearch server.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.passwordTitle}/>}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.password', defaultMessage: 'E.g.: "yourpassword"'})}
+                    helpText={<FormattedMessage {...messages.passwordDescription}/>}
                     value={this.state.password}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
                     onChange={this.handleSettingChanged}
@@ -359,18 +401,8 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 />
                 <BooleanSetting
                     id='sniff'
-                    label={
-                        <FormattedMessage
-                            id='admin.elasticsearch.sniffTitle'
-                            defaultMessage='Enable Cluster Sniffing:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.sniffDescription'
-                            defaultMessage='When true, sniffing finds and connects to all data nodes in your cluster automatically.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.sniffTitle}/>}
+                    helpText={<FormattedMessage {...messages.sniffDescription}/>}
                     value={this.state.sniff}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
                     onChange={this.handleSettingChanged}
@@ -379,32 +411,17 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 <RequestButton
                     id='testConfig'
                     requestAction={this.doTestConfig}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.testHelpText'
-                            defaultMessage='Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle "Enable Elasticsearch Indexing".'
-                        />
-                    }
-                    buttonText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.elasticsearch_test_button'
-                            defaultMessage='Test Connection'
-                        />
-                    }
-                    successMessage={{
-                        id: t('admin.elasticsearch.testConfigSuccess'),
+                    helpText={<FormattedMessage {...messages.testHelpText}/>}
+                    buttonText={<FormattedMessage {...messages.elasticsearch_test_button}/>}
+                    successMessage={defineMessage({
+                        id: 'admin.elasticsearch.testConfigSuccess',
                         defaultMessage: 'Test successful. Configuration saved.',
-                    }}
+                    })}
                     disabled={!this.state.enableIndexing}
                 />
                 <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                    >
-                        <FormattedMessage
-                            id='admin.elasticsearch.bulkIndexingTitle'
-                            defaultMessage='Bulk Indexing:'
-                        />
+                    <label className='control-label col-sm-4'>
+                        <FormattedMessage {...messages.bulkIndexingTitle}/>
                     </label>
                     <div className='col-sm-8'>
                         <div className='job-table-setting'>
@@ -417,47 +434,50 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                                         defaultMessage='Index Now'
                                     />
                                 }
-                                createJobHelpText={
-                                    <FormattedMessage
-                                        id='admin.elasticsearch.createJob.help'
-                                        defaultMessage='All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'
-                                    />
-                                }
+                                createJobHelpText={<FormattedMessage {...messages.help}/>}
                                 getExtraInfoText={this.getExtraInfo}
                             />
                         </div>
                     </div>
                 </div>
                 <RequestButton
-                    id='purgeIndexesSection'
-                    requestAction={elasticsearchPurgeIndexes}
+                    id='rebuildChannelsIndexButton'
+                    requestAction={rebuildChannelsIndex}
                     helpText={
                         <FormattedMessage
-                            id='admin.elasticsearch.purgeIndexesHelpText'
-                            defaultMessage='Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'
+                            {...messages.rebuildChannelIndexHelpText}
+                            values={{
+                                b: (chunks: React.ReactNode) => (<b>{chunks}</b>),
+                            }}
                         />
                     }
-                    buttonText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.purgeIndexesButton'
-                            defaultMessage='Purge Index'
-                        />
-                    }
-                    successMessage={{
-                        id: t('admin.elasticsearch.purgeIndexesButton.success'),
+                    buttonText={<FormattedMessage {...messages.rebuildChannelsIndexButtonText}/>}
+                    successMessage={defineMessage({
+                        id: 'admin.elasticsearch.rebuildIndexSuccessfully.success',
+                        defaultMessage: 'Channels index rebuild job triggered successfully.',
+                    })}
+                    errorMessage={defineMessage({
+                        id: 'admin.elasticsearch.rebuildIndexSuccessfully.error',
+                        defaultMessage: 'Failed to trigger channels index rebuild job: {error}',
+                    })}
+                    disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                    label={<FormattedMessage {...messages.rebuildChannelsIndexButtonText}/>}
+                />
+                <RequestButton
+                    id='purgeIndexesSection'
+                    requestAction={elasticsearchPurgeIndexes}
+                    helpText={<FormattedMessage {...messages.purgeIndexesHelpText}/>}
+                    buttonText={<FormattedMessage {...messages.purgeIndexesButton}/>}
+                    successMessage={defineMessage({
+                        id: 'admin.elasticsearch.purgeIndexesButton.success',
                         defaultMessage: 'Indexes purged successfully.',
-                    }}
-                    errorMessage={{
-                        id: t('admin.elasticsearch.purgeIndexesButton.error'),
+                    })}
+                    errorMessage={defineMessage({
+                        id: 'admin.elasticsearch.purgeIndexesButton.error',
                         defaultMessage: 'Failed to purge indexes: {error}',
-                    }}
+                    })}
                     disabled={this.props.isDisabled || !this.state.canPurgeAndIndex}
-                    label={(
-                        <FormattedMessage
-                            id='admin.elasticsearch.purgeIndexesButton.label'
-                            defaultMessage='Purge Indexes:'
-                        />
-                    )}
+                    label={<FormattedMessage {...messages.label}/>}
                 />
                 <TextSetting
                     id='ignoredPurgeIndexes'
@@ -467,7 +487,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Indexes to skip while purging:'
                         />
                     }
-                    placeholder={'E.g.: .opendistro*,.security*'}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.ignoredPurgeIndexesDescription.example', defaultMessage: 'E.g.: .opendistro*,.security*'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.ignoredPurgeIndexesDescription'
@@ -481,18 +501,8 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 />
                 <BooleanSetting
                     id='enableSearching'
-                    label={
-                        <FormattedMessage
-                            id='admin.elasticsearch.enableSearchingTitle'
-                            defaultMessage='Enable Elasticsearch for search queries:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.elasticsearch.enableSearchingDescription'
-                            defaultMessage='Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.enableSearchingTitle}/>}
+                    helpText={<FormattedMessage {...messages.enableSearchingDescription}/>}
                     value={this.state.enableSearching}
                     disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
                     onChange={this.handleSettingChanged}

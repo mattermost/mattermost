@@ -3,15 +3,12 @@
 
 import React from 'react';
 import type {ReactPortal} from 'react';
-import {Provider} from 'react-redux';
-
-import configureStore from 'store';
 
 import * as useGetLimitsHook from 'components/common/hooks/useGetLimits';
 import * as useGetUsageHook from 'components/common/hooks/useGetUsage';
 import ModalController from 'components/modal_controller';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -102,13 +99,13 @@ jest.mock('react-dom', () => ({
 describe('useShowAdminLimitReached', () => {
     it('opens cloud usage modal if admin has just logged in on a cloud instance, the instance has exceeded its message history limit, and the admin has not been shown the modal on log in before.', () => {
         const state = JSON.parse(JSON.stringify(openModalState));
-        const store = configureStore(state);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         screen.getByText(modalRegex);
     });
@@ -125,13 +122,13 @@ describe('useShowAdminLimitReached', () => {
             ],
             'admin',
         );
-        const store = configureStore(state);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
@@ -139,13 +136,13 @@ describe('useShowAdminLimitReached', () => {
     it('does not open cloud usage modal if workspace has not exceeded limit', () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.usage.messages.history = 10000;
-        const store = configureStore(state);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
@@ -153,13 +150,13 @@ describe('useShowAdminLimitReached', () => {
     it('does not open cloud usage modal if there is no message limit', () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits = {};
-        const store = configureStore(state);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
@@ -167,13 +164,13 @@ describe('useShowAdminLimitReached', () => {
     it('does not open cloud usage modal if there is no message limit', () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits = {};
-        const store = configureStore(state);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
@@ -181,13 +178,13 @@ describe('useShowAdminLimitReached', () => {
     it('does not open cloud usage modal if admin was already logged in', () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.views.admin.needsLoggedInLimitReachedCheck = false;
-        const store = configureStore(state);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
@@ -195,17 +192,17 @@ describe('useShowAdminLimitReached', () => {
     it('does not open cloud usage modal if limits are not yet loaded', () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits.limitsLoaded = false;
-        const store = configureStore(state);
         jest.spyOn(useGetLimitsHook, 'default').mockImplementation(() => ([
             state.entities.cloud.limits.limits,
             false,
         ]));
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
@@ -216,14 +213,14 @@ describe('useShowAdminLimitReached', () => {
             history: 0,
             historyLoaded: false,
         };
-        const store = configureStore(state);
         jest.spyOn(useGetUsageHook, 'default').mockImplementation(() => state.entities.usage);
-        renderWithIntl(
-            <Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <TestComponent/>
-            </Provider>,
+            </>,
+            state,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });

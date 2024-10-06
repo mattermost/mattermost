@@ -20,7 +20,7 @@ describe('components/ConfigurationBar', () => {
             ShortSkuName: 'skuShortName',
         },
         config: {
-            sendEmailNotifications: false,
+            SendEmailNotifications: 'false',
         },
         dismissedExpiringLicense: false,
         dismissedExpiredLicense: false,

@@ -2,8 +2,8 @@
     .shortcut-key {
         display: inline-block;
         padding: 10px 9px 8px 8px;
-        background: var(--center-channel-color);
         border-radius: 4px;
+        background: var(--center-channel-color);
         color: var(--center-channel-bg);
         font-size: 14px;
         font-weight: 500;
@@ -17,7 +17,7 @@
         &.shortcut-key--tooltip {
             padding: 2px 5px;
             background-color: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.72);
+            color: rgba(255, 255, 255, 0.75);
             font-family: inherit;
             font-size: 12px;
             font-weight: 600;
@@ -26,8 +26,8 @@
 
         &.shortcut-key--tutorial-tip {
             padding: 2px 5px;
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            background-color: rgba(var(--button-color-rgb), 0.08);
+            color: rgba(var(--button-color-rgb), 0.75);
             font-family: inherit;
             font-size: 12px;
             font-weight: 600;
@@ -35,6 +35,23 @@
         }
 
         &.shortcut-key--shortcut-modal {
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+        }
+    }
+}
+
+.console__body {
+    .shortcut-key {
+        display: inline-block;
+        border-radius: 4px;
+
+        &.shortcut-key--tooltip {
+            padding: 2px 5px;
+            background-color: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.72);
             font-family: inherit;
             font-size: 12px;
             font-weight: 600;

@@ -4,7 +4,7 @@
 import {shallow, mount} from 'enzyme';
 import React from 'react';
 
-import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider.jsx';
+import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
@@ -292,5 +292,13 @@ describe('components/SuggestionBox', () => {
         instance.handlePretextChanged = jest.fn();
         instance.componentDidMount();
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not clear pretext when clearing the suggestion list', () => {
+        const wrapper = shallow(<SuggestionBox {...baseProps}/>);
+        const instance = wrapper.instance();
+        instance.handlePretextChanged = jest.fn();
+        instance.clear();
+        expect(instance.handlePretextChanged).not.toHaveBeenCalled();
     });
 });

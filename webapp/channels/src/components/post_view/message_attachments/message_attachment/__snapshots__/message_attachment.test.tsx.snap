@@ -24,34 +24,34 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
       >
-        <Connect(ExternalImage)
+        <Connect(Component)
           key="attachment__author-icon"
           src="author_icon"
         >
           <Component />
-        </Connect(ExternalImage)>
+        </Connect(Component)>
         <span
           className="attachment__author-name"
           key="attachment__author-name"
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -77,7 +77,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
           <div
             className="attachment__image-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               imageMetadata={
                 Object {
                   "height": 200,
@@ -87,16 +87,16 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
               src="image_url"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
           </div>
           <div
             className="attachment__footer-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               src="footer_icon"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
             <span>
               footer
             </span>
@@ -104,7 +104,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
           <div
             className="attachment-actions"
           >
-            <Connect(ActionButton)
+            <Connect(Component)
               action={
                 Object {
                   "cookie": "cookie-contents",
@@ -121,7 +121,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         <div
           className="attachment__thumb-container"
         >
-          <Connect(ExternalImage)
+          <Connect(Component)
             imageMetadata={
               Object {
                 "height": 200,
@@ -131,7 +131,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
             src="thumb_url"
           >
             <Component />
-          </Connect(ExternalImage)>
+          </Connect(Component)>
         </div>
         <div
           style={
@@ -170,34 +170,34 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
       >
-        <Connect(ExternalImage)
+        <Connect(Component)
           key="attachment__author-icon"
           src="author_icon"
         >
           <Component />
-        </Connect(ExternalImage)>
+        </Connect(Component)>
         <span
           className="attachment__author-name"
           key="attachment__author-name"
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -223,7 +223,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
           <div
             className="attachment__image-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               imageMetadata={
                 Object {
                   "height": 200,
@@ -233,16 +233,16 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
               src="image_url"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
           </div>
           <div
             className="attachment__footer-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               src="footer_icon"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
             <span>
               footer
             </span>
@@ -251,7 +251,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         <div
           className="attachment__thumb-container"
         >
-          <Connect(ExternalImage)
+          <Connect(Component)
             imageMetadata={
               Object {
                 "height": 200,
@@ -261,7 +261,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
             src="thumb_url"
           >
             <Component />
-          </Connect(ExternalImage)>
+          </Connect(Component)>
         </div>
         <div
           style={
@@ -312,34 +312,34 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
       >
-        <Connect(ExternalImage)
+        <Connect(Component)
           key="attachment__author-icon"
           src="author_icon"
         >
           <Component />
-        </Connect(ExternalImage)>
+        </Connect(Component)>
         <span
           className="attachment__author-name"
           key="attachment__author-name"
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -365,7 +365,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
           <div
             className="attachment__image-container"
           >
-            <Connect(ExternalImage)
+            <Connect(Component)
               imageMetadata={
                 Object {
                   "height": 200,
@@ -375,13 +375,13 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
               src="image_url"
             >
               <Component />
-            </Connect(ExternalImage)>
+            </Connect(Component)>
           </div>
         </div>
         <div
           className="attachment__thumb-container"
         >
-          <Connect(ExternalImage)
+          <Connect(Component)
             imageMetadata={
               Object {
                 "height": 200,
@@ -391,7 +391,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
             src="thumb_url"
           >
             <Component />
-          </Connect(ExternalImage)>
+          </Connect(Component)>
         </div>
         <div
           style={
@@ -424,6 +424,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like https://mattermost.com?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -469,6 +470,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like :pizza:?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -514,6 +516,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Don't you like emojis?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -559,6 +562,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           message="footer"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -620,6 +624,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_1"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }
@@ -654,6 +659,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_2"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }
@@ -685,7 +691,7 @@ exports[`components/post_view/MessageAttachment should match value on renderPost
 <div
   className="attachment-actions"
 >
-  <Memo(Connect(ActionButton))
+  <Memo(Connect(Component))
     action={
       Object {
         "id": "action_id_1",
@@ -695,7 +701,7 @@ exports[`components/post_view/MessageAttachment should match value on renderPost
     actionExecuting={false}
     handleAction={[Function]}
   />
-  <Memo(Connect(ActionButton))
+  <Memo(Connect(Component))
     action={
       Object {
         "id": "action_id_2",

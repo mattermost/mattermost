@@ -3,21 +3,14 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import type {UserProfile} from '@mattermost/types/users';
+import type {Dispatch} from 'redux';
 
 import {patchUser} from 'mattermost-redux/actions/users';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
 import ResetEmailModal from './reset_email_modal';
-
-type Actions = {
-    patchUser: (user: UserProfile) => ActionResult;
-}
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -27,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             patchUser,
         }, dispatch),
     };

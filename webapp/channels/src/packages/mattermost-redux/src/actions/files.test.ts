@@ -57,7 +57,7 @@ describe('Actions.Files', () => {
             get(`/posts/${postForFile.id}/files/info`).
             reply(200, [{id: fileId, user_id: TestHelper.basicUser!.id, create_at: 1507921547541, update_at: 1507921547541, delete_at: 0, name: 'test.png', extension: 'png', size: 258428, mime_type: 'image/png', width: 600, height: 600, has_preview_image: true}]);
 
-        await Actions.getFilesForPost(postForFile.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getFilesForPost(postForFile.id));
 
         const {files: allFiles, fileIdsByPostId} = store.getState().entities.files;
 
@@ -80,7 +80,7 @@ describe('Actions.Files', () => {
                 link: 'https://mattermost.com/files/ndans23ry2rtjd1z73g6i5f3fc/public?h=rE1-b2N1VVVMsAQssjwlfNawbVOwUy1TRDuTeGC_tys',
             });
 
-        await Actions.getFilePublicLink(fileId)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getFilePublicLink(fileId));
 
         const state = store.getState();
 

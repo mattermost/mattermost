@@ -2,41 +2,40 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useCallback, type ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
-import OverlayTrigger from 'components/overlay_trigger';
 import ToggleModalButton from 'components/toggle_modal_button';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {Constants, LicenseSkus, ModalIdentifiers} from 'utils/constants';
+import {LicenseSkus, ModalIdentifiers} from 'utils/constants';
 
 import './restricted_indicator.scss';
 
-type RestrictedIndicatorProps = {
+type Props = {
     useModal?: boolean;
-    titleAdminPreTrial?: string;
-    messageAdminPreTrial?: string | React.ReactNode;
-    titleAdminPostTrial?: string;
-    messageAdminPostTrial?: string | React.ReactNode;
-    titleEndUser?: string;
-    messageEndUser?: string | React.ReactNode;
     blocked?: boolean;
-    tooltipTitle?: string;
-    tooltipMessage?: string;
-    tooltipMessageBlocked?: string | MessageDescriptor;
-    ctaExtraContent?: React.ReactNode;
-    clickCallback?: () => void;
-    customSecondaryButtonInModal?: {msg: string; action: () => void};
     feature?: string;
     minimumPlanRequiredForFeature?: string;
+    tooltipTitle?: ReactNode;
+    tooltipMessage?: ReactNode;
+    tooltipMessageBlocked?: string | MessageDescriptor;
+    titleAdminPreTrial?: ReactNode;
+    messageAdminPreTrial?: ReactNode;
+    titleAdminPostTrial?: ReactNode;
+    messageAdminPostTrial?: ReactNode;
+    titleEndUser?: ReactNode;
+    messageEndUser?: ReactNode;
+    ctaExtraContent?: ReactNode;
+    clickCallback?: () => void;
+    customSecondaryButtonInModal?: {msg: string; action: () => void};
 }
 
 function capitalizeFirstLetter(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
+    return s?.charAt(0)?.toUpperCase() + s?.slice(1);
 }
 
 const RestrictedIndicator = ({
@@ -56,7 +55,7 @@ const RestrictedIndicator = ({
     customSecondaryButtonInModal,
     feature,
     minimumPlanRequiredForFeature,
-}: RestrictedIndicatorProps) => {
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const getTooltipMessageBlocked = useCallback(() => {
@@ -88,11 +87,10 @@ const RestrictedIndicator = ({
 
     return (
         <span className='RestrictedIndicator__icon-tooltip-container'>
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='right'
-                overlay={(
-                    <Tooltip className='RestrictedIndicator__icon-tooltip'>
+            <WithTooltip
+                id={`${feature}-tooltip`}
+                title={
+                    <div className='RestrictedIndicator__icon-tooltip'>
                         <span className='title'>
                             {tooltipTitle || formatMessage({id: 'restricted_indicator.tooltip.title', defaultMessage: '{minimumPlanRequiredForFeature} feature'}, {minimumPlanRequiredForFeature: capitalizeFirstLetter(minimumPlanRequiredForFeature!)})}
                         </span>
@@ -103,38 +101,41 @@ const RestrictedIndicator = ({
                                 tooltipMessage || formatMessage({id: 'restricted_indicator.tooltip.mesage', defaultMessage: 'During your trial you are able to use this feature.'})
                             )}
                         </span>
-                    </Tooltip>
-                )}
+                    </div>
+                }
+                placement='right'
             >
                 {useModal && blocked ? (
-                    <ToggleModalButton
-                        id={`${feature}-restricted-indicator`.replaceAll('.', '_')}
-                        className='RestrictedIndicator__button'
-                        modalId={ModalIdentifiers.FEATURE_RESTRICTED_MODAL}
-                        dialogType={FeatureRestrictedModal}
-                        onClick={handleClickCallback}
-                        dialogProps={{
-                            titleAdminPreTrial,
-                            messageAdminPreTrial,
-                            titleAdminPostTrial,
-                            messageAdminPostTrial,
-                            titleEndUser,
-                            messageEndUser,
-                            customSecondaryButton: customSecondaryButtonInModal,
-                            feature,
-                            minimumPlanRequiredForFeature,
-                        }}
-                    >
-                        {icon}
-                        {ctaExtraContent}
-                    </ToggleModalButton>
+                    <span>
+                        <ToggleModalButton
+                            id={`${feature}-restricted-indicator`?.replaceAll('.', '_')}
+                            className='RestrictedIndicator__button'
+                            modalId={ModalIdentifiers.FEATURE_RESTRICTED_MODAL}
+                            dialogType={FeatureRestrictedModal}
+                            onClick={handleClickCallback}
+                            dialogProps={{
+                                titleAdminPreTrial,
+                                messageAdminPreTrial,
+                                titleAdminPostTrial,
+                                messageAdminPostTrial,
+                                titleEndUser,
+                                messageEndUser,
+                                customSecondaryButton: customSecondaryButtonInModal,
+                                feature,
+                                minimumPlanRequiredForFeature,
+                            }}
+                        >
+                            {icon}
+                            {ctaExtraContent}
+                        </ToggleModalButton>
+                    </span>
                 ) : (
                     <div className='RestrictedIndicator__content'>
                         {icon}
                         {ctaExtraContent}
                     </div>
                 )}
-            </OverlayTrigger>
+            </WithTooltip>
         </span>
     );
 };

@@ -163,7 +163,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -291,15 +291,15 @@ callbackUrl2.com
               id="add_outgoing_webhook.callbackUrls.help"
               values={
                 Object {
-                  "link": <ExternalLink
-                    href="https://mattermost.com/pl/configure-session-lengths"
+                  "link": <ForwardRef
+                    href="https://mattermost.com/pl/default-allow-untrusted-internal-connections"
                     location="abstract_outgoing_webhook"
                   >
                     <Memo(MemoizedFormattedMessage)
                       defaultMessage="trusted internal connection"
                       id="add_outgoing_webhook.callbackUrls.helpLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -309,8 +309,7 @@ callbackUrl2.com
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -328,7 +327,7 @@ callbackUrl2.com
             id="add_outgoing_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -340,7 +339,7 @@ callbackUrl2.com
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>

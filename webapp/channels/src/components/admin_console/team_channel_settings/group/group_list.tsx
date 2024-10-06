@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {memo, useCallback} from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
-import type {Team} from '@mattermost/types/teams';
 
 import AbstractList from 'components/admin_console/team_channel_settings/abstract_list';
 
 import GroupRow from './group_row';
+
+import type {PropsFromRedux, OwnProps} from './index';
 
 const Header = () => {
     return (
@@ -40,44 +40,48 @@ const Header = () => {
     );
 };
 
-interface Props {
-    data?: Group[];
-    onPageChangedCallback?: () => void;
-    total: number;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
-    actions: {
-        getData: () => Promise<Group[]>;
-    };
-    removeGroup: (gid: string) => void;
-    setNewGroupRole: (gid: string) => void;
-    type: string;
-    team?: Team;
-    channel?: Partial<Channel>;
-    isDisabled?: boolean;
-}
+type Props = OwnProps & PropsFromRedux;
 
-export default class GroupList extends React.PureComponent<Props> {
-    renderRow = (item: Partial<Group>) => {
+const GroupList = ({
+    removeGroup,
+    setNewGroupRole,
+    type,
+    isDisabled,
+    isModeSync,
+    ...restProps
+}: Props) => {
+    const renderRow = useCallback((item: Partial<Group>) => {
         return (
             <GroupRow
                 key={item.id}
                 group={item}
-                removeGroup={this.props.removeGroup}
-                setNewGroupRole={this.props.setNewGroupRole}
-                type={this.props.type}
-                isDisabled={this.props.isDisabled}
+                removeGroup={removeGroup}
+                setNewGroupRole={setNewGroupRole}
+                type={type}
+                isDisabled={isDisabled}
             />
         );
-    };
+    }, [isDisabled, removeGroup, setNewGroupRole, type]);
 
-    render(): JSX.Element {
-        return (
-            <AbstractList
-                header={<Header/>}
-                renderRow={this.renderRow}
-                {...this.props}
-            />
-        );
-    }
-}
+    return (
+        <AbstractList
+            header={<Header/>}
+            renderRow={renderRow}
+            emptyListText={isModeSync ? messages.emptyListModeSync : messages.emptyList}
+            {...restProps}
+        />
+    );
+};
+
+const messages = defineMessages({
+    emptyListModeSync: {
+        id: 'admin.team_channel_settings.group_list.no-synced-groups',
+        defaultMessage: 'At least one group must be specified',
+    },
+    emptyList: {
+        id: 'admin.team_channel_settings.group_list.no-groups',
+        defaultMessage: 'No groups specified yet',
+    },
+});
+
+export default memo(GroupList);

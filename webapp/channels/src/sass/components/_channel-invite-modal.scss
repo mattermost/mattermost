@@ -6,11 +6,12 @@
 .modal .channel-invite__content,
 .modal .user-groups-modal__content {
     .multi-select__container {
-        padding: 0 2.4rem;
+        height: auto;
+        padding: 0 3.2rem;
     }
 
     .AlertBanner {
-        margin: 1.2rem 2.4rem 0;
+        margin: 1.2rem 3.2rem 0;
 
         button.btn {
             border-radius: 4px;
@@ -52,18 +53,13 @@
         position: absolute;
         z-index: 5;
         overflow: auto;
-        width: calc(100% - 28px);
+        width: calc(100% - 48px);
         height: auto;
         max-height: 272px;
         padding: 12px 0;
-        margin: -10px 0 0 14px;
         border-radius: 4px;
+        margin: -10px 0 0 24px;
         box-shadow: var(--elevation-4);
-    }
-
-    .multi-select__footer {
-        padding: 0 24px 24px 0;
-        text-align: right;
     }
 
     .no-channel-message {
@@ -106,8 +102,8 @@
                 height: 32px;
                 align-items: center;
                 justify-content: center;
-                background: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 30px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
             }
 
             .add-group-members {
@@ -163,20 +159,18 @@
     display: flex;
     flex-direction: column;
 
+    .modal-footer {
+        order: 2;
+    }
+
     .filtered-user-list {
         order: 0;
     }
 
     .invite-as-guest {
         margin-top: 8px;
-        margin-right: 2.4rem;
-        margin-bottom: 22px;
+        margin-right: 3.2rem;
         margin-left: auto;
-    }
-
-    .multi-select__footer {
-        order: 2;
-        margin-top: 10px;
     }
 
     .custom-no-options-message {

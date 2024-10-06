@@ -15,7 +15,7 @@ type PostList struct {
 	NextPostId string           `json:"next_post_id"`
 	PrevPostId string           `json:"prev_post_id"`
 	// HasNext indicates whether there are more items to be fetched or not.
-	HasNext bool `json:"has_next"`
+	HasNext *bool `json:"has_next,omitempty"`
 	// If there are inaccessible posts, FirstInaccessiblePostTime is the time of the latest inaccessible post
 	FirstInaccessiblePostTime int64 `json:"first_inaccessible_post_time"`
 }
@@ -189,4 +189,40 @@ func (o *PostList) IsChannelId(channelId string) bool {
 	}
 
 	return true
+}
+
+func (o *PostList) BuildWranglerPostList() *WranglerPostList {
+	wpl := &WranglerPostList{}
+
+	o.UniqueOrder()
+	o.SortByCreateAt()
+	posts := o.ToSlice()
+
+	if len(posts) == 0 {
+		// Something was sorted wrong or an empty PostList was provided.
+		return wpl
+	}
+
+	// A separate ID key map to ensure no duplicates.
+	idKeys := make(map[string]bool)
+
+	for i := range posts {
+		p := posts[len(posts)-i-1]
+
+		// Add UserID to metadata if it's new.
+		if _, ok := idKeys[p.UserId]; !ok {
+			idKeys[p.UserId] = true
+			wpl.ThreadUserIDs = append(wpl.ThreadUserIDs, p.UserId)
+		}
+
+		wpl.FileAttachmentCount += int64(len(p.FileIds))
+
+		wpl.Posts = append(wpl.Posts, p)
+	}
+
+	// Set metadata for earliest and latest posts
+	wpl.EarlistPostTimestamp = wpl.RootPost().CreateAt
+	wpl.LatestPostTimestamp = wpl.Posts[wpl.NumPosts()-1].CreateAt
+
+	return wpl
 }

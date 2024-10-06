@@ -9,7 +9,6 @@ import {useDispatch} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
@@ -48,7 +47,7 @@ const PostEditHistory = ({
     const [postEditHistory, setPostEditHistory] = useState<Post[]>([]);
     const [hasError, setHasError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
     const retrieveErrorHeading = formatMessage({

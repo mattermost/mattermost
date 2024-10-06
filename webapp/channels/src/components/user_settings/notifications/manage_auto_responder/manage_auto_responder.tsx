@@ -75,7 +75,7 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
                         id='autoResponderMessageInput'
                         className='form-control'
                         rows={5}
-                        placeholder={localizeMessage('user.settings.notifications.autoResponderPlaceholder', 'Message')}
+                        placeholder={localizeMessage({id: 'user.settings.notifications.autoResponderPlaceholder', defaultMessage: 'Message'})}
                         value={autoResponderMessage}
                         maxLength={MESSAGE_MAX_LENGTH}
                         onChange={this.onMessageChanged}
@@ -106,10 +106,9 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.autoResponder'
-                        defaultMessage='Automatic Direct Message Replies'
+                        defaultMessage='Automatic direct message replies'
                     />
                 }
-                width='medium'
                 shiftEnter={true}
                 submit={this.props.submit}
                 saving={this.props.saving}

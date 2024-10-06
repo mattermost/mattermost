@@ -31,7 +31,7 @@
     display: flex;
     height: 100%;
     align-items: center;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     pointer-events: none;
 }
 
@@ -39,7 +39,7 @@
     position: absolute;
     top: 6px;
     left: 9px;
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.64);
     pointer-events: none;
 
     svg {
@@ -62,13 +62,13 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     cursor: pointer;
     font-size: 16px;
     visibility: hidden;
 
     &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     &:active {
@@ -89,8 +89,8 @@
     display: flex;
     align-items: center;
     padding: 0;
-    background: rgba(var(--sidebar-text-rgb), 0.08);
     border-radius: 4px;
+    background: rgba(var(--sidebar-text-rgb), 0.08);
 
     .searchTypeBadge {
         position: relative;
@@ -99,9 +99,9 @@
         align-items: center;
         justify-content: center;
         padding: 2px 2px 2px 7px;
+        border-radius: 4px;
         margin: 0 6px;
         background: rgba(var(--sidebar-text-rgb), 0.08);
-        border-radius: 4px;
         color: var(--sidebar-text);
         font-size: 10px;
         font-weight: 700;
@@ -142,8 +142,8 @@
         width: 180px;
         height: 32px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        margin: 16px 0 0;
         border-radius: 4px;
+        margin: 16px 0 0;
 
         .input-clear {
             right: 4px;
@@ -202,7 +202,7 @@
 
         .search__font-icon,
         .input-clear-x {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         .searchTypeBadge {
@@ -211,6 +211,7 @@
         }
 
         .search-bar {
+            box-shadow: none;
             color: rgb(var(--center-channel-color-rgb));
         }
     }
@@ -223,7 +224,7 @@
     .search__font-icon,
     .input-clear-x {
         display: flex;
-        color: rgba(var(--global-header-text-rgb), 0.56);
+        color: rgba(var(--global-header-text-rgb), 0.64);
     }
 }
 
@@ -292,7 +293,7 @@
             overflow: hidden;
             flex-shrink: 1;
             font-weight: 600;
-            opacity: 0.72;
+            opacity: 0.73;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -391,8 +392,8 @@
 
 .search-hint__suggestion-list__label {
     padding: 1px 5px;
-    background: rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.16);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -418,9 +419,9 @@
         justify-content: center;
         padding: 8px 16px;
         border: 1px solid v(button-bg);
+        border-radius: 4px;
         margin: 18px 8px 16px 0;
         background: v(center-channel-bg);
-        border-radius: 4px;
         color: v(button-bg);
         font-size: 12px;
         line-height: 1;
@@ -437,7 +438,52 @@
     }
 }
 
+.search-hint_text-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.search-hint_learn-search {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 12px;
+    gap: 6px;
+
+    &:hover,
+    &:focus,
+    &:active {
+        text-decoration: none;
+    }
+
+    >span {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    >i {
+        display: inline-flex !important;
+        align-items: center;
+        padding: 4px;
+        border-radius: 50%;
+        background-color: hsla(221, 77%, 48%, 0.08);
+        font-size: 14px !important;
+        gap: 10px;
+
+        &::before {
+            margin: 0;
+        }
+    }
+}
+
 .sidebar--right__subheader {
+
     // Fighting specificity with _sidebar-right.scss (sidebar--right .sidebar--right__subheader ul)
     ul.search-hint__suggestions-list {
         padding: 10px 0;

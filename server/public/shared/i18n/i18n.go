@@ -90,26 +90,24 @@ func InitTranslations(serverLocale, clientLocale string) error {
 	defaultClientLocale = clientLocale
 
 	var err error
-	T, err = getTranslationsBySystemLocale()
+	T, err = GetTranslationsBySystemLocale()
 	return err
 }
 
 func initTranslationsWithDir(bundle *i18n.Bundle, dir string) error {
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
-		filename := f.Name()
+		if filepath.Ext(f.Name()) == ".json" {
+			filename := f.Name()
 
-		if filepath.Ext(filename) != ".json" {
-			continue
-		}
+			locale := strings.Split(filename, ".")[0]
+			if !isSupportedLocale(locale) {
+				continue
+			}
 
-		locale := strings.Split(filename, ".")[0]
-		if !isSupportedLocale(locale) {
-			continue
-		}
-
-		if _, err := bundle.LoadMessageFile(filepath.Join(dir, filename)); err != nil {
-			return err
+			if _, err := bundle.LoadMessageFile(filepath.Join(dir, filename)); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -131,10 +129,10 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 	}, nil
 }
 
-func getTranslationsBySystemLocale() (TranslateFunc, error) {
+func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 	locales := GetSupportedLocales()
 	locale := defaultServerLocale
-	if !locales[locale] {
+	if _, ok := locales[locale]; !ok {
 		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
 		locale = defaultLocale
 	}
@@ -144,7 +142,7 @@ func getTranslationsBySystemLocale() (TranslateFunc, error) {
 		locale = defaultLocale
 	}
 
-	if !locales[locale] {
+	if _, ok := locales[locale]; !ok {
 		return nil, fmt.Errorf("failed to load system translations for '%v'", locale)
 	}
 
@@ -171,10 +169,10 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 	// This is for checking against locales like en, es
 	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	defaultLocale := defaultClientLocale
-	if locales[headerLocaleFull] {
+	if _, ok := locales[headerLocaleFull]; ok {
 		translations := tfuncWithFallback(headerLocaleFull)
 		return translations, headerLocaleFull
-	} else if locales[headerLocale] {
+	} else if _, ok := locales[headerLocale]; ok {
 		translations := tfuncWithFallback(headerLocale)
 		return translations, headerLocale
 	}

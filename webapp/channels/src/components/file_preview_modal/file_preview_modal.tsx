@@ -15,6 +15,7 @@ import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
+import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -31,7 +32,7 @@ import type {LinkInfo} from './types';
 
 import './file_preview_modal.scss';
 
-const PDFPreview = React.lazy(() => import('components/pdf_preview'));
+const PDFPreview = React.lazy<React.ComponentType<PDFPreviewComponentProps>>(() => import('components/pdf_preview'));
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -326,7 +327,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                         >
                             <React.Suspense fallback={null}>
                                 <PDFPreview
-                                    fileInfo={fileInfo}
+                                    fileInfo={fileInfo as FileInfo}
                                     fileUrl={fileUrl}
                                     scale={this.state.scale[this.state.imageIndex]}
                                     handleBgClose={this.handleBgClose}
@@ -364,7 +365,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 }
             } else {
                 // display a progress indicator when the preview for an image is still loading
-                const loading = Utils.localizeMessage('view_image.loading', 'Loading');
+                const loading = Utils.localizeMessage({id: 'view_image.loading', defaultMessage: 'Loading'});
                 const progress = Math.floor(this.state.progress[this.state.imageIndex]);
 
                 content = (

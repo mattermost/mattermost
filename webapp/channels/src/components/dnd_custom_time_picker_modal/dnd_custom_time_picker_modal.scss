@@ -3,18 +3,6 @@
 .DndModal {
     width: 600px;
 
-    .btn-primary {
-        height: 4rem;
-        padding: 0 2rem;
-        border-radius: $border-rad*2;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .GenericModal__header {
-        padding: 28px 24px 0;
-    }
-
     .DayPickerInput-OverlayWrapper {
         position: initial;
     }
@@ -46,11 +34,10 @@
 
 .DndModal__content {
     display: flex;
-    margin: 32px -10px 10px;
+    gap: 16px;
 
     > div {
         flex: 1;
-        margin: 0 10px;
     }
 
     .dropdown-menu {
@@ -68,8 +55,8 @@
     align-items: center;
     padding: 0 16px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    background: rgba(var(--center-channel-bg-rgb), 1);
     border-radius: 4px;
+    background: rgba(var(--center-channel-bg-rgb), 1);
     cursor: pointer;
     text-align: left;
 
@@ -93,8 +80,8 @@
         padding: 0 0 2px 40px;
         border: none;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         cursor: pointer;
         font-size: inherit;
 
@@ -117,7 +104,7 @@
     padding: 0 4px;
     margin: 0 14px;
     background: rgba(var(--center-channel-bg-rgb), 1);
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 10px;
 }
 
@@ -139,7 +126,7 @@
 
         button.dateTime__calendar-icon {
             margin: 0 8px 0 0;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
 
             &:active {
                 background-color: transparent;

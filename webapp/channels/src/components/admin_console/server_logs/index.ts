@@ -7,7 +7,6 @@ import type {Dispatch} from 'redux';
 
 import {getLogs, getPlainLogs} from 'mattermost-redux/actions/admin';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,7 +22,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getLogs,

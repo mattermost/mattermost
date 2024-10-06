@@ -37,11 +37,11 @@ function validateDisplayName(displayNameParam: string) {
     const displayName = displayNameParam.trim();
 
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
+        errors.push(localizeMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 2 characters.'}));
     }
 
     if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
+        errors.push(localizeMessage({id: 'channel_modal.name.shorter', defaultMessage: 'Channel names must have maximum 64 characters.'}));
     }
 
     return errors;
@@ -61,7 +61,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
-    const {name: currentTeamName} = useSelector(getCurrentTeam);
+    const currentTeamName = useSelector(getCurrentTeam)?.name;
     const teamName = props.team ? props.team.name : currentTeamName;
 
     const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +96,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.onURLChange, displayName.current, url, displayNameModified]);
 
-    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.preventDefault();
         const {target: {value: url}} = e;
 

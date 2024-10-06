@@ -22,9 +22,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 8px;
+            border-radius: 8px;
             margin: 0 12px;
             background-color: var(--denim-sidebar-active-border);
-            border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
             color: var(--button-color);
 
@@ -81,7 +81,7 @@
 
             .upsell-confirm-foreground {
                 height: 148px;
-                padding: 16px 24px;
+                padding: 16px 32px;
                 background: var(--button-color);
             }
 
@@ -109,8 +109,8 @@
                     height: 32px;
                     padding: 10px 16px;
                     border: none;
-                    background: rgba(28, 88, 217, 0.08);
                     border-radius: 4px;
+                    background: rgba(28, 88, 217, 0.08);
                     color: var(--denim-button-bg);
                     font-size: 12px;
                     font-weight: 600;
@@ -133,11 +133,7 @@
             h1#createGroupsModalTitleWithBack,
             h1#updateGroupsModalTitle,
             h1#addUsersToGroupsModalLabel {
-                margin-left: 44px;
-            }
-
-            .user-groups-create {
-                margin-right: 42px;
+                margin-left: 16px;
             }
         }
     }
@@ -153,7 +149,7 @@
 
         .user-groups-search {
             position: relative;
-            margin: 6px 24px 8px;
+            margin: 6px 32px 8px;
 
             .Input_container {
                 .Input_wrapper {
@@ -179,7 +175,7 @@
 
         .more-modal__dropdown {
             width: 100%;
-            padding: 0 24px 24px;
+            padding: 0 32px 24px;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
             #groupsFilterDropdown {
@@ -239,9 +235,9 @@
 
                 &::-webkit-scrollbar-thumb {
                     border: 8px rgba(0, 0, 0, 0) solid;
+                    border-radius: 9999px;
                     background: rgba(var(--center-channel-color-rgb), 0.24);
                     background-clip: padding-box;
-                    border-radius: 9999px;
                 }
 
                 .group-row {
@@ -274,13 +270,13 @@
 
                     .group-name {
                         padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                     }
 
                     .group-member-count {
                         margin-right: 8px;
                         margin-left: auto;
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 16px;
                     }
@@ -295,8 +291,8 @@
                             .Menu {
                                 position: absolute;
                                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                                margin-top: 8px;
                                 border-radius: 4px;
+                                margin-top: 8px;
                             }
                         }
 
@@ -315,7 +311,7 @@
                                     height: auto;
                                     align-self: center;
                                     padding-right: 12px;
-                                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                                    color: rgba(var(--center-channel-color-rgb), 0.64);
                                     font-size: 18px;
                                     line-height: 18px;
                                 }
@@ -331,17 +327,17 @@
                         align-items: center;
                         padding: 4px 6px;
                         border: none;
+                        border-radius: 4px;
                         margin-left: auto;
                         background: transparent;
-                        border-radius: 4px;
-                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         text-decoration: none;
 
                         &:hover {
-                            background: rgba(var(--center-channel-color-rgb), 0.08);
                             border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
-                            fill: rgba(var(--center-channel-color-rgb), 0.72);
+                            background: rgba(var(--center-channel-color-rgb), 0.08);
+                            color: rgba(var(--center-channel-color-rgb), 0.8);
+                            fill: rgba(var(--center-channel-color-rgb), 0.8);
                         }
 
                         &:active {
@@ -369,7 +365,7 @@
 
             .group-mention-input-wrapper,
             .group-name-input-wrapper {
-                padding: 6px 24px 12px;
+                padding: 6px 32px 12px;
 
                 .Input_container {
                     :focus {
@@ -391,11 +387,11 @@
             }
 
             .group-mention-input-wrapper {
-                padding: 12px 24px 24px;
+                padding: 12px 32px 24px;
             }
 
             h2 {
-                padding: 0 24px;
+                padding: 0 32px;
                 color: inherit;
                 font-size: 18px;
                 font-weight: 600;
@@ -405,10 +401,6 @@
             .group-add-user {
                 .multi-select__wrapper {
                     margin-top: 0;
-                }
-
-                .multi-select__footer {
-                    padding-top: 24px;
                 }
             }
         }

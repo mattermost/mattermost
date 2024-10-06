@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {
@@ -13,14 +13,12 @@ import {
     uploadProfileImage,
 } from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
 
 import UserSettingsGeneralTab from './user_settings_general';
-import type {Props} from './user_settings_general';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -55,7 +53,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             logError,
             clearErrors,
             updateMe,

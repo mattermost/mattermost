@@ -11,6 +11,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 type State = {
+    show: boolean;
     error: JSX.Element|string|null;
     isEmailError: boolean;
     isCurrentPasswordError: boolean;
@@ -19,25 +20,22 @@ type State = {
 type Props = {
     user?: UserProfile;
     currentUserId: string;
-    show: boolean;
-    onModalSubmit: (user?: UserProfile) => void;
-    onModalDismissed: () => void;
+    onSuccess: (email: string) => void;
+    onExited: () => void;
     actions: {
-        patchUser: (user: UserProfile) => ActionResult;
+        patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
 }
 
 export default class ResetEmailModal extends React.PureComponent<Props, State> {
     private emailRef: React.RefObject<HTMLInputElement>;
     private currentPasswordRef: React.RefObject<HTMLInputElement>;
-    public static defaultProps: Partial<Props> = {
-        show: false,
-    };
 
     public constructor(props: Props) {
         super(props);
 
         this.state = {
+            show: true,
             error: null,
             isEmailError: false,
             isCurrentPasswordError: false,
@@ -46,20 +44,6 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
         this.emailRef = React.createRef();
         this.currentPasswordRef = React.createRef();
     }
-
-    public componentDidUpdate(prevProps: Props): void {
-        if (!prevProps.show && this.props.show) {
-            this.resetState();
-        }
-    }
-
-    private resetState = (): void => {
-        this.setState({
-            error: null,
-            isEmailError: false,
-            isCurrentPasswordError: false,
-        });
-    };
 
     private isEmailValid = (): boolean => {
         if (!this.emailRef.current || !this.emailRef.current.value || !isEmail(this.emailRef.current.value)) {
@@ -125,14 +109,15 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
             return;
         }
 
-        this.props.onModalSubmit(this.props.user);
+        this.props.onSuccess(user.email);
+        this.setState({show: false});
     };
 
     private doCancel = (): void => {
         this.setState({
+            show: false,
             error: null,
         });
-        this.props.onModalDismissed();
     };
 
     public render(): JSX.Element {
@@ -153,8 +138,9 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
         return (
             <Modal
                 dialogClassName='a11y__modal'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.doCancel}
+                onExited={this.props.onExited}
                 role='dialog'
                 aria-labelledby='resetEmailModalLabel'
                 data-testid='resetEmailModal'

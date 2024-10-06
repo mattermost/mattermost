@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
@@ -118,7 +119,7 @@ func TestAddUserToTeam(t *testing.T) {
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 
-		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: model.NewString("notnil")}
+		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: model.NewPointer("notnil")}
 		ruser, err = th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err, "Error creating authservice user: %s", err)
 		defer th.App.PermanentDeleteUser(th.Context, &user)
@@ -326,14 +327,14 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		guestEmail := rguest.Email
 		rguest.Email = "test@restricted.com"
-		_, err := th.App.Srv().Store().User().Update(rguest, false)
+		_, err := th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		th.App.InvalidateCacheForUser(rguest.Id)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.Nil(t, appErr)
 		rguest.Email = guestEmail
-		_, err = th.App.Srv().Store().User().Update(rguest, false)
+		_, err = th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		require.NoError(t, err)
 	})
 
@@ -350,7 +351,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		_, err = th.App.Srv().Store().User().Update(rguest, false)
+		_, err = th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
@@ -380,7 +381,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
@@ -394,7 +395,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NotNil(t, err, "Should return an error when trying to join a group-constrained team.")
 		require.Equal(t, "app.team.invite_token.group_constrained.error", err.Id)
 
-		th.BasicTeam.GroupConstrained = model.NewBool(false)
+		th.BasicTeam.GroupConstrained = model.NewPointer(false)
 		_, err = th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 	})
@@ -963,7 +964,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(999) })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(999) })
 
 		tm1, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, "")
 		require.Nil(t, appErr)
@@ -1027,8 +1028,13 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 
 	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("GetMember", sqlstore.RequestContextWithMaster(th.Context), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
-	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
+	mockTeamStore.On("GetMember", mock.AnythingOfType("*request.Context"), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil).Run(func(args mock.Arguments) {
+		c, ok := args[0].(request.CTX)
+		require.True(t, ok)
+
+		sqlstore.HasMaster(c.Context())
+	})
+	mockTeamStore.On("UpdateMember", mock.Anything, mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
 
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
@@ -1067,7 +1073,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	defer th.TearDown()
 
 	team := th.BasicTeam
-	mockID := model.NewString("x")
+	mockID := model.NewPointer("x")
 	team.SchemeId = mockID
 
 	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
@@ -1465,7 +1471,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1490,7 +1496,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
@@ -1519,7 +1525,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1544,7 +1550,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1577,7 +1583,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
 		}, th.BasicUser.Id)
@@ -1604,7 +1610,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
 		}, th.BasicUser.Id)
@@ -1627,7 +1633,7 @@ func TestTeamSendEvents(t *testing.T) {
 
 	testCluster.ClearMessages()
 
-	wsEvents := []string{model.WebsocketEventUpdateTeam, model.WebsocketEventRestoreTeam, model.WebsocketEventDeleteTeam}
+	wsEvents := []model.WebsocketEventType{model.WebsocketEventUpdateTeam, model.WebsocketEventRestoreTeam, model.WebsocketEventDeleteTeam}
 	for _, wsEvent := range wsEvents {
 		appErr := th.App.sendTeamEvent(team, wsEvent)
 		require.Nil(t, appErr)

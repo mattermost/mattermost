@@ -1,43 +1,51 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import type {AriaRole, AriaAttributes} from 'react';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {Constants} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
+    id: string;
+
+    /**
+     * If not provided, the default title 'From trusted organizations' will be used for the tooltip.
+    */
+    title?: string;
+    ariaLabel?: AriaAttributes['aria-label'];
+    role?: AriaRole;
+
     className?: string;
     withTooltip?: boolean;
+    placement?: string;
 };
 
-const SharedUserIndicator: React.FC<Props> = (props: Props): JSX.Element => {
-    const sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline`}/>);
+const SharedUserIndicator = (props: Props) => {
+    const intl = useIntl();
+
+    const sharedIcon = (
+        <i
+            className={classNames('icon icon-circle-multiple-outline', props.className)}
+            aria-label={props.ariaLabel || intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user indicator'})}
+            role={props?.role}
+        />
+    );
 
     if (!props.withTooltip) {
         return sharedIcon;
     }
 
-    const sharedTooltip = (
-        <Tooltip id='sharedTooltip'>
-            <FormattedMessage
-                id='shared_user_indicator.tooltip'
-                defaultMessage='From trusted organizations'
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='bottom'
-            overlay={sharedTooltip}
+        <WithTooltip
+            id={props.id}
+            title={props.title || intl.formatMessage({id: 'shared_user_indicator.tooltip', defaultMessage: 'From trusted organizations'})}
+            placement={props.placement || 'bottom'}
         >
             {sharedIcon}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

@@ -12,6 +12,8 @@ import packagejson from './package.json';
 const externals = [
     ...Object.keys(packagejson.dependencies || {}),
     ...Object.keys(packagejson.peerDependencies || {}),
+    '@mattermost/compass-icons/components',
+    'lodash/throttle',
     'mattermost-redux',
     'reselect',
 ];
@@ -28,15 +30,20 @@ export default [
             },
         ],
         plugins: [
-            scss(),
+            scss({
+                fileName: 'index.esm.css',
+                outputToFilesystem: true,
+            }),
             resolve({
                 browser: true,
                 extensions: ['.ts', '.tsx'],
             }),
             commonjs(),
-            typescript(),
+            typescript({
+                outputToFilesystem: true,
+            }),
         ],
-        external: (pkg) => externals.some((external) => pkg.startsWith(external)),
+        external: externals,
         watch: {
             clearScreen: false,
         },

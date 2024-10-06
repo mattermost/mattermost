@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {ChannelTypes, PostTypes, UserTypes, GeneralTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes, Constants} from 'utils/constants';
 
-function postVisibility(state: {[channelId: string]: number} = {}, action: GenericAction) {
+function postVisibility(state: {[channelId: string]: number} = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelTypes.SELECT_CHANNEL: {
         const nextState = {...state};
@@ -41,7 +41,7 @@ function postVisibility(state: {[channelId: string]: number} = {}, action: Gener
     }
 }
 
-function lastChannelViewTime(state: {[channelId: string]: number} = {}, action: GenericAction) {
+function lastChannelViewTime(state: {[channelId: string]: number} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SELECT_CHANNEL_WITH_MEMBER: {
         if (action.member) {
@@ -69,7 +69,7 @@ function lastChannelViewTime(state: {[channelId: string]: number} = {}, action: 
     }
 }
 
-function loadingPosts(state: {[channelId: string]: boolean} = {}, action: GenericAction) {
+function loadingPosts(state: {[channelId: string]: boolean} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.LOADING_POSTS: {
         const nextState = {...state};
@@ -84,7 +84,7 @@ function loadingPosts(state: {[channelId: string]: boolean} = {}, action: Generi
     }
 }
 
-function focusedPostId(state = '', action: GenericAction) {
+function focusedPostId(state = '', action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_FOCUSED_POST:
         return action.data;
@@ -98,7 +98,7 @@ function focusedPostId(state = '', action: GenericAction) {
     }
 }
 
-function mobileView(state = false, action: GenericAction) {
+function mobileView(state = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_MOBILE_VIEW:
         return action.data;
@@ -109,7 +109,7 @@ function mobileView(state = false, action: GenericAction) {
 }
 
 // lastUnreadChannel tracks if the current channel was unread and if it had mentions when the user switched to it.
-function lastUnreadChannel(state: ({channelId: string; hadMentions: boolean}) | null = null, action: GenericAction) {
+function lastUnreadChannel(state: ({channelId: string; hadMentions: boolean}) | null = null, action: AnyAction) {
     switch (action.type) {
     case ChannelTypes.LEAVE_CHANNEL:
         if (action.data.id === state?.channelId) {
@@ -140,7 +140,7 @@ function lastUnreadChannel(state: ({channelId: string; hadMentions: boolean}) | 
     }
 }
 
-function lastGetPosts(state: {[channelId: string]: number} = {}, action: GenericAction) {
+function lastGetPosts(state: {[channelId: string]: number} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME:
         return {
@@ -154,7 +154,7 @@ function lastGetPosts(state: {[channelId: string]: number} = {}, action: Generic
     }
 }
 
-function toastStatus(state = false, action: GenericAction) {
+function toastStatus(state = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SELECT_CHANNEL_WITH_MEMBER:
         return false;
@@ -167,7 +167,7 @@ function toastStatus(state = false, action: GenericAction) {
     }
 }
 
-function channelPrefetchStatus(state: {[channelId: string]: string} = {}, action: GenericAction) {
+function channelPrefetchStatus(state: {[channelId: string]: string} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.PREFETCH_POSTS_FOR_CHANNEL:
         return {

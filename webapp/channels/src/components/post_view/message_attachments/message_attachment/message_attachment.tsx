@@ -3,7 +3,7 @@
 
 import truncate from 'lodash/truncate';
 import React from 'react';
-import type {CSSProperties} from 'react';
+import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 import type {
@@ -232,7 +232,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false};
+        const markdown = {markdown: false, mentionHighlight: false, atMentions: false};
 
         fields.forEach((field: MessageAttachmentField, i: number) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
@@ -312,14 +312,14 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         );
     };
 
-    handleFormattedTextClick = (e: React.MouseEvent) => Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
+    handleFormattedTextClick = (e: MouseEvent) => Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
     getFileExtensionFromUrl = (url: string) => {
         const index = url.lastIndexOf('.');
         return index > 0 ? url.substring(index + 1) : null;
     };
 
-    showModal = (e: {preventDefault: () => void}, link: string) => {
+    showModal = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLElement>), link = '') => {
         e.preventDefault();
 
         const extension = this.getFileExtensionFromUrl(link);
@@ -421,6 +421,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         <Markdown
                             message={attachment.title}
                             options={{
+                                atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
                                 autolinkedUrlSchemes: [],

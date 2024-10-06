@@ -5,8 +5,12 @@ package app
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -256,7 +260,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		session, err := th.App.CreateSession(th.Context, session)
 		require.Nil(t, err)
 
-		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
@@ -273,7 +277,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session)
 		session.ExpiresAt = expires
 
-		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
@@ -303,7 +307,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session) - hourMillis
 			session.ExpiresAt = expires
 
-			ok := th.App.ExtendSessionExpiryIfNeeded(session)
+			ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 			if !test.enabled {
 				require.False(t, ok)
@@ -363,28 +367,27 @@ func TestGetCloudSession(t *testing.T) {
 func TestGetRemoteClusterSession(t *testing.T) {
 	th := Setup(t)
 	token := model.NewId()
-	remoteId := model.NewId()
+	remoteID := model.NewId()
 
 	rc := model.RemoteCluster{
-		RemoteId:     remoteId,
-		RemoteTeamId: model.NewId(),
-		Name:         "test",
-		Token:        token,
-		CreatorId:    model.NewId(),
+		RemoteId:  remoteID,
+		Name:      "test",
+		Token:     token,
+		CreatorId: model.NewId(),
 	}
 
 	_, err := th.GetSqlStore().RemoteCluster().Save(&rc)
 	require.NoError(t, err)
 
 	t.Run("Valid remote token should return session", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		session, err := th.App.GetRemoteClusterSession(token, remoteID)
 		require.Nil(t, err)
 		require.NotNil(t, session)
 		require.Equal(t, token, session.Token)
 	})
 
 	t.Run("Invalid remote token should return error", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteID)
 		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
@@ -393,5 +396,97 @@ func TestGetRemoteClusterSession(t *testing.T) {
 		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, session)
+	})
+}
+
+func TestSessionsLimit(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+	var sessions []*model.Session
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	for i := 0; i < maxSessionsLimit; i++ {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err)
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
+
+	// Ensure we are retrieving the same sessions.
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+
+	// Now add 10 more.
+	for i := 0; i < 10; i++ {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err, "should not have an error creating user sessions")
+
+		// Remove oldest, append newest.
+		sessions = sessions[1:]
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	// Ensure that we still only have the max allowed.
+	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
+
+	// Ensure the the oldest sessions were removed first.
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+}
+
+func TestSetExtraSessionProps(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	session, _ := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+
+	resetSession := func(session *model.Session) {
+		session.AddProp("testProp", "")
+		th.Server.Store().Session().UpdateProps(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+	t.Run("do not update the session if there are no props", func(t *testing.T) {
+		defer resetSession(session)
+		th.App.SetExtraSessionProps(session, map[string]string{})
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, session, updatedSession)
+		assert.Equal(t, session, storeSession)
+	})
+	t.Run("update the session with the selected prop", func(t *testing.T) {
+		defer resetSession(session)
+		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, "true", updatedSession.Props["testProp"])
+		assert.Equal(t, "true", storeSession.Props["testProp"])
+	})
+	t.Run("do not update the session if the prop is the same", func(t *testing.T) {
+		defer resetSession(session)
+		session.AddProp("testProp", "true")
+		th.Server.Store().Session().UpdateProps(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, session, updatedSession)
+		assert.Equal(t, session, storeSession)
+		assert.Equal(t, "true", updatedSession.Props["testProp"])
+		assert.Equal(t, "true", storeSession.Props["testProp"])
 	})
 }

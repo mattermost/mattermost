@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import type {GroupStats} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import UserGridName from 'components/admin_console/user_grid/user_grid_name';
@@ -23,10 +25,10 @@ export type Props = {
     groupID: string;
     total: number;
     actions: {
-        getProfilesInGroup: (groupID: string, page: number, perPage: number) => Promise<{data: UserProfile[]}>;
-        getGroupStats: (groupID: string) => Promise<{data: GroupStats}>;
-        searchProfiles: (term: string, options?: Record<string, unknown>) => Promise<{data: UserProfile[]}>;
-        setModalSearchTerm: (term: string) => Promise<{data: boolean}>;
+        getProfilesInGroup: (groupID: string, page: number, perPage: number) => Promise<ActionResult<UserProfile[]>>;
+        getGroupStats: (groupID: string) => Promise<ActionResult<GroupStats>>;
+        searchProfiles: (term: string, options?: Record<string, unknown>) => Promise<ActionResult<UserProfile[]>>;
+        setModalSearchTerm: (term: string) => void;
     };
 }
 

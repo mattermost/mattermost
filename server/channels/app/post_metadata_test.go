@@ -28,9 +28,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 )
 
@@ -181,7 +181,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
 		fileInfo.Content = "test"
 		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
@@ -487,6 +487,76 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 	})
 
+	t.Run("opengraph unsafe links", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		noAccessServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Fail(t, "acessed server")
+		}))
+
+		for _, tc := range []struct {
+			name          string
+			link          string
+			notImplmented bool
+		}{
+			{
+				name: "normal link",
+				link: "%s",
+			},
+			{
+				name: "normal image",
+				link: "%s/test-image1.png",
+			},
+			{
+				name: "markdown",
+				link: "[markdown](%s) link",
+				// This is because markdown links are not currently supported in the opengraph fetching code
+				// if you just implmented this, remove the `notImplmented` field
+				notImplmented: true,
+			},
+			{
+				name: "markdown image",
+				link: "![markdown](%s/test-image1.png) link",
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Run("prop set", func(t *testing.T) {
+					prepost := &model.Post{
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, noAccessServer.URL),
+					}
+					prepost.AddProp(UnsafeLinksPostProp, "true")
+
+					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+					require.Nil(t, err)
+
+					clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
+
+					assert.Len(t, clientPost.Metadata.Embeds, 0)
+					assert.Len(t, clientPost.Metadata.Images, 0)
+				})
+				if !tc.notImplmented {
+					t.Run("prop not set", func(t *testing.T) {
+						prepost := &model.Post{
+							UserId:    th.BasicUser.Id,
+							ChannelId: th.BasicChannel.Id,
+							Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, server.URL),
+						}
+
+						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+						require.Nil(t, err)
+
+						clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
+
+						assert.Greater(t, len(clientPost.Metadata.Embeds)+len(clientPost.Metadata.Images), 0)
+					})
+				}
+			})
+		}
+	})
+
 	t.Run("message attachment embed", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
@@ -529,7 +599,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
 		require.Nil(t, err)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
@@ -1319,7 +1389,7 @@ func TestGetImagesForPost(t *testing.T) {
 		defer th.TearDown()
 
 		ogURL := "https://example.com/index.html"
-		imageURL := th.App.GetSiteURL() + "/pl/qwertyuiopasdfghjklzxcvbnm"
+		imageURL := th.App.GetSiteURL() + "/team/pl/qwertyuiopasdfghjklzxcvbnm"
 
 		post := &model.Post{
 			Id: "qwertyuiopasdfghjklzxcvbnm",
@@ -1402,7 +1472,6 @@ func TestGetEmojiNamesForString(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			emojis := getEmojiNamesForString(testCase.Input)
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
@@ -1498,7 +1567,6 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions)
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
@@ -1645,7 +1713,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
+			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
 
 			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
 			assert.Equal(t, images, testCase.ExpectedImages)
@@ -1730,7 +1798,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		})
 
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
+			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
 
 			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
 			assert.Equal(t, images, testCase.ExpectedImages)
@@ -1946,7 +2014,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			images := th.App.getImagesInMessageAttachments(test.Post)
+			images := th.App.getImagesInMessageAttachments(th.Context, test.Post)
 
 			assert.ElementsMatch(t, images, test.Expected)
 		})
@@ -2504,7 +2572,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = server.URL
 		})
 
-		requestURL := server.URL + "/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
+		requestURL := server.URL + "/team/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
 		timestamp := int64(1547510400000)
 
 		_, _, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
@@ -2706,6 +2774,7 @@ func TestLooksLikeAPermalink(t *testing.T) {
 		expect  bool
 	}{
 		"happy path":                       {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
+		"happy path redirect":              {input: fmt.Sprintf("%s/_redirect/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
 		"looks nothing like a permalink":   {input: "foobar", siteURL: siteURLWithSubpath, expect: false},
 		"link has no subpath":              {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost:8065"), siteURL: siteURLWithSubpath, expect: false},
 		"without port":                     {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost/foo"), siteURL: siteURLWithSubpath, expect: false},
@@ -2732,6 +2801,10 @@ func TestContainsPermalink(t *testing.T) {
 
 	const siteURLWithSubpath = "http://localhost:8065/foo"
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = siteURLWithSubpath
+	})
+
 	testCases := []struct {
 		Description string
 		Post        *model.Post
@@ -2754,9 +2827,8 @@ func TestContainsPermalink(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := th.App.containsPermalink(testCase.Post)
+			actual := th.App.containsPermalink(th.Context, testCase.Post)
 			assert.Equal(t, testCase.Expected, actual)
 		})
 	}
@@ -2820,7 +2892,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
-		assert.Nil(t, actual.Metadata.Embeds[0].Data)
+		assert.Len(t, actual.Metadata.Embeds, 0)
 	})
 
 	t.Run("should not preview for archived channels", func(t *testing.T) {
@@ -2882,7 +2954,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		})
 
 		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
-		assert.Nil(t, actual.Metadata.Embeds[0].Data)
+		assert.Len(t, actual.Metadata.Embeds, 0)
 	})
 }
 

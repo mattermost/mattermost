@@ -11,7 +11,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -27,23 +27,9 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
       >
         <hr />
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -72,7 +58,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -98,23 +84,9 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
           </label>
         </div>
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -143,7 +115,7 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -169,23 +141,9 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
           </label>
         </div>
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -214,7 +172,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -230,18 +188,10 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
       >
         <hr />
         <SaveButton
-          btnClass=""
           defaultMessage="CustomText"
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -270,7 +220,7 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"

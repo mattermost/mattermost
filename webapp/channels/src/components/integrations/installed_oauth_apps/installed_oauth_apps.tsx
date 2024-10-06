@@ -5,6 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
@@ -21,7 +24,7 @@ type Props = {
     /**
     * The team data
     */
-    team: {name: string};
+    team?: Team;
 
     /**
     * The oauthApps data
@@ -50,17 +53,17 @@ type Props = {
         /**
         * The function to call to fetch OAuth apps
         */
-        loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<void>;
+        loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
 
         /**
         * The function to call when Regenerate Secret link is clicked
         */
-        regenOAuthAppSecret: (appId: string) => Promise<{ error?: Error }>;
+        regenOAuthAppSecret: (appId: string) => Promise<ActionResult>;
 
         /**
         * The function to call when Delete link is clicked
         */
-        deleteOAuthApp: (appId: string) => Promise<void>;
+        deleteOAuthApp: (appId: string) => Promise<ActionResult>;
     });
 };
 
@@ -93,12 +96,12 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
     oauthAppCompare(a: OAuthApp, b: OAuthApp): number {
         let nameA = a.name.toString();
         if (!nameA) {
-            nameA = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+            nameA = localizeMessage({id: 'installed_integrations.unnamed_oauth_app', defaultMessage: 'Unnamed OAuth 2.0 Application'});
         }
 
         let nameB = b.name.toString();
         if (!nameB) {
-            nameB = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+            nameB = localizeMessage({id: 'installed_integrations.unnamed_oauth_app', defaultMessage: 'Unnamed OAuth 2.0 Application'});
         }
 
         return nameA.localeCompare(nameB);
@@ -121,13 +124,16 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
             );
         });
 
-    render(): JSX.Element {
+    render() {
+        if (!this.props.team) {
+            return null;
+        }
         const integrationsEnabled = this.props.enableOAuthServiceProvider && this.props.canManageOauth;
         let props;
         if (integrationsEnabled) {
             props = {
                 addLink: '/' + this.props.team.name + '/integrations/oauth2-apps/add',
-                addText: localizeMessage('installed_oauth_apps.add', 'Add OAuth 2.0 Application'),
+                addText: localizeMessage({id: 'installed_oauth_apps.add', defaultMessage: 'Add OAuth 2.0 Application'}),
                 addButtonId: 'addOauthApp',
             };
         }
@@ -182,7 +188,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                         defaultMessage='No OAuth 2.0 Applications match {searchTerm}'
                     />
                 }
-                searchPlaceholder={localizeMessage('installed_oauth_apps.search', 'Search OAuth 2.0 Applications')}
+                searchPlaceholder={localizeMessage({id: 'installed_oauth_apps.search', defaultMessage: 'Search OAuth 2.0 Applications'})}
                 loading={this.state.loading}
                 {...props}
             >

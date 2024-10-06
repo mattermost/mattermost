@@ -7,7 +7,6 @@ import type {Dispatch} from 'redux';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -19,7 +18,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getMissingProfilesByIds,

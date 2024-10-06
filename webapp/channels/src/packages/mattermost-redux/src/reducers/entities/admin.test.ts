@@ -4,7 +4,6 @@
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import PluginState from 'mattermost-redux/constants/plugins';
 import reducer, {convertAnalyticsRowsToStats} from 'mattermost-redux/reducers/entities/admin';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 type ReducerState = ReturnType<typeof reducer>;
@@ -13,10 +12,10 @@ describe('reducers.entities.admin', () => {
     describe('pluginStatuses', () => {
         it('initial state', () => {
             const state = {};
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {};
 
-            const actualState = reducer({pluginStatuses: state} as ReducerState, action as GenericAction);
+            const actualState = reducer({pluginStatuses: state} as ReducerState, action);
             expect(actualState.pluginStatuses).toEqual(expectedState);
         });
 
@@ -602,10 +601,10 @@ describe('reducers.entities.admin', () => {
     describe('ldapGroups', () => {
         it('initial state', () => {
             const state = {};
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {};
 
-            const actualState = reducer({ldapGroups: state} as ReducerState, action as GenericAction);
+            const actualState = reducer({ldapGroups: state} as ReducerState, action);
             expect(actualState.ldapGroups).toEqual(expectedState);
         });
 
@@ -868,10 +867,10 @@ describe('reducers.entities.admin', () => {
     describe('Data Retention', () => {
         it('initial state', () => {
             const state = {};
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {};
 
-            const actualState = reducer({dataRetentionCustomPolicies: state} as ReducerState, action as GenericAction);
+            const actualState = reducer({dataRetentionCustomPolicies: state} as ReducerState, action);
             expect(actualState.dataRetentionCustomPolicies).toEqual(expectedState);
         });
 

@@ -17,7 +17,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow<CloseChannel>(<CloseChannel {...baseProps}/>);
+        const wrapper = shallow(<CloseChannel {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -26,7 +26,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
             ...baseProps,
             isArchived: false,
         };
-        const wrapper = shallow<CloseChannel>(<CloseChannel {...props}/>);
+        const wrapper = shallow(<CloseChannel {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -38,7 +38,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
                 goToLastViewedChannel: jest.fn(),
             },
         };
-        const wrapper = shallow<CloseChannel>(<CloseChannel {...props}/>);
+        const wrapper = shallow(<CloseChannel {...props}/>);
         wrapper.find(Menu.ItemAction).simulate('click');
         expect(props.actions.goToLastViewedChannel).toHaveBeenCalled();
     });

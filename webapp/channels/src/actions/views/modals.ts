@@ -19,7 +19,7 @@ export type CloseModalType = {
     modalId: string;
 }
 
-export function closeModal(modalId: string): CloseModalType {
+export function closeModal(modalId: string) {
     return {
         type: ActionTypes.MODAL_CLOSE,
         modalId,

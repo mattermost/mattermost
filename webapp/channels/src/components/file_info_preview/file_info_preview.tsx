@@ -5,8 +5,6 @@ import React from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import ExternalLink from 'components/external_link';
-
 import * as Utils from 'utils/utils';
 
 type Props = {
@@ -15,59 +13,65 @@ type Props = {
     canDownloadFiles: boolean;
 };
 
-export default class FileInfoPreview extends React.PureComponent<Props> {
-    render() {
-        const fileInfo = this.props.fileInfo;
-        const fileUrl = this.props.fileUrl;
+const FileInfoPreview = ({
+    fileInfo,
+    fileUrl,
+    canDownloadFiles,
+}: Props) => {
+    // non-image files include a section providing details about the file
+    const infoParts = [];
 
-        // non-image files include a section providing details about the file
-        const infoParts = [];
-
-        if (fileInfo.extension !== '') {
-            infoParts.push(Utils.localizeMessage('file_info_preview.type', 'File type ') + fileInfo.extension.toUpperCase());
-        }
-
-        if (fileInfo.size) {
-            infoParts.push(Utils.localizeMessage('file_info_preview.size', 'Size ') + Utils.fileSizeToString(fileInfo.size));
-        }
-
-        const infoString = infoParts.join(', ');
-
-        let preview = null;
-        if (this.props.canDownloadFiles) {
-            preview = (
-                <ExternalLink
-                    className='file-details__preview'
-                    href={fileUrl}
-                    location='file_info_preview'
-                >
-                    <span className='file-details__preview-helper'/>
-                    <img
-                        alt={'file preview'}
-                        src={Utils.getFileIconPath(fileInfo)}
-                    />
-                </ExternalLink>
-            );
-        } else {
-            preview = (
-                <span className='file-details__preview'>
-                    <span className='file-details__preview-helper'/>
-                    <img
-                        alt={'file preview'}
-                        src={Utils.getFileIconPath(fileInfo)}
-                    />
-                </span>
-            );
-        }
-
-        return (
-            <div className='file-details__container'>
-                {preview}
-                <div className='file-details'>
-                    <div className='file-details__name'>{fileInfo.name}</div>
-                    <div className='file-details__info'>{infoString}</div>
-                </div>
-            </div>
+    if (fileInfo.extension !== '') {
+        infoParts.push(
+            Utils.localizeMessage({id: 'file_info_preview.type', defaultMessage: 'File type '}) +
+        fileInfo.extension.toUpperCase(),
         );
     }
-}
+
+    if (fileInfo.size) {
+        infoParts.push(
+            Utils.localizeMessage({id: 'file_info_preview.size', defaultMessage: 'Size '}) +
+        Utils.fileSizeToString(fileInfo.size),
+        );
+    }
+
+    const infoString = infoParts.join(', ');
+
+    let preview = null;
+    if (canDownloadFiles) {
+        preview = (
+            <a
+                className='file-details__preview'
+                href={fileUrl}
+            >
+                <span className='file-details__preview-helper'/>
+                <img
+                    alt={'file preview'}
+                    src={Utils.getFileIconPath(fileInfo)}
+                />
+            </a>
+        );
+    } else {
+        preview = (
+            <span className='file-details__preview'>
+                <span className='file-details__preview-helper'/>
+                <img
+                    alt={'file preview'}
+                    src={Utils.getFileIconPath(fileInfo)}
+                />
+            </span>
+        );
+    }
+
+    return (
+        <div className='file-details__container'>
+            {preview}
+            <div className='file-details'>
+                <div className='file-details__name'>{fileInfo.name}</div>
+                <div className='file-details__info'>{infoString}</div>
+            </div>
+        </div>
+    );
+};
+
+export default React.memo(FileInfoPreview);

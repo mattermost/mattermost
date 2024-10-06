@@ -45,9 +45,9 @@ describe('Search', () => {
         // # Verify that the cleared search text does not appear on the search box
         cy.uiGetSearchBox().should('be.empty');
 
-        // # Click the pin icon to open the pinned posts RHS
+        // # Click the pin icon to open the pinned messages RHS
         cy.uiGetChannelPinButton().click();
-        cy.uiGetRHS().should('contain', 'Pinned Posts');
+        cy.uiGetRHS().should('contain', 'Pinned messages');
 
         // # Verify that the Search term input box is still cleared and search term does not reappear when RHS opens
         cy.uiGetSearchBox().and('be.empty');

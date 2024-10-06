@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 /**
  * A button which, when clicked, performs an action and displays
@@ -27,8 +25,8 @@ type Props = {
      * The action to be called to carry out the request.
      */
     requestAction: (
-        success: (data?: any) => void,
-        error: (error: any) => void
+        success: () => void,
+        error: (error: {message: string; detailed_error?: string}) => void
     ) => void;
 
     /**
@@ -87,37 +85,12 @@ type Props = {
     /**
      * The message to show when the request completes successfully.
      */
-    successMessage: {
-
-        /**
-         * The i18n string ID for the success message.
-         */
-        id: string;
-
-        /**
-         * The i18n default value for the success message.
-         */
-        defaultMessage: string;
-    };
+    successMessage: string | MessageDescriptor;
 
     /**
      * The message to show when the request returns an error.
      */
-    errorMessage: {
-
-        /**
-         * The i18n string ID for the error message.
-         */
-        id: string;
-
-        /**
-         * The i18n default value for the error message.
-         *
-         * The placeholder {error} may be used to include the error message returned
-         * by the server in response to the failed request.
-         */
-        defaultMessage: string;
-    };
+    errorMessage: string | MessageDescriptor;
 
     /**
      * True if the {error} placeholder for the `errorMessage` property should include both
@@ -144,14 +117,14 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         saveNeeded: false,
         showSuccessMessage: true,
         includeDetailedError: false,
-        successMessage: {
-            id: t('admin.requestButton.requestSuccess'),
+        successMessage: defineMessage({
+            id: 'admin.requestButton.requestSuccess',
             defaultMessage: 'Test Successful',
-        },
-        errorMessage: {
-            id: t('admin.requestButton.requestFailure'),
+        }),
+        errorMessage: defineMessage({
+            id: 'admin.requestButton.requestFailure',
             defaultMessage: 'Test Failure: {error}',
-        },
+        }),
     };
 
     constructor(props: Props) {
@@ -203,33 +176,33 @@ export default class RequestButton extends React.PureComponent<Props, State> {
     render() {
         let message = null;
         if (this.state.fail) {
+            const text = typeof this.props.errorMessage === 'string' ?
+                this.props.errorMessage :
+                (
+                    <FormattedMessage
+                        {...this.props.errorMessage}
+                        values={{
+                            error: this.state.fail,
+                        }}
+                    />
+                );
             message = (
                 <div>
                     <div className='alert alert-warning'>
                         <WarningIcon/>
-                        <FormattedMessage
-                            id={this.props.errorMessage.id}
-                            defaultMessage={
-                                this.props.errorMessage.defaultMessage
-                            }
-                            values={{
-                                error: this.state.fail,
-                            }}
-                        />
+                        {text}
                     </div>
                 </div>
             );
         } else if (this.state.success && this.props.showSuccessMessage) {
+            const text = typeof this.props.successMessage === 'string' ?
+                this.props.successMessage :
+                (<FormattedMessage {...this.props.successMessage}/>);
             message = (
                 <div>
                     <div className='alert alert-success'>
                         <SuccessIcon/>
-                        <FormattedMessage
-                            id={this.props.successMessage.id}
-                            defaultMessage={
-                                this.props.successMessage.defaultMessage
-                            }
-                        />
+                        {text}
                     </div>
                 </div>
             );
@@ -265,9 +238,11 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                                 loading={this.state.busy}
                                 text={
                                     this.props.loadingText ||
-                                    Utils.localizeMessage(
-                                        'admin.requestButton.loading',
-                                        'Loading...',
+                                    (
+                                        <FormattedMessage
+                                            id={'admin.requestButton.loading'}
+                                            defaultMessage={'Loading...'}
+                                        />
                                     )
                                 }
                             >

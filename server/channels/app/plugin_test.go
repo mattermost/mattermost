@@ -404,7 +404,7 @@ func TestHandlePluginRequest(t *testing.T) {
 		*cfg.ServiceSettings.EnableUserAccessTokens = true
 	})
 
-	token, err := th.App.CreateUserAccessToken(&model.UserAccessToken{
+	token, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
 		UserId: th.BasicUser.Id,
 	})
 	require.Nil(t, err)
@@ -479,7 +479,7 @@ func TestPluginSync(t *testing.T) {
 		{
 			"local",
 			func(cfg *model.Config) {
-				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverLocal)
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverLocal)
 			},
 		},
 		{
@@ -496,14 +496,14 @@ func TestPluginSync(t *testing.T) {
 				}
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
-				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverS3)
-				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MinioAccessKey)
-				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MinioSecretKey)
-				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MinioBucket)
-				cfg.FileSettings.AmazonS3PathPrefix = model.NewString("")
-				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
-				cfg.FileSettings.AmazonS3Region = model.NewString("")
-				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+				cfg.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+				cfg.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+				cfg.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewPointer("")
+				cfg.FileSettings.AmazonS3SSL = model.NewPointer(false)
 			},
 		},
 	}
@@ -805,11 +805,11 @@ func TestPluginStatusActivateError(t *testing.T) {
 	})
 }
 
-type byId []*plugin.PrepackagedPlugin
+type byID []*plugin.PrepackagedPlugin
 
-func (a byId) Len() int           { return len(a) }
-func (a byId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byId) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
+func (a byID) Len() int           { return len(a) }
+func (a byID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byID) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
 
 type pluginStatusById model.PluginStatuses
 
@@ -1027,7 +1027,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1061,7 +1061,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1102,7 +1102,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.2", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1140,7 +1140,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1173,7 +1173,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1201,7 +1201,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1225,7 +1225,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins = initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1378,65 +1378,21 @@ func TestGetPluginStateOverride(t *testing.T) {
 		require.False(t, value)
 	})
 
-	t.Run("calls override", func(t *testing.T) {
-		t.Run("on-prem", func(t *testing.T) {
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("Cloud, without enabled flag", func(t *testing.T) {
-			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("Cloud, with enabled flag set to true", func(t *testing.T) {
-			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "true")
-			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
-
-			th2 := Setup(t)
-			defer th2.TearDown()
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("Cloud, with enabled flag set to false", func(t *testing.T) {
-			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
-			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
-
-			th2 := Setup(t)
-			defer th2.TearDown()
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.True(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("On-prem, with enabled flag set to false", func(t *testing.T) {
-			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
-			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
-
-			th2 := Setup(t)
-			defer th2.TearDown()
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.True(t, overrides)
-			require.False(t, value)
-		})
-	})
-
 	t.Run("apps override", func(t *testing.T) {
 		t.Run("without enabled flag", func(t *testing.T) {
 			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with enabled flag set to true", func(t *testing.T) {
+			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.False(t, overrides)
 			require.False(t, value)
 		})

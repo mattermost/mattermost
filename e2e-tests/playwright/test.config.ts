@@ -20,6 +20,7 @@ const config: TestConfig = {
     haClusterEnabled: parseBool(process.env.PW_HA_CLUSTER_ENABLED, false),
     haClusterNodeCount: parseNumber(process.env.PW_HA_CLUSTER_NODE_COUNT, 2),
     haClusterName: process.env.PW_HA_CLUSTER_NAME || 'mm_dev_cluster',
+    pushNotificationServer: process.env.PW_PUSH_NOTIFICATION_SERVER || 'https://push-test.mattermost.com',
     resetBeforeTest: parseBool(process.env.PW_RESET_BEFORE_TEST, false),
     // CI
     isCI: !!process.env.CI,
@@ -30,7 +31,6 @@ const config: TestConfig = {
     // Visual tests
     snapshotEnabled: parseBool(process.env.PW_SNAPSHOT_ENABLE, false),
     percyEnabled: parseBool(process.env.PW_PERCY_ENABLE, false),
-    percyToken: process.env.PERCY_TOKEN,
 };
 
 function parseBool(actualValue: string | undefined, defaultValue: boolean) {

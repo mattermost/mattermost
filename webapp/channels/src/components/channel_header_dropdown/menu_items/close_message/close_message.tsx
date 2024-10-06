@@ -24,7 +24,7 @@ type Props = {
     /**
      * Object with info about currentTeam
      */
-    currentTeam: Team;
+    currentTeam?: Team;
 
     /**
      * String with info about redirect
@@ -86,7 +86,9 @@ export default class CloseMessage extends React.PureComponent<Props> {
         leaveDirectChannel(channel.name);
         savePreferences(currentUser.id, [{user_id: currentUser.id, category, name, value: 'false'}]);
 
-        getHistory().push(`/${currentTeam.name}/channels/${redirectChannel}`);
+        if (currentTeam) {
+            getHistory().push(`/${currentTeam.name}/channels/${redirectChannel}`);
+        }
     };
 
     render(): React.ReactNode {
@@ -94,9 +96,9 @@ export default class CloseMessage extends React.PureComponent<Props> {
 
         let text;
         if (channel.type === Constants.DM_CHANNEL) {
-            text = localizeMessage('center_panel.direct.closeDirectMessage', 'Close Direct Message');
+            text = localizeMessage({id: 'center_panel.direct.closeDirectMessage', defaultMessage: 'Close Direct Message'});
         } else if (channel.type === Constants.GM_CHANNEL) {
-            text = localizeMessage('center_panel.direct.closeGroupMessage', 'Close Group Message');
+            text = localizeMessage({id: 'center_panel.direct.closeGroupMessage', defaultMessage: 'Close Group Message'});
         }
 
         return (

@@ -28,7 +28,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
     ariaLabel="Add Channels Dropdown"
     id="AddChannelCtaDropdown"
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemAction
         icon={
           <i
@@ -51,7 +51,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
         show={true}
         text="Browse channels"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;

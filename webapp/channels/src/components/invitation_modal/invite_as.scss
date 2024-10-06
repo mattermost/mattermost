@@ -23,7 +23,7 @@
         }
 
         .disabled-legend {
-            opacity: 0.6;
+            opacity: 0.73;
         }
 
         // TODO@UI
@@ -45,8 +45,8 @@
                 align-items: center;
                 padding: 0 12px;
                 border: 1px solid rgba(var(--denim-button-bg-rgb), 0.08);
-                background: rgba(var(--denim-button-bg-rgb), 0.04);
                 border-radius: 20px;
+                background: rgba(var(--denim-button-bg-rgb), 0.04);
                 color: var(--denim-button-bg);
 
                 .RestrictedIndicator__icon-tooltip-container {

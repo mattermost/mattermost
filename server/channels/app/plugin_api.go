@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,12 +24,12 @@ import (
 type PluginAPI struct {
 	id       string
 	app      *App
-	ctx      *request.Context
+	ctx      request.CTX
 	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
@@ -245,6 +246,10 @@ func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *m
 	return api.app.GetUsersFromProfiles(options)
 }
 
+func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(usersID)
+}
+
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
 	return api.app.GetUser(userID)
 }
@@ -270,16 +275,25 @@ func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(api.ctx, userID, category, name)
+	if err != nil {
+		return model.Preference{}, err
+	}
+
+	return *pref, nil
+}
+
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
-	return api.app.GetPreferencesForUser(userID)
+	return api.app.GetPreferencesForUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.UpdatePreferences(userID, preferences)
+	return api.app.UpdatePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.DeletePreferences(userID, preferences)
+	return api.app.DeletePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
@@ -308,7 +322,7 @@ func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
 }
 
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	return api.app.CreateUserAccessToken(token)
+	return api.app.CreateUserAccessToken(api.ctx, token)
 }
 
 func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
@@ -322,6 +336,10 @@ func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(api.ctx, user, true)
+}
+
+func (api *PluginAPI) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	return api.app.UpdateUserAuth(api.ctx, userID, userAuth)
 }
 
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
@@ -409,7 +427,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
 	if user.AuthService == model.UserAuthServiceLdap ||
 		(user.AuthService == model.UserAuthServiceSaml && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
-		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
+		return api.app.Ldap().GetUserAttributes(api.ctx, *user.AuthData, attributes)
 	}
 
 	return map[string]string{}, nil
@@ -508,7 +526,7 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 		AllowInactive: search.AllowInactive,
 		Limit:         search.Limit,
 	}
-	return api.app.SearchUsers(search, pluginSearchUsersOptions)
+	return api.app.SearchUsers(api.ctx, search, pluginSearchUsersOptions)
 }
 
 func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
@@ -607,6 +625,11 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string,
 	return api.app.UpdateChannelMemberNotifyProps(api.ctx, notifications, channelID, userID)
 }
 
+func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
+	_, err := api.app.PatchChannelMembersNotifyProps(api.ctx, members, notifications)
+	return err
+}
+
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
 	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
@@ -664,7 +687,7 @@ func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *mode
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
-	api.app.DeleteEphemeralPost(userID, postID)
+	api.app.DeleteEphemeralPost(api.ctx, userID, postID)
 }
 
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
@@ -681,7 +704,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	post, appErr := api.app.GetSinglePost(postID, false)
+	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -759,19 +782,19 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIDs)
+	return api.app.CopyFileInfos(api.ctx, userID, fileIDs)
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfo(fileID)
+	return api.app.GetFileInfo(api.ctx, fileID)
 }
 
 func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
-	return api.app.SetFileSearchableContent(fileID, content)
+	return api.app.SetFileSearchableContent(api.ctx, fileID, content)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfos(page, perPage, opt)
+	return api.app.GetFileInfos(api.ctx, page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
@@ -779,7 +802,7 @@ func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	info, err := api.app.GetFileInfo(fileID)
+	info, err := api.app.GetFileInfo(api.ctx, fileID)
 	if err != nil {
 		return "", err
 	}
@@ -796,7 +819,7 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileID)
+	return api.app.GetFile(api.ctx, fileID)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
@@ -830,7 +853,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
-	return api.app.OpenInteractiveDialog(dialog)
+	return api.app.OpenInteractiveDialog(api.ctx, dialog)
 }
 
 func (api *PluginAPI) RemoveTeamIcon(teamID string) *model.AppError {
@@ -929,7 +952,7 @@ func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bo
 }
 
 func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
-	return api.app.CompareAndDeletePluginKey(api.id, key, oldValue)
+	return api.app.CompareAndDeletePluginKey(api.ctx, api.id, key, oldValue)
 }
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
@@ -953,7 +976,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil, "")
+	ev := model.NewWebSocketEvent(model.WebsocketEventType(fmt.Sprintf("custom_%v_%v", api.id, event)), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)
 }
@@ -972,6 +995,10 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return api.app.RolesGrantPermission(roleNames, permissionId)
+}
+
+func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
+	return api.app.UpdateUserRoles(api.ctx, userID, newRoles, true)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
@@ -1004,15 +1031,15 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	return api.app.PatchBot(userID, botPatch)
+	return api.app.PatchBot(api.ctx, userID, botPatch)
 }
 
 func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	return api.app.GetBot(userID, includeDeleted)
+	return api.app.GetBot(api.ctx, userID, includeDeleted)
 }
 
 func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
-	bots, err := api.app.GetBots(options)
+	bots, err := api.app.GetBots(api.ctx, options)
 
 	return []*model.Bot(bots), err
 }
@@ -1022,7 +1049,7 @@ func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *
 }
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
-	return api.app.PermanentDeleteBot(userID)
+	return api.app.PermanentDeleteBot(api.ctx, userID)
 }
 
 func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
@@ -1188,7 +1215,7 @@ func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *mod
 }
 
 func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
-	return api.app.DeleteOAuthApp(appID)
+	return api.app.DeleteOAuthApp(api.ctx, appID)
 }
 
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
@@ -1263,7 +1290,7 @@ func (api *PluginAPI) UploadData(us *model.UploadSession, rd io.Reader) (*model.
 
 func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, error) {
 	// We want to fetch from master DB to avoid a potential read-after-write on the plugin side.
-	api.ctx.SetContext(WithMaster(api.ctx.Context()))
+	api.ctx = api.ctx.With(RequestContextWithMaster)
 	fi, err := api.app.GetUploadSession(api.ctx, uploadID)
 	if err != nil {
 		return nil, err
@@ -1273,5 +1300,50 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
-	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
+	return api.app.sendPushNotificationToAllSessions(api.ctx, notification, userID, "")
+}
+
+func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
+	return api.app.RegisterPluginForSharedChannels(api.ctx, opts)
+}
+
+func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
+	return api.app.UnregisterPluginForSharedChannels(pluginID)
+}
+
+func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	scShared, err := api.app.ShareChannel(api.ctx, sc)
+	if errors.Is(err, model.ErrChannelAlreadyShared) {
+		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
+		return api.app.GetSharedChannel(sc.ChannelId)
+	}
+	return scShared, err
+}
+
+func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	return api.app.UpdateSharedChannel(sc)
+}
+
+func (api *PluginAPI) UnshareChannel(channelID string) (unshared bool, err error) {
+	return api.app.UnshareChannel(channelID)
+}
+
+func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+}
+
+func (api *PluginAPI) SyncSharedChannel(channelID string) error {
+	return api.app.SyncSharedChannel(channelID)
+}
+
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string, shareIfNotShared bool) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
+}
+
+func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
+	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
+}
+
+func (api *PluginAPI) GetPluginID() string {
+	return api.id
 }

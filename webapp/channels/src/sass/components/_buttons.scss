@@ -21,14 +21,18 @@
     }
 }
 
+.rounded-button {
+    border-radius: 50%;
+}
+
 button {
     .unread-badge {
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: var(--radius-full);
         margin: 0 0 0 40px;
         background: #f74343;
-        border-radius: 50%;
     }
 }
 
@@ -40,7 +44,7 @@ button {
     justify-content: center;
     padding: 0 20px;
     border: none;
-    border-radius: $border-rad * 2;
+    border-radius: var(--radius-s);
     font-size: 14px;
     font-weight: 600;
     gap: 8px;
@@ -49,16 +53,16 @@ button {
 
     &.btn-icon {
         width: 40px;
+        min-width: 40px;
         padding: 0;
         background-color: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
-        &:focus,
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             color: rgba(var(--button-bg-rgb), 1);
@@ -70,8 +74,11 @@ button {
 
         &.btn-xs {
             width: 24px;
+            min-width: 24px;
             height: 24px;
             padding: 0;
+            font-size: 12px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 20px;
@@ -85,8 +92,11 @@ button {
 
         &.btn-sm {
             width: 32px;
+            min-width: 32px;
             height: 32px;
             padding: 0;
+            font-size: 14px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 28px;
@@ -123,7 +133,7 @@ button {
     }
 
     & + .btn {
-        margin-left: 8px !important;
+        margin-left: 8px;
     }
 
     &.btn-full {
@@ -212,7 +222,7 @@ button {
         &:disabled:hover,
         &:disabled:active {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.32);
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
     }
@@ -269,6 +279,22 @@ button {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32);
             opacity: 1;
+        }
+
+        &.btn-danger {
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
+
+            &:hover {
+                background-color: rgba(var(--error-text-color-rgb), 0.12);
+                color: var(--error-text);
+            }
+
+            &:active,
+            &:focus {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
         }
     }
 

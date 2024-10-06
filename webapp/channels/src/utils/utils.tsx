@@ -5,16 +5,13 @@ import {getName} from 'country-list';
 import crypto from 'crypto';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 import moment from 'moment';
 import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {IntlShape} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
-import type {ClientConfig} from '@mattermost/types/config';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Group} from '@mattermost/types/groups';
 import type {GlobalState} from '@mattermost/types/store';
@@ -31,13 +28,14 @@ import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences, General} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getChannel,
     getChannelsNameMapInTeam,
     getMyChannelMemberships,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getBool, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getTeamByName,
@@ -59,7 +57,6 @@ import type {TextboxElement} from 'components/textbox';
 import {getHistory} from 'utils/browser_history';
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 
@@ -118,7 +115,7 @@ export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEv
  * insert a new line character at keyboard cursor (or overwrites selection)
  * WARNING: HAS DOM SIDE EFFECTS
  */
-export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElement>): string {
+export function insertLineBreakFromKeyEvent(e: KeyboardEvent): string {
     const el = e.target as TextboxElement;
     const {selectionEnd, selectionStart, value} = el;
 
@@ -322,9 +319,9 @@ export function toRgbValues(hexStr: string): string {
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
-        changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
-        changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.6));
-        changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.6));
+        changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.75));
+        changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
+        changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .webhooks__container, .app__body .dropdown-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
@@ -341,7 +338,7 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .attachment .attachment__content, .app__body .attachment-actions button', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.16));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.5));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.03));
-        changeCss('.app__body .input-group-addon, .app__body .channel-intro .channel-intro__content, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .input-group-addon, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .date-separator .separator__text', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .date-separator .separator__hr, .app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
@@ -806,7 +803,7 @@ export function setSelectionRange(input: HTMLInputElement | HTMLTextAreaElement,
     input.setSelectionRange(selectionStart, selectionEnd);
 }
 
-export function setCaretPosition(input: HTMLInputElement, pos: number) {
+export function setCaretPosition(input: HTMLInputElement | HTMLTextAreaElement, pos: number) {
     if (!input) {
         return;
     }
@@ -1046,7 +1043,7 @@ export function defaultImageURLForUser(userId: UserProfile['id']) {
 }
 
 // in contrast to Client4.getTeamIconUrl, for ui logic this function returns null if last_team_icon_update is unset
-export function imageURLForTeam(team: Team & {last_team_icon_update?: number}) {
+export function imageURLForTeam(team: Team) {
     return team.last_team_icon_update ? Client4.getTeamIconUrl(team.id, team.last_team_icon_update) : null;
 }
 
@@ -1126,11 +1123,6 @@ export function getUserIdFromChannelId(channelId: Channel['id'], currentUserId =
     return otherUserId;
 }
 
-// Should be refactored, seems to make most sense to wrap TextboxLinks in a connect(). To discuss
-export function isFeatureEnabled(feature: {label: string}, state: GlobalState) {
-    return getBool(state, Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label);
-}
-
 export function fillRecord<T>(value: T, length: number): Record<number, T> {
     const arr: Record<number, T> = {};
 
@@ -1186,7 +1178,10 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
-export function localizeMessage(id: string, defaultMessage?: string) {
+/**
+ * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
+ */
+export function localizeMessage({id, defaultMessage}: {id: string; defaultMessage?: string}) {
     const state = store.getState();
 
     const locale = getCurrentLocale(state);
@@ -1202,8 +1197,8 @@ export function localizeMessage(id: string, defaultMessage?: string) {
 /**
  * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
  */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
+export function localizeAndFormatMessage(descriptor: {id: string; defaultMessage?: string}, template: { [name: string]: any } | undefined) {
+    const base = localizeMessage(descriptor);
 
     if (!template) {
         return base;
@@ -1220,91 +1215,6 @@ export function mod(a: number, b: number): number {
 }
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
-
-export function getPasswordConfig(config: Partial<ClientConfig>) {
-    return {
-        minimumLength: parseInt(config.PasswordMinimumLength!, 10),
-        requireLowercase: config.PasswordRequireLowercase === 'true',
-        requireUppercase: config.PasswordRequireUppercase === 'true',
-        requireNumber: config.PasswordRequireNumber === 'true',
-        requireSymbol: config.PasswordRequireSymbol === 'true',
-    };
-}
-
-export function isValidPassword(password: string, passwordConfig: ReturnType<typeof getPasswordConfig>, intl?: IntlShape) {
-    let errorId = t('user.settings.security.passwordError');
-    const telemetryErrorIds = [];
-    let valid = true;
-    const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
-
-    if (password.length < minimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
-        valid = false;
-        telemetryErrorIds.push({field: 'password', rule: 'error_length'});
-    }
-
-    if (passwordConfig.requireLowercase) {
-        if (!password.match(/[a-z]/)) {
-            valid = false;
-        }
-
-        errorId += 'Lowercase';
-        telemetryErrorIds.push({field: 'password', rule: 'lowercase'});
-    }
-
-    if (passwordConfig.requireUppercase) {
-        if (!password.match(/[A-Z]/)) {
-            valid = false;
-        }
-
-        errorId += 'Uppercase';
-        telemetryErrorIds.push({field: 'password', rule: 'uppercase'});
-    }
-
-    if (passwordConfig.requireNumber) {
-        if (!password.match(/[0-9]/)) {
-            valid = false;
-        }
-
-        errorId += 'Number';
-        telemetryErrorIds.push({field: 'password', rule: 'number'});
-    }
-
-    if (passwordConfig.requireSymbol) {
-        if (!password.match(/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/)) {
-            valid = false;
-        }
-
-        errorId += 'Symbol';
-        telemetryErrorIds.push({field: 'password', rule: 'symbol'});
-    }
-
-    let error;
-    if (!valid) {
-        error = intl ? (
-            intl.formatMessage(
-                {
-                    id: errorId,
-                    defaultMessage: 'Must be {min}-{max} characters long.',
-                },
-                {
-                    min: minimumLength,
-                    max: Constants.MAX_PASSWORD_LENGTH,
-                },
-            )
-        ) : (
-            <FormattedMessage
-                id={errorId}
-                defaultMessage='Must be {min}-{max} characters long.'
-                values={{
-                    min: minimumLength,
-                    max: Constants.MAX_PASSWORD_LENGTH,
-                }}
-            />
-        );
-    }
-
-    return {valid, error, telemetryErrorIds};
-}
 
 function isChannelOrPermalink(link: string) {
     let match = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(link);
@@ -1394,7 +1304,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                                 }
                             }
                             if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel, false));
+                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
                                 if (data.join) {
                                     let error = false;
                                     if (!getTeamMemberships(state)[team.id]) {
@@ -1416,7 +1326,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
             e.stopPropagation();
 
             if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
-                focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true})(store.dispatch, store.getState);
+                store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
             } else {
                 getHistory().push(linkAttribute.value);
             }
@@ -1627,8 +1537,7 @@ const TrackFlowRoles: Record<string, string> = {
     su: General.SYSTEM_USER_ROLE,
 };
 
-export function getTrackFlowRole() {
-    const state = store.getState();
+export function getTrackFlowRole(state: GlobalState) {
     let trackFlowRole = 'su';
 
     if (isFirstAdmin(state)) {
@@ -1640,11 +1549,15 @@ export function getTrackFlowRole() {
     return trackFlowRole;
 }
 
-export function getRoleForTrackFlow() {
-    const startedByRole = TrackFlowRoles[getTrackFlowRole()];
+export const getRoleForTrackFlow = createSelector(
+    'getRoleForTrackFlow',
+    getTrackFlowRole,
+    (trackFlowRole) => {
+        const startedByRole = TrackFlowRoles[trackFlowRole];
 
-    return {started_by_role: startedByRole};
-}
+        return {started_by_role: startedByRole};
+    },
+);
 
 export function getSbr() {
     const params = new URLSearchParams(window.location.search);
@@ -1743,4 +1656,8 @@ export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Grou
     }
 
     return aSortString.localeCompare(bSortString);
+}
+
+export function doesCookieContainsMMUserId() {
+    return document.cookie.includes('MMUSERID=');
 }

@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -13,6 +14,7 @@ describe('components/TeamSelectorModal', () => {
     const defaultProps: Props = {
         currentSchemeId: 'xxx',
         alreadySelected: ['id1'],
+        intl: {} as IntlShape,
         searchTerm: '',
         teams: [
             TestHelper.getTeamMock({

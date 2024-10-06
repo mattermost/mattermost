@@ -24,6 +24,7 @@ type Props = {
     previousPage: () => void;
     search: (term: string) => void;
     actions?: React.ReactNode[];
+    noBuiltInFilters?: boolean;
     actionProps?: {
         mfaEnabled: boolean;
         enableUserAccessTokens: boolean;
@@ -33,7 +34,7 @@ type Props = {
         doManageTeams: (user: UserProfile) => void;
         doManageRoles: (user: UserProfile) => void;
         doManageTokens: (user: UserProfile) => void;
-        isDisabled: boolean | undefined;
+        isDisabled?: boolean;
     };
     actionUserProps?: {
         [userId: string]: {
@@ -245,7 +246,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <button
                         id='searchableUserListNextBtn'
-                        className='btn btn-tertiary filter-control filter-control__next'
+                        className='btn btn-sm btn-tertiary filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
@@ -261,7 +262,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <button
                         id='searchableUserListPrevBtn'
-                        className='btn btn-tertiary filter-control filter-control__prev'
+                        className='btn btn-sm btn-tertiary filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
                         <FormattedMessage
@@ -274,31 +275,33 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         }
 
         let filterRow;
-        if (this.props.renderFilterRow) {
-            filterRow = this.props.renderFilterRow(this.handleInput);
-        } else {
-            filterRow = (
-                <div className='col-xs-12'>
-                    <label
-                        className='hidden-label'
-                        htmlFor='searchUsersInput'
-                    >
-                        <FormattedMessage
-                            id='filtered_user_list.search'
-                            defaultMessage='Search users'
+        if (!this.props.noBuiltInFilters) {
+            if (this.props.renderFilterRow) {
+                filterRow = this.props.renderFilterRow(this.handleInput);
+            } else {
+                filterRow = (
+                    <div className='col-xs-12'>
+                        <label
+                            className='hidden-label'
+                            htmlFor='searchUsersInput'
+                        >
+                            <FormattedMessage
+                                id='filtered_user_list.search'
+                                defaultMessage='Search users'
+                            />
+                        </label>
+                        <QuickInput
+                            ref={this.filterRef}
+                            id='searchUsersInput'
+                            className='form-control filter-textbox'
+                            placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
+                            aria-label={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
+                            onInput={this.handleInput}
+                            value={this.props.term}
                         />
-                    </label>
-                    <QuickInput
-                        ref={this.filterRef}
-                        id='searchUsersInput'
-                        className='form-control filter-textbox'
-                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
-                        aria-label={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
-                        onInput={this.handleInput}
-                        value={this.props.term}
-                    />
-                </div>
-            );
+                    </div>
+                );
+            }
         }
 
         return (

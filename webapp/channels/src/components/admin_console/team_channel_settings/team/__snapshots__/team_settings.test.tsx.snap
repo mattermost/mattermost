@@ -22,12 +22,19 @@ exports[`admin_console/team_channel_settings/team/TeamSettings should match snap
       className="admin-console__content"
     >
       <AdminPanel
-        className=""
         id="teams"
-        subtitleDefault="Manage team settings."
-        subtitleId="admin.team_settings.description"
-        titleDefault="Teams"
-        titleId="admin.team_settings.title"
+        subtitle={
+          Object {
+            "defaultMessage": "Manage team settings.",
+            "id": "admin.team_settings.description",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Teams",
+            "id": "admin.team_settings.title",
+          }
+        }
       >
         <Connect(TeamList) />
       </AdminPanel>

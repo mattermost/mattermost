@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
@@ -28,10 +29,9 @@ type Props = {
     total: number;
     header: JSX.Element;
     renderRow: (item: Group | TeamWithMembership) => JSX.Element;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
+    emptyListText: MessageDescriptor;
     actions: {
-        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<Array<Group | Team>>;
+        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<void>;
     };
     noPadding?: boolean;
 };
@@ -91,10 +91,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         if (this.props.data.length === 0) {
             return (
                 <div className='groups-list-empty'>
-                    <FormattedMessage
-                        id={this.props.emptyListTextId}
-                        defaultMessage={this.props.emptyListTextDefaultMessage}
-                    />
+                    <FormattedMessage {...this.props.emptyListText}/>
                 </div>
             );
         }
@@ -107,7 +104,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
 
         this.props.actions.getData(page, PAGE_SIZE, '', false, true).then((response) => {
             if (this.props.onPageChangedCallback) {
-                this.props.onPageChangedCallback(this.getPaging(), response);
+                this.props.onPageChangedCallback(this.getPaging(), response as unknown as Array<Group | Team>);
             }
             this.setState({loading: false});
         });

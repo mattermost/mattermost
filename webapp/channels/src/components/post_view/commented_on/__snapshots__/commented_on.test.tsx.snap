@@ -15,8 +15,6 @@ exports[`components/post_view/CommentedOn should match snapshot 1`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -48,8 +46,6 @@ exports[`components/post_view/CommentedOn should match snapshot 2`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -81,8 +77,6 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -93,7 +87,7 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
       className="theme"
       onClick={[MockFunction]}
     >
-      <Connect(CommentedOnFilesMessage)
+      <Connect(Component)
         parentPostId="post_id"
       />
     </a>
@@ -116,8 +110,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -149,8 +141,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -182,8 +172,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -215,8 +203,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,

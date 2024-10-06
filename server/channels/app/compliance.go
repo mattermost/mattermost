@@ -34,7 +34,7 @@ func (a *App) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*mo
 
 	job.Type = model.ComplianceTypeAdhoc
 
-	rctx.SetLogger(rctx.Logger().With(job.LoggerFields()...))
+	rctx = rctx.WithLogger(rctx.Logger().With(job.LoggerFields()...))
 
 	job, err := a.Srv().Store().Compliance().Save(job)
 	if err != nil {
@@ -48,11 +48,10 @@ func (a *App) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*mo
 	}
 
 	jCopy := job.DeepCopy()
-	crctx := rctx.Clone()
 	a.Srv().Go(func() {
-		err := a.Compliance().RunComplianceJob(crctx, jCopy)
+		err := a.Compliance().RunComplianceJob(rctx, jCopy)
 		if err != nil {
-			crctx.Logger().Warn("Error running compliance job", mlog.Err(err))
+			rctx.Logger().Warn("Error running compliance job", mlog.Err(err))
 		}
 	})
 

@@ -26,7 +26,7 @@ func MakeMigrationsList() []string {
 	}
 }
 
-func GetMigrationState(c *request.Context, migration string, store store.Store) (string, *model.Job, *model.AppError) {
+func GetMigrationState(c request.CTX, migration string, store store.Store) (string, *model.Job, *model.AppError) {
 	if _, err := store.System().GetByName(migration); err == nil {
 		return MigrationStateCompleted, nil, nil
 	}

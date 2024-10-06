@@ -10,11 +10,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 type testHandler struct {
@@ -175,41 +178,109 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	_, err := client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with valid request", func(t *testing.T) {
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	// Should fail on bad trigger ID
-	request.TriggerId = "junk"
-	resp, err := client.OpenInteractiveDialog(context.Background(), request)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("Should fail on bad trigger ID", func(t *testing.T) {
+		request.TriggerId = "junk"
+		resp, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	// URL is required
-	request.TriggerId = triggerId
-	request.URL = ""
-	resp, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("URL is required", func(t *testing.T) {
+		request.TriggerId = triggerId
+		request.URL = ""
+		resp, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	// Should pass with markdown formatted introduction text
-	request.URL = "http://localhost:8065"
-	request.Dialog.IntroductionText = "**Some** _introduction text"
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with markdown formatted introduction text", func(t *testing.T) {
+		request.URL = "http://localhost:8065"
+		request.Dialog.IntroductionText = "**Some** _introduction text"
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	// Should pass with empty introduction text
-	request.Dialog.IntroductionText = ""
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with empty introduction text", func(t *testing.T) {
+		request.Dialog.IntroductionText = ""
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	// Should pass with no elements
-	request.Dialog.Elements = nil
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with too long display name of elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Very very long Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
 
-	request.Dialog.Elements = []model.DialogElement{}
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
+	t.Run("Should pass with same elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
+	t.Run("Should pass with nil elements slice", func(t *testing.T) {
+		request.Dialog.Elements = nil
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should pass with empty elements slice", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{}
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+		})
+
+		time.Sleep(2 * time.Second)
+
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired.")
+	})
 }
 
 func TestSubmitDialog(t *testing.T) {
@@ -263,7 +334,7 @@ func TestSubmitDialog(t *testing.T) {
 	submit.ChannelId = model.NewId()
 	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL

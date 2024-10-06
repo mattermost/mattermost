@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import FloatingTimestamp from './floating_timestamp';
 
@@ -26,7 +26,7 @@ describe('components/post_view/FloatingTimestamp', () => {
     };
 
     test('should match component state with given props', () => {
-        renderWithIntlAndStore(<FloatingTimestamp {...baseProps}/>, initialState);
+        renderWithContext(<FloatingTimestamp {...baseProps}/>, initialState);
 
         const floatingTimeStamp = screen.getByTestId('floatingTimestamp');
         const time = screen.getByText('January 01, 1970');

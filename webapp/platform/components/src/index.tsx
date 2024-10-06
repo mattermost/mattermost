@@ -4,7 +4,6 @@
 // type
 export type {Props as GenericModalProps} from './generic_modal/generic_modal';
 export type {CircleSkeletonLoaderProps, RectangleSkeletonLoaderProps} from './skeleton_loader';
-export type {Props as FocusTrapProps} from './focus_trap';
 export type {Props as PunchOutCoordsHeightAndWidth} from './common/hooks/useMeasurePunchouts';
 
 // components
@@ -14,7 +13,6 @@ export {CircleSkeletonLoader, RectangleSkeletonLoader} from './skeleton_loader';
 export {TourTip} from './tour_tip/tour_tip';
 export {TourTipBackdrop} from './tour_tip/tour_tip_backdrop';
 export {PulsatingDot} from './pulsating_dot';
-export {FocusTrap} from './focus_trap';
 
 // hooks
 export {useMeasurePunchouts} from './common/hooks/useMeasurePunchouts';

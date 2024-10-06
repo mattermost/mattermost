@@ -8,6 +8,7 @@ import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
@@ -33,7 +34,7 @@ export interface Props {
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
     actions: {
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => (dispatch: any, getState: any) => Promise<void>;
+        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
 }

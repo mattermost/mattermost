@@ -116,7 +116,8 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.IsOAuth = true
 	th.App.ch.srv.platform.SetSessionExpireInHours(session, 24)
 
-	session, _ = th.App.CreateSession(th.Context, session)
+	session, appErr := th.App.CreateSession(th.Context, session)
+	require.Nil(t, appErr)
 
 	accessData := &model.AccessData{}
 	accessData.Token = session.Token
@@ -128,7 +129,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	_, nErr := th.App.Srv().Store().OAuth().SaveAccessData(accessData)
 	require.NoError(t, nErr)
 
-	err = th.App.DeleteOAuthApp(a1.Id)
+	err = th.App.DeleteOAuthApp(th.Context, a1.Id)
 	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)
@@ -516,14 +517,14 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 
 				recorder := httptest.ResponseRecorder{}
-				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(th.Context, &recorder, request, model.ServiceGitlab, "", state, "")
+				body, receivedTeamID, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(th.Context, &recorder, request, model.ServiceGitlab, "", state, "")
 
 				require.NotNil(t, body)
 				bodyBytes, bodyErr := io.ReadAll(body)
 				require.NoError(t, bodyErr)
 				assert.Equal(t, userData, string(bodyBytes))
 
-				assert.Equal(t, stateProps["team_id"], receivedTeamId)
+				assert.Equal(t, stateProps["team_id"], receivedTeamID)
 				assert.Equal(t, stateProps, receivedStateProps)
 				assert.Nil(t, err)
 

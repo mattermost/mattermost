@@ -153,7 +153,6 @@ func TestDatabaseStoreNew(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("existing config, initialization required", func(t *testing.T) {
@@ -181,7 +180,6 @@ func TestDatabaseStoreNew(t *testing.T) {
 		assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
 		// not existing value should be overwritten by the custom
 		// default value
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseNotEqualsConfig(t, testConfig)
 	})
 
@@ -208,7 +206,6 @@ func TestDatabaseStoreNew(t *testing.T) {
 		// as the whole config has default values already, custom
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
-		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseEqualsConfig(t, minimalConfigNoFF)
 	})
 
@@ -454,7 +451,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
+		newCfg.LdapSettings.BindPassword = model.NewPointer(model.FakeSetting)
 
 		_, _, err = ds.Set(newCfg)
 		require.NoError(t, err)
@@ -471,7 +468,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
@@ -510,7 +507,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewString("http://new"),
+				SiteURL: model.NewPointer("http://new"),
 			},
 		}
 
@@ -530,7 +527,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewString("http://new"),
+				SiteURL: model.NewPointer("http://new"),
 			},
 		}
 
@@ -576,7 +573,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", MaxWriteLength))
 		newCfg := emptyConfig.Clone()
-		newCfg.ServiceSettings.SiteURL = model.NewString(longSiteURL)
+		newCfg.ServiceSettings.SiteURL = model.NewPointer(longSiteURL)
 
 		_, _, err = ds.Set(newCfg)
 		require.Error(t, err)
@@ -1131,7 +1128,7 @@ func TestCleanUp(t *testing.T) {
 	b, err := marshalConfig(ds.config)
 	require.NoError(t, err)
 
-	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(30) // we set 30 days as threshold
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
 
 	now := time.Now()
 	for i := 0; i < 5; i++ {

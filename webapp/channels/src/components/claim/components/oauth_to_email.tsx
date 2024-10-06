@@ -7,11 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {oauthToEmail} from 'actions/admin_actions.jsx';
 
 import Constants from 'utils/constants';
-import {isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
-import type {getPasswordConfig} from 'utils/utils';
+import {isValidPassword} from 'utils/password';
+import {localizeMessage, toTitleCase} from 'utils/utils';
 
 import ErrorLabel from './error_label';
 
@@ -19,7 +21,7 @@ type Props = {
     currentType: string | null;
     email: string | null;
     siteName?: string;
-    passwordConfig?: ReturnType<typeof getPasswordConfig>;
+    passwordConfig?: PasswordConfig;
 }
 
 const OAuthToEmail = (props: Props) => {
@@ -34,7 +36,7 @@ const OAuthToEmail = (props: Props) => {
 
         const password = passwordInput.current?.value;
         if (!password) {
-            setError(localizeMessage('claim.oauth_to_email.enterPwd', 'Please enter a password.'));
+            setError(localizeMessage({id: 'claim.oauth_to_email.enterPwd', defaultMessage: 'Please enter a password.'}));
             return;
         }
 
@@ -48,7 +50,7 @@ const OAuthToEmail = (props: Props) => {
 
         const confirmPassword = passwordConfirmInput.current?.value;
         if (!confirmPassword || password !== confirmPassword) {
-            setError(localizeMessage('claim.oauth_to_email.pwdNotMatch', 'Passwords do not match.'));
+            setError(localizeMessage({id: 'claim.oauth_to_email.pwdNotMatch', defaultMessage: 'Passwords do not match.'}));
             return;
         }
 

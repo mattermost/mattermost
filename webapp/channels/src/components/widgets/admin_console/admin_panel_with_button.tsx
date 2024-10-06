@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import AdminPanel from './admin_panel';
@@ -11,29 +12,34 @@ type Props = {
     children?: React.ReactNode;
     className: string;
     id?: string;
-    titleId: string;
-    titleDefault: string;
-    subtitleId: string;
-    subtitleDefault: string;
+    title: MessageDescriptor;
+    subtitle: MessageDescriptor;
     onButtonClick?: React.EventHandler<React.MouseEvent>;
     disabled?: boolean;
-    buttonTextId?: string;
-    buttonTextDefault?: string;
+    buttonText?: MessageDescriptor;
 }
 
-const AdminPanelWithButton: React.FC<Props> = (props: Props) => {
+const AdminPanelWithButton = ({
+    className,
+    subtitle,
+    title,
+    buttonText,
+    children,
+    disabled,
+    id,
+    onButtonClick,
+}: Props) => {
     let button;
-    if (props.onButtonClick && props.buttonTextId) {
-        const buttonId = (props.buttonTextDefault || '').split(' ').join('-').toLowerCase();
+    if (onButtonClick && buttonText) {
+        const buttonId = (buttonText.defaultMessage as string || '').split(' ').join('-').toLowerCase();
         button = (
             <a
-                className={classNames('btn', 'btn-primary', {disabled: props.disabled})}
-                onClick={props.disabled ? (e) => e.preventDefault() : props.onButtonClick}
+                className={classNames('btn', 'btn-primary', {disabled})}
+                onClick={disabled ? (e) => e.preventDefault() : onButtonClick}
                 data-testid={buttonId}
             >
                 <FormattedMessage
-                    id={props.buttonTextId}
-                    defaultMessage={props.buttonTextDefault}
+                    {...buttonText}
                 />
             </a>
         );
@@ -41,15 +47,13 @@ const AdminPanelWithButton: React.FC<Props> = (props: Props) => {
 
     return (
         <AdminPanel
-            className={'AdminPanelWithButton ' + props.className}
-            id={props.id}
-            titleId={props.titleId}
-            titleDefault={props.titleDefault}
-            subtitleId={props.subtitleId}
-            subtitleDefault={props.subtitleDefault}
+            className={'AdminPanelWithButton ' + className}
+            id={id}
+            title={title}
+            subtitle={subtitle}
             button={button}
         >
-            {props.children}
+            {children}
         </AdminPanel>
     );
 };

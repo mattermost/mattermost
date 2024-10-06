@@ -10,7 +10,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -98,7 +97,7 @@ func init() {
 }
 
 func parseMessageFile(path string) ([]*i18n.Message, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +297,8 @@ func checkCmdF(command *cobra.Command, args []string) error {
 }
 
 func addDynamicallyGeneratedStrings(i18nStrings map[string]bool) {
-	i18nStrings["model.user.is_valid.pwd.app_error"] = true
+	i18nStrings["model.user.is_valid.pwd_min_length.app_error"] = true
+	i18nStrings["model.user.is_valid.pwd_max_length.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase_number.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase_number_symbol.app_error"] = true
@@ -446,6 +446,7 @@ func extractForConstants(name string, valueNode ast.Expr) *string {
 		"ExpiredLicenseError":          true,
 		"InvalidLicenseError":          true,
 		"NoTranslation":                true,
+		"PayloadParseError":            true,
 	}
 
 	if _, ok := validConstants[name]; !ok {
@@ -474,7 +475,7 @@ func extractFromPath(path string, info os.FileInfo, err error, i18nStrings map[s
 		return nil
 	}
 
-	src, err := ioutil.ReadFile(path)
+	src, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -625,13 +626,13 @@ func cleanEmptyCmdF(command *cobra.Command, args []string) error {
 	}
 
 	var shippedFiles []string
-	files, err := ioutil.ReadDir(translationDir)
+	dirEntries, err := os.ReadDir(translationDir)
 	if err != nil {
 		return err
 	}
-	for _, file := range files {
-		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" && file.Name() != "en.json" {
-			shippedFiles = append(shippedFiles, file.Name())
+	for _, dirEntry := range dirEntries {
+		if !dirEntry.IsDir() && filepath.Ext(dirEntry.Name()) == ".json" && dirEntry.Name() != "en.json" {
+			shippedFiles = append(shippedFiles, dirEntry.Name())
 		}
 	}
 
@@ -677,7 +678,6 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 	if err != nil {
 		return nil, err
 	}
-
 	return &result, nil
 }
 

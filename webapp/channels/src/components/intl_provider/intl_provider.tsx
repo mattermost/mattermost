@@ -7,7 +7,6 @@ import {IntlProvider as BaseIntlProvider} from 'react-intl';
 import type {IntlConfig} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
 
 import * as I18n from 'i18n/i18n';
@@ -18,7 +17,7 @@ type Props = {
     locale: IntlConfig['locale'];
     translations?: IntlConfig['messages'];
     actions: {
-        loadTranslations: ((locale: string, url: string) => ActionFunc) | (() => void);
+        loadTranslations: (locale: string, url: string) => void;
     };
 };
 

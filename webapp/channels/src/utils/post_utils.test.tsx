@@ -801,7 +801,7 @@ describe('PostUtils.getOldestPostId', () => {
     });
 
     test('Should not return START_OF_NEW_MESSAGES', () => {
-        const postId = PostUtils.getOldestPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES]);
+        const postId = PostUtils.getOldestPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000]);
         expect(postId).toEqual('postId2');
     });
 });
@@ -813,7 +813,7 @@ describe('PostUtils.getPreviousPostId', () => {
     });
 
     test('Should skip START_OF_NEW_MESSAGES', () => {
-        const postId = PostUtils.getPreviousPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES, 'postId3'], 1);
+        const postId = PostUtils.getPreviousPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000, 'postId3'], 1);
         expect(postId).toEqual('postId3');
     });
 
@@ -845,7 +845,7 @@ describe('PostUtils.getLatestPostId', () => {
     });
 
     test('Should not return START_OF_NEW_MESSAGES', () => {
-        const postId = PostUtils.getLatestPostId([PostListRowListIds.START_OF_NEW_MESSAGES, 'postId1', 'postId2']);
+        const postId = PostUtils.getLatestPostId([PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000, 'postId1', 'postId2']);
         expect(postId).toEqual('postId1');
     });
 
@@ -1240,10 +1240,10 @@ describe('PostUtils.isWithinCodeBlock', () => {
 
     it('should handle whitespace within and around code blocks', () => {
         const [caretPosition, message] = getCaretAndMsg(`
-            |${TRIPLE_BACKTICKS}    
-            |   Test text asd 1   
-            |        ${CARET_MARKER}  
-            |${TRIPLE_BACKTICKS}  
+            |${TRIPLE_BACKTICKS}
+            |   Test text asd 1
+            |        ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
         `);
         expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
     });
@@ -1317,5 +1317,79 @@ describe('PostUtils.getUserOrGroupFromMentionName', () => {
         );
 
         expect(result).toEqual(expected);
+    });
+});
+
+describe('makeGetIsReactionAlreadyAddedToPost', () => {
+    const currentUserId = 'current_user_id';
+
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId,
+            },
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        'current_user_id-smile': {
+                            emoji_name: 'smile',
+                            user_id: currentUserId,
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        }} as unknown as GlobalState;
+
+    test('should return true if the post has an emoji that the user has reacted to.', () => {
+        const getIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost();
+
+        expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'sad')).toBeFalsy();
+        expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'smile')).toBeTruthy();
+    });
+});
+
+describe('makeGetUniqueEmojiNameReactionsForPost', () => {
+    const baseState = {
+        entities: {
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        user_1_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_2_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_3_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_1_post_id_1_cry: {
+                            emoji_name: 'cry',
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        },
+    } as unknown as GlobalState;
+
+    test('should only return names of unique reactions', () => {
+        const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
+
+        expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
     });
 });

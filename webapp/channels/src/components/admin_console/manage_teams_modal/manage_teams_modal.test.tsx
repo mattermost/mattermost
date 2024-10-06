@@ -18,8 +18,8 @@ import ManageTeamsDropdown from './manage_teams_dropdown';
 describe('ManageTeamsModal', () => {
     const baseProps = {
         locale: General.DEFAULT_LOCALE,
-        onModalDismissed: jest.fn(),
-        show: true,
+        onHide: jest.fn(),
+        onExited: jest.fn(),
         user: TestHelper.getUserMock({
             id: 'currentUserId',
             last_picture_update: 1234,

@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -97,6 +98,8 @@ func init() {
 }
 
 func initDbCmdF(command *cobra.Command, _ []string) error {
+	logger := mlog.CreateConsoleLogger()
+
 	dsn := getConfigDSN(command, config.GetEnvironment())
 	if !config.IsDatabaseDSN(dsn) {
 		return errors.New("this command should be run using a database configuration DSN")
@@ -113,7 +116,7 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 	}
 	defer configStore.Close()
 
-	sqlStore, err := sqlstore.New(configStore.Get().SqlSettings, nil)
+	sqlStore, err := sqlstore.New(configStore.Get().SqlSettings, logger, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize store")
 	}
@@ -125,7 +128,9 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 }
 
 func resetCmdF(command *cobra.Command, args []string) error {
-	ss, err := initStoreCommandContextCobra(command)
+	logger := mlog.CreateConsoleLogger()
+
+	ss, err := initStoreCommandContextCobra(logger, command)
 	if err != nil {
 		return errors.Wrap(err, "could not initialize store")
 	}
@@ -155,6 +160,9 @@ func resetCmdF(command *cobra.Command, args []string) error {
 }
 
 func migrateCmdF(command *cobra.Command, args []string) error {
+	logger := mlog.CreateConsoleLogger()
+	defer logger.Shutdown()
+
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 	savePlan, _ := command.Flags().GetBool("save-plan")
@@ -165,7 +173,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	}
 	config := cfgStore.Get()
 
-	migrator, err := sqlstore.NewMigrator(config.SqlSettings, dryRun)
+	migrator, err := sqlstore.NewMigrator(config.SqlSettings, logger, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to create migrator")
 	}
@@ -219,6 +227,9 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 }
 
 func downgradeCmdF(command *cobra.Command, args []string) error {
+	logger := mlog.CreateConsoleLogger()
+	defer logger.Shutdown()
+
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
@@ -234,7 +245,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to initialize filebackend: %w", err2)
 	}
 
-	migrator, err := sqlstore.NewMigrator(config.SqlSettings, dryRun)
+	migrator, err := sqlstore.NewMigrator(config.SqlSettings, logger, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to create migrator")
 	}
@@ -280,7 +291,10 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 }
 
 func dbVersionCmdF(command *cobra.Command, args []string) error {
-	ss, err := initStoreCommandContextCobra(command)
+	logger := mlog.CreateConsoleLogger()
+	defer logger.Shutdown()
+
+	ss, err := initStoreCommandContextCobra(logger, command)
 	if err != nil {
 		return errors.Wrap(err, "could not initialize store")
 	}

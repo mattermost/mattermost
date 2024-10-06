@@ -151,7 +151,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {
@@ -345,7 +352,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {
@@ -536,7 +550,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {
@@ -738,7 +759,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {
@@ -940,7 +968,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {
@@ -1142,7 +1177,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {
@@ -1351,7 +1393,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 ],
               },
               "use_channel_mentions",
-              "create_post",
+              Object {
+                "combined": true,
+                "id": "create_post",
+                "permissions": Array [
+                  "create_post",
+                  "upload_file",
+                ],
+              },
             ],
           },
           Object {

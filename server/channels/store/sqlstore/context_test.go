@@ -26,39 +26,30 @@ func TestRequestContextWithMaster(t *testing.T) {
 		assert.True(t, HasMaster(rctx.Context()))
 	})
 
-	t.Run("directly assigning does cause the child to alter the parent", func(t *testing.T) {
-		var rctx request.CTX = request.TestContext(t)
-		rctxClone := rctx
-		rctxClone = RequestContextWithMaster(rctxClone)
-
-		assert.True(t, HasMaster(rctx.Context()))
-		assert.True(t, HasMaster(rctxClone.Context()))
-	})
-
-	t.Run("values get copied from parent", func(t *testing.T) {
+	t.Run("values get copied from original context", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
 		rctx = RequestContextWithMaster(rctx)
-		rctxClone := rctx.Clone()
+		rctxCopy := rctx
 
 		assert.True(t, HasMaster(rctx.Context()))
-		assert.True(t, HasMaster(rctxClone.Context()))
+		assert.True(t, HasMaster(rctxCopy.Context()))
 	})
 
-	t.Run("changing the child does not alter the parent", func(t *testing.T) {
+	t.Run("directly assigning does not cause the copy to alter the original context", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
-		rctxClone := rctx.Clone()
-		rctxClone = RequestContextWithMaster(rctxClone)
+		rctxCopy := rctx
+		rctxCopy = RequestContextWithMaster(rctxCopy)
 
 		assert.False(t, HasMaster(rctx.Context()))
-		assert.True(t, HasMaster(rctxClone.Context()))
+		assert.True(t, HasMaster(rctxCopy.Context()))
 	})
 
-	t.Run("changing the parent does not alter the child", func(t *testing.T) {
+	t.Run("directly assigning does not cause the original context to alter the copy", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
-		rctxClone := rctx.Clone()
+		rctxCopy := rctx
 		rctx = RequestContextWithMaster(rctx)
 
 		assert.True(t, HasMaster(rctx.Context()))
-		assert.False(t, HasMaster(rctxClone.Context()))
+		assert.False(t, HasMaster(rctxCopy.Context()))
 	})
 }

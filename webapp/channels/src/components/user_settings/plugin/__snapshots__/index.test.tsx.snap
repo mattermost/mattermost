@@ -1,0 +1,96 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`plugin tab all props are properly passed to the children 1`] = `
+<div>
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text="plugin A Settings"
+  />
+  <div
+    className="user-settings"
+  >
+    <SettingDesktopHeader
+      text="plugin A Settings"
+    />
+    <PluginAction
+      action={
+        Object {
+          "buttonText": "buttonText",
+          "onClick": [MockFunction],
+          "text": "actionText",
+          "title": "actionTitle",
+        }
+      }
+    />
+    <div
+      className="divider-dark first"
+    />
+    <PluginSetting
+      activeSection=""
+      pluginId="pluginA"
+      section={
+        Object {
+          "onSubmit": [MockFunction],
+          "settings": Array [
+            Object {
+              "default": "0",
+              "name": "0",
+              "options": Array [
+                Object {
+                  "text": "Option 0",
+                  "value": "0",
+                },
+                Object {
+                  "text": "Option 1",
+                  "value": "1",
+                },
+              ],
+              "type": "radio",
+            },
+          ],
+          "title": "section 1",
+        }
+      }
+      updateSection={[MockFunction]}
+    />
+    <div
+      className="divider-light"
+    />
+    <PluginSetting
+      activeSection=""
+      pluginId="pluginA"
+      section={
+        Object {
+          "onSubmit": [MockFunction],
+          "settings": Array [
+            Object {
+              "default": "1",
+              "name": "1",
+              "options": Array [
+                Object {
+                  "text": "Option 0",
+                  "value": "0",
+                },
+                Object {
+                  "text": "Option 1",
+                  "value": "1",
+                },
+              ],
+              "type": "radio",
+            },
+          ],
+          "title": "section 2",
+        }
+      }
+      updateSection={[MockFunction]}
+    />
+    <div
+      className="divider-light"
+    />
+    <div
+      className="divider-dark"
+    />
+  </div>
+</div>
+`;

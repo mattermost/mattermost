@@ -5,13 +5,12 @@ import type {Bot, BotPatch} from '@mattermost/types/bots';
 
 import {BotTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
 const BOTS_PER_PAGE_DEFAULT = 20;
 
-export function createBot(bot: Bot): ActionFunc {
+export function createBot(bot: Partial<Bot>) {
     return bindClientFunc({
         clientFunc: Client4.createBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -21,7 +20,7 @@ export function createBot(bot: Bot): ActionFunc {
     });
 }
 
-export function patchBot(botUserId: string, botPatch: BotPatch): ActionFunc {
+export function patchBot(botUserId: string, botPatch: Partial<BotPatch>) {
     return bindClientFunc({
         clientFunc: Client4.patchBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -32,7 +31,7 @@ export function patchBot(botUserId: string, botPatch: BotPatch): ActionFunc {
     });
 }
 
-export function loadBot(botUserId: string): ActionFunc {
+export function loadBot(botUserId: string) {
     return bindClientFunc({
         clientFunc: Client4.getBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -42,7 +41,7 @@ export function loadBot(botUserId: string): ActionFunc {
     });
 }
 
-export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT): ActionFunc {
+export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getBotsIncludeDeleted,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNTS,
@@ -53,7 +52,7 @@ export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT): ActionFunc 
     });
 }
 
-export function disableBot(botUserId: string): ActionFunc {
+export function disableBot(botUserId: string) {
     return bindClientFunc({
         clientFunc: Client4.disableBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -63,7 +62,7 @@ export function disableBot(botUserId: string): ActionFunc {
     });
 }
 
-export function enableBot(botUserId: string): ActionFunc {
+export function enableBot(botUserId: string) {
     return bindClientFunc({
         clientFunc: Client4.enableBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -73,7 +72,7 @@ export function enableBot(botUserId: string): ActionFunc {
     });
 }
 
-export function assignBot(botUserId: string, newOwnerId: string): ActionFunc {
+export function assignBot(botUserId: string, newOwnerId: string) {
     return bindClientFunc({
         clientFunc: Client4.assignBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
