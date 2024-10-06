@@ -128,7 +128,7 @@ func TestImportInLocalMode(t *testing.T) {
 	received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
 	require.NoError(t, err)
 	defer func() {
-		_, err := th.App.Srv().Store().Job().Delete(received.Id)
+		_, err = th.App.Srv().Store().Job().Delete(received.Id)
 		require.NoError(t, err, "Failed to delete job")
 	}()
 
