@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/pkg/errors"
 )
@@ -17,6 +18,7 @@ const (
 	broadcastAddMentions  = "add_mentions"
 	broadcastAddFollowers = "add_followers"
 	broadcastPostedAck    = "posted_ack"
+	broadcastPermalink    = "permalink"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -24,6 +26,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAddMentions:  &addMentionsBroadcastHook{},
 		broadcastAddFollowers: &addFollowersBroadcastHook{},
 		broadcastPostedAck:    &postedAckBroadcastHook{},
+		broadcastPermalink:    &permalinkBroadcastHook{},
 	}
 }
 
@@ -119,13 +122,45 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	users, err := getTypedArg[model.StringArray](args, "users")
 	if err != nil {
-		return errors.Wrap(err, "Invalid users value passed to addFollowersBroadcastHook")
+		return errors.Wrap(err, "Invalid users value passed to postedAckBroadcastHook")
 	}
 
 	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
 		msg.Add("should_ack", true)
 		incrementWebsocketCounter(webConn)
 	}
+
+	return nil
+}
+
+func usePermalinkHook(message *model.WebSocketEvent, previewChannel *model.Channel, postWithoutPermalinkPreviewJSON string) {
+	message.GetBroadcast().AddHook(broadcastPermalink, map[string]any{
+		"preview_channel":                     previewChannel,
+		"post_without_permalink_preview_json": postWithoutPermalinkPreviewJSON,
+	})
+}
+
+type permalinkBroadcastHook struct{}
+
+func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	previewChannel, err := getTypedArg[*model.Channel](args, "preview_channel")
+	if err != nil {
+		return errors.Wrap(err, "Invalid preview_post value passed to permalinkBroadcastHook")
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log())
+	if webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel) {
+		// Do nothing.
+		// In this case, the original post is already attached to the ws event.
+		return nil
+	}
+
+	// Else, we set the post without permalink preview.
+	postWithoutPermalinkPreviewJSON, err := getTypedArg[string](args, "post_without_permalink_preview_json")
+	if err != nil {
+		return errors.Wrap(err, "Invalid post_without_permalink_preview_json value passed to permalinkBroadcastHook")
+	}
+	msg.Add("post", postWithoutPermalinkPreviewJSON)
 
 	return nil
 }

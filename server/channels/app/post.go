@@ -643,25 +643,25 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	}
 	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
-	var err *model.AppError
+	var appErr *model.AppError
 	if oldPost == nil {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, err
+		appErr = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
+		return nil, appErr
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
-		return nil, err
+		appErr = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
+		return nil, appErr
 	}
 
 	if oldPost.IsSystemMessage() {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, err
+		appErr = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
+		return nil, appErr
 	}
 
-	channel, err := a.GetChannel(c, oldPost.ChannelId)
-	if err != nil {
-		return nil, err
+	channel, appErr := a.GetChannel(c, oldPost.ChannelId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if channel.DeleteAt != 0 {
@@ -688,8 +688,8 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(c, newPost, nil); err != nil {
-		return nil, err
+	if appErr = a.FillInPostProps(c, newPost, nil); appErr != nil {
+		return nil, appErr
 	}
 
 	if receivedUpdatedPost.IsRemote() {
@@ -711,10 +711,10 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	rpost, nErr := a.Srv().Store().Post().Update(c, newPost, oldPost)
 	if nErr != nil {
-		var appErr *model.AppError
+		var appErr2 *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
+		case errors.As(nErr, &appErr2):
+			return nil, appErr2
 		default:
 			return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -743,26 +743,17 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
-	if err != nil {
-		return nil, err
-	}
-	if !published {
-		removePermalinkMetadataFromPost(rpost)
-		postJSON, jsonErr := rpost.ToJSON()
-		if jsonErr != nil {
-			return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-		}
-		message.Add("post", postJSON)
-		a.Publish(message)
+	appErr = a.publishWebsocketEventForPost(c, rpost, message)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
 	userID := c.Session().UserId
-	sanitizedPost, err := a.SanitizePostMetadataForUser(c, rpost, userID)
-	if err != nil {
-		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(err))
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, rpost, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = rpost.Clone()
@@ -774,109 +765,105 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	return rpost, nil
 }
 
-func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (published bool, err *model.AppError) {
-	var previewedPostID string
-	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
-		previewedPostID = val
-	} else {
-		return false, nil
+func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (appErr *model.AppError) {
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
+		a.NotificationsLog().Error("Error in marshalling post to JSON",
+			mlog.String("type", model.NotificationTypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonMarshalError),
+		)
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	message.Add("post", postJSON)
+
+	defer func() {
+		if appErr == nil {
+			a.Publish(message)
+		}
+	}()
+
+	permalinkPreviewedPost := post.GetPreviewPost()
+	if permalinkPreviewedPost == nil {
+		return nil
 	}
 
-	if !model.IsValidId(previewedPostID) {
+	// To remain secure by default, we wipe out the metadata unconditionally.
+	post.Metadata.Embeds[0].Data = nil
+	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
+	if err != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
+		a.NotificationsLog().Error("Error in marshalling post to JSON",
+			mlog.String("type", model.NotificationTypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonMarshalError),
+		)
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	if !model.IsValidId(permalinkPreviewedPost.PostID) {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonParseError),
-			mlog.String("prop_value", previewedPostID),
+			mlog.String("prop_value", permalinkPreviewedPost.PostID),
 		)
-		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
-		return false, nil
+		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", permalinkPreviewedPost.PostID))
+		// In this case, it will broadcast the message with metadata wiped out
+		return nil
 	}
 
-	previewedPost, err := a.GetSinglePost(c, previewedPostID, false)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
+	previewedPost, appErr := a.GetSinglePost(c, permalinkPreviewedPost.PostID, false)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.String("referenced_post_id", previewedPostID),
-				mlog.Err(err),
+				mlog.String("referenced_post_id", permalinkPreviewedPost.PostID),
+				mlog.Err(appErr),
 			)
-			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
-			return false, nil
+			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
+			// In this case, it will broadcast the message with metadata wiped out
+			return nil
 		}
-		return false, err
+		return appErr
 	}
 
-	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
-	if nErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Cannot get channel members",
-			mlog.String("type", model.NotificationTypeWebsocket),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", model.NotificationStatusError),
-			mlog.String("reason", model.NotificationReasonFetchError),
-			mlog.String("referenced_post_id", previewedPostID),
-			mlog.Err(nErr),
-		)
-		return false, model.NewAppError("publishWebsocketEventForPermalinkPost", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
+	permalinkPreviewedChannel, appErr := a.GetChannel(c, previewedPost.ChannelId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.String("referenced_post_id", previewedPostID),
+				mlog.String("referenced_post_id", previewedPost.Id),
 			)
 			c.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
+			// In this case, it will broadcast the message with metadata wiped out
+			return nil
 		}
-		return false, err
+		return appErr
 	}
 
-	originalEmbeds := post.Metadata.Embeds
-	originalProps := post.GetProps()
-	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, userID := range userIDs {
-		if permalinkPreviewedPost != nil {
-			post.Metadata.Embeds = originalEmbeds
-			post.SetProps(originalProps)
-		}
-
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, userID)
-
-		// Using DeepCopy here to avoid a race condition
-		// between publishing the event and setting the "post" data value below.
-		messageCopy := message.DeepCopy()
-		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = userID
-		messageCopy.SetBroadcast(broadcastCopy)
-
-		postJSON, jsonErr := postForUser.ToJSON()
-		if jsonErr != nil {
-			c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
-		}
-		messageCopy.Add("post", postJSON)
-		a.Publish(messageCopy)
+	// In case the user does have permission to read, we set the metadata back.
+	// Note that this is the return value to the post creator, and has nothing to do
+	// with the content of the websocket broadcast to that user or any other.
+	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
+		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
 	}
 
-	// Restore the metadata that may have been removed in the sanitization
-	if permalinkPreviewedPost != nil {
-		post.Metadata.Embeds = originalEmbeds
-		post.SetProps(originalProps)
-	}
-
-	return true, nil
+	usePermalinkHook(message, permalinkPreviewedChannel, postWithoutPermalinkPreviewJSON)
+	return nil
 }
 
 func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
