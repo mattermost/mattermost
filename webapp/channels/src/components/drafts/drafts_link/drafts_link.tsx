@@ -53,7 +53,9 @@ function DraftsLink() {
     const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId, true));
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
-    const itemsExist = isScheduledPostEnabled ? draftCount > 0 || teamScheduledPostCount > 0 : draftCount > 0;
+    const hasDrafts = draftCount > 0;
+    const hasScheduledPosts = teamScheduledPostCount > 0;
+    const itemsExist = isScheduledPostEnabled ? hasDrafts || hasScheduledPosts : hasDrafts;
 
     const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, teamId));
 
