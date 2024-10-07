@@ -25,9 +25,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-name"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Name**"
-          id="admin.channel_settings.channel_detail.channelName"
+        <MemoizedFormattedMessage
+          defaultMessage="<b>Name</b>"
+          id="admin.channelSettings.channelDetail.channelName"
+          values={
+            Object {
+              "b": [Function],
+            }
+          }
         />
         <br />
         test
@@ -35,9 +40,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-team"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Team**"
-          id="admin.channel_settings.channel_detail.channelTeam"
+        <MemoizedFormattedMessage
+          defaultMessage="<b>Team</b>"
+          id="admin.channelSettings.channelDetail.channelTeam"
+          values={
+            Object {
+              "b": [Function],
+            }
+          }
         />
         <br />
         test
@@ -88,9 +98,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-name"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Name**"
-          id="admin.channel_settings.channel_detail.channelName"
+        <MemoizedFormattedMessage
+          defaultMessage="<b>Name</b>"
+          id="admin.channelSettings.channelDetail.channelName"
+          values={
+            Object {
+              "b": [Function],
+            }
+          }
         />
         <br />
         test
@@ -98,9 +113,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-team"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Team**"
-          id="admin.channel_settings.channel_detail.channelTeam"
+        <MemoizedFormattedMessage
+          defaultMessage="<b>Team</b>"
+          id="admin.channelSettings.channelDetail.channelTeam"
+          values={
+            Object {
+              "b": [Function],
+            }
+          }
         />
         <br />
         test
@@ -108,9 +128,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-organizations"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Organizations**"
-          id="admin.channel_settings.channel_detail.channelOrganizations"
+        <MemoizedFormattedMessage
+          defaultMessage="<b>Organizations</b>"
+          id="admin.channelSettings.channelDetail.channelOrganizations"
+          values={
+            Object {
+              "b": [Function],
+            }
+          }
         />
         <br />
         <SharedChannelIndicator
