@@ -139,7 +139,7 @@ func (s *SqlScheduledPostStore) getMaxMessageSize() int {
 	return s.maxMessageSizeCached
 }
 
-func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	query := s.getQueryBuilder().
 		Select(s.columns("")...).
 		From("ScheduledPosts").
@@ -148,12 +148,18 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastS
 		Limit(perPage)
 
 	if lastScheduledPostId == "" {
-		query = query.Where(sq.LtOrEq{"ScheduledAt": beforeTime})
+		query = query.Where(sq.And{
+			sq.LtOrEq{"ScheduledAt": beforeTime},
+			sq.GtOrEq{"ScheduledAt": afterTime},
+		})
 	}
 	if lastScheduledPostId != "" {
 		query = query.
 			Where(sq.Or{
-				sq.Lt{"ScheduledAt": beforeTime},
+				sq.And{
+					sq.LtOrEq{"ScheduledAt": beforeTime},
+					sq.GtOrEq{"ScheduledAt": afterTime},
+				},
 				sq.And{
 					sq.Eq{"ScheduledAt": beforeTime},
 					sq.Gt{"Id": lastScheduledPostId},

@@ -8540,7 +8540,7 @@ func (s *OpenTracingLayerScheduledPostStore) Get(scheduledPostId string) (*model
 	return result, err
 }
 
-func (s *OpenTracingLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *OpenTracingLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.GetPendingScheduledPosts")
 	s.Root.Store.SetContext(newCtx)
@@ -8549,7 +8549,7 @@ func (s *OpenTracingLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime
 	}()
 
 	defer span.Finish()
-	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, lastScheduledPostId, perPage)
+	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	getPendingScheduledPostsPageSize = 10
+	getPendingScheduledPostsPageSize = 100
 	scheduledPostBatchWaitTime       = 1 * time.Second
 )
 
@@ -24,6 +24,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	rctx.Logger().Debug("ProcessScheduledPosts called...")
 
 	beforeTime := model.GetMillis()
+	afterTime := beforeTime - (24 * 60 * 60 * 1000) // subtracting 24 hours from beforeTime
 	lastScheduledPostId := ""
 
 	for {
@@ -31,7 +32,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 		time.Sleep(scheduledPostBatchWaitTime)
 		rctx.Logger().Debug("ProcessScheduledPosts: fetching page of pending scheduled posts...")
 
-		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetPendingScheduledPosts(beforeTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
+		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
 		if err != nil {
 			rctx.Logger().Error(
 				"App.ProcessScheduledPosts: failed to fetch pending scheduled posts page from database",

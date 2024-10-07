@@ -74,9 +74,9 @@ func (_m *ScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost,
 	return r0, r1
 }
 
-// GetPendingScheduledPosts provides a mock function with given fields: beforeTime, lastScheduledPostId, perPage
-func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
-	ret := _m.Called(beforeTime, lastScheduledPostId, perPage)
+// GetPendingScheduledPosts provides a mock function with given fields: beforeTime, afterTime, lastScheduledPostId, perPage
+func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	ret := _m.Called(beforeTime, afterTime, lastScheduledPostId, perPage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPendingScheduledPosts")
@@ -84,19 +84,19 @@ func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastSch
 
 	var r0 []*model.ScheduledPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, string, uint64) ([]*model.ScheduledPost, error)); ok {
-		return rf(beforeTime, lastScheduledPostId, perPage)
+	if rf, ok := ret.Get(0).(func(int64, int64, string, uint64) ([]*model.ScheduledPost, error)); ok {
+		return rf(beforeTime, afterTime, lastScheduledPostId, perPage)
 	}
-	if rf, ok := ret.Get(0).(func(int64, string, uint64) []*model.ScheduledPost); ok {
-		r0 = rf(beforeTime, lastScheduledPostId, perPage)
+	if rf, ok := ret.Get(0).(func(int64, int64, string, uint64) []*model.ScheduledPost); ok {
+		r0 = rf(beforeTime, afterTime, lastScheduledPostId, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ScheduledPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, string, uint64) error); ok {
-		r1 = rf(beforeTime, lastScheduledPostId, perPage)
+	if rf, ok := ret.Get(1).(func(int64, int64, string, uint64) error); ok {
+		r1 = rf(beforeTime, afterTime, lastScheduledPostId, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
