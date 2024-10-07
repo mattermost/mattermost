@@ -42,7 +42,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.Equal(th.t, "button", poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
 	_, err = w.Write([]byte("{}"));
-	assert.NoError(th.t, err)
+	require.NoError(th.t, err)
 	w.WriteHeader(200)
 }
 
