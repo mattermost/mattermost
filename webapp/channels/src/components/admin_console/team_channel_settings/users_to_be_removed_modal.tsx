@@ -44,11 +44,14 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
     const handleHide = useCallback(() => setShow(false), []);
 
     const title = (
-        <FormattedMarkdownMessage
-            id='admin.team_channel_settings.usersToBeRemovedModal.title'
-            defaultMessage='**{total, number} {total, plural, one {User} other {Users}}** To Be Removed'
-            values={{total}}
-        />
+        <FormattedMessage
+        id='admin.teamChannelSettings.usersToBeRemovedModal.title'
+        defaultMessage='<b>{total, number} {total, plural, one {User} other {Users}}</b> To Be Removed'
+        values={{
+            total: total,
+            b: (chunks: string) => <b>{chunks}</b>,
+        }}
+    />
     );
 
     let message = (
