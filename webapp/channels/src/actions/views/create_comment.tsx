@@ -252,7 +252,6 @@ export function makeOnEditLatestPost(rootId: string): () => ActionFunc<boolean> 
         return dispatch(PostActions.setEditingPost(
             lastPost.id,
             'reply_textbox',
-            Utils.localizeMessage({id: 'create_comment.commentTitle', defaultMessage: 'Comment'}),
             true,
         ));
     };
@@ -271,7 +270,6 @@ export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boole
         return dispatch(PostActions.setEditingPost(
             lastPostId,
             rootId ? 'reply_textbox' : 'post_textbox',
-            '', // title is no longer used
             Boolean(rootId),
         ));
     };

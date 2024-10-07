@@ -95,7 +95,7 @@ type Props = {
         /**
          * Function to set the editing post
          */
-        setEditingPost: (postId?: string, refocusId?: string, title?: string, isRHS?: boolean) => void;
+        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => void;
 
         /**
          * Function to pin the post
@@ -297,7 +297,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.setEditingPost(
             this.props.post.id,
             this.props.location === Locations.CENTER ? 'post_textbox' : 'reply_textbox',
-            this.props.post.root_id ? Utils.localizeMessage({id: 'rhs_comment.comment', defaultMessage: 'Comment'}) : Utils.localizeMessage({id: 'create_post.post', defaultMessage: 'Post'}),
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
         trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);

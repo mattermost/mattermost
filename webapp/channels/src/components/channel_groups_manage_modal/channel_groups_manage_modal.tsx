@@ -73,9 +73,19 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
     public renderRow = (item: Group, listModal: any) => {
         let title;
         if (item.scheme_admin) {
-            title = Utils.localizeMessage({id: 'channel_members_dropdown.channel_admins', defaultMessage: 'Channel Admins'});
+            title = (
+                <FormattedMessage
+                    id='channel_members_dropdown.channel_admins'
+                    defaultMessage='Channel Admins'
+                />
+            );
         } else {
-            title = Utils.localizeMessage({id: 'channel_members_dropdown.channel_members', defaultMessage: 'Channel Members'});
+            title = (
+                <FormattedMessage
+                    id='channel_members_dropdown.channel_members'
+                    defaultMessage='Channel Members'
+                />
+            );
         }
 
         return (

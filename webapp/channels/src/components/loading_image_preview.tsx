@@ -6,7 +6,7 @@ import React from 'react';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
-    loading?: string;
+    loading?: React.ReactNode;
     progress?: number;
     containerClass?: string;
 }
@@ -19,7 +19,8 @@ const LoadingImagePreview: React.FC<Props> = ({loading, progress, containerClass
     if (progress) {
         progressView = (
             <span className='loader-percent'>
-                {`${loading} ${progress}%`}
+                {loading}
+                {` ${progress}%`}
             </span>
         );
     }

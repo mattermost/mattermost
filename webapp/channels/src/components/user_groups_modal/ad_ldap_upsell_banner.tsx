@@ -91,7 +91,6 @@ function ADLDAPUpsellBanner() {
     let btn: JSX.Element | null = (
         <StartTrialBtn
             btnClass='ad-ldap-banner-btn'
-            message={formatMessage({id: 'adldap_upsell_banner.trial_btn', defaultMessage: 'Start trial'})}
             telemetryId={'start_self-hosted_trial_from_adldap_upsell_banner'}
             renderAsButton={true}
             onClick={() => setConfirmed(true)}

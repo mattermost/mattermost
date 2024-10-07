@@ -125,7 +125,12 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
           data-testid="save-button"
           onClick={[Function]}
           spinning={false}
-          spinningText="Saving..."
+          spinningText={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "add_emoji.saving",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -300,7 +305,12 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
           data-testid="save-button"
           onClick={[Function]}
           spinning={false}
-          spinningText="Saving..."
+          spinningText={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "add_emoji.saving",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -439,7 +449,12 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
           data-testid="save-button"
           onClick={[Function]}
           spinning={false}
-          spinningText="Saving..."
+          spinningText={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "add_emoji.saving",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

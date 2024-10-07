@@ -36,7 +36,7 @@ exports[`EmojiPage should render without crashing 1`] = `
       </Link>
     </Memo(AnyTeamPermissionGate)>
   </div>
-  <Connect(injectIntl(EmojiList))
+  <Connect(EmojiList)
     scrollToTop={[MockFunction]}
   />
 </div>

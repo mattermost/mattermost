@@ -52,7 +52,12 @@ exports[`components/ChannelSelectorModal exclude already selected 1`] = `
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitText="Add"
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -133,7 +138,12 @@ exports[`components/ChannelSelectorModal exclude already selected 1`] = `
         ]
       }
       perPage={50}
-      placeholderText="Search and add channels"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search and add channels",
+          "id": "multiselect.addChannelsPlaceholder",
+        }
+      }
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -202,7 +212,12 @@ exports[`components/ChannelSelectorModal should match snapshot 1`] = `
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitText="Add"
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -305,7 +320,12 @@ exports[`components/ChannelSelectorModal should match snapshot 1`] = `
         ]
       }
       perPage={50}
-      placeholderText="Search and add channels"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search and add channels",
+          "id": "multiselect.addChannelsPlaceholder",
+        }
+      }
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}

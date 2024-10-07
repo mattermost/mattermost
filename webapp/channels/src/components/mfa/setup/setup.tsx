@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import * as Utils from 'utils/utils';
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;
@@ -21,7 +20,6 @@ type Props = {
      * Object containing enforceMultifactorAuthentication
      */
     state: MFAControllerState;
-    intl: IntlShape;
 
     /*
      * Function that updates parent component with state props
@@ -56,17 +54,21 @@ type Props = {
 type State = {
     secret: string;
     qrCode: string;
-    error?: any | null;
+    error: React.ReactNode;
     serverError?: string;
 }
 
-class Setup extends React.PureComponent<Props, State> {
+export default class Setup extends React.PureComponent<Props, State> {
     private input: React.RefObject<HTMLInputElement>;
 
     public constructor(props: Props) {
         super(props);
 
-        this.state = {secret: '', qrCode: ''};
+        this.state = {
+            error: undefined,
+            secret: '',
+            qrCode: '',
+        };
 
         this.input = React.createRef();
     }
@@ -97,7 +99,14 @@ class Setup extends React.PureComponent<Props, State> {
         e.preventDefault();
         const code = this.input?.current?.value.replace(/\s/g, '');
         if (!code || code.length === 0) {
-            this.setState({error: Utils.localizeMessage({id: 'mfa.setup.codeError', defaultMessage: 'Please enter the code from Google Authenticator.'})});
+            this.setState({
+                error: (
+                    <FormattedMessage
+                        id='mfa.setup.codeError'
+                        defaultMessage='Please enter the code from Google Authenticator.'
+                    />
+                ),
+            });
             return;
         }
 
@@ -107,7 +116,12 @@ class Setup extends React.PureComponent<Props, State> {
             if (error) {
                 if (error.server_error_id === 'ent.mfa.activate.authenticate.app_error') {
                     this.setState({
-                        error: Utils.localizeMessage({id: 'mfa.setup.badCode', defaultMessage: 'Invalid code. If this issue persists, contact your System Administrator.'}),
+                        error: (
+                            <FormattedMessage
+                                id='mfa.setup.badCode'
+                                defaultMessage='Invalid code. If this issue persists, contact your System Administrator.'
+                            />
+                        ),
                     });
                 } else {
                     this.setState({
@@ -211,10 +225,10 @@ class Setup extends React.PureComponent<Props, State> {
                         />
                     </p>
                     <p>
-                        <input
+                        <LocalizedPlaceholderInput
                             ref={this.input}
                             className='form-control'
-                            placeholder={this.props.intl.formatMessage({id: 'mfa.setup.code', defaultMessage: 'MFA Code'})}
+                            placeholder={defineMessage({id: 'mfa.setup.code', defaultMessage: 'MFA Code'})}
                             autoFocus={true}
                         />
                     </p>
@@ -237,5 +251,3 @@ class Setup extends React.PureComponent<Props, State> {
 const style = {
     qrCode: {maxHeight: 170},
 };
-
-export default injectIntl(Setup);

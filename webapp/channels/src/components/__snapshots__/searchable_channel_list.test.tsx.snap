@@ -22,6 +22,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
       id="searchChannelsTextbox"
       onClear={[Function]}
       onInput={[Function]}
+      placeholder="Search channels"
       value=""
     />
   </div>

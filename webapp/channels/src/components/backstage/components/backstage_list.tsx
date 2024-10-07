@@ -11,8 +11,6 @@ import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
-import {localizeMessage} from 'utils/utils';
-
 import './backstage_list.scss';
 
 type Props = {
@@ -51,12 +49,19 @@ const getPaging = (remainingProps: Props, childCount: number, hasFilter: boolean
     return {startCount, endCount, total, isFirstPage, isLastPage};
 };
 
-const BackstageList = ({searchPlaceholder = localizeMessage({id: 'backstage_list.search', defaultMessage: 'Search'}), ...remainingProps}: Props) => {
+const BackstageList = (remainingProps: Props) => {
     const {formatMessage} = useIntl();
 
     const [filter, setFilter] = useState('');
     const updateFilter = (e: ChangeEvent<HTMLInputElement>) => setFilter(e.target.value);
     const filterLowered = filter.toLowerCase();
+
+    let searchPlaceholder;
+    if (remainingProps.searchPlaceholder) {
+        searchPlaceholder = remainingProps.searchPlaceholder;
+    } else {
+        searchPlaceholder = formatMessage({id: 'backstage_list.search', defaultMessage: 'Search'});
+    }
 
     let children = [];
     let childCount = 0;

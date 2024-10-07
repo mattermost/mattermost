@@ -14,7 +14,12 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
@@ -132,7 +137,12 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
@@ -300,7 +310,12 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
