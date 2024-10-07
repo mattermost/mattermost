@@ -83,6 +83,7 @@ issues:
         channels/api4/handlers_test.go|\
         channels/api4/import_test.go|\
         channels/api4/ip_filtering.go|\
+        channels/api4/ip_filtering_test.go|\
         channels/api4/job_test.go|\
         channels/api4/license.go|\
         channels/api4/license_local.go|\
