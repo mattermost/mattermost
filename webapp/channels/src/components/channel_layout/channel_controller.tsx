@@ -13,6 +13,7 @@ import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status
 import {makeAsyncComponent} from 'components/async_load';
 import CenterChannel from 'components/channel_layout/center_channel';
 import LoadingScreen from 'components/loading_screen';
+import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import Sidebar from 'components/sidebar';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
@@ -69,6 +70,7 @@ export default function ChannelController(props: Props) {
     return (
         <>
             <CRTPostsChannelResetWatcher/>
+            <QueryParamActionController/>
             <Sidebar/>
             <div
                 id='channel_view'

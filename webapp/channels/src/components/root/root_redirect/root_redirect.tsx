@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {Redirect, useHistory} from 'react-router-dom';
+import {Redirect, useHistory, useLocation} from 'react-router-dom';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -13,6 +13,7 @@ export type Props = {
     currentUserId: string;
     location?: Location;
     isFirstAdmin: boolean;
+    areThereTeams: boolean;
     actions: {
         getFirstAdminSetupComplete: () => Promise<ActionResult>;
     };
@@ -20,20 +21,21 @@ export type Props = {
 
 export default function RootRedirect(props: Props) {
     const history = useHistory();
+    const location = useLocation();
 
     useEffect(() => {
         if (props.currentUserId) {
             if (props.isElegibleForFirstAdmingOnboarding) {
                 props.actions.getFirstAdminSetupComplete().then((firstAdminCompletedSignup) => {
                     // root.tsx ensures admin profiles are eventually loaded
-                    if (firstAdminCompletedSignup.data === false && props.isFirstAdmin) {
+                    if (firstAdminCompletedSignup.data === false && props.isFirstAdmin && !props.areThereTeams) {
                         history.push('/preparing-workspace');
                     } else {
-                        GlobalActions.redirectUserToDefaultTeam();
+                        GlobalActions.redirectUserToDefaultTeam(new URLSearchParams(location.search));
                     }
                 });
             } else {
-                GlobalActions.redirectUserToDefaultTeam();
+                GlobalActions.redirectUserToDefaultTeam(new URLSearchParams(location.search));
             }
         }
     }, [props.currentUserId, props.isElegibleForFirstAdmingOnboarding]);
