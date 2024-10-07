@@ -2376,10 +2376,10 @@ func (s *TimerLayerChannelStore) UpdateMemberNotifyProps(channelID string, userI
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
+func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
 	start := time.Now()
 
-	err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+	result, err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2389,7 +2389,7 @@ func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []s
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMembersRole", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
@@ -6915,10 +6915,10 @@ func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error
 	return err
 }
 
-func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	start := time.Now()
 
-	err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
+	result, err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6928,7 +6928,7 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsF
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRowsByIds", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
@@ -9601,10 +9601,10 @@ func (s *TimerLayerTeamStore) UpdateMember(rctx request.CTX, member *model.TeamM
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error) {
 	start := time.Now()
 
-	err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+	result, err := s.TeamStore.UpdateMembersRole(teamID, adminIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9614,7 +9614,7 @@ func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string)
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.UpdateMembersRole", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error) {
