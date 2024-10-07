@@ -2699,6 +2699,7 @@
   "admin.user_grid.team_admin": "Team Admin",
   "admin.user_item.deactivate": "Deactivate",
   "admin.user_item.emailTitle": "**Email:** {email}",
+  "admin.user_item.emailTitle_updated": "**Email:** {email}",
   "admin.user_item.guest": "Guest",
   "admin.user_item.invalidEmail": "Invalid email address",
   "admin.user_item.makeActive": "Activate",
