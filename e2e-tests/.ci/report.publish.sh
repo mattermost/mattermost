@@ -103,6 +103,7 @@ case "$TEST" in
     ;;
   playwright)
     if [ -n "$WEBHOOK_URL" ]; then
+      npm i
       # Utilize environment data and report files to generate the webhook body
       ./report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
     fi
