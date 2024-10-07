@@ -9102,7 +9102,7 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 }
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
-func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmarkWithFileInfo, *Response, error) {
 	channelBookmarkJSON, err := json.Marshal(channelBookmark)
 	if err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9112,7 +9112,7 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var cb ChannelBookmark
+	var cb ChannelBookmarkWithFileInfo
 	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
