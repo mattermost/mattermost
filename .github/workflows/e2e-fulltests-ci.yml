@@ -302,8 +302,8 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
-          - Cypress pass rate: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate }} (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)
-          - Playwright pass rate: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate }} (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)
+          - Cypress pass rate: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }} (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)
+          - Playwright pass rate: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }} (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi

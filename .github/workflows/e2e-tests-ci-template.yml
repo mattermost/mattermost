@@ -379,6 +379,7 @@ jobs:
       failed: "${{ steps.calculate-results.outputs.failed }}"
       failed_expected: "${{ steps.calculate-results.outputs.failed_expected }}"
       pass_rate: "${{ steps.calculate-results.outputs.pass_rate }}"
+      commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -451,11 +452,13 @@ jobs:
           fi
           export TOTAL_SPECS=$(( PASSED + FAILED ))
           export PASS_RATE=$(jq -r '100 * (env.PASSED | tonumber) / (env.TOTAL_SPECS | tonumber)' <<<'{}' | xargs -l printf '%.2f')
+          export COMMIT_STATUS_MESSAGE="Completed with pass rate: ${PASS_RATE}% (plus ${FAILED_EXPECTED} unrelated failures)"
           echo "passed=${PASSED:?}" >> $GITHUB_OUTPUT
           echo "failed=${FAILED:?}" >> $GITHUB_OUTPUT
           echo "failed_expected=${FAILED_EXPECTED:?}" >> $GITHUB_OUTPUT
           echo "pass_rate=${PASS_RATE:?}%" >> $GITHUB_OUTPUT
-          echo "E2E Test complete with pass rate: $PASS_RATE (excluding ${FAILURES_EXPECTED} unrelated failures)"
+          echo "commit_status_message=${COMMIT_STATUS_MESSAGE:?}" >> $GITHUB_OUTPUT
+          echo "$COMMIT_STATUS_MESSAGE"
       - name: ci/e2e-test-assert-results
         if: "${{ inputs.testcase_failure_fatal }}"
         run: |
@@ -477,8 +480,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
-          description: |
-            Completed with pass rate: ${{ needs.report.outputs.pass_rate || 'unknown' }} (excluding ${{ needs.report.outputs.failed_expected || '0' }} unrelated failures)
+          description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
@@ -497,7 +499,6 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
-          description: |
-            Completed with pass rate: ${{ needs.report.outputs.pass_rate || 'unkown'}} (excluding ${{ needs.report.outputs.failed_expected || '0' }} unrelated failures)
+          description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
