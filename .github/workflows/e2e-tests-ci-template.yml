@@ -336,6 +336,7 @@ jobs:
           if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
             echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
             git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- "${TEST}/" && git status
+            rm -rf "${TEST}/node_modules" # Clean the node cache before the test
             (
             echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
             export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
@@ -353,6 +354,7 @@ jobs:
             echo "RollingRelease: reset the E2E test cases to the revision to test"
             git reset --hard HEAD && git status
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
+            rm -rf "${TEST}/node_modules" # Clean the node cache after the test
           fi
           make
           make cloud-teardown

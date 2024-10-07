@@ -7,7 +7,7 @@ mme2e_log "Prepare Playwright: clean and initialize report and logs directory"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
 cd e2e-tests/playwright
 rm -rf logs results storage_state
-mkdir -p logs
+mkdir -p logs results
 touch logs/mattermost.log
 EOF
 
