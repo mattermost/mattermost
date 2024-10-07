@@ -61,7 +61,7 @@ const CloseIcon = styled.button`
 const SearchBox = forwardRef(
     (
         {onClose, onSearch, initialSearchTerms, initialSearchType}: Props,
-        ref: React.Ref<HTMLDivElement>
+        ref: React.Ref<HTMLDivElement>,
     ): JSX.Element => {
         const intl = useIntl();
         const [caretPosition, setCaretPosition] = useState<number>(0);
@@ -126,7 +126,7 @@ const SearchBox = forwardRef(
             searchTerms,
             caretPosition,
             getCaretPosition,
-            setSelectedOption
+            setSelectedOption,
         );
 
         const focus = useCallback((newposition: number) => {
@@ -147,11 +147,11 @@ const SearchBox = forwardRef(
                     searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$'), '') +
                         value +
                         extraSpace +
-                        searchTerms.slice(caretPosition)
+                        searchTerms.slice(caretPosition),
                 );
-                focus(caretPosition + value.length + 1 - matchedPretext.length);
+                focus((caretPosition + value.length + 1) - matchedPretext.length);
             },
-            [searchTerms, setSearchTerms, focus, getCaretPosition]
+            [searchTerms, setSearchTerms, focus, getCaretPosition],
         );
 
         const handleKeyDown = useCallback(
@@ -196,7 +196,7 @@ const SearchBox = forwardRef(
                     }
                 }
             },
-            [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms, updateSearchValue]
+            [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms, updateSearchValue],
         );
 
         const closeHandler = useCallback(
@@ -204,7 +204,7 @@ const SearchBox = forwardRef(
                 e.stopPropagation();
                 onClose();
             },
-            [onClose]
+            [onClose],
         );
 
         useEffect(() => {
@@ -216,18 +216,24 @@ const SearchBox = forwardRef(
         return (
             <SearchBoxContainer
                 ref={ref}
-                id="searchBox"
+                id='searchBox'
                 aria-label={intl.formatMessage({
                     id: 'search_bar.search',
                     defaultMessage: 'Search',
                 })}
-                aria-describedby="searchHints"
-                role="searchbox"
+                aria-describedby='searchHints'
+                role='searchbox'
             >
-                <CloseIcon className="btn btn-icon btn-m" onClick={closeHandler}>
-                    <i className="icon icon-close" />
+                <CloseIcon
+                    className='btn btn-icon btn-m'
+                    onClick={closeHandler}
+                >
+                    <i className='icon icon-close'/>
                 </CloseIcon>
-                <SearchTypeSelector searchType={searchType} setSearchType={setSearchType} />
+                <SearchTypeSelector
+                    searchType={searchType}
+                    setSearchType={setSearchType}
+                />
                 <SearchInput
                     ref={inputRef}
                     searchTerms={searchTerms}
@@ -256,7 +262,7 @@ const SearchBox = forwardRef(
                 />
             </SearchBoxContainer>
         );
-    }
+    },
 );
 
 export default SearchBox;

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from "react";
-import {useIntl, defineMessages} from "react-intl";
-import styled from "styled-components";
+import React, {useCallback} from 'react';
+import {useIntl, defineMessages} from 'react-intl';
+import styled from 'styled-components';
 
-import type {SuggestionProps} from "components/suggestion/suggestion";
+import type {SuggestionProps} from 'components/suggestion/suggestion';
 
-import {getCompassIconClassName} from "utils/utils";
+import {getCompassIconClassName} from 'utils/utils';
 
-import type {ExtensionItem} from "./extension_suggestions_provider";
+import type {ExtensionItem} from './extension_suggestions_provider';
 
 const SearchFileExtensionSuggestionContainer = styled.div`
     display: flex;
@@ -53,54 +53,54 @@ const ExtensionText = styled.span`
 const messages: Record<string, {id: string; defaultMessage: string}> =
     defineMessages({
         pdf: {
-            id: "file_type.pdf",
-            defaultMessage: "Acrobat",
+            id: 'file_type.pdf',
+            defaultMessage: 'Acrobat',
         },
         word: {
-            id: "file_type.word",
-            defaultMessage: "Word Document",
+            id: 'file_type.word',
+            defaultMessage: 'Word Document',
         },
         image: {
-            id: "file_type.image",
-            defaultMessage: "Image",
+            id: 'file_type.image',
+            defaultMessage: 'Image',
         },
         audio: {
-            id: "file_type.audio",
-            defaultMessage: "Audio",
+            id: 'file_type.audio',
+            defaultMessage: 'Audio',
         },
         video: {
-            id: "file_type.video",
-            defaultMessage: "Video",
+            id: 'file_type.video',
+            defaultMessage: 'Video',
         },
         presentation: {
-            id: "file_type.presentation",
-            defaultMessage: "Powerpoint Presentation",
+            id: 'file_type.presentation',
+            defaultMessage: 'Powerpoint Presentation',
         },
         spreadsheet: {
-            id: "file_type.spreadsheet",
-            defaultMessage: "Excel spreadsheet",
+            id: 'file_type.spreadsheet',
+            defaultMessage: 'Excel spreadsheet',
         },
         code: {
-            id: "file_type.code",
-            defaultMessage: "Code file",
+            id: 'file_type.code',
+            defaultMessage: 'Code file',
         },
         patch: {
-            id: "file_type.patch",
-            defaultMessage: "Patch file",
+            id: 'file_type.patch',
+            defaultMessage: 'Patch file',
         },
         svg: {
-            id: "file_type.svg",
-            defaultMessage: "Vector graphics",
+            id: 'file_type.svg',
+            defaultMessage: 'Vector graphics',
         },
         text: {
-            id: "file_type.text",
-            defaultMessage: "Text file",
+            id: 'file_type.text',
+            defaultMessage: 'Text file',
         },
     });
 
 const SearchFileExtensionSuggestion = React.forwardRef<
-    HTMLDivElement,
-    SuggestionProps<ExtensionItem>
+HTMLDivElement,
+SuggestionProps<ExtensionItem>
 >((props, ref) => {
     const intl = useIntl();
     const {item, onClick, matchedPretext, isSelection} = props;
@@ -110,24 +110,24 @@ const SearchFileExtensionSuggestion = React.forwardRef<
     }, [onClick, item.value, matchedPretext]);
 
     let labelName: React.ReactNode = item.type;
-    labelName = messages[item.type]
-        ? intl.formatMessage(messages[item.type])
-        : item.type;
+    labelName = messages[item.type] ?
+        intl.formatMessage(messages[item.type]) :
+        item.type;
 
     return (
         <SearchFileExtensionSuggestionContainer
             ref={ref}
-            className={isSelection ? "selected" : ""}
+            className={isSelection ? 'selected' : ''}
             onClick={optionClicked}
         >
             <div
-                className={"file-icon " + getCompassIconClassName(item.type)}
+                className={'file-icon ' + getCompassIconClassName(item.type)}
             />
             {labelName}
             <ExtensionText>{`(.${item.value})`}</ExtensionText>
         </SearchFileExtensionSuggestionContainer>
     );
 });
-SearchFileExtensionSuggestion.displayName = "SearchFileExtensionSuggestion";
+SearchFileExtensionSuggestion.displayName = 'SearchFileExtensionSuggestion';
 
 export default SearchFileExtensionSuggestion;

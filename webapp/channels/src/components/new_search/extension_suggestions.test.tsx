@@ -37,7 +37,7 @@ describe('components/new_search/ExtensionSuggestion', () => {
         const props = {...baseProps};
         renderWithContext(<ExtensionSuggestion {...props}/>);
         screen.getByText('test-type').click();
-        expect(props.onClick).toHaveBeenCalledWith('test-label', 'test');
+        expect(props.onClick).toHaveBeenCalledWith('test-value', 'test');
     });
 
     test('should have selected class whenever is selected', () => {

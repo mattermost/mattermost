@@ -85,7 +85,7 @@ export const getSelectedPost = createSelector(
         selectedPostId: Post['id'],
         selectedPost: Post,
         selectedPostChannelId: Channel['id'],
-        currentUserId
+        currentUserId,
     ): Post | FakePost => {
         if (selectedPost) {
             return selectedPost;
@@ -105,7 +105,7 @@ export const getSelectedPost = createSelector(
             user_id: currentUserId,
             reply_count: 0,
         };
-    }
+    },
 );
 
 export function getRhsState(state: GlobalState): RhsState {

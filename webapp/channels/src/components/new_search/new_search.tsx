@@ -177,7 +177,7 @@ const NewSearch = (): JSX.Element => {
             }
             openSearchBox();
         },
-        [openSearchBox]
+        [openSearchBox],
     );
 
     const runSearch = useCallback(
@@ -197,7 +197,7 @@ const NewSearch = (): JSX.Element => {
             setFocused(false);
             setCurrentChannel('');
         },
-        [pluginSearch]
+        [pluginSearch],
     );
 
     const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
@@ -207,40 +207,60 @@ const NewSearch = (): JSX.Element => {
             tabIndex={0}
             onKeyDown={openSearchBoxOnKeyPress}
             onClick={openSearchBox}
-            id="searchFormContainer"
-            role="search"
-            className="a11y__region"
+            id='searchFormContainer'
+            role='search'
+            className='a11y__region'
         >
-            <i className="icon icon-magnify" />
+            <i className='icon icon-magnify'/>
             {(searchType === 'messages' || searchType === 'files') && (
                 <SearchTypeBadge>
                     {searchType === 'messages' && (
-                        <FormattedMessage id="search_bar.search_types.messages" defaultMessage="MESSAGES" />
+                        <FormattedMessage
+                            id='search_bar.search_types.messages'
+                            defaultMessage='MESSAGES'
+                        />
                     )}
                     {searchType === 'files' && (
-                        <FormattedMessage id="search_bar.search_types.files" defaultMessage="FILES" />
+                        <FormattedMessage
+                            id='search_bar.search_types.files'
+                            defaultMessage='FILES'
+                        />
                     )}
-                    <i className="icon icon-close icon-12" onClick={clearSearchType} />
+                    <i
+                        className='icon icon-close icon-12'
+                        onClick={clearSearchType}
+                    />
                 </SearchTypeBadge>
             )}
             {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
             {searchTerms && (
                 <CloseIcon
-                    data-testid="input-clear"
-                    role="button"
+                    data-testid='input-clear'
+                    role='button'
                     onClick={() => {
                         dispatch(updateSearchType(''));
                         dispatch(updateSearchTerms(''));
                     }}
                 >
-                    <span className="input-clear-x" aria-hidden="true">
-                        <i className="icon icon-close-circle" />
+                    <span
+                        className='input-clear-x'
+                        aria-hidden='true'
+                    >
+                        <i className='icon icon-close-circle'/>
                     </span>
                 </CloseIcon>
             )}
-            {!searchTerms && <FormattedMessage id="search_bar.search" defaultMessage="Search" />}
+            {!searchTerms && (
+                <FormattedMessage
+                    id='search_bar.search'
+                    defaultMessage='Search'
+                />
+            )}
             {focused && (
-                <PopoverStyled id="searchPopover" placement="bottom">
+                <PopoverStyled
+                    id='searchPopover'
+                    placement='bottom'
+                >
                     <SearchBox
                         ref={searchBoxRef}
                         onClose={closeSearchBox}

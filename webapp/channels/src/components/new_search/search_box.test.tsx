@@ -16,6 +16,7 @@ describe('components/new_search/SearchBox', () => {
         onClose: jest.fn(),
         onSearch: jest.fn(),
         initialSearchTerms: '',
+        initialSearchType: 'messages',
     };
 
     test('should have the focus on the input field', () => {
