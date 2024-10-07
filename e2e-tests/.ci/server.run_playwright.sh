@@ -36,7 +36,8 @@ EOF
 # export DEBUG=pw:protocol,pw:browser,pw:api
 
 # Run Playwright test
-${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test -- ${TEST_FILTER}" | tee ../playwright/logs/playwright.log
+# NB: do not exit the script if some testcases fail
+${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test -- ${TEST_FILTER}" | tee ../playwright/logs/playwright.log || true
 
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
