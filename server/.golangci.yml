@@ -96,7 +96,6 @@ issues:
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction.go|\
-        channels/api4/reaction_test.go|\
         channels/api4/remote_cluster.go|\
         channels/api4/role.go|\
         channels/api4/role_test.go|\
