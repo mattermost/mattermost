@@ -1781,7 +1781,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.AmazonS3StorageClass == nil || *s.AmazonS3StorageClass == "" {
-		s.AmazonS3StorageClass = NewPointer("STANDARD")
+		s.AmazonS3StorageClass = NewPointer("")
 	}
 
 	if s.DedicatedExportStore == nil {
@@ -1851,7 +1851,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExportAmazonS3StorageClass == nil || *s.ExportAmazonS3StorageClass == "" {
-		s.ExportAmazonS3StorageClass = NewPointer("STANDARD")
+		s.ExportAmazonS3StorageClass = NewPointer("")
 	}
 }
 
