@@ -16,7 +16,7 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
 cd webapp/
 npm install --cache /tmp/empty-cache
 cd ../e2e-tests/playwright
-PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --cache /tmp/empty-cache
+npm install --cache /tmp/empty-cache
 EOF
 
 mme2e_log "Prepare Playwright: environment info"
