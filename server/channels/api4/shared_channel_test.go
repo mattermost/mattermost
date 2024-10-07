@@ -190,7 +190,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
-				require.NoError(t, err)
+			require.NoError(t, err)
 		}()
 
 		localUser := th.BasicUser
@@ -222,8 +222,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		client := th.Client
 		defer func() {
 			_, err := client.Logout(context.Background())
-				require.NoError(t, err)
-			}
+			require.NoError(t, err)
 		}()
 
 		localUser := th.BasicUser
