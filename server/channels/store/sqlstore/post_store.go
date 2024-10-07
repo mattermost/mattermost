@@ -2383,6 +2383,10 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		})
 	}
 
+	if options.UntilUpdateAt > 0 {
+		query = query.Where(sq.LtOrEq{"p.UpdateAt": options.UntilUpdateAt})
+	}
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "post_tosql")
