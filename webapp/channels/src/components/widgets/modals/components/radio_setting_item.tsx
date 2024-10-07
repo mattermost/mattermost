@@ -14,7 +14,6 @@ export type FieldsetRadio = {
         name: string;
         key: string;
         value: string;
-        suffix?: JSX.Element;
     }>;
 }
 
@@ -32,6 +31,7 @@ function RadioSettingItem({
     inputFieldData,
     inputFieldValue,
     handleChange,
+    dataTestId,
 }: Props): JSX.Element {
     const fields = inputFieldData.options.map((option) => {
         return (
@@ -49,7 +49,6 @@ function RadioSettingItem({
                     onChange={handleChange}
                 />
                 {option.title}
-                {option.suffix}
             </label>
         );
     });
@@ -61,6 +60,7 @@ function RadioSettingItem({
     );
     return (
         <BaseSettingItem
+            dataTestId={dataTestId}
             className={className}
             content={content}
             title={title}

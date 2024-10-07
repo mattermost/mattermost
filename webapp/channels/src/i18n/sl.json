@@ -720,7 +720,6 @@
   "create_post.send_message": "Pošlji sporočilo",
   "create_team.display_name.charLength": "Ime mora biti dolgo {min} ali več znakov do največ {max}. Dodate lahko daljši opis ekipe.",
   "delete_channel.del": "Arhivirano",
-  "delete_post.question": "Ali ste prepričani, da želite izbrisati {term}?",
   "device_icons.android": "Android ikona",
   "device_icons.apple": "Apple ikona",
   "device_icons.linux": "Linux ikona",

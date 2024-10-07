@@ -2443,7 +2443,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedTeamMemberEvent(member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2487,7 +2487,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedTeamMemberEvent(member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2831,13 +2831,10 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		return nil, err
 	}
 
-	opts := store.ThreadMembershipOpts{
-		Following:       true,
-		UpdateFollowing: true,
-	}
-	membership, storeErr := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
-	if storeErr != nil {
-		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	// If the thread doesn't have a membership, we shouldn't try to mark it as unread
+	membership, err := a.GetThreadMembershipForUser(userID, threadID)
+	if err != nil {
+		return nil, err
 	}
 
 	previousUnreadMentions := membership.UnreadMentions
