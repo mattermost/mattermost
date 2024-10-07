@@ -94,7 +94,6 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
                     id='admin.user_item.emailTitle_updated'
                     defaultMessage='**Email:** {email}'
                     values={{
-                        email: this.props.user.email,
                         email: <strong>{this.props.user.email}</strong>, // Ensure rich text formatting
                     }}
                 />
