@@ -105,7 +105,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
             } else {
                 modalMessage = (
                     <FormattedMessage
-                        id='leave_team_modal_guest_only_public.desc_updated'
+                        id='leave_team_modal_guest_only_public.description'
                         defaultMessage="You will be removed from <strong>{num_of_public_channels}</strong> public {num_of_public_channels,plural,one {channel} other {channels}} on this team. You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
