@@ -112,7 +112,7 @@
 
         ##### Permissions
 
-        Must have `create_post` permission for the channel the where the scheduled post belongs to.
+        Must have `create_post` permission for the channel where the scheduled post belongs to.
 
         __Minimum server version__: 10.3
       operationId: UpdateScheduledPost
