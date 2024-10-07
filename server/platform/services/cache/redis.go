@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -58,24 +59,67 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Set", elapsed)
 		}
 	}()
-	var buf []byte
-	var err error
-	// We use a fast path for hot structs.
-	if msgpVal, ok := value.(msgp.Marshaler); ok {
-		buf, err = msgpVal.MarshalMsg(nil)
+
+	var valueString string
+	if intVal, ok := value.(int64); ok {
+		valueString = strconv.Itoa(int(intVal))
 	} else {
-		// Slow path for other structs.
-		buf, err = msgpack.Marshal(value)
-	}
-	if err != nil {
-		return err
+		var buf []byte
+		var err error
+		// We use a fast path for hot structs.
+		if msgpVal, ok := value.(msgp.Marshaler); ok {
+			buf, err = msgpVal.MarshalMsg(nil)
+		} else {
+			// Slow path for other structs.
+			buf, err = msgpack.Marshal(value)
+		}
+		if err != nil {
+			return err
+		}
+		valueString = rueidis.BinaryString(buf)
 	}
 
 	return r.client.Do(context.Background(),
 		r.client.B().Set().
 			Key(r.name+":"+key).
-			Value(rueidis.BinaryString(buf)).
+			Value(valueString).
 			Ex(ttl).
+			Build(),
+	).Error()
+}
+
+// Increment increments the value of the key by the value.
+func (r *Redis) Increment(key string, val int) error {
+	now := time.Now()
+	defer func() {
+		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Incr", elapsed)
+		}
+	}()
+
+	return r.client.Do(context.Background(),
+		r.client.B().Incrby().
+			Key(r.name+":"+key).
+			Increment(int64(val)).
+			Build(),
+	).Error()
+}
+
+// Decrement decrements the value of the key by the value.
+func (r *Redis) Decrement(key string, val int) error {
+	now := time.Now()
+	defer func() {
+		if r.metrics != nil {
+			elapsed := time.Since(now).Seconds()
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Decr", elapsed)
+		}
+	}()
+
+	return r.client.Do(context.Background(),
+		r.client.B().Decrby().
+			Key(r.name+":"+key).
+			Decrement(int64(val)).
 			Build(),
 	).Error()
 }
@@ -90,12 +134,23 @@ func (r *Redis) Get(key string, value any) error {
 			r.metrics.ObserveRedisEndpointDuration(r.name, "Get", elapsed)
 		}
 	}()
-	val, err := r.client.DoCache(context.Background(),
+
+	resp := r.client.DoCache(context.Background(),
 		r.client.B().Get().
 			Key(r.name+":"+key).
 			Cache(),
 		clientSideTTL,
-	).AsBytes()
+	)
+
+	var intVal int64
+	var bytesVal []byte
+	var err error
+	vPtr, ok := value.(*int64)
+	if ok {
+		intVal, err = resp.AsInt64()
+	} else {
+		bytesVal, err = resp.AsBytes()
+	}
 	if err != nil {
 		if rueidis.IsRedisNil(err) {
 			return ErrKeyNotFound
@@ -103,9 +158,14 @@ func (r *Redis) Get(key string, value any) error {
 		return err
 	}
 
+	if ok {
+		*vPtr = intVal
+		return nil
+	}
+
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
-		_, err := msgpVal.UnmarshalMsg(val)
+		_, err := msgpVal.UnmarshalMsg(bytesVal)
 		return err
 	}
 
@@ -120,20 +180,16 @@ func (r *Redis) Get(key string, value any) error {
 	switch v := value.(type) {
 	case **model.User:
 		var u model.User
-		_, err := u.UnmarshalMsg(val)
+		_, err := u.UnmarshalMsg(bytesVal)
 		*v = &u
-		return err
-	case *map[string]*model.User:
-		var u model.UserMap
-		_, err := u.UnmarshalMsg(val)
-		*v = u
 		return err
 	}
 
 	// Slow path for other structs.
-	return msgpack.Unmarshal(val, value)
+	return msgpack.Unmarshal(bytesVal, value)
 }
 
+// GetMulti uses the MGET primitive to fetch multiple keys in a single operation.
 func (r *Redis) GetMulti(keys []string, values []any) []error {
 	now := time.Now()
 	defer func() {
@@ -167,21 +223,35 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 		return errs
 	}
 
-	for i, val := range vals {
-		if val.IsNil() {
+	for i, resp := range vals {
+		if resp.IsNil() {
 			errs[i] = ErrKeyNotFound
 			continue
 		}
 
-		buf, err := val.AsBytes()
+		var intVal int64
+		var bytesVal []byte
+		var err error
+		vPtr, ok := values[i].(*int64)
+		if ok {
+			intVal, err = resp.AsInt64()
+		} else {
+			bytesVal, err = resp.AsBytes()
+		}
 		if err != nil {
 			errs[i] = err
 			continue
 		}
 
+		if ok {
+			*vPtr = intVal
+			errs[i] = nil
+			continue
+		}
+
 		// We use a fast path for hot structs.
 		if msgpVal, ok := values[i].(msgp.Unmarshaler); ok {
-			_, err := msgpVal.UnmarshalMsg(buf)
+			_, err := msgpVal.UnmarshalMsg(bytesVal)
 			errs[i] = err
 			continue
 		}
@@ -189,20 +259,14 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 		switch v := values[i].(type) {
 		case **model.User:
 			var u model.User
-			_, err := u.UnmarshalMsg(buf)
+			_, err := u.UnmarshalMsg(bytesVal)
 			*v = &u
-			errs[i] = err
-			continue
-		case *map[string]*model.User:
-			var u model.UserMap
-			_, err := u.UnmarshalMsg(buf)
-			*v = u
 			errs[i] = err
 			continue
 		}
 
 		// Slow path for other structs.
-		errs[i] = msgpack.Unmarshal(buf, values[i])
+		errs[i] = msgpack.Unmarshal(bytesVal, values[i])
 	}
 
 	return errs
@@ -280,27 +344,6 @@ func (r *Redis) Scan(f func([]string) error) error {
 		}
 	}
 	return nil
-}
-
-// Len returns the number of items in the cache.
-func (r *Redis) Len() (int, error) {
-	now := time.Now()
-	defer func() {
-		if r.metrics != nil {
-			elapsed := time.Since(now).Seconds()
-			r.metrics.ObserveRedisEndpointDuration(r.name, "Len", elapsed)
-		}
-	}()
-	// TODO: migrate to scan
-	keys, err := r.client.Do(context.Background(),
-		r.client.B().Keys().
-			Pattern(r.name+":*").
-			Build(),
-	).AsStrSlice()
-	if err != nil {
-		return 0, err
-	}
-	return len(keys), nil
 }
 
 // GetInvalidateClusterEvent returns the cluster event configured when this cache was created.

@@ -322,7 +322,6 @@ func TestGetClientConfig(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
 			t.Parallel()
 
@@ -414,7 +413,6 @@ func TestGetLimitedClientConfig(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
 			t.Parallel()
 

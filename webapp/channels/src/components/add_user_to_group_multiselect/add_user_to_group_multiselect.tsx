@@ -196,8 +196,8 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
     };
 
     public render = (): JSX.Element => {
-        const buttonSubmitText = this.props.buttonSubmitText || localizeMessage('multiselect.createGroup', 'Create Group');
-        const buttonSubmitLoadingText = this.props.buttonSubmitLoadingText || localizeMessage('multiselect.creating', 'Creating...');
+        const buttonSubmitText = this.props.buttonSubmitText || localizeMessage({id: 'multiselect.createGroup', defaultMessage: 'Create Group'});
+        const buttonSubmitLoadingText = this.props.buttonSubmitLoadingText || localizeMessage({id: 'multiselect.creating', defaultMessage: 'Creating...'});
 
         let users = filterProfilesStartingWithTerm(this.props.profiles, this.state.term).filter((user) => {
             return user.delete_at === 0 &&
@@ -214,7 +214,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
 
         if (this.state.values.length >= MAX_SELECTABLE_VALUES) {
             maxValues = MAX_SELECTABLE_VALUES;
-            numRemainingText = localizeMessage('multiselect.maxGroupMembers', 'No more than 256 members can be added to a group at once.');
+            numRemainingText = localizeMessage({id: 'multiselect.maxGroupMembers', defaultMessage: 'No more than 256 members can be added to a group at once.'});
         }
 
         return (
@@ -237,7 +237,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.props.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={localizeMessage('multiselect.placeholder', 'Search for people')}
+                placeholderText={localizeMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
                 valueWithImage={true}
                 focusOnLoad={this.props.focusOnLoad}
                 savingEnabled={this.props.savingEnabled}
