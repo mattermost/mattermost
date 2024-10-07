@@ -7,7 +7,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-const emptyList: any[] = [];
+const emptyList: string[] = [];
 
 export type ChannelScheduledPostIndicatorData = {
     scheduledPost?: ScheduledPost;

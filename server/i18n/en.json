@@ -2824,7 +2824,7 @@
   },
   {
     "id": "api.scheduled_posts.license_error",
-    "translation": "scheduled posts feature requires a license"
+    "translation": "Scheduled posts feature requires a license"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
