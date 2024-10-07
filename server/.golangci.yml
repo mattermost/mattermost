@@ -104,7 +104,7 @@ issues:
         channels/api4/shared_channel_test.go|\
         channels/api4/status.go|\
         channels/api4/status_test.go|\
-        channels/api4/system.go|\
+        channels/api4/system_local.go|\
         channels/api4/system_test.go|\
         channels/api4/team.go|\
         channels/api4/team_local.go|\
