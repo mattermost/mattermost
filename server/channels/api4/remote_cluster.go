@@ -126,7 +126,10 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -235,7 +238,11 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error while reading request body", mlog.Err(err))
+		}
+	}()
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -344,7 +351,10 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Err = model.NewAppError("getRemoteClusters", "api.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -423,7 +433,10 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Err = model.NewAppError("createRemoteCluster", "api.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Request) {

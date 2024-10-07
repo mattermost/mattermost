@@ -4363,6 +4363,10 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "api.write_error",
+    "translation": "Failed to write response."
+  },
+  {
     "id": "api4.plugin.reattachPlugin.invalid_request",
     "translation": "Failed to parse request"
   },
