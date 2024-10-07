@@ -54,7 +54,9 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
+	if _, err := io.Copy(buf, file); err != nil {
+		c.Logger.Warn("Failed to copy file content to buffer", mlog.Err(err))
+	}
 
 	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
