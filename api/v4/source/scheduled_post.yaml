@@ -70,7 +70,7 @@
 
         ##### Permissions
 
-        Must have `access_team` permission for the team the scheduled posts are being fetched for.
+        Must have `view_team` permission for the team the scheduled posts are being fetched for.
 
         __Minimum server version__: 10.3
       operationId: GetUserScheduledPosts
