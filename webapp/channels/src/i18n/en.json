@@ -3350,7 +3350,6 @@
   "create_category_modal.create": "Create",
   "create_category_modal.createCategory": "Create New Category",
   "create_comment.addComment": "Reply to this thread...",
-  "create_comment.commentTitle": "Comment",
   "create_group_memberships_modal.cancel": "No",
   "create_group_memberships_modal.create": "Yes",
   "create_group_memberships_modal.desc": "You're about to add or re-add {username} to teams and channels based on their LDAP group membership. You can revert this change at any time.",
