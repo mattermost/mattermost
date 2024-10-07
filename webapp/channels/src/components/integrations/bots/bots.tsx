@@ -13,7 +13,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -236,9 +235,12 @@ export default class Bots extends React.PureComponent<Props, State> {
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
-                        id='bots.manage.emptySearch'
-                        defaultMessage='No bot accounts match **{searchTerm}**'
+                    <FormattedMessage
+                        id='bots.emptySearch'
+                        defaultMessage='No bot accounts match <b>{searchTerm}</b>'
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                 }
                 helpText={
@@ -260,11 +262,16 @@ export default class Bots extends React.PureComponent<Props, State> {
                                 ),
                             }}
                         />
-                        <FormattedMarkdownMessage
-                            id='bots.manage.help2'
-                            defaultMessage={'Enable bot account creation in the [System Console]({siteURL}/admin_console/integrations/bot_accounts).'}
+                        <FormattedMessage
+                            id='bots.help2'
+                            defaultMessage={'Enable bot account creation in the <a>System Console</a>.'}
                             values={{
-                                siteURL: getSiteURL(),
+                                a: (chunks: string) => (
+                                    <a
+                                        href={`${getSiteURL()}/admin_console/integrations/bot_accounts`}
+                                    >
+                                        {chunks}
+                                    </a>),
                             }}
                         />
                     </React.Fragment>
