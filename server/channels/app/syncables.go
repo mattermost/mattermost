@@ -257,10 +257,10 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
+func (a *App) SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	appErr := a.SyncSyncableRoles(syncableID, syncableType)
 	if appErr != nil {
-		rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
+		c.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
 	}
 
 	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
@@ -274,19 +274,19 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
 		params.ScopedTeamID = &syncableID
-		if err := a.createDefaultTeamMemberships(rctx, params); err != nil {
-			rctx.Logger().Warn("Error creating default team memberships", mlog.Err(err))
+		if err := a.createDefaultTeamMemberships(c, params); err != nil {
+			c.Logger().Warn("Error creating default team memberships", mlog.Err(err))
 		}
-		if err := a.deleteGroupConstrainedTeamMemberships(rctx, &syncableID); err != nil {
-			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
+		if err := a.deleteGroupConstrainedTeamMemberships(c, &syncableID); err != nil {
+			c.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
 		}
 	case model.GroupSyncableTypeChannel:
 		params.ScopedChannelID = &syncableID
-		if err := a.createDefaultChannelMemberships(rctx, params); err != nil {
-			rctx.Logger().Warn("Error creating default channel memberships", mlog.Err(err))
+		if err := a.createDefaultChannelMemberships(c, params); err != nil {
+			c.Logger().Warn("Error creating default channel memberships", mlog.Err(err))
 		}
-		if err := a.deleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
-			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
+		if err := a.deleteGroupConstrainedChannelMemberships(c, &syncableID); err != nil {
+			c.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
 		}
 	}
 }
