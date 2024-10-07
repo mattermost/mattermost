@@ -23,11 +23,12 @@ import {hasRequestedPersistentNotifications, mentionsMinusSpecialMentionsInText,
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import type {EditorContext} from './advanced_text_editor';
 import PriorityLabels from './priority_labels';
 
 const usePriority = (
+    editor: EditorContext,
     draft: PostDraft,
-    handleDraftChange: (draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
 ) => {
@@ -78,33 +79,21 @@ const usePriority = (
         return mentions.length > 0;
     }, [hasPrioritySet, draft, channelType, hasSpecialMentions]);
 
-    const handlePostPriorityApply = useCallback((settings?: PostPriorityMetadata) => {
-        const updatedDraft = {
-            ...draft,
-        };
+    const {setPriority} = editor;
+    const handlePostPriorityApply = useCallback((settings: PostPriorityMetadata) => {
+        setPriority(settings);
 
-        if (settings?.priority || settings?.requested_ack) {
-            updatedDraft.metadata = {
-                priority: {
-                    ...settings,
-                    priority: settings!.priority || '',
-                    requested_ack: settings!.requested_ack,
-                },
-            };
-        } else {
-            updatedDraft.metadata = {};
-        }
-
-        handleDraftChange(updatedDraft, {instant: true});
         focusTextbox();
-    }, [focusTextbox, draft, handleDraftChange]);
+    }, [focusTextbox, setPriority]);
 
     const handlePostPriorityHide = useCallback(() => {
         focusTextbox(true);
     }, [focusTextbox]);
 
     const handleRemovePriority = useCallback(() => {
-        handlePostPriorityApply();
+        handlePostPriorityApply({
+            priority: '',
+        });
     }, [handlePostPriorityApply]);
 
     const showPersistNotificationModal = useCallback((message: string, specialMentions: {[key: string]: boolean}, channelType: Channel['type'], onConfirm: () => void) => {

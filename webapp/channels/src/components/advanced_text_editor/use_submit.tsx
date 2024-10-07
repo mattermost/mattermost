@@ -32,6 +32,7 @@ import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from '
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import type {EditorContext} from './advanced_text_editor';
 import useGroups from './use_groups';
 
 function getStatusFromSlashCommand(message: string) {
@@ -49,6 +50,7 @@ function getStatusFromSlashCommand(message: string) {
 }
 
 const useSubmit = (
+    editor: EditorContext,
     draft: PostDraft,
     postError: React.ReactNode,
     channelId: string,
@@ -58,7 +60,8 @@ const useSubmit = (
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
     setShowPreview: (showPreview: boolean) => void,
-    handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
+
+    // handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
     afterOptimisticSubmit?: () => void,
     afterSubmit?: (response: SubmitPostReturnType) => void,
@@ -118,6 +121,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
+    const {clear: clearDraft} = editor;
     const doSubmit = useCallback(async (submittingDraft = draft) => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
@@ -165,20 +169,9 @@ const useSubmit = (
             }
 
             setServerError(null);
-            handleDraftChange({
-                message: '',
-                fileInfos: [],
-                uploadsInProgress: [],
-                createAt: 0,
-                updateAt: 0,
-                channelId,
-                rootId: postId,
-            }, {instant: true});
+            clearDraft();
         } catch (err: unknown) {
             if (isServerError(err)) {
-                if (isErrorInvalidSlashCommand(err)) {
-                    handleDraftChange(submittingDraft, {instant: true});
-                }
                 setServerError({
                     ...err,
                     submittedMessage: submittingDraft.message,
@@ -195,7 +188,9 @@ const useSubmit = (
         }
 
         isDraftSubmitting.current = false;
-    }, [draft,
+    }, [
+        clearDraft,
+        draft,
         postError,
         isRootDeleted,
         serverError,
@@ -208,7 +203,6 @@ const useSubmit = (
         postId,
         showPostDeletedModal,
         dispatch,
-        handleDraftChange,
         channelId,
     ]);
 
@@ -284,10 +278,7 @@ const useSubmit = (
 
                 dispatch(openModal(resetStatusModalData));
 
-                handleDraftChange({
-                    ...submittingDraft,
-                    message: '',
-                });
+                clearDraft();
                 isDraftSubmitting.current = false;
                 return;
             }
@@ -301,10 +292,7 @@ const useSubmit = (
 
                 dispatch(openModal(editChannelHeaderModalData));
 
-                handleDraftChange({
-                    ...submittingDraft,
-                    message: '',
-                });
+                clearDraft();
                 isDraftSubmitting.current = false;
                 return;
             }
@@ -318,10 +306,7 @@ const useSubmit = (
 
                 dispatch(openModal(editChannelPurposeModalData));
 
-                handleDraftChange({
-                    ...submittingDraft,
-                    message: '',
-                });
+                clearDraft();
                 isDraftSubmitting.current = false;
                 return;
             }
@@ -329,6 +314,7 @@ const useSubmit = (
 
         await doSubmit(submittingDraft);
     }, [
+        clearDraft,
         doSubmit,
         draft,
         isDirectOrGroup,
@@ -338,7 +324,6 @@ const useSubmit = (
         dispatch,
         enableConfirmNotificationsToChannel,
         skipCommands,
-        handleDraftChange,
         showNotifyAllModal,
         useChannelMentions,
         userIsOutOfOffice,

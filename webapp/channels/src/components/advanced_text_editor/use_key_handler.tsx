@@ -26,9 +26,12 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import type {EditorContext} from './advanced_text_editor';
+
 const KeyCodes = Constants.KeyCodes;
 
 const useKeyHandler = (
+    editor: EditorContext,
     draft: PostDraft,
     channelId: string,
     postId: string,
@@ -82,17 +85,15 @@ const useKeyHandler = (
         }
     }, [focusTextbox, channelId, postId, dispatch]);
 
+    const {overwriteMessage: setDraftMessage} = editor;
     const loadPrevMessage = useCallback((e: React.KeyboardEvent) => {
         e.preventDefault();
         if (messageHistoryIndex.current === 0) {
             return;
         }
         messageHistoryIndex.current -= 1;
-        handleDraftChange({
-            ...draft,
-            message: messageHistory[messageHistoryIndex.current] || '',
-        });
-    }, [draft, handleDraftChange, messageHistory]);
+        setDraftMessage(messageHistory[messageHistoryIndex.current] || '');
+    }, [messageHistory, setDraftMessage]);
 
     const loadNextMessage = useCallback((e: React.KeyboardEvent) => {
         e.preventDefault();
@@ -100,11 +101,8 @@ const useKeyHandler = (
             return;
         }
         messageHistoryIndex.current += 1;
-        handleDraftChange({
-            ...draft,
-            message: messageHistory[messageHistoryIndex.current] || '',
-        });
-    }, [draft, handleDraftChange, messageHistory]);
+        setDraftMessage(messageHistory[messageHistoryIndex.current] || '');
+    }, [messageHistory, setDraftMessage]);
 
     const postMsgKeyPress = useCallback((e: React.KeyboardEvent<TextboxElement>) => {
         const {allowSending, withClosedCodeBlock, ignoreKeyPress, message} = postMessageOnKeyPress(

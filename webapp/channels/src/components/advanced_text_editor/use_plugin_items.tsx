@@ -9,10 +9,12 @@ import type TextboxClass from 'components/textbox/textbox';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import type {EditorContext} from './advanced_text_editor';
+
 const usePluginItems = (
+    editor: EditorContext,
     draft: PostDraft,
     textboxRef: React.RefObject<TextboxClass>,
-    handleDraftChange: (draft: PostDraft) => void,
 ) => {
     const postEditorActions = useSelector((state: GlobalState) => state.plugins.components.PostEditorAction);
 
@@ -25,15 +27,7 @@ const usePluginItems = (
         };
     }, [textboxRef]);
 
-    const updateText = useCallback((message: string) => {
-        handleDraftChange({
-            ...draft,
-            message,
-        });
-
-        // Missing setting the state eventually?
-    }, [handleDraftChange, draft]);
-
+    const {overwriteMessage: setMessage} = editor;
     const items = useMemo(() => postEditorActions?.map((item) => {
         if (!item.component) {
             return null;
@@ -45,10 +39,10 @@ const usePluginItems = (
                 key={item.id}
                 draft={draft}
                 getSelectedText={getSelectedText}
-                updateText={updateText}
+                updateText={setMessage}
             />
         );
-    }), [postEditorActions, draft, getSelectedText, updateText]);
+    }), [postEditorActions, draft, getSelectedText, setMessage]);
 
     return items;
 };

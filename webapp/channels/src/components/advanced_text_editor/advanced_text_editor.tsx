@@ -4,9 +4,10 @@
 import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
@@ -97,6 +98,8 @@ const AdvancedTextEditor = ({
     const {formatMessage} = useIntl();
 
     const dispatch = useDispatch();
+
+    const {editor} = useDraftEditor(channelId, postId);
 
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
@@ -224,7 +227,7 @@ const AdvancedTextEditor = ({
     }, [currentUserId, isRHS, isFormattingBarHidden, dispatch]);
 
     useOrientationHandler(textboxRef, postId);
-    const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
+    const pluginItems = usePluginItems(editor, draft, textboxRef);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(postId, channelId, isThreadView, readOnlyChannel, textboxRef, focusTextbox, setServerError);
     const {
@@ -237,8 +240,9 @@ const AdvancedTextEditor = ({
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
+    } = usePriority(editor, draft, focusTextbox, showPreview);
     const [handleSubmit, errorClass] = useSubmit(
+        editor,
         draft,
         postError,
         channelId,
@@ -248,12 +252,12 @@ const AdvancedTextEditor = ({
         focusTextbox,
         setServerError,
         setShowPreview,
-        handleDraftChange,
         prioritySubmitCheck,
         undefined,
         afterSubmit,
     );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
+        editor,
         draft,
         channelId,
         postId,
@@ -345,11 +349,9 @@ const AdvancedTextEditor = ({
         setCaretPosition((e.target as TextboxElement).selectionStart || 0);
     }, []);
 
+    const {overwriteMessage: setDraftMessage} = editor;
     const prefillMessage = useCallback((message: string, shouldFocus?: boolean) => {
-        handleDraftChange({
-            ...draft,
-            message,
-        });
+        setDraftMessage(message);
         setCaretPosition(message.length);
 
         if (shouldFocus) {
@@ -357,7 +359,7 @@ const AdvancedTextEditor = ({
             inputBox?.click();
             focusTextbox(true);
         }
-    }, [handleDraftChange, focusTextbox, draft, textboxRef]);
+    }, [focusTextbox, setDraftMessage, textboxRef]);
 
     // Update the caret position in the input box when changed by a side effect
     useEffect(() => {
@@ -676,3 +678,101 @@ const AdvancedTextEditor = ({
 };
 
 export default AdvancedTextEditor;
+
+export interface EditorContext {
+    clear(): void;
+    overwriteMessage(message: string): void;
+    setPriority(priority: PostPriorityMetadata): void;
+
+    // addTextAtCaret(toAdd: string): void;
+}
+
+function useDraftEditor(channelId: string, rootId: string): {draft: PostDraft; editor: EditorContext} {
+    const getDraftSelector = useMemo(makeGetDraft, []);
+    const [draft, setDraft, reloadDraft] = useStateFromSelector2((state) => getDraftSelector(state, channelId, rootId));
+
+    useEffect(() => {
+        reloadDraft();
+
+        // reloadDraft is stable
+    }, [channelId, rootId]);
+
+    const clear = useCallback(() => {
+        setDraft({
+            channelId,
+            rootId,
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+            createAt: 0,
+            updateAt: 0,
+        });
+
+        // setDraft is stable
+    }, [channelId, rootId]);
+
+    const overwriteMessage = useCallback((message: string) => {
+        setDraft((oldDraft: PostDraft) => ({
+            ...oldDraft,
+            message,
+        }));
+
+        // setDraft is stable
+    }, []);
+
+    const setPriority = useCallback((priority: PostPriorityMetadata) => {
+        setDraft((oldDraft: PostDraft) => ({
+            ...oldDraft,
+            metadata: {
+                ...oldDraft.metadata,
+                priority,
+            },
+        }));
+
+        // setDraft is stable
+    }, []);
+
+    return {
+
+        // draft,
+
+        editor: useMemo(() => ({
+            clear,
+            overwriteMessage,
+            setPriority,
+        }), [clear, overwriteMessage, setPriority]),
+    };
+}
+
+// const editorContext = React.createContext<EditorContext>(null as any);
+
+// function useStateFromSelector1<TState = GlobalState, TDependencies extends unknown[] = unknown[], TSelected = unknown>(
+//     selector: (state: TState, ...dependencies: TDependencies) => TSelected, dependencies: TDependencies,
+// ): [TSelected, React.Dispatch<React.SetStateAction<TSelected>>] {
+//     const store = useStore();
+//     const [value, setValue] = useState(() => selector(store.getState(), ...dependencies));
+
+//     const mounted = useRef(false);
+//     useEffect(() => {
+//         if (mounted.current) {
+//             setValue(selector(store.getState(), ...dependencies));
+//         } else {
+//             mounted.current = true;
+//         }
+//     }, dependencies);
+
+//     return [value, setValue];
+// }
+
+function useStateFromSelector2<TState = GlobalState, TSelected = unknown>(
+    selector: (state: TState) => TSelected,
+): [TSelected, React.Dispatch<React.SetStateAction<TSelected>>, () => void] {
+    const store = useStore();
+    const [value, setValue] = useState(() => selector(store.getState()));
+
+    const reloadValue = useCallback(() => {
+        setValue(() => selector(store.getState()));
+    }, [selector, store]);
+
+    return [value, setValue, reloadValue];
+}
