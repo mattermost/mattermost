@@ -714,8 +714,10 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 	require.Contains(t, rows[0].Ids, olderPost.Id)
 
 	for _, row := range rows {
-		err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+		var deleted int64
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 		require.NoError(t, err)
+		require.Equal(t, int64(2), deleted)
 	}
 
 	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -982,7 +984,7 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    testUserID,
 			PostId:    post.Id,
 			EmojiName: testEmojiName,
-			RemoteId:  model.NewString(testRemoteID),
+			RemoteId:  model.NewPointer(testRemoteID),
 		}
 
 		_, nErr := ss.Reaction().Save(reaction)
@@ -1007,7 +1009,7 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    testUserID,
 			PostId:    post.Id,
 			EmojiName: testEmojiName,
-			RemoteId:  model.NewString(testRemoteID),
+			RemoteId:  model.NewPointer(testRemoteID),
 		}
 
 		_, nErr := ss.Reaction().Save(reaction)

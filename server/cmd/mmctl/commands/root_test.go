@@ -7,8 +7,11 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"testing"
 
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 )
 
 func executeRawCommand(root *cobra.Command, args string) (c *cobra.Command, output string, err error) {
@@ -18,6 +21,16 @@ func executeRawCommand(root *cobra.Command, args string) (c *cobra.Command, outp
 	RootCmd.SetArgs(strings.Split(args, " "))
 	c, err = RootCmd.ExecuteC()
 	return c, actual.String(), err
+}
+
+func TestRootRecover(t *testing.T) {
+	printPanic("some panic")
+
+	lines := printer.GetErrorLines()
+	assert.Equal(t, "Uh oh! Something unexpected happened :( Would you mind reporting it?", lines[0])
+	assert.True(t, strings.HasPrefix(lines[1], "https://github.com/mattermost/mattermost/issues/new?body="))
+	assert.Equal(t, "some panic", lines[2])
+	assert.True(t, strings.HasPrefix(lines[3], "goroutine "))
 }
 
 func (s *MmctlUnitTestSuite) TestArgumentsHaveWhitespaceTrimmed() {

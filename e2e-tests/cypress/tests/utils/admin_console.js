@@ -80,8 +80,8 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['team', 'e20', 'cloud_enterprise'],
-        header: 'System Roles',
-        sidebar: 'System Roles',
+        header: 'Delegated Granular Administration',
+        sidebar: 'Delegated Granular Administration',
         url: 'admin_console/user_management/system_roles',
     },
     {
@@ -307,8 +307,8 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['team', 'e20', 'cloud_enterprise'],
-        header: 'GIF (Beta)',
-        sidebar: 'GIF (Beta)',
+        header: 'GIF',
+        sidebar: 'GIF',
         url: 'admin_console/integrations/gif',
     },
     {

@@ -64,12 +64,12 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 		return err
 	}
 
+	defer a.Srv().Store().User().InvalidateProfileCacheForUser(user.Id)
+
 	if err := users.CheckUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
-
-		a.InvalidateCacheForUser(user.Id)
 
 		var invErr *users.ErrInvalidPassword
 		switch {
@@ -89,16 +89,12 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 			}
 		}
 
-		a.InvalidateCacheForUser(user.Id)
-
 		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
-
-	a.InvalidateCacheForUser(user.Id)
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
@@ -212,7 +208,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

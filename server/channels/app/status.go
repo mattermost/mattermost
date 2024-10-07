@@ -50,6 +50,10 @@ func (a *App) SetStatusOutOfOffice(userID string) {
 	a.Srv().Platform().SetStatusOutOfOffice(userID)
 }
 
+func (a *App) SaveAndBroadcastStatus(status *model.Status) {
+	a.Srv().Platform().SaveAndBroadcastStatus(status)
+}
+
 func (a *App) GetStatusFromCache(userID string) *model.Status {
 	return a.Srv().Platform().GetStatusFromCache(userID)
 }
@@ -66,9 +70,14 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 		return
 	}
+
+	scs, _ := a.getSharedChannelsService()
 	for i := range statuses {
 		a.Srv().Platform().AddStatusCache(statuses[i])
 		a.Srv().Platform().BroadcastStatus(statuses[i])
+		if scs != nil {
+			scs.NotifyUserStatusChanged(statuses[i])
+		}
 	}
 }
 

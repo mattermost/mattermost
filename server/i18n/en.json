@@ -1282,10 +1282,6 @@
     "translation": "[action]"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation from secure connection"
   },
@@ -1343,7 +1339,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -1790,6 +1786,10 @@
     "translation": "Secure connection ID missing."
   },
   {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Unable to process request. Request body too large."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
@@ -2145,6 +2145,10 @@
     "translation": "Invalid team id provided."
   },
   {
+    "id": "api.get_site_url_error",
+    "translation": "Could not get the instance site url"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -2445,6 +2449,10 @@
     "translation": "Unable to open file in multipart/form request."
   },
   {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
+  },
+  {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request."
   },
@@ -2727,12 +2735,36 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
     "id": "api.remote_cluster.delete.app_error",
     "translation": "We encountered an error deleting the secure connection."
   },
   {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Cannot generate invite code for a confirmed cluster"
+  },
+  {
     "id": "api.remote_cluster.get.app_error",
     "translation": "We encountered an error retrieving a secure connection."
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -2741,6 +2773,10 @@
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
   },
   {
     "id": "api.remote_cluster.save.app_error",
@@ -2847,6 +2883,22 @@
     "translation": "Error starting server, err:%v"
   },
   {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Could not fetch shared channel remotes"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Could not determine if channel is shared with the remote"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Could not invite remote to channel"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Could not uninvite remote to channel"
+  },
+  {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
@@ -2937,6 +2989,10 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -3707,6 +3763,10 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "Unable to upload file. File is too large."
   },
@@ -4035,6 +4095,10 @@
     "translation": "AD/LDAP not available on this server."
   },
   {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "User is not an OAuth or SAML user."
+  },
+  {
     "id": "api.user.oauth_to_email.context.app_error",
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
@@ -4141,6 +4205,10 @@
   {
     "id": "api.user.update_password.oauth.app_error",
     "translation": "Update password failed because the user is logged in through an OAuth service."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -5091,6 +5159,10 @@
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
+  },
+  {
     "id": "app.import.emoji.bad_file.error",
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
@@ -5129,6 +5201,14 @@
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Failed to create group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "There are no members for the direct channel"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -6155,6 +6235,10 @@
     "translation": "You cannot update an existing Post."
   },
   {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Unable to save thread membership for post."
+  },
+  {
     "id": "app.post.search.app_error",
     "translation": "Error searching posts"
   },
@@ -6415,6 +6499,10 @@
     "translation": "Unable to update existing session."
   },
   {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
+  },
+  {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
   },
@@ -6649,6 +6737,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Unable to get thread members for export."
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
@@ -7005,6 +7097,10 @@
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
     "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
@@ -7407,10 +7503,6 @@
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decoding of the CA for Elasticsearch failed"
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Could not open the CA file for Elasticsearch"
   },
@@ -7615,20 +7707,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Failed to get Elasticsearch server version."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse Elasticsearch server version."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -8503,6 +8587,10 @@
     "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache type must be either lru or redis."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -8583,6 +8671,10 @@
     "translation": "Ignored indexes for purge should not start with dash."
   },
   {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
   },
@@ -8609,6 +8701,10 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Invalid connection security for email settings. Must be '', 'TLS', or 'STARTTLS'."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress must be specified for redis cache type."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -8649,6 +8745,10 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB must have a value greater or equal to zero."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -8733,6 +8833,10 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -9451,6 +9555,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Invalid value for limit_visible_dms_gms."
+  },
+  {
     "id": "model.preference.is_valid.name.app_error",
     "translation": "Invalid name."
   },
@@ -9573,6 +9681,14 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -9753,6 +9869,14 @@
   {
     "id": "model.user.is_valid.username.app_error",
     "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -9968,11 +10092,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

@@ -5,17 +5,12 @@ package app
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-)
-
-const (
-	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
 
 func (ch *Channels) License() *model.License {

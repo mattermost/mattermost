@@ -17,13 +17,13 @@ import (
 )
 
 func (api *API) InitJob() {
-	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updateJobStatus)).Methods("PATCH")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods(http.MethodPost)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods(http.MethodPost)
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updateJobStatus)).Methods(http.MethodPatch)
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -210,7 +210,9 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -241,7 +243,9 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {

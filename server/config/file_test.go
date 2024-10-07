@@ -476,7 +476,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
+		newCfg.LdapSettings.BindPassword = model.NewPointer(model.FakeSetting)
 
 		_, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
@@ -490,7 +490,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
@@ -506,7 +506,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newReadOnlyConfig := readOnlyConfig.Clone()
 		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
-			SiteURL: model.NewString("http://test"),
+			SiteURL: model.NewPointer("http://test"),
 		}
 		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
@@ -565,7 +565,7 @@ func TestFileStoreSet(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -911,7 +911,7 @@ func TestFileStoreLoad(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -934,7 +934,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewString("http://new"),
+			SiteURL: model.NewPointer("http://new"),
 		},
 	}
 
