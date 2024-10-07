@@ -7,7 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -20,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -4351,7 +4351,7 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 
 	// Update SchemeAdmin field as the data from the SQL is not updated yet
 	for _, member := range updatedMembers {
-		if slices.Contains(adminIDs, member.UserId) {
+		if utils.Contains(adminIDs, member.UserId) {
 			member.SchemeAdmin = true
 		} else {
 			member.SchemeAdmin = false

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -4835,7 +4835,7 @@ func groupTestUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Sto
 			for _, member := range updatedMembers {
 				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
 
-				if slices.Contains(tt.newAdmins, member.UserId) {
+				if utils.Contains(tt.newAdmins, member.UserId) {
 					assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
 				} else {
 					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
@@ -4856,7 +4856,7 @@ func groupTestUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Sto
 					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
 					assert.True(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
 				} else {
-					if slices.Contains(tt.newAdmins, member.UserId) {
+					if utils.Contains(tt.newAdmins, member.UserId) {
 						assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
 					} else {
 						assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
@@ -4968,7 +4968,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 			for _, member := range updatedMemmbers {
 				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
 
-				if slices.Contains(tt.newAdmins, member.UserId) {
+				if utils.Contains(tt.newAdmins, member.UserId) {
 					assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
 				} else {
 					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
@@ -4989,7 +4989,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
 					assert.True(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
 				} else {
-					if slices.Contains(tt.newAdmins, member.UserId) {
+					if utils.Contains(tt.newAdmins, member.UserId) {
 						assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
 					} else {
 						assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))

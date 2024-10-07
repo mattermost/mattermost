@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"slices"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -1635,7 +1635,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) (_ []*
 
 	// Update SchemeAdmin field as the data from the SQL is not updated yet
 	for _, member := range updatedMembers {
-		if slices.Contains(adminIDs, member.UserId) {
+		if pUtils.Contains(adminIDs, member.UserId) {
 			member.SchemeAdmin = true
 		} else {
 			member.SchemeAdmin = false
