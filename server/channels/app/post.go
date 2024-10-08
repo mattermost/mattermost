@@ -711,10 +711,9 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	rpost, nErr := a.Srv().Store().Post().Update(c, newPost, oldPost)
 	if nErr != nil {
-		var appErr2 *model.AppError
 		switch {
-		case errors.As(nErr, &appErr2):
-			return nil, appErr2
+		case errors.As(nErr, &appErr):
+			return nil, appErr
 		default:
 			return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
