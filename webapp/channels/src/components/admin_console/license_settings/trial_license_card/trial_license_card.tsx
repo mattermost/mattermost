@@ -28,7 +28,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
         if (currentDate.toDateString() === endDate.toDateString()) {
             return (
                 <FormattedMessage
-                    id='trialLicenseCard.expiringToday'
+                    id='admin.license.trialLicenseCard.expiringToday'
                     defaultMessage='Your free trial expires <b>Today at {time}</b>. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends'
                     values={{
                         b: (chunks: string) => <b>{chunks}</b>,
@@ -40,7 +40,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
 
         return (
             <FormattedMessage
-                id='trialLicenseCard.description'
+                id='admin.license.trialLicenseCard.expiringAfterFewDays'
                 defaultMessage='Your free trial will expire in <b>{daysCount} {daysCount, plural, one {day} other {days}}</b>. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends.'
                 values={{
                     b: (chunks: string) => <b>{chunks}</b>,
