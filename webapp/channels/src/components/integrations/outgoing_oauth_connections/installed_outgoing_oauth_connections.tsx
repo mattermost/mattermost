@@ -132,9 +132,6 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
                 <FormattedMessage
                     id='installedOutgoingOauthConnections.blankSearch'
                     defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
-                    values={{
-                        b: (chunks: string) => <b>{chunks}</b>,
-                    }}
                 />
             }
             searchPlaceholder={intl.formatMessage({id: 'installed_outgoing_oauth_connections.search', defaultMessage: 'Search Outgoing OAuth Connections'})}
