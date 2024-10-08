@@ -93,6 +93,7 @@ describe('components/Root', () => {
         rhsState: null,
         shouldShowAppBar: false,
         isCloud: false,
+        enableDesktopLandingPage: true,
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
@@ -348,6 +349,19 @@ describe('components/Root', () => {
                         pathname: '/login/desktop',
                     },
                 } as RouteComponentProps,
+            };
+
+            renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(props.history.push).not.toHaveBeenCalled();
+            });
+        });
+
+        test('should not show when disabled', async () => {
+            const props = {
+                ...landingProps,
+                enableDesktopLandingPage: false,
             };
 
             renderWithContext(<Root {...props}/>);

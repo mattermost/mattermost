@@ -7,19 +7,16 @@ import {useIntl} from 'react-intl';
 
 import Markdown from 'components/markdown';
 
+import SectionNoticeButton from './section_notice_button';
+
 import './section_notice.scss';
 
-type Button = {
-    onClick: () => void;
-    text: string;
-    isExternal?: boolean;
-}
 type Props = {
     title: string;
     text: string;
-    primaryButton?: Button;
-    secondaryButton?: Button;
-    linkButton?: Button;
+    primaryButton?: SectionNoticeButton;
+    secondaryButton?: SectionNoticeButton;
+    linkButton?: SectionNoticeButton;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
     isDismissable?: boolean;
     onDismissClick?: () => void;
@@ -47,8 +44,6 @@ const SectionNotice = ({
     const intl = useIntl();
     const icon = iconByType[type];
     const showDismiss = Boolean(isDismissable && onDismissClick);
-    const buttonClass = 'btn btn-sm sectionNoticeButton';
-    const externalIcon = (<i className={'icon icon-open-in-new'}/>);
     return (
         <div className={classNames('sectionNoticeContainer', type)}>
             <div className={'sectionNoticeContent'}>
@@ -58,31 +53,22 @@ const SectionNotice = ({
                     <Markdown message={text}/>
                     <div className='sectionNoticeActions'>
                         {primaryButton &&
-                        <button
-                            onClick={primaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-primary')}
-                        >
-                            {primaryButton.text}
-                            {primaryButton.isExternal && externalIcon}
-                        </button>
+                            <SectionNoticeButton
+                                button={primaryButton}
+                                buttonClass='btn-primary'
+                            />
                         }
                         {secondaryButton &&
-                        <button
-                            onClick={secondaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-tertiary')}
-                        >
-                            {secondaryButton.text}
-                            {secondaryButton.isExternal && externalIcon}
-                        </button>
+                            <SectionNoticeButton
+                                button={secondaryButton}
+                                buttonClass='btn-tertiary'
+                            />
                         }
                         {linkButton &&
-                        <button
-                            onClick={linkButton.onClick}
-                            className={classNames(buttonClass, 'btn-link')}
-                        >
-                            {linkButton.text}
-                            {linkButton.isExternal && externalIcon}
-                        </button>
+                            <SectionNoticeButton
+                                button={linkButton}
+                                buttonClass='btn-link'
+                            />
                         }
                     </div>
 
