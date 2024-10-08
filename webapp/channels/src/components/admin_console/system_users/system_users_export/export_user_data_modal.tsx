@@ -17,7 +17,8 @@ type Props = {
 }
 
 export function ExportUserDataModal({onConfirm, onExited}: Props) {
-    const dateRange = useSelector(getAdminConsoleUserManagementTableProperties).dateRange ?? ReportDuration.AllTime;
+    const tableFilterProps = useSelector(getAdminConsoleUserManagementTableProperties);
+    const dateRange = tableFilterProps.dateRange ?? ReportDuration.AllTime;
 
     const title = (
         <FormattedMessage
@@ -52,6 +53,21 @@ export function ExportUserDataModal({onConfirm, onExited}: Props) {
                 id='export_user_data_modal.dange_range.last_6_months'
                 defaultMessage={'You\'re about to export user data for the last 6 months. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.'}
             />
+        );
+    }
+
+    const tableFiltersAreSet = tableFilterProps.filterRole !== '' || tableFilterProps.filterStatus || tableFilterProps.filterTeam !== '';
+    if (tableFiltersAreSet) {
+        message = (
+            <>
+                {message}
+                <p className='mt-3 text-muted'>
+                    <FormattedMessage
+                        id='export_user_data_modal.export_data.table_filters_note'
+                        defaultMessage={'Note: The exported data will use the filters you have set in the users list. To export all data first remove the filters.'}
+                    />
+                </p>
+            </>
         );
     }
 

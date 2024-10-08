@@ -15,7 +15,6 @@ import LeaveChannelModal from 'components/leave_channel_modal';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -154,34 +153,13 @@ export default function ChannelMembersDropdown({
     const currentRole = renderRole(isChannelAdmin, isGuest);
 
     if (user.remote_id) {
-        return (
-            <div className='more-modal__shared-actions'>
-                <WithTooltip
-                    id='sharedTooltip'
-                    placement='bottom'
-                    title={
-                        <FormattedMessage
-                            id='shared_user_indicator.tooltip'
-                            defaultMessage='From trusted organizations'
-                        />
-                    }
-                >
-                    <span>
-                        <FormattedMessage
-                            id='channel_members_dropdown.shared_member'
-                            defaultMessage='Shared Member'
-                        />
-                        <i className='shared-user-icon icon-circle-multiple-outline'/>
-                    </span>
-                </WithTooltip>
-            </div>
-        );
+        return (<></>);
     }
 
     const canMakeUserChannelMember = canChangeMemberRoles && isChannelAdmin;
     const canMakeUserChannelAdmin = canChangeMemberRoles && isMember;
     const canRemoveUserFromChannel = canRemoveMember && (!channel.group_constrained || user.is_bot) && (!isDefaultChannel || isGuest);
-    const removeFromChannelText = user.id === currentUserId ? Utils.localizeMessage('channel_header.leave', 'Leave Channel') : Utils.localizeMessage('channel_members_dropdown.remove_from_channel', 'Remove from Channel');
+    const removeFromChannelText = user.id === currentUserId ? Utils.localizeMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'}) : Utils.localizeMessage({id: 'channel_members_dropdown.remove_from_channel', defaultMessage: 'Remove from Channel'});
     const removeFromChannelTestId = user.id === currentUserId ? 'leaveChannel' : 'removeFromChannel';
 
     if (canMakeUserChannelMember || canMakeUserChannelAdmin || canRemoveUserFromChannel) {
@@ -199,7 +177,7 @@ export default function ChannelMembersDropdown({
                 id={`${user.username}-make-channel-admin`}
                 show={canMakeUserChannelAdmin}
                 onClick={handleMakeChannelAdmin}
-                text={Utils.localizeMessage('channel_members_dropdown.make_channel_admin', 'Make Channel Admin')}
+                text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_admin', defaultMessage: 'Make Channel Admin'})}
             />
         );
         const makeMemberMenu = (
@@ -207,7 +185,7 @@ export default function ChannelMembersDropdown({
                 id={`${user.username}-make-channel-member`}
                 show={canMakeUserChannelMember}
                 onClick={handleMakeChannelMember}
-                text={Utils.localizeMessage('channel_members_dropdown.make_channel_member', 'Make Channel Member')}
+                text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_member', defaultMessage: 'Make Channel Member'})}
             />
         );
         return (
@@ -223,7 +201,7 @@ export default function ChannelMembersDropdown({
                 <Menu
                     openLeft={true}
                     openUp={totalUsers > ROWS_FROM_BOTTOM_TO_OPEN_UP && totalUsers - index <= ROWS_FROM_BOTTOM_TO_OPEN_UP}
-                    ariaLabel={Utils.localizeMessage('channel_members_dropdown.menuAriaLabel', 'Change the role of channel member')}
+                    ariaLabel={Utils.localizeMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'})}
                 >
                     {canMakeUserChannelMember ? makeMemberMenu : null}
                     {canMakeUserChannelAdmin ? makeAdminMenu : null}
