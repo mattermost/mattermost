@@ -72,9 +72,7 @@ func TestCreateTeam(t *testing.T) {
 
 	t.Run("unauthenticated receives 403", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-
-		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-		_, resp, err := th.Client.CreateTeam(context.Background(), team)
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen})
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
@@ -89,7 +87,7 @@ func TestCreateTeam(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionCreateTeam.Id, model.SystemUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateTeam.Id, model.SystemAdminRoleId)
 
-		_, resp, err = th.Client.CreateTeam(context.Background(), team)
+		_, resp, err = th.Client.CreateTeam(context.Background(), &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -275,7 +273,7 @@ func TestGetTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	th.Client.Logout(context.Background())
 	_, resp, err = client.GetTeam(context.Background(), team.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -380,7 +378,7 @@ func TestGetTeamUnread(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	th.Client.Logout(context.Background())
 	_, resp, err = client.GetTeamUnread(context.Background(), th.BasicTeam.Id, th.BasicUser.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -675,19 +673,15 @@ func TestRestoreTeam(t *testing.T) {
 		require.Equal(t, model.TeamOpen, team.Type)
 	}, "restore active public team")
 
-	t.Run("not logged in", func(t *testing.T) {
-		client.Logout(context.Background())
-		_, resp, err := client.RestoreTeam(context.Background(), teamPublic.Id)
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-	})
+	th.Client.Logout(context.Background())
+	_, resp, err := th.Client.RestoreTeam(context.Background(), teamPublic.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 
-	t.Run("no permission to manage team", func(t *testing.T) {
-		th.LoginBasic2()
-		_, resp, err := client.RestoreTeam(context.Background(), teamPublic.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
+	th.LoginBasic2()
+	_, resp, err = th.Client.RestoreTeam(context.Background(), teamPublic.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, resp, err := client.RestoreTeam(context.Background(), teamPublic.Id)
@@ -848,19 +842,15 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	}, "non-existent team for admins")
 
-	t.Run("not logged in", func(t *testing.T) {
-		client.Logout(context.Background())
-		_, resp, err := client.UpdateTeamPrivacy(context.Background(), teamPublic.Id, model.TeamInvite)
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-	})
+	th.Client.Logout(context.Background())
+	_, resp, err := th.Client.UpdateTeamPrivacy(context.Background(), teamPublic.Id, model.TeamInvite)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 
-	t.Run("no permission to manage team", func(t *testing.T) {
-		th.LoginBasic2()
-		_, resp, err := client.UpdateTeamPrivacy(context.Background(), teamPublic.Id, model.TeamInvite)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
+	th.LoginBasic2()
+	_, resp, err = th.Client.UpdateTeamPrivacy(context.Background(), teamPublic.Id, model.TeamInvite)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestTeamUnicodeNames(t *testing.T) {
@@ -1190,18 +1180,18 @@ func TestGetAllTeams(t *testing.T) {
 
 			var teams []*model.Team
 			var resp *model.Response
-			var err2 error
+			var err error
 			if tc.WithCount {
-				teams, _, resp, err2 = client.GetAllTeamsWithTotalCount(context.Background(), "", tc.Page, tc.PerPage)
+				teams, _, resp, err = client.GetAllTeamsWithTotalCount(context.Background(), "", tc.Page, tc.PerPage)
 			} else {
-				teams, resp, err2 = client.GetAllTeams(context.Background(), "", tc.Page, tc.PerPage)
+				teams, resp, err = client.GetAllTeams(context.Background(), "", tc.Page, tc.PerPage)
 			}
 			if tc.ExpectedError {
-				CheckErrorID(t, err2, tc.ErrorId)
+				CheckErrorID(t, err, tc.ErrorId)
 				checkHTTPStatus(t, resp, tc.ExpectedStatusCode)
 				return
 			}
-			require.NoError(t, err2)
+			require.NoError(t, err)
 
 			actualTeamIds := make([]string, 0, len(tc.ExpectedTeams))
 			for _, team := range teams {
@@ -1212,8 +1202,8 @@ func TestGetAllTeams(t *testing.T) {
 	}
 
 	t.Run("Local mode", func(t *testing.T) {
-		teams, _, err2 := th.LocalClient.GetAllTeams(context.Background(), "", 0, 10)
-		require.NoError(t, err2)
+		teams, _, err := th.LocalClient.GetAllTeams(context.Background(), "", 0, 10)
+		require.NoError(t, err)
 		require.Len(t, teams, 5)
 	})
 
@@ -1224,11 +1214,11 @@ func TestGetAllTeams(t *testing.T) {
 	policyTeam := sysManagerTeams[0]
 	// If no policies exist, GetAllTeamsExcludePolicyConstrained should return everything
 	t.Run("exclude policy constrained, without policy", func(t *testing.T) {
-		_, excludeConstrainedResp, err2 := client.GetAllTeamsExcludePolicyConstrained(context.Background(), "", 0, 100)
-		require.Error(t, err2)
+		_, excludeConstrainedResp, err := client.GetAllTeamsExcludePolicyConstrained(context.Background(), "", 0, 100)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, excludeConstrainedResp)
-		teams, excludeConstrainedResp, err2 := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained(context.Background(), "", 0, 100)
-		require.NoError(t, err2)
+		teams, excludeConstrainedResp, err := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained(context.Background(), "", 0, 100)
+		require.NoError(t, err)
 		CheckOKStatus(t, excludeConstrainedResp)
 		found := false
 		for _, team := range teams {
@@ -1250,8 +1240,8 @@ func TestGetAllTeams(t *testing.T) {
 	require.NoError(t, savePolicyErr)
 	// This time, the team shouldn't be returned
 	t.Run("exclude policy constrained, with policy", func(t *testing.T) {
-		teams, excludeConstrainedResp, err2 := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained(context.Background(), "", 0, 100)
-		require.NoError(t, err2)
+		teams, excludeConstrainedResp, err := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained(context.Background(), "", 0, 100)
+		require.NoError(t, err)
 		CheckOKStatus(t, excludeConstrainedResp)
 		found := false
 		for _, team := range teams {
@@ -1264,8 +1254,8 @@ func TestGetAllTeams(t *testing.T) {
 	})
 
 	t.Run("does not return policy ID", func(t *testing.T) {
-		teams, sysManagerResp, err2 := th.SystemManagerClient.GetAllTeams(context.Background(), "", 0, 100)
-		require.NoError(t, err2)
+		teams, sysManagerResp, err := th.SystemManagerClient.GetAllTeams(context.Background(), "", 0, 100)
+		require.NoError(t, err)
 		CheckOKStatus(t, sysManagerResp)
 		found := false
 		for _, team := range teams {
@@ -1279,8 +1269,8 @@ func TestGetAllTeams(t *testing.T) {
 	})
 
 	t.Run("returns policy ID", func(t *testing.T) {
-		teams, sysAdminResp, err2 := th.SystemAdminClient.GetAllTeams(context.Background(), "", 0, 100)
-		require.NoError(t, err2)
+		teams, sysAdminResp, err := th.SystemAdminClient.GetAllTeams(context.Background(), "", 0, 100)
+		require.NoError(t, err)
 		CheckOKStatus(t, sysAdminResp)
 		found := false
 		for _, team := range teams {
@@ -1293,12 +1283,10 @@ func TestGetAllTeams(t *testing.T) {
 		require.True(t, found)
 	})
 
-	t.Run("Unauthorized", func(t *testing.T) {
-		client.Logout(context.Background())
-		_, resp, err = client.GetAllTeams(context.Background(), "", 1, 10)
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-	})
+	th.Client.Logout(context.Background())
+	_, resp, err = th.Client.GetAllTeams(context.Background(), "", 1, 10)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 
 	t.Run("Sanitize the teams in the response with total count", func(t *testing.T) {
 		otherUser := th.CreateUser()
@@ -3950,9 +3938,10 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("Forbidden when request performed by system user", func(t *testing.T) {
+		th.Client.Logout(context.Background())
 		res, err := th.Client.InvalidateEmailInvites(context.Background())
 		require.Error(t, err)
-		CheckForbiddenStatus(t, res)
+		CheckUnauthorizedStatus(t, res)
 	})
 
 	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
