@@ -4,12 +4,15 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
+	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -61,50 +64,106 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	const maxFailedLoginAttempts = 1
+	const maxFailedLoginAttempts = 3
+	const concurrentAttempts = maxFailedLoginAttempts + 1
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.MaximumLoginAttempts = maxFailedLoginAttempts
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
-	concurrentAttempts := maxFailedLoginAttempts + 1
-	appErrs := make([]*model.AppError, concurrentAttempts)
+	password := "newpassword1"
+	appErr := th.App.UpdatePassword(th.Context, th.BasicUser, password)
+	require.Nil(t, appErr)
 
-	// Wait to complete the test
-	var completeWG sync.WaitGroup
-	completeWG.Add(concurrentAttempts)
+	// setup MFA
+	secret, appErr := th.App.GenerateMfaSecret(th.BasicUser.Id)
+	require.Nil(t, appErr)
+	err := th.Server.Store().User().UpdateMfaActive(th.BasicUser.Id, true)
+	require.NoError(t, err)
+	err = th.Server.Store().User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
+	require.NoError(t, err)
 
-	// Wait to fetch the login attempts
-	var fetchedWG sync.WaitGroup
-	fetchedWG.Add(concurrentAttempts)
+	t.Run("should run successfully when attempts are available", func(t *testing.T) {
+		err = th.App.Srv().Store().User().UpdateFailedPasswordAttempts(th.BasicUser.Id, maxFailedLoginAttempts-1)
+		require.NoError(t, err)
+		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		token := fmt.Sprintf("%06d", code)
 
-	for i := 0; i < concurrentAttempts; i++ {
-		go func(i int) {
-			defer completeWG.Done()
+		appErr = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser, password, token)
+		require.Nil(t, appErr)
+	})
 
-			// Simulate concurrent login attempts for the same user
-			user, _ := th.App.Srv().Store().User().Get(th.Context.Context(), th.BasicUser.Id)
-			fetchedWG.Done()
-
-			// Wait to fetch all user objects before ever reaching the password check
-			fetchedWG.Wait()
-
-			// Simulate concurrent password and login attempts check
-			appErrs[i] = th.App.CheckPasswordAndAllCriteria(th.Context, user, "wrong password", user.MfaSecret)
-		}(i)
-	}
-
-	completeWG.Wait()
-
-	passwordFails := 0
-	for i := 0; i < concurrentAttempts; i++ {
-		if appErrs[i].Id == "api.user.check_user_password.invalid.app_error" {
-			passwordFails++
+	t.Run("validate concurrent failed attempts to bypass checks", func(t *testing.T) {
+		testCases := []struct {
+			name          string
+			password      string
+			mfaToken      string
+			expectedErrID string
+		}{
+			{
+				name:          "should not breach max. login attempts when password is wrong",
+				password:      "wrong password",
+				expectedErrID: "api.user.check_user_password.invalid.app_error",
+			},
+			{
+				name:          "should not breach max. login attempts when MFA is wrong",
+				password:      password,
+				mfaToken:      "123456",
+				expectedErrID: "api.user.check_user_mfa.bad_code.app_error",
+			},
 		}
-	}
 
-	// Password failure attempts will not breach the maxFailedAttempts
-	// even during concurrent access by the same user
-	require.Equal(t, maxFailedLoginAttempts, passwordFails)
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Reset login attempts
+				th.App.Srv()
+				err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(th.BasicUser.Id, 0)
+				require.NoError(t, err)
 
-	// TODO: Parallel test.run for Wrong Password, Wrong MFA, on Success - 0
+				// Capture all concurrent errors
+				appErrs := make([]*model.AppError, concurrentAttempts)
+
+				// Wait to complete the test
+				var completeWG sync.WaitGroup
+				completeWG.Add(concurrentAttempts)
+
+				// Wait to fetch the login attempts
+				var fetchedWG sync.WaitGroup
+				fetchedWG.Add(concurrentAttempts)
+
+				for i := 0; i < concurrentAttempts; i++ {
+					go func(i int) {
+						defer completeWG.Done()
+
+						// Simulate concurrent login attempts for the same user
+						user, _ := th.App.Srv().Store().User().Get(th.Context.Context(), th.BasicUser.Id)
+						fetchedWG.Done()
+
+						// Simulate that all userObjects/failedAttemptsCount have been fetched
+						// before any of the goroutine ever reaches the password/mfa checks
+						fetchedWG.Wait()
+
+						// Simulate concurrent failed login checks
+						appErrs[i] = th.App.CheckPasswordAndAllCriteria(th.Context, user, tc.password, tc.mfaToken)
+					}(i)
+				}
+
+				completeWG.Wait()
+
+				expectedErrsCount := 0
+				for i := 0; i < concurrentAttempts; i++ {
+					if appErrs[i].Id == tc.expectedErrID {
+						expectedErrsCount++
+						continue
+					}
+
+					require.Equal(t, "api.user.check_user_login_attempts.too_many.app_error", appErrs[i].Id, "All other errors should be of too many login attempts only.")
+				}
+
+				// Password/MFA failure attempts should not breach the maxFailedAttempts
+				// even during concurrent access by the same user.
+				require.Equal(t, maxFailedLoginAttempts, expectedErrsCount)
+			})
+		}
+	})
 }

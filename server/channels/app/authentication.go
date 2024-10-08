@@ -66,6 +66,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, u *model.User, passw
 	a.ch.loginAttemptsMut.Lock()
 	defer a.ch.loginAttemptsMut.Unlock()
 
+	a.Srv().Store().User().InvalidateProfileCacheForUser(u.Id)
 	user, err := a.GetUser(u.Id)
 	if err != nil {
 		if err.Id != MissingAccountError {
