@@ -52,7 +52,6 @@ type Props = {
     canJoinPublicTeams: boolean;
     canJoinPrivateTeams: boolean;
     history?: any;
-    siteURL?: string;
     actions: Actions;
     totalTeamsCount: number;
     isCloud: boolean;
@@ -130,9 +129,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     errorMsg = (
                         <FormattedMessage
                             id='join_team_group_constrained_denied_adminText'
-                            defaultMessage={
-                                'You need to be a member of a linked group to join this team. You can add a group to this team <a>here</a>.'
-                            }
+                            defaultMessage={'You need to be a member of a linked group to join this team. You can add a group to this team <a>here</a>.'}
                             values={{
                                 a: (chunks: string) => (
                                     <Link to='/admin_console/user_management/groups'>
@@ -145,7 +142,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                 } else {
                     errorMsg = (
                         <FormattedMessage
-                            id='join_team_group_constrained_deniedText'
+                            id='join_team_group_constrained_denied'
                             defaultMessage='You need to be a member of a linked group to join this team.'
                         />
                     );
