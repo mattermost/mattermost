@@ -19,6 +19,7 @@ export type BaseSettingItemProps = {
     title?: string;
     description?: string;
     error?: ExtendedMessageDescriptor;
+    dataTestId?: string;
 };
 
 type Props = BaseSettingItemProps & {
@@ -28,7 +29,7 @@ type Props = BaseSettingItemProps & {
     descriptionAboveContent?: boolean;
 }
 
-function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false, isContentInline = false}: Props): JSX.Element {
+function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false, isContentInline = false, dataTestId}: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
     const titleComponent = title && (
@@ -60,7 +61,10 @@ function BaseSettingItem({title, description, content, className, error, descrip
     );
 
     return (
-        <div className={classNames('mm-modal-generic-section-item', className)}>
+        <div
+            data-testid={dataTestId}
+            className={classNames('mm-modal-generic-section-item', className)}
+        >
             {titleComponent}
             {descriptionAboveContent ? descriptionComponent : undefined}
             <div
