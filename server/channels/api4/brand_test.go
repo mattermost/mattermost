@@ -22,7 +22,8 @@ func TestGetBrandImage(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetBrandImage(context.Background())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
@@ -46,7 +47,8 @@ func TestUploadBrandImage(t *testing.T) {
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = client.UploadBrandImage(context.Background(), data)
 	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
@@ -77,7 +79,8 @@ func TestDeleteBrandImage(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout(context.Background())
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
 
 	resp, err = th.Client.DeleteBrandImage(context.Background())
 	require.Error(t, err)

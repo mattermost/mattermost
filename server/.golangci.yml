@@ -62,10 +62,7 @@ issues:
         channels/api4/apitestlib.go|\
         channels/api4/bot_test.go|\
         channels/api4/brand.go|\
-        channels/api4/brand_test.go|\
         channels/api4/channel.go|\
-        channels/api4/channel_bookmark_test.go|\
-        channels/api4/channel_category.go|\
         channels/api4/channel_test.go|\
         channels/api4/cloud.go|\
         channels/api4/cloud_test.go|\
@@ -77,53 +74,30 @@ issues:
         channels/api4/config_local.go|\
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
-        channels/api4/emoji.go|\
-        channels/api4/emoji_test.go|\
-        channels/api4/export.go|\
         channels/api4/export_test.go|\
-        channels/api4/file.go|\
         channels/api4/file_test.go|\
-        channels/api4/group.go|\
-        channels/api4/group_local.go|\
-        channels/api4/group_test.go|\
-        channels/api4/handlers_test.go|\
-        channels/api4/image_test.go|\
         channels/api4/import_test.go|\
-        channels/api4/integration_action.go|\
         channels/api4/integration_action_test.go|\
-        channels/api4/ip_filtering.go|\
         channels/api4/ip_filtering_test.go|\
-        channels/api4/job.go|\
         channels/api4/job_test.go|\
-        channels/api4/ldap.go|\
         channels/api4/license.go|\
         channels/api4/license_local.go|\
-        channels/api4/license_test.go|\
-        channels/api4/oauth.go|\
         channels/api4/oauth_test.go|\
-        channels/api4/outgoing_oauth_connection_test.go|\
-        channels/api4/permission.go|\
         channels/api4/plugin.go|\
         channels/api4/plugin_test.go|\
-        channels/api4/post.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
-        channels/api4/reaction.go|\
         channels/api4/reaction_test.go|\
         channels/api4/remote_cluster.go|\
-        channels/api4/role.go|\
         channels/api4/role_test.go|\
         channels/api4/saml.go|\
         channels/api4/scheme.go|\
         channels/api4/scheme_test.go|\
-        channels/api4/shared_channel.go|\
         channels/api4/shared_channel_test.go|\
         channels/api4/status.go|\
         channels/api4/status_test.go|\
-        channels/api4/system.go|\
         channels/api4/system_local.go|\
         channels/api4/system_test.go|\
-        channels/api4/team.go|\
         channels/api4/team_local.go|\
         channels/api4/team_test.go|\
         channels/api4/upload_test.go|\
@@ -132,7 +106,6 @@ issues:
         channels/api4/user.go|\
         channels/api4/user_local.go|\
         channels/api4/user_test.go|\
-        channels/api4/webhook.go|\
         channels/api4/webhook_test.go|\
         channels/api4/websocket_test.go|\
         channels/app/admin.go|\
