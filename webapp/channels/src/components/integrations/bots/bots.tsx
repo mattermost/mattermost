@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
@@ -15,7 +16,6 @@ import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
 import Constants from 'utils/constants';
-import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
@@ -266,12 +266,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                             id='bots.help2'
                             defaultMessage={'Enable bot account creation in the <a>System Console</a>.'}
                             values={{
-                                a: (chunks: string) => (
-                                    <a
-                                        href={`${getSiteURL()}/admin_console/integrations/bot_accounts`}
-                                    >
-                                        {chunks}
-                                    </a>),
+                                a: (chunks: string) => <Link to='/admin_console/integrations/bot_accounts'>{chunks}</Link>,
                             }}
                         />
                     </React.Fragment>
