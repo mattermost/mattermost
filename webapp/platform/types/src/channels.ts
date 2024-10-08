@@ -22,8 +22,8 @@ export type ChannelStats = {
 export type ChannelNotifyProps = {
     desktop_threads: 'default' | 'all' | 'mention' | 'none';
     desktop: 'default' | 'all' | 'mention' | 'none';
-    desktop_sound: 'on' | 'off';
-    desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
+    desktop_sound: 'default' | 'on' | 'off';
+    desktop_notification_sound?: 'default' | 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     email: 'default' | 'all' | 'mention' | 'none';
     mark_unread: 'all' | 'mention';
     push: 'default' | 'all' | 'mention' | 'none';

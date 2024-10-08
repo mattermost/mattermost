@@ -269,7 +269,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                         />
                     </React.Fragment>
                 }
-                searchPlaceholder={Utils.localizeMessage('bots.manage.search', 'Search Bot Accounts')}
+                searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
             >
                 {this.bots}

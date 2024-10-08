@@ -237,7 +237,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
             <CompassThemeProvider theme={this.props.theme}>
                 <GenericModal
                     compassDesign={true}
-                    ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
+                    ariaLabel={localizeMessage({id: 'dnd_custom_time_picker_modal.defaultMsg', defaultMessage: 'Disable notifications until'})}
                     onExited={this.props.onExited}
                     modalHeaderText={modalHeaderText}
                     confirmButtonText={confirmButtonText}
@@ -260,7 +260,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
                                 readOnly={true}
                                 id='DndModal__calendar-input'
                                 className={classNames('DndModal__calendar-input', {'popper-open': isPopperOpen})}
-                                label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                                label={localizeMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                                 onClick={() => this.handlePopperOpenState(true)}
                                 tabIndex={-1}
                                 inputPrefix={inputIcon}

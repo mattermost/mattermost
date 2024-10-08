@@ -2205,29 +2205,29 @@ components:
         emails:
           type: string
     ClusterInfo:
-      type: object
+      type: array
       properties:
-        id:
-          description: The unique ID for the node
-          type: string
-        version:
-          description: The server version the node is on
-          type: string
-        config_hash:
-          description: The hash of the configuartion file the node is using
-          type: string
-        internode_url:
-          description: The URL used to communicate with those node from other nodes
-          type: string
-        hostname:
-          description: The hostname for this node
-          type: string
-        last_ping:
-          description: The time of the last ping to this node
-          type: integer
-        is_alive:
-          description: Whether or not the node is alive and well
-          type: boolean
+        items:
+          type: object
+          properties:
+            id:
+              description: The unique ID for the node
+              type: string
+            version:
+              description: The server version the node is on
+              type: string
+            schema_version:
+              description: The number of the latest DB migration successfully executed for the node
+              type: string
+            config_hash:
+              description: The hash of the configuration file the node is using
+              type: string
+            ipaddress:
+              description: The IP address of the node
+              type: string
+            hostname:
+              description: The hostname for this node
+              type: string
     AppError:
       type: object
       properties:
@@ -3505,6 +3505,9 @@ components:
         create_at:
           description: Time in milliseconds that the remote cluster was created
           type: integer
+        delete_at:
+          description: Time in milliseconds that the remote cluster record was deleted
+          type: integer
         last_ping_at:
           description: Time in milliseconds when the last ping to the remote cluster was run
           type: integer
@@ -3552,6 +3555,9 @@ components:
           type: integer
         update_at:
           description: Time in milliseconds that the shared channel remote record was last updated
+          type: integer
+        delete_at:
+          description: Time in milliseconds that the shared chanenl remote record was deleted
           type: integer
         is_invite_accepted:
           description: Indicates if the invite has been accepted by the remote
