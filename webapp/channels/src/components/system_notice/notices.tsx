@@ -148,9 +148,6 @@ const notices: Notice[] = [
             <FormattedMessage
                 id='systemNotice.noticeTitle'
                 defaultMessage='Notice from Mattermost'
-                values={{
-                    b: (chunks: string) => <b>{chunks}</b>,
-                }}
             />
         ),
         allowForget: false,
