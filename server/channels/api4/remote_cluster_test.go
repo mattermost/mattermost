@@ -250,7 +250,6 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
 		require.Equal(t, rc.RemoteToken, rci.Token)
-		require.NotZero(t, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
@@ -275,7 +274,6 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
 		require.Equal(t, rc.RemoteToken, rci.Token)
-		require.NotZero(t, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 }

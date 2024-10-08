@@ -394,6 +394,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+	rcSaved.Sanitize()
 
 	password := rcWithTeamAndPassword.Password
 	if password == "" {
@@ -405,8 +406,6 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = iErr
 		return
 	}
-
-	rcSaved.Sanitize()
 
 	auditRec.Success()
 	auditRec.AddEventResultState(rcSaved)
