@@ -9,7 +9,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import AlertBanner from 'components/alert_banner';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
@@ -75,7 +74,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
                 />
             </div>
             <div className='RenewLicenseCard__licensedUsersNum'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.license.renewalCard.licensedUsersNum'
                     defaultMessage='**Licensed Users:** {licensedUsersNum}'
                     values={{
@@ -84,7 +83,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
                 />
             </div>
             <div className='RenewLicenseCard__activeUsersNum'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.license.renewalCard.usersNumbers'
                     defaultMessage='**Active Users:** {activeUsersNum}'
                     values={{
