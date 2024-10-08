@@ -18,7 +18,6 @@ import {loadOutgoingOAuthConnectionsAndProfiles} from 'actions/integration_actio
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DeveloperLinks} from 'utils/constants';
 
@@ -130,9 +129,12 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
                 />
             }
             emptyTextSearch={
-                <FormattedMarkdownMessage
-                    id='installed_outgoing_oauth_connections.emptySearch'
+                <FormattedMessage
+                    id='installedOutgoingOauthConnections.blankSearch'
                     defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
+                    values={{
+                        b: (chunks: string) => <b>{chunks}</b>,
+                    }}
                 />
             }
             searchPlaceholder={intl.formatMessage({id: 'installed_outgoing_oauth_connections.search', defaultMessage: 'Search Outgoing OAuth Connections'})}
