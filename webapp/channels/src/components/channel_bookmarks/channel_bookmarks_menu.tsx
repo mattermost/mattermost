@@ -28,18 +28,17 @@ import {clearFileInput} from 'utils/utils';
 import ChannelBookmarkCreateModal from './channel_bookmarks_create_modal';
 import {MAX_BOOKMARKS_PER_CHANNEL} from './utils';
 
-type PlusMenuProps = {
+type BookmarksMenuProps = {
     channelId: string;
     hasBookmarks: boolean;
     limitReached: boolean;
-    canUploadFiles: boolean;
-};
-const PlusMenu = ({
+    canUploadFiles: boolean;};
+export default ({
     channelId,
     hasBookmarks,
     limitReached,
     canUploadFiles,
-}: PlusMenuProps) => {
+}: BookmarksMenuProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const showLabel = !hasBookmarks;
@@ -98,7 +97,9 @@ const PlusMenu = ({
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
 
     return (
-        <PlusButtonContainer withLabel={showLabel}>
+        <MenuButtonContainer
+            withLabel={showLabel}
+        >
             <Menu.Container
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
                 transformOrigin={{vertical: 'top', horizontal: 'left'}}
@@ -142,13 +143,11 @@ const PlusMenu = ({
                 )}
             </Menu.Container>
             {fileInput}
-        </PlusButtonContainer>
+        </MenuButtonContainer>
     );
 };
 
-export default PlusMenu;
-
-const PlusButtonContainer = styled.div<{withLabel: boolean}>`
+const MenuButtonContainer = styled.div<{withLabel: boolean}>`
     position: sticky;
     right: 0;
     ${({withLabel}) => !withLabel && css`padding: 0 1rem;`}

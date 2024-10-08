@@ -378,6 +378,25 @@ func (ch *Channels) ShutDownPlugins() {
 	}
 }
 
+func (a *App) getPluginManifests() ([]*model.Manifest, error) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("GetPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get list of available plugins")
+	}
+
+	manifests := make([]*model.Manifest, len(plugins))
+	for i := range plugins {
+		manifests[i] = plugins[i].Manifest
+	}
+
+	return manifests, nil
+}
+
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -651,6 +670,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		return model.NewAppError("mergePrepackagedPlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	isEnterpriseLicense := a.License() != nil && a.License().IsE20OrEnterprise()
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
 		if prepackaged.Manifest == nil {
 			continue
@@ -663,6 +683,22 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 				ReleaseNotesURL: prepackaged.Manifest.ReleaseNotesURL,
 				Manifest:        prepackaged.Manifest,
 			},
+		}
+
+		// If not enterprise, check version.
+		// Playbooks is not listed in the marketplace, this only handles prepackaged.
+		if !isEnterpriseLicense {
+			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
+				version, err := semver.Parse(prepackaged.Manifest.Version)
+				if err != nil {
+					mlog.Error("Unable to verify prepackaged playbooks version", mlog.Err(err))
+					continue
+				}
+				// Do not show playbooks >=v2 if we do not have an enterprise license
+				if version.GTE(SemVerV2) {
+					continue
+				}
+			}
 		}
 
 		// If not available in marketplace, add the prepackaged

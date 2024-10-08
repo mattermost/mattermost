@@ -46,11 +46,7 @@ func (ps *PlatformService) GetAllStatuses() map[string]*model.Status {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			var status *model.Status
-			toPass = append(toPass, &status)
-		}
+		toPass := allocateCacheTargets[*model.Status](len(keys))
 		errs := ps.statusCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -84,11 +80,7 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 	metrics := ps.Metrics()
 	missingUserIds := []string{}
 
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -147,11 +139,7 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 	metrics := ps.Metrics()
 
 	missingUserIds := []string{}
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -279,6 +267,9 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 
 	ps.AddStatusCacheSkipClusterSend(status)
 	ps.SetStatusAwayIfNeeded(userID, false)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
@@ -346,6 +337,9 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
 	}
 
 	if broadcast {
@@ -366,6 +360,9 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
 	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
@@ -398,19 +395,22 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	status.ActiveChannel = ""
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
-func (ps *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int64) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := ps.GetStatus(userId)
+	status, err := ps.GetStatus(userID)
 
 	if err != nil {
-		status = &model.Status{UserId: userId, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	status.PrevStatus = status.Status
@@ -420,6 +420,9 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int
 	status.DNDEndTime = endtime
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
@@ -437,6 +440,9 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
@@ -454,6 +460,9 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {

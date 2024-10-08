@@ -454,8 +454,8 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
         }
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        const buttonSubmitText = localizeMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+        const buttonSubmitLoadingText = localizeMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
         const closeMembersInviteModal = () => {
             this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
@@ -517,9 +517,9 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.state.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={this.props.isGroupsEnabled ? localizeMessage('multiselect.placeholder.peopleOrGroups', 'Search for people or groups') : localizeMessage('multiselect.placeholder', 'Search for people')}
+                placeholderText={this.props.isGroupsEnabled ? localizeMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : localizeMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
                 valueWithImage={true}
-                backButtonText={localizeMessage('multiselect.cancel', 'Cancel')}
+                backButtonText={localizeMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
                 backButtonClick={closeMembersInviteModal}
                 backButtonClass={'btn-tertiary tertiary-button'}
                 customNoOptionsMessage={this.props.emailInvitationsEnabled ? customNoOptionsMessage : null}

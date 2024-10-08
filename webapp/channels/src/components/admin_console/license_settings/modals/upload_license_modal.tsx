@@ -205,7 +205,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     >
                         <LoadingWrapper
                             loading={Boolean(isUploading)}
-                            text={localizeMessage('admin.license.modal.uploading', 'Uploading')}
+                            text={localizeMessage({id: 'admin.license.modal.uploading', defaultMessage: 'Uploading'})}
                         >
                             <FormattedMessage
                                 id='admin.license.modal.upload'
