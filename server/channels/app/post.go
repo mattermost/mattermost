@@ -785,10 +785,11 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 		}
 	}()
 
-	permalinkPreviewedPost := post.GetPreviewPost()
-	if permalinkPreviewedPost == nil {
+	previewProp := post.GetPreviewedPostProp()
+	if previewProp == "" {
 		return nil
 	}
+	permalinkPreviewedPost := post.GetPreviewPost()
 
 	// To remain secure by default, we wipe out the metadata unconditionally.
 	post.Metadata.Embeds[0].Data = nil
@@ -803,22 +804,23 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 		)
 		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
+	message.Add("post", postWithoutPermalinkPreviewJSON)
 
-	if !model.IsValidId(permalinkPreviewedPost.PostID) {
+	if !model.IsValidId(previewProp) {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonParseError),
-			mlog.String("prop_value", permalinkPreviewedPost.PostID),
+			mlog.String("prop_value", previewProp),
 		)
-		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", permalinkPreviewedPost.PostID))
+		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewProp))
 		// In this case, it will broadcast the message with metadata wiped out
 		return nil
 	}
 
-	previewedPost, appErr := a.GetSinglePost(c, permalinkPreviewedPost.PostID, false)
+	previewedPost, appErr := a.GetSinglePost(c, previewProp, false)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
@@ -827,10 +829,10 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.String("referenced_post_id", permalinkPreviewedPost.PostID),
+				mlog.String("referenced_post_id", previewProp),
 				mlog.Err(appErr),
 			)
-			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
+			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewProp))
 			// In this case, it will broadcast the message with metadata wiped out
 			return nil
 		}
@@ -862,7 +864,7 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
 	}
 
-	usePermalinkHook(message, permalinkPreviewedChannel, postWithoutPermalinkPreviewJSON)
+	usePermalinkHook(message, permalinkPreviewedChannel, postJSON)
 	return nil
 }
 

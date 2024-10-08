@@ -133,10 +133,10 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	return nil
 }
 
-func usePermalinkHook(message *model.WebSocketEvent, previewChannel *model.Channel, postWithoutPermalinkPreviewJSON string) {
+func usePermalinkHook(message *model.WebSocketEvent, previewChannel *model.Channel, postJSON string) {
 	message.GetBroadcast().AddHook(broadcastPermalink, map[string]any{
-		"preview_channel":                     previewChannel,
-		"post_without_permalink_preview_json": postWithoutPermalinkPreviewJSON,
+		"preview_channel": previewChannel,
+		"post_json":       postJSON,
 	})
 }
 
@@ -149,18 +149,18 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log())
-	if webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel) {
+	if !webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel) {
 		// Do nothing.
-		// In this case, the original post is already attached to the ws event.
+		// In this case, the sanitized post is already attached to the ws event.
 		return nil
 	}
 
-	// Else, we set the post without permalink preview.
-	postWithoutPermalinkPreviewJSON, err := getTypedArg[string](args, "post_without_permalink_preview_json")
+	// Else, we set the post with permalink preview.
+	postJSON, err := getTypedArg[string](args, "post_json")
 	if err != nil {
-		return errors.Wrap(err, "Invalid post_without_permalink_preview_json value passed to permalinkBroadcastHook")
+		return errors.Wrap(err, "Invalid post_json value passed to permalinkBroadcastHook")
 	}
-	msg.Add("post", postWithoutPermalinkPreviewJSON)
+	msg.Add("post", postJSON)
 
 	return nil
 }

@@ -234,17 +234,17 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	require.NoError(t, err)
 
 	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
-	wsEvent.Add("post", originalJSON)
-	msg := platform.MakeHookedWebSocketEvent(wsEvent)
-
 	th.BasicPost.Metadata.Embeds[0].Data = nil
-	newJSON, err := th.BasicPost.ToJSON()
+	removedJSON, err := th.BasicPost.ToJSON()
 	require.NoError(t, err)
+
+	wsEvent.Add("post", removedJSON)
+	msg := platform.MakeHookedWebSocketEvent(wsEvent)
 
 	// User has permission.
 	err = hook.Process(msg, wc, map[string]any{
-		"preview_channel":                     th.BasicChannel,
-		"post_without_permalink_preview_json": newJSON,
+		"preview_channel": th.BasicChannel,
+		"post_json":       originalJSON,
 	})
 	require.NoError(t, err)
 
@@ -252,14 +252,15 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, originalJSON, gotJSON)
 
+	msg = platform.MakeHookedWebSocketEvent(wsEvent)
 	// User does not have permission.
 	wc.UserId = "otheruser"
 	err = hook.Process(msg, wc, map[string]any{
-		"preview_channel":                     th.BasicChannel,
-		"post_without_permalink_preview_json": newJSON,
+		"preview_channel": th.BasicChannel,
+		"post_json":       originalJSON,
 	})
 	require.NoError(t, err)
 	gotJSON, ok = msg.Get("post").(string)
 	require.True(t, ok)
-	require.Equal(t, newJSON, gotJSON)
+	require.Equal(t, removedJSON, gotJSON)
 }
