@@ -1191,8 +1191,7 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
 		require.NoError(t, err)
 		if _, err := res.Write(json); err != nil {
-			http.Error(res, "Failed to write response", http.StatusInternalServerError)
-			return
+			require.NoError(t, err)
 		}
 	}))
 	defer testServer.Close()
@@ -2156,9 +2155,7 @@ func TestPluginWebSocketSession(t *testing.T) {
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 	utils.CompileGo(t, string(pluginCode), backend)
 	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
-	if err != nil {
-		t.Fatalf("failed to write plugin.json file: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
