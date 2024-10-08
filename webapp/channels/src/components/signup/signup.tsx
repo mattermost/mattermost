@@ -894,10 +894,10 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 <p className='signup-body-card-agreement'>
                                     <FormattedMessage
                                         id='signup.agreement'
-                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <a1>Terms of Use</a1> and <a2>Privacy Policy</a2>.  If you do not agree, you cannot use {siteName}.'
+                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.'
                                         values={{
                                             siteName: SiteName,
-                                            a1: (chunks: string) => (
+                                            termsOfUseLink: (chunks: string) => (
                                                 <ExternalLink
                                                     href={TermsOfServiceLink as string}
                                                     location='signup-terms-of-use'
@@ -905,7 +905,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                     {chunks}
                                                 </ExternalLink>
                                             ),
-                                            a2: (chunks: string) => (
+                                            privacyPolicyLink: (chunks: string) => (
                                                 <ExternalLink
                                                     href={PrivacyPolicyLink as string}
                                                     location='signup-privacy-policy'

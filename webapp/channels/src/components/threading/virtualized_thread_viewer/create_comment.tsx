@@ -55,9 +55,9 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             >
                 <FormattedMessage
                     id='createComment.threadFromDeactivatedUserMessage'
-                    defaultMessage='You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted.'
+                    defaultMessage='You are viewing an archived channel with a <strong>deactivated user</strong>. New messages cannot be posted.'
                     values={{
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        strong: (chunks: string) => <strong>{chunks}</strong>,
                     }}
                 />
             </div>
@@ -79,9 +79,9 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
                     />
                     <FormattedMessage
                         id='createComment.threadFromArchivedChannelMessage'
-                        defaultMessage='You are viewing a thread from an <b>archived channel</b>. New messages cannot be posted.'
+                        defaultMessage='You are viewing a thread from an <strong>archived channel</strong>. New messages cannot be posted.'
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            strong: (chunks: string) => <strong>{chunks}</strong>,
                         }}
                     />
                 </div>

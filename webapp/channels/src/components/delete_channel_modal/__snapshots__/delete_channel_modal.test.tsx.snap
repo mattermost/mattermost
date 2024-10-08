@@ -54,17 +54,24 @@ exports[`components/delete_channel_modal should match snapshot for delete_channe
     <div
       className="alert alert-danger"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again.{br}{br}Are you sure you wish to archive the <b>{display_name}</b> channel?"
-        id="deleteChannelModal.cannotViewArchivedChannelsWarning"
-        values={
-          Object {
-            "b": [Function],
-            "br": <br />,
-            "display_name": "testing",
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again."
+          id="deleteChannelModal.cannotViewArchivedChannelsWarning"
+        />
+      </p>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Are you sure you wish to archive the <strong>{display_name}</strong> channel?"
+          id="deleteChannelModal.confirmArchive"
+          values={
+            Object {
+              "display_name": "testing",
+              "strong": [Function],
+            }
           }
-        }
-      />
+        />
+      </p>
     </div>
   </ModalBody>
   <ModalFooter

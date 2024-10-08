@@ -75,26 +75,45 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 <Modal.Body>
                     <div className='alert alert-danger'>
                         {!canViewArchivedChannels &&
-                            <FormattedMessage
-                                id='deleteChannelModal.cannotViewArchivedChannelsWarning'
-                                defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again.{br}{br}Are you sure you wish to archive the <b>{display_name}</b> channel?'
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                    br: <br/>,
-                                    b: (chunks: string) => <b>{chunks}</b>,
-                                }}
-                            />
+                            <>
+                                <p>
+                                    <FormattedMessage
+                                        id='deleteChannelModal.cannotViewArchivedChannelsWarning'
+                                        defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again.'
+                                    />
+                                </p>
+                                <p>
+                                    <FormattedMessage
+                                        id='deleteChannelModal.confirmArchive'
+                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                        values={{
+                                            display_name: this.props.channel.display_name,
+                                            strong: (chunks: string) => <strong>{chunks}</strong>,
+                                        }}
+                                    />
+                                </p>
+                            </>
                         }
                         {canViewArchivedChannels &&
-                            <FormattedMessage
-                                id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.{br}{br}Are you sure you wish to archive the <b>{display_name}</b> channel?'
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                    br: <br/>,
-                                    b: (chunks: string) => <b>{chunks}</b>,
-                                }}
-                            />}
+                            <>
+                                <p>
+                                    <FormattedMessage
+                                        id='deleteChannelModal.canViewArchivedChannelsWarning'
+                                        defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
+                                    />
+                                </p>
+                                <p>
+                                    <FormattedMessage
+                                        id='deleteChannelModal.confirmArchive'
+                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                        values={{
+                                            display_name: this.props.channel.display_name,
+                                            strong: (chunks: string) => <strong>{chunks}</strong>,
+                                        }}
+                                    />
+                                </p>
+                            </>
+                        }
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
