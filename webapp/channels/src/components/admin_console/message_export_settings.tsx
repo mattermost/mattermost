@@ -5,15 +5,14 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
 
 import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
@@ -51,7 +50,10 @@ const messages = defineMessages({
     exportJobStartTime_title: {id: 'admin.complianceExport.exportJobStartTime.title', defaultMessage: 'Compliance Export Time:'},
     exportJobStartTime_description: {id: 'admin.complianceExport.exportJobStartTime.description', defaultMessage: 'Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM.'},
     exportFormat_title: {id: 'admin.complianceExport.exportFormat.title', defaultMessage: 'Export Format:'},
-    exportFormat_description: {id: 'admin.complianceExport.exportFormat.description', defaultMessage: 'Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address.'},
+    exportFormat_description: {
+        id: 'admin.complianceExport.exportFormatDetail.description',
+        defaultMessage: 'Format of the compliance export. Corresponds to the system that you want to import the data into.{br}{br}For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address.',
+    },
     createJob_title: {id: 'admin.complianceExport.createJob.title', defaultMessage: 'Run Compliance Export Job Now'},
     createJob_help: {id: 'admin.complianceExport.createJob.help', defaultMessage: 'Initiates a Compliance Export job immediately.'},
 });
@@ -308,11 +310,15 @@ export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComp
         }
 
         const dropdownHelpText = (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 {...messages.exportFormat_description}
                 values={{
-                    url: `${getSiteURL()}/admin_console/environment/file_storage`,
-                    lineBreak: '\n',
+                    br: <br/>,
+                    a: (chunks) => (
+                        <Link to='/admin_console/environment/file_storage'>
+                            {chunks}
+                        </Link>
+                    ),
                 }}
             />
         );
