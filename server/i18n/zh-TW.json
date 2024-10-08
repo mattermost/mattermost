@@ -607,7 +607,7 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "群組訊息頻道最少必須發給 {{.MaxUsers}} 位使用者。"
+    "translation": "群組訊息頻道最少必須發給 {{.MinUsers}} 位使用者。"
   },
   {
     "id": "api.command_groupmsg.name",
@@ -655,7 +655,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "找不到使用者。可能已被系統管理員停用。"
+    "translation": "找不到使用者 {{.User}}。可能已被系統管理員停用。"
   },
   {
     "id": "api.command_invite.name",
