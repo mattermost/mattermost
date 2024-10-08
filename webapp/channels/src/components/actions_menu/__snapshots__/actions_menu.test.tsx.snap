@@ -169,15 +169,18 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
       <div
         className="visit-marketplace-text"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="No Actions currently{br}configured for this server"
-          id="post_info.actions.noActionsText"
-          values={
-            Object {
-              "br": <br />,
-            }
-          }
-        />
+        <p>
+          <MemoizedFormattedMessage
+            defaultMessage="No Actions currently"
+            id="post_info.actions.noActions.intro"
+          />
+        </p>
+        <p>
+          <MemoizedFormattedMessage
+            defaultMessage="configured for this server"
+            id="post_info.actions.noActions.details"
+          />
+        </p>
       </div>
       <div
         className="visit-marketplace"
@@ -195,7 +198,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
           >
             <MemoizedFormattedMessage
               defaultMessage="Visit the Marketplace"
-              id="post_info.actions.visitMarketplaceText"
+              id="post_info.actions.visitMarketplace"
             />
           </span>
         </button>

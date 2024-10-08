@@ -199,13 +199,18 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 key='visit-marketplace-permissions'
             >
                 <div className='visit-marketplace-text' >
-                    <FormattedMessage
-                        id='post_info.actions.noActionsText'
-                        defaultMessage='No Actions currently{br}configured for this server'
-                        values={{
-                            br: <br/>,
-                        }}
-                    />
+                    <p>
+            <FormattedMessage
+                id='post_info.actions.noActions.intro'
+                defaultMessage='No Actions currently'
+            />
+        </p>
+        <p>
+            <FormattedMessage
+                id='post_info.actions.noActions.details'
+                defaultMessage='configured for this server'
+            />
+        </p>
                 </div>
                 <div className='visit-marketplace' >
                     <button
@@ -216,7 +221,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
                             <FormattedMessage
-                                id='post_info.actions.visitMarketplaceText'
+                                id='post_info.actions.visitMarketplace'
                                 defaultMessage='Visit the Marketplace'
                             />
                         </span>
