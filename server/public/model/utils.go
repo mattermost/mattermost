@@ -633,8 +633,8 @@ func IsValidEmail(email string) bool {
 
 	// mail.ParseAddress accepts quoted strings for the address
 	// which can lead to sending to the wrong email address
-	// We won't accept quoted strings.
-	if strings.ContainsAny(email, "\"") {
+	// check for multiple '@' symbols and invalidate
+	if strings.Count(email, "@") > 1 {
 		return false
 	}
 	return true
