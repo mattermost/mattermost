@@ -1,11 +1,11 @@
 SET @preparedStatement = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'FileInfo'
+        WHERE table_name = 'fileinfo'
         AND table_schema = DATABASE()
-        AND column_name = 'ExtraInfo'
+        AND column_name = 'extrainfo'
     ) > 0,
-    'ALTER TABLE FileInfo DROP COLUMN ExtraInfo;',
+    'ALTER TABLE fileinfo DROP COLUMN extrainfo;',
     'SELECT 1'
 ));
 

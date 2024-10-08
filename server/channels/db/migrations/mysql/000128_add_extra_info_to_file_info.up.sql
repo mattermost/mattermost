@@ -7,9 +7,9 @@ DECLARE
 	FROM
 		INFORMATION_SCHEMA.COLUMNS
 	WHERE
-		TABLE_NAME = 'FileInfo'
+		TABLE_NAME = 'fileinfo'
 		AND table_schema = DATABASE()
-		AND COLUMN_NAME = 'FileInfoExtraInfo' INTO FileInfoExtraInfo_EXIST;
+		AND COLUMN_NAME = 'extrainfo' INTO FileInfoExtraInfo_EXIST;
 	IF(FileInfoExtraInfo_EXIST = 0) THEN
 				ALTER TABLE fileinfo ADD COLUMN extrainfo text;
 				UPDATE fileinfo SET extrainfo = '';
