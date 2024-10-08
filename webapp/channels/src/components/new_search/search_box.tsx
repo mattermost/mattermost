@@ -83,7 +83,7 @@ const SearchBox = forwardRef(
             setTimeout(() => {
                 inputRef.current?.setSelectionRange(newSearchTerms.length, newSearchTerms.length);
                 setCaretPosition(newSearchTerms.length);
-            }, 0)
+            }, 0);
         }, []);
 
         useEffect(() => {
