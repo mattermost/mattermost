@@ -6,6 +6,7 @@ import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -60,6 +61,8 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
         return () => clearInterval(interval);
     }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone]);
 
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
+
     const showRemoteUserHour = isDM && showIt && timestamp !== 0;
 
     return (
@@ -73,12 +76,16 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
                 />
             }
 
-            <ScheduledPostIndicator
-                location={location}
-                channelId={channelId}
-                postId={postId}
-                remoteUserHourDisplayed={showRemoteUserHour}
-            />
+            {
+
+                isScheduledPostEnabled &&
+                <ScheduledPostIndicator
+                    location={location}
+                    channelId={channelId}
+                    postId={postId}
+                    remoteUserHourDisplayed={showRemoteUserHour}
+                />
+            }
         </div>
     );
 }

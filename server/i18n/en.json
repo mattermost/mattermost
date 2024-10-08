@@ -2819,6 +2819,14 @@
     "translation": "Invalid email_token"
   },
   {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "scheduled posts feature is disabled"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Scheduled posts feature requires a license"
+  },
+  {
     "id": "api.scheme.create_scheme.license.error",
     "translation": "Your license does not support creating permissions schemes."
   },
