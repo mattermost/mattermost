@@ -20,6 +20,7 @@ const SectionNoticeButton = ({
             onClick={button.onClick}
             className={classNames('btn btn-sm sectionNoticeButton', buttonClass)}
         >
+            {button.loading && (<i className='icon fa fa-pulse fa-spinner'/>)}
             {leading}
             {button.text}
             {trailing}

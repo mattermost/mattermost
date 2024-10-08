@@ -384,5 +384,10 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
 };
 
 export const sendTestNotification = async () => {
-    return Client4.sendTestNotificaiton();
+    try {
+        const result = await Client4.sendTestNotificaiton();
+        return result;
+    } catch (error) {
+        return error;
+    }
 };

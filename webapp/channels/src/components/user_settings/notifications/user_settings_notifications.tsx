@@ -14,10 +14,7 @@ import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import {sendTestNotification} from 'actions/notification_actions';
-
 import ExternalLink from 'components/external_link';
-import SectionNotice from 'components/section_notice';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
@@ -30,6 +27,7 @@ import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notificat
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
+import SendTestNotificationNotice from './send_test_notification_notice';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -43,8 +41,6 @@ type MultiInputValue = {
     label: string;
     value: string;
 }
-
-const sectionNoticeContainerStyle: React.CSSProperties = {marginTop: 20};
 
 export type OwnProps = {
     user: UserProfile;
@@ -968,14 +964,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         );
     };
 
-    onSendTestNotificationClick() {
-        sendTestNotification();
-    }
-
-    onGoToNotificationDocumentation() {
-        window.open('https://docs.mattermost.com/collaborate/mention-people.html');
-    }
-
     render() {
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
         const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
@@ -1105,30 +1093,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
-                    {!this.props.adminMode && (
-                        <>
-                            <div className='divider-light'/>
-                            <div style={sectionNoticeContainerStyle}>
-                                <SectionNotice
-                                    text={this.props.intl.formatMessage({
-                                        id: 'user_settings.notifications.test_notification.body',
-                                        defaultMessage: 'Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.',
-                                    })}
-                                    title={this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
-                                    primaryButton={{
-                                        onClick: this.onSendTestNotificationClick,
-                                        text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button', defaultMessage: 'Send a test notification'}),
-                                    }}
-                                    secondaryButton={{
-                                        onClick: this.onGoToNotificationDocumentation,
-                                        text: this.props.intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'}),
-                                        trailingIcon: 'icon-open-in-new',
-                                    }}
-                                    type='hint'
-                                />
-                            </div>
-                        </>
-                    )}
+                    <SendTestNotificationNotice adminMode={this.props.adminMode}/>
                 </div>
             </div>
 
