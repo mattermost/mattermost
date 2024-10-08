@@ -12,6 +12,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {getChannel} from 'mattermost-redux/actions/channels';
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
@@ -30,6 +31,8 @@ import {getChannelURL} from 'selectors/urls';
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
+import PlaceholderScheduledPostsTitle
+    from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 
@@ -60,6 +63,7 @@ function DraftRow({
     displayName,
     isRemote,
 }: Props) {
+    const isScheduledPost = 'scheduled_at' in item;
     const intl = useIntl();
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
@@ -70,7 +74,9 @@ function DraftRow({
     const history = useHistory();
     const dispatch = useDispatch();
 
-    const getChannel = useMemo(() => makeGetChannel(), []);
+    const getChannelSelector = useMemo(() => makeGetChannel(), []);
+    const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
+
     const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
 
     const rootPostDeleted = useSelector((state: GlobalState) => {
@@ -87,7 +93,6 @@ function DraftRow({
     });
 
     const readOnly = !useSelector((state: GlobalState) => {
-        const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
 
@@ -95,7 +100,7 @@ function DraftRow({
 
     let postError = '';
 
-    if ('scheduled_at' in item) {
+    if (isScheduledPost) {
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
@@ -111,7 +116,6 @@ function DraftRow({
     const canSend = !postError;
     const canEdit = !(rootPostDeleted || readOnly);
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const channelUrl = useSelector((state: GlobalState) => {
         if (!channel) {
             return '';
@@ -131,6 +135,12 @@ function DraftRow({
         }
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
+
+    useEffect(() => {
+        if (!channel && isScheduledPost) {
+            dispatch(getChannel(channelId));
+        }
+    }, [channel, channelId, dispatch, isScheduledPost]);
 
     // TODO LOL verify the types and handled it better
     const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
@@ -245,7 +255,7 @@ function DraftRow({
         }
     }, [thread?.id]);
 
-    if (!channel) {
+    if (!channel && !isScheduledPost) {
         return null;
     }
 
@@ -254,7 +264,7 @@ function DraftRow({
     let uploadsInProgress: string[];
     let actions: React.ReactNode;
 
-    if ('scheduled_at' in item) {
+    if (isScheduledPost) {
         timestamp = item.scheduled_at;
         fileInfos = item.metadata?.files || [];
         uploadsInProgress = [];
@@ -266,6 +276,23 @@ function DraftRow({
         actions = draftActions;
     }
 
+    let title: React.ReactNode;
+    if (channel) {
+        title = (
+            <DraftTitle
+                type={(rootId ? 'thread' : 'channel')}
+                channel={channel}
+                userId={user.id}
+            />
+        );
+    } else {
+        title = (
+            <PlaceholderScheduledPostsTitle
+                type={(rootId ? 'thread' : 'channel')}
+            />
+        );
+    }
+
     return (
         <Panel
             onClick={goToMessage}
@@ -274,22 +301,16 @@ function DraftRow({
             {({hover}) => (
                 <>
                     <Header
-                        kind={'scheduled_at' in item ? 'scheduledPost' : 'draft'}
+                        kind={isScheduledPost ? 'scheduledPost' : 'draft'}
                         hover={hover}
                         actions={actions}
-                        title={(
-                            <DraftTitle
-                                type={(rootId ? 'thread' : 'channel')}
-                                channel={channel}
-                                userId={user.id}
-                            />
-                        )}
+                        title={title}
                         timestamp={timestamp}
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
                     <PanelBody
-                        channelId={channel.id}
+                        channelId={channel?.id}
                         displayName={displayName}
                         fileInfos={fileInfos}
                         message={item.message}
