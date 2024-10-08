@@ -225,10 +225,11 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 ref={this.contentRef}
             >
                 <FormattedMessage
-                    id='suggestion_list.no_matches'
-                    defaultMessage='No items match __{value}__'
+                    id='suggestionList.noMatches'
+                    defaultMessage='No items match <b>{value}</b>'
                     values={{
                         value: this.props.pretext || '""',
+                        b: (chunks: string) => <b>{chunks}</b>
                     }}
                 />
             </div>
