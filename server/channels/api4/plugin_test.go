@@ -644,8 +644,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
