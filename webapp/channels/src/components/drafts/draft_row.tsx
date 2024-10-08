@@ -137,6 +137,10 @@ function DraftRow({
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
 
     useEffect(() => {
+        // For scheduled posts, we want to show channel name.
+        // If it's a public channel, we'll be able to fetch the channel,
+        // if it's a private channel and the user is not an admin, the API call will fail and we'll
+        // show a placeholder text.
         if (!channel && isScheduledPost) {
             dispatch(getChannel(channelId));
         }
