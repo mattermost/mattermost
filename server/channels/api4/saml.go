@@ -109,7 +109,6 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
 	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
@@ -139,7 +138,6 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
 	auditRec.AddMeta("type", d)
 
 	if d == "application/x-pem-file" {
