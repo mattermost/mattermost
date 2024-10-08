@@ -1274,5 +1274,6 @@ func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Sto
 		SinceUpdateAt:      posts[2].UpdateAt,
 		UntilUpdateAt:      posts[2].UpdateAt + 4,
 	})
+	require.NoError(t, err)
 	require.Equal(t, 5, int(count))
 }
