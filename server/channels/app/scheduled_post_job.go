@@ -113,7 +113,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 	var successfulScheduledPostIDs []string
 
 	for i := range scheduledPosts {
-		rctx.Logger().Debug("processScheduledPostBatch processing scheduled post", mlog.String("scheduled_post_id", scheduledPosts[i].Id))
+		rctx.Logger().Trace("processScheduledPostBatch processing scheduled post", mlog.String("scheduled_post_id", scheduledPosts[i].Id))
 		scheduledPost, err := a.postScheduledPost(rctx, scheduledPosts[i])
 		if err != nil {
 			rctx.Logger().Debug("processScheduledPostBatch scheduled post processing failed", mlog.String("scheduled_post_id", scheduledPosts[i].Id), mlog.Err(err))
@@ -121,16 +121,16 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 			continue
 		}
 
-		rctx.Logger().Debug("processScheduledPostBatch scheduled post processing successful", mlog.String("scheduled_post_id", scheduledPosts[i].Id))
+		rctx.Logger().Trace("processScheduledPostBatch scheduled post processing successful", mlog.String("scheduled_post_id", scheduledPosts[i].Id))
 		successfulScheduledPostIDs = append(successfulScheduledPostIDs, scheduledPost.Id)
 	}
 
-	rctx.Logger().Debug("processScheduledPostBatch handling successful scheduled posts...", mlog.Int("count", len(successfulScheduledPostIDs)))
+	rctx.Logger().Trace("processScheduledPostBatch handling successful scheduled posts...", mlog.Int("count", len(successfulScheduledPostIDs)))
 	if err := a.handleSuccessfulScheduledPosts(rctx, successfulScheduledPostIDs); err != nil {
 		return errors.Wrap(err, "App.processScheduledPostBatch: failed to handle successfully posted scheduled posts")
 	}
 
-	rctx.Logger().Debug("processScheduledPostBatch handling failed scheduled posts...", mlog.Int("count", len(failedScheduledPosts)))
+	rctx.Logger().Trace("processScheduledPostBatch handling failed scheduled posts...", mlog.Int("count", len(failedScheduledPosts)))
 	a.handleFailedScheduledPosts(rctx, failedScheduledPosts)
 	rctx.Logger().Debug("processScheduledPostBatch finished...")
 	return nil
@@ -143,7 +143,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 	// we'll process scheduled posts one by one.
 	// If an error occurs, we'll log it and move onto the next scheduled post
 
-	rctx.Logger().Debug("postScheduledPost fetching channel for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId))
+	rctx.Logger().Trace("postScheduledPost fetching channel for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId))
 	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
@@ -165,7 +165,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, appErr
 	}
 
-	rctx.Logger().Debug("postScheduledPost checking if scheduled post can be posted", mlog.String("scheduled_post_id", scheduledPost.Id))
+	rctx.Logger().Trace("postScheduledPost checking if scheduled post can be posted", mlog.String("scheduled_post_id", scheduledPost.Id))
 	errorCode, err := a.canPostScheduledPost(rctx, scheduledPost, channel)
 	scheduledPost.ErrorCode = errorCode
 	if err != nil {
@@ -192,7 +192,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, fmt.Errorf("App.processScheduledPostBatch: skipping posting a scheduled post as `can post` check failed, error_code: %s", scheduledPost.ErrorCode)
 	}
 
-	rctx.Logger().Debug("postScheduledPost converting scheduled post to post", mlog.String("scheduled_post_id", scheduledPost.Id))
+	rctx.Logger().Trace("postScheduledPost converting scheduled post to post", mlog.String("scheduled_post_id", scheduledPost.Id))
 	post, err := scheduledPost.ToPost()
 	if err != nil {
 		rctx.Logger().Error(
@@ -206,7 +206,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	rctx.Logger().Debug("postScheduledPost posting the scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id))
+	rctx.Logger().Trace("postScheduledPost posting the scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id))
 	_, appErr = a.CreatePost(rctx, post, channel, true, false)
 	if appErr != nil {
 		rctx.Logger().Error(
@@ -226,7 +226,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 
 // canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
 func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, channel *model.Channel) (string, error) {
-	rctx.Logger().Debug("canPostScheduledPost called...", mlog.String("scheduled_post_id", scheduledPost.Id))
+	rctx.Logger().Trace("canPostScheduledPost called...", mlog.String("scheduled_post_id", scheduledPost.Id))
 
 	user, appErr := a.GetUser(scheduledPost.UserId)
 	if appErr != nil {
