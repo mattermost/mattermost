@@ -5412,7 +5412,7 @@
   "user.settings.general.notificationsExtra": "По умолчанию вы будете получать уведомления, когда кто-либо напишет ваше имя. Для изменения поведения перейдите в настройки {notify}.",
   "user.settings.general.notificationsLink": "Уведомления",
   "user.settings.general.position": "Должность",
-  "user.settings.general.positionExtra": "Укажите вашу должность. Эта информация будет отображена в вашем профиле.",
+  "user.settings.general.positionExtra": "Укажите должность. Эта информация будет показана в профиле.",
   "user.settings.general.profilePicture": "Изображение профиля",
   "user.settings.general.sendAgain": "Отправить снова",
   "user.settings.general.sending": "Отправка",

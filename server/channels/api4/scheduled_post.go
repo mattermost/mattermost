@@ -23,7 +23,24 @@ func (api *API) InitScheduledPost() {
 	api.BaseRoutes.Posts.Handle("/scheduled/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTeamScheduledPosts)).Methods(http.MethodGet)
 }
 
+func requireScheduledPostsEnabled(c *Context) {
+	if !*c.App.Srv().Config().ServiceSettings.ScheduledPosts {
+		c.Err = model.NewAppError("", "api.scheduled_posts.feature_disabled", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if c.App.Channels().License() == nil {
+		c.Err = model.NewAppError("", "api.scheduled_posts.license_error", nil, "", http.StatusBadRequest)
+		return
+	}
+}
+
 func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	var scheduledPost model.ScheduledPost
 	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
 		c.SetInvalidParamWithErr("schedule_post", err)
@@ -59,6 +76,11 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -98,6 +120,11 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
 	if scheduledPostId == "" {
 		c.SetInvalidURLParam("scheduled_post_id")
@@ -138,6 +165,11 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireScheduledPostsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
 	if scheduledPostId == "" {
 		c.SetInvalidURLParam("scheduled_post_id")
