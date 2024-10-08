@@ -12,8 +12,8 @@ export default function UnsupportedNotificationAnnouncementBar() {
     const [show, setShow] = useState(true);
 
     const handleClick = useCallback(async () => {
-        // TODO: Change to Docs URL
-        window.open('https://www.google.com', '_blank', 'noopener,noreferrer');
+        // TODO: Change to permalink
+        window.open('https://docs.mattermost.com/install/software-hardware-requirements.html#pc-web', '_blank', 'noopener,noreferrer');
     }, []);
 
     const handleClose = useCallback(() => {
@@ -33,13 +33,13 @@ export default function UnsupportedNotificationAnnouncementBar() {
             handleClose={handleClose}
             message={
                 <FormattedMessage
-                    id='announcement_bar.notification.not_supported'
-                    defaultMessage='Your browser does not support desktop notifications.'
+                    id='announcementBar.notification.unsupportedBar.message'
+                    defaultMessage='Your browser does not support web browser notifications.'
                 />
             }
             ctaText={
                 <FormattedMessage
-                    id='announcement_bar.notification.not_supported.cta'
+                    id='announcementBar.notification.unsupportedBar.cta'
                     defaultMessage='Update your browser'
                 />
             }

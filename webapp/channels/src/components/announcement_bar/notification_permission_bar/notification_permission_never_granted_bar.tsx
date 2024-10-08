@@ -14,6 +14,8 @@ export default function NotificationPermissionNeverGrantedBar() {
 
     const handleClick = useCallback(async () => {
         await requestNotificationPermission();
+
+        // Dismiss the bar after user makes a choice
         setShow(false);
     }, []);
 
@@ -34,13 +36,13 @@ export default function NotificationPermissionNeverGrantedBar() {
             type={AnnouncementBarTypes.ANNOUNCEMENT}
             message={
                 <FormattedMessage
-                    id='announcement_bar.notification.needs_permission'
-                    defaultMessage='We need your permission to show desktop notifications.'
+                    id='announcementBar.notification.permissionNeverGrantedBar.message'
+                    defaultMessage='We need your permission to show web browser notifications.'
                 />
             }
             ctaText={
                 <FormattedMessage
-                    id='announcement_bar.notification.enable_notifications'
+                    id='announcementBar.notification.permissionNeverGrantedBar.cta'
                     defaultMessage='Enable notifications'
                 />
             }

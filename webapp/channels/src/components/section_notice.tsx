@@ -18,6 +18,7 @@ type Props = {
     text: string;
     primaryButton?: Button;
     secondaryButton?: Button;
+    tertiaryButton?: Button;
     linkButton?: Button;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning';
     isDismissable?: boolean;
@@ -37,6 +38,7 @@ const SectionNotice = ({
     text,
     primaryButton,
     secondaryButton,
+    tertiaryButton,
     linkButton,
     type = 'info',
     isDismissable,
@@ -70,6 +72,14 @@ const SectionNotice = ({
                             {secondaryButton.text}
                         </button>
                         }
+                        {tertiaryButton && (
+                            <button
+                                onClick={tertiaryButton.onClick}
+                                className={classNames(buttonClass, 'btn-tertiary')}
+                            >
+                                {tertiaryButton.text}
+                            </button>
+                        )}
                         {linkButton &&
                         <button
                             onClick={linkButton.onClick}

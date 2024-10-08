@@ -34,7 +34,7 @@ export default function NotificationPermissionTitleTag() {
         return (
             <Tag
                 size='sm'
-                variant='danger'
+                variant='dangerDim'
                 icon='alert-outline'
                 text={formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionIssueTag',
