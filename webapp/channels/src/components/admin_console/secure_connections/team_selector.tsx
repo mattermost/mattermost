@@ -14,6 +14,7 @@ export type Props = {
     value: string;
     teamsById: IDMappedObjects<Team>;
     onChange: (teamId: string) => void;
+    testId: string;
 }
 
 const TeamSelector = (props: Props): JSX.Element => {
@@ -33,6 +34,7 @@ const TeamSelector = (props: Props): JSX.Element => {
     return (
         <DropdownInput
             className='team_selector'
+            testId={props.testId}
             required={true}
             onChange={handleTeamChange}
             value={value ? {label: value.display_name, value: value.id} : undefined}
