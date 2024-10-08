@@ -146,7 +146,7 @@ const notices: Notice[] = [
         name: 'ie11_deprecation',
         title: (
             <FormattedMessage
-                id='systemNotice.noticeTitle'
+                id='system_notice.title'
                 defaultMessage='Notice from Mattermost'
             />
         ),
