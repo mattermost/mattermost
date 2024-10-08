@@ -253,7 +253,7 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	require.Equal(t, originalJSON, gotJSON)
 
 	msg = platform.MakeHookedWebSocketEvent(wsEvent)
-	// User does not have permission.
+	// User does not exist, and thus won't have permission to the channel.
 	wc.UserId = "otheruser"
 	err = hook.Process(msg, wc, map[string]any{
 		"preview_channel": th.BasicChannel,

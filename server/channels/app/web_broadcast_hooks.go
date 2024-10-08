@@ -142,10 +142,12 @@ func usePermalinkHook(message *model.WebSocketEvent, previewChannel *model.Chann
 
 type permalinkBroadcastHook struct{}
 
+// Process adds the post medata from usePermalinkHook to the websocket event
+// if the user has access to the containing channel.
 func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	previewChannel, err := getTypedArg[*model.Channel](args, "preview_channel")
 	if err != nil {
-		return errors.Wrap(err, "Invalid preview_post value passed to permalinkBroadcastHook")
+		return errors.Wrap(err, "Invalid preview_channel value passed to permalinkBroadcastHook")
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log())

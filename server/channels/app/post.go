@@ -765,7 +765,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	return rpost, nil
 }
 
-func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (appErr *model.AppError) {
+func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
@@ -779,16 +779,21 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 	}
 	message.Add("post", postJSON)
 
-	defer func() {
-		if appErr == nil {
-			a.Publish(message)
-		}
-	}()
+	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, postJSON)
+	if appErr != nil {
+		return appErr
+	}
 
+	a.Publish(message)
+	return nil
+}
+
+func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, postJSON string) *model.AppError {
 	previewProp := post.GetPreviewedPostProp()
 	if previewProp == "" {
 		return nil
 	}
+
 	permalinkPreviewedPost := post.GetPreviewPost()
 
 	// To remain secure by default, we wipe out the metadata unconditionally.
@@ -802,7 +807,7 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonMarshalError),
 		)
-		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	message.Add("post", postWithoutPermalinkPreviewJSON)
 
@@ -815,12 +820,12 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 			mlog.String("reason", model.NotificationReasonParseError),
 			mlog.String("prop_value", previewProp),
 		)
-		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewProp))
+		rctx.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewProp))
 		// In this case, it will broadcast the message with metadata wiped out
 		return nil
 	}
 
-	previewedPost, appErr := a.GetSinglePost(c, previewProp, false)
+	previewedPost, appErr := a.GetSinglePost(rctx, previewProp, false)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
@@ -832,14 +837,14 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 				mlog.String("referenced_post_id", previewProp),
 				mlog.Err(appErr),
 			)
-			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewProp))
+			rctx.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewProp))
 			// In this case, it will broadcast the message with metadata wiped out
 			return nil
 		}
 		return appErr
 	}
 
-	permalinkPreviewedChannel, appErr := a.GetChannel(c, previewedPost.ChannelId)
+	permalinkPreviewedChannel, appErr := a.GetChannel(rctx, previewedPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
@@ -850,7 +855,7 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 				mlog.String("reason", model.NotificationReasonFetchError),
 				mlog.String("referenced_post_id", previewedPost.Id),
 			)
-			c.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			rctx.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
 			// In this case, it will broadcast the message with metadata wiped out
 			return nil
 		}
@@ -860,7 +865,7 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 	// In case the user does have permission to read, we set the metadata back.
 	// Note that this is the return value to the post creator, and has nothing to do
 	// with the content of the websocket broadcast to that user or any other.
-	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
+	if a.HasPermissionToReadChannel(rctx, post.UserId, permalinkPreviewedChannel) {
 		post.AddProp(model.PostPropsPreviewedPost, previewProp)
 		post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
 	}
