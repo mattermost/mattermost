@@ -7,7 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import type {Notice} from 'components/system_notice/types';
 
 import {DocLinks} from 'utils/constants';
@@ -146,9 +145,12 @@ const notices: Notice[] = [
     {
         name: 'ie11_deprecation',
         title: (
-            <FormattedMarkdownMessage
-                id='system_notice.title'
+            <FormattedMessage
+                id='systemNotice.noticeTitle'
                 defaultMessage='Notice from Mattermost'
+                values={{
+                    b: (chunks: string) => <b>{chunks}</b>,
+                }}
             />
         ),
         allowForget: false,
