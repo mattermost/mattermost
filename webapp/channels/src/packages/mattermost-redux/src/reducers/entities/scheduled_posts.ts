@@ -224,7 +224,7 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
 
         const newState = {...state};
         const index = newState[id].findIndex((scheduledPostId) => scheduledPostId === scheduledPost.id);
-        newState[id] = [...newState[scheduledPost.channel_id]];
+        newState[id] = [...newState[id]];
         newState[id].splice(index, 1);
 
         return newState;
