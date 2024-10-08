@@ -607,7 +607,9 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	w.Write([]byte(model.MapToJSON(resp)))
+	if _, err := w.Write([]byte(model.MapToJSON(resp))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
