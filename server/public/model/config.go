@@ -387,6 +387,7 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	EnableAPITriggerAdminNotifications                *bool
 	EnableAPIUserDeletion                             *bool
+	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
@@ -823,6 +824,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewPointer(false)
+	}
+
+	if s.EnableDesktopLandingPage == nil {
+		s.EnableDesktopLandingPage = NewPointer(true)
 	}
 
 	if s.EnableSVGs == nil {

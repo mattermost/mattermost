@@ -4,6 +4,7 @@
 package export_users_to_csv
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -60,6 +61,22 @@ func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
 		return nil, err
 	}
 
+	hideInactive := false
+	if val, ok := data["hide_inactive"]; ok && val != "" {
+		hideInactive, err = strconv.ParseBool(val)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse hide_inactive: %w", err)
+		}
+	}
+
+	hideActive := false
+	if val, ok := data["hide_active"]; ok && val != "" {
+		hideActive, err = strconv.ParseBool(val)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse hide_active: %w", err)
+		}
+	}
+
 	options := model.UserReportOptions{
 		ReportingBaseOptions: model.ReportingBaseOptions{
 			SortColumn:      "Username",
@@ -69,6 +86,10 @@ func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
 			StartAt:         startAt,
 			EndAt:           endAt,
 		},
+		HideInactive: hideInactive,
+		HideActive:   hideActive,
+		Role:         data["role"],
+		Team:         data["team"],
 	}
 
 	return &options, nil
