@@ -55,8 +55,7 @@ func TestPlugin(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
 			if _, err = res.Write(tarData); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -534,8 +533,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -562,8 +560,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -589,8 +586,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -677,8 +673,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -704,8 +699,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -761,8 +755,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal(samplePlugins)
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -849,8 +842,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			out, err = json.Marshal([]*model.MarketplacePlugin{samplePlugins[0], newPlugin})
 			require.NoError(t, err)
 			if _, err = res.Write(out); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -912,8 +904,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			json, err := json.Marshal(samplePlugins)
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer func() { testServer.Close() }()
@@ -1027,8 +1018,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
 		require.NoError(t, err)
 		if _, err := res.Write(json); err != nil {
-			http.Error(res, "Failed to write response", http.StatusInternalServerError)
-			return
+			require.NoError(t, err)
 		}
 	}))
 	defer testServer.Close()
@@ -1249,8 +1239,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		json, err := json.Marshal([]*model.MarketplacePlugin{marketplacePlugins[0]})
 		require.NoError(t, err)
 		if _, err := res.Write(json); err != nil {
-			http.Error(res, "Failed to write response", http.StatusInternalServerError)
-			return
+			require.NoError(t, err)
 		}
 	}))
 	defer testServer.Close()
@@ -1365,8 +1354,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 		json, err := json.Marshal([]*model.MarketplacePlugin{})
 		require.NoError(t, err)
 		if _, err := res.Write(json); err != nil {
-			http.Error(res, "Failed to write response", http.StatusInternalServerError)
-			return
+			require.NoError(t, err)
 		}
 	}))
 	defer testServer.Close()
@@ -1454,8 +1442,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
 		if _, err := res.Write(tarData); err != nil {
-			http.Error(res, "Failed to write response", http.StatusInternalServerError)
-			return
+			require.NoError(t, err)
 		}
 	}))
 	defer pluginServer.Close()
@@ -1553,8 +1540,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer testServer.Close()
@@ -1576,8 +1562,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer testServer.Close()
@@ -1603,8 +1588,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer testServer.Close()
@@ -1651,8 +1635,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
 			require.NoError(t, err)
 			if _, err := res.Write(json); err != nil {
-				http.Error(res, "Failed to write response", http.StatusInternalServerError)
-				return
+				require.NoError(t, err)
 			}
 		}))
 		defer testServer.Close()
@@ -1811,8 +1794,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
 		if _, err := res.Write(tarData); err != nil {
-			http.Error(res, "Failed to write response", http.StatusInternalServerError)
-			return
+			require.NoError(t, err)
 		}
 	}))
 	defer pluginServer.Close()
@@ -1905,8 +1887,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 				}
 
 				if _, err = res.Write(out); err != nil {
-					http.Error(res, "Failed to write response", http.StatusInternalServerError)
-					return
+					require.NoError(t, err)
 				}
 			}))
 			defer testServer.Close()
@@ -2076,8 +2057,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 				out, err = json.Marshal(mPlugins)
 				require.NoError(t, err)
 				if _, err = res.Write(out); err != nil {
-					http.Error(res, "Failed to write response", http.StatusInternalServerError)
-					return
+					require.NoError(t, err)
 				}
 			}))
 			defer testServer.Close()
@@ -2207,9 +2187,7 @@ func TestPluginWebSocketRemoteAddress(t *testing.T) {
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 	utils.CompileGo(t, string(pluginCode), backend)
 	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
-	if err != nil {
-		t.Fatalf("failed to write plugin.json file: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
