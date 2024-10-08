@@ -193,6 +193,11 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     private showLandingPageIfNecessary = () => {
+        // Only show Landing Page if enabled
+        if (!this.props.enableDesktopLandingPage) {
+            return;
+        }
+
         // We have nothing to redirect to if we're already on Desktop App
         // Chromebook has no Desktop App to switch to
         if (isDesktopApp() || isChromebook()) {
@@ -312,7 +317,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
             if (isUserAtRootRoute) {
                 if (isMeRequested) {
-                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
+                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history, new URLSearchParams(this.props.location.search));
                 } else if (this.props.noAccounts) {
                     this.props.history.push('/signup_user_complete');
                 }
