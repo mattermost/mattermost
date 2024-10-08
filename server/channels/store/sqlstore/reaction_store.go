@@ -330,10 +330,10 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 	return nil
 }
 
-func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer finalizeTransactionX(txn, &err)
 
@@ -343,18 +343,24 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 			sq.Eq{"PostId": r.Ids},
 		)
 
-	_, err = txn.ExecBuilder(query)
+	sqlResult, err := txn.ExecBuilder(query)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s", r.Id)
+		return 0, errors.Wrapf(err, "failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s", r.Id)
 	}
 	err = deleteFromRetentionIdsTx(txn, r.Id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if err = txn.Commit(); err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "unable to retrieve rows affected")
+	}
+
+	return rowsAffected, nil
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {

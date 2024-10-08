@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchChannelsAndMembers, unsetActiveChannelOnServer} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, fetchAllMyChannelMembers, fetchChannelsAndMembers, unsetActiveChannelOnServer} from 'mattermost-redux/actions/channels';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -53,7 +53,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 const mapDispatchToProps = {
     fetchChannelsAndMembers,
-    fetchAllMyTeamsChannelsAndChannelMembersREST,
+    fetchAllMyTeamsChannels,
+    fetchAllMyChannelMembers,
     markAsReadOnFocus,
     initializeTeam,
     joinTeam,

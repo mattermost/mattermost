@@ -210,7 +210,9 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -241,7 +243,9 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
