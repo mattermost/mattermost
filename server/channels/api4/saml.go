@@ -85,7 +85,6 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
 	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
