@@ -130,7 +130,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
             }
             emptyTextSearch={
                 <FormattedMessage
-                    id='installedOutgoingOauthConnections.blankSearch'
+                    id='installed_outgoing_oauth_connections.emptySearch'
                     defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
                 />
             }
