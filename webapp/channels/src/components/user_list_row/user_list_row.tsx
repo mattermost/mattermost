@@ -4,6 +4,8 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {ConnectedComponent} from 'react-redux';
+
+import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -13,7 +15,6 @@ import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import {FormattedMessage} from 'react-intl';
 import Nbsp from 'components/html_entities/nbsp';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
@@ -81,7 +82,7 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
         emailProp = (
             <FormattedMessage
                 id='admin.user_item.emailTitle_admin'
-                defaultMessage="<strong>Email:</strong> {email}"
+                defaultMessage='<strong>Email:</strong> {email}'
                 values={{
                     email: user.email,
                     strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
