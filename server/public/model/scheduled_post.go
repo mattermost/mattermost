@@ -17,6 +17,7 @@ const (
 	ScheduledPostErrorCodeNoChannelPermission = "no_channel_permission"
 	ScheduledPostErrorNoChannelMember         = "no_channel_member"
 	ScheduledPostErrorThreadDeleted           = "thread_deleted"
+	ScheduledPostErrorUnableToSend            = "unable_to_send"
 )
 
 // allow scheduled posts to be created up to

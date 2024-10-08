@@ -270,3 +270,28 @@ func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPos
 
 	return scheduledPost, nil
 }
+
+func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+	builder := s.getQueryBuilder().
+		Update("ScheduledPosts").
+		Set("ErrorCode", model.ScheduledPostErrorUnableToSend).
+		Set("ProcessedAt", model.GetMillis()).
+		Where(sq.And{
+			sq.Eq{"ErrorCode": ""},
+			sq.Lt{"ScheduledAt": beforeTime},
+		})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts", mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts")
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts", mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts")
+	}
+
+	return nil
+}

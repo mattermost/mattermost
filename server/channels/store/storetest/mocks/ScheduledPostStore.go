@@ -152,6 +152,24 @@ func (_m *ScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs [
 	return r0
 }
 
+// UpdateOldScheduledPosts provides a mock function with given fields: beforeTime
+func (_m *ScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+	ret := _m.Called(beforeTime)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateOldScheduledPosts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64) error); ok {
+		r0 = rf(beforeTime)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdatedScheduledPost provides a mock function with given fields: scheduledPost
 func (_m *ScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 	ret := _m.Called(scheduledPost)

@@ -84,6 +84,16 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 			break
 		}
 	}
+
+	// once all scheduled posts are processed, we need to update and close the old ones
+	// as we don't process pending scheduled posts more than 24 hours old.
+	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(beforeTime); err != nil {
+		rctx.Logger().Error(
+			"App.ProcessScheduledPosts: failed to update old scheduled posts",
+			mlog.Int("before_time", beforeTime),
+			mlog.Err(err),
+		)
+	}
 }
 
 // processScheduledPostBatch processes one batch

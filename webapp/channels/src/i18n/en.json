@@ -4760,6 +4760,7 @@
   "scheduled_post.error_code.no_channel_member": "Not In Channel",
   "scheduled_post.error_code.no_channel_permission": "Missing Permission",
   "scheduled_post.error_code.thread_deleted": "Thread Deleted",
+  "scheduled_post.error_code.unable_to_send": "Unable to Send",
   "scheduled_post.error_code.unknown_error": "Unknown Error",
   "scheduled_post.error_code.user_deleted": "User Deleted",
   "scheduled_post.error_code.user_missing": "User Deleted",

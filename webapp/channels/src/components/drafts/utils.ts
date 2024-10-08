@@ -39,6 +39,10 @@ const errorCodeToErrorMessage = defineMessages<ScheduledPostErrorCode>({
         id: 'scheduled_post.error_code.thread_deleted',
         defaultMessage: 'Thread Deleted',
     },
+    unable_to_send: {
+        id: 'scheduled_post.error_code.unable_to_send',
+        defaultMessage: 'Unable to Send',
+    },
 });
 
 export function getErrorStringFromCode(intl: IntlShape, errorCode: ScheduledPostErrorCode = 'unknown') {
