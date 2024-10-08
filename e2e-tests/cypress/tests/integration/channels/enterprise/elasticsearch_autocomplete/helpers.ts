@@ -13,7 +13,7 @@ export function withTimestamp(prefix: string, timestamp: number) {
     return prefix + '-' + timestamp;
 }
 
-function createEmail(name: string, timestamp: number) {
+export function createEmail(name: string, timestamp: number) {
     return name + timestamp + '@sample.mattermost.com';
 }
 
@@ -26,7 +26,7 @@ export function startAtMention(mention: string) {
     cy.get('#suggestionList').should('be.visible');
 }
 
-function searchForChannel(name: string) {
+export function searchForChannel(name: string) {
     // # Open up channel switcher
     cy.typeCmdOrCtrl().type('k').wait(TIMEOUTS.ONE_SEC);
 
