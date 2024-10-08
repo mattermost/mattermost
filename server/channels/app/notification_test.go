@@ -429,7 +429,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		err = json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
 		require.NoError(t, err)
 		assert.Equal(t, postURL, receivedPost.Message)
-		assert.Nil(t, receivedPost.Metadata.Embeds[0].Data)
+		assert.Nil(t, receivedPost.Metadata.Embeds)
 	})
 }
 

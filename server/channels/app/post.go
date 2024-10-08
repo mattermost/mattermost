@@ -792,7 +792,7 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 	permalinkPreviewedPost := post.GetPreviewPost()
 
 	// To remain secure by default, we wipe out the metadata unconditionally.
-	post.Metadata.Embeds[0].Data = nil
+	removePermalinkMetadataFromPost(post)
 	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
 	if err != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
@@ -861,7 +861,8 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 	// Note that this is the return value to the post creator, and has nothing to do
 	// with the content of the websocket broadcast to that user or any other.
 	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
-		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+		post.AddProp(model.PostPropsPreviewedPost, previewProp)
+		post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
 	}
 
 	usePermalinkHook(message, permalinkPreviewedChannel, postJSON)
