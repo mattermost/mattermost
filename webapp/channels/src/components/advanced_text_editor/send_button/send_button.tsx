@@ -9,6 +9,8 @@ import {useSelector} from 'react-redux';
 import {SendIcon} from '@mattermost/compass-icons/components';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
+
 import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
@@ -26,6 +28,7 @@ type SendButtonProps = {
 
 const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     const {formatMessage} = useIntl();
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     const sendMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
         e?.stopPropagation();
@@ -86,11 +89,14 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                 </button>
             </WithTooltip>
 
-            <SendPostOptions
-                disabled={disabled}
-                onSelect={handleSubmit}
-                channelId={channelId}
-            />
+            {
+                isScheduledPostEnabled &&
+                <SendPostOptions
+                    disabled={disabled}
+                    onSelect={handleSubmit}
+                    channelId={channelId}
+                />
+            }
         </div>
     );
 };

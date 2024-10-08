@@ -10,7 +10,10 @@ import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {
+    isScheduledPostsEnabled,
+    makeGetScheduledPostsByTeam,
+} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
@@ -59,6 +62,7 @@ function Drafts({
     const currentTeamId = useSelector(getCurrentTeamId);
     const getScheduledPostsByTeam = makeGetScheduledPostsByTeam();
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
@@ -137,42 +141,56 @@ function Drafts({
                 })}
             />
 
-            <Tabs
-                id='draft_tabs'
-                activeKey={activeTab}
-                mountOnEnter={true}
-                unmountOnExit={false}
-                onSelect={handleSwitchTabs}
-            >
-                <Tab
-                    eventKey={0}
-                    title={draftTabHeading}
+            {
+                isScheduledPostEnabled &&
+                <Tabs
+                    id='draft_tabs'
+                    activeKey={activeTab}
+                    mountOnEnter={true}
                     unmountOnExit={false}
-                    tabClassName='drafts_tab'
+                    onSelect={handleSwitchTabs}
                 >
-                    <DraftList
-                        drafts={drafts}
-                        user={user}
-                        displayName={displayName}
-                        draftRemotes={draftRemotes}
-                        status={status}
-                    />
-                </Tab>
+                    <Tab
+                        eventKey={0}
+                        title={draftTabHeading}
+                        unmountOnExit={false}
+                        tabClassName='drafts_tab'
+                    >
+                        <DraftList
+                            drafts={drafts}
+                            user={user}
+                            displayName={displayName}
+                            draftRemotes={draftRemotes}
+                            status={status}
+                        />
+                    </Tab>
 
-                <Tab
-                    eventKey={1}
-                    title={scheduledPostsTabHeading}
-                    unmountOnExit={false}
-                    tabClassName='drafts_tab'
-                >
-                    <ScheduledPostList
-                        scheduledPosts={scheduledPosts || EMPTY_LIST}
-                        user={user}
-                        displayName={displayName}
-                        status={status}
-                    />
-                </Tab>
-            </Tabs>
+                    <Tab
+                        eventKey={1}
+                        title={scheduledPostsTabHeading}
+                        unmountOnExit={false}
+                        tabClassName='drafts_tab'
+                    >
+                        <ScheduledPostList
+                            scheduledPosts={scheduledPosts || EMPTY_LIST}
+                            user={user}
+                            displayName={displayName}
+                            status={status}
+                        />
+                    </Tab>
+                </Tabs>
+            }
+
+            {
+                !isScheduledPostEnabled &&
+                <DraftList
+                    drafts={drafts}
+                    user={user}
+                    displayName={displayName}
+                    draftRemotes={draftRemotes}
+                    status={status}
+                />
+            }
         </div>
     );
 }

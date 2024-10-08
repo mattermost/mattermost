@@ -10,7 +10,7 @@ import {NavLink, useRouteMatch} from 'react-router-dom';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
-    getScheduledPostsByTeamCount, hasScheduledPostError,
+    getScheduledPostsByTeamCount, hasScheduledPostError, isScheduledPostsEnabled,
 } from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -51,8 +51,11 @@ function DraftsLink() {
     const draftCount = useSelector(getDraftsCount);
     const teamId = useSelector(getCurrentTeamId);
     const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId, true));
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
-    const itemsExist = draftCount > 0 || teamScheduledPostCount > 0;
+    const hasDrafts = draftCount > 0;
+    const hasScheduledPosts = teamScheduledPostCount > 0;
+    const itemsExist = hasDrafts || (isScheduledPostEnabled && hasScheduledPosts);
 
     const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, teamId));
 
@@ -70,9 +73,13 @@ function DraftsLink() {
 
     useEffect(() => {
         const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
-        dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
+
+        if (isScheduledPostEnabled) {
+            dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
+        }
+
         initialScheduledPostsLoaded.current = true;
-    }, [dispatch, teamId]);
+    }, [dispatch, isScheduledPostEnabled, teamId]);
 
     if (!itemsExist && !urlMatches) {
         return null;
@@ -111,7 +118,7 @@ function DraftsLink() {
                     }
 
                     {
-                        teamScheduledPostCount > 0 &&
+                        isScheduledPostEnabled && teamScheduledPostCount > 0 &&
                         <ChannelMentionBadge
                             unreadMentions={teamScheduledPostCount}
                             icon={scheduleIcon}
