@@ -7699,10 +7699,10 @@ func (s *TimerLayerScheduledPostStore) Get(scheduledPostId string) (*model.Sched
 	return result, err
 }
 
-func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	start := time.Now()
 
-	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, lastScheduledPostId, perPage)
+	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7743,6 +7743,22 @@ func (s *TimerLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.PermanentlyDeleteScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdateOldScheduledPosts", success, elapsed)
 	}
 	return err
 }

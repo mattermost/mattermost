@@ -139,7 +139,7 @@ func (s *SqlScheduledPostStore) getMaxMessageSize() int {
 	return s.maxMessageSizeCached
 }
 
-func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	query := s.getQueryBuilder().
 		Select(s.columns("")...).
 		From("ScheduledPosts").
@@ -148,12 +148,18 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, lastS
 		Limit(perPage)
 
 	if lastScheduledPostId == "" {
-		query = query.Where(sq.LtOrEq{"ScheduledAt": beforeTime})
+		query = query.Where(sq.And{
+			sq.LtOrEq{"ScheduledAt": beforeTime},
+			sq.GtOrEq{"ScheduledAt": afterTime},
+		})
 	}
 	if lastScheduledPostId != "" {
 		query = query.
 			Where(sq.Or{
-				sq.Lt{"ScheduledAt": beforeTime},
+				sq.And{
+					sq.LtOrEq{"ScheduledAt": beforeTime},
+					sq.GtOrEq{"ScheduledAt": afterTime},
+				},
 				sq.And{
 					sq.Eq{"ScheduledAt": beforeTime},
 					sq.Gt{"Id": lastScheduledPostId},
@@ -263,4 +269,29 @@ func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPos
 	}
 
 	return scheduledPost, nil
+}
+
+func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+	builder := s.getQueryBuilder().
+		Update("ScheduledPosts").
+		Set("ErrorCode", model.ScheduledPostErrorUnableToSend).
+		Set("ProcessedAt", model.GetMillis()).
+		Where(sq.And{
+			sq.Eq{"ErrorCode": ""},
+			sq.Lt{"ScheduledAt": beforeTime},
+		})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts", mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts")
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts", mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts")
+	}
+
+	return nil
 }
