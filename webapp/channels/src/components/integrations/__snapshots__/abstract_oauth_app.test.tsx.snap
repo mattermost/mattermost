@@ -32,7 +32,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
     <form
       className="form-horizontal"
     >
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "manage_system",
@@ -94,7 +94,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
             </div>
           </div>
         </div>
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
       <div
         className="form-group"
       >
@@ -264,8 +264,7 @@ https://test.com/callback2"
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -337,7 +336,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
     <form
       className="form-horizontal"
     >
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "manage_system",
@@ -399,7 +398,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             </div>
           </div>
         </div>
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
       <div
         className="form-group"
       >
@@ -568,8 +567,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "serverError",

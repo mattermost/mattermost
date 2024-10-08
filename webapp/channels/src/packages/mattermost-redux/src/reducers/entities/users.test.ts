@@ -304,6 +304,34 @@ describe('Reducers.users', () => {
             expect(newState.profilesNotInChannel).toEqual(expectedState.profilesNotInChannel);
         });
 
+        it('UserTypes.RECEIVED_PROFILES_IN_CHANNEL, existing state', () => {
+            const state = {
+                profilesNotInChannel: {
+                    id: new Set().add('old_user_id').add('other_user_id'),
+                },
+            };
+            const action = {
+                type: UserTypes.RECEIVED_PROFILES_IN_CHANNEL,
+                id: 'id',
+                data: {
+                    old_user_id: {
+                        id: 'old_user_id',
+                    },
+                    other_user_id: {
+                        id: 'other_user_id',
+                    },
+                },
+            };
+            const expectedState = {
+                profilesNotInChannel: {
+                    id: new Set(),
+                },
+            };
+
+            const newState = reducer(state as unknown as ReducerState, action);
+            expect(newState.profilesNotInChannel).toEqual(expectedState.profilesNotInChannel);
+        });
+
         it('UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL, no existing profiles', () => {
             const state = {
                 profilesNotInChannel: {},

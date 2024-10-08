@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React, {memo} from 'react';
-import type {HTMLAttributes} from 'react';
+import type {HTMLAttributes, SyntheticEvent} from 'react';
+import {useIntl} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -56,33 +57,38 @@ const Avatar = ({
     text,
     ...attrs
 }: Props & Attrs) => {
+    const {formatMessage} = useIntl();
+
     const classes = classNames(`Avatar Avatar-${size}`, attrs.className);
 
     if (text) {
         return (
             <div
                 {...attrs}
-                className={classes + ' Avatar-plain'}
+                className={classNames(classes, 'Avatar-plain')}
                 data-content={text}
             />
         );
     }
 
+    function handleOnError(e: SyntheticEvent<HTMLImageElement, Event>) {
+        const fallbackSrc = (url && isURLForUser(url)) ? replaceURLWithDefaultImageURL(url) : BotDefaultIcon;
+
+        if (e.currentTarget.src !== fallbackSrc) {
+            e.currentTarget.src = fallbackSrc;
+        }
+    }
+
     return (
         <img
-            tabIndex={0}
             {...attrs}
             className={classes}
-            alt={`${username || 'user'} profile image`}
+            alt={formatMessage({id: 'avatar.alt', defaultMessage: '{username} profile image'}, {
+                username: username || 'user',
+            })}
             src={url}
             loading='lazy'
-            onError={(e) => {
-                const fallbackSrc = (url && isURLForUser(url)) ? replaceURLWithDefaultImageURL(url) : BotDefaultIcon;
-
-                if (e.currentTarget.src !== fallbackSrc) {
-                    e.currentTarget.src = fallbackSrc;
-                }
-            }}
+            onError={handleOnError}
         />
     );
 };

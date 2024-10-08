@@ -30,7 +30,7 @@ import type {RhsState} from 'types/store/rhs';
 export type Props = {
     isExpanded: boolean;
     isOpen: boolean;
-    channel: Channel;
+    channel?: Channel;
     team?: Team;
     teamId: Team['id'];
     productId: ProductIdentifier;
@@ -44,7 +44,7 @@ export type Props = {
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
-    rhsChannel: Channel;
+    rhsChannel?: Channel;
     selectedPostId: string;
     selectedPostCardId: string;
     actions: {
@@ -150,11 +150,11 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         }
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
-        if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel.id !== prevProps.rhsChannel.id) {
+        if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showPinnedPosts(rhsChannel.id);
         }
 
-        if (isChannelFiles && prevProps.isChannelFiles === isChannelFiles && rhsChannel.id !== prevProps.rhsChannel.id) {
+        if (isChannelFiles && prevProps.isChannelFiles === isChannelFiles && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showChannelFiles(rhsChannel.id);
         }
 

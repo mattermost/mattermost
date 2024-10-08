@@ -67,6 +67,10 @@ export function isIosChrome(): boolean {
     return userAgent().indexOf('CriOS') !== -1;
 }
 
+export function isIosFirefox(): boolean {
+    return userAgent().indexOf('FxiOS') !== -1;
+}
+
 export function isIosWeb(): boolean {
     return isIosSafari() || isIosChrome();
 }
@@ -120,6 +124,10 @@ export function isInternetExplorer(): boolean {
 
 export function isEdge(): boolean {
     return userAgent().indexOf('Edge') !== -1;
+}
+
+export function isChromiumEdge(): boolean {
+    return userAgent().indexOf('Edg') !== -1 && userAgent().indexOf('Edge') === -1;
 }
 
 export function isDesktopApp(): boolean {

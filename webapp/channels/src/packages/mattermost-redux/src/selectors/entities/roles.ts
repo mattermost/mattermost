@@ -208,7 +208,7 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
-export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string, permission: string): boolean {
+export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
     if (getMySystemPermissions(state).has(permission)) {
         return true;
     }
@@ -217,7 +217,11 @@ export function haveIChannelPermission(state: GlobalState, teamId: string | unde
         return true;
     }
 
-    return getMyPermissionsByChannel(state)[channelId]?.has(permission);
+    if (channelId && getMyPermissionsByChannel(state)[channelId]?.has(permission)) {
+        return true;
+    }
+
+    return false;
 }
 
 export function haveICurrentTeamPermission(state: GlobalState, permission: string): boolean {

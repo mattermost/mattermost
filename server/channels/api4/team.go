@@ -32,48 +32,48 @@ func init() {
 }
 
 func (api *API) InitTeam() {
-	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(createTeam)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(getAllTeams)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateTeamScheme)).Methods("PUT")
-	api.BaseRoutes.Teams.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
-	api.BaseRoutes.TeamsForUser.Handle("", api.APISessionRequired(getTeamsForUser)).Methods("GET")
-	api.BaseRoutes.TeamsForUser.Handle("/unread", api.APISessionRequired(getTeamsUnreadForUser)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(createTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(getAllTeams)).Methods(http.MethodGet)
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateTeamScheme)).Methods(http.MethodPut)
+	api.BaseRoutes.Teams.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchTeams)).Methods(http.MethodPost)
+	api.BaseRoutes.TeamsForUser.Handle("", api.APISessionRequired(getTeamsForUser)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamsForUser.Handle("/unread", api.APISessionRequired(getTeamsUnreadForUser)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods("GET")
-	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods("DELETE")
-	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/restore", api.APISessionRequired(restoreTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods("POST")
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods(http.MethodPut)
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods(http.MethodDelete)
+	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods(http.MethodPut)
+	api.BaseRoutes.Team.Handle("/restore", api.APISessionRequired(restoreTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods(http.MethodPut)
+	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(removeTeamIcon)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(removeTeamIcon)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(getTeamMembers)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("/ids", api.APISessionRequired(getTeamMembersByIds)).Methods("POST")
-	api.BaseRoutes.TeamMembersForUser.Handle("", api.APISessionRequired(getTeamMembersForUser)).Methods("GET")
-	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(addTeamMember)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("/members/invite", api.APISessionRequired(addUserToTeamFromInvite)).Methods("POST")
-	api.BaseRoutes.TeamMembers.Handle("/batch", api.APISessionRequired(addTeamMembers)).Methods("POST")
-	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(removeTeamMember)).Methods("DELETE")
+	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(getTeamMembers)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamMembers.Handle("/ids", api.APISessionRequired(getTeamMembersByIds)).Methods(http.MethodPost)
+	api.BaseRoutes.TeamMembersForUser.Handle("", api.APISessionRequired(getTeamMembersForUser)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(addTeamMember)).Methods(http.MethodPost)
+	api.BaseRoutes.Teams.Handle("/members/invite", api.APISessionRequired(addUserToTeamFromInvite)).Methods(http.MethodPost)
+	api.BaseRoutes.TeamMembers.Handle("/batch", api.APISessionRequired(addTeamMembers)).Methods(http.MethodPost)
+	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(removeTeamMember)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.TeamForUser.Handle("/unread", api.APISessionRequired(getTeamUnread)).Methods("GET")
+	api.BaseRoutes.TeamForUser.Handle("/unread", api.APISessionRequired(getTeamUnread)).Methods(http.MethodGet)
 
-	api.BaseRoutes.TeamByName.Handle("", api.APISessionRequired(getTeamByName)).Methods("GET")
-	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(getTeamMember)).Methods("GET")
-	api.BaseRoutes.TeamByName.Handle("/exists", api.APISessionRequired(teamExists)).Methods("GET")
-	api.BaseRoutes.TeamMember.Handle("/roles", api.APISessionRequired(updateTeamMemberRoles)).Methods("PUT")
-	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.APISessionRequired(updateTeamMemberSchemeRoles)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("/import", api.APISessionRequired(importTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequired(inviteUsersToTeam)).Methods("POST")
-	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequired(inviteGuestsToChannels)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
-	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.APIHandler(getInviteInfo)).Methods("GET")
+	api.BaseRoutes.TeamByName.Handle("", api.APISessionRequired(getTeamByName)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(getTeamMember)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamByName.Handle("/exists", api.APISessionRequired(teamExists)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamMember.Handle("/roles", api.APISessionRequired(updateTeamMemberRoles)).Methods(http.MethodPut)
+	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.APISessionRequired(updateTeamMemberSchemeRoles)).Methods(http.MethodPut)
+	api.BaseRoutes.Team.Handle("/import", api.APISessionRequired(importTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequired(inviteUsersToTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequired(inviteGuestsToChannels)).Methods(http.MethodPost)
+	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequired(invalidateAllEmailInvites)).Methods(http.MethodDelete)
+	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.APIHandler(getInviteInfo)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.APISessionRequired(teamMembersMinusGroupMembers)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.APISessionRequired(teamMembersMinusGroupMembers)).Methods(http.MethodGet)
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -396,6 +396,10 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
 		return
 	}
 
@@ -1120,10 +1124,10 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
 			return
 		}
-		opts.ExcludePolicyConstrained = model.NewBool(true)
+		opts.ExcludePolicyConstrained = model.NewPointer(true)
 	}
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
-		opts.IncludePolicyID = model.NewBool(true)
+		opts.IncludePolicyID = model.NewPointer(true)
 	}
 
 	listPrivate := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPrivateTeams)
@@ -1132,9 +1136,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	offset := limit * c.Params.Page
 	if listPrivate && listPublic {
 	} else if listPrivate {
-		opts.AllowOpenInvite = model.NewBool(false)
+		opts.AllowOpenInvite = model.NewPointer(false)
 	} else if listPublic {
-		opts.AllowOpenInvite = model.NewBool(true)
+		opts.AllowOpenInvite = model.NewPointer(true)
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
 		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
@@ -1184,7 +1188,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	// policy ID may only be used through the /data_retention/policies endpoint
 	props.PolicyID = nil
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
-		props.IncludePolicyID = model.NewBool(true)
+		props.IncludePolicyID = model.NewPointer(true)
 	}
 
 	var (

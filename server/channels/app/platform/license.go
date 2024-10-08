@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
@@ -24,8 +23,7 @@ import (
 )
 
 const (
-	LicenseEnv                = "MM_LICENSE"
-	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
+	LicenseEnv = "MM_LICENSE"
 )
 
 // JWTClaims custom JWT claims with the needed information for the
@@ -229,7 +227,16 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 		ps.licenseValue.Store(license)
 
 		ps.clientLicenseValue.Store(utils.GetClientLicense(license))
+
+		if oldLicense == nil || oldLicense.Id != license.Id {
+			ps.logLicense("Set license", license)
+		}
+
 		return true
+	}
+
+	if oldLicense != nil {
+		ps.logLicense("Cleared license", oldLicense)
 	}
 
 	ps.licenseValue.Store((*model.License)(nil))
@@ -343,54 +350,36 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 	return nil
 }
 
-// GenerateRenewalToken returns a renewal token that expires after duration expiration
-func (ps *PlatformService) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
-	license := ps.License()
-	if license == nil {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
-	}
-
-	if license.IsCloud() {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.bad_license", nil, "", http.StatusBadRequest)
-	}
-
-	activeUsers, err := ps.Store.User().Count(model.UserCountOptions{})
-	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	expirationTime := time.Now().UTC().Add(expiration)
-	claims := &JWTClaims{
-		LicenseID:   license.Id,
-		ActiveUsers: activeUsers,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(license.Customer.Email))
-	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return tokenString, nil
-}
-
-// GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
-func (ps *PlatformService) GenerateLicenseRenewalLink() (string, string, *model.AppError) {
-	renewalToken, err := ps.GenerateRenewalToken(JWTDefaultTokenExpiration)
-	if err != nil {
-		return "", "", err
-	}
-	return fmt.Sprintf("%s?token=%s", ps.getLicenseRenewalURL(), renewalToken), renewalToken, nil
-}
-
-func (ps *PlatformService) getLicenseRenewalURL() string {
-	return fmt.Sprintf("%s/subscribe/renew", *ps.Config().CloudSettings.CWSURL)
-}
-
 func (ps *PlatformService) getRequestTrialURL() string {
 	return fmt.Sprintf("%s/api/v1/trials", *ps.Config().CloudSettings.CWSURL)
+}
+
+func (ps *PlatformService) logLicense(message string, license *model.License) {
+	if ps.logger == nil {
+		return
+	}
+
+	logger := ps.logger.With(
+		mlog.String("id", license.Id),
+		mlog.Time("issued_at", model.GetTimeForMillis(license.IssuedAt)),
+		mlog.Time("starts_at", model.GetTimeForMillis(license.StartsAt)),
+		mlog.Time("expires_at", model.GetTimeForMillis(license.ExpiresAt)),
+		mlog.String("sku_name", license.SkuName),
+		mlog.String("sku_short_name", license.SkuShortName),
+		mlog.Bool("is_trial", license.IsTrial),
+		mlog.Bool("is_gov_sku", license.IsGovSku),
+	)
+
+	if license.Customer != nil {
+		logger = logger.With(mlog.String("customer_id", license.Customer.Id))
+	}
+
+	if license.Features != nil {
+		logger = logger.With(
+			mlog.Int("features.users", *license.Features.Users),
+			mlog.Map("features", license.Features.ToMap()),
+		)
+	}
+
+	logger.Info(message)
 }

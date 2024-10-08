@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {Permissions} from 'mattermost-redux/constants';
 import * as teams from 'mattermost-redux/selectors/entities/teams';
 
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AddMembersButton from './add_members_button';
 
@@ -35,6 +34,7 @@ describe('components/post_view/AddMembersButton', () => {
                 currentTeamId: 'team-id',
             },
             users: {
+                currentUserId: 'test-user-id',
                 profiles: {
                     'test-user-id': {
                         id: 'test-user-id',
@@ -44,15 +44,15 @@ describe('components/post_view/AddMembersButton', () => {
             },
             roles: {
                 roles: {
-                    system_role: {permissions: ['test_system_permission']},
-                    team_role: {permissions: ['test_team_permission']},
-                    channel_role: {permissions: ['test_channel_permission']},
+                    system_role: {permissions: [
+                        Permissions.ADD_USER_TO_TEAM,
+                        Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+                    ]},
                 },
             },
         },
     };
 
-    const store = mockStore(initialState);
     jest.spyOn(teams, 'getCurrentTeamId').mockReturnValue('team-id');
 
     test('should match snapshot, less than limit', () => {
@@ -61,13 +61,12 @@ describe('components/post_view/AddMembersButton', () => {
             usersLimit: 100,
             channel,
         };
-        const wrapper = mount(
-            <Provider store={store}>
-                <AddMembersButton {...props}/>
-            </Provider>,
+        renderWithContext(
+            <AddMembersButton {...props}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByText('Invite others to the workspace')).toBeInTheDocument();
     });
 
     test('should match snapshot, more than limit', () => {
@@ -76,39 +75,33 @@ describe('components/post_view/AddMembersButton', () => {
             usersLimit: 10,
             channel,
         };
-        const wrapper = mount(
-            <Provider store={store}>
-                <AddMembersButton {...props}/>
-            </Provider>,
+        renderWithContext(
+            <AddMembersButton {...props}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByText('Add people')).toBeInTheDocument();
     });
 
     test('should match snapshot, setHeader and pluginButtons', () => {
+        const PLUGIN_TEXT = 'Create a board plugin';
         const pluginButtons = (
             <button>
-                {'Create a board'}
+                {PLUGIN_TEXT}
             </button>
         );
-        const setHeader = (
-            <button>
-                {'Create a board'}
-            </button>
-        );
+
         const props = {
             totalUsers: 100,
             usersLimit: 10,
             channel,
-            setHeader,
             pluginButtons,
         };
-        const wrapper = mount(
-            <Provider store={store}>
-                <AddMembersButton {...props}/>
-            </Provider>,
+        renderWithContext(
+            <AddMembersButton {...props}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByText(PLUGIN_TEXT)).toBeInTheDocument();
     });
 });

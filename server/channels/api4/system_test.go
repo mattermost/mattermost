@@ -61,34 +61,46 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet(context.Background(), "/system/ping", "")
+		respMap, resp, err := client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		respString := string(respBytes)
-		require.NotContains(t, respString, "TestFeatureFlag")
+		_, ok := respMap["TestFeatureFlag"]
+		assert.Equal(t, false, ok)
 
 		// Run the environment variable override code to test
 		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, err = client.DoAPIGet(context.Background(), "/system/ping", "")
+		respMap, resp, err = client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err = io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		respString = string(respBytes)
-		require.Contains(t, respString, "testvalue")
+		_, ok = respMap["TestFeatureFlag"]
+		assert.Equal(t, true, ok)
 	}, "ping feature flag test")
+
+	t.Run("ping root_status test", func(t *testing.T) {
+		respMap, resp, err := th.SystemAdminClient.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		_, ok := respMap["root_status"]
+		assert.Equal(t, true, ok)
+	})
+
+	t.Run("ping root_status test with client user", func(t *testing.T) {
+		respMap, resp, err := th.Client.GetPingWithOptions(context.Background(), model.SystemPingOptions{FullStatus: true})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		_, ok := respMap["root_status"]
+		assert.Equal(t, false, ok)
+	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
 		resp, err := client.DoAPIGet(context.Background(), "/system/ping?device_id=platform:id", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		var respMap map[string]string
+		var respMap map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&respMap)
 		require.NoError(t, err)
 		assert.Equal(t, "unknown", respMap["CanReceiveNotifications"]) // Unrecognized platform
@@ -137,27 +149,27 @@ func TestEmailTest(t *testing.T) {
 	es := model.EmailSettings{}
 	es.SetDefaults(false)
 
-	es.SMTPServer = model.NewString("")
-	es.SMTPPort = model.NewString("")
-	es.SMTPPassword = model.NewString("")
-	es.FeedbackName = model.NewString("")
-	es.FeedbackEmail = model.NewString("some-addr@test.com")
-	es.ReplyToAddress = model.NewString("some-addr@test.com")
-	es.ConnectionSecurity = model.NewString("")
-	es.SMTPUsername = model.NewString("")
-	es.EnableSMTPAuth = model.NewBool(false)
-	es.SkipServerCertificateVerification = model.NewBool(true)
-	es.SendEmailNotifications = model.NewBool(false)
-	es.SMTPServerTimeout = model.NewInt(15)
+	es.SMTPServer = model.NewPointer("")
+	es.SMTPPort = model.NewPointer("")
+	es.SMTPPassword = model.NewPointer("")
+	es.FeedbackName = model.NewPointer("")
+	es.FeedbackEmail = model.NewPointer("some-addr@test.com")
+	es.ReplyToAddress = model.NewPointer("some-addr@test.com")
+	es.ConnectionSecurity = model.NewPointer("")
+	es.SMTPUsername = model.NewPointer("")
+	es.EnableSMTPAuth = model.NewPointer(false)
+	es.SkipServerCertificateVerification = model.NewPointer(true)
+	es.SendEmailNotifications = model.NewPointer(false)
+	es.SMTPServerTimeout = model.NewPointer(15)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewString(""),
+			SiteURL: model.NewPointer(""),
 		},
 		EmailSettings: es,
 		FileSettings: model.FileSettings{
-			DriverName: model.NewString(model.ImageDriverLocal),
-			Directory:  model.NewString(dir),
+			DriverName: model.NewPointer(model.ImageDriverLocal),
+			Directory:  model.NewPointer(dir),
 		},
 	}
 
@@ -211,7 +223,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	th.LoginSystemManager()
 	defer th.TearDown()
 
-	t.Run("system admin and local client can generate support packet", func(t *testing.T) {
+	t.Run("system admin and local client can generate Support Packet", func(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
@@ -402,6 +414,46 @@ func TestGetLogs(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestDownloadLogs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	for i := 0; i < 20; i++ {
+		th.TestLogger.Info(strconv.Itoa(i))
+	}
+	err := th.TestLogger.Flush()
+	require.NoError(t, err, "failed to flush log")
+
+	t.Run("Download Logs as system admin", func(t *testing.T) {
+		resData, resp, err2 := th.SystemAdminClient.DownloadLogs(context.Background())
+		require.NoError(t, err2)
+
+		require.Equal(t, "text/plain", resp.Header.Get("Content-Type"))
+		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment;filename=\"mattermost.log\"")
+
+		bodyString := string(resData)
+		for i := 0; i < 20; i++ {
+			assert.Contains(t, bodyString, fmt.Sprintf(`"msg":"%d"`, i))
+		}
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		_, resp, err2 := th.Client.DownloadLogs(context.Background())
+		require.Error(t, err2)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	_, resp, err := th.Client.DownloadLogs(context.Background())
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.Client.Logout(context.Background())
+	_, resp, err = th.Client.DownloadLogs(context.Background())
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestPostLog(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -533,14 +585,14 @@ func TestS3TestConnection(t *testing.T) {
 	fs := model.FileSettings{}
 	fs.SetDefaults(false)
 
-	fs.DriverName = model.NewString(model.ImageDriverS3)
-	fs.AmazonS3AccessKeyId = model.NewString(model.MinioAccessKey)
-	fs.AmazonS3SecretAccessKey = model.NewString(model.MinioSecretKey)
-	fs.AmazonS3Bucket = model.NewString("")
-	fs.AmazonS3Endpoint = model.NewString(s3Endpoint)
-	fs.AmazonS3Region = model.NewString("")
-	fs.AmazonS3PathPrefix = model.NewString("")
-	fs.AmazonS3SSL = model.NewBool(false)
+	fs.DriverName = model.NewPointer(model.ImageDriverS3)
+	fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+	fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+	fs.AmazonS3Bucket = model.NewPointer("")
+	fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+	fs.AmazonS3Region = model.NewPointer("")
+	fs.AmazonS3PathPrefix = model.NewPointer("")
+	fs.AmazonS3SSL = model.NewPointer(false)
 
 	config := model.Config{
 		FileSettings: fs,
@@ -559,18 +611,18 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
-		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
+		config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Region = model.NewString("")
+		config.FileSettings.AmazonS3Region = model.NewPointer("")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
+		config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
@@ -845,6 +897,64 @@ func TestPushNotificationAck(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, resp.Code)
 		assert.NotNil(t, resp.Body)
 	})
+
+	ttcc := []struct {
+		name          string
+		propValue     string
+		platform      string
+		expectedValue string
+	}{
+		{
+			name:          "should set session prop device notification disabled to false if an ack is sent from iOS",
+			propValue:     "true",
+			platform:      "ios",
+			expectedValue: "false",
+		},
+		{
+			name:          "no change if empty",
+			propValue:     "",
+			platform:      "ios",
+			expectedValue: "",
+		},
+		{
+			name:          "no change if false",
+			propValue:     "false",
+			platform:      "ios",
+			expectedValue: "false",
+		},
+		{
+			name:          "no change on Android",
+			propValue:     "true",
+			platform:      "android",
+			expectedValue: "true",
+		},
+	}
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
+				th.Server.Store().Session().UpdateProps(session)
+				th.App.ClearSessionCacheForUser(session.UserId)
+			}()
+
+			session.AddProp(model.SessionPropDeviceNotificationDisabled, tc.propValue)
+			err := th.Server.Store().Session().UpdateProps(session)
+			th.App.ClearSessionCacheForUser(session.UserId)
+			assert.NoError(t, err)
+
+			handler := api.APIHandler(pushNotificationAck)
+			resp := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+			req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+			req.Body = io.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "platform": "%s", "post_id":"%s", "type": "%s"}`, tc.platform, th.BasicPost.Id, model.PushTypeMessage)))
+
+			handler.ServeHTTP(resp, req)
+			updatedSession, _ := th.App.GetSession(th.Client.AuthToken)
+			assert.Equal(t, tc.expectedValue, updatedSession.Props[model.SessionPropDeviceNotificationDisabled])
+			storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+			assert.Equal(t, tc.expectedValue, storeSession.Props[model.SessionPropDeviceNotificationDisabled])
+		})
+	}
 }
 
 func TestCompleteOnboarding(t *testing.T) {
@@ -1014,7 +1124,7 @@ func TestCheckHasNilFields(t *testing.T) {
 
 	t.Run("check if the struct has any nil fields", func(t *testing.T) {
 		s := model.FileSettings{
-			DriverName: model.NewString(model.ImageDriverLocal),
+			DriverName: model.NewPointer(model.ImageDriverLocal),
 		}
 		res := checkHasNilFields(&s)
 		require.True(t, res)

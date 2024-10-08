@@ -232,7 +232,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                             // @ts-ignore
                             ref={this.setSwitchBoxRef}
                             id='quickSwitchInput'
-                            aria-label={Utils.localizeMessage('quick_switch_modal.input', 'quick switch input')}
+                            aria-label={Utils.localizeMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
                             className='form-control focused'
                             onChange={this.onChange}
                             value={this.state.text}

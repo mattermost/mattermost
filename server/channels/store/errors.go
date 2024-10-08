@@ -120,10 +120,10 @@ func (e *ErrNotFound) Wrap(err error) *ErrNotFound {
 
 func (e *ErrNotFound) Error() string {
 	if e.wrapped != nil {
-		return fmt.Sprintf("resource: %s id: %s error: %s", e.resource, e.ID, e.wrapped)
+		return fmt.Sprintf("resource %q not found, id: %s, error: %s", e.resource, e.ID, e.wrapped)
 	}
 
-	return fmt.Sprintf("resource: %s id: %s", e.resource, e.ID)
+	return fmt.Sprintf("resource %q not found, id: %s", e.resource, e.ID)
 }
 
 // IsErrNotFound allows easy type assertion without adding store as a dependency.

@@ -76,7 +76,7 @@ describe('Profile popover User A & B', () => {
                     find(`[data-mention=${otherUser.username}]`).
                     should('be.visible').
                     click();
-                cy.get('#user-profile-popover').should('be.visible');
+                cy.get('div.user-profile-popover').should('be.visible');
             });
 
             // # Add to a Channel should not be shown.

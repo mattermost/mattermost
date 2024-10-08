@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -51,16 +52,20 @@ func (c *FakeClusterInterface) SendClusterMessageToNode(nodeID string, message *
 
 func (c *FakeClusterInterface) NotifyMsg(buf []byte) {}
 
-func (c *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
+func (c *FakeClusterInterface) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }
 
-func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (c *FakeClusterInterface) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	return []string{}, nil
 }
 
-func (c *FakeClusterInterface) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+func (c *FakeClusterInterface) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
 	return make(map[string][]string), nil
+}
+
+func (c *FakeClusterInterface) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
+	return nil, nil
 }
 
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
@@ -102,4 +107,8 @@ func (c *FakeClusterInterface) ClearMessages() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.messages = nil
+}
+
+func (c *FakeClusterInterface) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
 }

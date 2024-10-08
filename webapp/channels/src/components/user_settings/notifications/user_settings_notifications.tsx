@@ -11,6 +11,7 @@ import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
@@ -19,7 +20,7 @@ import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
-import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {notificationSoundKeys, stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
 import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notification_setting';
@@ -40,12 +41,14 @@ type MultiInputValue = {
     value: string;
 }
 
-type OwnProps = {
+export type OwnProps = {
     user: UserProfile;
     updateSection: (section: string) => void;
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
+    adminMode?: boolean;
+    userPreferences?: PreferencesType;
 }
 
 export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
@@ -85,7 +88,7 @@ function getDefaultStateFromProps(props: Props): State {
     let emailThreads: UserNotifyProps['email_threads'] = NotificationLevels.ALL;
     let sound: UserNotifyProps['desktop_sound'] = 'true';
     let callsSound: UserNotifyProps['calls_desktop_sound'] = 'true';
-    let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = 'Bing';
+    let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = notificationSoundKeys[0] as UserNotifyProps['desktop_notification_sound'];
     let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Calm';
     let comments: UserNotifyProps['comments'] = 'never';
     let enableEmail: UserNotifyProps['email'] = 'true';
@@ -231,7 +234,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 
     handleSubmit = async () => {
-        const data: UserNotifyProps = {} as UserNotifyProps;
+        const data: UserNotifyProps = {...this.props.user.notify_props};
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
         data.calls_desktop_sound = this.state.callsDesktopSound;
@@ -284,7 +287,20 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isSaving: true});
         stopTryNotificationRing();
 
-        const {data: updatedUser, error} = await this.props.updateMe({notify_props: data});
+        let updatedUser: UserProfile | undefined;
+        let error;
+
+        if (this.props.adminMode) {
+            const payloadUser = {...this.props.user, notify_props: data};
+            const response = await this.props.patchUser(payloadUser);
+            updatedUser = response.data;
+            error = response.error;
+        } else {
+            const response = await this.props.updateMe({notify_props: data});
+            updatedUser = response.data;
+            error = response.error;
+        }
+
         if (updatedUser) {
             this.handleUpdateSection('');
             this.setState(getDefaultStateFromProps(this.props));
@@ -413,7 +429,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: ValueType<{ value: string }>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {
@@ -666,7 +682,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             MenuList: () => null,
                         }}
                         aria-labelledby='mentionKeysWithHighlightInput'
-                        onChange={this.handleChangeForCustomKeysWithHightlightInput}
+                        onChange={this.handleChangeForCustomKeysWithHighlightInput}
                         value={this.state.customKeysWithHighlight}
                         inputValue={this.state.customKeysWithHighlightInputValue}
                         onInputChange={this.handleChangeForCustomKeysWithHighlightInputValue}
@@ -985,6 +1001,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 values={{
                                     a: (chunks: string) => ((
                                         <ExternalLink
+                                            location='user_settings_notifications'
                                             href='https://mattermost.com/pl/about-notifications'
                                             className='btn btn-link'
                                         >
@@ -1125,9 +1142,12 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
 
 const validNotificationLevels = Object.values(NotificationLevels);
 
+/**
+ * Check's if user's global notification settings for desktop and mobile are different
+ */
 export function areDesktopAndMobileSettingsDifferent(
     desktopActivity: UserNotifyProps['desktop'],
-    pushActivity: UserNotifyProps['push'],
+    pushActivity?: UserNotifyProps['push'],
     desktopThreads?: UserNotifyProps['desktop_threads'],
     pushThreads?: UserNotifyProps['push_threads'],
     isCollapsedThreadsEnabled?: boolean,

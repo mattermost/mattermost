@@ -83,7 +83,7 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	// Don't ACK unless we say to explicitly
-	if !webConn.PostedAck {
+	if !(webConn.PostedAck && webConn.Active.Load()) {
 		return nil
 	}
 
@@ -135,11 +135,11 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 		return
 	}
 
-	if !wc.Platform.Config().FeatureFlags.NotificationMonitoring {
+	if !(wc.Platform.Config().FeatureFlags.NotificationMonitoring && *wc.Platform.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 
-	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding

@@ -1990,6 +1990,24 @@ func (_m *API) GetPluginConfig() map[string]interface{} {
 	return r0
 }
 
+// GetPluginID provides a mock function with given fields:
+func (_m *API) GetPluginID() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginID")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetPluginStatus provides a mock function with given fields: id
 func (_m *API) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	ret := _m.Called(id)
@@ -3055,6 +3073,38 @@ func (_m *API) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.Ap
 
 	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
 		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetUsersByIds provides a mock function with given fields: userIDs
+func (_m *API) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	ret := _m.Called(userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUsersByIds")
+	}
+
+	var r0 []*model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.User, *model.AppError)); ok {
+		return rf(userIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.User); ok {
+		r0 = rf(userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(userIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

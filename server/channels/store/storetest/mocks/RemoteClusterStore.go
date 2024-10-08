@@ -42,9 +42,9 @@ func (_m *RemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: remoteClusterId
-func (_m *RemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster, error) {
-	ret := _m.Called(remoteClusterId)
+// Get provides a mock function with given fields: remoteClusterId, includeDeleted
+func (_m *RemoteClusterStore) Get(remoteClusterId string, includeDeleted bool) (*model.RemoteCluster, error) {
+	ret := _m.Called(remoteClusterId, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -52,19 +52,19 @@ func (_m *RemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster,
 
 	var r0 *model.RemoteCluster
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.RemoteCluster, error)); ok {
-		return rf(remoteClusterId)
+	if rf, ok := ret.Get(0).(func(string, bool) (*model.RemoteCluster, error)); ok {
+		return rf(remoteClusterId, includeDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.RemoteCluster); ok {
-		r0 = rf(remoteClusterId)
+	if rf, ok := ret.Get(0).(func(string, bool) *model.RemoteCluster); ok {
+		r0 = rf(remoteClusterId, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.RemoteCluster)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(remoteClusterId)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(remoteClusterId, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,9 +72,9 @@ func (_m *RemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster,
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: filter
-func (_m *RemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
-	ret := _m.Called(filter)
+// GetAll provides a mock function with given fields: offset, limit, filter
+func (_m *RemoteClusterStore) GetAll(offset int, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(offset, limit, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAll")
@@ -82,19 +82,19 @@ func (_m *RemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*
 
 	var r0 []*model.RemoteCluster
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)); ok {
-		return rf(filter)
+	if rf, ok := ret.Get(0).(func(int, int, model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)); ok {
+		return rf(offset, limit, filter)
 	}
-	if rf, ok := ret.Get(0).(func(model.RemoteClusterQueryFilter) []*model.RemoteCluster); ok {
-		r0 = rf(filter)
+	if rf, ok := ret.Get(0).(func(int, int, model.RemoteClusterQueryFilter) []*model.RemoteCluster); ok {
+		r0 = rf(offset, limit, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RemoteCluster)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.RemoteClusterQueryFilter) error); ok {
-		r1 = rf(filter)
+	if rf, ok := ret.Get(1).(func(int, int, model.RemoteClusterQueryFilter) error); ok {
+		r1 = rf(offset, limit, filter)
 	} else {
 		r1 = ret.Error(1)
 	}

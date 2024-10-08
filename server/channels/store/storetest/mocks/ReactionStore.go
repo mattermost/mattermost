@@ -93,21 +93,31 @@ func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 }
 
 // DeleteOrphanedRowsByIds provides a mock function with given fields: r
-func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	ret := _m.Called(r)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteOrphanedRowsByIds")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) error); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) (int64, error)); ok {
+		return rf(r)
+	}
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) int64); ok {
 		r0 = rf(r)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*model.RetentionIdsForDeletion) error); ok {
+		r1 = rf(r)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ExistsOnPost provides a mock function with given fields: postId, emojiName
@@ -191,6 +201,36 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 
 	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
 		r1 = rf(postId, since, excludeRemoteId, inclDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSingle provides a mock function with given fields: userID, postID, remoteID, emojiName
+func (_m *ReactionStore) GetSingle(userID string, postID string, remoteID string, emojiName string) (*model.Reaction, error) {
+	ret := _m.Called(userID, postID, remoteID, emojiName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSingle")
+	}
+
+	var r0 *model.Reaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Reaction, error)); ok {
+		return rf(userID, postID, remoteID, emojiName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.Reaction); ok {
+		r0 = rf(userID, postID, remoteID, emojiName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Reaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
+		r1 = rf(userID, postID, remoteID, emojiName)
 	} else {
 		r1 = ret.Error(1)
 	}

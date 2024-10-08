@@ -260,6 +260,22 @@ type FileForIndexing struct {
 	Content   string `json:"content"`
 }
 
+// ShouldIndex tells if a file should be indexed or not.
+// index files which are-
+// a. not deleted
+// b. have an associated post ID, if no post ID, then,
+// b.i. the file should belong to the channel's bookmarks, as indicated by the "CreatorId" field.
+//
+// Files not passing this criteria will be deleted from ES index.
+// We're deleting those files from ES index instead of simply skipping them while fetching a batch of files
+// because existing ES indexes might have these files already indexed, so we need to remove them from index.
+func (file *FileForIndexing) ShouldIndex() bool {
+	// NOTE - this function is used in server as well as Enterprise code.
+	// Make sure to update public package dependency in both server and Enterprise code when
+	// updating the logic here and to test both places.
+	return file != nil && file.DeleteAt == 0 && (file.PostId != "" || file.CreatorId == BookmarkFileOwner)
+}
+
 // ShallowCopy is an utility function to shallow copy a Post to the given
 // destination without touching the internal RWMutex.
 func (o *Post) ShallowCopy(dst *Post) error {
@@ -294,7 +310,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewBool(*o.IsFollowing)
+		dst.IsFollowing = NewPointer(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -485,6 +501,16 @@ func (o *Post) SanitizeProps() {
 	}
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
+	}
+}
+
+// Remove any input data from the post object that is not user controlled
+func (o *Post) SanitizeInput() {
+	o.DeleteAt = 0
+	o.RemoteId = NewPointer("")
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
 	}
 }
 

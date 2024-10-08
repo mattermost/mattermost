@@ -30,6 +30,13 @@ on:
         type: boolean
         required: false
         default: false
+      SERVER:
+        type: string # Valid values are: onprem, cloud
+        required: false
+        default: onprem
+      SERVER_IMAGE:
+        type: string
+        required: false
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -48,6 +55,12 @@ on:
       REPORT_TYPE:
         type: string
         required: false
+      ROLLING_RELEASE_commit_sha:
+        type: string
+        required: false
+      ROLLING_RELEASE_SERVER_IMAGE:
+        type: string
+        required: false
     secrets:
       MM_LICENSE:
         required: false
@@ -63,10 +76,14 @@ on:
         required: false
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
         required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
+        required: false
 
 jobs:
   update-initial-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
@@ -79,7 +96,7 @@ jobs:
           status: pending
 
   cypress-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -110,7 +127,7 @@ jobs:
           npm run check
 
   playwright-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -146,20 +163,41 @@ jobs:
         run: |
           npm run check
 
-  generate-build-variables:
-    runs-on: ubuntu-22.04
+  shell-check:
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
+    defaults:
+      run:
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/shell-check
+        if: "${{ inputs.run_preflight_checks }}"
+        run: make check-shell
+
+  generate-build-variables:
+    runs-on: ubuntu-latest
+    needs:
+      - update-initial-status
+    defaults:
+      run:
+        shell: bash
     outputs:
-      workers: "${{ steps.workers.outputs.workers }}"
+      workers: "${{ steps.generate.outputs.workers }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/generate-workers
-        id: workers
+      - name: ci/generate-build-variables
+        id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
         run: |
@@ -167,7 +205,7 @@ jobs:
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
 
   generate-test-cycle:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - update-initial-status
     defaults:
@@ -220,14 +258,15 @@ jobs:
         # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
         # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
         #
-        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
-        os: [ubuntu-latest-8-cores]
+        #os: [ubuntu-latest, windows-2022, macos-12-xl]
+        os: [ubuntu-latest]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 60
+    timeout-minutes: 120
     needs:
       - cypress-check
       - playwright-check
+      - shell-check
       - generate-build-variables
       - generate-test-cycle
     defaults:
@@ -237,14 +276,20 @@ jobs:
     env:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      SERVER: "${{ inputs.SERVER }}"
+      SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV }}"
       BRANCH: "${{ inputs.BRANCH }}"
       BUILD_ID: "${{ inputs.BUILD_ID }}"
-      CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
+      CI_BASE_URL: "${{ matrix.os }}-${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+      ROLLING_RELEASE_COMMIT_SHA: "${{ inputs.ROLLING_RELEASE_commit_sha }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -269,7 +314,30 @@ jobs:
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test
         run: |
+          make cloud-init
+          if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
+            echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/ && git status
+            (
+            echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
+            export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
+            export TEST_FILTER=""
+            export AUTOMATION_DASHBOARD_URL=""
+            make
+            )
+            echo "RollingRelease: asserting smoketest result has zero failures."
+            FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+            if [ "$FAILURES" -ne "0" ]; then
+              echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
+              exit 1
+            fi
+            rm -rfv cypress/results
+            echo "RollingRelease: reset the E2E test cases to the revision to test"
+            git reset --hard HEAD && git status
+            echo "RollingRelease: smoketest completed. Starting full E2E tests."
+          fi
           make
+          make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
@@ -277,17 +345,22 @@ jobs:
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
+          retention-days: 1
 
   report:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs:
       - test
+      - generate-build-variables
     defaults:
       run:
         shell: bash
         working-directory: e2e-tests
     outputs:
-      failures: "${{ steps.calculate-failures.outputs.failures }}"
+      successes: "${{ steps.calculate-results.outputs.successes }}"
+      failures: "${{ steps.calculate-results.outputs.failures }}"
+      failures_expected: "${{ steps.calculate-results.outputs.failures_expected }}"
+      total_specs: "${{ steps.calculate-results.outputs.total_specs }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -299,17 +372,13 @@ jobs:
         with:
           path: e2e-tests/cypress/
           merge-multiple: true
-      - name: ci/report-calculate-failures
-        id: calculate-failures
-        run: |
-          FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
-          echo "failures=${FAILURES}" >> $GITHUB_OUTPUT
-          echo "Cypress run completed with $FAILURES failures"
-      - name: ci/e2e-test-assert-results
-        if: "${{ inputs.testcase_failure_fatal }}"
-        run: |
-          # Assert that the run contained 0 failures
-          [ "${{ steps.calculate-failures.outputs.failures }}" = "0" ]
+      - name: ci/upload-report-global
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -322,6 +391,9 @@ jobs:
         if: "${{ inputs.enable_reporting }}"
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
+          SERVER: "${{ inputs.SERVER }}"
+          SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
@@ -329,10 +401,47 @@ jobs:
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
         run: |
-          make publish-report
+          make report
+      # The results dir may have been modified as part of the reporting: re-upload
+      - name: ci/upload-report-global
+        if: "${{ inputs.enable_reporting }}"
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+          overwrite: true
+      - name: ci/report-calculate-results
+        id: calculate-results
+        env:
+          AD_CYCLE_FILE: "cypress/results/ad_cycle.json"
+        run: |
+          if [ -f "$AD_CYCLE_FILE" ]; then
+            # Prefer using the Automation Dashboard's results to calculate failures
+            SUCCESSES=$(jq -r .pass "$AD_CYCLE_FILE")
+            FAILURES=$(jq -r .fail "$AD_CYCLE_FILE")
+            FAILURES_EXPECTED=$(jq -r ".known + .flaky + .skipped" "$AD_CYCLE_FILE")
+          else
+            # Otherwise, utilize the test specs to calculate the failures
+            SUCCESSES=$(find cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.passes' | jq -s add)
+            FAILURES=$(find cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+            FAILURES_EXPECTED="0"
+          fi
+          TOTAL_SPECS=$(( FAILURES + SUCCESSES ))
+          echo "successes=${SUCCESSES:?}" >> $GITHUB_OUTPUT
+          echo "failures=${FAILURES:?}" >> $GITHUB_OUTPUT
+          echo "failures_expected=${FAILURES_EXPECTED:?}" >> $GITHUB_OUTPUT
+          echo "total_specs=${TOTAL_SPECS:?}" >> $GITHUB_OUTPUT
+          echo "Cypress run completed:  ${SUCCESSES}/${TOTAL_SPECS} passing specs (plus ${FAILURES_EXPECTED} unrelated failures)"
+      - name: ci/e2e-test-assert-results
+        if: "${{ inputs.testcase_failure_fatal }}"
+        run: |
+          # Assert that the run contained 0 failures
+          [ "${{ steps.calculate-results.outputs.failures }}" = "0" ]
 
   update-failure-final-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: failure() || cancelled()
     needs:
       - generate-test-cycle
@@ -347,12 +456,12 @@ jobs:
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: |
-            Completed with ${{ needs.report.outputs.failures }} failures
+            Completed: ${{ needs.report.outputs.successes }}/${{ needs.report.outputs.total_specs }} passing specs (plus ${{ needs.report.outputs.failures_expected }} unrelated failures)
           status: failure
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: success()
     needs:
       - generate-test-cycle
@@ -367,6 +476,6 @@ jobs:
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: |
-            Completed with ${{ needs.report.outputs.failures }} failures
+            Completed: ${{ needs.report.outputs.successes }}/${{ needs.report.outputs.total_specs }} passing specs (plus ${{ needs.report.outputs.failures_expected }} unrelated failures)
           status: success
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"

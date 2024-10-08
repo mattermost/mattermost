@@ -4,7 +4,7 @@
 /* eslint-disable react/no-multi-comp */
 
 import React from 'react';
-import {Dropdown, Tooltip} from 'react-bootstrap';
+import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {RootCloseWrapper} from 'react-overlays';
@@ -13,11 +13,10 @@ import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
-import OverlayTrigger from 'components/overlay_trigger';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
@@ -32,6 +31,8 @@ type CustomMenuProps = {
     rootCloseEvent?: 'click' | 'mousedown';
     bsRole: string;
 }
+
+export const maxComponentsBeforeDropdown = 15;
 
 class CustomMenu extends React.PureComponent<CustomMenuProps> {
     handleRootClose = () => {
@@ -104,7 +105,6 @@ type ChannelHeaderPlugProps = {
     appsEnabled: boolean;
     channel: Channel;
     channelMember?: ChannelMembership;
-    theme: Theme;
     sidebarOpen: boolean;
     shouldShowAppBar: boolean;
     actions: {
@@ -165,15 +165,44 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
     };
 
     createComponentButton = (plug: PluginComponent) => {
+        // These values are supposed to be strings based on PluginComponent, but some plugins pass non-strings,
+        // so do some hacky stuff to try to convert it back to a string. DO NOT USE THIS ELSEWHERE!
+        function tooltipToAriaLabelHack(intl: IntlShape, stringOrElement: string | React.ReactElement) {
+            if (typeof stringOrElement === 'string') {
+                // This is the case that we hope for
+                return stringOrElement;
+            }
+
+            if (stringOrElement.type === FormattedMessage) {
+                // This is a FormattedMessage, so extract the props to translate the text manually
+                return intl.formatMessage(
+                    {
+                        id: stringOrElement.props.id,
+                        defaultMessage: stringOrElement.props.defaultMessage,
+                    },
+                    stringOrElement.props.value,
+                );
+            }
+
+            return '';
+        }
+
+        let ariaLabel;
+        if (plug.tooltipText) {
+            ariaLabel = tooltipToAriaLabelHack(this.props.intl, plug.tooltipText);
+        } else if (plug.dropdownText) {
+            ariaLabel = tooltipToAriaLabelHack(this.props.intl, plug.dropdownText);
+        }
+
         return (
             <HeaderIconWrapper
                 key={'channelHeaderButton' + plug.id}
                 buttonClass='channel-header__icon'
                 iconComponent={plug.icon!}
                 onClick={() => this.fireAction(plug.action!)}
-                buttonId={plug.id}
-                tooltipKey={'plugin'}
-                tooltipText={plug.tooltipText ? plug.tooltipText : plug.dropdownText}
+                buttonId={plug.id + 'ChannelHeaderButton'}
+                tooltip={plug.tooltipText ?? plug.dropdownText ?? ''}
+                ariaLabelOverride={ariaLabel}
                 pluginId={plug.pluginId}
             />
         );
@@ -245,8 +274,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                 )}
                 onClick={() => this.onBindingClick(binding)}
                 buttonId={`${binding.app_id}_${binding.location}`}
-                tooltipKey={'plugin'}
-                tooltipText={binding.label}
+                tooltip={binding.label}
             />
         );
     };
@@ -300,19 +328,15 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         bsRole='toggle'
                         dropdownOpen={this.state.dropdownOpen}
                     >
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                        <WithTooltip
+                            id='removeIcon'
                             placement='bottom'
-                            overlay={this.state.dropdownOpen ? <></> : (
-                                <Tooltip id='removeIcon'>
-                                    <div aria-hidden={true}>
-                                        <FormattedMessage
-                                            id='generic_icons.plugins'
-                                            defaultMessage='Plugins'
-                                        />
-                                    </div>
-                                </Tooltip>
-                            )}
+                            title={
+                                <FormattedMessage
+                                    id='generic_icons.plugins'
+                                    defaultMessage='Plugins'
+                                />
+                            }
                         >
                             <React.Fragment>
                                 <PluginChannelHeaderIcon
@@ -327,7 +351,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                     {items.length}
                                 </span>
                             </React.Fragment>
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </CustomToggle>
                     <CustomMenu
                         bsRole='menu'
@@ -346,7 +370,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
         const appBindings = this.props.appsEnabled ? this.props.appBindings || [] : [];
         if (this.props.shouldShowAppBar || (components.length === 0 && appBindings.length === 0)) {
             return null;
-        } else if ((components.length + appBindings.length) <= 15) {
+        } else if ((components.length + appBindings.length) <= maxComponentsBeforeDropdown) {
             let componentButtons = components.filter((plug) => plug.icon && plug.action).map(this.createComponentButton);
             if (this.props.appsEnabled) {
                 componentButtons = componentButtons.concat(appBindings.map(this.createAppBindingButton));

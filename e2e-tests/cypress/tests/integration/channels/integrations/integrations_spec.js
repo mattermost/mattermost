@@ -194,7 +194,7 @@ describe('Integrations page', () => {
 
         integrationPageTitleIsBold('Incoming Webhooks');
         integrationPageTitleIsBold('Outgoing Webhooks');
-        integrationPageTitleIsBold('Slash Commands');
+        integrationPageTitleIsBold('Slash Commands', false);
         integrationPageTitleIsBold('OAuth 2.0 Applications');
         integrationPageTitleIsBold('Bot Accounts');
     });
@@ -248,8 +248,7 @@ describe('Integrations page', () => {
         cy.findByText('Token').should('exist').and('be.visible');
 
         // * Verify copy icon is shown
-        cy.get('.fa.fa-copy').should('exist').and('be.visible').
-            trigger('mouseover').and('have.attr', 'aria-describedby', 'copy');
+        cy.findByTestId('copyText').should('be.visible');
 
         // # Hit done to move from confirm screen
         cy.findByText('Done').should('exist').and('be.visible').click();
@@ -265,8 +264,7 @@ describe('Integrations page', () => {
             // # For each custom slash command was created
             cy.wrap(el).within(() => {
                 // Verify copy icon for token is present
-                cy.get('.fa.fa-copy').should('exist').and('be.visible').
-                    trigger('mouseover').and('have.attr', 'aria-describedby', 'copy');
+                cy.findByTestId('copyText').should('be.visible');
             });
         });
     });
@@ -443,7 +441,7 @@ describe('Integrations page', () => {
     });
 });
 
-function integrationPageTitleIsBold(title) {
+function integrationPageTitleIsBold(title, isBold = true) {
     cy.get('.section-title__text').contains(title).click();
-    cy.get('.item-details__name').should('be.visible').and('have.css', 'font-weight', '400');
+    cy.get('.item-details__name').should('be.visible').and('have.css', 'font-weight', isBold ? '600' : '400');
 }

@@ -16,7 +16,7 @@ import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/prefere
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -40,11 +40,8 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
         }
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
-
         if (enabledUserStatuses) {
-            // This is the first time in the pool of user statuses that we request,
-            // subsequent requests will be done via setInterval at channel_controller.tsx
-            dispatch(loadStatusesForChannelAndSidebar());
+            dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const license = getLicense(state);

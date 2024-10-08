@@ -14,9 +14,7 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
 import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
-
-import {t} from 'utils/i18n';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -56,7 +54,7 @@ const ThreadPane = ({
         },
     } = thread;
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, {id: channelId}));
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
     const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
     const selectHandler = useCallback(() => select(), []);
@@ -74,7 +72,7 @@ const ThreadPane = ({
 
     const followHandler = useCallback(() => {
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
-    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow]);
+    }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
 
     return (
         <div
@@ -121,17 +119,18 @@ const ThreadPane = ({
                             hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
                         >
-                            <SimpleTooltip
+                            <WithTooltip
                                 id='threadActionMenu'
-                                content={formatMessage({
-                                    id: t('threading.threadHeader.menu'),
+                                title={formatMessage({
+                                    id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
+                                placement={'top'}
                             >
                                 <Button className='Button___icon Button___large'>
                                     <DotsVerticalIcon size={18}/>
                                 </Button>
-                            </SimpleTooltip>
+                            </WithTooltip>
                         </ThreadMenu>
                     </>
                 )}

@@ -79,7 +79,7 @@ describe('Emoji reactions to posts/messages in GM channels', () => {
             cy.viewport('iphone-6');
 
             // * Verify that the Add Reaction button is once again visible
-            cy.findByLabelText('Add a reaction').should('be.visible');
+            cy.findByLabelText('Add a reaction').scrollIntoView().should('be.visible');
         });
     });
 });

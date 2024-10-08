@@ -14,8 +14,8 @@ import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
 import * as Actions from 'mattermost-redux/actions/posts';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {GetStateFunc} from 'mattermost-redux/types/actions';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import mockStore from 'tests/test_store';
 
@@ -24,6 +24,12 @@ import configureStore from '../../test/test_store';
 import {Preferences, Posts, RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => {
+        return {type: ''};
+    }),
+}));
 
 describe('Actions.Posts', () => {
     let store = configureStore();
@@ -81,38 +87,6 @@ describe('Actions.Posts', () => {
         // postsInChannel[channelId] should not exist as create post should not add entry to postsInChannel when it did not exist before
         // postIds in channel do not exist
         expect(!postsInChannel[channelId]).toBeTruthy();
-    });
-
-    it('maintain postReplies', async () => {
-        const channelId = TestHelper.basicChannel!.id;
-        const post = TestHelper.fakePost(channelId);
-        const postId = TestHelper.generateId();
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post, id: postId});
-
-        await store.dispatch(Actions.createPostImmediately(post));
-
-        const post2 = TestHelper.fakePostWithId(channelId);
-        post2.root_id = postId;
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, post2);
-
-        await store.dispatch(Actions.createPostImmediately(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
-
-        nock(Client4.getBaseRoute()).
-            delete(`/posts/${post2.id}`).
-            reply(200, OK_RESPONSE);
-
-        await store.dispatch(Actions.deletePost(post2));
-        await store.dispatch(Actions.removePost(post2));
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(0);
     });
 
     it('resetCreatePostRequest', async () => {
@@ -596,7 +570,7 @@ describe('Actions.Posts', () => {
         });
     });
 
-    it('getNeededAtMentionedUsernames', async () => {
+    describe('getNeededAtMentionedUsernames', () => {
         const state = {
             entities: {
                 users: {
@@ -618,65 +592,55 @@ describe('Actions.Posts', () => {
             },
         } as unknown as GlobalState;
 
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: 'aaa'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@zzz'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
-            ])).toEqual(
-            new Set(['bbb', 'ccc']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
-            ])).toEqual(
-            new Set(['bbb.', 'bbb', 'ccc.ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
-            ])).toEqual(
-            new Set(['bbb-', 'bbb', 'ccc-ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
-            ])).toEqual(
-            new Set(['bbb_', 'ccc_ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '(@bbb/@ccc) ddd@eee'}),
-            ])).toEqual(
-            new Set(['bbb', 'ccc']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({
+        const testCases = [
+            {
+                name: "shouldn't return anything when no users are at-mentioned",
+                input: TestHelper.getPostMock({message: 'aaa'}),
+                expected: new Set(),
+            },
+            {
+                name: "shouldn't return anything for a user that's already loaded",
+                input: TestHelper.getPostMock({message: '@aaa'}),
+                expected: new Set(),
+            },
+            {
+                name: "shouldn't return anything for a group that's already loaded",
+                input: TestHelper.getPostMock({message: '@zzz'}),
+                expected: new Set(),
+            },
+            {
+                name: 'should return any unrecognized at-mentions',
+                input: TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
+                expected: new Set(['bbb', 'ccc']),
+            },
+            {
+                name: 'should return at-mentions followed by period both with and without the period',
+                input: TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
+                expected: new Set(['bbb.', 'bbb', 'ccc.ddd']),
+            },
+            {
+                name: 'should return at-mentions followed by hyphen both with and without the hyphen',
+                input: TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
+                expected: new Set(['bbb-', 'bbb', 'ccc-ddd']),
+            },
+            {
+                name: 'should return at-mentions followed by underscores with the underscore',
+                input: TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
+                expected: new Set(['bbb_', 'ccc_ddd']),
+            },
+            {
+                name: 'should return at-mentions in brackets',
+                input: TestHelper.getPostMock({message: '(@bbb/@ccc)'}),
+                expected: new Set(['bbb', 'ccc']),
+            },
+            {
+                name: "shouldn't return anything when an at sign is in the middle of a word",
+                input: TestHelper.getPostMock({message: 'ddd@eee'}),
+                expected: new Set(),
+            },
+            {
+                name: 'should return at-mentions from inside message attachment props text and pretext',
+                input: TestHelper.getPostMock({
                     message: '@aaa @bbb',
                     props: {
                         attachments: [
@@ -685,23 +649,55 @@ describe('Actions.Posts', () => {
                         ],
                     },
                 }),
-            ]),
-        ).toEqual(
-            new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
-        );
+                expected: new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
+            },
+            {
+                name: 'should return at-mentions from inside message attachment field values but not their titles',
+                input: TestHelper.getPostMock({
+                    props: {
+                        attachments: [
+                            {
+                                fields: [
+                                    {title: '@bbb', value: '@ccc'},
+                                    {value: '@ddd'},
+                                ],
+                            },
+                            {
+                                fields: [
+                                    {title: '@eee', value: '@fff'},
+                                    {value: '@ggg'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ccc', 'ddd', 'fff', 'ggg']),
+            },
+        ];
 
-        // should never try to request usernames matching special mentions
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@all'}),
-                TestHelper.getPostMock({message: '@here'}),
-                TestHelper.getPostMock({message: '@channel'}),
-                TestHelper.getPostMock({message: '@all.'}),
-                TestHelper.getPostMock({message: '@here.'}),
-                TestHelper.getPostMock({message: '@channel.'}),
-            ])).toEqual(
-            new Set(),
-        );
+        for (const specialMention of [
+            '@all',
+            '@here',
+            '@channel',
+            '@all.',
+            '@here.',
+            '@channel.',
+        ]) {
+            testCases.push({
+                name: `should never return special mentions (${specialMention})`,
+                input: TestHelper.getPostMock({message: specialMention}),
+                expected: new Set(),
+            });
+        }
+
+        for (const testCase of testCases) {
+            test(testCase.name, () => {
+                expect(Actions.getNeededAtMentionedUsernamesAndGroups(
+                    state,
+                    [testCase.input],
+                )).toEqual(testCase.expected);
+            });
+        }
     });
 
     it('getPostsSince', async () => {
@@ -1032,10 +1028,8 @@ describe('Actions.Posts', () => {
             reply(200, OK_RESPONSE);
 
         dispatch(Actions.flagPost(post1.id));
-        const state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
     });
 
     it('unflagPost', async () => {
@@ -1063,20 +1057,15 @@ describe('Actions.Posts', () => {
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
         dispatch(Actions.flagPost(post1.id));
-        let state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
 
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
         dispatch(Actions.unflagPost(post1.id));
-        state = getState();
-        const unflagged = state.entities.preferences.myPreferences[prefKey];
-        if (unflagged) {
-            throw new Error('unexpected unflagged');
-        }
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(false);
     });
 
     it('setUnreadPost', async () => {
@@ -1633,6 +1622,7 @@ describe('getPostThreads', () => {
             users: {
                 currentUserId: 'currentUserId',
                 statuses: {},
+                profiles: {},
             },
             general: {
                 config: {},
@@ -1671,15 +1661,15 @@ describe('getPostThreads', () => {
 
         await testStore.dispatch(Actions.getPostThreads([comment]));
 
-        expect(testStore.getActions()[1].payload[0].type).toEqual('RECEIVED_POSTS');
-        expect(testStore.getActions()[1].payload[0].data.posts).toEqual({
+        expect(testStore.getActions()[0].payload[0].type).toEqual('RECEIVED_POSTS');
+        expect(testStore.getActions()[0].payload[0].data.posts).toEqual({
             [post1.id]: post1,
             [comment.id]: comment,
         });
 
-        expect(testStore.getActions()[1].payload[1].type).toEqual('RECEIVED_POSTS_IN_THREAD');
-        expect(testStore.getActions()[1].payload[1].rootId).toEqual(post1.id);
-        expect(testStore.getActions()[1].payload[1].data.posts).toEqual({
+        expect(testStore.getActions()[0].payload[1].type).toEqual('RECEIVED_POSTS_IN_THREAD');
+        expect(testStore.getActions()[0].payload[1].rootId).toEqual(post1.id);
+        expect(testStore.getActions()[0].payload[1].data.posts).toEqual({
             [post1.id]: post1,
             [comment.id]: comment,
         });

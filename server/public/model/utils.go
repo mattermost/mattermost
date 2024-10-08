@@ -41,8 +41,11 @@ const (
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
+//msgp:ignore StringInterface StringSet
 type StringInterface map[string]any
 type StringSet map[string]struct{}
+
+//msgp:tuple StringArray
 type StringArray []string
 
 func (ss StringSet) Has(val string) bool {
@@ -228,6 +231,7 @@ func AppErrorInit(t i18n.TranslateFunc) {
 	})
 }
 
+//msgp:ignore AppError
 type AppError struct {
 	Id              string `json:"id"`
 	Message         string `json:"message"`               // Message to be display to the end user without debugging information
@@ -381,6 +385,11 @@ var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPaddin
 // without the padding.
 func NewId() string {
 	return encoding.EncodeToString(uuid.NewRandom())
+}
+
+// NewUsername is a NewId prefixed with a letter to make valid username
+func NewUsername() string {
+	return "a" + NewId()
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -843,4 +852,17 @@ func filterBlocklist(r rune) rune {
 
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+}
+
+func sliceToMapKey(s ...string) map[string]any {
+	m := make(map[string]any)
+	for i := range s {
+		m[s[i]] = struct{}{}
+	}
+
+	if len(s) != len(m) {
+		panic("duplicate keys")
+	}
+
+	return m
 }

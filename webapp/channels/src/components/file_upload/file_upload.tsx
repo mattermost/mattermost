@@ -15,10 +15,9 @@ import type {UploadFile} from 'actions/file_actions';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
@@ -327,7 +326,7 @@ export class FileUpload extends PureComponent<Props, State> {
 
     handleDrop = (e: DragEvent<HTMLInputElement>) => {
         if (!this.props.canUploadFiles) {
-            this.props.onUploadError(localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+            this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
             return;
         }
 
@@ -357,7 +356,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         if (files.length === 0) {
-            this.props.onUploadError(localizeMessage('file_upload.drag_folder', 'This attachment cannot be uploaded.'));
+            this.props.onUploadError(localizeMessage({id: 'file_upload.drag_folder', defaultMessage: 'This attachment cannot be uploaded.'}));
             return;
         }
 
@@ -492,7 +491,7 @@ export class FileUpload extends PureComponent<Props, State> {
             e.preventDefault();
 
             if (!this.props.canUploadFiles) {
-                this.props.onUploadError(localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
                 return;
             }
             const postTextbox = this.props.postType === 'post' && document.activeElement?.id === 'post_textbox';
@@ -569,18 +568,15 @@ export class FileUpload extends PureComponent<Props, State> {
         if (this.props.pluginFileUploadMethods.length === 0) {
             bodyAction = (
                 <div>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        id='upload-tooltip'
                         placement='top'
-                        trigger={['hover', 'focus']}
-                        overlay={
-                            <Tooltip id='upload-tooltip'>
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                    hoistDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            </Tooltip>
+                        title={
+                            <KeyboardShortcutSequence
+                                shortcut={KEYBOARD_SHORTCUTS.filesUpload}
+                                hoistDescription={true}
+                                isInsideTooltip={true}
+                            />
                         }
                     >
                         <button
@@ -599,7 +595,7 @@ export class FileUpload extends PureComponent<Props, State> {
                                 aria-label={iconAriaLabel}
                             />
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                     <input
                         id='fileUploadInput'
                         tabIndex={-1}
@@ -648,18 +644,15 @@ export class FileUpload extends PureComponent<Props, State> {
                         accept={accept}
                     />
                     <MenuWrapper>
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                        <WithTooltip
+                            id='upload-tooltip'
                             placement='top'
-                            trigger={['hover', 'focus']}
-                            overlay={
-                                <Tooltip id='upload-tooltip'>
-                                    <KeyboardShortcutSequence
-                                        shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                        hoistDescription={true}
-                                        isInsideTooltip={true}
-                                    />
-                                </Tooltip>
+                            title={
+                                <KeyboardShortcutSequence
+                                    shortcut={KEYBOARD_SHORTCUTS.filesUpload}
+                                    hoistDescription={true}
+                                    isInsideTooltip={true}
+                                />
                             }
                         >
                             <button
@@ -674,7 +667,7 @@ export class FileUpload extends PureComponent<Props, State> {
                                     aria-label={iconAriaLabel}
                                 />
                             </button>
-                        </OverlayTrigger>
+                        </WithTooltip>
                         <Menu
                             id='fileUploadOptions'
                             openLeft={true}

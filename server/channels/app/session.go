@@ -4,6 +4,7 @@
 package app
 
 import (
+	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
@@ -24,6 +25,17 @@ const maxSessionsLimit = 500
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
 	if appErr := a.limitNumberOfSessions(c, session.UserId); appErr != nil {
 		return nil, appErr
+	}
+
+	// remote/synthetic users cannot create sessions. This lookup will already be cached.
+	// Some unit tests rely on sessions being created for users that don't exist, therefore
+	// missing users are allowed.
+	user, appErr := a.GetUser(session.UserId)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return nil, appErr
+	}
+	if user != nil && user.IsRemote() {
+		return nil, model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
 	}
 
 	session, err := a.ch.srv.platform.CreateSession(c, session)
@@ -56,8 +68,8 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
-	rc, appErr := a.GetRemoteCluster(remoteId)
-	if appErr == nil && rc.Token == token {
+	rc, appErr := a.GetRemoteCluster(remoteId, false)
+	if appErr == nil && subtle.ConstantTimeCompare([]byte(rc.Token), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,
@@ -274,6 +286,29 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
 	if err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	changed := false
+	for k, v := range newProps {
+		if session.Props[k] == v {
+			continue
+		}
+
+		session.AddProp(k, v)
+		changed = true
+	}
+
+	if !changed {
+		return nil
+	}
+
+	err := a.Srv().Store().Session().UpdateProps(session)
+	if err != nil {
+		return model.NewAppError("SetExtraSessionProps", "app.session.set_extra_session_prop.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

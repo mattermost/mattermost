@@ -178,6 +178,7 @@ func deleteTeam(c client.Client, team *model.Team) (*model.Response, error) {
 }
 
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var result *multierror.Error
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to archive the specified teams?", true); err != nil {
@@ -189,16 +190,18 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			result = multierror.Append(result, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
 		if _, err := c.SoftDeleteTeam(context.TODO(), team.Id); err != nil {
 			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
+			result = multierror.Append(result, errors.New("Unable to archive team '"+team.Name+"' error: "+err.Error()))
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {

@@ -15,7 +15,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
 import {createUser, loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -43,10 +43,10 @@ import type {CustomizeHeaderType} from 'components/header_footer_route/header_fo
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
-import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import CheckInput from 'components/widgets/inputs/check';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
@@ -54,8 +54,9 @@ import type {CustomMessageInputType} from 'components/widgets/inputs/input/input
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
+import {isValidPassword} from 'utils/password';
 import {isDesktopApp} from 'utils/user_agent';
-import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
+import {isValidUsername, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -84,6 +85,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const config = useSelector(getConfig);
     const {
         EnableOpenServer,
+        EnableUserCreation,
         NoAccounts,
         EnableSignUpWithEmail,
         EnableSignUpWithGitLab,
@@ -116,17 +118,18 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const isLicensed = IsLicensed === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
+    const enableUserCreation = EnableUserCreation === 'true';
     const noAccounts = NoAccounts === 'true';
-    const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
-    const enableSignUpWithGitLab = EnableSignUpWithGitLab === 'true';
-    const enableSignUpWithGoogle = EnableSignUpWithGoogle === 'true';
-    const enableSignUpWithOffice365 = EnableSignUpWithOffice365 === 'true';
-    const enableSignUpWithOpenId = EnableSignUpWithOpenId === 'true';
+    const enableSignUpWithEmail = enableUserCreation && EnableSignUpWithEmail === 'true';
+    const enableSignUpWithGitLab = enableUserCreation && EnableSignUpWithGitLab === 'true';
+    const enableSignUpWithGoogle = enableUserCreation && EnableSignUpWithGoogle === 'true';
+    const enableSignUpWithOffice365 = enableUserCreation && EnableSignUpWithOffice365 === 'true';
+    const enableSignUpWithOpenId = enableUserCreation && EnableSignUpWithOpenId === 'true';
     const enableLDAP = EnableLdap === 'true';
     const enableSAML = EnableSaml === 'true';
     const enableCustomBrand = EnableCustomBrand === 'true';
 
-    const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts;
+    const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts && !enableUserCreation;
 
     const [email, setEmail] = useState(parsedEmail ?? '');
     const [name, setName] = useState('');
@@ -148,7 +151,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
-    const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
+    const passwordConfig = useSelector(getPasswordConfig);
+    const {error: passwordInfo} = isValidPassword('', passwordConfig, intl);
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
@@ -196,8 +200,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             externalLoginOptions.push({
                 id: 'office365',
                 url,
-                icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                icon: <EntraIdIcon/>,
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }
@@ -553,7 +557,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         const providedPassword = passwordInput.current?.value ?? '';
-        const {error, telemetryErrorIds} = isValidPassword(providedPassword, getPasswordConfig(config), intl);
+        const {error, telemetryErrorIds} = isValidPassword(providedPassword, passwordConfig, intl);
 
         if (error) {
             setPasswordError(error as string);

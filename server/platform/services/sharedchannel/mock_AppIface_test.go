@@ -474,6 +474,11 @@ func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
+// SaveAndBroadcastStatus provides a mock function with given fields: status
+func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
+	_m.Called(status)
+}
+
 // SaveReactionForPost provides a mock function with given fields: c, reaction
 func (_m *MockAppIface) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(c, reaction)
@@ -549,6 +554,36 @@ func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, safeUpdate b
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, bool) *model.AppError); ok {
 		r1 = rf(c, post, safeUpdate)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UserCanSeeOtherUser provides a mock function with given fields: c, userID, otherUserId
+func (_m *MockAppIface) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
+	ret := _m.Called(c, userID, otherUserId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserCanSeeOtherUser")
+	}
+
+	var r0 bool
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, *model.AppError)); ok {
+		return rf(c, userID, otherUserId)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
+		r0 = rf(c, userID, otherUserId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
+		r1 = rf(c, userID, otherUserId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

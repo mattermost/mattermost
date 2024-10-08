@@ -120,6 +120,8 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 				return nil, model.NewAppError("CreateTeam", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
 				return nil, model.NewAppError("CreateTeam", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(err)
+			case invErr.Entity == "Team" && invErr.Field == "id":
+				return nil, model.NewAppError("CreateTeam", "store.sql_team.save_team.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(err)
 			default:
 				return nil, model.NewAppError("CreateTeam", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
@@ -467,7 +469,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
@@ -510,15 +512,15 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
+func (a *App) sendUpdatedTeamMemberEvent(member *model.TeamMember) *model.AppError {
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", member.UserId, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -967,8 +969,8 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(c), teamID, userID)
+func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
+	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

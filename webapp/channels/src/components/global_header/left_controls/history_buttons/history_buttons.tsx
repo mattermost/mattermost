@@ -14,10 +14,8 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import * as Utils from 'utils/utils';
 
@@ -37,16 +35,13 @@ const HistoryButtons = (): JSX.Element => {
     const [canGoForward, setCanGoForward] = useState(true);
 
     const getTooltip = (shortcut: KeyboardShortcutDescriptor) => (
-        <Tooltip
-            id='upload-tooltip'
-        >
-            <KeyboardShortcutSequence
-                shortcut={shortcut}
-                hoistDescription={true}
-                isInsideTooltip={true}
-            />
-        </Tooltip>
+        <KeyboardShortcutSequence
+            shortcut={shortcut}
+            hoistDescription={true}
+            isInsideTooltip={true}
+        />
     );
+
     const goBack = () => {
         trackEvent('ui', 'ui_history_back');
         history.goBack();
@@ -76,11 +71,10 @@ const HistoryButtons = (): JSX.Element => {
 
     return (
         <HistoryButtonsContainer>
-            <OverlayTrigger
-                trigger={['hover', 'focus']}
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id='global_header_history_back'
                 placement='bottom'
-                overlay={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
+                title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
             >
                 <IconButton
                     icon={'arrow-left'}
@@ -89,14 +83,13 @@ const HistoryButtons = (): JSX.Element => {
                     compact={true}
                     inverted={true}
                     disabled={!canGoBack}
-                    aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goBackLabel', 'Back')}
+                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
                 />
-            </OverlayTrigger>
-            <OverlayTrigger
-                trigger={['hover', 'focus']}
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            </WithTooltip>
+            <WithTooltip
+                id='global_header_history_forward'
                 placement='bottom'
-                overlay={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
+                title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
             >
                 <IconButton
                     icon={'arrow-right'}
@@ -105,9 +98,9 @@ const HistoryButtons = (): JSX.Element => {
                     compact={true}
                     inverted={true}
                     disabled={!canGoForward}
-                    aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goForwardLabel', 'Forward')}
+                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 />
-            </OverlayTrigger>
+            </WithTooltip>
         </HistoryButtonsContainer>
     );
 };

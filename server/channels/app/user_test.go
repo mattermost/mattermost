@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/http"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -58,14 +57,14 @@ func TestCreateOAuthUser(t *testing.T) {
 		dbUser := th.BasicUser
 
 		// mock oAuth Provider, return data
-		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		mockUser := &model.User{Id: "abcdef", AuthData: model.NewPointer("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
 		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockUser, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
-		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
+		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewPointer("e711000764be43d898404a7e9c26b710"), "", false)
 		assert.NoError(t, er2)
 		assert.Equal(t, dbUser.Id, s)
 
@@ -497,7 +496,7 @@ func TestCreateUserConflict(t *testing.T) {
 
 	user := &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	user, err := th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
@@ -513,7 +512,7 @@ func TestCreateUserConflict(t *testing.T) {
 	// Same email
 	user = &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
@@ -565,7 +564,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
@@ -608,7 +607,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
@@ -1210,6 +1209,153 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	})
 }
 
+func TestPasswordChangeSessionTermination(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("user-initiated password change with termination enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Id = session.Id
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.NotNil(t, err)
+		require.Nil(t, session2)
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+		th.Context.Session().UserId = ""
+		th.Context.Session().Id = ""
+	})
+
+	t.Run("user-initiated password change with termination disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = false
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Id = session.Id
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Nil(t, err)
+		require.False(t, session2.IsExpired())
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+		th.Context.Session().UserId = ""
+		th.Context.Session().Id = ""
+	})
+
+	t.Run("admin-initiated password change with termination enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.NotNil(t, err)
+		require.Nil(t, session)
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.NotNil(t, err)
+		require.Nil(t, session2)
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+	})
+
+	t.Run("admin-initiated password change with termination disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = false
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Nil(t, err)
+		require.False(t, session2.IsExpired())
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+	})
+}
+
 func TestGetViewUsersRestrictions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1687,6 +1833,49 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	// Test bad role.
 	_, err = th.App.UpdateUserRolesWithUser(th.Context, user, "does not exist", false)
 	require.NotNil(t, err)
+
+	//Test reset to User role
+	user, err = th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId, false)
+	require.Nil(t, err)
+	assert.Equal(t, user.Roles, model.SystemUserRoleId)
+}
+
+func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
+	// InitBasic is used to let the first CreateUser call not be
+	// a system_admin
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Cannot remove if only admin", func(t *testing.T) {
+		// Attempt to downgrade sysadmin.
+		user, appErr := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
+		bot := th.CreateBot()
+		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
+		systemAdminUser2 := th.CreateUser()
+		user, appErr := th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+	})
 }
 
 func TestDeactivateMfa(t *testing.T) {
@@ -1713,7 +1902,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a username already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(th.BasicUser.Username),
+			Username: model.NewPointer(th.BasicUser.Username),
 		}, true)
 
 		require.NotNil(t, err)
@@ -1722,7 +1911,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a email already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Email: model.NewString(th.BasicUser.Email),
+			Email: model.NewPointer(th.BasicUser.Email),
 		}, true)
 
 		require.NotNil(t, err)
@@ -1731,7 +1920,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
 		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(model.NewId()),
+			Username: model.NewPointer(model.NewUsername()),
 		}, true)
 
 		require.Nil(t, err)
@@ -1740,7 +1929,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
-	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
+	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1757,48 +1946,13 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Zero(t, threads.Total)
 
 		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
-		require.Nil(t, appErr)
-
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-		require.Nil(t, appErr)
-		assert.NotZero(t, threads.Total)
-
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, threadMembership)
-		assert.True(t, threadMembership.Following)
-
-		_, appErr = th.App.GetThreadMembershipForUser(th.BasicUser.Id, "notfound")
 		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
-	})
 
-	t.Run("Ensure no panic on error", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-		mockUserStore.On("Get", mock.Anything, "user1").Return(&model.User{Id: "user1"}, nil)
-
-		mockThreadStore := storemocks.ThreadStore{}
-		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, errors.New("error"))
-
-		var err error
-		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-			UserStore:    &mockUserStore,
-			SessionStore: &storemocks.SessionStore{},
-			OAuthStore:   &storemocks.OAuthStore{},
-			ConfigFn:     th.App.ch.srv.platform.Config,
-			LicenseFn:    th.App.ch.srv.License,
-		})
+		_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser.Id, rootPost.Id, store.ThreadMembershipOpts{Following: true, UpdateFollowing: true})
 		require.NoError(t, err)
-		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Thread").Return(&mockThreadStore)
 
-		_, err = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", "user1", "team1", "postid", 100)
-		require.Error(t, err)
+		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		require.Nil(t, appErr)
 	})
 }
 
@@ -1946,7 +2100,7 @@ func TestGetUsersForReporting(t *testing.T) {
 				EndAt:      500,
 			},
 		})
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, userReports)
 	})
 
@@ -1960,7 +2114,7 @@ func TestGetUsersForReporting(t *testing.T) {
 				PageSize:   50,
 			},
 		})
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, userReports)
 	})
 
@@ -2033,12 +2187,8 @@ func TestCreateUserOrGuest(t *testing.T) {
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
 
-		mockPostStore := storemocks.PostStore{}
-		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
-
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Post").Return(&mockPostStore)
 
 		user := &model.User{
 			Email:         "TestCreateUserOrGuest@example.com",
@@ -2151,12 +2301,8 @@ func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCo
 	mockProductNoticeStore := storemocks.ProductNoticesStore{}
 	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
 
-	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
-
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Group").Return(&mockGroupStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferencesStore)
