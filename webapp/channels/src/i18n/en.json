@@ -3441,7 +3441,7 @@
   "deactivate_member_modal.title": "Deactivate {username}",
   "delete_category_modal.delete": "Delete",
   "delete_category_modal.deleteCategory": "Delete this category?",
-  "delete_category_modal.helpText": "Channels in **{category_name}** will move back to the Channels and Direct messages categories. You're not removed from any channels.",
+  "delete_category_modal.helpText": "Channels in <b>{category_name}</b> will move back to the Channels and Direct messages categories. You're not removed from any channels.",
   "delete_channel.cancel": "Cancel",
   "delete_channel.confirm": "Confirm ARCHIVE Channel",
   "delete_channel.del": "Archive",
