@@ -3288,7 +3288,7 @@
   "collapsed_reply_threads_modal.skip_tour": "Skip Tour",
   "collapsed_reply_threads_modal.take_the_tour": "Take the Tour",
   "collapsed_reply_threads_modal.title": "A new way to view and follow threads",
-  "collapsedReplyThreadsModal.threadDescription": "Threads have been revamped to help you create organized conversation around specific messages. Now, channels will appear less cluttered as replies are collapsed under the original message, and all the conversations you're following are available in your <b>Threads</b> view. Take the tour to see what's new.",
+  "collapsedReplyThreadsModal.helpText": "Threads have been revamped to help you create organized conversation around specific messages. Now, channels will appear less cluttered as replies are collapsed under the original message, and all the conversations you're following are available in your <b>Threads</b> view. Take the tour to see what's new.",
   "combined_system_message.added_to_channel.many_expanded": "{users} and {lastUser} were **added to the channel** by {actor}.",
   "combined_system_message.added_to_channel.one": "{firstUser} **added to the channel** by {actor}.",
   "combined_system_message.added_to_channel.one_you": "You were **added to the channel** by {actor}.",

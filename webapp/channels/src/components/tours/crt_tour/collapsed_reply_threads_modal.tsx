@@ -102,7 +102,7 @@ function CollapsedReplyThreadsModal(props: Props) {
             <div>
                 <p className='productNotices__helpText'>
                     <FormattedMessage
-                        id={'collapsedReplyThreadsModal.threadDescription'}
+                        id={'collapsedReplyThreadsModal.helpText'}
                         defaultMessage={'Threads have been revamped to help you create organized conversation around specific messages. Now, channels will appear less cluttered as replies are collapsed under the original message, and all the conversations you\'re following are available in your <b>Threads</b> view. Take the tour to see what\'s new.'}
                         values={{
                             b: (chunks: string) => <b>{chunks}</b>,
