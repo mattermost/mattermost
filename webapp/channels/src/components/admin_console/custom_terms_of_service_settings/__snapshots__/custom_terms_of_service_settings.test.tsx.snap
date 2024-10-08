@@ -24,10 +24,10 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -72,10 +72,10 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -120,10 +120,10 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -168,10 +168,10 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip

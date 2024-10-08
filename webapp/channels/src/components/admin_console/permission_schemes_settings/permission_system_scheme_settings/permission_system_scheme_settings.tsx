@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
@@ -12,11 +12,11 @@ import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import SaveButton from 'components/button/save_button';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import LoadingScreen from 'components/loading_screen';
-import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 
@@ -25,6 +25,10 @@ import {PermissionsScope, DefaultRolePermissions, DocLinks, ModeratedPermissions
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
+
+const messages = defineMessages({
+    saving: {id: 'admin.saving', defaultMessage: 'Saving Config...'},
+});
 
 type Props = {
     config: Partial<ClientConfig>;
@@ -532,7 +536,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                         saving={this.state.saving}
                         disabled={this.props.isDisabled || !this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
+                        savingMessage={messages.saving}
                     />
                     <BlockableLink
                         className='btn btn-tertiary'

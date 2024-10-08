@@ -132,10 +132,10 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -402,10 +402,10 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -558,10 +558,10 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -828,10 +828,10 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip

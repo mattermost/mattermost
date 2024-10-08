@@ -478,10 +478,10 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -979,10 +979,10 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip

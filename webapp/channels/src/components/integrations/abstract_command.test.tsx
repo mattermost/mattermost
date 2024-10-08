@@ -83,7 +83,7 @@ describe('components/integrations/AbstractCommand', () => {
         );
 
         wrapper.find('#trigger').simulate('change', {target: {value: ''}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault: jest.fn()});
+        wrapper.find({testId: 'saveCommand'}).simulate('click', {preventDefault: jest.fn()});
 
         expect(wrapper).toMatchSnapshot();
         expect(action).not.toBeCalled();
@@ -95,7 +95,7 @@ describe('components/integrations/AbstractCommand', () => {
         );
 
         wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault: jest.fn()});
+        wrapper.find({testId: 'saveCommand'}).simulate('click', {preventDefault: jest.fn()});
 
         expect(action).toBeCalled();
     });

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useState, useCallback, useEffect} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
 
@@ -11,13 +11,20 @@ import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
+import Button from 'components/button';
+import SaveButton from 'components/button/save_button';
 import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
-import SaveButton from 'components/save_button';
 
 import {getRoleFromTrackFlow} from 'utils/utils';
 
 import './should_verify_email.scss';
+
+const messages = defineMessages({
+    resendEmail: {id: 'email_verify.resend', defaultMessage: 'Resend Email'},
+    sendingEmail: {id: 'email_verify.sending', defaultMessage: 'Sending email…'},
+    returnToLogin: {id: 'email_verify.return', defaultMessage: 'Return to log in'},
+});
 
 const enum ResendStatus {
     PENDING = 'pending',
@@ -74,19 +81,20 @@ const ShouldVerifyEmail = () => {
                         <div className='should-verify-body-content-extra'>
                             <div className='should-verify-body-content-buttons'>
                                 <SaveButton
-                                    extraClasses='should-verify-body-content-button-resend large'
+                                    emphasis='tertiary'
+                                    size='large'
                                     saving={isWaiting}
                                     disabled={!email}
                                     onClick={handleResendButtonOnClick}
-                                    defaultMessage={formatMessage({id: 'email_verify.resend', defaultMessage: 'Resend Email'})}
-                                    savingMessage={formatMessage({id: 'email_verify.sending', defaultMessage: 'Sending email…'})}
+                                    defaultMessage={messages.resendEmail}
+                                    savingMessage={messages.sendingEmail}
                                 />
-                                <button
-                                    className='should-verify-body-content-button-return'
+                                <Button
+                                    emphasis='primary'
+                                    size='large'
                                     onClick={handleReturnButtonOnClick}
-                                >
-                                    {formatMessage({id: 'email_verify.return', defaultMessage: 'Return to log in'})}
-                                </button>
+                                    label={messages.returnToLogin}
+                                />
                             </div>
                             <div className={classNames('should-verify-body-content-message', resendStatus)}>
                                 <i

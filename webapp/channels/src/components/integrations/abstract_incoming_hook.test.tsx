@@ -85,7 +85,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         const props = {...requiredProps};
         delete props.initialHook;
         const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
+        wrapper.find({testId: 'saveWebhook'}).simulate('click', {preventDefault() {
             return jest.fn();
         }});
 
@@ -116,7 +116,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         expect(wrapper).toMatchSnapshot();
 
         wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
+        wrapper.find({testId: 'saveWebhook'}).simulate('click', {preventDefault() {
             return jest.fn();
         }});
 

@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import type {ButtonHTMLAttributes} from 'react';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 type ButtonProps = {
-    onClick: React.MouseEventHandler<HTMLButtonElement>;
     label: string | MessageDescriptor;
     emphasis: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
     size?: 'xSmall' | 'small' | 'medium' | 'large';
@@ -15,9 +15,12 @@ type ButtonProps = {
     destructive?: boolean;
     leadingIcon?: string;
     trailingIcon?: string;
-    autoFocus?: boolean;
     testId?: string;
-    disabled?: boolean;
+    loading?: boolean;
+    onClick?: ButtonHTMLAttributes<HTMLButtonElement>['onClick'];
+    autoFocus?: ButtonHTMLAttributes<HTMLButtonElement>['autoFocus'];
+    disabled?: ButtonHTMLAttributes<HTMLButtonElement>['disabled'];
+    buttonType?: ButtonHTMLAttributes<HTMLButtonElement>['type'];
 }
 
 const emphasisClasses = {
@@ -47,6 +50,8 @@ const Button = ({
     autoFocus,
     testId,
     disabled,
+    loading = false,
+    buttonType = 'button',
 }: ButtonProps) => {
     const intl = useIntl();
     const leading = leadingIcon ? (<i className={classNames('icon', leadingIcon)}/>) : null;
@@ -58,7 +63,7 @@ const Button = ({
     const labelText = typeof label === 'string' ? label : intl.formatMessage(label);
     return (
         <button
-            type='button'
+            type={buttonType}
             onClick={onClick}
             className={classNames('btn', emphasisClass, sizeClass, {
                 'pull-left': pull === 'left',
@@ -69,6 +74,7 @@ const Button = ({
             data-testid={testId}
             disabled={disabled}
         >
+            {loading && (<i className='icon fa fa-spinner fa-pulse'/>)}
             {leading}
             {labelText}
             {trailing}

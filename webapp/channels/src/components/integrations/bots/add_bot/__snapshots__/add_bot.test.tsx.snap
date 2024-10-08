@@ -338,23 +338,24 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveBot"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Create Bot Account",
+              "id": "bots.manage.add.create",
+            }
+          }
           onClick={[Function]}
           spinning={false}
           spinningText={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Creating..."
-              id="bots.manage.add.creating"
-            />
+            Object {
+              "defaultMessage": "Creating...",
+              "id": "bots.manage.add.creating",
+            }
           }
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Create Bot Account"
-            id="bots.manage.add.create"
-          />
-        </Memo(SpinnerButton)>
+          testId="saveBot"
+        />
       </div>
     </form>
   </div>

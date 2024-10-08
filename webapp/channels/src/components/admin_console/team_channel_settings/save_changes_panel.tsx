@@ -2,10 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import SaveButton from 'components/save_button';
+import SaveButton from 'components/button/save_button';
+
+const messages = defineMessages({
+    saving: {id: 'admin.team_channel_settings.saving', defaultMessage: 'Saving Config...'},
+});
 
 type Props = {
     saving: boolean;
@@ -18,14 +22,13 @@ type Props = {
 };
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, isDisabled, savingMessage}: Props) => {
-    const {formatMessage} = useIntl();
     return (
         <div className='admin-console-save'>
             <SaveButton
                 saving={saving}
                 disabled={isDisabled || !saveNeeded}
                 onClick={onClick}
-                savingMessage={savingMessage ?? formatMessage({id: 'admin.team_channel_settings.saving', defaultMessage: 'Saving Config...'})}
+                savingMessage={savingMessage ?? messages.saving}
             />
             {
                 cancelLink !== '' &&

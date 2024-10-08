@@ -97,9 +97,9 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
         />
         <SaveButton
           disabled={false}
-          id="saveItems"
           onClick={[Function]}
           saving={false}
+          testId="saveItems"
         />
       </div>
       <div
@@ -288,9 +288,9 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
         />
         <SaveButton
           disabled={false}
-          id="saveItems"
           onClick={[Function]}
           saving={false}
+          testId="saveItems"
         />
       </div>
       <div
@@ -470,9 +470,9 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
         />
         <SaveButton
           disabled={false}
-          id="saveItems"
           onClick={[Function]}
           saving={false}
+          testId="saveItems"
         />
       </div>
       <div
@@ -527,15 +527,17 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
     <div
       className="filter-controls"
     >
-      <button
-        className="btn btn-sm btn-tertiary filter-control filter-control__prev"
+      <Button
+        emphasis="tertiary"
+        label={
+          Object {
+            "defaultMessage": "Previous",
+            "id": "filtered_user_list.prev",
+          }
+        }
         onClick={[Function]}
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Previous"
-          id="filtered_user_list.prev"
-        />
-      </button>
+        size="small"
+      />
     </div>
   </div>
 </Fragment>

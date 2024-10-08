@@ -3,13 +3,14 @@
 
 import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import type {CustomGroupPatch, Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import SaveButton from 'components/save_button';
+import Button from 'components/button';
+import SaveButton from 'components/button/save_button';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ItemStatus} from 'utils/constants';
@@ -20,6 +21,12 @@ import type {ModalData} from 'types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 import './update_user_group_modal.scss';
+
+const messages = defineMessages({
+    save: {id: 'multiselect.saveDetailsButton', defaultMessage: 'Save Details'},
+    saving: {id: 'multiselect.savingDetailsButton', defaultMessage: 'Saving...'},
+    back: {id: 'multiselect.backButton', defaultMessage: 'Back'},
+});
 
 export type Props = {
     onExited: () => void;
@@ -32,10 +39,16 @@ export type Props = {
     };
 }
 
-const UpdateUserGroupModal = (props: Props) => {
+const UpdateUserGroupModal = ({
+    actions,
+    backButtonCallback,
+    group,
+    groupId,
+    onExited,
+}: Props) => {
     const [hasUpdated, setHasUpdated] = useState(false);
-    const [name, setName] = useState(props.group.display_name);
-    const [mention, setMention] = useState(`@${props.group.name}`);
+    const [name, setName] = useState(group.display_name);
+    const [mention, setMention] = useState(`@${group.name}`);
     const [saving, setSaving] = useState(false);
     const [show, setShow] = useState(true);
     const [mentionInputErrorText, setMentionInputErrorText] = useState('');
@@ -53,17 +66,6 @@ const UpdateUserGroupModal = (props: Props) => {
         return name.length > 0 && mention.length > 0 && hasUpdated && !saving;
     }, [name, mention, hasUpdated, saving]);
 
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
-            patchGroup();
-        }
-    }, [name, mention, hasUpdated, saving]);
-
-    useEffect(() => {
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
-
     const updateNameState = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         let newMention = mention;
@@ -76,7 +78,7 @@ const UpdateUserGroupModal = (props: Props) => {
         setName(value);
         setHasUpdated(true);
         setMention(newMention);
-    }, [mention]);
+    }, [mention, mentionUpdatedManually]);
 
     const updateMentionState = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -86,9 +88,9 @@ const UpdateUserGroupModal = (props: Props) => {
     }, []);
 
     const goBack = useCallback(() => {
-        props.backButtonCallback();
-        props.onExited();
-    }, [props.backButtonCallback, props.onExited]);
+        backButtonCallback();
+        onExited();
+    }, [backButtonCallback, onExited]);
 
     const patchGroup = useCallback(async () => {
         setSaving(true);
@@ -128,7 +130,7 @@ const UpdateUserGroupModal = (props: Props) => {
             name: newMention,
             display_name: displayName,
         };
-        const data = await props.actions.patchGroup(props.groupId, group);
+        const data = await actions.patchGroup(groupId, group);
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
                 setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'}));
@@ -143,14 +145,35 @@ const UpdateUserGroupModal = (props: Props) => {
         } else {
             goBack();
         }
-    }, [name, mention, goBack, props.groupId, props.actions.patchGroup]);
+    }, [mention, name, actions, groupId, goBack]);
+
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
+            patchGroup();
+        }
+    }, [isSaveEnabled, patchGroup]);
+
+    const onSaveClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>((e) => {
+        e.preventDefault();
+        patchGroup();
+    }, [patchGroup]);
+
+    const onBackClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>((e) => {
+        e.preventDefault();
+        goBack();
+    }, [goBack]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
 
     return (
         <Modal
             dialogClassName='a11y__modal user-groups-modal-update'
             show={show}
             onHide={doHide}
-            onExited={props.onExited}
+            onExited={onExited}
             role='dialog'
             aria-labelledby='createUserGroupsModalLabel'
             id='createUserGroupsModal'
@@ -210,25 +233,18 @@ const UpdateUserGroupModal = (props: Props) => {
                                 />
                             </div>
                         }
-                        <button
-                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                                e.preventDefault();
-                                goBack();
-                            }}
-                            className='btn btn-tertiary'
-                        >
-                            {Utils.localizeMessage({id: 'multiselect.backButton', defaultMessage: 'Back'})}
-                        </button>
+                        <Button
+                            onClick={onBackClick}
+                            emphasis='tertiary'
+                            label={messages.back}
+                        />
                         <SaveButton
-                            id='saveItems'
+                            testId='saveItems'
                             saving={saving}
                             disabled={!isSaveEnabled()}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                patchGroup();
-                            }}
-                            defaultMessage={Utils.localizeMessage({id: 'multiselect.saveDetailsButton', defaultMessage: 'Save Details'})}
-                            savingMessage={Utils.localizeMessage({id: 'multiselect.savingDetailsButton', defaultMessage: 'Saving...'})}
+                            onClick={onSaveClick}
+                            defaultMessage={messages.save}
+                            savingMessage={messages.saving}
                         />
                     </div>
                 </div>

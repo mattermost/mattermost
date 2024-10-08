@@ -252,10 +252,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -528,10 +528,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -613,10 +613,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -889,10 +889,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -1167,10 +1167,10 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -1447,10 +1447,10 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -1723,10 +1723,10 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -1976,10 +1976,10 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -2252,10 +2252,10 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -2535,10 +2535,10 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -2874,10 +2874,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -3181,10 +3181,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -3488,10 +3488,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -3795,10 +3795,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -4134,10 +4134,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip

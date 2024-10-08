@@ -2,15 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {type ReactNode, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
+import SaveButton from 'components/button/save_button';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
-import SaveButton from 'components/save_button';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import './login_mfa.scss';
+
+const messages = defineMessages({
+    submit: {id: 'login_mfa.submit', defaultMessage: 'Submit'},
+    loggingIn: {id: 'login_mfa.saving', defaultMessage: 'Logging in…'},
+});
 
 type LoginMfaProps = {
     loginId: string | null;
@@ -66,12 +71,12 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
                     />
                     <div className='login-mfa-form-button-container'>
                         <SaveButton
-                            extraClasses='login-mfa-form-button-submit large'
+                            size={'large'}
                             saving={saving}
                             disabled={!token}
                             onClick={handleSaveButtonOnClick}
-                            defaultMessage={formatMessage({id: 'login_mfa.submit', defaultMessage: 'Submit'})}
-                            savingMessage={formatMessage({id: 'login_mfa.saving', defaultMessage: 'Logging in…'})}
+                            defaultMessage={messages.submit}
+                            savingMessage={messages.loggingIn}
                         />
                     </div>
                 </div>

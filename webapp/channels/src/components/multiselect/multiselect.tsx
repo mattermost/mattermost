@@ -4,14 +4,14 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
-import type {IntlShape} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
 
 import Button from 'components/button';
-import SaveButton from 'components/save_button';
+import SaveButton from 'components/button/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -34,8 +34,8 @@ export type Props<T extends Value> = {
     backButtonClick?: () => void;
     backButtonClass?: string;
     backButtonText?: string;
-    buttonSubmitLoadingText?: ReactNode;
-    buttonSubmitText?: ReactNode;
+    buttonSubmitLoadingText?: string | MessageDescriptor;
+    buttonSubmitText?: string | MessageDescriptor;
     handleAdd: (value: T) => void;
     handleDelete: (values: T[]) => void;
     handleInput: (input: string, multiselect: MultiSelect<T>) => void;
@@ -81,6 +81,7 @@ const KeyCodes = Constants.KeyCodes;
 const messages = defineMessages({
     next: {id: 'filtered_user_list.next', defaultMessage: 'Next'},
     previous: {id: 'filtered_user_list.prev', defaultMessage: 'Previous'},
+    go: {id: 'multiselect.go', defaultMessage: 'Go'},
 });
 
 export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
@@ -318,16 +319,11 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             );
         }
 
-        let buttonSubmitText: ReactNode;
+        let buttonSubmitText: string | MessageDescriptor | undefined;
         if (this.props.buttonSubmitText) {
             buttonSubmitText = this.props.buttonSubmitText;
         } else if (this.props.maxValues != null) {
-            buttonSubmitText = (
-                <FormattedMessage
-                    id='multiselect.go'
-                    defaultMessage='Go'
-                />
-            );
+            buttonSubmitText = messages.go;
         }
 
         let optionsToDisplay = [];
@@ -484,7 +480,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             />
                             {this.props.saveButtonPosition === 'top' &&
                                 <SaveButton
-                                    id='saveItems'
+                                    testId='saveItems'
                                     saving={this.props.saving}
                                     disabled={this.props.saving}
                                     onClick={this.handleOnClick}
@@ -532,7 +528,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             </button>
                         }
                         <SaveButton
-                            id='saveItems'
+                            testId='saveItems'
                             saving={this.props.saving}
                             disabled={this.props.saving || !this.props.savingEnabled}
                             onClick={this.handleOnClick}

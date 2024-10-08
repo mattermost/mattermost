@@ -6,7 +6,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import SaveButton from 'components/save_button';
+import SaveButton from 'components/button/save_button';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -49,7 +49,7 @@ type Props = {
     cancelButtonText?: ReactNode;
     shiftEnter?: boolean;
     saveButtonText?: string;
-    saveButtonClassName?: string;
+    saveButtonIsDanger?: boolean;
 }
 export default class SettingItemMax extends React.PureComponent<Props> {
     settingList: React.RefObject<HTMLDivElement>;
@@ -172,7 +172,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                     saving={this.props.saving}
                     disabled={this.props.saving}
                     onClick={this.handleSubmit}
-                    btnClass={this.props.saveButtonClassName}
+                    destructive={this.props.saveButtonIsDanger}
                 />
             );
         }

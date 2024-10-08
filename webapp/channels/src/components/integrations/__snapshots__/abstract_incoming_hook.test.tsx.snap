@@ -242,18 +242,24 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>
@@ -502,18 +508,24 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>
@@ -765,18 +777,24 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>
@@ -992,18 +1010,24 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>
@@ -1219,18 +1243,24 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>
@@ -1479,18 +1509,24 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>

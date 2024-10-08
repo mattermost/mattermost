@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import SaveButton from 'components/save_button';
+import SaveButton from './save_button';
 
 describe('components/SaveButton', () => {
     const baseProps = {
@@ -15,7 +15,6 @@ describe('components/SaveButton', () => {
         const wrapper = shallow(<SaveButton {...baseProps}/>);
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('button').first().props().disabled).toBe(false);
 
         wrapper.setProps({defaultMessage: 'Go'});
         expect(wrapper).toMatchSnapshot();
@@ -26,7 +25,6 @@ describe('components/SaveButton', () => {
         const wrapper = shallow(<SaveButton {...props}/>);
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('button').first().props().disabled).toBe(true);
 
         wrapper.setProps({savingMessage: 'Saving Config...'});
         expect(wrapper).toMatchSnapshot();

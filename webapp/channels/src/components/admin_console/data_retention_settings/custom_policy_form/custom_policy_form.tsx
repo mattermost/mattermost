@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import type {
@@ -19,10 +19,10 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
 import TeamList from 'components/admin_console/data_retention_settings/team_list';
+import SaveButton from 'components/button/save_button';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
-import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
@@ -33,6 +33,13 @@ import {ItemStatus} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import './custom_policy_form.scss';
+
+const messages = defineMessages({
+    save: {
+        id: 'admin.data_retention.custom_policy.save',
+        defaultMessage: 'Save',
+    },
+});
 
 type Props = {
     policyId?: string;
@@ -498,12 +505,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        defaultMessage={(
-                            <FormattedMessage
-                                id='admin.data_retention.custom_policy.save'
-                                defaultMessage='Save'
-                            />
-                        )}
+                        defaultMessage={messages.save}
                     />
                     <BlockableLink
                         className='cancel-button'

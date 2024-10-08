@@ -63,7 +63,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         );
 
         wrapper.find('#callbackUrls').simulate('change', {target: {value: ''}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
+        wrapper.find({testId: 'saveOauthApp'}).simulate('click', {preventDefault() {
             return jest.fn();
         }});
 
@@ -78,7 +78,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         );
 
         wrapper.find('#name').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
+        wrapper.find({testId: 'saveOauthApp'}).simulate('click', {preventDefault() {
             return jest.fn();
         }});
 

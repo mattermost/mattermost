@@ -147,14 +147,6 @@
                             @include link;
                         }
                     }
-
-                    .login-body-card-form-button-submit {
-                        @include primary-button;
-                        @include button-large;
-
-                        width: 100%;
-                        margin-top: 30px;
-                    }
                 }
 
                 .login-body-card-form-divider {

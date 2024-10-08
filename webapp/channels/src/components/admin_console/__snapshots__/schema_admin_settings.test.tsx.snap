@@ -672,7 +672,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <WithTooltip
       id="error-tooltip"

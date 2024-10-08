@@ -11,11 +11,9 @@ import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
-
-import {localizeMessage} from 'utils/utils';
 
 interface State {
     displayName: string;
@@ -200,7 +198,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                 <div className='backstage-form'>
                     <form
                         className='form-horizontal'
-                        onSubmit={(e) => this.handleSubmit(e)}
+                        onSubmit={this.handleSubmit}
                     >
                         <div className='form-group'>
                             <label
@@ -380,18 +378,14 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
+                                emphasis='primary'
+                                buttonType='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage({id: this.props.loading.id as string, defaultMessage: this.props.loading.defaultMessage as string})}
-                                onClick={(e) => this.handleSubmit(e)}
-                                id='saveWebhook'
-                            >
-                                <FormattedMessage
-                                    id={footerToRender.id}
-                                    defaultMessage={footerToRender.defaultMessage}
-                                />
-                            </SpinnerButton>
+                                spinningText={this.props.loading}
+                                onClick={this.handleSubmit}
+                                testId='saveWebhook'
+                                idleText={footerToRender}
+                            />
                         </div>
                     </form>
                 </div>

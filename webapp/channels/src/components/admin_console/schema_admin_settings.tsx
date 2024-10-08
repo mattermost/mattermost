@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -27,9 +27,9 @@ import SchemaText from 'components/admin_console/schema_text';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
+import SaveButton from 'components/button/save_button';
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
-import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import WithTooltip from 'components/with_tooltip';
@@ -42,6 +42,10 @@ import Setting from './setting';
 import type {AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
 import './schema_admin_settings.scss';
+
+const messages = defineMessages({
+    saving: {id: 'admin.saving', defaultMessage: 'Saving Config...'},
+});
 
 const emptyList: string[] = [];
 
@@ -1347,7 +1351,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded || (this.canSave && !this.canSave())}
                         onClick={this.handleSubmit}
-                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
+                        savingMessage={messages.saving}
                     />
                     <WithTooltip
                         id='error-tooltip'

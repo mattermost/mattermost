@@ -2,16 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {mount, shallow} from 'enzyme';
+import type {ComponentProps} from 'react';
 import React from 'react';
 
-import SpinnerButton from 'components/spinner_button';
+import SpinnerButton from './spinner_button';
+
+function getBaseProps(): ComponentProps<typeof SpinnerButton> {
+    return {
+        emphasis: 'primary',
+        idleText: 'Idle',
+        spinningText: 'Spinning',
+    };
+}
 
 describe('components/SpinnerButton', () => {
     test('should match snapshot with required props', () => {
         const wrapper = shallow(
             <SpinnerButton
-                spinning={false}
-                spinningText='Test'
+                {...getBaseProps()}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -20,22 +28,9 @@ describe('components/SpinnerButton', () => {
     test('should match snapshot with spinning', () => {
         const wrapper = shallow(
             <SpinnerButton
+                {...getBaseProps()}
                 spinning={true}
-                spinningText='Test'
             />,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot with children', () => {
-        const wrapper = shallow(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            >
-                <span id='child1'/>
-                <span id='child2'/>
-            </SpinnerButton>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -45,9 +40,8 @@ describe('components/SpinnerButton', () => {
 
         const wrapper = mount(
             <SpinnerButton
-                spinning={false}
+                {...getBaseProps()}
                 onClick={onClick}
-                spinningText='Test'
             />,
         );
 
@@ -58,10 +52,9 @@ describe('components/SpinnerButton', () => {
     test('should add properties to underlying button', () => {
         const wrapper = mount(
             <SpinnerButton
-                id='my-button-id'
-                className='btn btn-success'
-                spinningText='Test'
-                spinning={false}
+                {...getBaseProps()}
+                testId='my-button-id'
+                emphasis='tertiary'
             />,
         );
 
@@ -69,8 +62,8 @@ describe('components/SpinnerButton', () => {
 
         expect(button).not.toBeUndefined();
         expect(button.type()).toEqual('button');
-        expect(button.props().id).toEqual('my-button-id');
+        expect((button.props() as any)['data-testid']).toEqual('my-button-id');
         expect(button.hasClass('btn')).toBeTruthy();
-        expect(button.hasClass('btn-success')).toBeTruthy();
+        expect(button.hasClass('btn-tertiary')).toBeTruthy();
     });
 });

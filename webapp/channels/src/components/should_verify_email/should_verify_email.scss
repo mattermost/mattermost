@@ -25,21 +25,6 @@
                 display: flex;
                 flex: 1;
                 justify-content: center;
-
-                .should-verify-body-content-button-resend {
-                    @include tertiary-button;
-                }
-
-                .should-verify-body-content-button-return {
-                    @include primary-button;
-
-                    margin-left: 16px;
-                }
-
-                .should-verify-body-content-button-resend,
-                .should-verify-body-content-button-return {
-                    @include button-large;
-                }
             }
 
             .should-verify-body-content-message {

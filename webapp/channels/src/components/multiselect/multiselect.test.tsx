@@ -57,7 +57,7 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        wrapper.find('[data-testid="filter-control__next"]').simulate('click');
+        wrapper.find('[testId="filter-control__next"]').simulate('click');
         wrapper.update();
         expect(wrapper.state('page')).toEqual(1);
         expect(wrapper).toMatchSnapshot();

@@ -323,6 +323,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       disabled={true}
       onClick={[Function]}
       saving={false}
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -713,6 +719,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       disabled={true}
       onClick={[Function]}
       saving={false}
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -1105,6 +1117,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       disabled={true}
       onClick={[Function]}
       saving={false}
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -1563,6 +1581,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       disabled={true}
       onClick={[Function]}
       saving={false}
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="cancel-button"

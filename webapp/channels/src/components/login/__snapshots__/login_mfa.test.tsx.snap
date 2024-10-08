@@ -22,12 +22,22 @@ exports[`components/login/LoginMfa should match snapshot 1`] = `
         className="login-mfa-form-button-container"
       >
         <SaveButton
-          defaultMessage="Submit"
+          defaultMessage={
+            Object {
+              "defaultMessage": "Submit",
+              "id": "login_mfa.submit",
+            }
+          }
           disabled={true}
-          extraClasses="login-mfa-form-button-submit large"
           onClick={[Function]}
           saving={false}
-          savingMessage="Logging in…"
+          savingMessage={
+            Object {
+              "defaultMessage": "Logging in…",
+              "id": "login_mfa.saving",
+            }
+          }
+          size="large"
         />
       </div>
     </div>

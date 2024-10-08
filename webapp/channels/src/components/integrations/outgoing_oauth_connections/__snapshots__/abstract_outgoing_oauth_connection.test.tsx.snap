@@ -427,34 +427,48 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                   </LinkAnchor>
                 </Link>
                 <Memo(SpinnerButton)
-                  className="btn btn-primary"
-                  id="saveConnection"
+                  buttonType="submit"
+                  emphasis="primary"
+                  idleText={
+                    Object {
+                      "defaultMessage": "Footer",
+                      "id": "Footer",
+                    }
+                  }
                   onClick={[Function]}
                   spinning={false}
-                  spinningText="Loading"
-                  type="submit"
+                  spinningText={
+                    Object {
+                      "defaultMessage": "Loading",
+                      "id": "Loading",
+                    }
+                  }
+                  testId="saveConnection"
                 >
-                  <button
-                    className="btn btn-primary"
+                  <Button
+                    buttonType="submit"
                     disabled={false}
-                    id="saveConnection"
+                    emphasis="primary"
+                    label={
+                      Object {
+                        "defaultMessage": "Footer",
+                        "id": "Footer",
+                      }
+                    }
+                    loading={false}
                     onClick={[Function]}
-                    type="submit"
+                    testId="saveConnection"
                   >
-                    <Memo(LoadingWrapper)
-                      loading={false}
-                      text="Loading"
+                    <button
+                      className="btn btn-primary"
+                      data-testid="saveConnection"
+                      disabled={false}
+                      onClick={[Function]}
+                      type="submit"
                     >
-                      <FormattedMessage
-                        defaultMessage="Footer"
-                        id="Footer"
-                      >
-                        <span>
-                          Footer
-                        </span>
-                      </FormattedMessage>
-                    </Memo(LoadingWrapper)>
-                  </button>
+                      Footer
+                    </button>
+                  </Button>
                 </Memo(SpinnerButton)>
                 <div>
                   renderExtra
@@ -1014,34 +1028,48 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                   </LinkAnchor>
                 </Link>
                 <Memo(SpinnerButton)
-                  className="btn btn-primary"
-                  id="saveConnection"
+                  buttonType="submit"
+                  emphasis="primary"
+                  idleText={
+                    Object {
+                      "defaultMessage": "Footer",
+                      "id": "Footer",
+                    }
+                  }
                   onClick={[Function]}
                   spinning={false}
-                  spinningText="Loading"
-                  type="submit"
+                  spinningText={
+                    Object {
+                      "defaultMessage": "Loading",
+                      "id": "Loading",
+                    }
+                  }
+                  testId="saveConnection"
                 >
-                  <button
-                    className="btn btn-primary"
+                  <Button
+                    buttonType="submit"
                     disabled={false}
-                    id="saveConnection"
+                    emphasis="primary"
+                    label={
+                      Object {
+                        "defaultMessage": "Footer",
+                        "id": "Footer",
+                      }
+                    }
+                    loading={false}
                     onClick={[Function]}
-                    type="submit"
+                    testId="saveConnection"
                   >
-                    <Memo(LoadingWrapper)
-                      loading={false}
-                      text="Loading"
+                    <button
+                      className="btn btn-primary"
+                      data-testid="saveConnection"
+                      disabled={false}
+                      onClick={[Function]}
+                      type="submit"
                     >
-                      <FormattedMessage
-                        defaultMessage="Footer"
-                        id="Footer"
-                      >
-                        <span>
-                          Footer
-                        </span>
-                      </FormattedMessage>
-                    </Memo(LoadingWrapper)>
-                  </button>
+                      Footer
+                    </button>
+                  </Button>
                 </Memo(SpinnerButton)>
                 <div>
                   renderExtra
