@@ -127,8 +127,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	if _, err := w.Write(b); err != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -352,8 +351,7 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write(b); err != nil {
-		c.Err = model.NewAppError("getRemoteClusters", "api.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -434,8 +432,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write(b); err != nil {
-		c.Err = model.NewAppError("createRemoteCluster", "api.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -503,7 +500,9 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Request) {
