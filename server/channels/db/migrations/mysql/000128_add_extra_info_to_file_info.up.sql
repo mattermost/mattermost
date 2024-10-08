@@ -11,7 +11,8 @@ DECLARE
 		AND table_schema = DATABASE()
 		AND COLUMN_NAME = 'FileInfoExtraInfo' INTO FileInfoExtraInfo_EXIST;
 	IF(FileInfoExtraInfo_EXIST = 0) THEN
-				ALTER TABLE fileinfo ADD COLUMN extrainfo text DEFAULT '';
+				ALTER TABLE fileinfo ADD COLUMN extrainfo text;
+				UPDATE fileinfo SET extrainfo = '';
 	END IF;
 END;
 	CALL Migrate_FileInfoExtraInfo ();
