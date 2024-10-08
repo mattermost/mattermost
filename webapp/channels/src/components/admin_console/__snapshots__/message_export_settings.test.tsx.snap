@@ -69,7 +69,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{br}{br}For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
+            id="admin.complianceExport.exportFormatDetail.description"
             values={
               Object {
                 "a": [Function],
@@ -224,7 +224,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{br}{br}For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
+            id="admin.complianceExport.exportFormatDetail.description"
             values={
               Object {
                 "a": [Function],
@@ -493,7 +493,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{br}{br}For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
+            id="admin.complianceExport.exportFormatDetail.description"
             values={
               Object {
                 "a": [Function],
@@ -648,7 +648,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{br}{br}For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
+            id="admin.complianceExport.exportFormatDetail.description"
             values={
               Object {
                 "a": [Function],

@@ -59,7 +59,7 @@ const messages = defineMessages({
 });
 
 export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
-    [messages.exportFormat_description, {siteURL: ''}],
+    messages.exportFormat_description,
     messages.complianceExportTitle,
     messages.complianceExportDesc,
     messages.exportJobStartTime_title,
@@ -314,7 +314,7 @@ export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComp
                 {...messages.exportFormat_description}
                 values={{
                     br: <br/>,
-                    a: (chunks) => (
+                    a: (chunks: string) => (
                         <Link to='/admin_console/environment/file_storage'>
                             {chunks}
                         </Link>
