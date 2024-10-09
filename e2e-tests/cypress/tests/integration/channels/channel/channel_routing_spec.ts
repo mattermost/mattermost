@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -11,10 +14,10 @@
 // Group: @channels @channel
 
 describe('Channel routing', () => {
-    let testUser;
-    let otherUser1;
-    let otherUser2;
-    let testTeam;
+    let testUser: UserProfile;
+    let otherUser1: UserProfile;
+    let otherUser2: UserProfile;
+    let testTeam: Team;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {

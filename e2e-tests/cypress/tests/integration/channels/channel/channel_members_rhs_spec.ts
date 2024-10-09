@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+
 const {generateRandomUser} = require('../../../support/api/user');
 
 // ***************************************************************
@@ -12,7 +16,7 @@ const {generateRandomUser} = require('../../../support/api/user');
 // Stage: @prod
 // Group: @channels @channel @rhs @channel_members
 
-function openChannelMembersRhs(testTeam, testChannel) {
+function openChannelMembersRhs(testTeam: Team, testChannel: Channel) {
     // # Go to test channel
     cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
@@ -24,10 +28,10 @@ function openChannelMembersRhs(testTeam, testChannel) {
 }
 
 describe('Channel members RHS', () => {
-    let testTeam;
-    let testChannel;
-    let admin;
-    let user;
+    let testTeam: Team;
+    let testChannel: Channel;
+    let admin: UserProfile;
+    let user: UserProfile;
 
     before(() => {
         cy.apiInitSetup({promoteNewUserAsAdmin: true}).then(({team, user: newAdmin}) => {
@@ -53,7 +57,7 @@ describe('Channel members RHS', () => {
                     return !(['manage_public_channel_members', 'manage_private_channel_members', 'manage_public_channel_properties', 'manage_private_channel_properties'].includes(permission));
                 });
 
-                if (permissions.length !== role.permissions) {
+                if (permissions.length !== role.permissions.length) {
                     cy.apiPatchRole(role.id, {permissions});
                 }
             });
@@ -168,7 +172,7 @@ describe('Channel members RHS', () => {
 
     it('should hide deactivated members', () => {
         cy.apiCreateChannel(testTeam.id, 'hide-test-channel', 'Hide Test Channel', 'O').then(({channel}) => {
-            let testUser = null;
+            let testUser: UserProfile;
             cy.apiCreateUser().then(({user: newUser}) => {
                 cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                     cy.apiAddUserToChannel(channel.id, newUser.id).then(() => {

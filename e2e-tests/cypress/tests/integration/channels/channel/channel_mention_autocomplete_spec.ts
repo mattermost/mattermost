@@ -10,14 +10,17 @@
 // Stage: @prod
 // Group: @channels @channel
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Channel', () => {
-    let testTeam;
-    let ownChannel;
-    let otherChannel;
-    let testUser;
-    let offTopicUrl;
+    let testTeam: Team;
+    let ownChannel: Channel;
+    let otherChannel: Channel;
+    let testUser: UserProfile;
+    let offTopicUrl: string;
 
     const myChannelsDividerText = 'My Channels';
     const otherChannelsDividerText = 'Other Channels';

@@ -10,6 +10,9 @@
 // Stage: @prod
 // Group: @channels @channel
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
@@ -21,10 +24,10 @@ const channelType = {
 };
 
 describe('Channels', () => {
-    let testUser;
-    let otherUser;
-    let testTeam;
-    let testChannel;
+    let testUser: UserProfile;
+    let otherUser: UserProfile;
+    let testTeam: Team;
+    let testChannel: Channel;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
@@ -151,7 +154,7 @@ describe('Channels', () => {
         cy.apiLogin(otherUser);
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
-        let newChannel;
+        let newChannel: Channel;
         cy.apiCreateChannel(testTeam.id, 'channel-to-leave', 'Channel to leave').then(({channel}) => {
             newChannel = channel;
             cy.visit(`/${testTeam.name}/channels/${newChannel.name}`);
@@ -185,9 +188,9 @@ describe('Channels', () => {
                 ExperimentalViewArchivedChannels: true,
             },
         });
-        let newChannel;
-        let testArchivedChannel;
-        let testPrivateArchivedChannel;
+        let newChannel: Channel;
+        let testArchivedChannel: Channel;
+        let testPrivateArchivedChannel: Channel;
 
         cy.apiCreateTeam('team', 'Test NoMember').then(({team}) => {
             cy.apiCreateChannel(team.id, 'not-archived-channel', 'Not Archived Channel').then(({channel}) => {
