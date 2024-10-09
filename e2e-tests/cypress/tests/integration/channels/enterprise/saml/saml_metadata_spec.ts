@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -18,7 +20,7 @@ const testIdpURL = 'http://test_idp_url';
 const testIdpDescriptorURL = 'http://test_idp_descriptor_url';
 const getSamlMetadataErrorMessage = 'SAML Metadata URL did not connect and pull data successfully';
 
-let config;
+let config: AdminConfig;
 
 describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
     before(() => {
