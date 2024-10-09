@@ -633,7 +633,13 @@ func TestPatchTeam(t *testing.T) {
 		}
 		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		rteam2, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
+		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
+		require.Error(t, err3)
+
+		patch2 = &model.TeamPatch{
+			AllowedDomains: model.NewPointer("testDomain.com"),
+		}
+		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
 	})
 }

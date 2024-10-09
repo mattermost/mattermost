@@ -251,8 +251,8 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if changing "AllowOpenInvite", user must have InviteUser permission
-	if team.AllowOpenInvite != nil && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+	// if changing "AllowOpenInvite" or "AllowedDomains", user must have InviteUser permission
+	if (team.AllowOpenInvite != nil || team.AllowedDomains != nil) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
 		c.SetPermissionError(model.PermissionInviteUser)
 		return
 	}

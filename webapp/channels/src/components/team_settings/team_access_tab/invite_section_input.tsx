@@ -32,7 +32,6 @@ type Props = {
 
 const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
     const team = useSelector((state: GlobalState) => getCurrentTeam(state));
-    const canInviteTeamMembers = useSelector((state: GlobalState) => haveITeamPermission(state, team?.id || '', Permissions.INVITE_USER));
     const [inviteId, setInviteId] = useState<Team['invite_id']>(team?.invite_id ?? '');
     const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
@@ -54,9 +53,6 @@ const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
         }
     }, [regenerateTeamInviteId, team?.id]);
 
-    if (!canInviteTeamMembers) {
-        return null;
-    }
     const inviteSectionInput = (
         <div
             data-testid='teamInviteContainer'
