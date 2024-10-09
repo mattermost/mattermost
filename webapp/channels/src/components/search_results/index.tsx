@@ -15,6 +15,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {
     getSearchResultsTerms,
+    getSearchResultsType,
     getIsSearchingTerm,
     getIsSearchingFlaggedPost,
     getIsSearchingPinnedPost,
@@ -76,7 +77,7 @@ function makeMapStateToProps() {
 
         // this is basically a hack to make ts compiler happy
         // add correct type when it is known what exactly is returned from the function
-        const currentSearch = getCurrentSearchForCurrentTeam(state) as unknown as Record<string, any> || {};
+        const currentSearch = (getCurrentSearchForCurrentTeam(state) as unknown as Record<string, any>) || {};
         const currentTeamName = getCurrentTeam(state)?.name ?? '';
 
         return {
@@ -84,6 +85,7 @@ function makeMapStateToProps() {
             fileResults: files,
             matches: getSearchMatches(state),
             searchTerms: getSearchResultsTerms(state),
+            searchSelectedType: getSearchResultsType(state),
             isSearchingTerm: getIsSearchingTerm(state),
             isSearchingFlaggedPost: getIsSearchingFlaggedPost(state),
             isSearchingPinnedPost: getIsSearchingPinnedPost(state),
