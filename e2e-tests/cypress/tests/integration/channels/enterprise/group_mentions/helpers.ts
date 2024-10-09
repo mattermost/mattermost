@@ -3,7 +3,7 @@
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
-export function enableGroupMention(groupName, groupID, userEmail) {
+export function enableGroupMention(groupName: string, groupID: string, userEmail?: string): void {
     // # Visit Group Configurations page
     cy.visit(`/admin_console/user_management/groups/${groupID}`);
 
