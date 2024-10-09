@@ -6,7 +6,7 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 
 import GroupProfile from 'components/admin_console/group_settings/group_details/group_profile';
 import LineSwitch from 'components/admin_console/team_channel_settings/line_switch';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+// import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 type GroupSettingsToggleProps = {
@@ -41,8 +41,8 @@ const GroupSettingsToggle = ({
             />
         }
         subTitle={
-            <FormattedMarkdownMessage
-                id='admin.team_settings.team_details.groupDetailsToggleDescr'
+            <FormattedMessage
+                id='admin.team_settings.team_details.groupDetailsToggleDescr_updated'
                 defaultMessage='When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.'
             />
         }
