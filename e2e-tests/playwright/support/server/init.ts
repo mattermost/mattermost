@@ -3,9 +3,7 @@
 
 import path from 'node:path';
 import {expect} from '@playwright/test';
-import chalk from 'chalk';
 
-import {ClientError} from '@mattermost/client/client4';
 import {PreferenceType} from '@mattermost/types/preferences';
 import testConfig from '@e2e-test.config';
 
@@ -73,22 +71,8 @@ export async function initSetup({
             townSquareUrl: getUrl(team.name, 'town-square'),
         };
     } catch (error) {
-        // log an error for debugging
-        // eslint-disable-next-line no-console
-        const err = error as ClientError;
-        if (err.message === 'Could not parse multipart form.') {
-            // eslint-disable-next-line no-console
-            console.log(chalk.yellow(`node version: ${process.version}\nNODE_OPTIONS: ${process.env.NODE_OPTIONS}`));
-
-            // eslint-disable-next-line no-console
-            console.log(
-                chalk.green(
-                    `This failed due to the experimental fetch support in Node.js starting v18.0.0.\nYou may set environment variable: "export NODE_OPTIONS='--no-experimental-fetch'", then try again.'`,
-                ),
-            );
-        }
-        expect(err, 'Should not throw an error').toBeFalsy();
-        throw err;
+        expect(error, 'Should not throw an error').toBeFalsy();
+        throw error;
     }
 }
 

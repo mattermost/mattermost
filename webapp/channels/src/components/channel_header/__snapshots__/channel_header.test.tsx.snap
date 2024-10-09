@@ -72,18 +72,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -363,18 +351,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -605,18 +581,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               tooltip="Members"
             />
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -840,18 +804,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
             />
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
@@ -1079,18 +1031,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               tooltip="Members"
             />
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -1316,18 +1256,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               tooltip="Members"
             />
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs channel-header__icon--active"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -1551,18 +1479,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
             />
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
@@ -1811,18 +1727,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               tooltip="Members"
             />
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -2046,18 +1950,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs channel-header__icon--active"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
             />
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
@@ -2306,18 +2198,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
           <div
             className="channel-header__icons"
           >
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
@@ -2596,18 +2476,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -2883,18 +2751,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               tooltip="Members"
             />
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -3120,18 +2976,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               tooltip="Members"
             />
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
               iconComponent={
@@ -3355,18 +3199,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
               }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
             />
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
@@ -3618,18 +3450,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
             />
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "

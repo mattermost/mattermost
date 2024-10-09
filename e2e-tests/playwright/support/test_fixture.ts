@@ -3,7 +3,7 @@ import {AxeResults} from 'axe-core';
 import AxeBuilder from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
-import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, skipIfNoLicense} from './flag';
+import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, ensureLicense, skipIfNoLicense} from './flag';
 import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
@@ -47,6 +47,7 @@ class PlaywrightExtended {
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
+    readonly ensureLicense;
     readonly skipIfNoLicense;
 
     // ./server
@@ -72,6 +73,7 @@ class PlaywrightExtended {
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
+        this.ensureLicense = ensureLicense;
         this.skipIfNoLicense = skipIfNoLicense;
 
         // ./server

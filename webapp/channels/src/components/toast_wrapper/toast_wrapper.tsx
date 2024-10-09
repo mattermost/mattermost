@@ -461,7 +461,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 width,
                 onDismiss: this.hideArchiveToast,
                 onClick: this.scrollToLatestMessages,
-                onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
+                onClickMessage: localizeMessage({id: 'postlist.toast.scrollToBottom', defaultMessage: 'Jump to recents'}),
                 showActions: true,
                 extraClasses: 'toast__history',
             };

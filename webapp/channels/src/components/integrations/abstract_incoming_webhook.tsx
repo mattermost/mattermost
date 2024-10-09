@@ -383,7 +383,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id as string, this.props.loading.defaultMessage as string)}
+                                spinningText={localizeMessage({id: this.props.loading.id as string, defaultMessage: this.props.loading.defaultMessage as string})}
                                 onClick={(e) => this.handleSubmit(e)}
                                 id='saveWebhook'
                             >

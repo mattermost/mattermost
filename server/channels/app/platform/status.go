@@ -46,11 +46,7 @@ func (ps *PlatformService) GetAllStatuses() map[string]*model.Status {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			var status *model.Status
-			toPass = append(toPass, &status)
-		}
+		toPass := allocateCacheTargets[*model.Status](len(keys))
 		errs := ps.statusCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -84,11 +80,7 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 	metrics := ps.Metrics()
 	missingUserIds := []string{}
 
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -147,11 +139,7 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 	metrics := ps.Metrics()
 
 	missingUserIds := []string{}
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
