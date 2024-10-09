@@ -93,6 +93,17 @@ const (
 	TrackPlugins  = "plugins"
 )
 
+type TrackSKU string
+
+const (
+	TrackProfessionalSKU TrackSKU = "professional"
+	TrackEnterpriseSKU   TrackSKU = "enterprise"
+)
+
+type TrackFeature string
+
+const TrackGuestFeature TrackFeature = "guest_accounts"
+
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
@@ -117,6 +128,15 @@ type TelemetryService struct {
 type RudderConfig struct {
 	RudderKey    string
 	DataplaneURL string
+}
+
+type EventFeature struct {
+	Name TrackFeature `json:"name"`
+	SKUS []TrackSKU   `json:"skus"`
+}
+
+var featureSKUS = map[TrackFeature][]TrackSKU{
+	TrackGuestFeature: {TrackProfessionalSKU, TrackEnterpriseSKU},
 }
 
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
@@ -202,7 +222,7 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 func (ts *TelemetryService) SendTelemetry(event string, properties map[string]any) {
 	if ts.rudderClient != nil {
 		var context *rudder.Context
-		// if we are part of a cloud installation, add it's ID to the tracked event's context
+		// if we are part of a cloud installation, add its ID to the tracked event's context
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
 			context = &rudder.Context{Traits: map[string]any{"installationId": installationId}}
 		}
@@ -214,6 +234,38 @@ func (ts *TelemetryService) SendTelemetry(event string, properties map[string]an
 		})
 		if err != nil {
 			ts.log.Warn("Error sending telemetry", mlog.Err(err))
+		}
+	}
+}
+
+func (ts *TelemetryService) SendTelemetryForFeature(featureName TrackFeature, event string, properties map[string]any) {
+	if ts.rudderClient != nil {
+		skus, ok := featureSKUS[featureName]
+		if !ok {
+			skus = []TrackSKU{}
+			mlog.Warn("Telemetry SKUS are not defined for the feature", mlog.String("feature", featureName))
+		}
+		feature := EventFeature{
+			Name: featureName,
+			SKUS: skus,
+		}
+
+		var context *rudder.Context = &rudder.Context{
+			Extra: map[string]any{"feature": feature},
+		}
+		// if we are part of a cloud installation, add its ID to the tracked event's context
+		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
+			context.Traits = map[string]any{"installationId": installationId}
+		}
+
+		err := ts.rudderClient.Enqueue(rudder.Track{
+			Event:      event,
+			UserId:     ts.TelemetryID,
+			Properties: properties,
+			Context:    context,
+		})
+		if err != nil {
+			ts.log.Warn("Error sending telemetry for feature", mlog.Err(err))
 		}
 	}
 }
@@ -467,6 +519,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"enable_api_trigger_admin_notification":                   *cfg.ServiceSettings.EnableAPITriggerAdminNotifications,
 		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
+		"enable_api_post_deletion":                                *cfg.ServiceSettings.EnableAPIPostDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,

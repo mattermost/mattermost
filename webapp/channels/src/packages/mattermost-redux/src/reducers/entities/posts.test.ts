@@ -311,7 +311,7 @@ describe('posts', () => {
             expect(nextState).not.toBe(state);
             expect(nextState.post1).not.toBe(state.post1);
             expect(nextState).toEqual({
-                post1: {id: 'post1', file_ids: [], has_reactions: false, state: Posts.POST_DELETED},
+                post1: {id: 'post1', message: '', file_ids: [], has_reactions: false, state: Posts.POST_DELETED},
             });
         });
 
@@ -386,7 +386,7 @@ describe('posts', () => {
             expect(nextState.comment2).toBe(state.comment2);
             expect(nextState).toEqual({
                 post1: {id: 'post1'},
-                comment1: {id: 'comment1', root_id: 'post1', file_ids: [], has_reactions: false, state: Posts.POST_DELETED},
+                comment1: {id: 'comment1', message: '', root_id: 'post1', file_ids: [], has_reactions: false, state: Posts.POST_DELETED},
                 comment2: {id: 'comment2', root_id: 'post1'},
             });
         });

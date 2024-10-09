@@ -21,12 +21,15 @@ import {
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
 
 import {enableGroupMention} from './helpers';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
 
 describe('Group Mentions', () => {
-    let groupID;
+    let groupID: string;
     let boardUser;
-    let regularUser;
-    let testTeam;
+    let regularUser: UserProfile;
+    let testTeam: Team;
 
     before(() => {
         // * Check if server has license for LDAP Groups
@@ -62,7 +65,7 @@ describe('Group Mentions', () => {
 
         // # Get board group id
         cy.apiGetGroups().then((res) => {
-            res.body.forEach((group) => {
+            res.body.forEach((group: Group) => {
                 if (group.display_name === 'board') {
                     // # Set groupID to navigate to group page directly
                     groupID = group.id;

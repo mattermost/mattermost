@@ -31,7 +31,8 @@ func TestGetOldClientLicense(t *testing.T) {
 
 	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 
 	_, _, err = client.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)

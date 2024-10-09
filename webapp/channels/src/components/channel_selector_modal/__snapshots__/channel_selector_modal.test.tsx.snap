@@ -40,9 +40,14 @@ exports[`components/ChannelSelectorModal exclude already selected 1`] = `
       componentClass="h1"
       id="channelSelectorModalLabel"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="Add Channels to **Channel Selection** List"
-        id="add_channels_to_scheme.title"
+      <MemoizedFormattedMessage
+        defaultMessage="Add Channels to <b>Channel Selection</b> List"
+        id="channelSelectorModal.title"
+        values={
+          Object {
+            "b": [Function],
+          }
+        }
       />
     </ModalTitle>
   </ModalHeader>
@@ -190,9 +195,14 @@ exports[`components/ChannelSelectorModal should match snapshot 1`] = `
       componentClass="h1"
       id="channelSelectorModalLabel"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="Add Channels to **Channel Selection** List"
-        id="add_channels_to_scheme.title"
+      <MemoizedFormattedMessage
+        defaultMessage="Add Channels to <b>Channel Selection</b> List"
+        id="channelSelectorModal.title"
+        values={
+          Object {
+            "b": [Function],
+          }
+        }
       />
     </ModalTitle>
   </ModalHeader>

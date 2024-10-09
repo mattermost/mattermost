@@ -74,7 +74,9 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing js response", mlog.Err(err))
+	}
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -131,5 +133,7 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getBulkReactions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing js response", mlog.Err(err))
+	}
 }

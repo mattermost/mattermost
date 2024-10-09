@@ -184,6 +184,11 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EngineElasticSearch},
 	},
 	{
+		Name: "Should be removed from search index when deleted",
+		Fn:   testSearchFileDeletedPost,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should not search files not attached to a post",
 		Fn:   testFileInfoSearchNoResultForPostlessFileInfos,
 		Tags: []string{EnginePostgres, EngineMySQL},
@@ -1654,6 +1659,42 @@ func testFileInfoSearchEmailsWithoutQuotes(t *testing.T, th *SearchTestHelper) {
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+}
+
+func testSearchFileDeletedPost(t *testing.T, th *SearchTestHelper) {
+	t.Run("Should not return file info for soft deleted post", func(t *testing.T) {
+		post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "deletedmessage", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "deletedmessage", "deletedmessage", "jpg", "image/jpeg", 0, 0)
+		require.NoError(t, err)
+
+		_, err = th.Store.FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "deletedmessage"}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 0)
+	})
+
+	t.Run("Should not return file info for hard deleted post", func(t *testing.T) {
+		post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "deletedmessage", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "deletedmessage", "deletedmessage", "jpg", "image/jpeg", 0, 0)
+		require.NoError(t, err)
+
+		err = th.Store.FileInfo().PermanentDeleteForPost(th.Context, post.Id)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "deletedmessage"}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 0)
+	})
 }
 
 func testFileInfoSearchNoResultForPostlessFileInfos(t *testing.T, th *SearchTestHelper) {

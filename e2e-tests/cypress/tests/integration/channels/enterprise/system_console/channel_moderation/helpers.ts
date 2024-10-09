@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
 
 import {checkBoxes} from './constants';
+import {UserProfile} from '@mattermost/types/users';
+import {Team} from '@mattermost/types/teams';
 
 // # Visits the channel configuration for a channel with channelName
-export const visitChannelConfigPage = (channel) => {
+export const visitChannelConfigPage = (channel: Channel) => {
     cy.apiAdminLogin();
     cy.visit('/admin_console/user_management/channels');
     cy.get('.DataGrid_searchBar').within(() => {
@@ -31,7 +34,7 @@ export const disablePermission = (permission) => {
 };
 
 // # Saves channel config and navigates back to the channel config page if specified
-export const saveConfigForChannel = (channelName = false, clickConfirmationButton = false) => {
+export const saveConfigForChannel = (channelName: string = null, clickConfirmationButton = false) => {
     cy.get('#saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
             btn.click();
@@ -62,14 +65,14 @@ export const saveConfigForChannel = (channelName = false, clickConfirmationButto
 };
 
 // # Visits a channel as the member specified
-export const visitChannel = (user, channel, team) => {
+export const visitChannel = (user: UserProfile, channel: Channel, team: Team) => {
     cy.apiLogin(user);
     cy.visit(`/${team.name}/channels/${channel.name}`);
     cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
 };
 
 // # Checks to see if we got a system message warning after using @all/@here/@channel
-export const postChannelMentionsAndVerifySystemMessageExist = (channelName) => {
+export const postChannelMentionsAndVerifySystemMessageExist = (channelName: string) => {
     function getSystemMessage(text) {
         return `Channel notifications are disabled in ${channelName}. The ${text} did not trigger any notifications.`;
     }
@@ -115,7 +118,7 @@ export const enablePermission = (permission) => {
 };
 
 // # Checks to see if we did not get a system message warning after using @all/@here/@channel
-export const postChannelMentionsAndVerifySystemMessageNotExist = (channel) => {
+export const postChannelMentionsAndVerifySystemMessageNotExist = (channel: Channel) => {
     function getSystemMessage(text) {
         return `Channel notifications are disabled in ${channel.name}. The ${text} did not trigger any notifications.`;
     }
@@ -178,7 +181,7 @@ export const goToSystemScheme = () => {
 };
 
 // # Goes to the permissions page and creates a new team override scheme with schemeName
-export const goToPermissionsAndCreateTeamOverrideScheme = (schemeName, team) => {
+export const goToPermissionsAndCreateTeamOverrideScheme = (schemeName: string, team: Team) => {
     cy.apiAdminLogin();
     cy.visit('/admin_console/user_management/permissions');
     cy.findByTestId('team-override-schemes-link').click();
@@ -192,7 +195,7 @@ export const goToPermissionsAndCreateTeamOverrideScheme = (schemeName, team) => 
 };
 
 // # Goes to the permissions page and clicks edit or delete for a team override scheme
-export const deleteOrEditTeamScheme = (schemeDisplayName, editOrDelete) => {
+export const deleteOrEditTeamScheme = (schemeDisplayName: string, editOrDelete: string) => {
     cy.apiAdminLogin();
     cy.visit('/admin_console/user_management/permissions');
     cy.findByTestId(`${schemeDisplayName}-${editOrDelete}`).click();
@@ -208,7 +211,7 @@ export const viewManageChannelMembersRHS = () => {
 };
 
 // # Enable (check) all the permissions in the channel moderation widget through the API
-export const enableDisableAllChannelModeratedPermissionsViaAPI = (channel, enable = true) => {
+export const enableDisableAllChannelModeratedPermissionsViaAPI = (channel: Channel, enable = true) => {
     cy.externalRequest(
         {
             user: getAdminAccount(),
@@ -263,7 +266,7 @@ export const resetSystemSchemePermissionsToDefault = () => {
     saveConfigForScheme();
 };
 
-export const demoteToChannelOrTeamMember = (userId, id, channelsOrTeams = 'channels') => {
+export const demoteToChannelOrTeamMember = (userId: string, id: string, channelsOrTeams = 'channels') => {
     cy.externalRequest({
         user: getAdminAccount(),
         method: 'put',
@@ -275,7 +278,7 @@ export const demoteToChannelOrTeamMember = (userId, id, channelsOrTeams = 'chann
     });
 };
 
-export const promoteToChannelOrTeamAdmin = (userId, id, channelsOrTeams = 'channels') => {
+export const promoteToChannelOrTeamAdmin = (userId: string, id: string, channelsOrTeams = 'channels') => {
     cy.externalRequest({
         user: getAdminAccount(),
         method: 'put',

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
@@ -38,7 +39,9 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(data)
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -109,6 +112,8 @@ func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write(data)
 	auditRec.Success()
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

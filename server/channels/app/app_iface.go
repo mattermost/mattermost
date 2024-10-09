@@ -491,6 +491,7 @@ type AppIface interface {
 	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
+	CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 	ClearChannelMembersCache(c request.CTX, channelID string) error
 	ClearLatestVersionCache(rctx request.CTX)
@@ -579,7 +580,7 @@ type AppIface interface {
 	DeleteOAuthApp(rctx request.CTX, appID string) *model.AppError
 	DeleteOutgoingWebhook(hookID string) *model.AppError
 	DeletePluginKey(pluginID string, key string) *model.AppError
-	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
+	DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	DeletePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
@@ -986,9 +987,11 @@ type AppIface interface {
 	PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError)
 	PermanentDeleteAllUsers(c request.CTX) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
+	PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError
+	PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *model.AppError
 	PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError
 	PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError
-	PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError
+	PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
@@ -1022,6 +1025,8 @@ type AppIface interface {
 	RemoveDirectory(path string) *model.AppError
 	RemoveExportFile(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
+	RemoveFileFromFileStore(rctx request.CTX, path string)
+	RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo)
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
 	RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel) error

@@ -10,6 +10,9 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console @channel_moderation
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {checkboxesTitleToIdMap} from './constants';
 
 import {
@@ -21,10 +24,10 @@ import {
 } from './helpers';
 
 describe('MM-23102 - Channel Moderation - Create Posts', () => {
-    let regularUser;
-    let guestUser;
-    let testTeam;
-    let testChannel;
+    let regularUser: UserProfile;
+    let guestUser: UserProfile;
+    let testTeam: Team;
+    let testChannel: Channel;
 
     before(() => {
         // * Check if server has license
@@ -35,7 +38,7 @@ describe('MM-23102 - Channel Moderation - Create Posts', () => {
             testTeam = team;
             testChannel = channel;
 
-            cy.apiCreateGuestUser().then(({guest}) => {
+            cy.apiCreateGuestUser({}).then(({guest}) => {
                 guestUser = guest;
 
                 cy.apiAddUserToTeam(testTeam.id, guestUser.id).then(() => {
