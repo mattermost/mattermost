@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../fixtures/timeouts';
 /**
  * permission can be 'granted', 'denied', or 'default'
  */
-function stubNotificationPermission(permission: string){
+function stubNotificationPermission(permission: string) {
     cy.window().then((win) => {
         cy.stub(win.Notification, 'permission').value(permission);
         cy.stub(win.Notification, 'requestPermission').resolves(permission);
