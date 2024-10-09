@@ -284,7 +284,7 @@ function createDMIntroMessage(
                     />
                 </h2>
                 <p className='channel-intro__text'>
-                    <FormattedMessage 
+                    <FormattedMessage
                         id='intro_messages.DM'
                         defaultMessage='This is the start of your direct message history with {teammate}. Messages and files shared here are not shown to anyone else.'
                         values={{
