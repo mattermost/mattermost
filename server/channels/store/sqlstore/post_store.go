@@ -2387,15 +2387,10 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		query = query.Where(sq.LtOrEq{"p.UpdateAt": options.UntilUpdateAt})
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "post_tosql")
-	}
-
 	var v int64
-	err = s.GetReplicaX().Get(&v, queryString, args...)
+	err := s.GetReplicaX().GetBuilder(&v, query)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to count Posts")
+		return 0, fmt.Errorf("post_tosql failed or failed to count Posts: %w", err)
 	}
 
 	return v, nil

@@ -78,9 +78,9 @@ func TranslationsPreInit(translationsDir string) error {
 	return initTranslationsWithDir(translationsDir)
 }
 
-// TranslationsPreInitFromBuffer loads translations from a buffer -- useful if
+// TranslationsPreInitFromFileBytes loads translations from a buffer -- useful if
 // we need to initialize i18n from an embedded i18n file (e.g., from a CLI tool)
-func TranslationsPreInitFromBuffer(filename string, buf []byte) error {
+func TranslationsPreInitFromFileBytes(filename string, buf []byte) error {
 	if T != nil {
 		return nil
 	}
