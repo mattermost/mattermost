@@ -62,11 +62,10 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, u *model.User, password string, mfaToken string) *model.AppError {
 	// MM-37585
 	// The user param will have stale info. in case of concurrent failed login attempts by the same user.
-	// So, lock and fetch the updated attempts count.
+	// So, lock and fetch the updated loginAttempts count.
 	a.ch.loginAttemptsMut.Lock()
 	defer a.ch.loginAttemptsMut.Unlock()
 
-	a.Srv().Store().User().InvalidateProfileCacheForUser(u.Id)
 	user, err := a.GetUser(u.Id)
 	if err != nil {
 		if err.Id != MissingAccountError {
@@ -80,8 +79,6 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, u *model.User, passw
 	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
 		return err
 	}
-
-	defer a.Srv().Store().User().InvalidateProfileCacheForUser(user.Id)
 
 	if err := users.CheckUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
