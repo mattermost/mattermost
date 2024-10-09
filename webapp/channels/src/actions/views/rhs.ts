@@ -539,8 +539,8 @@ export function selectPost(post: Post, previousRhsState?: RhsState) {
 export function selectPostById(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const post = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
-        if (post) {
+        const post: Post | undefined = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
+        if (post && post.state !== 'DELETED' && post.delete_at === 0) {
             const channel = getChannelSelector(state, post.channel_id);
             if (!channel) {
                 await dispatch(getChannel(post.channel_id));

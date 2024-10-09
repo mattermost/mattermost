@@ -346,27 +346,6 @@ func (r *Redis) Scan(f func([]string) error) error {
 	return nil
 }
 
-// Len returns the number of items in the cache.
-func (r *Redis) Len() (int, error) {
-	now := time.Now()
-	defer func() {
-		if r.metrics != nil {
-			elapsed := time.Since(now).Seconds()
-			r.metrics.ObserveRedisEndpointDuration(r.name, "Len", elapsed)
-		}
-	}()
-	// TODO: migrate to scan
-	keys, err := r.client.Do(context.Background(),
-		r.client.B().Keys().
-			Pattern(r.name+":*").
-			Build(),
-	).AsStrSlice()
-	if err != nil {
-		return 0, err
-	}
-	return len(keys), nil
-}
-
 // GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 func (r *Redis) GetInvalidateClusterEvent() model.ClusterEvent {
 	return model.ClusterEventNone

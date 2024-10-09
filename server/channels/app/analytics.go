@@ -157,7 +157,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 
 		// If in HA mode then aggregate all the stats
 		if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
-			stats, err2 := a.Cluster().GetClusterStats()
+			stats, err2 := a.Cluster().GetClusterStats(rctx)
 			if err2 != nil {
 				return nil, err2
 			}
