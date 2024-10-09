@@ -287,7 +287,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                         id='teamSelectorModalLabel'
                     >
                         <FormattedMessage
-                            id='teamSelectorModal.title'
+                            id='add_teams_to_scheme.modalTitle'
                             defaultMessage='Add Teams to Team Selection List'
                         />
                     </Modal.Title>
