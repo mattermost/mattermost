@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (a *App) canSendPushNotifications() bool {
@@ -877,6 +878,27 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mlog.String("post_id", post.Id),
 	)
 
+	for id, reason := range mentions.Mentions {
+		user, ok := profileMap[id]
+		if !ok {
+			continue
+		}
+		if user.IsGuest() {
+			if reason == KeywordMention {
+				a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGuestFeature,
+					"post_mentioned_guest",
+					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+				)
+			} else if reason == DMMention {
+				a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGuestFeature,
+					"direct_message_to_guest",
+					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+				)
+			}
+		}
+	}
 	return mentionedUsersList, nil
 }
 
