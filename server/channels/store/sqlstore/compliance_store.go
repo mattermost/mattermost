@@ -286,7 +286,7 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 		return nil, cursor, errors.Wrap(caseErr, "unable to construct case statement")
 	}
 
-	query, args, err := s.getQueryBuilder().Select(`Posts.Id AS PostId,
+	builder := s.getQueryBuilder().Select(`Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
 			Posts.UpdateAt AS PostUpdateAt,
 			Posts.DeleteAt AS PostDeleteAt,
@@ -323,8 +323,13 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 			sq.NotLike{"Posts.Type": "system_%"},
 		}).
 		OrderBy("PostUpdateAt, PostId").
-		Limit(uint64(limit)).
-		ToSql()
+		Limit(uint64(limit))
+
+	if cursor.UntilUpdateAt > 0 {
+		builder = builder.Where(sq.LtOrEq{"Posts.UpdateAt": cursor.UntilUpdateAt})
+	}
+
+	query, args, err := builder.ToSql()
 	if err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to construct query to export messages")
 	}
