@@ -7,12 +7,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -233,12 +233,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -459,12 +459,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -685,12 +685,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -871,12 +871,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -1097,12 +1097,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -1139,12 +1139,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />
@@ -1365,12 +1365,12 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   <div
     className="group-users--header"
   >
-    <FormattedMarkdownMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
-      id="admin.group_settings.group_profile.group_users.ldapConnector"
+    <MemoizedFormattedMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
+      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
       values={
         Object {
-          "siteURL": "http://localhost:8065",
+          "a": [Function],
         }
       }
     />

@@ -89,7 +89,6 @@ issues:
         channels/api4/reaction_test.go|\
         channels/api4/remote_cluster.go|\
         channels/api4/role_test.go|\
-        channels/api4/scheme.go|\
         channels/api4/scheme_test.go|\
         channels/api4/shared_channel.go|\
         channels/api4/status.go|\
@@ -99,7 +98,6 @@ issues:
         channels/api4/team_local.go|\
         channels/api4/team_test.go|\
         channels/api4/upload_test.go|\
-        channels/api4/usage.go|\
         channels/api4/user.go|\
         channels/api4/user_local.go|\
         channels/api4/user_test.go|\

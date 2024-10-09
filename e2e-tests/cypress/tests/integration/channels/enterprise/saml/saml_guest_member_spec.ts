@@ -82,7 +82,7 @@ describe('SAML Guest', () => {
         cy.apiUpdateConfig(newConfig).then(({config}) => {
             cy.setTestSettings(loginButtonText, config).then((_response) => {
                 testSettings = _response;
-                cy.keycloakResetUsers({guestUser});
+                cy.keycloakResetUsers([guestUser]);
             });
         });
     });
@@ -147,7 +147,7 @@ describe('SAML Guest', () => {
         const testConfig = {
             ...newConfig,
             GuestAccountsSettings: {
-                ...newConfig.GuestAccountSettings,
+                ...newConfig.GuestAccountsSettings,
                 Enable: true,
             },
             SamlSettings: {
