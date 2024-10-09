@@ -413,7 +413,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 					{
 						Type: model.PostEmbedPermalink,
 						URL:  postURL,
-						Data: &model.Post{},
+						Data: &model.PreviewPost{},
 					},
 				},
 			},

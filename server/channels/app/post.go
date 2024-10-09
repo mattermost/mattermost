@@ -794,6 +794,9 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	}
 
 	permalinkPreviewedPost := post.GetPreviewPost()
+	if permalinkPreviewedPost == nil {
+		return nil
+	}
 
 	// To remain secure by default, we wipe out the metadata unconditionally.
 	removePermalinkMetadataFromPost(post)
