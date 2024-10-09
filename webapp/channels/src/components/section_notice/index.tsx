@@ -7,25 +7,24 @@ import {useIntl} from 'react-intl';
 
 import Markdown from 'components/markdown';
 
+import SectionNoticeButton from './section_notice_button';
+
 import './section_notice.scss';
 
-type Button = {
-    onClick: () => void;
-    text: string;
-}
 type Props = {
     title: string;
     text: string;
-    primaryButton?: Button;
-    secondaryButton?: Button;
-    linkButton?: Button;
-    type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning';
+    primaryButton?: SectionNoticeButton;
+    secondaryButton?: SectionNoticeButton;
+    linkButton?: SectionNoticeButton;
+    type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
     isDismissable?: boolean;
     onDismissClick?: () => void;
 };
 
 const iconByType = {
     info: 'icon-information-outline',
+    hint: 'icon-lightbulb-outline',
     success: 'icon-check',
     danger: 'icon-alert-outline',
     warning: 'icon-alert-outline',
@@ -45,7 +44,6 @@ const SectionNotice = ({
     const intl = useIntl();
     const icon = iconByType[type];
     const showDismiss = Boolean(isDismissable && onDismissClick);
-    const buttonClass = 'btn btn-sm sectionNoticeButton';
     return (
         <div className={classNames('sectionNoticeContainer', type)}>
             <div className={'sectionNoticeContent'}>
@@ -55,28 +53,22 @@ const SectionNotice = ({
                     <Markdown message={text}/>
                     <div className='sectionNoticeActions'>
                         {primaryButton &&
-                        <button
-                            onClick={primaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-primary')}
-                        >
-                            {primaryButton.text}
-                        </button>
+                            <SectionNoticeButton
+                                button={primaryButton}
+                                buttonClass='btn-primary'
+                            />
                         }
                         {secondaryButton &&
-                        <button
-                            onClick={secondaryButton.onClick}
-                            className={classNames(buttonClass, 'btn-secondary')}
-                        >
-                            {secondaryButton.text}
-                        </button>
+                            <SectionNoticeButton
+                                button={secondaryButton}
+                                buttonClass='btn-tertiary'
+                            />
                         }
                         {linkButton &&
-                        <button
-                            onClick={linkButton.onClick}
-                            className={classNames(buttonClass, 'btn-link')}
-                        >
-                            {linkButton.text}
-                        </button>
+                            <SectionNoticeButton
+                                button={linkButton}
+                                buttonClass='btn-link'
+                            />
                         }
                     </div>
 
