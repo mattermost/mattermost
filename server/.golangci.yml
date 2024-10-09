@@ -210,6 +210,7 @@ issues:
         channels/app/support_packet_test.go|\
         channels/app/syncables.go|\
         channels/app/team.go|\
+        channels/app/team_test.go|\
         channels/app/teams/helper_test.go|\
         channels/app/upload.go|\
         channels/app/upload_test.go|\
