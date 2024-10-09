@@ -40,10 +40,8 @@ describe('Bots in lists', () => {
 
             // # Create users
             createdUsers = await Promise.all([
-
-                // TODO: remove undefined params when `Client4.createUser` changes
-                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
-                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
+                client.createUser(generateRandomUser() as UserProfile, '', ''),
+                client.createUser(generateRandomUser() as UserProfile, '', ''),
             ]);
 
             await Promise.all([
