@@ -4,9 +4,13 @@
 package app
 
 import (
+	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -154,6 +158,16 @@ func (ch *Channels) Start() error {
 	// Start plugins
 	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
+
+	interruptChan := make(chan os.Signal, 1)
+	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-interruptChan
+		if err := ch.Stop(); err != nil {
+			ch.srv.Log().Warn("Error stopping channels", mlog.Err(err))
+		}
+		os.Exit(1)
+	}()
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs
