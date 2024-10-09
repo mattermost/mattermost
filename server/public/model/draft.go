@@ -27,11 +27,19 @@ type Draft struct {
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
+	if appErr := o.IsMessageLengthValid(maxDraftSize); appErr != nil {
+		return appErr
+	}
+
+	return o.BaseIsValid()
+}
+
+func (o *Draft) IsMessageLengthValid(maxDraftSize int) *AppError {
 	if utf8.RuneCountInString(o.Message) > maxDraftSize {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.msg.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
-	return o.BaseIsValid()
+	return nil
 }
 
 func (o *Draft) BaseIsValid() *AppError {
