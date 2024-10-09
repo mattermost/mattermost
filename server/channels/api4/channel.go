@@ -1067,7 +1067,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	//
 	// Note that this means if an error occurs in mid-stream, the response won't be
 	// fully JSON.
-	w.Write([]byte(`[`))
+	if _, err := w.Write([]byte(`[`)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 	enc := json.NewEncoder(w)
 	for {
 		channels, err := c.App.GetChannelsForUser(c.AppContext, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
@@ -1089,7 +1091,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// intermediary comma between sets
 		if fromChannelID != "" {
-			w.Write([]byte(`,`))
+			if _, err := w.Write([]byte(`,`)); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
 		}
 
 		for i, ch := range channels {
@@ -1097,7 +1101,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 			if i < len(channels)-1 {
-				w.Write([]byte(`,`))
+				if _, err := w.Write([]byte(`,`)); err != nil {
+					c.Logger.Warn("Error while writing response", mlog.Err(err))
+				}
 			}
 		}
 
@@ -1107,7 +1113,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		fromChannelID = channels[len(channels)-1].Id
 	}
-	w.Write([]byte(`]`))
+	if _, err := w.Write([]byte(`]`)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1489,7 +1497,9 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJSON(membersTimezones)))
+	if _, err := w.Write([]byte(model.ArrayToJSON(membersTimezones))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2107,7 +2117,9 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2140,7 +2152,9 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2177,7 +2191,9 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2227,7 +2243,9 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
