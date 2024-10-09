@@ -7868,7 +7868,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Säker anslutning | Visningsnamn | AnslutningsID | SajtURL | Inbjudan accepterad | Online | Senast ping  |"
+    "translation": "| Säker anslutning | Visningsnamn | AnslutningsID | SajtURL | Standardteam | Inbjudan accepterad | Online | Senast ping | Raderad |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10120,5 +10120,57 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "Ditt konto är inte ett OAuth eller SAML-konto."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Storleken på uppladdat plugin överskrider gränsen. Denna gräns kan ändras i systemkonsolen via Fillagring > Maximal filstorlek"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Det går inte att hämta trådens medlemmar för export."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Ogiltigt meddelande-ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Ogiltigt användar-ID."
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Misslyckades med att ladda upp filen. Uppladdningskanalen delas inte med den andra servern."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Misslyckades med att få fram kanalmedlemmar för direktkanal"
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Det går inte att uppdatera sessionens extra-egenskaper."
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Kunde inte spara trådens medlemsskap."
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Det gick inte att bjuda in den andra servern till kanalen"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Det gick inte att koppla bort den andra servern från kanalen"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Det finns inga medlemmar i direktkanalen"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Det gick inte att hämta delad kanal från den andra servern"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Det gick inte att avgöra om kanalen delas med den andra servern"
   }
 ]

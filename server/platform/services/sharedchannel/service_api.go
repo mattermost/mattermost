@@ -59,6 +59,9 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	if err != nil {
 		return nil, err
 	}
+	// to avoid fetching the channel again, we manually set the shared
+	// flag before notifying the clients
+	channel.Shared = model.NewPointer(true)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return scNew, nil
@@ -93,6 +96,9 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	// to avoid fetching the channel again, we manually set the shared
+	// flag before notifying the clients
+	channel.Shared = model.NewPointer(false)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return deleted, nil
@@ -134,7 +140,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 		}
 	}
 
-	rc, err := rcStore.Get(remoteID)
+	rc, err := rcStore.Get(remoteID, false)
 	if err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.remote_id_invalid.error",
 			map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
@@ -144,7 +150,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 	// (also blocks cyclic invitations)
 	if err = scs.CheckCanInviteToSharedChannel(channelID); err != nil {
 		if errors.Is(err, model.ErrChannelHomedOnRemote) {
-			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusInternalServerError)
+			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusBadRequest)
 		}
 		scs.server.Log().Debug("InviteRemoteToChannel failed to check if can-invite",
 			mlog.String("name", rc.Name),
@@ -170,7 +176,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 
 func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error {
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
-	if err != nil || scr.ChannelId != channelID {
+	if err != nil || scr.ChannelId != channelID || scr.DeleteAt != 0 {
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.channel_remote_id_not_exists",
 			map[string]any{"RemoteId": remoteID}, "", http.StatusInternalServerError)
 	}
