@@ -10,13 +10,16 @@
 // Stage: @prod
 // Group: @channels @enterprise @accessibility
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
-    let testTeam;
-    let testChannel;
-    let testUser;
-    let selectedRowText;
+    let testTeam: Team;
+    let testChannel: Channel;
+    let testUser: UserProfile;
+    let selectedRowText: string;
 
     before(() => {
         // * Check if server has license for Guest Accounts
@@ -46,8 +49,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.uiAddDirectMessage().click();
 
         // * Verify the accessibility support in Direct Messages Dialog
-        cy.findAllByRole('dialog', 'Direct Messages').eq(0).within(() => {
-            cy.findByRole('heading', 'Direct Messages');
+        cy.findAllByRole('dialog', {name: 'Direct Messages'}).eq(0).within(() => {
+            cy.findByRole('heading', {name: 'Direct Messages'});
 
             // * Verify the accessibility support in search input
             cy.findByRole('textbox', {name: 'Search for people'}).
