@@ -462,6 +462,11 @@ export const ModalIdentifiers = {
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
+    SECURE_CONNECTION_DELETE: 'secure_connection_delete',
+    SECURE_CONNECTION_CREATE_INVITE: 'secure_connection_create_invite',
+    SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
+    SHARED_CHANNEL_REMOTE_INVITE: 'shared_channel_remote_invite',
+    SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
 };
 
 export const UserStatuses = {
