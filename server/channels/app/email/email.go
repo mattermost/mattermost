@@ -232,6 +232,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 		return err
 	}
 
+	mlog.Info("sending welcome mail", mlog.String("to", email))
 	if err := es.sendMail(email, subject, body, "WelcomeEmail"); err != nil {
 		return err
 	}
