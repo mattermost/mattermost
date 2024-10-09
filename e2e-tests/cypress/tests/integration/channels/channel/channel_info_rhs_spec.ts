@@ -10,17 +10,20 @@
 // Stage: @prod
 // Group: @channels @channel @rhs @channel_info
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {stubClipboard} from '../../../utils';
 
 describe('Channel Info RHS', () => {
-    let testTeam;
-    let testChannel;
-    let groupChannel;
-    let directChannel;
-    let directUser;
-    let admin;
-    let user;
-    const otherUsers = [];
+    let testTeam: Team;
+    let testChannel: Channel;
+    let groupChannel: Channel;
+    let directChannel: Channel;
+    let directUser: UserProfile;
+    let admin: UserProfile;
+    let user: UserProfile;
+    const otherUsers: UserProfile[] = [];
 
     before(() => {
         cy.apiInitSetup({promoteNewUserAsAdmin: true}).then(({team, user: newAdmin}) => {
@@ -41,7 +44,7 @@ describe('Channel Info RHS', () => {
             // Users used for GM/DM
             cy.apiCreateUser().then(({user: newUser}) => {
                 otherUsers.push(newUser);
-                cy.apiPatchUser(newUser.id, {position: 'Upside down'}).then(({user: patchedUser}) => {
+                cy.apiPatchUser(newUser.id, {position: 'Upside down'} as UserProfile).then(({user: patchedUser}) => {
                     cy.apiCreateDirectChannel([newAdmin.id, newUser.id]).then(({channel}) => {
                         directChannel = channel;
                     });
@@ -66,7 +69,7 @@ describe('Channel Info RHS', () => {
                     return !(['manage_public_channel_members', 'manage_private_channel_members', 'manage_public_channel_properties', 'manage_private_channel_properties'].includes(permission));
                 });
 
-                if (permissions.length !== role.permissions) {
+                if (permissions.length !== role.permissions.length) {
                     cy.apiPatchRole(role.id, {permissions});
                 }
             });

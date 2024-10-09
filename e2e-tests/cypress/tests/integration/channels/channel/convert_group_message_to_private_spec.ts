@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Team, TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -11,14 +15,14 @@
 // Group: @channels @channel
 
 describe('Group Message Conversion To Private Channel', () => {
-    let testTeam1;
-    let testTeam2;
+    let testTeam1: Team;
+    let testTeam2: Team;
 
-    let testUser1;
-    let testUser2;
-    let testUser3;
+    let testUser1: UserProfile;
+    let testUser2: UserProfile;
+    let testUser3: UserProfile;
 
-    let gm;
+    let gm: Channel;
 
     before(() => {
         // we need two teams, and a set of users belonging to both teams
@@ -36,9 +40,9 @@ describe('Group Message Conversion To Private Channel', () => {
                         testUser3 = user3;
 
                         const teamMembers1 = [testUser1, testUser2, testUser3].map((u) => ({team_id: testTeam1.id, user_id: u.id}));
-                        cy.apiAddUsersToTeam(testTeam1.id, teamMembers1).then(() => {
+                        cy.apiAddUsersToTeam(testTeam1.id, teamMembers1 as TeamMembership[]).then(() => {
                             const teamMembers2 = [testUser1, testUser2, testUser3].map((u) => ({team_id: testTeam2.id, user_id: u.id}));
-                            cy.apiAddUsersToTeam(testTeam2.id, teamMembers2).then(() => {
+                            cy.apiAddUsersToTeam(testTeam2.id, teamMembers2 as TeamMembership[]).then(() => {
                                 cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id]).then(({channel}) => {
                                     gm = channel;
                                 });
@@ -91,7 +95,7 @@ describe('Group Message Conversion To Private Channel', () => {
                 user_id: u.id,
             }));
 
-            cy.apiAddUsersToTeam(testTeam2.id, teamMembers).then(() => {
+            cy.apiAddUsersToTeam(testTeam2.id, teamMembers as TeamMembership[]).then(() => {
                 cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id, testUser4.id]).then(({channel}) => {
                     gm2 = channel;
 
@@ -130,7 +134,7 @@ describe('Group Message Conversion To Private Channel', () => {
                     user_id: testUser5.id,
                 }];
 
-                cy.apiAddUsersToTeam(testTeam3.id, teamMembers).then(() => {
+                cy.apiAddUsersToTeam(testTeam3.id, teamMembers as TeamMembership[]).then(() => {
                     cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id, testUser5.id]).then(({channel}) => {
                         gm3 = channel;
 

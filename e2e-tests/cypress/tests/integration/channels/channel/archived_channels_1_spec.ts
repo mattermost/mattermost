@@ -10,11 +10,13 @@
 // Stage: @prod
 // Group: @channels @channel
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
 import {getRandomId} from '../../../utils';
 
 describe('Leave an archived channel', () => {
-    let testTeam;
-    let offTopicUrl;
+    let testTeam: Team;
+    let offTopicUrl: string;
     const channelType = {
         all: 'Channel Type: All',
         public: 'Channel Type: Public',
@@ -63,13 +65,13 @@ describe('Leave an archived channel', () => {
 
         // # Search for the new post and jump to it from the search results
         cy.uiSearchPosts(otherPostText);
-        cy.get('@otherPostId').then((otherPostId) => cy.uiJumpToSearchResult(otherPostId));
+        cy.get<string>('@otherPostId').then((otherPostId) => cy.uiJumpToSearchResult(otherPostId));
 
         // # Search for a post in the archived channel
         cy.uiSearchPosts(archivedPostText);
 
         // # Open it in the RHS
-        cy.get('@archivedPostId').then((archivedPostId) => {
+        cy.get<string>('@archivedPostId').then((archivedPostId) => {
             cy.clickPostCommentIcon(archivedPostId, 'SEARCH');
 
             // * Verify that the RHS has switched from search results to the thread
@@ -114,8 +116,8 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1699 - Browse Channels for all channel types shows archived channels option', () => {
-        let archivedPrivateChannel;
-        let archivedPublicChannel;
+        let archivedPrivateChannel: Channel;
+        let archivedPublicChannel: Channel;
 
         // # Create private channel
         cy.uiCreateChannel({isPrivate: true, isNewSidebar: true}).as('channel').then((channel) => {
@@ -161,8 +163,8 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1700 - All archived public channels are shown Important', () => {
-        let archivedPublicChannel1;
-        let archivedPublicChannel2;
+        let archivedPublicChannel1: Channel;
+        let archivedPublicChannel2: Channel;
 
         // # Create public channel
         cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
@@ -214,8 +216,8 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1701 - Only Private channels you are a member of are displayed', () => {
-        let archivedPrivateChannel1;
-        let archivedPrivateChannel2;
+        let archivedPrivateChannel1: Channel;
+        let archivedPrivateChannel2: Channel;
 
         // # Create private channel
         cy.uiCreateChannel({isPrivate: true, isNewSidebar: true}).as('channel').then((channel) => {
@@ -268,7 +270,7 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1703 - User can open archived channels', () => {
-        let archivedChannel;
+        let archivedChannel: Channel;
 
         // # Create a public channel
         cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
