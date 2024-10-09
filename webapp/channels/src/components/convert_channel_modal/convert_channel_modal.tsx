@@ -83,7 +83,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                 <Modal.Body>
                     <p>
                         <FormattedMessage
-                            id='convert_channel.question_1'
+                            id='convertChannel.question1'
                             defaultMessage='When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
                             values={{
                                 display_name: channelDisplayName,
@@ -93,13 +93,13 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                     </p>
                     <p>
                         <FormattedMessage
-                            id='convert_channel.question_2'
+                            id='convert_channel.question2'
                             defaultMessage='The change is permanent and cannot be undone.'
                         />
                     </p>
                     <p>
                         <FormattedMessage
-                            id='convert_channel.question_3'
+                            id='convertChannel.question3'
                             defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
                             values={{
                                 display_name: channelDisplayName,
