@@ -19,7 +19,7 @@ describe('Verify users can receive notification on browser', () => {
         });
     });
 
-    it('should be able to receive notification when notifications are enabled on the browser', () => {
+    it('MM-T5631 should be able to receive notification when notifications are enabled on the browser', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('granted');
         triggertestNotification();

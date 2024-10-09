@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../fixtures/timeouts';
 /**
  * permission can be 'granted', 'denied', or 'default'
  */
-Cypress.Commands.add('stubNotificationPermission', (permission) => {
+function stubNotificationPermission(permission: string){
     cy.window().then((win) => {
         cy.stub(win.Notification, 'permission').value(permission);
         cy.stub(win.Notification, 'requestPermission').resolves(permission);
@@ -17,12 +17,12 @@ Cypress.Commands.add('stubNotificationPermission', (permission) => {
             };
         });
     });
-});
+}
 
 /**
  * Verify the system bot message was received
  */
-Cypress.Commands.add('verifySystemBotMessageRecieved', (notificationMessage) => {
+function notificationMessage(notificationMessage: string) {
     // * Assert the unread count is correct
     cy.get('.SidebarLink:contains(system-bot)').find('#unreadMentions').as('unreadCount').should('be.visible').should('have.text', '1');
     cy.get('.SidebarLink:contains(system-bot)').find('.Avatar').should('exist').click().wait(TIMEOUTS.HALF_SEC);
@@ -32,4 +32,7 @@ Cypress.Commands.add('verifySystemBotMessageRecieved', (notificationMessage) => 
     cy.getLastPostId().then((postId) => {
         cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', notificationMessage);
     });
-});
+}
+
+Cypress.Commands.add('stubNotificationPermission', stubNotificationPermission);
+Cypress.Commands.add('verifySystemBotMessageRecieved', notificationMessage);
