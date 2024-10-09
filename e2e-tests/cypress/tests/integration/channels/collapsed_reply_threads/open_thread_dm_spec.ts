@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -11,9 +14,9 @@
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let testUser;
-    let otherUser;
+    let testTeam: Team;
+    let testUser: UserProfile;
+    let otherUser: UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({

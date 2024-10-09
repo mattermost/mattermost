@@ -9,17 +9,20 @@
 
 // Group: @channels @enterprise @system_console @group_mentions
 
+import {UserProfile} from '@mattermost/types/users';
 import ldapUsers from '../../../../fixtures/ldap_users.json';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 import {enableGroupMention} from './helpers';
+import {Team} from '@mattermost/types/teams';
+import {Group} from '@mattermost/types/groups';
 
 describe('Group Mentions', () => {
-    let groupID1;
-    let groupID2;
+    let groupID1: string;
+    let groupID2: string;
     let boardUser;
-    let regularUser;
-    let testTeam;
+    let regularUser: UserProfile;
+    let testTeam: Team;
 
     before(() => {
         // * Check if server has license for LDAP Groups
@@ -66,7 +69,7 @@ describe('Group Mentions', () => {
 
         // # Get board group id
         cy.apiGetGroups().then((res) => {
-            res.body.forEach((group) => {
+            res.body.forEach((group: Group) => {
                 if (group.display_name === 'board') {
                     // # Set groupID1 to navigate to group page directly
                     groupID1 = group.id;
@@ -257,19 +260,19 @@ describe('Group Mentions', () => {
             // # Link the group and the channel.
             cy.apiLinkGroupChannel(groupID1, channel.id);
 
-            cy.apiLogin({username: 'board.one', password: 'Password1'}).then(({user: boardOne}) => {
+            cy.apiLogin({username: 'board.one', password: 'Password1'} as any).then((boardOne) => {
                 cy.apiAddUserToChannel(channel.id, boardOne.id);
 
                 // # Make the channel private and group-synced.
                 cy.apiPatchChannel(channel.id, {group_constrained: true, type: 'P'});
 
                 // # Login to create the dev user
-                cy.apiLogin({username: 'dev.one', password: 'Password1'}).then(({user: devOne}) => {
+                cy.apiLogin({username: 'dev.one', password: 'Password1'} as any).then((devOne) => {
                     cy.apiAdminLogin();
 
                     cy.apiAddUserToTeam(testTeam.id, devOne.id);
 
-                    cy.apiLogin({username: 'board.one', password: 'Password1'});
+                    cy.apiLogin({username: 'board.one', password: 'Password1'} as any);
 
                     // # Visit the channel
                     cy.visit(`/${testTeam.name}/channels/${channel.name}`);
