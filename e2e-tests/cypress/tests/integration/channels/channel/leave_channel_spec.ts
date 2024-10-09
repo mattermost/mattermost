@@ -10,12 +10,15 @@
 // Stage: @prod
 // Group: @channels @channel
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Leave channel', () => {
-    let testTeam;
-    let testUser;
-    let testChannel;
+    let testTeam: Team;
+    let testUser: UserProfile;
+    let testChannel: Channel;
 
     before(() => {
         cy.apiUpdateConfig({

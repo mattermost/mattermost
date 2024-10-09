@@ -10,12 +10,15 @@
 // Stage: @prod
 // Group: @channels @channel
 
+import {Channel, ServerChannel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
 
 describe('Leave an archived channel', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Team;
+    let testUser: UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -37,19 +40,21 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1687 App does not crash when another user archives a channel', () => {
-        cy.makeClient({user: getAdminAccount()}).then((client) => {
+        cy.makeClient({user: getAdminAccount()}).then(async (client) => {
             // # Have another user create a private channel
             const channelName = `channel${getRandomId()}`;
-            cy.wrap(client.createChannel({
+            const channelTest = {
                 display_name: channelName,
                 name: channelName,
                 team_id: testTeam.id,
                 type: 'P',
-            })).then(async (channel) => {
+            } as Channel;
+
+            cy.wrap(client.createChannel(channelTest)).then(async (channel: ServerChannel) => {
                 // # Then invite us to it
                 await client.addToChannel(testUser.id, channel.id);
 
-                cy.wrap(channel);
+                return channel;
             }).then((channel) => {
                 // * Verify that the newly created channel is in the sidebar
                 cy.get(`#sidebarItem_${channel.name}`).should('be.visible');

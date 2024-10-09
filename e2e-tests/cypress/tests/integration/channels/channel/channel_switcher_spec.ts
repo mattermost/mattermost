@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -11,9 +13,9 @@
 // Group: @channels @channel @smoke
 
 describe('Channel Switcher', () => {
-    let testTeam;
-    let testChannelName;
-    let offTopicUrl;
+    let testTeam: Team;
+    let testChannelName: string;
+    let offTopicUrl: string;
     const channelNamePrefix = 'aswitchchannel';
     const channelDisplayNamePrefix = 'ASwitchChannel';
 
