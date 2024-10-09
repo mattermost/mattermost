@@ -14,7 +14,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+// import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
 import {DeveloperLinks} from 'utils/constants';
@@ -124,61 +124,70 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             <BackstageList
                 header={
                     <FormattedMessage
-                        id='installed_incoming_webhooks.header'
-                        defaultMessage='Installed Incoming Webhooks'
+                        id="installed_incoming_webhooks.header"
+                        defaultMessage="Installed Incoming Webhooks"
                     />
                 }
                 addText={
                     <FormattedMessage
-                        id='installed_incoming_webhooks.add'
-                        defaultMessage='Add Incoming Webhook'
+                        id="installed_incoming_webhooks.add"
+                        defaultMessage="Add Incoming Webhook"
                     />
                 }
-                addLink={'/' + this.props.team.name + '/integrations/incoming_webhooks/add'}
-                addButtonId='addIncomingWebhook'
+                addLink={
+                    "/" +
+                    this.props.team.name +
+                    "/integrations/incoming_webhooks/add"
+                }
+                addButtonId="addIncomingWebhook"
                 emptyText={
                     <FormattedMessage
-                        id='installed_incoming_webhooks.empty'
-                        defaultMessage='No incoming webhooks found'
+                        id="installed_incoming_webhooks.empty"
+                        defaultMessage="No incoming webhooks found"
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
-                        id='installed_incoming_webhooks.emptySearch'
-                        defaultMessage='No incoming webhooks match {searchTerm}'
+                    <FormattedMessage
+                        id="installed_incoming_webhooks.emptySearch_updated"
+                        defaultMessage="No incoming webhooks match {searchTerm}"
                     />
                 }
                 helpText={
                     <FormattedMessage
-                        id='installed_incoming_webhooks.help'
-                        defaultMessage='Use incoming webhooks to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations.'
+                        id="installed_incoming_webhooks.help"
+                        defaultMessage="Use incoming webhooks to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations."
                         values={{
                             buildYourOwn: (
                                 <ExternalLink
-                                    location='installed_incoming_webhooks'
-                                    href={DeveloperLinks.SETUP_INCOMING_WEBHOOKS}
+                                    location="installed_incoming_webhooks"
+                                    href={
+                                        DeveloperLinks.SETUP_INCOMING_WEBHOOKS
+                                    }
                                 >
                                     <FormattedMessage
-                                        id='installed_incoming_webhooks.help.buildYourOwn'
-                                        defaultMessage='Build Your Own'
+                                        id="installed_incoming_webhooks.help.buildYourOwn"
+                                        defaultMessage="Build Your Own"
                                     />
                                 </ExternalLink>
                             ),
                             appDirectory: (
                                 <ExternalLink
-                                    href='https://mattermost.com/marketplace'
-                                    location='installed_incoming_webhooks'
+                                    href="https://mattermost.com/marketplace"
+                                    location="installed_incoming_webhooks"
                                 >
                                     <FormattedMessage
-                                        id='installed_incoming_webhooks.help.appDirectory'
-                                        defaultMessage='App Directory'
+                                        id="installed_incoming_webhooks.help.appDirectory"
+                                        defaultMessage="App Directory"
                                     />
                                 </ExternalLink>
                             ),
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search Incoming Webhooks'})}
+                searchPlaceholder={Utils.localizeMessage({
+                    id: "installed_incoming_webhooks.search",
+                    defaultMessage: "Search Incoming Webhooks",
+                })}
                 loading={this.state.loading}
                 nextPage={this.nextPage}
                 previousPage={this.previousPage}
