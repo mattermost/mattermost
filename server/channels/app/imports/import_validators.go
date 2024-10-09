@@ -259,7 +259,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Roles != nil && !isValidGuestRoles(*data) {
+	if !isValidGuestRoles(*data) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.guest_roles_conflict.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -658,25 +658,35 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 // isValidGuestRoles checks if the user has both guest roles in the same team or channel.
 // at this point we assume that the user has a valid role scheme.
 func isValidGuestRoles(data UserImportData) bool {
-	var isSystemGuest bool
-	if data.Roles != nil {
-		isSystemGuest = model.IsInRole(*data.Roles, model.SystemGuestRoleId)
+	if data.Roles == nil {
+		return true
 	}
+	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
 
 	var isTeamGuest, isChannelGuest bool
 	if data.Teams != nil {
+		// counters for guest roles for teams and channels
+		// we expect the total count of guest roles to be equal to the total count of teams and channels
+		var gtc, ctc int
 		for _, team := range *data.Teams {
-			if team.Roles != nil {
-				isTeamGuest = model.IsInRole(*team.Roles, model.TeamGuestRoleId)
+			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+				gtc++
 			}
 
 			if *team.Channels != nil {
 				for _, channel := range *team.Channels {
-					if channel.Roles != nil {
-						isChannelGuest = model.IsInRole(*channel.Roles, model.ChannelGuestRoleId)
+					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+						ctc++
 					}
 				}
+
+				if ctc == len(*team.Channels) {
+					isChannelGuest = true
+				}
 			}
+		}
+		if gtc == len(*data.Teams) {
+			isTeamGuest = true
 		}
 	}
 
