@@ -266,17 +266,13 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                     <p>
                         <FormattedMessage
                             id='user.settings.tokens.confirmDelete.description'
-                            defaultMessage={
-                                'Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action.'
-                            }
+                            defaultMessage={'Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action.'}
                         />
                     </p>
                     <p>
                         <FormattedMessage
                             id='user.settings.tokens.confirmDelete.confirmation'
-                            defaultMessage={
-                                'Are you sure you want to delete the <b>{description}</b> token?'
-                            }
+                            defaultMessage={'Are you sure you want to delete the <b>{description}</b> token?'}
                             values={{
                                 description: token.description,
                                 b: (chunks: string) => <b>{chunks}</b>,
