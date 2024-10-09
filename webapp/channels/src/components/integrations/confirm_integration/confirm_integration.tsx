@@ -13,7 +13,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import CopyText from 'components/copy_text';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -89,10 +88,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_command.token'
-                    defaultMessage='**Token**: {token}'
-                    values={{token: commandToken}}
+                    defaultMessage='<strong>Token</strong>: {token}'
+                    values={{
+                        token: commandToken,
+                        strong: (chunks: string) => <strong>{chunks}</strong>,
+                    }}
                 />
                 <CopyText value={commandToken}/>
             </p>
@@ -126,10 +128,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_incoming_webhook.url'
-                    defaultMessage='**URL**: {url}'
-                    values={{url: '`' + incomingHookToken + '`'}}
+                    defaultMessage='<strong>URL</strong>: {url}'
+                    values={{url: '`' + incomingHookToken + '`', strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
                 <CopyText value={incomingHookToken}/>
             </p>
@@ -163,10 +165,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_webhook.token'
-                    defaultMessage='**Token**: {token}'
-                    values={{token: outgoingHookToken}}
+                    defaultMessage='<strong>Token</strong>: {token}'
+                    values={{token: outgoingHookToken, strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
                 <CopyText value={outgoingHookToken}/>
             </p>
@@ -203,10 +205,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         helpText.push(
             <p key='add_oauth_app.clientId'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_oauth_app.clientId'
-                    defaultMessage='**Client ID**: {id}'
-                    values={{id: oauthAppToken}}
+                    defaultMessage='<strong>Client ID</strong>: {id}'
+                    values={{id: oauthAppToken, strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
                 <CopyText
                     tooltip={
@@ -218,10 +220,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     value={oauthAppToken}
                 />
                 <br/>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_oauth_app.clientSecret'
-                    defaultMessage='**Client Secret**: {secret}'
-                    values={{secret: oauthAppSecret}}
+                    defaultMessage='<strong>Client Secret</strong>: {secret}'
+                    values={{secret: oauthAppSecret, strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
                 <CopyText
                     tooltip={
@@ -246,10 +248,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_oauth_app.url'
-                    defaultMessage='**URL(s)**: {url}'
-                    values={{url: oauthApp.callback_urls.join(', ')}}
+                    defaultMessage='<strong>URL(s)</strong>: {url}'
+                    values={{url: oauthApp.callback_urls.join(', '), strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
             </p>
         );
@@ -287,16 +289,16 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         helpText.push(
             <p key='add_outgoing_oauth_connection.clientId'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_oauth_connection.clientId'
-                    defaultMessage='**Client ID**: {id}'
-                    values={{id: clientId}}
+                    defaultMessage='<strong>Client ID</strong>: {id}'
+                    values={{id: clientId, strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
                 <br/>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_oauth_connection.clientSecret'
-                    defaultMessage='**Client Secret**: \*\*\*\*\*\*\*\*'
-                    values={{secret: clientSecret}}
+                    defaultMessage='<strong>Client Secret</strong>: \*\*\*\*\*\*\*\*'
+                    values={{secret: clientSecret, strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
             </p>,
         );
@@ -304,10 +306,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         if (outgoingOAuthConnection.grant_type === 'password') {
             helpText.push(
                 <p key='add_outgoing_oauth_connection.username'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.username'
-                        defaultMessage='**Username**: {username}'
-                        values={{username}}
+                        defaultMessage='<strong>Username</strong>: {username}'
+                        values={{username, strong: (chunks: string) => <strong>{chunks}</strong>}}
                     />
                     <CopyText
                         tooltip={
@@ -319,10 +321,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         value={username || ''}
                     />
                     <br/>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.password'
-                        defaultMessage='**Password**: {password}'
-                        values={{password}}
+                        defaultMessage='<strong>Password</strong>: {password}'
+                        values={{password, strong: (chunks: string) => <strong>{chunks}</strong>}}
                     />
                 </p>,
             );
@@ -331,17 +333,17 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         tokenText = (
             <>
                 <p className='word-break--all'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.token_url'
-                        defaultMessage='**Token URL**: `{url}`'
-                        values={{url: outgoingOAuthConnection.oauth_token_url}}
+                        defaultMessage='<strong>Token URL</strong>: `{url}`'
+                        values={{url: outgoingOAuthConnection.oauth_token_url, strong: (chunks: string) => <strong>{chunks}</strong>}}
                     />
                 </p>
                 <p className='word-break--all'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.audience_urls'
-                        defaultMessage='**Audience URL(s)**: `{url}`'
-                        values={{url: outgoingOAuthConnection.audiences.join(', ')}}
+                        defaultMessage='<strong>Audience URL(s)</strong>: `{url}`'
+                        values={{url: outgoingOAuthConnection.audiences.join(', '), strong: (chunks: string) => <strong>{chunks}</strong>}}
                     />
                 </p>
             </>
@@ -377,10 +379,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_webhook.token'
-                    defaultMessage='**Token**: {token}'
-                    values={{token: botToken}}
+                    defaultMessage='<strong>Token</strong>: {token}'
+                    values={{token: botToken, strong: (chunks: string) => <strong>{chunks}</strong>}}
                 />
                 <CopyText value={botToken}/>
                 <br/>
