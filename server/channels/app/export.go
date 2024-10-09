@@ -48,6 +48,10 @@ var exportablePreferences = map[imports.ComparablePreference]string{
 	}: "SendOnCtrlEnter",
 	{
 		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "code_block_ctrl_enter",
+	}: "CodeBlockCtrlEnter",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
 		Name:     "join_leave",
 	}: "ShowJoinLeave",
 	{

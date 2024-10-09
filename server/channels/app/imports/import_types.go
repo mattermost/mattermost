@@ -74,6 +74,7 @@ type UserImportData struct {
 	DeleteAt           *int64    `json:"delete_at,omitempty"`
 
 	SendOnCtrlEnter          *string `json:"send_on_ctrl_enter,omitempty"`
+	CodeBlockCtrlEnter       *string `json:"code_block_ctrl_enter,omitempty"`
 	ShowJoinLeave            *string `json:"show_join_leave,omitempty"`
 	ShowUnreadScrollPosition *string `json:"show_unread_scroll_position,omitempty"`
 	SyncDrafts               *string `json:"sync_drafts,omitempty"`

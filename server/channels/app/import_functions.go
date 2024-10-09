@@ -772,11 +772,20 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		})
 	}
 
+	if data.CodeBlockCtrlEnter != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "code_block_ctrl_enter",
+			Value:    *data.CodeBlockCtrlEnter,
+		})
+	}
+
 	if data.ShowJoinLeave != nil {
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PreferenceCategoryAdvancedSettings,
-			Name:     "show_join_leave",
+			Name:     "join_leave",
 			Value:    *data.ShowJoinLeave,
 		})
 	}
@@ -785,7 +794,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PreferenceCategoryAdvancedSettings,
-			Name:     "show_unread_scroll_position",
+			Name:     "unread_scroll_position",
 			Value:    *data.ShowUnreadScrollPosition,
 		})
 	}

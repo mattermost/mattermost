@@ -171,6 +171,7 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 			SyncDrafts:               exportedPrefs["SyncDrafts"],
 			ShowUnreadScrollPosition: exportedPrefs["ShowUnreadScrollPosition"],
 			LimitVisibleDmsGms:       exportedPrefs["LimitVisibleDmsGms"],
+			CodeBlockCtrlEnter:       exportedPrefs["CodeBlockCtrlEnter"],
 			DeleteAt:                 &user.DeleteAt,
 		},
 	}

@@ -1166,19 +1166,26 @@ func TestImportImportUser(t *testing.T) {
 	// Add a user with some preferences.
 	username = model.NewUsername()
 	data = imports.UserImportData{
-		Username:           &username,
-		Email:              ptrStr(model.NewId() + "@example.com"),
-		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		UseMilitaryTime:    ptrStr("true"),
-		CollapsePreviews:   ptrStr("true"),
-		MessageDisplay:     ptrStr("compact"),
-		ColorizeUsernames:  ptrStr("true"),
-		ChannelDisplayMode: ptrStr("centered"),
-		TutorialStep:       ptrStr("3"),
-		UseMarkdownPreview: ptrStr("true"),
-		UseFormatting:      ptrStr("true"),
-		ShowUnreadSection:  ptrStr("true"),
-		EmailInterval:      ptrStr("immediately"),
+		Username:                 &username,
+		Email:                    ptrStr(model.NewId() + "@example.com"),
+		Theme:                    ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		UseMilitaryTime:          ptrStr("true"),
+		CollapsePreviews:         ptrStr("true"),
+		MessageDisplay:           ptrStr("compact"),
+		ColorizeUsernames:        ptrStr("true"),
+		ChannelDisplayMode:       ptrStr("centered"),
+		TutorialStep:             ptrStr("3"),
+		UseMarkdownPreview:       ptrStr("true"),
+		UseFormatting:            ptrStr("true"),
+		ShowUnreadSection:        ptrStr("true"),
+		EmailInterval:            ptrStr("immediately"),
+		NameFormat:               model.NewPointer("full_name"),
+		SendOnCtrlEnter:          model.NewPointer("true"),
+		CodeBlockCtrlEnter:       model.NewPointer("true"),
+		ShowJoinLeave:            model.NewPointer("false"),
+		SyncDrafts:               model.NewPointer("false"),
+		ShowUnreadScrollPosition: model.NewPointer("start_from_newest"),
+		LimitVisibleDmsGms:       model.NewPointer("20"),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1197,7 +1204,13 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "formatting", *data.UseFormatting)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, "show_unread_section", *data.ShowUnreadSection)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "30")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat, "full_name")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "send_on_ctrl_enter", "true")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "code_block_ctrl_enter", "true")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "join_leave", "false")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "sync_drafts", "false")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "unread_scroll_position", "start_from_newest")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms, "20")
 
 	// Change those preferences.
 	data = imports.UserImportData{
