@@ -1490,24 +1490,38 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (model.ChannelList, error) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string, includePrivate bool) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 
-	query := `
-		SELECT * FROM Channels
-		WHERE (TeamId = ? OR TeamId = '')
-		AND DeleteAt != 0
-		AND Type != ?
-		UNION
+	var query string
+	var args []interface{}
+
+	if includePrivate {
+		query = `
 			SELECT * FROM Channels
 			WHERE (TeamId = ? OR TeamId = '')
 			AND DeleteAt != 0
-			AND Type = ?
-			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = ?)
-		ORDER BY DisplayName LIMIT ? OFFSET ?
-	`
+			ORDER BY DisplayName LIMIT ? OFFSET ?
+		`
+		args = append(args, teamId, limit, offset)
+	} else {
+		query = `
+			SELECT * FROM Channels
+			WHERE (TeamId = ? OR TeamId = '')
+			AND DeleteAt != 0
+			AND Type != ?
+			UNION
+				SELECT * FROM Channels
+				WHERE (TeamId = ? OR TeamId = '')
+				AND DeleteAt != 0
+				AND Type = ?
+				AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = ?)
+			ORDER BY DisplayName LIMIT ? OFFSET ?
+		`
+		args = append(args, teamId, model.ChannelTypePrivate, teamId, model.ChannelTypePrivate, userId, limit, offset)
+	}
 
-	if err := s.GetReplicaX().Select(&channels, query, teamId, model.ChannelTypePrivate, teamId, model.ChannelTypePrivate, userId, limit, offset); err != nil {
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s,UserId=%s", teamId, userId))
 		}

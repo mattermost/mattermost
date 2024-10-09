@@ -1285,10 +1285,10 @@ func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx conte
 	return result, resultVar1, resultVar2, err
 }
 
-func (s *TimerLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error) {
+func (s *TimerLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, includePrivate bool) (model.ChannelList, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID)
+	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, includePrivate)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
