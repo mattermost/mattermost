@@ -1,3 +1,5 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 import * as TIMEOUTS from '../fixtures/timeouts';
 
@@ -20,7 +22,7 @@ Cypress.Commands.add('stubNotificationPermission', (permission) => {
 /**
  * Verify the system bot message was received
  */
-Cypress.Commands.add('verifySystemBotMessageRecieved', () => {
+Cypress.Commands.add('verifySystemBotMessageRecieved', (notificationMessage) => {
     // * Assert the unread count is correct
     cy.get('.SidebarLink:contains(system-bot)').find('#unreadMentions').as('unreadCount').should('be.visible').should('have.text', '1');
     cy.get('.SidebarLink:contains(system-bot)').find('.Avatar').should('exist').click().wait(TIMEOUTS.HALF_SEC);
@@ -28,6 +30,6 @@ Cypress.Commands.add('verifySystemBotMessageRecieved', () => {
 
     // * Assert the notification message
     cy.getLastPostId().then((postId) => {
-        cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', 'app.notifications.test_message');
+        cy.get(`#postMessageText_${postId}`).scrollIntoView().should('be.visible').should('have.text', notificationMessage);
     });
 });
