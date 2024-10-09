@@ -15,6 +15,9 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
 
+import NotificationPermissionSectionNotice from './notification_permission_section_notice';
+import NotificationPermissionTitleTag from './notification_permission_title_tag';
+
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
 
 export type SelectOption = {
@@ -322,6 +325,7 @@ function DesktopAndMobileNotificationSettings({
                 saving={saving}
                 serverError={error}
                 updateSection={handleChangeForMaxSection}
+                extraContentBeforeSettingList={<NotificationPermissionSectionNotice/>}
             />
         );
     }
@@ -330,10 +334,13 @@ function DesktopAndMobileNotificationSettings({
         <SettingItemMin
             ref={editButtonRef}
             title={
-                <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.title'
-                    defaultMessage='Desktop and mobile notifications'
-                />
+                <>
+                    <FormattedMessage
+                        id='user.settings.notifications.desktopAndMobile.title'
+                        defaultMessage='Desktop and mobile notifications'
+                    />
+                    <NotificationPermissionTitleTag/>
+                </>
             }
             describe={getCollapsedText(desktopActivity, pushActivity)}
             section={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}

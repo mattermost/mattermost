@@ -210,6 +210,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={
           <SettingItemMax
             containerStyle=""
+            extraContentBeforeSettingList={null}
             extraInfo={null}
             infoPosition="bottom"
             inputs={
@@ -545,6 +546,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={
           <SettingItemMax
             containerStyle=""
+            extraContentBeforeSettingList={null}
             extraInfo={null}
             infoPosition="bottom"
             inputs={
@@ -760,6 +762,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={
           <SettingItemMax
             containerStyle=""
+            extraContentBeforeSettingList={null}
             extraInfo={null}
             infoPosition="bottom"
             inputs={
@@ -1215,6 +1218,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={
           <SettingItemMax
             containerStyle=""
+            extraContentBeforeSettingList={null}
             extraInfo={null}
             infoPosition="bottom"
             inputs={
@@ -2092,6 +2096,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={
           <SettingItemMax
             containerStyle=""
+            extraContentBeforeSettingList={null}
             extraInfo={null}
             infoPosition="bottom"
             inputs={
@@ -2481,6 +2486,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={
           <SettingItemMax
             containerStyle=""
+            extraContentBeforeSettingList={null}
             extraInfo={null}
             infoPosition="bottom"
             inputs={
