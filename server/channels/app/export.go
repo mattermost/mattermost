@@ -81,15 +81,15 @@ var exportablePreferences = map[imports.ComparablePreference]string{
 	{
 		Category: model.PreferenceCategoryDisplaySettings,
 		Name:     model.PreferenceNameChannelDisplayMode,
-	}: "CollapseConsecutive",
+	}: "ChannelDisplayMode",
 	{
 		Category: model.PreferenceCategoryDisplaySettings,
 		Name:     model.PreferenceNameCollapseConsecutive,
-	}: "ColorizeUsernames",
+	}: "CollapseConsecutive",
 	{
 		Category: model.PreferenceCategoryDisplaySettings,
 		Name:     model.PreferenceNameColorizeUsernames,
-	}: "ChannelDisplayMode",
+	}: "ColorizeUsernames",
 	{
 		Category: model.PreferenceCategoryDisplaySettings,
 		Name:     model.PreferenceNameNameFormat,
