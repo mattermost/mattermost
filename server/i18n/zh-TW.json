@@ -1825,7 +1825,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "您在 {{.SiteURL}} 上面帳號的多因子驗證已被移除。"
+    "translation": "您在 {{ .SiteURL }} 上面帳號的多因子驗證已被移除。"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -2845,7 +2845,7 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] {{.ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] {{ .ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -2853,7 +2853,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] 來自 {{ .TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -9662,5 +9662,17 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
     "translation": "更新頻道書籤的排序順序失敗。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "要求內容中缺少 display_name 屬性"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "要求內容中缺少 team_id 屬性"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "無法邀請遠端到頻道：{{.Error}}"
   }
 ]
