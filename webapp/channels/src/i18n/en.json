@@ -2281,7 +2281,7 @@
   "admin.service.sessionCacheDesc": "The number of minutes to cache a session in memory.",
   "admin.service.sessionHoursEx": "E.g.: \"720\"",
   "admin.service.sessionIdleTimeout": "Session Idle Timeout (minutes):",
-  "admin.service.sessionIdleTimeoutDescription": "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited.\n \nApplies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement.",
+  "admin.service.sessionIdleTimeoutDesc": "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited.\n \nApplies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement.",
   "admin.service.sessionIdleTimeoutEx": "E.g.: \"60\"",
   "admin.service.sessionMinutesEx": "E.g.: \"10\"",
   "admin.service.siteURL": "Site URL:",
