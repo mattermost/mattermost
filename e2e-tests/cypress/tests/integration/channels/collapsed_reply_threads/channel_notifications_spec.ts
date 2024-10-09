@@ -10,15 +10,18 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {PostMessageResp} from '../../../support/task_commands';
 import {spyNotificationAs} from '../../../support/notification';
 
 describe('CRT Desktop notifications', () => {
-    let testTeam;
-    let testChannelUrl;
-    let testChannelId;
-    let testChannelName;
-    let receiver;
-    let sender;
+    let testTeam: Team;
+    let testChannelUrl: string;
+    let testChannelId: string;
+    let testChannelName: string;
+    let receiver: UserProfile;
+    let sender: UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -265,11 +268,12 @@ describe('CRT Desktop notifications', () => {
             cy.get('#sidebarItem_threads #unreadMentions').should('exist').and('have.text', '1');
 
             // # Delete the replies
-            cy.wrap(['@reply', '@replyMention']).each((reply) => {
-                cy.get(reply).then(({id}) => {
+            const replies = ['@reply', '@replyMention'];
+            for (const reply of replies) {
+                cy.get<PostMessageResp>(reply).then(({id}) => {
                     cy.apiDeletePost(id);
                 });
-            });
+            }
 
             // * Verify there is no notification
             cy.get('#sidebarItem_threads #unreadMentions').should('not.exist');
@@ -288,7 +292,7 @@ describe('CRT Desktop notifications', () => {
             cy.postMessageAs({sender, message: 'a thread', channelId: dmChannel.id, rootId: ''}).as('rootPost');
 
             // # Get post id of message
-            cy.get('@rootPost').then(({id: rootId}) => {
+            cy.get<PostMessageResp>('@rootPost').then(({id: rootId}) => {
                 // # Post a reply to the thread, which will trigger a follow
                 cy.postMessageAs({sender: receiver, message: 'following the thread', channelId: dmChannel.id, rootId});
 
@@ -303,11 +307,12 @@ describe('CRT Desktop notifications', () => {
                 cy.get('#sidebarItem_threads #unreadMentions').should('exist');
 
                 // # Delete the replies
-                cy.wrap(['@reply', '@replyMention']).each((reply) => {
-                    cy.get(reply).then(({id}) => {
+                const replies = ['@reply', '@replyMention'];
+                for (const reply of replies) {
+                    cy.get<PostMessageResp>(reply).then(({id}) => {
                         cy.apiDeletePost(id);
                     });
-                });
+                }
 
                 // * Verify there is no notification
                 cy.get('#sidebarItem_threads #unreadMentions').should('not.exist');
