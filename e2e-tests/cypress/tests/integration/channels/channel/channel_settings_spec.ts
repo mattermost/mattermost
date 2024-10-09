@@ -10,13 +10,14 @@
 // Stage: @prod
 // Group: @channels @channel @channel_settings
 
+import {Team} from '@mattermost/types/teams';
 import {
     beMuted,
     beUnmuted,
 } from '../../../support/assertions';
 
 describe('Channel Settings', () => {
-    let testTeam;
+    let testTeam: Team;
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;

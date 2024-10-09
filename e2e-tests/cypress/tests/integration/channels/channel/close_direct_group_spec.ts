@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {ChainableT} from '../../../types';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -13,7 +18,7 @@
 // Make sure that the current channel is Town Square and that the
 // channel identified by the passed name is no longer in the channel
 // sidebar
-function verifyChannelWasProperlyClosed(channelName) {
+function verifyChannelWasProperlyClosed(channelName: string) {
     // * Make sure that we have switched channels
     cy.get('#channelHeaderTitle').should('contain', 'Town Square');
 
@@ -22,9 +27,9 @@ function verifyChannelWasProperlyClosed(channelName) {
 }
 
 describe('Close direct messages', () => {
-    let testUser;
-    let otherUser;
-    let testTeam;
+    let testUser: UserProfile;
+    let otherUser: UserProfile;
+    let testTeam: Team;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -54,7 +59,7 @@ describe('Close direct messages', () => {
         });
     });
 
-    function createAndVisitDMChannel(userIds) {
+    function createAndVisitDMChannel(userIds: string[]): ChainableT<Channel> {
         return cy.apiCreateDirectChannel(userIds).then(({channel}) => {
             // # Visit the new channel
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
@@ -68,10 +73,10 @@ describe('Close direct messages', () => {
 });
 
 describe('Close group messages', () => {
-    let testUser;
-    let otherUser1;
-    let otherUser2;
-    let testTeam;
+    let testUser: UserProfile;
+    let otherUser1: UserProfile;
+    let otherUser2: UserProfile;
+    let testTeam: Team;
 
     before(() => {
         cy.apiAdminLogin();
