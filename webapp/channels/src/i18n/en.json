@@ -3994,7 +3994,7 @@
   "invitation-modal.confirm.not-valid-user-or-email": "Does not match a valid user or email.",
   "invitation-modal.confirm.people-header": "People",
   "invite_modal.add_channels_title_a": "Add to channels",
-  "invite_modal.add_channels_title_member": "<b>(Optional)</b>",
+  "invite_modal.add_channels_title_member": "<b>(optional)</b>",
   "invite_modal.add_channels_title_nonmember": "<b>(required)</b>",
   "invite_modal.add_invites": "Enter a name or email address",
   "invite_modal.as": "Invite as",

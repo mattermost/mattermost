@@ -89,7 +89,7 @@ export default function AddToChannels(props: Props) {
                 {(props.channelToInvite && props.inviteType === InviteType.MEMBER) ? (
                     <FormattedMessage
                         id='invite_modal.add_channels_title_member'
-                        defaultMessage='<b>(Optional)</b>'
+                        defaultMessage='<b>(optional)</b>'
                         values={{
                             b: (chunks: string) => <b>{chunks}</b>,
                         }}
