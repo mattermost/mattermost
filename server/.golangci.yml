@@ -82,7 +82,6 @@ issues:
         channels/api4/license.go|\
         channels/api4/license_local.go|\
         channels/api4/oauth_test.go|\
-        channels/api4/plugin_test.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction_test.go|\
