@@ -10,15 +10,19 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {PostMessageResp} from 'tests/support/task_commands';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let testUser;
-    let otherUser;
-    let testChannel;
-    let rootPost;
-    let postForAvatar;
+    let testTeam: Team;
+    let testUser: UserProfile;
+    let otherUser: UserProfile;
+    let testChannel: Channel;
+    let rootPost: PostMessageResp;
+    let postForAvatar: PostMessageResp;
 
     before(() => {
         cy.apiUpdateConfig({
