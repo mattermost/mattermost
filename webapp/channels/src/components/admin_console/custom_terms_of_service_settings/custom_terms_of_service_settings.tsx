@@ -14,7 +14,7 @@ import type {BaseProps, BaseState} from 'components/admin_console/admin_settings
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import FormattedMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {Constants} from 'utils/constants';
@@ -201,7 +201,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}
                     label={<FormattedMessage {...messages.enableTermsOfServiceTitle}/>}
-                    helpText={<FormattedMarkdownMessage {...messages.enableTermsOfServiceHelp}/>}
+                    helpText={<FormattedMessage {...messages.enableTermsOfServiceHelp}/>}
                     value={Boolean(this.state.termsEnabled)}
                     onChange={this.handleTermsEnabledChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceEnabled')}
