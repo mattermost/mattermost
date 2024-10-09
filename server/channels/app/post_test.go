@@ -757,7 +757,6 @@ func TestMaxPostSize(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
@@ -1767,6 +1766,48 @@ func TestSearchPostsForUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
 		es.AssertExpectations(t)
+	})
+
+	t.Run("should return the same results if there is a tilde in the channel name", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		searchQueryWithPrefix := fmt.Sprintf("in:~%s %s", th.BasicChannel.Name, searchTerm)
+
+		resultsWithPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Greater(t, len(resultsWithPrefix.PostList.Posts), 0, "searching using a tilde in front of a channel should return results")
+		searchQueryWithoutPrefix := fmt.Sprintf("in:%s %s", th.BasicChannel.Name, searchTerm)
+
+		resultsWithoutPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Equal(t, len(resultsWithPrefix.Posts), len(resultsWithoutPrefix.Posts), "searching using a tilde in front of a channel should return the same number of results")
+		for k, v := range resultsWithPrefix.Posts {
+			assert.Equal(t, v, resultsWithoutPrefix.Posts[k], "post at %s was different", k)
+		}
+	})
+
+	t.Run("should return the same results if there is an 'at' in the user", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		searchQueryWithPrefix := fmt.Sprintf("from:@%s %s", th.BasicUser.Username, searchTerm)
+
+		resultsWithPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Greater(t, len(resultsWithPrefix.PostList.Posts), 0, "searching using a 'at' symbol in front of a channel should return results")
+		searchQueryWithoutPrefix := fmt.Sprintf("from:@%s %s", th.BasicUser.Username, searchTerm)
+
+		resultsWithoutPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		assert.Nil(t, err)
+		assert.Equal(t, len(resultsWithPrefix.Posts), len(resultsWithoutPrefix.Posts), "searching using an 'at' symbol in front of a channel should return the same number of results")
+		for k, v := range resultsWithPrefix.Posts {
+			assert.Equal(t, v, resultsWithoutPrefix.Posts[k], "post at %s was different", k)
+		}
 	})
 }
 
@@ -3526,5 +3567,96 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}, {ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, th.BasicChannel, th.BasicUser)
 		require.Error(t, e)
 		require.Equal(t, "the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
+	})
+}
+
+func TestPermanentDeletePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should permanently delete a post and its file attachment", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		assert.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		assert.Nil(t, err)
+
+		// Delete the post.
+		err = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		assert.Nil(t, err)
+
+		// Wait for the cleanup routine to finish.
+		time.Sleep(time.Millisecond * 100)
+
+		// Check that the post can no longer be reached.
+		_, err = th.App.GetSinglePost(th.Context, post.Id, true)
+		assert.NotNil(t, err)
+
+		// Check that the file can no longer be reached.
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("should permanently delete a post that is soft deleted", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		assert.Nil(t, err)
+
+		infos, sErr := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, sErr)
+		assert.Len(t, infos, 1)
+
+		// Soft delete the post.
+		_, err = th.App.DeletePost(th.Context, post.Id, userID)
+		assert.Nil(t, err)
+
+		// Wait for the cleanup routine to finish.
+		time.Sleep(time.Millisecond * 100)
+
+		// Delete the post.
+		err = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		assert.Nil(t, err)
+
+		// Check that the post can no longer be reached.
+		_, err = th.App.GetSinglePost(th.Context, post.Id, true)
+		assert.NotNil(t, err)
+
+		infos, sErr = th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, sErr)
+		assert.Len(t, infos, 0)
 	})
 }

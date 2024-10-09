@@ -5,7 +5,6 @@ package api4
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"testing"
 
@@ -47,6 +46,13 @@ func TestGetRemoteClusters(t *testing.T) {
 			SiteURL:   "http://example3.com",
 			CreatorId: th.SystemAdminUser.Id,
 			PluginID:  model.NewId(),
+		},
+		{
+			RemoteId:  model.NewId(),
+			Name:      "remote4",
+			SiteURL:   "http://example4.com",
+			CreatorId: th.SystemAdminUser.Id,
+			DeleteAt:  123,
 		},
 	}
 
@@ -95,6 +101,16 @@ func TestGetRemoteClusters(t *testing.T) {
 			ExpectedNames:      []string{"remote1", "remote2", "remote3"},
 		},
 		{
+			Name:               "Should return all remote clusters including deleted",
+			Client:             th.SystemAdminClient,
+			Page:               0,
+			PerPage:            999999,
+			Filter:             model.RemoteClusterQueryFilter{IncludeDeleted: true},
+			ExpectedStatusCode: 200,
+			ExpectedError:      false,
+			ExpectedNames:      []string{"remote1", "remote2", "remote3", "remote4"},
+		},
+		{
 			Name:               "Should return all remote clusters but those belonging to plugins",
 			Client:             th.SystemAdminClient,
 			Page:               0,
@@ -103,6 +119,16 @@ func TestGetRemoteClusters(t *testing.T) {
 			ExpectedStatusCode: 200,
 			ExpectedError:      false,
 			ExpectedNames:      []string{"remote1", "remote2"},
+		},
+		{
+			Name:               "Should return all remote clusters but those belonging to plugins, including deleted",
+			Client:             th.SystemAdminClient,
+			Page:               0,
+			PerPage:            999999,
+			Filter:             model.RemoteClusterQueryFilter{ExcludePlugins: true, IncludeDeleted: true},
+			ExpectedStatusCode: 200,
+			ExpectedError:      false,
+			ExpectedNames:      []string{"remote1", "remote2", "remote4"},
 		},
 		{
 			Name:               "Should return only remote clusters belonging to plugins",
@@ -216,14 +242,14 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.NotZero(t, rcWithInvite.Password)
 		require.Len(t, rcWithInvite.Password, 16)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamNoPassword.Name, rc.Name)
 
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithInvite.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
@@ -240,14 +266,14 @@ func TestCreateRemoteCluster(t *testing.T) {
 		// by the endpoint
 		require.Zero(t, rcWithInvite.Password)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamAndPassword.Name, rc.Name)
 
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithTeamAndPassword.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 }
@@ -332,7 +358,7 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
-		SiteURL: "http://example.com",
+		SiteURL: model.SiteURLPending + model.NewId(),
 		Token:   model.NewId(),
 	}
 
@@ -402,6 +428,18 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, invite.RemoteId)
 		require.Equal(t, rc.Token, invite.Token)
+	})
+
+	t.Run("should return bad request if the cluster is already confirmed", func(t *testing.T) {
+		rc.SiteURL = "http://example.com"
+		savedRC, appErr := th.App.UpdateRemoteCluster(rc)
+		require.Nil(t, appErr)
+		require.Equal(t, rc.SiteURL, savedRC.SiteURL)
+
+		inviteCode, resp, err := th.SystemAdminClient.GenerateRemoteClusterInvite(context.Background(), rc.RemoteId, password)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, inviteCode)
 	})
 }
 
@@ -572,18 +610,19 @@ func TestDeleteRemoteCluster(t *testing.T) {
 	})
 
 	t.Run("should correctly delete the remote cluster", func(t *testing.T) {
+		// ensure the remote cluster is not deleted
+		initialRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, false)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, initialRC)
+		require.Zero(t, initialRC.DeleteAt)
+
 		resp, err := th.SystemAdminClient.DeleteRemoteCluster(context.Background(), rc.RemoteId)
-		CheckNoContentStatus(t, resp)
+		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
-		deletedRC, err := th.App.GetRemoteCluster(rc.RemoteId)
-		require.ErrorIs(t, err, sql.ErrNoRows)
-		require.Empty(t, deletedRC)
-	})
-
-	t.Run("should return not found if the remote cluster is already deleted", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.DeleteRemoteCluster(context.Background(), rc.RemoteId)
-		CheckNotFoundStatus(t, resp)
-		require.Error(t, err)
+		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, deletedRC)
+		require.NotZero(t, deletedRC.DeleteAt)
 	})
 }

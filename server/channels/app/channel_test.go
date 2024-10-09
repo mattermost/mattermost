@@ -2493,7 +2493,6 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()

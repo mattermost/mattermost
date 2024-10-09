@@ -127,10 +127,10 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     >
                         <LoadingWrapper
                             loading={restarting}
-                            text={localizeMessage(
-                                'admin.license.enterprise.restarting',
-                                'Restarting',
-                            )}
+                            text={localizeMessage({
+                                id: 'admin.license.enterprise.restarting',
+                                defaultMessage: 'Restarting',
+                            })}
                         >
                             <FormattedMessage
                                 id='admin.license.enterprise.restart'
