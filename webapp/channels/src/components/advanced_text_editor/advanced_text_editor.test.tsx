@@ -27,6 +27,9 @@ jest.mock('actions/views/drafts', () => ({
     removeDraft: jest.fn((...args) => ({type: 'MOCK_REMOVE_DRAFT', args})),
 }));
 
+const mockedRemoveDraft = jest.mocked(removeDraft);
+const mockedUpdateDraft = jest.mocked(updateDraft);
+
 const currentUserId = 'current_user_id';
 const channelId = 'current_channel_id';
 const otherChannelId = 'other_channel_id';
@@ -238,7 +241,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         userEvent.type(screen.getByLabelText('write to test channel'), 'some text');
 
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
         rerender(
             <AdvancedTextEditor
@@ -247,8 +250,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-        expect(updateDraft).toHaveBeenCalled();
-        expect((updateDraft as unknown as jest.Mock<typeof updateDraft>).mock.calls[0][1]).toMatchObject({
+        expect(mockedUpdateDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
             message: 'some text',
             show: true,
         });
@@ -272,7 +275,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
         rerender(
             <AdvancedTextEditor
@@ -281,7 +284,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 
     it('should save an updated draft when changing channels', () => {
@@ -304,7 +307,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         userEvent.type(screen.getByLabelText('write to test channel'), ' plus some new text');
 
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
         rerender(
             <AdvancedTextEditor
@@ -313,8 +316,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-        expect(updateDraft).toHaveBeenCalled();
-        expect((updateDraft as unknown as jest.Mock<typeof updateDraft>).mock.calls[0][1]).toMatchObject({
+        expect(mockedUpdateDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
             message: 'original draft plus some new text',
             show: true,
         });
@@ -340,8 +343,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         userEvent.clear(screen.getByLabelText('write to test channel'));
 
-        expect(removeDraft).not.toHaveBeenCalled();
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedRemoveDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
         rerender(
             <AdvancedTextEditor
@@ -350,8 +353,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-        expect(removeDraft).toHaveBeenCalled();
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedRemoveDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 
     it('MM-60541 should not attempt to delete a non-existent draft when changing channels', () => {
@@ -362,8 +365,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             initialState,
         );
 
-        expect(removeDraft).not.toHaveBeenCalled();
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedRemoveDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
         rerender(
             <AdvancedTextEditor
@@ -372,7 +375,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-        expect(removeDraft).not.toHaveBeenCalled();
-        expect(updateDraft).not.toHaveBeenCalled();
+        expect(mockedRemoveDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 });

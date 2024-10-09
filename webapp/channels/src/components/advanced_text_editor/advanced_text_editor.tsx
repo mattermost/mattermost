@@ -150,6 +150,7 @@ const AdvancedTextEditor = ({
     const textboxRef = useRef<TextboxClass>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
+    const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
 
@@ -427,7 +428,6 @@ const AdvancedTextEditor = ({
     }, [handleDraftChange, draft]);
 
     // Keep track of the draft as a ref so that we can save it when changing channels
-    const draftRef = useRef(draftFromStore);
     useEffect(() => {
         draftRef.current = draft;
     }, [draft]);
