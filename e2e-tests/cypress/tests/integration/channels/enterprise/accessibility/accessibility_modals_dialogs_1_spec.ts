@@ -9,12 +9,15 @@
 
 // Group: @channels @enterprise @accessibility
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
-    let testTeam;
-    let testChannel;
-    let testUser;
+    let testTeam: Team;
+    let testChannel: Channel;
+    let testUser: UserProfile;
 
     before(() => {
         // * Check if server has license for Guest Accounts
@@ -109,12 +112,12 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
     });
 });
 
-function verifyMainMenuModal(menuItem, modalName) {
+function verifyMainMenuModal(menuItem: string, modalName?: string) {
     cy.uiGetLHSHeader().click();
     verifyModal(menuItem, modalName);
 }
 
-function verifyChannelMenuModal(menuItem, modalName) {
+function verifyChannelMenuModal(menuItem: string, modalName?: string) {
     cy.get('#channelHeaderDropdownIcon').click();
     verifyModal(menuItem, modalName);
 }
@@ -124,7 +127,7 @@ function verifyUserMenuModal(menuItem) {
     verifyModal(menuItem);
 }
 
-function verifyModal(menuItem, modalName) {
+function verifyModal(menuItem: string, modalName?: string) {
     // * Verify that menu is open
     cy.findByRole('menu');
 
