@@ -11,6 +11,7 @@
 // Group: @channels @enterprise @saml
 // Skip:  @headless @electron @firefox // run on Chrome (headed) only
 
+import {UserCollection} from 'tests/support/okta_commands';
 import users from '../../../../fixtures/saml_users.json';
 
 //Manual Setup required: Follow the instructions mentioned in the mattermost/platform-private/config/saml-okta-setup.txt file
@@ -92,7 +93,7 @@ context('Okta', () => {
             // # Check SAML metadata if working properly
             cy.apiGetMetadataFromIdp(idpMetadataUrl);
 
-            cy.oktaAddUsers(users);
+            cy.oktaAddUsers(users as unknown as UserCollection);
             cy.apiUpdateConfig(newConfig).then(({config}) => {
                 cy.setTestSettings(loginButtonText, config).then((_response) => {
                     testSettings = _response;
