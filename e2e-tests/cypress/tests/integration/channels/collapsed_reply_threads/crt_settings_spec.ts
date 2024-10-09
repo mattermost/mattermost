@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -11,7 +13,7 @@
 // Group: @channels @collapsed_reply_threads
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
+    let testTeam: Team;
 
     before(() => {
         cy.apiUpdateConfig({

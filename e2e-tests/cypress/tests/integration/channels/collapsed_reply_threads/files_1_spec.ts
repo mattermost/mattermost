@@ -10,14 +10,17 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads @not_cloud
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as MESSAGES from '../../../fixtures/messages';
 import {matterpollPlugin} from '../../../utils/plugins';
 import {interceptFileUpload} from '../files_and_attachments/helpers';
 
 describe('Collapsed Reply Threads', () => {
-    let testTeam;
-    let testChannel;
-    let user1;
+    let testTeam: Team;
+    let testChannel: Channel;
+    let user1: UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({
