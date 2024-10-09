@@ -1105,8 +1105,9 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 
 	require.Equal(t, user.Email, ruser.Email)
 
-	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
-	appErr := th.App.SaveUserTermsOfService(ruser.Id, tos.Id, true)
+	tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.SaveUserTermsOfService(ruser.Id, tos.Id, true)
 	require.Nil(t, appErr)
 
 	ruser, _, err = th.Client.GetUserByUsername(context.Background(), user.Username, "")
@@ -2351,8 +2352,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
-	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
-	require.NotNil(t, respErr)
+	_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
 
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
@@ -2360,13 +2361,13 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, err = th.App.Srv().Store().User().VerifyEmail(user2.Id, user2.Email)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.Login(context.Background(), user2.Email, "passwd1")
+	_, _, err = th.SystemAdminClient.Login(context.Background(), user2.Email, "Pa$$word11")
 	require.NoError(t, err)
 
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
-	require.NotNil(t, respErr, "Should have errored")
+	_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err, "Should have errored")
 }
 
 func TestDeleteUser(t *testing.T) {
