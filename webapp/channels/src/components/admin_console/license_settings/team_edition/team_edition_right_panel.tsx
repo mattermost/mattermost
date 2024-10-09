@@ -36,6 +36,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
 }: TeamEditionRightPanelProps) => {
     let upgradeButton = null;
     const intl = useIntl();
+
     const onHandleUpgrade = (e: React.MouseEvent<HTMLButtonElement>) => {
         if (!handleUpgrade) {
             return;
@@ -130,12 +131,12 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         <LoadingWrapper
                             loading={restarting}
                             text={intl.formatMessage({
-                                id: 'admin.license.enterprise.restarting',
+                                id: 'admin.licenseSettings.teamEdition.teamEditionRightPanel.restarting',
                                 defaultMessage: 'Restarting',
                             })}
                         >
                             <FormattedMessage
-                                id='admin.license.enterprise.restart'
+                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.restart'
                                 defaultMessage='Restart Server'
                             />
                         </LoadingWrapper>
