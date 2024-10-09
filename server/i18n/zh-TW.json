@@ -607,7 +607,7 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "群組訊息頻道至少須傳給 {{.MaxUsers}} 位使用者。"
+    "translation": "群組訊息頻道至少須傳給 {{.MinUsers}} 位使用者。"
   },
   {
     "id": "api.command_groupmsg.name",
@@ -1737,7 +1737,7 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "您在 {{.ServerURL }} 的帳號已被停用"
+    "translation": "您在 {{ .ServerURL }} 的帳號已被停用"
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -1745,7 +1745,7 @@
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] 您在 {{.ServerURL }} 的帳號已被停用"
+    "translation": "[{{ .SiteName }}] 您在 {{ .ServerURL }} 的帳號已被停用"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -1813,7 +1813,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "您在 {{.SiteURL}} 上的帳號已增加多因子驗證。"
+    "translation": "您在{{ .SiteURL }} 上的帳號已增加多因子驗證。"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1877,7 +1877,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "在 {{.SiteURL}} 上的帳號已增加個人存取 Token。它們可用來以您的帳號名義存取 {{.SiteName}}。"
+    "translation": "在 {{ .SiteURL }} 上的帳號已增加個人存取 Token。它們可用來以您的帳號名義存取 {{.SiteName}}。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2253,7 +2253,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "升級 Websocket 連線失敗。"
+    "translation": "URL 因 CORS 被阻止。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2437,7 +2437,7 @@
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "匯入訊息失敗。找不到名字為「{{.Channelame}}」的頻道。"
+    "translation": "匯入訊息失敗。找不到名字為「{{.ChannelName}}」的頻道。"
   },
   {
     "id": "app.import.import_post.save_preferences.error",
@@ -2845,15 +2845,15 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] {{.ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] {{.ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] 發於 {{.Year}} {{.Month}} {{.Day}} 的新群組訊息"
+    "translation": "[{{ .SiteName }}] 發於 {{.Year}} {{.Month}} {{.Day}} 的新群組訊息"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -4525,7 +4525,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab 的服務使用條款有更新。請前往 gitlab.com 接受新條款後重新嘗試登入 Mattermost。"
+    "translation": "GitLab 的服務使用條款有更新。請前往 {{.URL}} 接受新條款後重新嘗試登入 Mattermost。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5509,7 +5509,7 @@
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 {{ .TeamDisplayName }}"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -5593,7 +5593,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "由於 @{{.Usernames}} 不在此頻道，沒有被此提及提醒。由於他們不是連結群組的成員，無法將其加入此頻道。如要將他們加入此頻道，必須將他們加入連結群組。"
+    "translation": "由於 @{{.Username}} 不在此頻道，沒有被此提及提醒。由於他們不是連結群組的成員，無法將其加入此頻道。如要將他們加入此頻道，必須將他們加入連結群組。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -7489,7 +7489,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "更新對外 OAuth 連線時發生錯誤。"
+    "translation": "更新對外 OAuth 連線時發生錯誤：{{ .Error }}"
   },
   {
     "id": "error",
@@ -9145,7 +9145,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "有些 audience 網址不正確。"
+    "translation": "Audience 網址無效：{{ .Url }}"
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
@@ -9221,7 +9221,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "儲存對外 OAuth 連線時發生錯誤。"
+    "translation": "儲存對外 OAuth 連線時發生錯誤：{{ .Error }}"
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
