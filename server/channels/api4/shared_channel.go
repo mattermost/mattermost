@@ -186,7 +186,7 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -244,5 +244,5 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
