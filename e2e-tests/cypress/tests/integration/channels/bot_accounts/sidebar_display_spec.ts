@@ -43,10 +43,8 @@ describe('Bot accounts', () => {
 
             // # Create users
             createdUsers = await Promise.all([
-
-                // TODO: remove undefined arguments when `E2EClient.createUSer` changes its arguments as optional
-                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
-                client.createUser(generateRandomUser() as UserProfile, undefined, undefined, undefined),
+                client.createUser(generateRandomUser() as UserProfile, '', ''),
+                client.createUser(generateRandomUser() as UserProfile, '', ''),
             ]);
 
             await Promise.all([
