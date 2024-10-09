@@ -200,17 +200,17 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             >
                 <div className='visit-marketplace-text' >
                     <p>
-            <FormattedMessage
-                id='post_info.actions.noActions.intro'
-                defaultMessage='No Actions currently'
-            />
-        </p>
-        <p>
-            <FormattedMessage
-                id='post_info.actions.noActions.details'
-                defaultMessage='configured for this server'
-            />
-        </p>
+                        <FormattedMessage
+                            id='post_info.actions.noActions.intro'
+                            defaultMessage='No Actions currently'
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='post_info.actions.noActions.details'
+                            defaultMessage='configured for this server'
+                        />
+                    </p>
                 </div>
                 <div className='visit-marketplace' >
                     <button
