@@ -6,8 +6,6 @@ import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import AdminSettings from './admin_settings';
 import type {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
@@ -48,7 +46,7 @@ const messages = defineMessages({
     sessionCache: {id: 'admin.service.sessionCache', defaultMessage: 'Session Cache (minutes):'},
     sessionCacheDesc: {id: 'admin.service.sessionCacheDesc', defaultMessage: 'The number of minutes to cache a session in memory:'},
     sessionHoursEx: {id: 'admin.service.sessionHoursEx', defaultMessage: 'E.g.: "720"'},
-    sessionIdleTimeoutDesc: {id: 'admin.service.sessionIdleTimeoutDesc', defaultMessage: "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited. Applies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement."},
+    sessionIdleTimeoutDesc: {id: 'admin.service.sessionIdleTimeoutDescription', defaultMessage: "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited. Applies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement."},
 });
 
 export const searchableStrings = [
@@ -125,7 +123,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     type='number'
                     label={<FormattedMessage {...messages.sessionIdleTimeout}/>}
                     placeholder={defineMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
-                    helpText={<FormattedMarkdownMessage {...messages.sessionIdleTimeoutDesc}/>}
+                    helpText={<FormattedMessage {...messages.sessionIdleTimeoutDesc}/>}
                     value={this.state.sessionIdleTimeoutInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionIdleTimeoutInMinutes')}
