@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
 import type {ReactNode} from 'react';
 import type {ConnectedComponent} from 'react-redux';
@@ -11,7 +12,6 @@ import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import styled from 'styled-components';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import Nbsp from 'components/html_entities/nbsp';
