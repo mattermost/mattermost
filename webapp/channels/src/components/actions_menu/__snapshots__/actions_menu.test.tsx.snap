@@ -172,13 +172,13 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
         <p>
           <MemoizedFormattedMessage
             defaultMessage="No Actions currently"
-            id="post_info.actions.noActions.intro"
+            id="post_info.actions.noActions.first_line"
           />
         </p>
         <p>
           <MemoizedFormattedMessage
             defaultMessage="configured for this server"
-            id="post_info.actions.noActions.details"
+            id="post_info.actions.noActions.second_line"
           />
         </p>
       </div>
