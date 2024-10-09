@@ -79,16 +79,19 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
+
+	interruptQuitChan chan struct{}
 }
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		filestore:       s.FileBackend(),
-		exportFilestore: s.ExportFileBackend(),
-		cfgSvc:          s.Platform(),
+		srv:               s,
+		imageProxy:        imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:     map[string]bool{},
+		filestore:         s.FileBackend(),
+		exportFilestore:   s.ExportFileBackend(),
+		cfgSvc:            s.Platform(),
+		interruptQuitChan: make(chan struct{}),
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
@@ -161,11 +164,15 @@ func (ch *Channels) Start() error {
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-		<-interruptChan
-		if err := ch.Stop(); err != nil {
-			ch.srv.Log().Warn("Error stopping channels", mlog.Err(err))
+		select {
+		case <-interruptChan:
+			if err := ch.Stop(); err != nil {
+				ch.srv.Log().Warn("Error stopping channels", mlog.Err(err))
+			}
+			os.Exit(1)
+		case <-ch.interruptQuitChan:
+			return
 		}
-		os.Exit(1)
 	}()
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
@@ -216,6 +223,8 @@ func (ch *Channels) Stop() error {
 		ch.dndTask.Cancel()
 	}
 	ch.dndTaskMut.Unlock()
+
+	close(ch.interruptQuitChan)
 
 	return nil
 }
