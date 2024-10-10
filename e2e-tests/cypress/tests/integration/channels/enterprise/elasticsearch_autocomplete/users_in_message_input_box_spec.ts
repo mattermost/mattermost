@@ -12,11 +12,11 @@
 
 import {getRandomLetter} from '../../../../utils';
 import {doTestPostextbox} from '../../autocomplete/common_test';
-import {createSearchData, enableElasticSearch} from '../../autocomplete/helpers';
+import {createSearchData, enableElasticSearch, SimpleUser} from '../../autocomplete/helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {
     const prefix = getRandomLetter(3);
-    let testUsers;
+    let testUsers: Record<string, SimpleUser>;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
