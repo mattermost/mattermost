@@ -2753,6 +2753,8 @@
   "admin.team.userCreationDescription": "When false, the ability to create accounts is disabled, and selecting Create Account displays an error. Applies to Email, OpenID Connect, and OAuth 2.0 user account authentication.",
   "admin.team.userCreationTitle": "Enable Account Creation: ",
   "admin.teamChannelSettings.usersToBeRemovedModal.title": "<b>{total, number} {total, plural, one {User} other {Users}}</b> To Be Removed",
+  "admin.teamSettings.teamDetail.teamDescription": "<b>Team Description</b>:",
+  "admin.teamSettings.teamDetail.teamName": "<b>Team Name</b>:",
   "admin.trial_banner.trial-request.error": "Trial license could not be retrieved. Visit <link>{trialInfoLink}</link> to request a license.",
   "admin.true": "True",
   "admin.user_grid.channel_admin": "Channel Admin",
