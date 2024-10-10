@@ -28,9 +28,6 @@ linters:
     - errcheck
 
 issues:
-  exclude-dirs:
-    - channels/store/storetest
-  exclude-dirs-use-default: false
   exclude-rules:
     - linters:
       # ignore unused warnings from enterprise code
@@ -40,8 +37,8 @@ issues:
 
     - linters:
       - revive
-      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block|unexported-naming|unused|typecheck"
       # We need to fix the unused parameter issues and remove the exception.
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
 
     # Use a seperate set of exception for the enterprise code to allow community members to fix only the open source issues.
     - linters:
