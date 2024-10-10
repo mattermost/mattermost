@@ -20,7 +20,6 @@
         height: 100%;
         flex-flow: column nowrap;
         padding: 24px;
-        grid-area: list;
     }
 
     display: grid;
@@ -38,6 +37,8 @@
     }
 
     #draft_tabs {
+        grid-area: list;
+
         .nav.nav-tabs {
             .drafts_tab {
                 .badge {
