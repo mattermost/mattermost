@@ -788,13 +788,16 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 }
 
 func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, postJSON string) *model.AppError {
-	previewProp := post.GetPreviewedPostProp()
-	if previewProp == "" {
+	// We check for the post first, and then the prop to prevent
+	// any embedded data to remain in case a post does not contain the prop
+	// but contains the embedded data.
+	permalinkPreviewedPost := post.GetPreviewPost()
+	if permalinkPreviewedPost == nil {
 		return nil
 	}
 
-	permalinkPreviewedPost := post.GetPreviewPost()
-	if permalinkPreviewedPost == nil {
+	previewProp := post.GetPreviewedPostProp()
+	if previewProp == "" {
 		return nil
 	}
 
