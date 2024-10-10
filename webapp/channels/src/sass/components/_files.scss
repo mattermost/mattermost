@@ -560,6 +560,16 @@
                 }
             }
 
+            .post-image__extra-info {
+                display: block;
+                overflow: hidden;
+                max-width: 184px;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-size: 10px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
             .post-image__archived {
                 display: inline-block;
                 overflow: hidden;
