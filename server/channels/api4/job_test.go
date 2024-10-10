@@ -248,10 +248,10 @@ func TestDownloadJob(t *testing.T) {
 	defer th.TearDown()
 	jobName := model.NewId()
 	job := &model.Job{
-		Id:    jobName,
-		Type:  model.JobTypeMessageExport,
-		Data:  map[string]string{
-			"export_type": "csv"
+		Id:   jobName,
+		Type: model.JobTypeMessageExport,
+		Data: map[string]string{
+			"export_type": "csv",
 		},
 		Status: model.JobStatusSuccess,
 	}
@@ -330,10 +330,10 @@ func TestDownloadJob(t *testing.T) {
 	// Here we are creating a new job which doesn't have type of message export
 	jobName = model.NewId()
 	job = &model.Job{
-		Id:    jobName,
-		Type:  model.JobTypeCloud,
-		Data:  map[string]string{
-			"export_type": "csv"
+		Id:   jobName,
+		Type: model.JobTypeCloud,
+		Data: map[string]string{
+			"export_type": "csv",
 		},
 		Status: model.JobStatusSuccess,
 	}
