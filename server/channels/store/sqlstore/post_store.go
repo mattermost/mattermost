@@ -942,6 +942,9 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 		err = s.deleteThread(transaction, postID, time)
 	} else {
 		err = s.updateThreadAfterReplyDeletion(transaction, id.RootId, id.UserId)
+		if _, err = s.GetMasterX().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", time, id.RootId); err != nil {
+			mlog.Warn("Error updating Post UpdateAt.", mlog.Err(err))
+		}
 	}
 
 	if err != nil {
