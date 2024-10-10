@@ -37,6 +37,7 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, rctx, ss) })
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
 	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
+	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -940,4 +941,29 @@ func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s 
 	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(20)
 	require.NoError(t, err)
 	assert.Equal(t, f2.CreateAt, createAt)
+}
+
+func testPermanentDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) {
+	postId := model.NewId()
+
+	_, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+		PostId:    postId,
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+		CreateAt:  utils.MillisFromTime(time.Now()),
+	})
+	require.NoError(t, err)
+
+	err = ss.FileInfo().PermanentDeleteForPost(rctx, postId)
+	require.NoError(t, err)
+
+	postInfos, err := ss.FileInfo().GetForPost(
+		postId,
+		true,
+		true,
+		false,
+	)
+	require.NoError(t, err)
+	assert.Len(t, postInfos, 0)
 }
