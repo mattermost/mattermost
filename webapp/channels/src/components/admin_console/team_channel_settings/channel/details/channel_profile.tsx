@@ -40,7 +40,6 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                 <br/>
                 <SharedChannelIndicator
                     className='shared-channel-icon'
-                    channelType={channel.type}
                 />
                 <FormattedMessage
                     id='admin.channel_settings.channel_detail.channelOrganizationsMessage'
