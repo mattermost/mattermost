@@ -18,7 +18,7 @@
     }
 
     .AlertBanner {
-        .AlertBanner__body {
+        &__body {
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
