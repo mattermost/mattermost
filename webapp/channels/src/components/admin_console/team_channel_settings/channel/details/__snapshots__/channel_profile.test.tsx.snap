@@ -128,15 +128,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-organizations"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="<b>Organizations</b>"
-          id="admin.channelSettings.channelDetail.channelOrganizations"
-          values={
-            Object {
-              "b": [Function],
-            }
-          }
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Organizations"
+            id="admin.channelSettings.channelDetail.channel_organizations"
+          />
+        </b>
         <br />
         <SharedChannelIndicator
           channelType="O"

@@ -31,13 +31,12 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
     if (channel.shared && channel.type) {
         sharedBlock = (
             <div className='channel-organizations'>
-                <FormattedMessage
-                    id='admin.channelSettings.channelDetail.channelOrganizations'
-                    defaultMessage='<b>Organizations</b>'
-                    values={{
-                        b: (chunks: string) => <b>{chunks}</b>,
-                    }}
-                />
+                <b>
+                    <FormattedMessage
+                        id='admin.channelSettings.channelDetail.channel_organizations'
+                        defaultMessage='Organizations'                      
+                    />
+                </b>
                 <br/>
                 <SharedChannelIndicator
                     className='shared-channel-icon'
