@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {ConnectedComponent} from 'react-redux';
 import styled from 'styled-components';
 
-import type {ReactNode} from 'react';
-import type {ConnectedComponent} from 'react-redux';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
