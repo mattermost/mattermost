@@ -339,6 +339,11 @@ func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
 		return a.importUser(c, line.User, dryRun)
+	case line.Type == "bot":
+		if line.Bot == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importBot(c, line.Bot, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)

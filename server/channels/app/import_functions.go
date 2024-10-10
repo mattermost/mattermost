@@ -623,41 +623,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		savedUser = user
 	}
 
-	if data.ProfileImage != nil {
-		var file io.ReadSeeker
-		var err error
-		if data.ProfileImageData != nil {
-			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
-			var f io.ReadCloser
-			f, err = data.ProfileImageData.Open()
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
-			} else {
-				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
-				var b []byte
-				b, err = io.ReadAll(limitedReader)
-				if err != nil {
-					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
-				} else {
-					file = bytes.NewReader(b)
-				}
-			}
-		} else {
-			file, err = os.Open(*data.ProfileImage)
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-			} else {
-				defer file.(*os.File).Close()
-			}
-		}
-
-		if file != nil {
-			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
-			}
-			if err := a.SetProfileImageFromFile(rctx, savedUser.Id, file); err != nil {
-				rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
-			}
+	if data.Avatar.ProfileImage != nil {
+		appErr := a.importProfileImage(rctx, savedUser.Id, &data.Avatar)
+		if appErr != nil {
+			return appErr
 		}
 	}
 
@@ -794,6 +763,143 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	}
 
 	return a.importUserTeams(rctx, savedUser, data.Teams)
+}
+
+func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool) *model.AppError {
+	var fields []mlog.Field
+	if data != nil && data.Username != nil {
+		fields = append(fields, mlog.String("user_name", *data.Username))
+	}
+	rctx.Logger().Info("Validating bot", fields...)
+
+	if err := imports.ValidateBotImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	rctx.Logger().Info("Importing bot", fields...)
+
+	// We want to avoid database writes if nothing has changed.
+	hasBotChanged := false
+
+	var bot *model.Bot
+	var nErr error
+	bot, nErr = a.Srv().Store().Bot().GetByUsername(*data.Username)
+	if nErr != nil {
+		bot = &model.Bot{}
+		hasBotChanged = true
+	}
+
+	bot.Username = *data.Username
+
+	if data.Description != nil && bot.Description != *data.Description {
+		bot.Description = *data.Description
+		hasBotChanged = true
+	}
+
+	if data.DisplayName != nil && bot.DisplayName != *data.DisplayName {
+		bot.DisplayName = *data.DisplayName
+		hasBotChanged = true
+	}
+
+	var owner *model.User
+	if data.Owner != nil {
+		owner, nErr = a.Srv().Store().User().GetByUsername(*data.Owner)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				// If the owner does not exist, we assume the owner is a plugin hence keeping the owner username as is.
+				bot.OwnerId = *data.Owner
+			default:
+				return model.NewAppError("importBot", "app.import.import_bot.owner_could_not_found.error", map[string]any{"Owner": *data.Owner}, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		} else {
+			bot.OwnerId = owner.Id
+		}
+	}
+
+	var savedBot *model.Bot
+	if bot.UserId == "" {
+		var appErr *model.AppError
+		if savedBot, appErr = a.CreateBot(rctx, bot); appErr != nil {
+			var appErr *model.AppError
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(appErr, &invErr):
+				switch invErr.Field {
+				case "username":
+					return model.NewAppError("importUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(appErr)
+				default:
+					return model.NewAppError("importUser", "app.user.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(appErr)
+				}
+			default:
+				return appErr
+			}
+		}
+	} else if hasBotChanged {
+		var err error
+		if savedBot, err = a.Srv().Store().Bot().Update(bot); err != nil {
+			return model.NewAppError("importBot", "app.bot.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	if savedBot == nil {
+		savedBot = bot
+	}
+
+	if data.Avatar.ProfileImage != nil {
+		appErr := a.importProfileImage(rctx, savedBot.UserId, &data.Avatar)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
+func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.Avatar) *model.AppError {
+	var file io.ReadSeeker
+	var err error
+	if data.ProfileImageData != nil {
+		// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
+		var f io.ReadCloser
+		f, err = data.ProfileImageData.Open()
+		if err != nil {
+			rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
+		} else {
+			limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+			var b []byte
+			b, err = io.ReadAll(limitedReader)
+			if err != nil {
+				rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
+			} else {
+				file = bytes.NewReader(b)
+			}
+		}
+	} else {
+		file, err = os.Open(*data.ProfileImage)
+		if err != nil {
+			rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
+		} else {
+			defer file.(*os.File).Close()
+		}
+	}
+
+	if file != nil {
+		if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+			return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+		}
+		if err := a.SetProfileImageFromFile(rctx, userID, file); err != nil {
+			rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
+		}
+	}
+
+	return nil
 }
 
 func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]imports.UserTeamImportData) *model.AppError {
