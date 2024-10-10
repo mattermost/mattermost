@@ -122,7 +122,6 @@ func TestGetJobs(t *testing.T) {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
 
-		// Wrap the Delete call in a deferred function to check the error
 		defer func(jobId string) {
 			if result, appErr := th.App.Srv().Store().Job().Delete(jobId); appErr != nil {
 				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
@@ -207,7 +206,6 @@ func TestGetJobsByType(t *testing.T) {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
 
-		// Wrap the Delete call in a deferred function to check the error
 		defer func(jobId string) {
 			if result, appErr := th.App.Srv().Store().Job().Delete(jobId); appErr != nil {
 				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
@@ -252,7 +250,9 @@ func TestDownloadJob(t *testing.T) {
 	job := &model.Job{
 		Id:     jobName,
 		Type:   model.JobTypeMessageExport,
-		Data:   map[string]string{"export_type": "csv"},
+		Data:   map[string]string{
+			"export_type": "csv"
+		},
 		Status: model.JobStatusSuccess,
 	}
 
@@ -289,7 +289,6 @@ func TestDownloadJob(t *testing.T) {
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, mkdirAllErr)
 
-	// Check error when creating the file
 	_, createErr := os.Create(filePath)
 	require.NoError(t, createErr)
 
@@ -322,7 +321,6 @@ func TestDownloadJob(t *testing.T) {
 	mkdirAllErr = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, mkdirAllErr)
 
-	// Check error when creating the file
 	_, createErr = os.Create(filePath)
 	require.NoError(t, createErr)
 
@@ -334,7 +332,9 @@ func TestDownloadJob(t *testing.T) {
 	job = &model.Job{
 		Id:     jobName,
 		Type:   model.JobTypeCloud,
-		Data:   map[string]string{"export_type": "csv"},
+		Data:   map[string]string{
+			"export_type": "csv"
+		},
 		Status: model.JobStatusSuccess,
 	}
 	_, err = th.App.Srv().Store().Job().Save(job)
