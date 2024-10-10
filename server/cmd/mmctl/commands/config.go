@@ -120,6 +120,15 @@ var ConfigSubpathCmd = &cobra.Command{
 	RunE: configSubpathCmdF,
 }
 
+var ConfigExportCmd = &cobra.Command{
+	Use:     "export",
+	Short:   "Export the server configuration",
+	Long:    "Export the server configuration in case you want to import somewhere else.",
+	Example: "config export --remove-masked --remove-defaults",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(configExportCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -127,6 +136,9 @@ func init() {
 	_ = ConfigSubpathCmd.MarkFlagRequired("assets-dir")
 	ConfigSubpathCmd.Flags().StringP("path", "p", "", "path to update the assets with")
 	_ = ConfigSubpathCmd.MarkFlagRequired("path")
+
+	ConfigExportCmd.Flags().Bool("remove-masked", false, "remove masked values from the exported configuration")
+	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -138,6 +150,7 @@ func init() {
 		ConfigReloadCmd,
 		ConfigMigrateCmd,
 		ConfigSubpathCmd,
+		ConfigExportCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -580,4 +593,23 @@ func cloudRestrictedR(t reflect.Type, path []string) bool {
 	}
 
 	return false
+}
+
+func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	removeDefaults, _ := cmd.Flags().GetBool("remove-defaults")
+	removeMasked, _ := cmd.Flags().GetBool("remove-masked")
+	config, _, err := c.GetConfigWithOptions(context.TODO(), model.GetConfigOptions{
+		RemoveDefaults: removeDefaults,
+		RemoveMasked:   removeMasked,
+	})
+	if err != nil {
+		return err
+	}
+
+	printer.SetSingle(true)
+	printer.SetFormat(printer.FormatJSON)
+
+	printer.Print(config)
+
+	return nil
 }
