@@ -162,6 +162,137 @@ func TestCreateUser(t *testing.T) {
 	}, "Should not be able to define the RemoteID of a user through the API")
 }
 
+func TestCreateUserPasswordValidation(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	ruser := model.User{
+		Nickname:      "Corey Hulen",
+		Password:      "hello1",
+		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		EmailVerified: true,
+	}
+
+	for name, tc := range map[string]struct {
+		Password      string
+		Settings      *model.PasswordSettings
+		ExpectedError string
+	}{
+		"Short": {
+			Password: strings.Repeat("x", 5),
+			Settings: &model.PasswordSettings{
+				MinimumLength: model.NewInt(5),
+				Lowercase:     model.NewBool(false),
+				Uppercase:     model.NewBool(false),
+				Number:        model.NewBool(false),
+				Symbol:        model.NewBool(false),
+			},
+		},
+		"Long": {
+			Password: strings.Repeat("x", model.PasswordMaximumLength),
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
+			},
+		},
+		"TooShort": {
+			Password: strings.Repeat("x", 2),
+			Settings: &model.PasswordSettings{
+				MinimumLength: model.NewInt(5),
+				Lowercase:     model.NewBool(false),
+				Uppercase:     model.NewBool(false),
+				Number:        model.NewBool(false),
+				Symbol:        model.NewBool(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
+		},
+		"TooLong": {
+			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
+		},
+		"MissingLower": {
+			Password: "AAAAAAAAAAASD123!@#",
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewBool(true),
+				Uppercase: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
+		},
+		"MissingUpper": {
+			Password: "aaaaaaaaaaaaasd123!@#",
+			Settings: &model.PasswordSettings{
+				Uppercase: model.NewBool(true),
+				Lowercase: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
+		},
+		"MissingNumber": {
+			Password: "asasdasdsadASD!@#",
+			Settings: &model.PasswordSettings{
+				Number:    model.NewBool(true),
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Symbol:    model.NewBool(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_number.app_error",
+		},
+		"MissingSymbol": {
+			Password: "asdasdasdasdasdASD123",
+			Settings: &model.PasswordSettings{
+				Symbol:    model.NewBool(true),
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number:    model.NewBool(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
+		},
+		"MissingMultiple": {
+			Password: "asdasdasdasdasdasd",
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewBool(true),
+				Uppercase: model.NewBool(true),
+				Number:    model.NewBool(true),
+				Symbol:    model.NewBool(true),
+			},
+			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+		},
+		"Everything": {
+			Password: "asdASD!@#123",
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewBool(true),
+				Uppercase: model.NewBool(true),
+				Number:    model.NewBool(true),
+				Symbol:    model.NewBool(true),
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.PasswordSettings = *tc.Settings })
+			ruser.Email = th.GenerateTestEmail()
+			ruser.Password = tc.Password
+			ruser.Username = GenerateTestUsername()
+			if _, resp, err := th.Client.CreateUser(context.Background(), &ruser); tc.ExpectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				CheckErrorID(t, err, tc.ExpectedError)
+				CheckBadRequestStatus(t, resp)
+			}
+		})
+	}
+}
+
 func TestCreateUserAudit(t *testing.T) {
 	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
