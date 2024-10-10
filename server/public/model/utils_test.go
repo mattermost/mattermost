@@ -396,6 +396,50 @@ func TestIsValidEmail(t *testing.T) {
 			Input:    "email1@domain.com, email2@domain.com",
 			Expected: false,
 		},
+		{
+			Input:    "\"attacker@attacker.com,admin\"@spaceship.com",
+			Expected: false,
+		},
+		{
+			Input:    "(email)@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "<email>@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "[email]@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "{email}@domain.com",
+			Expected: true,
+		},
+		{
+			Input:    "first\"name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first:name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first;name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first,name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "first@name@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "john..doe@example.com",
+			Expected: false,
+		},
 	} {
 		t.Run(testCase.Input, func(t *testing.T) {
 			assert.Equal(t, testCase.Expected, IsValidEmail(testCase.Input))
