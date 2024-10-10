@@ -57,11 +57,12 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
       <span
         className="item-details__token"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Client ID: **{clientId}**"
-          id="installed_integrations.client_id"
+        <MemoizedFormattedMessage
+          defaultMessage="Client ID: <b>{clientId}</b>"
+          id="installedIntegrations.clientId"
           values={
             Object {
+              "b": [Function],
               "clientId": "someid",
             }
           }
