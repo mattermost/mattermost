@@ -32,7 +32,7 @@ export type Props = {
     ariaLabel?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
-    backdrop?: boolean;
+    backdrop?: boolean | 'static';
     backdropClassName?: string;
     tabIndex?: number;
     children: React.ReactNode;
@@ -41,6 +41,7 @@ export type Props = {
     headerInput?: React.ReactNode;
     bodyPadding?: boolean;
     bodyDivider?: boolean;
+    bodyOverflowVisible?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
@@ -181,7 +182,14 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 role='dialog'
                 aria-label={this.props.ariaLabel}
                 aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
-                dialogClassName={classNames('a11y__modal GenericModal', {GenericModal__compassDesign: this.props.compassDesign}, this.props.className)}
+                dialogClassName={classNames(
+                    'a11y__modal GenericModal',
+                    {
+                        GenericModal__compassDesign: this.props.compassDesign,
+                        'modal--overflow': this.props.bodyOverflowVisible,
+                    },
+                    this.props.className,
+                )}
                 show={this.state.show}
                 restoreFocus={true}
                 enforceFocus={this.props.enforceFocus}
@@ -219,8 +227,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             }
                         </div>
                     </Modal.Header>
-
-                    <Modal.Body className={classNames({divider: this.props.bodyDivider})}>
+                    <Modal.Body className={classNames({divider: this.props.bodyDivider, 'overflow-visible': this.props.bodyOverflowVisible})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (
                                 <div className='genericModalError'>

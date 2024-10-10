@@ -510,6 +510,13 @@ export type WranglerSettings = {
     MoveThreadFromGroupMessageChannelEnable: boolean;
 };
 
+export type ConnectedWorkspacesSettings = {
+    EnableSharedChannels: boolean;
+    EnableRemoteClusterService: boolean;
+    DisableSharedChannelsStatusSync: boolean;
+    MaxPostsPerSync: number;
+}
+
 export type FileSettings = {
     EnableFileAttachments: boolean;
     EnableMobileUpload: boolean;
@@ -982,6 +989,7 @@ export type AdminConfig = {
     ImportSettings: ImportSettings;
     ExportSettings: ExportSettings;
     WranglerSettings: WranglerSettings;
+    ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
 };
 
 export type ReplicaLagSetting = {
