@@ -12,7 +12,7 @@ import * as i18Selectors from 'selectors/i18n';
 
 import mockStore from 'tests/test_store';
 
-import DateTimeInput from './date_time_input';
+import DateTimeInput, {getTimeInIntervals} from './date_time_input';
 
 jest.mock('selectors/i18n');
 
@@ -33,5 +33,18 @@ describe('components/custom_status/date_time_input', () => {
             </Provider>,
         );
         expect(wrapper.dive()).toMatchSnapshot();
+    });
+
+    it.each([
+        ['2024-03-02T02:00:00+0100', 48],
+        ['2024-03-31T02:00:00+0100', 46],
+        ['2024-10-07T02:00:00+0100', 48],
+        ['2024-10-27T02:00:00+0100', 48],
+        ['2025-01-01T03:00:00+0200', 48],
+    ])('should not infinitely loop on DST', (time, expected) => {
+        const timezone = 'Europe/Paris';
+
+        const intervals = getTimeInIntervals(moment.tz(time, timezone).startOf('day'));
+        expect(intervals).toHaveLength(expected);
     });
 });
