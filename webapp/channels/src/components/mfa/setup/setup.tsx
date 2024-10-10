@@ -179,7 +179,7 @@ class Setup extends React.PureComponent<Props, State> {
                     </p>
                     <p>
                         <FormattedMessage
-                            id='mfa.setup.step2_mfa'
+                            id='mfa.setup.step2_secret'
                             defaultMessage='<strong>Step 2: </strong>Use Google Authenticator to scan this QR code, or manually type in the secret key.'
                             values={{
                                 strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
