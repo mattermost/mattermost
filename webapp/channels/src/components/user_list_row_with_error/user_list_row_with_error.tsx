@@ -13,7 +13,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import ProfilePicture from 'components/profile_picture';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Tag from 'components/widgets/tag/tag';
@@ -89,12 +88,13 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
         if (this.props.user.is_bot) {
             email = null;
         } else if (this.props.extraInfo && this.props.extraInfo.length > 0) {
+            // Replaced FormattedMarkdownMessage with FormattedMessage
             email = (
-                <FormattedMarkdownMessage
-                    id='admin.user_item.emailTitle'
+                <FormattedMessage
+                    id='admin.user_item.emailTitle_updated'
                     defaultMessage='**Email:** {email}'
                     values={{
-                        email: this.props.user.email,
+                        email: this.props.user.email, // Ensure rich text formatting
                     }}
                 />
             );
