@@ -371,7 +371,7 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 func (ps *PlatformService) MaxPostSize() int {
 	maxPostSize := ps.Store.Post().GetMaxPostSize()
 	if maxPostSize == 0 {
-		return model.PostMessageMaxRunesV1
+		return model.PostMessageMaxRunesV2
 	}
 
 	return maxPostSize
