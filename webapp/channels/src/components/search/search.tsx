@@ -207,6 +207,14 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         handleUpdateSearchTerms(pretextArray.join(' '));
     };
 
+    const handleUpdateSearchTeam = async (teamId: string) => {
+        await actions.updateSearchTeam(teamId);
+        handleSearch().then(() => {
+            setKeepInputFocused(false);
+            setFocused(false);
+        });
+    };
+
     const handleUpdateSearchTerms = (terms: string): void => {
         actions.updateSearchTerms(terms);
         updateHighlightedSearchHint();
@@ -310,6 +318,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             actions.updateRhsState(RHSStates.SEARCH);
         }
         actions.updateSearchTerms('');
+        actions.updateSearchTeam(null);
         actions.updateSearchType('');
     };
 
@@ -547,6 +556,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     channelDisplayName={props.channelDisplayName}
                     isOpened={props.isSideBarRightOpen}
                     updateSearchTerms={handleAddSearchTerm}
+                    updateSearchTeam={handleUpdateSearchTeam}
                     handleSearchHintSelection={handleSearchHintSelection}
                     isSideBarExpanded={props.isRhsExpanded}
                     getMorePostsForSearch={props.actions.getMorePostsForSearch}
@@ -555,6 +565,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     searchFilterType={searchFilterType}
                     setSearchType={(value: SearchType) => actions.updateSearchType(value)}
                     searchType={searchType || 'messages'}
+                    crossTeamSearchEnabled={props.crossTeamSearchEnabled}
                 />
             ) : props.children}
         </div>

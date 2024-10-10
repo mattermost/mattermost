@@ -124,6 +124,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         }
     };
 
+    const setSearchTeam = (teamId: string): void => {
+        props.updateSearchTeam(teamId);
+    };
+
     const loadMorePosts = debounce(
         () => {
             props.getMorePostsForSearch();
@@ -370,6 +374,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
                     onChange={setSearchType}
                     onFilter={setSearchFilterType}
+                    onTeamChange={setSearchTeam}
+                    crossTeamSearchEnabled={props.crossTeamSearchEnabled}
                 />}
             {isChannelFiles &&
                 <div className='channel-files__header'>

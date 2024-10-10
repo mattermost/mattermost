@@ -29,6 +29,7 @@ describe('Reducers.RHS', () => {
         isSidebarExpanded: false,
         editChannelMembers: false,
         shouldFocusRHS: false,
+        searchTeam: null,
     };
 
     test('Initial state', () => {
@@ -278,6 +279,21 @@ describe('Reducers.RHS', () => {
         expect(nextState).toEqual({
             ...initialState,
             searchTerms: 'testing',
+        });
+    });
+
+    test('should match searchTeam state', () => {
+        const nextState = rhsReducer(
+            {},
+            {
+                type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                teamId: 'team_id',
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            searchTeam: 'team_id',
         });
     });
 
@@ -626,6 +642,7 @@ describe('Reducers.RHS', () => {
             isSidebarExpanded: true,
             editChannelMembers: false,
             shouldFocusRHS: false,
+            searchTeam: null,
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});

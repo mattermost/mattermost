@@ -114,6 +114,10 @@ export function getSearchTerms(state: GlobalState): string {
     return state.views.rhs.searchTerms;
 }
 
+export function getSearchTeam(state: GlobalState): string | null {
+    return state.views.rhs.searchTeam;
+}
+
 export function getSearchType(state: GlobalState): SearchType {
     return state.views.rhs.searchType;
 }
