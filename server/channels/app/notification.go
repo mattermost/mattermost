@@ -1138,13 +1138,6 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	return mentions, keywords
 }
 
-func max(a, b int64) int64 {
-	if a < b {
-		return b
-	}
-	return a
-}
-
 func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
 	// if user is a bot account or remote, then we do not send email
 	if user.IsBot || user.IsRemote() {
