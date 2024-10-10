@@ -40,6 +40,10 @@ on:
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
+      TEST: # Valid values are: cypress, playwright
+        type: string
+        required: false
+        default: "cypress"
       TEST_FILTER:
         type: string
         required: false
@@ -80,6 +84,15 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+    outputs:
+      passed:
+        value: "${{ jobs.report.outputs.passed }}"
+      failed:
+        value: "${{ jobs.report.outputs.failed }}"
+      failed_expected:
+        value: "${{ jobs.report.outputs.failed_expected }}"
+      pass_rate:
+        value: "${{ jobs.report.outputs.pass_rate }}"
 
 jobs:
   update-initial-status:
@@ -190,6 +203,7 @@ jobs:
         shell: bash
     outputs:
       workers: "${{ steps.generate.outputs.workers }}"
+      node-cache-dependency-path: "${{ steps.generate.outputs.node-cache-dependency-path }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -200,14 +214,16 @@ jobs:
         id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
+          TEST: ${{ inputs.TEST }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
+          echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
     runs-on: ubuntu-latest
     needs:
-      - update-initial-status
+      - generate-build-variables
     defaults:
       run:
         shell: bash
@@ -226,7 +242,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json" # NB: the generate-cycle script is cypress-specific operation for now
       - name: ci/e2e-test-gencycle
         id: e2e-test-gencycle
         env:
@@ -234,6 +250,7 @@ jobs:
           AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
+          TEST: "${{ inputs.TEST }}"
           TEST_FILTER: "${{ inputs.TEST_FILTER }}"
         run: |
           set -e -o pipefail
@@ -280,6 +297,7 @@ jobs:
       SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
+      TEST: "${{ inputs.TEST }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV }}"
       BRANCH: "${{ inputs.BRANCH }}"
@@ -311,13 +329,13 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+          cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
       - name: ci/e2e-test
         run: |
           make cloud-init
           if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
             echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
-            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- cypress/ && git status
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- "${TEST}/" && git status
             (
             echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
             export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
@@ -326,12 +344,12 @@ jobs:
             make
             )
             echo "RollingRelease: asserting smoketest result has zero failures."
-            FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+            FAILURES=$(jq -r '.failed' "${TEST}/results/summary.json")
             if [ "$FAILURES" -ne "0" ]; then
               echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
               exit 1
             fi
-            rm -rfv cypress/results
+            rm -rfv "${TEST}/{results,logs}"
             echo "RollingRelease: reset the E2E test cases to the revision to test"
             git reset --hard HEAD && git status
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
@@ -340,11 +358,12 @@ jobs:
           make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        if: always()
         with:
-          name: e2e-test-results-${{ matrix.os }}-${{ matrix.worker_index }}
+          name: e2e-test-results-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
           path: |
-            e2e-tests/cypress/logs/
-            e2e-tests/cypress/results/
+            e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/results/
           retention-days: 1
 
   report:
@@ -357,10 +376,11 @@ jobs:
         shell: bash
         working-directory: e2e-tests
     outputs:
-      successes: "${{ steps.calculate-results.outputs.successes }}"
-      failures: "${{ steps.calculate-results.outputs.failures }}"
-      failures_expected: "${{ steps.calculate-results.outputs.failures_expected }}"
-      total_specs: "${{ steps.calculate-results.outputs.total_specs }}"
+      passed: "${{ steps.calculate-results.outputs.passed }}"
+      failed: "${{ steps.calculate-results.outputs.failed }}"
+      failed_expected: "${{ steps.calculate-results.outputs.failed_expected }}"
+      pass_rate: "${{ steps.calculate-results.outputs.pass_rate }}"
+      commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -370,15 +390,15 @@ jobs:
       - name: ci/download-artifacts
         uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
-          path: e2e-tests/cypress/
+          path: e2e-tests/${{ inputs.TEST }}/
           merge-multiple: true
       - name: ci/upload-report-global
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: e2e-test-results
+          name: e2e-test-results-${{ inputs.TEST }}
           path: |
-            e2e-tests/cypress/logs/
-            e2e-tests/cypress/results/
+            e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -386,11 +406,12 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+          cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
       - name: ci/publish-report
         if: "${{ inputs.enable_reporting }}"
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
+          TEST: "${{ inputs.TEST }}"
           SERVER: "${{ inputs.SERVER }}"
           SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
@@ -407,38 +428,43 @@ jobs:
         if: "${{ inputs.enable_reporting }}"
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: e2e-test-results
+          name: e2e-test-results-${{ inputs.TEST }}
           path: |
-            e2e-tests/cypress/logs/
-            e2e-tests/cypress/results/
+            e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
       - name: ci/report-calculate-results
         id: calculate-results
         env:
-          AD_CYCLE_FILE: "cypress/results/ad_cycle.json"
+          TEST: "${{ inputs.TEST }}"
         run: |
+          AD_CYCLE_FILE="${TEST}/results/ad_cycle.json"
           if [ -f "$AD_CYCLE_FILE" ]; then
             # Prefer using the Automation Dashboard's results to calculate failures
-            SUCCESSES=$(jq -r .pass "$AD_CYCLE_FILE")
-            FAILURES=$(jq -r .fail "$AD_CYCLE_FILE")
-            FAILURES_EXPECTED=$(jq -r ".known + .flaky + .skipped" "$AD_CYCLE_FILE")
+            export PASSED=$(jq -r .pass "$AD_CYCLE_FILE")
+            export FAILED=$(jq -r .fail "$AD_CYCLE_FILE")
+            export FAILED_EXPECTED=$(jq -r ".known + .flaky + .skipped" "$AD_CYCLE_FILE")
           else
-            # Otherwise, utilize the test specs to calculate the failures
-            SUCCESSES=$(find cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.passes' | jq -s add)
-            FAILURES=$(find cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
-            FAILURES_EXPECTED="0"
+            # Otherwise, utilize summary.json to calculate the failures
+            # NB: in this job, this file only makes sense if a single worker is used, as with Playwright
+            export PASSED=$(jq '.passed' "${TEST}/results/summary.json")
+            export FAILED=$(jq '.failed' "${TEST}/results/summary.json")
+            export FAILED_EXPECTED=$(jq '.failed_expected' "${TEST}/results/summary.json")
           fi
-          TOTAL_SPECS=$(( FAILURES + SUCCESSES ))
-          echo "successes=${SUCCESSES:?}" >> $GITHUB_OUTPUT
-          echo "failures=${FAILURES:?}" >> $GITHUB_OUTPUT
-          echo "failures_expected=${FAILURES_EXPECTED:?}" >> $GITHUB_OUTPUT
-          echo "total_specs=${TOTAL_SPECS:?}" >> $GITHUB_OUTPUT
-          echo "Cypress run completed:  ${SUCCESSES}/${TOTAL_SPECS} passing specs (plus ${FAILURES_EXPECTED} unrelated failures)"
+          export TOTAL_SPECS=$(( PASSED + FAILED ))
+          export PASS_RATE=$(jq -r '100 * (env.PASSED | tonumber) / (env.TOTAL_SPECS | tonumber)' <<<'{}' | xargs -l printf '%.2f')
+          export COMMIT_STATUS_MESSAGE="Completed with pass rate: ${PASS_RATE}% (plus ${FAILED_EXPECTED} unrelated failures)"
+          echo "passed=${PASSED:?}" >> $GITHUB_OUTPUT
+          echo "failed=${FAILED:?}" >> $GITHUB_OUTPUT
+          echo "failed_expected=${FAILED_EXPECTED:?}" >> $GITHUB_OUTPUT
+          echo "pass_rate=${PASS_RATE:?}%" >> $GITHUB_OUTPUT
+          echo "commit_status_message=${COMMIT_STATUS_MESSAGE:?}" >> $GITHUB_OUTPUT
+          echo "$COMMIT_STATUS_MESSAGE"
       - name: ci/e2e-test-assert-results
         if: "${{ inputs.testcase_failure_fatal }}"
         run: |
           # Assert that the run contained 0 failures
-          [ "${{ steps.calculate-results.outputs.failures }}" = "0" ]
+          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
 
   update-failure-final-status:
     runs-on: ubuntu-latest
@@ -455,8 +481,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
-          description: |
-            Completed: ${{ needs.report.outputs.successes }}/${{ needs.report.outputs.total_specs }} passing specs (plus ${{ needs.report.outputs.failures_expected }} unrelated failures)
+          description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
@@ -475,7 +500,6 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
-          description: |
-            Completed: ${{ needs.report.outputs.successes }}/${{ needs.report.outputs.total_specs }} passing specs (plus ${{ needs.report.outputs.failures_expected }} unrelated failures)
+          description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
