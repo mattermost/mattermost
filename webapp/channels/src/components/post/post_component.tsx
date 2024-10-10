@@ -516,7 +516,7 @@ const PostComponent = (props: Props): JSX.Element => {
 
     return (
         <>
-            {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
+            {(isSearchResultItem || (props.location === Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 id={getTestId()}
