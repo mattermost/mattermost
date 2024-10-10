@@ -58,6 +58,7 @@ export type TableMeta = {
     onRowClick?: (row: string) => void;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
+    disablePaginationControls?: boolean;
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
     paginationInfo?: ReactNode;
@@ -87,6 +88,8 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     const headerIdPrefix = `${tableMeta.tableId}-header-`;
     const rowIdPrefix = `${tableMeta.tableId}-row-`;
     const cellIdPrefix = `${tableMeta.tableId}-cell-`;
+
+    const hasPagination = !tableMeta.disablePaginationControls;
 
     const pageSizeOptions = useMemo(() => {
         return PAGE_SIZES.map((size) => {
@@ -119,20 +122,22 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     return (
         <div className='adminConsoleListTableContainer'>
-            <div className='adminConsoleListTabletOptionalHead'>
-                {tableMeta.hasDualSidedPagination && (
-                    <>
-                        {tableMeta.paginationInfo}
-                        <Pagination
-                            disablePrevPage={tableMeta.disablePrevPage}
-                            disableNextPage={tableMeta.disableNextPage}
-                            isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                            onPreviousPageClick={tableMeta.onPreviousPageClick}
-                            onNextPageClick={tableMeta.onNextPageClick}
-                        />
-                    </>
-                )}
-            </div>
+            {hasPagination && (
+                <div className='adminConsoleListTabletOptionalHead'>
+                    {tableMeta.hasDualSidedPagination && (
+                        <>
+                            {tableMeta.paginationInfo}
+                            <Pagination
+                                disablePrevPage={tableMeta.disablePrevPage}
+                                disableNextPage={tableMeta.disableNextPage}
+                                isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                                onPreviousPageClick={tableMeta.onPreviousPageClick}
+                                onNextPageClick={tableMeta.onNextPageClick}
+                            />
+                        </>
+                    )}
+                </div>
+            )}
             <table
                 id={tableMeta.tableId}
                 aria-colcount={colCount}
@@ -269,9 +274,9 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     ))}
                 </tfoot>
             </table>
-            <div className='adminConsoleListTabletOptionalFoot'>
-                {tableMeta.paginationInfo}
-                {handlePageSizeChange && (
+            {hasPagination && (
+                <div className='adminConsoleListTabletOptionalFoot'>
+                    {tableMeta.paginationInfo}
                     <div
                         className='adminConsoleListTablePageSize'
                         aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
@@ -302,15 +307,16 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             defaultMessage='rows per page'
                         />
                     </div>
-                )}
-                <Pagination
-                    disablePrevPage={tableMeta.disablePrevPage}
-                    disableNextPage={tableMeta.disableNextPage}
-                    isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                    onPreviousPageClick={tableMeta.onPreviousPageClick}
-                    onNextPageClick={tableMeta.onNextPageClick}
-                />
-            </div>
+                    <Pagination
+                        disablePrevPage={tableMeta.disablePrevPage}
+                        disableNextPage={tableMeta.disableNextPage}
+                        isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                        onPreviousPageClick={tableMeta.onPreviousPageClick}
+                        onNextPageClick={tableMeta.onNextPageClick}
+                    />
+
+                </div>
+            )}
         </div>
     );
 }
