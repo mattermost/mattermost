@@ -73,6 +73,14 @@ type UserImportData struct {
 	ShowUnreadSection  *string   `json:"show_unread_section,omitempty"`
 	DeleteAt           *int64    `json:"delete_at,omitempty"`
 
+	SendOnCtrlEnter          *string `json:"send_on_ctrl_enter,omitempty"`
+	CodeBlockCtrlEnter       *string `json:"code_block_ctrl_enter,omitempty"`
+	ShowJoinLeave            *string `json:"show_join_leave,omitempty"`
+	ShowUnreadScrollPosition *string `json:"show_unread_scroll_position,omitempty"`
+	SyncDrafts               *string `json:"sync_drafts,omitempty"`
+	LimitVisibleDmsGms       *string `json:"limit_visible_dms_gms,omitempty"`
+	NameFormat               *string `json:"name_format,omitempty"`
+
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
 	Theme               *string `json:"theme,omitempty"`
@@ -169,6 +177,7 @@ type ReplyImportData struct {
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type PostImportData struct {
@@ -210,7 +219,7 @@ type DirectPostImportData struct {
 	CreateAt *int64                 `json:"create_at"`
 	EditAt   *int64                 `json:"edit_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by"`
+	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`

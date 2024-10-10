@@ -144,28 +144,35 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 	return &imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			Username:           &user.Username,
-			Email:              &user.Email,
-			AuthService:        authService,
-			AuthData:           user.AuthData,
-			Nickname:           &user.Nickname,
-			FirstName:          &user.FirstName,
-			LastName:           &user.LastName,
-			Position:           &user.Position,
-			Roles:              &user.Roles,
-			Locale:             &user.Locale,
-			UseMarkdownPreview: exportedPrefs["UseMarkdownPreview"],
-			UseFormatting:      exportedPrefs["UseFormatting"],
-			ShowUnreadSection:  exportedPrefs["ShowUnreadSection"],
-			Theme:              exportedPrefs["Theme"],
-			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
-			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
-			MessageDisplay:     exportedPrefs["MessageDisplay"],
-			ColorizeUsernames:  exportedPrefs["ColorizeUsernames"],
-			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
-			TutorialStep:       exportedPrefs["TutorialStep"],
-			EmailInterval:      exportedPrefs["EmailInterval"],
-			DeleteAt:           &user.DeleteAt,
+			Username:                 &user.Username,
+			Email:                    &user.Email,
+			AuthService:              authService,
+			AuthData:                 user.AuthData,
+			Nickname:                 &user.Nickname,
+			FirstName:                &user.FirstName,
+			LastName:                 &user.LastName,
+			Position:                 &user.Position,
+			Roles:                    &user.Roles,
+			Locale:                   &user.Locale,
+			UseMarkdownPreview:       exportedPrefs["UseMarkdownPreview"],
+			UseFormatting:            exportedPrefs["UseFormatting"],
+			ShowUnreadSection:        exportedPrefs["ShowUnreadSection"],
+			Theme:                    exportedPrefs["Theme"],
+			UseMilitaryTime:          exportedPrefs["UseMilitaryTime"],
+			CollapsePreviews:         exportedPrefs["CollapsePreviews"],
+			MessageDisplay:           exportedPrefs["MessageDisplay"],
+			ColorizeUsernames:        exportedPrefs["ColorizeUsernames"],
+			ChannelDisplayMode:       exportedPrefs["ChannelDisplayMode"],
+			TutorialStep:             exportedPrefs["TutorialStep"],
+			EmailInterval:            exportedPrefs["EmailInterval"],
+			NameFormat:               exportedPrefs["NameFormat"],
+			SendOnCtrlEnter:          exportedPrefs["SendOnCtrlEnter"],
+			ShowJoinLeave:            exportedPrefs["ShowJoinLeave"],
+			SyncDrafts:               exportedPrefs["SyncDrafts"],
+			ShowUnreadScrollPosition: exportedPrefs["ShowUnreadScrollPosition"],
+			LimitVisibleDmsGms:       exportedPrefs["LimitVisibleDmsGms"],
+			CodeBlockCtrlEnter:       exportedPrefs["CodeBlockCtrlEnter"],
+			DeleteAt:                 &user.DeleteAt,
 		},
 	}
 }
@@ -238,17 +245,20 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 }
 
 func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
+	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team:     &post.TeamName,
-			Channel:  &post.ChannelName,
-			User:     &post.Username,
-			Type:     &post.Type,
-			Message:  &post.Message,
-			Props:    &post.Props,
-			CreateAt: &post.CreateAt,
-			EditAt:   &post.EditAt,
+			Team:      &post.TeamName,
+			Channel:   &post.ChannelName,
+			User:      &post.Username,
+			Type:      &post.Type,
+			Message:   &post.Message,
+			Props:     &post.Props,
+			CreateAt:  &post.CreateAt,
+			EditAt:    &post.EditAt,
+			IsPinned:  &post.IsPinned,
+			FlaggedBy: &f,
 		},
 	}
 }
@@ -258,6 +268,7 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
 	}
+	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "direct_post",
 		DirectPost: &imports.DirectPostImportData{
@@ -268,17 +279,22 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
 			EditAt:         &post.EditAt,
+			IsPinned:       &post.IsPinned,
+			FlaggedBy:      &f,
 		},
 	}
 }
 
 func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
+	f := []string(post.FlaggedBy)
 	return &imports.ReplyImportData{
-		User:     &post.Username,
-		Type:     &post.Type,
-		Message:  &post.Message,
-		CreateAt: &post.CreateAt,
-		EditAt:   &post.EditAt,
+		User:      &post.Username,
+		Type:      &post.Type,
+		Message:   &post.Message,
+		CreateAt:  &post.CreateAt,
+		EditAt:    &post.EditAt,
+		IsPinned:  &post.IsPinned,
+		FlaggedBy: &f,
 	}
 }
 
