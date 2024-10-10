@@ -67,21 +67,19 @@ class MobileChannelHeaderPlug extends React.PureComponent<Props> {
         }
 
         return (
-            <li className='flex-parent--center'>
-                <button
-                    id={`${binding.app_id}_${binding.location}`}
-                    className='navbar-toggle navbar-right__icon'
-                    onClick={onClick}
-                >
-                    <span className='icon navbar-plugin-button'>
-                        <img
-                            src={binding.icon}
-                            width='16'
-                            height='16'
-                        />
-                    </span>
-                </button>
-            </li>
+            <button
+                id={`${binding.app_id}_${binding.location}`}
+                className='navbar-toggle navbar-right__icon'
+                onClick={onClick}
+            >
+                <span className='icon navbar-plugin-button'>
+                    <img
+                        src={binding.icon}
+                        width='16'
+                        height='16'
+                    />
+                </span>
+            </button>
         );
     };
     createButton = (plug: PluginComponent) => {
@@ -106,16 +104,14 @@ class MobileChannelHeaderPlug extends React.PureComponent<Props> {
         }
 
         return (
-            <li className='flex-parent--center'>
-                <button
-                    className='navbar-toggle navbar-right__icon'
-                    onClick={onClick}
-                >
-                    <span className='icon navbar-plugin-button'>
-                        {plug.icon}
-                    </span>
-                </button>
-            </li>
+            <button
+                className='navbar-toggle navbar-right__icon'
+                onClick={onClick}
+            >
+                <span className='icon navbar-plugin-button'>
+                    {plug.icon}
+                </span>
+            </button>
         );
     };
 
