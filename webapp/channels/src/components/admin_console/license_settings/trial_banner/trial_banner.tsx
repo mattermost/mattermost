@@ -14,7 +14,6 @@ import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
 import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AboutLinks, LicenseLinks, Preferences, Unique} from 'utils/constants';
@@ -192,7 +191,7 @@ const TrialBanner = ({
             role='button'
             onClick={openEEModal}
         >
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='admin.license.enterprise.upgrade.eeLicenseLink'
                 defaultMessage='Enterprise Edition License'
             />
