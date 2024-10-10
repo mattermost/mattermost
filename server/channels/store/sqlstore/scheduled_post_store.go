@@ -69,8 +69,8 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	scheduledPost.PreSave()
 	maxMessageSize := s.getMaxMessageSize()
-	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
-		return nil, errors.Wrap(err, "failed to validate scheduled post")
+	if err := scheduledPost.IsMessageLengthValid(maxMessageSize); err != nil {
+		return nil, errors.Wrap(err, "failed to validate scheduled post message length")
 	}
 
 	builder := s.getQueryBuilder().
@@ -214,8 +214,8 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 	scheduledPost.PreUpdate()
 	maxMessageSize := s.getMaxMessageSize()
-	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
-		return errors.Wrap(err, "failed to validate scheduled post")
+	if err := scheduledPost.IsMessageLengthValid(maxMessageSize); err != nil {
+		return errors.Wrap(err, "failed to validate scheduled post message length")
 	}
 
 	builder := s.getQueryBuilder().
