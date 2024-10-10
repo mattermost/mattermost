@@ -60,7 +60,8 @@ func TestGetPing(t *testing.T) {
 	}, "with server status")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		th.App.ReloadConfig()
+		err := th.App.ReloadConfig()
+		require.NoError(t, err)
 		respMap, resp, err := client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -70,7 +71,8 @@ func TestGetPing(t *testing.T) {
 		// Run the environment variable override code to test
 		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
-		th.App.ReloadConfig()
+		err = th.App.ReloadConfig()
+		require.NoError(t, err)
 
 		respMap, resp, err = client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
@@ -96,7 +98,8 @@ func TestGetPing(t *testing.T) {
 	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		th.App.ReloadConfig()
+		err := th.App.ReloadConfig()
+		require.NoError(t, err)
 		resp, err := client.DoAPIGet(context.Background(), "/system/ping?device_id=platform:id", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -131,7 +134,9 @@ func TestGetAudits(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
+
 	_, resp, err = client.GetAudits(context.Background(), 0, 100, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -408,7 +413,9 @@ func TestGetLogs(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout(context.Background())
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
 	_, resp, err = th.Client.GetLogs(context.Background(), 0, 10)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -448,7 +455,9 @@ func TestDownloadLogs(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout(context.Background())
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
 	_, resp, err = th.Client.DownloadLogs(context.Background())
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -479,7 +488,8 @@ func TestPostLog(t *testing.T) {
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = true
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 
 	_, _, err = client.PostLog(context.Background(), message)
 	require.NoError(t, err)
@@ -559,7 +569,9 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(0), rows2[5].Value)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
+
 	_, resp, err = client.GetAnalyticsOld(context.Background(), "", th.BasicTeam.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -668,7 +680,8 @@ func TestRedirectLocation(t *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Location", expected)
 		res.WriteHeader(http.StatusFound)
-		res.Write([]byte("body"))
+		_, err := res.Write([]byte("body"))
+		require.NoError(t, err)
 	}))
 	defer func() { testServer.Close() }()
 
@@ -714,7 +727,9 @@ func TestRedirectLocation(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, actual, "")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
+
 	_, resp, err = client.GetRedirectLocation(context.Background(), "", "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -726,7 +741,8 @@ func TestRedirectLocation(t *testing.T) {
 	testServer2 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Location", almostTooLongUrl)
 		res.WriteHeader(http.StatusFound)
-		res.Write([]byte("body"))
+		_, err = res.Write([]byte("body"))
+		require.NoError(t, err)
 	}))
 	defer func() { testServer2.Close() }()
 
@@ -738,7 +754,8 @@ func TestRedirectLocation(t *testing.T) {
 	testServer3 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Location", tooLongUrl)
 		res.WriteHeader(http.StatusFound)
-		res.Write([]byte("body"))
+		_, err = res.Write([]byte("body"))
+		require.NoError(t, err)
 	}))
 	defer func() { testServer3.Close() }()
 
@@ -933,7 +950,8 @@ func TestPushNotificationAck(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			defer func() {
 				session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
-				th.Server.Store().Session().UpdateProps(session)
+				err = th.Server.Store().Session().UpdateProps(session)
+				require.NoError(t, err)
 				th.App.ClearSessionCacheForUser(session.UserId)
 			}()
 
@@ -973,7 +991,8 @@ func TestCompleteOnboarding(t *testing.T) {
 	require.NoError(t, err)
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
-		res.Write(tarData)
+		_, err = res.Write(tarData)
+		require.NoError(t, err)
 	}))
 	defer pluginServer.Close()
 
@@ -999,7 +1018,8 @@ func TestCompleteOnboarding(t *testing.T) {
 		var data []byte
 		data, err = json.Marshal(samplePlugins)
 		require.NoError(t, err)
-		res.Write(data)
+		_, err = res.Write(data)
+		require.NoError(t, err)
 	}))
 	defer marketplaceServer.Close()
 
