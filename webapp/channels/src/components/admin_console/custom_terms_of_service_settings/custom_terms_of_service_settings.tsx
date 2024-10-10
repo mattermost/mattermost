@@ -14,7 +14,6 @@ import type {BaseProps, BaseState} from 'components/admin_console/admin_settings
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
-import FormattedMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {Constants} from 'utils/constants';
@@ -187,7 +186,10 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
     };
 
     renderTitle() {
-        return (<FormattedMessage {...messages.termsOfServiceTitle}/>);
+        return (<FormattedMessage {...messages.termsOfServiceTitle} 
+            values={{
+            b: (chunks) => <b>{chunks}</b>,
+        }}/>);
     }
 
     renderSettings = () => {
@@ -200,8 +202,18 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                 <BooleanSetting
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}
-                    label={<FormattedMessage {...messages.enableTermsOfServiceTitle}/>}
-                    helpText={<FormattedMessage {...messages.enableTermsOfServiceHelp}/>}
+                    label={<FormattedMessage
+                        {...messages.enableTermsOfServiceTitle}
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
+                    />}
+                    helpText={<FormattedMessage
+                        {...messages.enableTermsOfServiceHelp}
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
+                    />}
                     value={Boolean(this.state.termsEnabled)}
                     onChange={this.handleTermsEnabledChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceEnabled')}
@@ -211,8 +223,18 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceText'}
                     id={'SupportSettings.CustomTermsOfServiceText'}
                     type={'textarea'}
-                    label={<FormattedMessage {...messages.termsOfServiceTextTitle}/>}
-                    helpText={<FormattedMessage {...messages.termsOfServiceTextHelp}/>}
+                    label={<FormattedMessage
+                        {...messages.termsOfServiceTextTitle}
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
+                    />}
+                    helpText={<FormattedMessage
+                        {...messages.termsOfServiceTextHelp}
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
+                    />}
                     onChange={this.handleTermsTextChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceText')}
                     value={this.state.termsText}
@@ -223,8 +245,18 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceReAcceptancePeriod'}
                     id={'SupportSettings.CustomTermsOfServiceReAcceptancePeriod'}
                     type={'number'}
-                    label={<FormattedMessage {...messages.termsOfServiceReAcceptanceTitle}/>}
-                    helpText={<FormattedMessage {...messages.termsOfServiceReAcceptanceHelp}/>}
+                    label={<FormattedMessage
+                        {...messages.termsOfServiceReAcceptanceTitle}
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
+                    />}
+                    helpText={<FormattedMessage
+                        {...messages.termsOfServiceReAcceptanceHelp}
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
+                    />}
                     value={this.state.reAcceptancePeriod || ''}
                     onChange={this.handleReAcceptancePeriodChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceReAcceptancePeriod')}
