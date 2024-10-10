@@ -3,9 +3,9 @@
 
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import ConfirmModal from 'components/confirm_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import BooleanSetting from './boolean_setting';
 
@@ -54,9 +54,12 @@ const CustomEnableDisableGuestAccountsSetting = ({
     );
 
     const helpText = (
-        <FormattedMarkdownMessage
-            id='admin.guest_access.enableDescription'
-            defaultMessage='When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests.'
+        <FormattedMessage
+            id='admin.guest_access.helpText'
+            defaultMessage='When true, external guest can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.'
+            values={{
+                a: (chunks: string) => <Link to='/admin_console/user_management/permissions/system_scheme'>{chunks}</Link>,
+            }}
         />
     );
 
