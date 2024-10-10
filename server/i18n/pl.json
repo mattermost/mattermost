@@ -7029,7 +7029,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | ID połączenia | Adres URL | Zaproszenie zaakceptowane | Online | Ostatni ping |"
+    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | Identyfikator połączenia | Adres URL witryny | Domyślny zespół | Akceptacja zaproszenia | Online | Ostatni ping | Usunięto |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10162,5 +10162,17 @@
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
     "translation": "Nie można zaprosić zdalnego do kanału"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Rozmiar przesłanej wtyczki przekracza limit. Limit ten można zmienić w konsoli systemowej poprzez Magazyn plików > Maksymalny rozmiar pliku"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Nie udało się przesłać pliku. Kanał przesyłania nie jest współdzielony ze zdalnym."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Nie można zaktualizować dodatkowych właściwości sesji."
   }
 ]

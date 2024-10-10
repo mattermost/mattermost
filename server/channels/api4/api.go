@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/manualtesting"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -336,6 +337,11 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()
 	api.InitClientPerformanceMetrics()
+
+	// If we allow testing then listen for manual testing URL hits
+	if *srv.Config().ServiceSettings.EnableTesting {
+		api.BaseRoutes.Root.Handle("/manualtest", api.APIHandler(manualtesting.ManualTest)).Methods(http.MethodGet)
+	}
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

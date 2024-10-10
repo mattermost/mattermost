@@ -2915,21 +2915,33 @@ func (_m *ChannelStore) UpdateMemberNotifyProps(channelID string, userID string,
 }
 
 // UpdateMembersRole provides a mock function with given fields: channelID, userIDs
-func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
+func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
 	ret := _m.Called(channelID, userIDs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateMembersRole")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.ChannelMember, error)); ok {
+		return rf(channelID, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.ChannelMember); ok {
 		r0 = rf(channelID, userIDs)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(channelID, userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateMultipleMembers provides a mock function with given fields: members
