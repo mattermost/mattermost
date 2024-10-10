@@ -2277,6 +2277,10 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy license."
+  },
+  {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Could not check if a trial can be started"
   },
