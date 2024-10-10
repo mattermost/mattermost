@@ -22,6 +22,7 @@ const (
 
 	NotificationReasonFetchError                         NotificationReason = "fetch_error"
 	NotificationReasonParseError                         NotificationReason = "json_parse_error"
+	NotificationReasonMarshalError                       NotificationReason = "json_marshal_error"
 	NotificationReasonPushProxyError                     NotificationReason = "push_proxy_error"
 	NotificationReasonPushProxySendError                 NotificationReason = "push_proxy_send_error"
 	NotificationReasonPushProxyRemoveDevice              NotificationReason = "push_proxy_remove_device"
