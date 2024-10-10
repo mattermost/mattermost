@@ -37,6 +37,9 @@ import './bookmark_create_modal.scss';
 import CreateModalNameInput from './create_modal_name_input';
 import {useCanUploadFiles} from './utils';
 
+const MAX_LINK_LENGTH = 1024;
+const MAX_TITLE_LENGTH = 64;
+
 type Props = {
     channelId: string;
     bookmarkType?: ChannelBookmark['type'];
@@ -377,6 +380,7 @@ function ChannelBookmarkCreateModal({
                 {type === 'link' ? (
                     <>
                         <Input
+                            maxLength={MAX_LINK_LENGTH}
                             type='text'
                             name='bookmark-link'
                             containerClassName='linkInput'
@@ -449,13 +453,14 @@ function ChannelBookmarkCreateModal({
                             />
                         </FieldLabel>
                         <CreateModalNameInput
+                            maxLength={MAX_TITLE_LENGTH}
                             type={type}
                             imageUrl={icon}
                             fileInfo={pendingFile || fileInfo}
                             emoji={emoji}
                             setEmoji={setEmoji}
-                            displayName={displayName}
-                            placeholder={displayNameValue}
+                            displayName={displayName?.substring(0, MAX_TITLE_LENGTH)}
+                            placeholder={displayNameValue?.substring(0, MAX_TITLE_LENGTH)}
                             setDisplayName={setDisplayName}
                             onAddCustomEmojiClick={onHide}
                             showEmojiPicker={showEmojiPicker}
