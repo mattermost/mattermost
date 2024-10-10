@@ -7,19 +7,32 @@ import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {removeDraft, updateDraft} from 'actions/views/drafts';
+
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
+import {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
 
-import AdavancedTextEditor from './advanced_text_editor';
+import AdvancedTextEditor from './advanced_text_editor';
+
+jest.mock('actions/views/drafts', () => ({
+    ...jest.requireActual('actions/views/drafts'),
+    updateDraft: jest.fn((...args) => ({type: 'MOCK_UPDATE_DRAFT', args})),
+    removeDraft: jest.fn((...args) => ({type: 'MOCK_REMOVE_DRAFT', args})),
+}));
+
+const mockedRemoveDraft = jest.mocked(removeDraft);
+const mockedUpdateDraft = jest.mocked(updateDraft);
 
 const currentUserId = 'current_user_id';
 const channelId = 'current_channel_id';
+const otherChannelId = 'other_channel_id';
 
 const initialState = {
     entities: {
@@ -39,15 +52,33 @@ const initialState = {
         },
         channels: {
             channels: {
-                current_channel_id: TestHelper.getChannelMock({id: 'current_channel_id', team_id: 'current_team_id'}),
+                current_channel_id: TestHelper.getChannelMock({
+                    id: 'current_channel_id',
+                    team_id: 'current_team_id',
+                    display_name: 'Test Channel',
+                }),
+                other_channel_id: TestHelper.getChannelMock({
+                    id: 'other_channel_id',
+                    team_id: 'current_team_id',
+                    display_name: 'Other Channel',
+                }),
             },
             stats: {
                 current_channel_id: {
                     member_count: 1,
                 },
+                other_channel_id: {
+                    member_count: 1,
+                },
             },
             roles: {
                 current_channel_id: new Set(['channel_roles']),
+                other_channel_id: new Set(['channel_roles']),
+            },
+        },
+        roles: {
+            roles: {
+                user_roles: {permissions: [Permissions.CREATE_POST]},
             },
         },
         teams: {
@@ -147,7 +178,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     describe('keyDown behavior', () => {
         it('ESC should blur the input', () => {
             renderWithContext(
-                <AdavancedTextEditor
+                <AdvancedTextEditor
                     {...baseProps}
                 />,
                 mergeObjects(initialState, {
@@ -164,5 +195,187 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             userEvent.type(textbox, 'something{esc}');
             expect(textbox).not.toHaveFocus();
         });
+    });
+
+    it('should set the textbox value to an existing draft on mount and when changing channels', () => {
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original draft',
+                            }),
+                        },
+                        [StoragePrefixes.DRAFT + otherChannelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'a different draft',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        expect(screen.getByLabelText('write to test channel')).toHaveValue('original draft');
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+        expect(screen.getByLabelText('write to other channel')).toHaveValue('a different draft');
+    });
+
+    it('should save a new draft when changing channels', () => {
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            initialState,
+        );
+
+        userEvent.type(screen.getByLabelText('write to test channel'), 'some text');
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
+        expect(mockedUpdateDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
+            message: 'some text',
+            show: true,
+        });
+    });
+
+    it('MM-60541 should not save an unmodified draft when changing channels', () => {
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original draft',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+    });
+
+    it('should save an updated draft when changing channels', () => {
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original draft',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        userEvent.type(screen.getByLabelText('write to test channel'), ' plus some new text');
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
+        expect(mockedUpdateDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
+            message: 'original draft plus some new text',
+            show: true,
+        });
+    });
+
+    it('should deleted a deleted draft when changing channels', () => {
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original draft',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        userEvent.clear(screen.getByLabelText('write to test channel'));
+
+        expect(mockedRemoveDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
+        expect(mockedRemoveDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+    });
+
+    it('MM-60541 should not attempt to delete a non-existent draft when changing channels', () => {
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            initialState,
+        );
+
+        expect(mockedRemoveDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
+        expect(mockedRemoveDraft).not.toHaveBeenCalled();
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 });

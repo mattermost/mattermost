@@ -150,7 +150,7 @@ const AdvancedTextEditor = ({
     const textboxRef = useRef<TextboxClass>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
-    const previousDraft = useRef(draftFromStore);
+    const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
 
@@ -427,16 +427,24 @@ const AdvancedTextEditor = ({
         };
     }, [handleDraftChange, draft]);
 
-    // Set the draft from store when changing post or channels, and store the previus one
+    // Keep track of the draft as a ref so that we can save it when changing channels
     useEffect(() => {
-        setDraft(draftFromStore);
-        return () => handleDraftChange(previousDraft.current, {instant: true, show: true});
-    }, [channelId, postId]);
-
-    // Keep track of the previous draft
-    useEffect(() => {
-        previousDraft.current = draft;
+        draftRef.current = draft;
     }, [draft]);
+
+    // Set the draft from store when changing post or channels, and store the previous one
+    useEffect(() => {
+        // Store the draft that existed when we opened the channel to know if it should be saved
+        const draftOnOpen = draftFromStore;
+
+        setDraft(draftOnOpen);
+
+        return () => {
+            if (draftOnOpen !== draftRef.current) {
+                handleDraftChange(draftRef.current, {instant: true, show: true});
+            }
+        };
+    }, [channelId, postId]);
 
     const disableSendButton = Boolean(readOnlyChannel || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel ? null : (
