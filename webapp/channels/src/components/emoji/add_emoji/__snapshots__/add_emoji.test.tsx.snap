@@ -121,18 +121,24 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          data-testid="save-button"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Save",
+              "id": "add_emoji.save",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Saving..."
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Save"
-            id="add_emoji.save"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "add_emoji.saving",
+            }
+          }
+          testId="save-button"
+        />
       </div>
     </form>
   </div>
@@ -296,18 +302,24 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          data-testid="save-button"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Save",
+              "id": "add_emoji.save",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Saving..."
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Save"
-            id="add_emoji.save"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "add_emoji.saving",
+            }
+          }
+          testId="save-button"
+        />
       </div>
     </form>
   </div>
@@ -435,18 +447,24 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          data-testid="save-button"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Save",
+              "id": "add_emoji.save",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Saving..."
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Save"
-            id="add_emoji.save"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "add_emoji.saving",
+            }
+          }
+          testId="save-button"
+        />
       </div>
     </form>
   </div>

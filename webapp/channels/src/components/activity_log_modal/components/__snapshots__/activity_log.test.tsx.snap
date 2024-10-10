@@ -79,15 +79,16 @@ exports[`components/activity_log_modal/ActivityLog should match snapshot 1`] = `
   <div
     className="activity-log__action"
   >
-    <button
-      className="btn btn-primary"
+    <Button
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Log Out",
+          "id": "activity_log.logout",
+        }
+      }
       onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Log Out"
-        id="activity_log.logout"
-      />
-    </button>
+    />
   </div>
 </div>
 `;
@@ -171,15 +172,16 @@ exports[`components/activity_log_modal/ActivityLog should match snapshot with mo
   <div
     className="activity-log__action"
   >
-    <button
-      className="btn btn-primary"
+    <Button
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Log Out",
+          "id": "activity_log.logout",
+        }
+      }
       onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Log Out"
-        id="activity_log.logout"
-      />
-    </button>
+    />
   </div>
 </div>
 `;

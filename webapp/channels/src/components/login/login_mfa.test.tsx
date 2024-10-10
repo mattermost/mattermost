@@ -4,8 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import SaveButton from 'components/button/save_button';
 import LoginMfa from 'components/login/login_mfa';
-import SaveButton from 'components/save_button';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 

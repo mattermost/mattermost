@@ -428,18 +428,24 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveCommand"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "Footer",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="Footer"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
+          testId="saveCommand"
+        />
         <div>
           renderExtra
         </div>
@@ -876,17 +882,14 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveCommand"
+          buttonType="submit"
+          emphasis="primary"
+          idleText="Footer as string"
           onClick={[Function]}
           spinning={false}
           spinningText="Loading as string"
-          type="submit"
-        >
-          <span>
-            Footer as string
-          </span>
-        </Memo(SpinnerButton)>
+          testId="saveCommand"
+        />
         <div>
           renderExtra
         </div>
@@ -1327,18 +1330,24 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveCommand"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "Footer",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="Footer"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
+          testId="saveCommand"
+        />
         <div>
           renderExtra
         </div>

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -12,8 +12,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS, hoursOption} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
 import SetByEnv from 'components/admin_console/set_by_env';
+import SaveButton from 'components/button/save_button';
 import Card from 'components/card/card';
-import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
 
@@ -21,6 +21,13 @@ import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
 
 import './global_policy_form.scss';
+
+const messages = defineMessages({
+    save: {
+        id: 'admin.data_retention.custom_policy.save',
+        defaultMessage: 'Save',
+    },
+});
 
 type ValueType = {
     label: string | JSX.Element;
@@ -253,12 +260,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        defaultMessage={(
-                            <FormattedMessage
-                                id='admin.data_retention.custom_policy.save'
-                                defaultMessage='Save'
-                            />
-                        )}
+                        defaultMessage={messages.save}
                     />
                     <BlockableLink
                         className='cancel-button'

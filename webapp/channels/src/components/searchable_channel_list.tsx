@@ -27,6 +27,7 @@ import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
+import Button from './button';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -374,32 +375,25 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
             if (channelsToDisplay.length >= this.props.channelsPerPage && pageEnd < this.props.channels.length) {
                 nextButton = (
-                    <button
-                        className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                    <Button
+                        emphasis='tertiary'
+                        size='small'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
-                        aria-label={localizeMessage({id: 'more_channels.next', defaultMessage: 'Next'})}
-                    >
-                        <FormattedMessage
-                            id='more_channels.next'
-                            defaultMessage='Next'
-                        />
-                    </button>
+                        label={messages.next}
+                        pull='right'
+                    />
                 );
             }
 
             if (this.state.page > 0) {
                 previousButton = (
-                    <button
-                        className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                    <Button
+                        emphasis='tertiary'
+                        size='small'
                         onClick={this.previousPage}
-                        aria-label={localizeMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}
-                    >
-                        <FormattedMessage
-                            id='more_channels.prev'
-                            defaultMessage='Previous'
-                        />
-                    </button>
+                        label={messages.previous}
+                    />
                 );
             }
         }
@@ -598,6 +592,14 @@ const messages = defineMessages({
     noMore: {
         id: 'more_channels.noMore',
         defaultMessage: 'No results for {text}',
+    },
+    next: {
+        id: 'more_channels.next',
+        defaultMessage: 'Next',
+    },
+    previous: {
+        id: 'more_channels.prev',
+        defaultMessage: 'Previous',
     },
 });
 

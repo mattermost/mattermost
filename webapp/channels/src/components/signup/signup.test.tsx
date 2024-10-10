@@ -11,8 +11,8 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
+import SaveButton from 'components/button/save_button';
 import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
-import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';

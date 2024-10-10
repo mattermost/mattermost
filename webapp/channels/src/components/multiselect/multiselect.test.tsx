@@ -57,7 +57,7 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        wrapper.find('.filter-control__next').simulate('click');
+        wrapper.find('[testId="filter-control__next"]').simulate('click');
         wrapper.update();
         expect(wrapper.state('page')).toEqual(1);
         expect(wrapper).toMatchSnapshot();
@@ -90,7 +90,7 @@ describe('components/multiselect/multiselect', () => {
         );
 
         expect(wrapper.find(MultiSelectList).state('selected')).toEqual(-1);
-        wrapper.find('.filter-control__next').simulate('click');
+        wrapper.find('[data-testid="filter-control__next"]').simulate('click');
         expect(wrapper.find(MultiSelectList).state('selected')).toEqual(0);
     });
 

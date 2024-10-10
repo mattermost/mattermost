@@ -419,34 +419,48 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     </LinkAnchor>
                   </Link>
                   <Memo(SpinnerButton)
-                    className="btn btn-primary"
-                    id="saveConnection"
+                    buttonType="submit"
+                    emphasis="primary"
+                    idleText={
+                      Object {
+                        "defaultMessage": "Save",
+                        "id": "add_outgoing_oauth_connection.save",
+                      }
+                    }
                     onClick={[Function]}
                     spinning={false}
-                    spinningText="Saving..."
-                    type="submit"
+                    spinningText={
+                      Object {
+                        "defaultMessage": "Saving...",
+                        "id": "add_outgoing_oauth_connection.saving",
+                      }
+                    }
+                    testId="saveConnection"
                   >
-                    <button
-                      className="btn btn-primary"
+                    <Button
+                      buttonType="submit"
                       disabled={false}
-                      id="saveConnection"
+                      emphasis="primary"
+                      label={
+                        Object {
+                          "defaultMessage": "Save",
+                          "id": "add_outgoing_oauth_connection.save",
+                        }
+                      }
+                      loading={false}
                       onClick={[Function]}
-                      type="submit"
+                      testId="saveConnection"
                     >
-                      <Memo(LoadingWrapper)
-                        loading={false}
-                        text="Saving..."
+                      <button
+                        className="btn btn-primary"
+                        data-testid="saveConnection"
+                        disabled={false}
+                        onClick={[Function]}
+                        type="submit"
                       >
-                        <FormattedMessage
-                          defaultMessage="Save"
-                          id="add_outgoing_oauth_connection.save"
-                        >
-                          <span>
-                            Save
-                          </span>
-                        </FormattedMessage>
-                      </Memo(LoadingWrapper)>
-                    </button>
+                        Save
+                      </button>
+                    </Button>
                   </Memo(SpinnerButton)>
                 </div>
               </form>

@@ -283,18 +283,24 @@ https://test.com/callback2"
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveOauthApp"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "Footer",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="Footer"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
+          testId="saveOauthApp"
+        />
         <div>
           renderExtra
         </div>
@@ -589,18 +595,24 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveOauthApp"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "Footer",
+            }
+          }
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="Footer"
-          />
-        </Memo(SpinnerButton)>
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
+          testId="saveOauthApp"
+        />
         <div>
           renderExtra
         </div>

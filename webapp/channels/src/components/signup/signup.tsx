@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import type {FocusEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
 
@@ -29,6 +29,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
+import SaveButton from 'components/button/save_button';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
@@ -42,7 +43,6 @@ import ColumnLayout from 'components/header_footer_route/content_layouts/column'
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
-import SaveButton from 'components/save_button';
 import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
@@ -61,6 +61,11 @@ import {isValidUsername, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'uti
 import type {GlobalState} from 'types/store';
 
 import './signup.scss';
+
+const messages = defineMessages({
+    createAccount: {id: 'signup_user_completed.create', defaultMessage: 'Create account'},
+    creatingAccount: {id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'},
+});
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -864,12 +869,13 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     />
                                     {getNewsletterCheck()}
                                     <SaveButton
-                                        extraClasses='signup-body-card-form-button-submit large'
+                                        emphasis='primary'
+                                        size='large'
                                         saving={isWaiting}
                                         disabled={!canSubmit}
                                         onClick={handleSubmit}
-                                        defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
-                                        savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
+                                        defaultMessage={messages.createAccount}
+                                        savingMessage={messages.creatingAccount}
                                     />
                                 </div>
                             )}

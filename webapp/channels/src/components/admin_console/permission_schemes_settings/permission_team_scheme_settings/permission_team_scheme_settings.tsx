@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -15,10 +15,10 @@ import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import SaveButton from 'components/button/save_button';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import LoadingScreen from 'components/loading_screen';
-import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
@@ -32,6 +32,10 @@ import TeamInList from './team_in_list';
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
+
+const messages = defineMessages({
+    saving: {id: 'admin.saving', defaultMessage: 'Saving Config...'},
+});
 
 type RolesMap = {
     [x: string]: Role;
@@ -799,7 +803,7 @@ class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComp
                         saving={this.state.saving}
                         disabled={this.props.isDisabled || !this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
+                        savingMessage={messages.saving}
                     />
                     <BlockableLink
                         className='cancel-button'

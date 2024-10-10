@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
@@ -13,13 +13,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import type EmojiMap from 'utils/emoji_map';
-import {localizeMessage} from 'utils/utils';
 
 export interface AddEmojiProps {
     actions: {
@@ -50,6 +49,11 @@ interface AddErrorResponse {
 interface AddEmojiResponse {
     data: CustomEmoji;
 }
+
+const messages = defineMessages({
+    saving: {id: 'add_emoji.saving', defaultMessage: 'Saving...'},
+    save: {id: 'add_emoji.save', defaultMessage: 'Save'},
+});
 
 export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmojiState> {
     constructor(props: AddEmojiProps) {
@@ -385,18 +389,14 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </Link>
                             <SpinnerButton
-                                data-testid='save-button'
-                                className='btn btn-primary'
-                                type='submit'
+                                testId='save-button'
+                                emphasis='primary'
+                                buttonType='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage({id: 'add_emoji.saving', defaultMessage: 'Saving...'})}
+                                spinningText={messages.saving}
                                 onClick={this.handleSaveButtonClick}
-                            >
-                                <FormattedMessage
-                                    id='add_emoji.save'
-                                    defaultMessage='Save'
-                                />
-                            </SpinnerButton>
+                                idleText={messages.save}
+                            />
                         </div>
                     </form>
                 </div>
