@@ -19,9 +19,9 @@ export interface Props {
     position?: 'top' | 'bottom';
     renderDividers?: string[];
     renderNoResults?: boolean;
-    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
+    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>, termKey?: string) => boolean;
     preventClose?: () => void;
-    onItemHover: (term: string) => void;
+    onItemHover: (term: string, termKey?: string) => void;
     pretext: string;
     cleared: boolean;
     matchedPretext: string[];
@@ -30,6 +30,7 @@ export interface Props {
     selection: string;
     components: Array<React.ComponentType<any>>;
     wrapperHeight?: number;
+    termKey?: string;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
@@ -256,8 +257,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
         let prevItemType = null;
         for (let i = 0; i < this.props.items.length; i++) {
             const item = this.props.items[i];
+            const termKey = this.props.termKey;
             const term = this.props.terms[i];
-            const isSelection = term === this.props.selection;
+            const isSelection = termKey === this.props.selection;
 
             // ReactComponent names need to be upper case when used in JSX
             const Component = this.props.components[i];
@@ -281,6 +283,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     ref={(ref: any) => this.itemRefs.set(term, ref)}
                     item={this.props.items[i]}
                     term={term}
+                    termKey={termKey}
                     matchedPretext={this.props.matchedPretext[i]}
                     isSelection={isSelection}
                     onClick={this.props.onCompleteWord}
