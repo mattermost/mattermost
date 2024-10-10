@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {DisplaySettings} from "../../../../platform/types/src/config";
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
@@ -29,7 +30,14 @@ import './browse_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
-const SEARCH_TIMEOUT_MILLISECONDS = 100;
+
+var displaySettings: DisplaySettings = {
+    CustomURLSchemes: [],
+    MaxMarkdownNodes: 0,
+    SuggestionDebounceDelay: 0,
+}
+const SEARCH_TIMEOUT_MILLISECONDS: number = displaySettings.SuggestionDebounceDelay || 100;
+
 export enum Filter {
     All = 'All',
     Public = 'Public',
