@@ -4,12 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-import {NavLink} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-
-import {getBasePath} from 'selectors/general';
 
 import {
     ShortScheduledPostIndicator,
@@ -39,9 +37,8 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     const id = location === Locations.RHS_COMMENT ? postId : channelId;
     const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, id));
 
-    const basePath = useSelector(getBasePath);
-    const currentTeam = useSelector(getCurrentTeam);
-    const scheduledPostLinkURL = `${basePath}${currentTeam?.name}/scheduled_posts`;
+    const currentTeamName = useSelector((state: GlobalState) => getCurrentTeam(state)?.name);
+    const scheduledPostLinkURL = `/${currentTeamName}/scheduled_posts`;
 
     if (!scheduledPostData?.count) {
         return null;
@@ -98,12 +95,12 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
                 className='icon icon-draft-indicator icon-clock-send-outline'
             />
             {scheduledPostText}
-            <NavLink to={scheduledPostLinkURL}>
+            <Link to={scheduledPostLinkURL}>
                 <FormattedMessage
                     id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
                     defaultMessage='See all scheduled messages'
                 />
-            </NavLink>
+            </Link>
         </div>
     );
 }
