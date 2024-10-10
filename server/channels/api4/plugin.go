@@ -276,7 +276,9 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -314,7 +316,9 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing json response", mlog.Err(err))
+	}
 }
 
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
