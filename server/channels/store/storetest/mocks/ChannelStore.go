@@ -1210,7 +1210,7 @@ func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Contex
 	return r0, r1, r2, r3
 }
 
-// GetDeleted provides a mock function with given fields: team_id, offset, limit, userID
+// GetDeleted provides a mock function with given fields: team_id, offset, limit, userID, includePrivate
 func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userID string, includePrivate bool) (model.ChannelList, error) {
 	ret := _m.Called(team_id, offset, limit, userID, includePrivate)
 
