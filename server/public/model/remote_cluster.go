@@ -13,6 +13,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -366,6 +367,22 @@ type RemoteClusterInvite struct {
 	RemoteTeamId string `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	SiteURL      string `json:"site_url"`
 	Token        string `json:"token"`
+}
+
+func (rci *RemoteClusterInvite) IsValid() *AppError {
+	if !IsValidId(rci.RemoteId) {
+		return NewAppError("RemoteClusterInvite.IsValid", "model.remote_cluster_invite.is_valid.remote_id.app_error", nil, "id="+rci.RemoteId, http.StatusBadRequest)
+	}
+
+	if rci.Token == "" {
+		return NewAppError("RemoteClusterInvite.IsValid", "model.remote_cluster_invite.is_valid.token.app_error", nil, "Token empty", http.StatusBadRequest)
+	}
+
+	if _, err := url.ParseRequestURI(rci.SiteURL); err != nil {
+		return NewAppError("RemoteClusterInvite.IsValid", "model.remote_cluster_invite.is_valid.site_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
 }
 
 func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
