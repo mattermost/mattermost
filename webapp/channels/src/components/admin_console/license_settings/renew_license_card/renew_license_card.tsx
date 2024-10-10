@@ -74,24 +74,22 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
                 />
             </div>
             <div className='RenewLicenseCard__licensedUsersNum'>
-                <FormattedMessage
-                    id='admin.license.renewalCard.usersNumbers_licensed'
-                    defaultMessage='<strong>Licensed Users:</strong> {licensedUsersNum}'
-                    values={{
-                        licensedUsersNum: license.Users,
-                        strong: (chunks: string) => <strong>{chunks}</strong>,
-                    }}
-                />
+                <strong>
+                    <FormattedMessage
+                        id='admin.license.renewalCard.usersNumbers_licensed'
+                        defaultMessage='Licensed Users: '
+                    />
+                </strong>
+                {license.Users}
             </div>
-            <div className='RenewLicenseCard__activeUsersNum_updated'>
-                <FormattedMessage
-                    id='admin.license.renewalCard.usersNumbers_active'
-                    defaultMessage='<strong>Active Users:</strong> {activeUsersNum}'
-                    values={{
-                        activeUsersNum: totalUsers,
-                        strong: (chunks: string) => <strong>{chunks}</strong>,
-                    }}
-                />
+            <div className='RenewLicenseCard__activeUsersNum'>
+                <strong>
+                    <FormattedMessage
+                        id='admin.license.renewalCard.usersNumbers_active'
+                        defaultMessage='Active Users: '
+                    />
+                </strong>
+                {totalUsers}
             </div>
             <div className='RenewLicenseCard__buttons'>
                 {contactSalesBtn}
