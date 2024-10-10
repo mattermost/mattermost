@@ -25,6 +25,8 @@ export type Options = {
     duplex?: 'half'; /** Optional, but required for node clients. Must be 'half' for half-duplex fetch; 'full' is reserved for future use. See https://fetch.spec.whatwg.org/#dom-requestinit-duplex */
 };
 
+export type OptsSignalExt = {signal?: AbortSignal};
+
 export type StatusOK = {
     status: 'OK';
 };
