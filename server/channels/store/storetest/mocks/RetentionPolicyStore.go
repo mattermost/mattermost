@@ -14,9 +14,9 @@ type RetentionPolicyStore struct {
 	mock.Mock
 }
 
-// AddChannels provides a mock function with given fields: policyId, channelIds
-func (_m *RetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
-	ret := _m.Called(policyId, channelIds)
+// AddChannels provides a mock function with given fields: policyID, channelIds
+func (_m *RetentionPolicyStore) AddChannels(policyID string, channelIds []string) error {
+	ret := _m.Called(policyID, channelIds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddChannels")
@@ -24,7 +24,7 @@ func (_m *RetentionPolicyStore) AddChannels(policyId string, channelIds []string
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(policyId, channelIds)
+		r0 = rf(policyID, channelIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -32,9 +32,9 @@ func (_m *RetentionPolicyStore) AddChannels(policyId string, channelIds []string
 	return r0
 }
 
-// AddTeams provides a mock function with given fields: policyId, teamIds
-func (_m *RetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
-	ret := _m.Called(policyId, teamIds)
+// AddTeams provides a mock function with given fields: policyID, teamIds
+func (_m *RetentionPolicyStore) AddTeams(policyID string, teamIds []string) error {
+	ret := _m.Called(policyID, teamIds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddTeams")
@@ -42,7 +42,7 @@ func (_m *RetentionPolicyStore) AddTeams(policyId string, teamIds []string) erro
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(policyId, teamIds)
+		r0 = rf(policyID, teamIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -214,9 +214,9 @@ func (_m *RetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset 
 	return r0, r1
 }
 
-// GetChannels provides a mock function with given fields: policyId, offset, limit
-func (_m *RetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
-	ret := _m.Called(policyId, offset, limit)
+// GetChannels provides a mock function with given fields: policyID, offset, limit
+func (_m *RetentionPolicyStore) GetChannels(policyID string, offset int, limit int) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(policyID, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannels")
@@ -225,10 +225,10 @@ func (_m *RetentionPolicyStore) GetChannels(policyId string, offset int, limit i
 	var r0 model.ChannelListWithTeamData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int, int) (model.ChannelListWithTeamData, error)); ok {
-		return rf(policyId, offset, limit)
+		return rf(policyID, offset, limit)
 	}
 	if rf, ok := ret.Get(0).(func(string, int, int) model.ChannelListWithTeamData); ok {
-		r0 = rf(policyId, offset, limit)
+		r0 = rf(policyID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelListWithTeamData)
@@ -236,7 +236,7 @@ func (_m *RetentionPolicyStore) GetChannels(policyId string, offset int, limit i
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(policyId, offset, limit)
+		r1 = rf(policyID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -244,9 +244,9 @@ func (_m *RetentionPolicyStore) GetChannels(policyId string, offset int, limit i
 	return r0, r1
 }
 
-// GetChannelsCount provides a mock function with given fields: policyId
-func (_m *RetentionPolicyStore) GetChannelsCount(policyId string) (int64, error) {
-	ret := _m.Called(policyId)
+// GetChannelsCount provides a mock function with given fields: policyID
+func (_m *RetentionPolicyStore) GetChannelsCount(policyID string) (int64, error) {
+	ret := _m.Called(policyID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannelsCount")
@@ -255,16 +255,16 @@ func (_m *RetentionPolicyStore) GetChannelsCount(policyId string) (int64, error)
 	var r0 int64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
-		return rf(policyId)
+		return rf(policyID)
 	}
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(policyId)
+		r0 = rf(policyID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(policyId)
+		r1 = rf(policyID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -388,9 +388,9 @@ func (_m *RetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset int
 	return r0, r1
 }
 
-// GetTeams provides a mock function with given fields: policyId, offset, limit
-func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
-	ret := _m.Called(policyId, offset, limit)
+// GetTeams provides a mock function with given fields: policyID, offset, limit
+func (_m *RetentionPolicyStore) GetTeams(policyID string, offset int, limit int) ([]*model.Team, error) {
+	ret := _m.Called(policyID, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTeams")
@@ -399,10 +399,10 @@ func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int)
 	var r0 []*model.Team
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Team, error)); ok {
-		return rf(policyId, offset, limit)
+		return rf(policyID, offset, limit)
 	}
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Team); ok {
-		r0 = rf(policyId, offset, limit)
+		r0 = rf(policyID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -410,7 +410,7 @@ func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(policyId, offset, limit)
+		r1 = rf(policyID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -418,9 +418,9 @@ func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int)
 	return r0, r1
 }
 
-// GetTeamsCount provides a mock function with given fields: policyId
-func (_m *RetentionPolicyStore) GetTeamsCount(policyId string) (int64, error) {
-	ret := _m.Called(policyId)
+// GetTeamsCount provides a mock function with given fields: policyID
+func (_m *RetentionPolicyStore) GetTeamsCount(policyID string) (int64, error) {
+	ret := _m.Called(policyID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTeamsCount")
@@ -429,16 +429,16 @@ func (_m *RetentionPolicyStore) GetTeamsCount(policyId string) (int64, error) {
 	var r0 int64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
-		return rf(policyId)
+		return rf(policyID)
 	}
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(policyId)
+		r0 = rf(policyID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(policyId)
+		r1 = rf(policyID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -476,9 +476,9 @@ func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndCha
 	return r0, r1
 }
 
-// RemoveChannels provides a mock function with given fields: policyId, channelIds
-func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
-	ret := _m.Called(policyId, channelIds)
+// RemoveChannels provides a mock function with given fields: policyID, channelIds
+func (_m *RetentionPolicyStore) RemoveChannels(policyID string, channelIds []string) error {
+	ret := _m.Called(policyID, channelIds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveChannels")
@@ -486,7 +486,7 @@ func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []str
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(policyId, channelIds)
+		r0 = rf(policyID, channelIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -494,9 +494,9 @@ func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []str
 	return r0
 }
 
-// RemoveTeams provides a mock function with given fields: policyId, teamIds
-func (_m *RetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
-	ret := _m.Called(policyId, teamIds)
+// RemoveTeams provides a mock function with given fields: policyID, teamIds
+func (_m *RetentionPolicyStore) RemoveTeams(policyID string, teamIds []string) error {
+	ret := _m.Called(policyID, teamIds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveTeams")
@@ -504,7 +504,7 @@ func (_m *RetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) e
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(policyId, teamIds)
+		r0 = rf(policyID, teamIds)
 	} else {
 		r0 = ret.Error(0)
 	}
