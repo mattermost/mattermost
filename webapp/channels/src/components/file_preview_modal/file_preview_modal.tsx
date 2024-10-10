@@ -303,13 +303,16 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             );
         }
 
+        const imageFileType = fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
+
         if (!isFileInfo(fileInfo) || !fileInfo.archived) {
             if (this.state.loaded[this.state.imageIndex]) {
-                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+                if (imageFileType) {
                     content = (
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}
                             canDownloadFiles={this.props.canDownloadFiles}
+                            handleCloseModal={this.handleModalClose}
                         />
                     );
                 } else if (fileType === FileTypes.VIDEO || fileType === FileTypes.AUDIO) {
@@ -446,6 +449,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     'file-preview-modal__content',
                                     {
                                         'file-preview-modal__content-scrollable': (!isFileInfo(fileInfo) || !fileInfo.archived) && this.state.loaded[this.state.imageIndex] && (fileType === FileTypes.PDF),
+                                        'file-preview-modal__content-image-zoom': imageFileType,
                                     },
                                 )}
                                 onClick={this.handleBgClose}
