@@ -128,7 +128,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 		if result := <-incomingResult; result.Err == nil {
 			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
-				printer.PrintT("Incoming:\t{{.DisplayName}} ({{.Id}}", hook)
+				printer.PrintT("Incoming:\t{{.DisplayName}} ({{.Id}})", hook)
 			}
 		} else {
 			printer.PrintError("Unable to list incoming webhooks for '" + team.Id + "': " + result.Err.Error())
