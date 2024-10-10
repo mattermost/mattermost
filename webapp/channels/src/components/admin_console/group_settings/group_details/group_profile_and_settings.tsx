@@ -41,7 +41,7 @@ const GroupSettingsToggle = ({
         }
         subTitle={
             <FormattedMessage
-                id='admin.team_settings.team_details.groupDetailsToggleDescr_updated'
+                id='admin.team_settings.team_details.groupDetailsToggleDescr'
                 defaultMessage='When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.'
             />
         }
