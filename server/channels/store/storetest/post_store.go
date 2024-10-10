@@ -1242,6 +1242,66 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 	})
 
+	t.Run("root post update at is updated upon reply delete", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Create a root post
+		rootPost1, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post
+		_, err = ss.Post().Save(rctx, &model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post a second time
+		replyPost2, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post a third time
+		_, err = ss.Post().Save(rctx, &model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		updatedRootPost, err := ss.Post().GetSingle(rctx, rootPost1.Id, false)
+		require.NoError(t, err)
+
+		beforeDeleteTime := updatedRootPost.UpdateAt
+
+		// Delete the reply previous to last
+		err = ss.Post().Delete(rctx, replyPost2.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		updatedRootPost, err = ss.Post().GetSingle(rctx, rootPost1.Id, false)
+		require.NoError(t, err)
+
+		require.Greater(t, updatedRootPost.UpdateAt, beforeDeleteTime)
+	})
+
 	t.Run("thread with multiple replies, update thread last reply at", func(t *testing.T) {
 		teamId := model.NewId()
 		channel, err := ss.Channel().Save(rctx, &model.Channel{
