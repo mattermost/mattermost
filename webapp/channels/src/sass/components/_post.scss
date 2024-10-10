@@ -2285,6 +2285,12 @@
     .emoji-picker--active & {
         pointer-events: none;
     }
+
+    div[role="list"] > div:last-child {
+        position: sticky !important;
+        z-index: 7;
+        bottom: 0;
+    }
 }
 
 @keyframes postHighlight {

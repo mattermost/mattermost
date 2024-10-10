@@ -109,6 +109,8 @@ export function makeFilterPostsAndAddSeparators() {
                 out.push(post.id);
             }
 
+            out.push(CREATE_COMMENT);
+
             // Flip it back to newest to oldest
             return out.reverse();
         },

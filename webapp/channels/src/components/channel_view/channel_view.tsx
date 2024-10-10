@@ -2,24 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React, {lazy} from 'react';
-import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
 import deferComponentRender from 'components/deferComponentRender';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
-
-import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
-const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
@@ -107,72 +102,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     }
 
     render() {
-        let createPost;
-        if (this.props.deactivatedChannel) {
-            createPost = (
-                <div
-                    className='post-create__container'
-                    id='post-create'
-                >
-                    <div
-                        className='channel-archived__message'
-                    >
-                        <FormattedMarkdownMessage
-                            id='create_post.deactivated'
-                            defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
-                        />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
-                            onClick={this.onClickCloseChannel}
-                        >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
-                        </button>
-                    </div>
-                </div>
-            );
-        } else if (this.props.channelIsArchived) {
-            createPost = (
-                <div
-                    className='post-create__container'
-                    id='post-create'
-                >
-                    <div
-                        id='channelArchivedMessage'
-                        className='channel-archived__message'
-                    >
-                        <FormattedMarkdownMessage
-                            id='archivedChannelMessage'
-                            defaultMessage='You are viewing an **archived channel**. New messages cannot be posted.'
-                        />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
-                            onClick={this.onClickCloseChannel}
-                        >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
-                        </button>
-                    </div>
-                </div>
-            );
-        } else if (this.props.missingChannelRole || this.state.waitForLoader) {
-            createPost = <InputLoading updateWaitForLoader={this.onUpdateInputShowLoader}/>;
-        } else {
-            createPost = (
-                <div
-                    id='post-create'
-                    data-testid='post-create'
-                    className='post-create__container AdvancedTextEditor__ctr'
-                >
-                    <AdvancedCreatePost/>
-                </div>
-            );
-        }
-
         const DeferredPostView = this.state.deferredPostView;
 
         return (
@@ -188,7 +117,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}
                 />
-                {createPost}
             </div>
         );
     }

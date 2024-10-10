@@ -7,7 +7,7 @@ import {withRouter} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getCurrentChannel, getDirectTeammate, getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
@@ -20,12 +20,6 @@ import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import type {GlobalState} from 'types/store';
 
 import ChannelView from './channel_view';
-
-function isDeactivatedChannel(state: GlobalState, channelId: string) {
-    const teammate = getDirectTeammate(state, channelId);
-
-    return Boolean(teammate && teammate.delete_at);
-}
 
 function isMissingChannelRoles(state: GlobalState, channel?: Channel) {
     const channelRoles = channel ? getMyChannelMembership(state, channel.id)?.roles || '' : '';
@@ -45,7 +39,6 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         channelId: channel ? channel.id : '',
-        deactivatedChannel: channel ? isDeactivatedChannel(state, channel.id) : false,
         enableOnboardingFlow,
         channelIsArchived: channel ? channel.delete_at !== 0 : false,
         viewArchivedChannels,

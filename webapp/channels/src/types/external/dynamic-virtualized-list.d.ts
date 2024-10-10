@@ -38,6 +38,7 @@ declare module 'dynamic-virtualized-list' {
         correctScrollToBottom?: boolean;
         innerListStyle?: CSSProperties;
         loaderId?: string;
+        visibleId?: string;
         scrollToFailed?: (index: number) => void;
     }
 
