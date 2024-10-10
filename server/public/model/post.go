@@ -875,6 +875,9 @@ func (o *Post) ForPlugin() *Post {
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {
+	if o.Metadata == nil {
+		return nil
+	}
 	for _, embed := range o.Metadata.Embeds {
 		if embed != nil && embed.Type == PostEmbedPermalink {
 			if previewPost, ok := embed.Data.(*PreviewPost); ok {
