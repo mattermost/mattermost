@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape, WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {IncomingWebhook, IncomingWebhooksWithCount} from '@mattermost/types/integrations';
@@ -36,6 +37,7 @@ type Props = {
         loadIncomingHooksAndProfilesForTeam: (teamId: string, startPageNumber: number,
             pageSize: number, includeTotalCount: boolean) => Promise<ActionResult<IncomingWebhook[] | IncomingWebhooksWithCount>>;
     };
+    intl: IntlShape;
 }
 
 type State = {
@@ -43,8 +45,8 @@ type State = {
     loading: boolean;
 }
 
-export default class InstalledIncomingWebhooks extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
+class InstalledIncomingWebhooks extends React.PureComponent<Props, State> {
+    constructor(props: Props & WrappedComponentProps) {
         super(props);
 
         this.state = {
@@ -148,6 +150,11 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         defaultMessage='No incoming webhooks match {searchTerm}'
                     />
                 }
+                hintText={
+                    this.props.intl.formatMessage({
+                        id: 'installed_incoming_webhooks.hint',
+                        defaultMessage: 'Search by webhook title or associated channel. Examples: "My Webhook Title", "town-square", or "Town Square".'})
+                }
                 helpText={
                     <FormattedMessage
                         id='installed_incoming_webhooks.help'
@@ -194,3 +201,5 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
         );
     }
 }
+
+export default injectIntl(InstalledIncomingWebhooks);
