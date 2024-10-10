@@ -36,7 +36,11 @@ func TestCreateJob(t *testing.T) {
 	t.Run("valid job as user with permissions", func(t *testing.T) {
 		received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store().Job().Delete(received.Id)
+		defer func() {
+			if result, appErr := th.App.Srv().Store().Job().Delete(received.Id); appErr != nil {
+				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
+			}
+		}()
 	})
 
 	t.Run("invalid job type as user without permissions", func(t *testing.T) {
@@ -58,7 +62,11 @@ func TestGetJob(t *testing.T) {
 	_, err := th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
 
-	defer th.App.Srv().Store().Job().Delete(job.Id)
+	defer func() {
+		if result, appErr := th.App.Srv().Store().Job().Delete(job.Id); appErr != nil {
+			t.Logf("Failed to delete job (result: %v): %v", result, appErr)
+		}
+	}()
 
 	received, _, err := th.SystemAdminClient.GetJob(context.Background(), job.Id)
 	require.NoError(t, err)
@@ -113,7 +121,13 @@ func TestGetJobs(t *testing.T) {
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store().Job().Delete(job.Id)
+
+		// Wrap the Delete call in a deferred function to check the error
+		defer func(jobId string) {
+			if result, appErr := th.App.Srv().Store().Job().Delete(jobId); appErr != nil {
+				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
+			}
+		}(job.Id)
 	}
 
 	t.Run("Get 2 jobs", func(t *testing.T) {
@@ -192,7 +206,13 @@ func TestGetJobsByType(t *testing.T) {
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store().Job().Delete(job.Id)
+
+		// Wrap the Delete call in a deferred function to check the error
+		defer func(jobId string) {
+			if result, appErr := th.App.Srv().Store().Job().Delete(jobId); appErr != nil {
+				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
+			}
+		}(job.Id)
 	}
 
 	received, _, err := th.SystemAdminClient.GetJobsByType(context.Background(), jobType, 0, 2)
@@ -230,11 +250,9 @@ func TestDownloadJob(t *testing.T) {
 	defer th.TearDown()
 	jobName := model.NewId()
 	job := &model.Job{
-		Id:   jobName,
-		Type: model.JobTypeMessageExport,
-		Data: map[string]string{
-			"export_type": "csv",
-		},
+		Id:     jobName,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{"export_type": "csv"},
 		Status: model.JobStatusSuccess,
 	}
 
@@ -261,20 +279,27 @@ func TestDownloadJob(t *testing.T) {
 	// as a system admin, we should get a not found status.
 	_, err = th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().Job().Delete(job.Id)
+	defer func() {
+		if _, delErr := th.App.Srv().Store().Job().Delete(job.Id); delErr != nil {
+			t.Logf("Failed to delete job %s: %v", job.Id, delErr)
+		}
+	}()
 
 	filePath := "./data/export/" + job.Id + "/testdat.txt"
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, mkdirAllErr)
-	os.Create(filePath)
+
+	// Check error when creating the file
+	_, createErr := os.Create(filePath)
+	require.NoError(t, createErr)
 
 	// Normal user cannot download the results of these job (not the right permission)
 	_, resp, err = th.Client.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
-	th.SystemManagerClient.DownloadJob(context.Background(), job.Id)
-	// System manager with default permissions cannot download the results of these job (Doesn't have correct permissions)
+
 	_, resp, err = th.SystemManagerClient.DownloadJob(context.Background(), job.Id)
+	// System manager with default permissions cannot download the results of these job (Doesn't have correct permissions)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -296,7 +321,10 @@ func TestDownloadJob(t *testing.T) {
 	filePath = "./data/export/" + job.Id + ".zip"
 	mkdirAllErr = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, mkdirAllErr)
-	os.Create(filePath)
+
+	// Check error when creating the file
+	_, createErr = os.Create(filePath)
+	require.NoError(t, createErr)
 
 	_, _, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
 	require.NoError(t, err)
@@ -304,16 +332,18 @@ func TestDownloadJob(t *testing.T) {
 	// Here we are creating a new job which doesn't have type of message export
 	jobName = model.NewId()
 	job = &model.Job{
-		Id:   jobName,
-		Type: model.JobTypeCloud,
-		Data: map[string]string{
-			"export_type": "csv",
-		},
+		Id:     jobName,
+		Type:   model.JobTypeCloud,
+		Data:   map[string]string{"export_type": "csv"},
 		Status: model.JobStatusSuccess,
 	}
 	_, err = th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().Job().Delete(job.Id)
+	defer func() {
+		if _, delErr := th.App.Srv().Store().Job().Delete(job.Id); delErr != nil {
+			t.Logf("Failed to delete job %s: %v", job.Id, delErr)
+		}
+	}()
 
 	// System admin shouldn't be able to download since the job type is not message export
 	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
@@ -347,7 +377,11 @@ func TestCancelJob(t *testing.T) {
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store().Job().Delete(job.Id)
+		defer func(jobId string) {
+			if _, delErr := th.App.Srv().Store().Job().Delete(jobId); delErr != nil {
+				t.Logf("Failed to delete job %s: %v", jobId, delErr)
+			}
+		}(job.Id)
 	}
 
 	resp, err := th.Client.CancelJob(context.Background(), jobs[0].Id)
@@ -400,7 +434,11 @@ func TestUpdateJobStatus(t *testing.T) {
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store().Job().Delete(job.Id)
+		defer func(jobId string) {
+			if _, delErr := th.App.Srv().Store().Job().Delete(jobId); delErr != nil {
+				t.Logf("Failed to delete job %s: %v", jobId, delErr)
+			}
+		}(job.Id)
 	}
 
 	t.Run("Fail to update job status without permission", func(t *testing.T) {
