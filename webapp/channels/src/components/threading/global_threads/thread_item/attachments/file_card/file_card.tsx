@@ -8,7 +8,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import {FileTypes} from 'utils/constants';
+import Constants, {FileTypes} from 'utils/constants';
 import {fileSizeToString, getCompassIconClassName, getFileType} from 'utils/utils';
 
 import './file_card.scss';
@@ -37,6 +37,10 @@ function File({
     enableSVGs,
 }: FileProps) {
     const imgSrc = useMemo(() => {
+        // all images type from constants.IMAGE_TYPES can preview if they have not initial image preview and mini preview.
+        if (Constants.IMAGE_TYPES.includes(extension.toLowerCase()) && !hasPreviewImage && !miniPreview) {
+            return getFileUrl(id);
+        }
         if (!hasPreviewImage) {
             return undefined;
         }
