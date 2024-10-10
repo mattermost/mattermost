@@ -9,7 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SuggestionBox from 'components/suggestion/suggestion_box';
@@ -180,16 +179,19 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         let help;
         if (this.props.isMobileView) {
             help = (
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='quick_switch_modal.help_mobile'
                     defaultMessage='Type to find a channel.'
                 />
             );
         } else {
             help = (
-                <FormattedMarkdownMessage
-                    id='quick_switch_modal.help_no_team'
-                    defaultMessage='Type to find a channel. Use **UP/DOWN** to browse, **ENTER** to select, **ESC** to dismiss.'
+                <FormattedMessage
+                    id='quickSwitchModal.help_no_team'
+                    defaultMessage='Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.'
+                    values={{
+                        b: (chunks: string) => <b>{chunks}</b>,
+                    }}
                 />
             );
         }
