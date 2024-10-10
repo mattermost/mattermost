@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -255,5 +256,124 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		s.Require().Equal(printer.GetLines()[0], mockPost)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
+	postID1 := "ux9bxc1b8bf1zdoj1tfu14836e"
+	postID2 := "ux9bxc1b8bf1zdoj1tfu14836f"
+
+	s.Run("invalid post id", func() {
+		id := "invalid-id"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", false, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{id})
+		s.Require().Nil(err)
+		s.Require().Equal("Invalid postID: invalid-id", printer.GetErrorLines()[0])
+	})
+
+	s.Run("successfully permanently delete one post", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			PermanentDeletePost(context.TODO(), postID1).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		s.Require().Nil(err)
+		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
+	})
+
+	s.Run("successfully soft delete one post", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			DeletePost(context.TODO(), postID1).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", false, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		s.Require().Nil(err)
+		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
+	})
+
+	s.Run("successfully delete multiple posts", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			PermanentDeletePost(context.TODO(), postID1).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PermanentDeletePost(context.TODO(), postID2).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
+		s.Require().Nil(err)
+		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
+		s.Require().Equal(postID2+" successfully deleted", printer.GetLines()[1])
+	})
+
+	s.Run("PermanentDeletePost api request returns an error", func() {
+		printer.Clean()
+
+		mockError := errors.New("an error occurred on deleting a post")
+
+		s.client.
+			EXPECT().
+			PermanentDeletePost(context.TODO(), postID1).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		s.Require().ErrorContains(err, "an error occurred on deleting a post")
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Error deleting post: "+postID1+". Error: an error occurred on deleting a post",
+			printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete multiple posts but one fails with an error", func() {
+		printer.Clean()
+		mockError := errors.New("an error occurred on deleting a post")
+		s.client.
+			EXPECT().
+			PermanentDeletePost(context.TODO(), postID1).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PermanentDeletePost(context.TODO(), postID2).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
+			Times(1)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("permanent", true, "")
+
+		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
+		s.Require().ErrorContains(err, "an error occurred on deleting a post")
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
+		s.Require().Equal("Error deleting post: "+postID2+". Error: an error occurred on deleting a post",
+			printer.GetErrorLines()[0])
 	})
 }
