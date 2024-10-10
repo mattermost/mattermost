@@ -5,15 +5,14 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
 
 import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
@@ -51,13 +50,21 @@ const messages = defineMessages({
     exportJobStartTime_title: {id: 'admin.complianceExport.exportJobStartTime.title', defaultMessage: 'Compliance Export Time:'},
     exportJobStartTime_description: {id: 'admin.complianceExport.exportJobStartTime.description', defaultMessage: 'Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM.'},
     exportFormat_title: {id: 'admin.complianceExport.exportFormat.title', defaultMessage: 'Export Format:'},
-    exportFormat_description: {id: 'admin.complianceExport.exportFormat.description', defaultMessage: 'Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address.'},
+    exportFormat_description_intro: {
+        id: 'admin.complianceExport.exportFormatDetail.intro',
+        defaultMessage: 'Format of the compliance export. Corresponds to the system that you want to import the data into.'},
+    exportFormat_description_details: {
+        id: 'admin.complianceExport.exportFormatDetail.details',
+        defaultMessage: 'For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address.'},
     createJob_title: {id: 'admin.complianceExport.createJob.title', defaultMessage: 'Run Compliance Export Job Now'},
     createJob_help: {id: 'admin.complianceExport.createJob.help', defaultMessage: 'Initiates a Compliance Export job immediately.'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
-    [messages.exportFormat_description, {siteURL: ''}],
+export const searchableStrings: Array<
+string | MessageDescriptor | [MessageDescriptor, { [key: string]: any }]
+> = [
+    messages.exportFormat_description_intro,
+    messages.exportFormat_description_details,
     messages.complianceExportTitle,
     messages.complianceExportDesc,
     messages.exportJobStartTime_title,
@@ -308,13 +315,25 @@ export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComp
         }
 
         const dropdownHelpText = (
-            <FormattedMarkdownMessage
-                {...messages.exportFormat_description}
-                values={{
-                    url: `${getSiteURL()}/admin_console/environment/file_storage`,
-                    lineBreak: '\n',
-                }}
-            />
+            <>
+                <p>
+                    <FormattedMessage
+                        {...messages.exportFormat_description_intro}
+                    />
+                </p>
+                <p>
+                    <FormattedMessage
+                        {...messages.exportFormat_description_details}
+                        values={{
+                            a: (chunks: string) => (
+                                <Link to='/admin_console/environment/file_storage'>
+                                    {chunks}
+                                </Link>
+                            ),
+                        }}
+                    />
+                </p>
+            </>
         );
 
         return (
