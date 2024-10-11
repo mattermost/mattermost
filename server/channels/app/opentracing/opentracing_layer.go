@@ -16362,7 +16362,7 @@ func (a *OpenTracingAppLayer) SendSubscriptionHistoryEvent(userID string) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendTestMessage(c request.CTX, userID string) *model.AppError {
+func (a *OpenTracingAppLayer) SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendTestMessage")
 
@@ -16374,14 +16374,14 @@ func (a *OpenTracingAppLayer) SendTestMessage(c request.CTX, userID string) *mod
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendTestMessage(c, userID)
+	resultVar0, resultVar1 := a.app.SendTestMessage(c, userID)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) SendTestPushNotification(deviceID string) string {

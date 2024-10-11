@@ -1099,6 +1099,37 @@ func TestCreatePost(t *testing.T) {
 
 		wg.Wait()
 	})
+
+	t.Run("should sanitize the force notifications prop if the flag is not set", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		postToCreate := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		postToCreate.AddProp(model.PostPropsForceNotification, model.NewId())
+		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+		require.Empty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
+
+	t.Run("should add the force notifications prop if the flag is set", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		postToCreate := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
+		require.Nil(t, err)
+		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
 }
 
 func TestPatchPost(t *testing.T) {
@@ -3594,7 +3625,7 @@ func TestPermanentDeletePost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		// Delete the post.
@@ -3633,7 +3664,7 @@ func TestPermanentDeletePost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		infos, sErr := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)

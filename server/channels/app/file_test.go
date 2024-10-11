@@ -755,7 +755,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
@@ -779,7 +779,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			CreateAt:      0,
 		}
 
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)

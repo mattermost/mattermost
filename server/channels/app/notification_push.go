@@ -596,7 +596,7 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
-	if post.GetProp(model.PostPropsForceNotification) != "" {
+	if prop := post.GetProp(model.PostPropsForceNotification); prop != nil && prop != "" {
 		return true
 	}
 
@@ -772,20 +772,20 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 	return "true"
 }
 
-func (a *App) SendTestMessage(c request.CTX, userID string) *model.AppError {
+func (a *App) SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError) {
 	bot, err := a.GetSystemBot(c)
 	if err != nil {
-		return model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_bot", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_bot", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	channel, err := a.GetOrCreateDirectChannel(c, userID, bot.UserId)
 	if err != nil {
-		return model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_channel", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_channel", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	user, err := a.GetUser(userID)
 	if err != nil {
-		return model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_user", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_user", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	T := i18n.GetUserTranslations(user.Locale)
 	post := &model.Post{
@@ -795,12 +795,12 @@ func (a *App) SendTestMessage(c request.CTX, userID string) *model.AppError {
 		UserId:    bot.UserId,
 	}
 
-	_, err = a.CreatePost(c, post, channel, model.CreatePostFlags{ForceNotification: true})
+	post, err = a.CreatePost(c, post, channel, model.CreatePostFlags{ForceNotification: true})
 	if err != nil {
-		return model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.create_post", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.create_post", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return nil
+	return post, nil
 }
 
 func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {

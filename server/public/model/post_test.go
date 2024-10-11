@@ -115,29 +115,34 @@ func TestPostSanitizeProps(t *testing.T) {
 	post1.SanitizeProps()
 
 	require.Nil(t, post1.GetProp(PropsAddChannelMember))
+	require.Nil(t, post1.GetProp(PostPropsForceNotification))
 
 	post2 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PropsAddChannelMember: "test",
+			PropsAddChannelMember:      "test",
+			PostPropsForceNotification: "test",
 		},
 	}
 
 	post2.SanitizeProps()
 
 	require.Nil(t, post2.GetProp(PropsAddChannelMember))
+	require.Nil(t, post2.GetProp(PostPropsForceNotification))
 
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PropsAddChannelMember: "no good",
-			"attachments":         "good",
+			PropsAddChannelMember:      "no good",
+			PostPropsForceNotification: "no good",
+			"attachments":              "good",
 		},
 	}
 
 	post3.SanitizeProps()
 
 	require.Nil(t, post3.GetProp(PropsAddChannelMember))
+	require.Nil(t, post3.GetProp(PostPropsForceNotification))
 
 	require.NotNil(t, post3.GetProp("attachments"))
 }

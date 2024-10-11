@@ -321,6 +321,33 @@ describe('notification_actions', () => {
             });
         });
 
+        test('should notify for forced notification posts on muted channels', () => {
+            const store = testConfigureStore(baseState);
+            const newPost = {
+                ...post,
+                props: {
+                    ...post.props,
+                    force_notifications: 'test',
+                },
+            };
+            newPost.channel_id = 'muted_channel_id';
+
+            const newMsgProps = {
+                post: JSON.stringify(newPost),
+                channel_display_name: 'Utopia',
+                team_id: 'team_id',
+            };
+            return store.dispatch(sendDesktopNotification(newPost, newMsgProps)).then(() => {
+                expect(spy).toHaveBeenCalledWith({
+                    body: '@username: Where is Jessica Hyde?',
+                    requireInteraction: false,
+                    silent: false,
+                    title: 'Utopia',
+                    onClick: expect.any(Function),
+                });
+            });
+        });
+
         test.each([
             UserStatuses.DND,
             UserStatuses.OUT_OF_OFFICE,

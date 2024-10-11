@@ -234,7 +234,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testNotifications(c *Context, w http.ResponseWriter, r *http.Request) {
-	err := c.App.SendTestMessage(c.AppContext, c.AppContext.Session().UserId)
+	_, err := c.App.SendTestMessage(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
