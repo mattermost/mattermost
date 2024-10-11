@@ -3068,7 +3068,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	err = SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
 	require.NoError(t, err)
 	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
 	require.Error(t, err)
@@ -3159,7 +3159,7 @@ func TestTeamExists(t *testing.T) {
 	})
 
 	t.Run("Logged out user", func(t *testing.T) {
-		_, err = client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 		_, resp, err := client.TeamExists(context.Background(), public_not_member_team.Name, "")
 		require.Error(t, err)
@@ -3376,7 +3376,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
-	_, err := th.SystemAdminClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
+	_, err = th.SystemAdminClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
 	require.NoError(t, err)
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_subject",
@@ -3891,7 +3891,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Test that an unauthenticated user gets rejected.
-	err = th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
 	require.NoError(t, err)
 	resp, err = th.SystemAdminClient.UpdateTeamScheme(context.Background(), team.Id, teamScheme.Id)
 	require.Error(t, err)
@@ -3924,8 +3924,8 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	require.Nil(t, err)
 
 	// No permissions
-	_, _, _, err = th.Client.TeamMembersMinusGroupMembers(context.Background(), team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
-	CheckErrorID(t, err, "api.context.permissions.app_error")
+	_, _, _, err2 := th.Client.TeamMembersMinusGroupMembers(context.Background(), team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
+	CheckErrorID(t, err2, "api.context.permissions.app_error")
 
 	testCases := map[string]struct {
 		groupIDs        []string
