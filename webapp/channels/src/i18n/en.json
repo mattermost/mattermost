@@ -5400,6 +5400,7 @@
   "user_profile.send.dm.yourself": "Send yourself a message",
   "user_settings.notifications.test_notification.body": "Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.",
   "user_settings.notifications.test_notification.go_to_docs": "Troubleshooting docs",
+  "user_settings.notifications.test_notification.send_button.error": "Error sending test notification",
   "user_settings.notifications.test_notification.send_button.send": "Send a test notification",
   "user_settings.notifications.test_notification.send_button.sending": "Sending a test notification",
   "user_settings.notifications.test_notification.send_button.sent": "Error sending test notification",

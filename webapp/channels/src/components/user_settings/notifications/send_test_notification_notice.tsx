@@ -86,7 +86,7 @@ const SendTestNotificationNotice = ({
             icon = 'icon-check';
             break;
         case 'error':
-            text = intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.sent', defaultMessage: 'Error sending test notification'});
+            text = intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.error', defaultMessage: 'Error sending test notification'});
             icon = 'icon-alert-outline';
         }
         return {
