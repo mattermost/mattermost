@@ -109,6 +109,7 @@ describe('Verify users can receive notification on browser', () => {
         cy.get('#desktopAndMobileTitle').click();
         cy.get('#sendDesktopNotificationsSection input[type=radio]').last().check();
         cy.get('#saveSetting').click();
+        cy.wait(500);
         triggertestNotification();
 
         // * Assert that the Notification constructor was not called
