@@ -61,7 +61,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 		appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
 		assert.Nil(t, appErr)
 
-		scheduledAt := model.GetMillis() + 1000
+		scheduledAt := model.GetMillis() - (5 * 60 * 60 * 1000)
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),

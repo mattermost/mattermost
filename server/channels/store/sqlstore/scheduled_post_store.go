@@ -68,10 +68,6 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 
 func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	scheduledPost.PreSave()
-	maxMessageSize := s.getMaxMessageSize()
-	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
-		return nil, errors.Wrap(err, "failed to validate scheduled post")
-	}
 
 	builder := s.getQueryBuilder().
 		Insert("ScheduledPosts").
@@ -126,7 +122,7 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 	return scheduledPosts, nil
 }
 
-func (s *SqlScheduledPostStore) getMaxMessageSize() int {
+func (s *SqlScheduledPostStore) GetMaxMessageSize() int {
 	s.maxMessageSizeOnce.Do(func() {
 		var err error
 		s.maxMessageSizeCached, err = s.SqlStore.determineMaxColumnSize("ScheduledPosts", "Message")
@@ -213,10 +209,6 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 
 func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 	scheduledPost.PreUpdate()
-	maxMessageSize := s.getMaxMessageSize()
-	if err := scheduledPost.IsValid(maxMessageSize); err != nil {
-		return errors.Wrap(err, "failed to validate scheduled post")
-	}
 
 	builder := s.getQueryBuilder().
 		Update("ScheduledPosts").
