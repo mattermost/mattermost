@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useRef, useCallback, useState} from 'react';
+import {defineMessages} from 'react-intl';
 
 type CopyOptions = {
     successCopyTimeout?: number;
@@ -80,3 +81,7 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
     };
 }
 
+export const messages = defineMessages({
+    copy: {id: 'copy_text.copy', defaultMessage: 'Copy'},
+    copied: {id: 'copy_text.copied', defaultMessage: 'Copied'},
+});
