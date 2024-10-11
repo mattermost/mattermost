@@ -38,7 +38,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
             id="installed_integrations.showSecret"
           />
         </button>
-         -
+         - 
         <button
           className="style--none color--link"
           id="regenerateSecretButton"
@@ -49,7 +49,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
             id="installed_integrations.regenSecret"
           />
         </button>
-         -
+         - 
         <Link
           to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
@@ -58,7 +58,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
             id="installed_integrations.edit"
           />
         </Link>
-         -
+         - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)
@@ -263,7 +263,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
             id="installed_integrations.showSecret"
           />
         </button>
-         -
+         - 
         <button
           className="style--none color--link"
           id="regenerateSecretButton"
@@ -274,7 +274,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
             id="installed_integrations.regenSecret"
           />
         </button>
-         -
+         - 
         <Link
           to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
@@ -283,7 +283,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
             id="installed_integrations.edit"
           />
         </Link>
-         -
+         - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)
@@ -442,7 +442,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
             id="installed_integrations.showSecret"
           />
         </button>
-         -
+         - 
         <button
           className="style--none color--link"
           id="regenerateSecretButton"
@@ -453,7 +453,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
             id="installed_integrations.regenSecret"
           />
         </button>
-         -
+         - 
         <Link
           to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
@@ -462,7 +462,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
             id="installed_integrations.edit"
           />
         </Link>
-         -
+         - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)
