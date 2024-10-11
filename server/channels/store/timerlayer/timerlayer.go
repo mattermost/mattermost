@@ -7731,6 +7731,22 @@ func (s *TimerLayerScheduledPostStore) Get(scheduledPostId string) (*model.Sched
 	return result, err
 }
 
+func (s *TimerLayerScheduledPostStore) GetMaxMessageSize() int {
+	start := time.Now()
+
+	result := s.ScheduledPostStore.GetMaxMessageSize()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetMaxMessageSize", success, elapsed)
+	}
+	return result
+}
+
 func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	start := time.Now()
 

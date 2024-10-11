@@ -153,7 +153,3 @@ func (s *ScheduledPost) RestoreNonUpdatableFields(originalScheduledPost *Schedul
 	s.ChannelId = originalScheduledPost.ChannelId
 	s.RootId = originalScheduledPost.RootId
 }
-
-func (s *ScheduledPost) IsMessageLengthValid(maxMessageSize int) *AppError {
-	return s.Draft.IsMessageLengthValid(maxMessageSize)
-}
