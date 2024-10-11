@@ -37,9 +37,8 @@ func TestCreateJob(t *testing.T) {
 		received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
 		require.NoError(t, err)
 		defer func() {
-			if result, appErr := th.App.Srv().Store().Job().Delete(received.Id); appErr != nil {
-				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
-			}
+			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
+			require.Nil(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
 		}()
 	})
 
@@ -296,9 +295,11 @@ func TestDownloadJob(t *testing.T) {
 	_, resp, err = th.Client.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
-
 	_, resp, err = th.SystemManagerClient.DownloadJob(context.Background(), job.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 	// System manager with default permissions cannot download the results of these job (Doesn't have correct permissions)
+	_, resp, err = th.SystemManagerClient.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
