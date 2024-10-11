@@ -11,8 +11,9 @@ import (
 )
 
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreSave()
-	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
+	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
 		return nil, validationErr
 	}
 
@@ -60,8 +61,9 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 }
 
 func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreUpdate()
-	if validationErr := scheduledPost.BaseIsValid(); validationErr != nil {
+	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
 		return nil, validationErr
 	}
 

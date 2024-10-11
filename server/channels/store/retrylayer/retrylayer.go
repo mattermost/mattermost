@@ -9780,6 +9780,12 @@ func (s *RetryLayerScheduledPostStore) Get(scheduledPostId string) (*model.Sched
 
 }
 
+func (s *RetryLayerScheduledPostStore) GetMaxMessageSize() int {
+
+	return s.ScheduledPostStore.GetMaxMessageSize()
+
+}
+
 func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 
 	tries := 0
