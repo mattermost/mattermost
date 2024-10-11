@@ -999,7 +999,6 @@ func TestSkipMigrationsOption(t *testing.T) {
 			store, err := New(*settings, logger, nil, SkipMigrations())
 			require.NoError(t, err)
 
-			// ensure migrations haven't run on start
 			_, err = store.GetDBSchemaVersion()
 			assert.Error(t, err)
 
