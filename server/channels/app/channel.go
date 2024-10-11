@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -1566,6 +1567,13 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 
 	if nErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	if user.IsGuest() {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackGuestFeature,
+			"add_guest_to_channel",
+			map[string]any{"user_actual_id": user.Id})
 	}
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)

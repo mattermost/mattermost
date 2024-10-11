@@ -2817,39 +2817,124 @@ func TestDeletePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	resp, err := client.DeletePost(context.Background(), "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+	t.Run("Post not found", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 
-	resp, err = client.DeletePost(context.Background(), "junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("Post doesn't exist", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), "junk")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	resp, err = client.DeletePost(context.Background(), th.BasicPost.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("No permissions to delete a post", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
-	_, err = client.DeletePost(context.Background(), th.BasicPost.Id)
-	require.NoError(t, err)
+	t.Run("Try to delete a post across different user roles", func(t *testing.T) {
+		client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+		_, cErr := client.DeletePost(context.Background(), th.BasicPost.Id)
+		require.NoError(t, cErr)
 
-	post := th.CreatePost()
-	user := th.CreateUser()
+		post := th.CreatePost()
+		post2 := th.CreatePost()
+		user := th.CreateUser()
 
-	client.Logout(context.Background())
-	client.Login(context.Background(), user.Email, user.Password)
+		client.Logout(context.Background())
+		client.Login(context.Background(), user.Email, user.Password)
 
-	resp, err = client.DeletePost(context.Background(), post.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		resp, err := client.DeletePost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
-	resp, err = client.DeletePost(context.Background(), model.NewId())
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+		client.Logout(context.Background())
+		resp, err = client.DeletePost(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
 
-	_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
-	require.NoError(t, err)
+		_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
+		require.NoError(t, err)
+
+		_, err = th.LocalClient.DeletePost(context.Background(), post2.Id)
+		require.NoError(t, err)
+	})
+}
+
+func TestPermanentDeletePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	enableAPIPostDeletion := *th.App.Config().ServiceSettings.EnableAPIPostDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIPostDeletion = &enableAPIPostDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = false })
+
+	t.Run("Post not found", func(t *testing.T) {
+		resp, err := client.PermanentDeletePost(context.Background(), "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Post doesn't exist", func(t *testing.T) {
+		resp, err := client.PermanentDeletePost(context.Background(), "junk")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion not available through API if EnableAPIPostDeletion is not set", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.PermanentDeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion available through local mode even if EnableAPIPostDeletion is not set", func(t *testing.T) {
+		post := th.CreatePost()
+		_, err := th.LocalClient.PermanentDeletePost(context.Background(), post.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("No permissions to permanently delete a post", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = true })
+		resp, err := client.PermanentDeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Try to permanently delete a post across different user roles", func(t *testing.T) {
+		client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+		resp, err := client.PermanentDeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		post := th.CreatePost()
+		post2 := th.CreatePost()
+		user := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user.Email, user.Password)
+
+		resp, err = client.PermanentDeletePost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		client.Logout(context.Background())
+		resp, err = client.PermanentDeletePost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+
+		_, err = th.SystemAdminClient.PermanentDeletePost(context.Background(), post.Id)
+		require.NoError(t, err)
+
+		_, err = th.LocalClient.PermanentDeletePost(context.Background(), post2.Id)
+		require.NoError(t, err)
+	})
 }
 
 func TestDeletePostEvent(t *testing.T) {
