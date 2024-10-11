@@ -2940,7 +2940,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
 		err := th.App.Srv().RemoveLicense()
-		require.NoError(t, err)
+		require.Nil(t, err)
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
@@ -3533,7 +3533,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	defer func() {
 		err := th.App.Srv().RemoveLicense()
-		require.NoError(t, err)
+		require.Nil(t, err)
 	}()
 
 	_, err = th.SystemAdminClient.InviteGuestsToTeam(context.Background(), th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
