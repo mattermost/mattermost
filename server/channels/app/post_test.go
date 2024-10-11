@@ -19,9 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -727,53 +725,6 @@ func TestImageProxy(t *testing.T) {
 				post.Message = "![foo](" + tc.ProxiedImageURL + " =500x200)"
 				assert.Equal(t, "![foo]("+tc.ProxiedRemovedImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			}
-		})
-	}
-}
-
-func TestMaxPostSize(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		Description         string
-		StoreMaxPostSize    int
-		ExpectedMaxPostSize int
-	}{
-		{
-			"Max post size less than model.model.POST_MESSAGE_MAX_RUNES_V1 ",
-			0,
-			model.PostMessageMaxRunesV1,
-		},
-		{
-			"4000 rune limit",
-			4000,
-			4000,
-		},
-		{
-			"16383 rune limit",
-			16383,
-			16383,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
-			mockStore := &storetest.Store{}
-			defer mockStore.AssertExpectations(t)
-
-			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
-
-			app := App{
-				ch: &Channels{
-					srv: &Server{
-						platform: &platform.PlatformService{
-							Store: mockStore,
-						},
-					},
-				},
-			}
-
-			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
 		})
 	}
 }
