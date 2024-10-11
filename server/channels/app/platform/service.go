@@ -303,7 +303,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
 		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
@@ -314,7 +314,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
