@@ -2765,6 +2765,7 @@
   "admin.user_grid.system_admin": "System Admin",
   "admin.user_grid.team_admin": "Team Admin",
   "admin.user_item.deactivate": "Deactivate",
+  "admin.user_item.email_title": "<strong>Email:</strong> {email}",
   "admin.user_item.emailTitle": "**Email:** {email}",
   "admin.user_item.guest": "Guest",
   "admin.user_item.invalidEmail": "Invalid email address",
