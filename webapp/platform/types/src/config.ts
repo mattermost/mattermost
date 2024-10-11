@@ -64,6 +64,7 @@ export type ClientConfig = {
     EnableCustomTermsOfService: string;
     EnableDeveloper: string;
     EnableDiagnostics: string;
+    EnableDesktopLandingPage: 'true' | 'false';
     EnableEmailBatching: string;
     EnableEmailInvitations: string;
     EnableEmojiPicker: string;
@@ -394,6 +395,7 @@ export type ServiceSettings = {
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
     MaximumPayloadSizeBytes: number;
+    EnableAPIPostDeletion: boolean;
     MaximumURLLength: number;
 };
 

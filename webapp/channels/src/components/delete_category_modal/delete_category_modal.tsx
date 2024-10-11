@@ -7,8 +7,6 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import '../category_modal.scss';
 
 type Props = {
@@ -48,11 +46,12 @@ export default function DeleteCategoryModal(props: Props) {
             confirmButtonClassName={'delete'}
         >
             <span className='delete-category__helpText'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='delete_category_modal.helpText'
-                    defaultMessage="Channels in **{category_name}** will move back to the Channels and Direct messages categories. You're not removed from any channels."
+                    defaultMessage="Channels in <b>{category_name}</b> will move back to the Channels and Direct messages categories. You're not removed from any channels."
                     values={{
                         category_name: props.category.display_name,
+                        b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
             </span>

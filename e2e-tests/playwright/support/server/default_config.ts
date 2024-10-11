@@ -166,6 +166,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPITeamDeletion: false,
         EnableAPITriggerAdminNotifications: false,
         EnableAPIUserDeletion: false,
+        EnableAPIPostDeletion: false,
         ExperimentalEnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
