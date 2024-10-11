@@ -32,9 +32,12 @@ type MessageExport struct {
 	PostFileIds    StringArray
 }
 
+// MessageExportCursor retrieves posts in the inclusive range:
+// [LastPostUpdateAt + LastPostId, UntilUpdateAt]
 type MessageExportCursor struct {
 	LastPostUpdateAt int64
 	LastPostId       string
+	UntilUpdateAt    int64
 }
 
 // PreviewID returns the value of the post's previewed_post prop, if present, or an empty string.
