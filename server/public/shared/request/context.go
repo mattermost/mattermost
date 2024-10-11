@@ -54,7 +54,7 @@ func TestContext(t testing.TB) *Context {
 	return EmptyContext(logger)
 }
 
-// Clone creates a shallow copy of [CTX].
+// Clone creates a deep copy of [CTX].
 // It should only be used to pass a [CTX] to a separate goroutine that
 // has a longer lifespan than the main goroutine handling the request.
 // It should be used sparsely as coping [CTX] is often unnecessary.
@@ -62,10 +62,11 @@ func (c *Context) Clone() CTX {
 	return c.clone()
 }
 
-// clone creates a shallow copy of [Context], allowing clones to apply per-request changes.
+// clone creates a deep copy of [Context], allowing clones to apply per-request changes.
 // It unexported to prevent leaking the [Context] type from the [CTX] interface.
 func (c *Context) clone() *Context {
 	cCopy := *c
+	cCopy.session = *c.session.DeepCopy()
 	return &cCopy
 }
 
