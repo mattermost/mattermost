@@ -128,7 +128,7 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
         file: ../../server/build/docker-compose.common.yml
         service: openldap
     healthcheck:
-      test: [ "CMD", "bash", "-o", "pipefail", "-c", "ss -ltn 'sport = :636' | grep -qE '^LISTEN'" ]
+      test: [ "CMD", "bash", "-o", "pipefail", "-c", "ss -ltn \"sport = :636\" | grep -qE \"^LISTEN\"" ]
       interval: 10s
       timeout: 15s
       retries: 12'
@@ -207,7 +207,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
         file: ../../server/build/docker-compose.common.yml
         service: keycloak
     healthcheck:
-      # We can't use a simple 'curl --silent localhost:9990/health | grep -q \"status\":\"UP\"' because there's no curl in the image: https://www.keycloak.org/server/health#_using_the_health_checks
+      # We cannot use a simple curl --silent localhost:9990/health | grep -q \"status\":\"UP\" because theres no curl in the image: https://www.keycloak.org/server/health#_using_the_health_checks
       test: [ "CMD", "/usr/local/bin/kc-healthcheck.sh" ]
       interval: 10s
       timeout: 15s
