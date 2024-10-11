@@ -808,7 +808,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableAPIPostDeletion == nil {
-		s.EnableAPIPostDeletion = NewBool(false)
+		s.EnableAPIPostDeletion = NewPointer(false)
 	}
 
 	if s.EnableAPIChannelDeletion == nil {
@@ -1141,7 +1141,7 @@ func (s *ExperimentalSettings) SetDefaults() {
 	}
 
 	if s.YoutubeReferrerPolicy == nil {
-		s.YoutubeReferrerPolicy = NewBool(false)
+		s.YoutubeReferrerPolicy = NewPointer(false)
 	}
 }
 
