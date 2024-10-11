@@ -1961,8 +1961,8 @@ export default class Client4 {
         };
         const includeDeleted = Boolean(opts.include_deleted);
         const nonAdminSearch = Boolean(opts.nonAdminSearch);
-        const excludeRemote = Boolean(opts.exclude_remote)
-        let queryParams: { include_deleted?: boolean; system_console?: boolean, exclude_remote?: boolean } = { include_deleted: includeDeleted, exclude_remote: excludeRemote };
+        const excludeRemote = Boolean(opts.exclude_remote);
+        let queryParams: {include_deleted?: boolean; system_console?: boolean; exclude_remote?: boolean} = {include_deleted: includeDeleted, exclude_remote: excludeRemote};
         if (nonAdminSearch) {
             queryParams = {system_console: false};
             delete body.nonAdminSearch;
