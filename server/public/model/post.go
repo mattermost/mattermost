@@ -399,8 +399,11 @@ type PostCountOptions struct {
 	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
-	SincePostID    string
-	SinceUpdateAt  int64
+
+	// retrieves posts in the inclusive range: [SinceUpdateAt + LastPostId, UntilUpdateAt]
+	SincePostID   string
+	SinceUpdateAt int64
+	UntilUpdateAt int64
 }
 
 func (o *Post) Etag() string {

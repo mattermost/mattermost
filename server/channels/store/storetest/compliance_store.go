@@ -58,6 +58,7 @@ func TestComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("MessageEditAfterExportMessage", func(t *testing.T) { testEditAfterExportMessage(t, rctx, ss) })
 	t.Run("MessageDeleteExportMessage", func(t *testing.T) { testDeleteExportMessage(t, rctx, ss) })
 	t.Run("MessageDeleteAfterExportMessage", func(t *testing.T) { testDeleteAfterExportMessage(t, rctx, ss) })
+	t.Run("MessageExport_UntilUpdateAt", func(t *testing.T) { testMessageExportUntilUpdateAt(t, rctx, ss) })
 }
 
 func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1173,4 +1174,106 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Equal(t, user1.Id, *v.UserId)
 	assert.Equal(t, user1.Email, *v.UserEmail)
 	assert.Equal(t, user1.Username, *v.Username)
+}
+
+func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	defer cleanupStoreState(t, rctx, ss)
+
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	require.NoError(t, err)
+	assert.Equal(t, 0, len(messages))
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	team, err = ss.Team().Save(team)
+	require.NoError(t, err)
+
+	// and two users that are a part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user1, err = ss.User().Save(rctx, user1)
+	require.NoError(t, err)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.NoError(t, nErr)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user2, err = ss.User().Save(rctx, user2)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user2.Id,
+	}, -1)
+	require.NoError(t, nErr)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, nErr)
+
+	var posts []*model.Post
+	// user1 posts ten times in the public channel
+	for i := 0; i < 10; i++ {
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    user1.Id,
+			CreateAt:  startTime + int64(i),
+			UpdateAt:  startTime + int64(i),
+			Message:   NewTestId(),
+		}
+		post, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+		posts = append(posts, post)
+	}
+
+	// fetch 5 starting from the third post, using LastPostUpdateAt and UntilUpdateAt.
+	// UntilUpdateAt is inclusive
+	messageExportMap := map[string]model.MessageExport{}
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: posts[2].UpdateAt, UntilUpdateAt: posts[2].UpdateAt + 4}, 10000)
+	require.NoError(t, err)
+	assert.Equal(t, 5, len(messages))
+
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
+	}
+
+	for i := 2; i < 7; i++ {
+		assert.Equal(t, posts[i].Id, *messageExportMap[posts[i].Id].PostId)
+		assert.Equal(t, posts[i].CreateAt, *messageExportMap[posts[i].Id].PostCreateAt)
+		assert.Equal(t, posts[i].Message, *messageExportMap[posts[i].Id].PostMessage)
+		assert.Equal(t, channel.Id, *messageExportMap[posts[i].Id].ChannelId)
+		assert.Equal(t, channel.DisplayName, *messageExportMap[posts[i].Id].ChannelDisplayName)
+		assert.Equal(t, user1.Id, *messageExportMap[posts[i].Id].UserId)
+		assert.Equal(t, user1.Email, *messageExportMap[posts[i].Id].UserEmail)
+		assert.Equal(t, user1.Username, *messageExportMap[posts[i].Id].Username)
+	}
+
+	// Also test AnalyticsPostCount because they are used in tandem for MessageExports
+	count, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{
+		TeamId:             channel.TeamId,
+		ExcludeSystemPosts: true,
+		SinceUpdateAt:      posts[2].UpdateAt,
+		UntilUpdateAt:      posts[2].UpdateAt + 4,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 5, int(count))
 }
