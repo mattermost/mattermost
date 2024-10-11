@@ -22,12 +22,12 @@ import {ChainableT} from 'tests/types';
  *       // do something with bot
  *   });
  */
-function apiCreateBot(options?: {prefix: string; bot?: BotPatch}): ChainableT<{bot: Bot & {fullDisplayName: string}}> {
+function apiCreateBot({prefix, bot}: Partial<{prefix: string; bot: BotPatch}> = {}): ChainableT<{bot: Bot & {fullDisplayName: string}}> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/bots',
         method: 'POST',
-        body: options?.bot || createBotPatch(options.prefix),
+        body: bot || createBotPatch(prefix),
     }).then((response) => {
         expect(response.status).to.equal(201);
         const {body} = response;
