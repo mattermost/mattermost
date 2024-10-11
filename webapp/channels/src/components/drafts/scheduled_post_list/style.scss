@@ -16,4 +16,10 @@
         font-weight: bold;
         padding-block: 10px;
     }
+
+    .AlertBanner {
+        &__body {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+    }
 }
