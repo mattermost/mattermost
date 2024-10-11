@@ -236,6 +236,7 @@ const (
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
+	ComplianceExportPathCLI                        = "cli"
 	ComplianceExportTypeCsv                        = "csv"
 	ComplianceExportTypeActiance                   = "actiance"
 	ComplianceExportTypeGlobalrelay                = "globalrelay"
