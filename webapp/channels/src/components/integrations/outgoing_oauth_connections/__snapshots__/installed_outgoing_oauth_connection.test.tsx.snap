@@ -26,7 +26,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.edit"
           />
         </Link>
-         - 
+         -
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)

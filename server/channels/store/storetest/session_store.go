@@ -91,6 +91,7 @@ func testSessionGetWithDeviceId(t *testing.T, rctx request.CTX, ss store.Store) 
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 10000
+	s1.Props = model.StringMap{}
 
 	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
@@ -99,6 +100,7 @@ func testSessionGetWithDeviceId(t *testing.T, rctx request.CTX, ss store.Store) 
 	s2.UserId = s1.UserId
 	s2.DeviceId = model.NewId()
 	s2.ExpiresAt = model.GetMillis() + 10000
+	s2.Props = model.StringMap{}
 
 	_, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
@@ -107,8 +109,20 @@ func testSessionGetWithDeviceId(t *testing.T, rctx request.CTX, ss store.Store) 
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
 	s3.DeviceId = model.NewId()
+	s3.Props = model.StringMap{}
 
 	_, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	s4 := &model.Session{}
+	s4.UserId = s1.UserId
+	s4.DeviceId = model.NewId()
+	s4.ExpiresAt = model.GetMillis() + 10000
+	s4.Props = model.StringMap{
+		model.SessionPropLastRemovedDeviceId: s4.DeviceId,
+	}
+
+	_, err = ss.Session().Save(rctx, s4)
 	require.NoError(t, err)
 
 	data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)

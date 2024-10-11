@@ -100,7 +100,7 @@ const BackstageList = (remainingProps: Props) => {
                         id='emptySearchResultsMessage'
                         key='emptyTextSearch'
                     >
-                        {React.cloneElement(remainingProps.emptyTextSearch, {values: {searchTerm: filterLowered}})}
+                        {React.cloneElement(remainingProps.emptyTextSearch, {values: {...remainingProps.emptyTextSearch.props.values, searchTerm: filterLowered}})}
                     </div>
                 )];
             }

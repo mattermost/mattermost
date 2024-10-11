@@ -2088,4 +2088,27 @@ describe('Actions.Channels', () => {
         expect(channelMemberCounts['group-2'].channel_member_count).toEqual(999);
         expect(channelMemberCounts['group-2'].channel_member_timezones_count).toEqual(131);
     });
+
+    it('fetchAllMyChannelMembers', async () => {
+        const store = configureStore({
+            entities: {
+                users: {
+                    currentUserId: 'some-user-id',
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).get(
+            '/users/some-user-id/channel_members?page=0&per_page=200').
+            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index}`, user_id: 'some-user-id'})));
+        nock(Client4.getBaseRoute()).get(
+            '/users/some-user-id/channel_members?page=1&per_page=200').
+            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index + 200}`, user_id: 'some-user-id'})));
+        nock(Client4.getBaseRoute()).get(
+            '/users/some-user-id/channel_members?page=2&per_page=200').
+            reply(200, [...Array(100).keys()].map((index) => ({channel_id: `channel-${index + 400}`, user_id: 'some-user-id'})));
+
+        await store.dispatch(Actions.fetchAllMyChannelMembers());
+        expect(Object.keys(store.getState().entities.channels.myMembers).length).toBe(500);
+    });
 });
