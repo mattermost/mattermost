@@ -1490,13 +1490,13 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string, includePrivate bool) (model.ChannelList, error) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 
 	var query string
 	var args []interface{}
 
-	if includePrivate {
+	if skipTeamMembershipCheck {
 		query = `
 			SELECT * FROM Channels
 			WHERE (TeamId = ? OR TeamId = '')

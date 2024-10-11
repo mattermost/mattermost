@@ -1210,9 +1210,9 @@ func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Contex
 	return r0, r1, r2, r3
 }
 
-// GetDeleted provides a mock function with given fields: teamID, offset, limit, userID, includePrivate
-func (_m *ChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, includePrivate bool) (model.ChannelList, error) {
-	ret := _m.Called(teamID, offset, limit, userID, includePrivate)
+// GetDeleted provides a mock function with given fields: teamID, offset, limit, userID, skipTeamMembershipCheck
+func (_m *ChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
+	ret := _m.Called(teamID, offset, limit, userID, skipTeamMembershipCheck)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDeleted")
@@ -1221,10 +1221,10 @@ func (_m *ChannelStore) GetDeleted(teamID string, offset int, limit int, userID 
 	var r0 model.ChannelList
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int, int, string, bool) (model.ChannelList, error)); ok {
-		return rf(teamID, offset, limit, userID, includePrivate)
+		return rf(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	}
 	if rf, ok := ret.Get(0).(func(string, int, int, string, bool) model.ChannelList); ok {
-		r0 = rf(teamID, offset, limit, userID, includePrivate)
+		r0 = rf(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
@@ -1232,7 +1232,7 @@ func (_m *ChannelStore) GetDeleted(teamID string, offset int, limit int, userID 
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int, int, string, bool) error); ok {
-		r1 = rf(teamID, offset, limit, userID, includePrivate)
+		r1 = rf(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	} else {
 		r1 = ret.Error(1)
 	}

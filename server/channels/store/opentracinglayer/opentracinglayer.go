@@ -1379,7 +1379,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx
 	return result, resultVar1, resultVar2, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, includePrivate bool) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
 	s.Root.Store.SetContext(newCtx)
@@ -1388,7 +1388,7 @@ func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, lim
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, includePrivate)
+	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
