@@ -14,13 +14,6 @@ func getKeyHash(key string) string {
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // allocateCacheTargets is used to fill target value types
 // for getting items from cache.
 func allocateCacheTargets[T any](l int) []any {
