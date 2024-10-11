@@ -295,7 +295,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		a.sendUpdatedUserEvent(*nUser)
 	}
 
-	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
+	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryRecommendedNextSteps, Name: model.PreferenceNameRecommendedNextStepsHide, Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
 	gmASdmPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategorySystemNotice, Name: "GMasDM", Value: "true"}
 

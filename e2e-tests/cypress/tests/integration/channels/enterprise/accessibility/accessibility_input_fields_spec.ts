@@ -10,11 +10,13 @@
 // Stage: @prod
 // Group: @channels @enterprise @accessibility
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
-    let testTeam;
-    let testChannel;
+    let testTeam: Team;
+    let testChannel: Channel;
 
     before(() => {
         // * Check if server has license for Guest Accounts
