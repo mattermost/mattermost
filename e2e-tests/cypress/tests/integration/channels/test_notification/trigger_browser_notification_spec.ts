@@ -19,7 +19,7 @@ describe('Verify users can receive notification on browser', () => {
         });
     });
 
-    it('MM-T5631 should be able to receive notification when notifications are enabled on the browser', () => {
+    it('MM-T5631_1 should be able to receive notification when notifications are enabled on the browser', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('granted');
         cy.get('#CustomizeYourExperienceTour > button').click();
@@ -42,7 +42,7 @@ describe('Verify users can receive notification on browser', () => {
         cy.verifySystemBotMessageRecieved(notificationMessage);
     });
 
-    it('should not be able to receive notification when notifications are denied on the browser', () => {
+    it('MM-T5631_2 should not be able to receive notification when notifications are denied on the browser', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('denied');
         cy.get('#CustomizeYourExperienceTour > button').click();
@@ -56,7 +56,7 @@ describe('Verify users can receive notification on browser', () => {
         cy.verifySystemBotMessageRecieved(notificationMessage);
     });
 
-    it('should not trigger notification when permission is default (no decision made)', () => {
+    it('MM-T5631_3 should not trigger notification when permission is default (no decision made)', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('default');
         cy.get('#CustomizeYourExperienceTour > button').click();
@@ -71,7 +71,7 @@ describe('Verify users can receive notification on browser', () => {
     });
 
     // Simulating macOS Focus Mode by suppressing the Notification constructor entirely
-    it('should not show notification when Focus Mode is enabled (simulating no notification pop-up)', () => {
+    it('MM-T5631_4 should not show notification when Focus Mode is enabled (simulating no notification pop-up)', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('granted');
 
