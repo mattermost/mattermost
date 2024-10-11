@@ -4559,6 +4559,27 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID 
 
 }
 
+func (s *RetryLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 
 	tries := 0
@@ -7790,6 +7811,27 @@ func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.PermanentDelete(rctx, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
