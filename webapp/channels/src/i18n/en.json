@@ -5403,7 +5403,7 @@
   "user_settings.notifications.test_notification.send_button.error": "Error sending test notification",
   "user_settings.notifications.test_notification.send_button.send": "Send a test notification",
   "user_settings.notifications.test_notification.send_button.sending": "Sending a test notification",
-  "user_settings.notifications.test_notification.send_button.sent": "Error sending test notification",
+  "user_settings.notifications.test_notification.send_button.sent": "Test notification sent",
   "user_settings.notifications.test_notification.title": "Troubleshooting notifications",
   "user.settings.advance.confirmDeactivateAccountTitle": "Confirm Deactivation",
   "user.settings.advance.confirmDeactivateDesc": "Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.",
