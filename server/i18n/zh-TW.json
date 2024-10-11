@@ -9674,5 +9674,37 @@
   {
     "id": "api.command_share.invite_remote_to_channel.error",
     "translation": "無法邀請遠端到頻道：{{.Error}}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "驗證傳出的 OAuth 連線憑證時發生錯誤。"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "無法取得實例的網站 URL。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "刪除傳出的 OAuth 連線時發生錯誤。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "無效的輸入參數。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "更新傳出的 OAuth 連線時發生錯誤。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "此伺服器不支援傳出的 OAuth 連線。"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "無法處理請求。要求的內容太大。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "無法使用指定的連線組態憑證。"
   }
 ]
