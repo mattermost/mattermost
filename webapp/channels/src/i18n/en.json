@@ -235,7 +235,7 @@
   "add_teams_to_scheme.confirmation.accept": "Yes, Move Team",
   "add_teams_to_scheme.confirmation.message": "This team is already selected in another team scheme, are you sure you want to move it to this team scheme?",
   "add_teams_to_scheme.confirmation.title": "Team Override Scheme Change?",
-  "add_teams_to_scheme.title": "Add Teams to **Team Selection** List",
+  "add_teams_to_scheme.modalTitle": "Add Teams to Team Selection List",
   "add_user_to_channel_modal.add": "Add",
   "add_user_to_channel_modal.cancel": "Cancel",
   "add_user_to_channel_modal.help": "Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.",
