@@ -153,3 +153,18 @@ func (s *ScheduledPost) RestoreNonUpdatableFields(originalScheduledPost *Schedul
 	s.ChannelId = originalScheduledPost.ChannelId
 	s.RootId = originalScheduledPost.RootId
 }
+
+func (s *ScheduledPost) SanitizeInput() {
+	s.CreateAt = 0
+
+	if s.Metadata != nil {
+		s.Metadata.Embeds = nil
+	}
+}
+
+func (s *ScheduledPost) GetPriority() *PostPriority {
+	if s.Metadata == nil {
+		return nil
+	}
+	return s.Metadata.Priority
+}

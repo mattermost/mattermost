@@ -48,6 +48,25 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 }
 
+func postChecks(c *Context, post *model.Post) {
+	// Add post creation checks here.
+	// If you make any change here, please make sure to apply the
+	// same change for scheduled posts as well in the `scheduledPostChecks()` function
+	// in API layer.
+
+	postPermissionCheck(c, post.ChannelId)
+	if c.Err != nil {
+		return
+	}
+
+	postHardenedModeCheck(c, post.GetProps())
+	if c.Err != nil {
+		return
+	}
+
+	postPriorityCheck(c, post.GetPriority(), post.RootId)
+}
+
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
@@ -56,87 +75,19 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post.SanitizeInput()
-
 	post.UserId = c.AppContext.Session().UserId
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "post", &post)
 
-	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
-		hasPermission = true
-	} else if channel, err := c.App.GetChannel(c.AppContext, post.ChannelId); err == nil {
-		// Temporary permission check method until advanced permissions, please do not copy
-		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
-			hasPermission = true
-		}
-	}
-
-	if !hasPermission {
-		c.SetPermissionError(model.PermissionCreatePost)
-		return
-	}
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
-			return
-		}
-	}
-
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
 	}
 
-	if post.GetPriority() != nil {
-		priorityForbiddenErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
-
-		if !c.App.IsPostPriorityEnabled() {
-			c.Err = priorityForbiddenErr
-			return
-		}
-
-		if post.RootId != "" {
-			c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
-			return
-		}
-
-		if ack := post.GetRequestedAck(); ack != nil && *ack {
-			licenseErr := minimumProfessionalLicense(c)
-			if licenseErr != nil {
-				c.Err = licenseErr
-				return
-			}
-		}
-
-		if notification := post.GetPersistentNotification(); notification != nil && *notification {
-			licenseErr := minimumProfessionalLicense(c)
-			if licenseErr != nil {
-				c.Err = licenseErr
-				return
-			}
-			if !c.App.IsPersistentNotificationsEnabled() {
-				c.Err = priorityForbiddenErr
-				return
-			}
-
-			if !post.IsUrgent() {
-				c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.urgent_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
-				return
-			}
-
-			if !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-				user, err := c.App.GetUser(c.AppContext.Session().UserId)
-				if err != nil {
-					c.Err = err
-					return
-				}
-				if user.IsGuest() {
-					c.Err = priorityForbiddenErr
-					return
-				}
-			}
-		}
+	postChecks(c, &post)
+	if c.Err != nil {
+		return
 	}
 
 	setOnline := r.URL.Query().Get("set_online")
@@ -888,11 +839,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
-			return
-		}
+	postHardenedModeCheck(c, post.GetProps())
+	if c.Err != nil {
+		return
 	}
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
@@ -957,11 +906,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
-			return
-		}
+	postHardenedModeCheck(c, *post.Props)
+	if c.Err != nil {
+		return
 	}
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

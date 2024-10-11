@@ -23,6 +23,20 @@ func (api *API) InitScheduledPost() {
 	api.BaseRoutes.Posts.Handle("/scheduled/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTeamScheduledPosts)).Methods(http.MethodGet)
 }
 
+func scheduledPostChecks(c *Context, scheduledPost *model.ScheduledPost) {
+	postPermissionCheck(c, scheduledPost.ChannelId)
+	if c.Err != nil {
+		return
+	}
+
+	postHardenedModeCheck(c, scheduledPost.GetProps())
+	if c.Err != nil {
+		return
+	}
+
+	postPriorityCheck(c, scheduledPost.GetPriority(), scheduledPost.RootId)
+}
+
 func requireScheduledPostsEnabled(c *Context) {
 	if !*c.App.Srv().Config().ServiceSettings.ScheduledPosts {
 		c.Err = model.NewAppError("", "api.scheduled_posts.feature_disabled", nil, "", http.StatusBadRequest)
@@ -52,9 +66,8 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
 
-	hasPermissionToCreatePostInChannel := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionCreatePost)
-	if !hasPermissionToCreatePostInChannel {
-		c.SetPermissionError(model.PermissionCreatePost)
+	scheduledPostChecks(c, &scheduledPost)
+	if c.Err != nil {
 		return
 	}
 
@@ -145,6 +158,11 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateScheduledPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "scheduledPost", &scheduledPost)
+
+	scheduledPostChecks(c, &scheduledPost)
+	if c.Err != nil {
+		return
+	}
 
 	userId := c.AppContext.Session().UserId
 	updatedScheduledPost, appErr := c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost)
