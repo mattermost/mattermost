@@ -65,6 +65,16 @@
           required: true
           schema:
             type: string
+        - name: include_unconfirmed
+          in: query
+          description: Include those Shared channel remotes that are unconfirmed
+          schema:
+            type: boolean
+        - name: exclude_confirmed
+          in: query
+          description: Show only those Shared channel remotes that are not confirmed yet
+          schema:
+            type: boolean
         - name: exclude_home
           in: query
           description: Show only those Shared channel remotes that were shared with this server
@@ -168,8 +178,12 @@
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Remote cluster invited successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -202,8 +216,12 @@
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Remote cluster uninvited successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":

@@ -4021,6 +4021,16 @@ func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
+// PermanentDeletePost permanently deletes a post and its files from the provided post id string.
+func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postRoute(postId)+"?permanent="+c.boolString(true))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetPostThread gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	url := c.postRoute(postId) + "/thread"
@@ -8900,15 +8910,21 @@ func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId strin
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, excludeHome, excludeRemote, includeDeleted bool, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, filter SharedChannelRemoteFilterOpts, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
 	v := url.Values{}
-	if excludeHome {
+	if filter.IncludeUnconfirmed {
+		v.Set("include_unconfirmed", "true")
+	}
+	if filter.ExcludeConfirmed {
+		v.Set("exclude_confirmed", "true")
+	}
+	if filter.ExcludeHome {
 		v.Set("exclude_home", "true")
 	}
-	if excludeRemote {
+	if filter.ExcludeRemote {
 		v.Set("exclude_remote", "true")
 	}
-	if includeDeleted {
+	if filter.IncludeDeleted {
 		v.Set("include_deleted", "true")
 	}
 	if page != 0 {
@@ -9096,7 +9112,7 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 }
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
-func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmarkWithFileInfo, *Response, error) {
 	channelBookmarkJSON, err := json.Marshal(channelBookmark)
 	if err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9106,7 +9122,7 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var cb ChannelBookmark
+	var cb ChannelBookmarkWithFileInfo
 	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

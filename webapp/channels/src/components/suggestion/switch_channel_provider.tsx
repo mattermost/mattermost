@@ -13,7 +13,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -220,7 +220,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + Utils.localizeMessage('channel_switch_modal.deactivated', 'Deactivated'));
+            deactivated = (' - ' + Utils.localizeMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {
@@ -228,7 +228,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+                name += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
             }
             description = deactivated;
         }
@@ -545,7 +545,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         if (user.id === currentUserId && displayName) {
-            displayName += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+            displayName += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
         }
 
         return {
@@ -838,12 +838,12 @@ export default class SwitchChannelProvider extends Provider {
         if (!teamId) {
             return;
         }
-        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannelsAndChannelMembersREST());
+        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannels());
         let channels;
 
         try {
             const {data} = await channelsAsync;
-            channels = data.channels as Channel[];
+            channels = data as Channel[];
         } catch (err) {
             this.store.dispatch(logError(err));
             return;

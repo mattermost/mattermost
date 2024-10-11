@@ -2517,6 +2517,10 @@
     "translation": "Can not delete a post in a deleted channel."
   },
   {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Cannot delete post, ServiceSettings.EnableAPIPostDeletion is not enabled."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all has been disabled because the channel has more than {{.Users}} users."
   },
@@ -2753,6 +2757,10 @@
   {
     "id": "api.remote_cluster.encrypt_invite_error",
     "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Cannot generate invite code for a confirmed cluster"
   },
   {
     "id": "api.remote_cluster.get.app_error",
@@ -4171,6 +4179,10 @@
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
   {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "You cannot modify user status. User is managed by LDAP"
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
@@ -5079,6 +5091,10 @@
     "translation": "Could not decode gif."
   },
   {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Failed to find files for post."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
   },
@@ -5089,6 +5105,10 @@
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
     "translation": "Unable to delete attachments of the user."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Failed to permanently delete file for post."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -6221,6 +6241,10 @@
   {
     "id": "app.post.permanent_delete_by_user.app_error",
     "translation": "Unable to select the posts to delete for the user."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Failed to permanently delete post."
   },
   {
     "id": "app.post.save.app_error",

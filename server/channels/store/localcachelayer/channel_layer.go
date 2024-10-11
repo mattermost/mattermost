@@ -211,7 +211,6 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	}
 
 	count, err := s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
-
 	if err != nil {
 		return 0, err
 	}
@@ -244,27 +243,24 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	var foundChannels []*model.Channel
 	var channelsToQuery []string
 
-	if allowFromCache {
-		var toPass []any
-		for i := 0; i < len(ids); i++ {
-			var channel *model.Channel
-			toPass = append(toPass, &channel)
-		}
+	if !allowFromCache {
+		return s.ChannelStore.GetMany(ids, allowFromCache)
+	}
 
-		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
-		for i, err := range errs {
-			if err != nil {
-				if err != cache.ErrKeyNotFound {
-					s.rootStore.logger.Warn("Error in Channelstore.GetMany: ", mlog.Err(err))
-				}
-				channelsToQuery = append(channelsToQuery, ids[i])
+	toPass := allocateCacheTargets[*model.Channel](len(ids))
+	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				s.rootStore.logger.Warn("Error in Channelstore.GetMany: ", mlog.Err(err))
+			}
+			channelsToQuery = append(channelsToQuery, ids[i])
+		} else {
+			gotChannel := *(toPass[i].(**model.Channel))
+			if gotChannel != nil {
+				foundChannels = append(foundChannels, gotChannel)
 			} else {
-				gotChannel := *(toPass[i].(**model.Channel))
-				if gotChannel != nil {
-					foundChannels = append(foundChannels, gotChannel)
-				} else {
-					s.rootStore.logger.Warn("Found nil channel in GetMany. This is not expected")
-				}
+				s.rootStore.logger.Warn("Found nil channel in GetMany. This is not expected")
 			}
 		}
 	}
@@ -291,7 +287,7 @@ func (s LocalCacheChannelStore) GetAllChannelMembersForUser(ctx request.CTX, use
 		cache_key += "_deleted"
 	}
 	if allowFromCache {
-		ids := make(map[string]string)
+		var ids model.StringMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMembersForUserCache, cache_key, &ids); err == nil {
 			return ids, nil
 		}
@@ -352,12 +348,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 			newKeys = append(newKeys, teamId+name)
 		}
 
-		toPass := make([]any, 0, len(newKeys))
-		for i := 0; i < len(newKeys); i++ {
-			var channel *model.Channel
-			toPass = append(toPass, &channel)
-		}
-
+		toPass := allocateCacheTargets[*model.Channel](len(newKeys))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, newKeys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -441,8 +432,13 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	if err != nil {
 		return nil, err
 	}
+
 	// For redis, directly increment member count.
-	s.InvalidateMemberCount(member.ChannelId)
+	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
+	} else {
+		s.InvalidateMemberCount(member.ChannelId)
+	}
 	return member, nil
 }
 
@@ -452,7 +448,15 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 		return nil, err
 	}
 	for _, member := range members {
-		s.InvalidateMemberCount(member.ChannelId)
+		// For redis, directly increment member count.
+		// It should be possible to group the members from the slice
+		// by channelID and increment it once per channel. But it depends
+		// on whether all members are part of the same channel or not.
+		if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+			s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
+		} else {
+			s.InvalidateMemberCount(member.ChannelId)
+		}
 	}
 	return members, nil
 }
@@ -461,12 +465,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	counts := make(map[string]int64)
 	remainingChannels := make([]string, 0)
 
-	toPass := make([]any, 0, len(channelIDs))
-	for i := 0; i < len(channelIDs); i++ {
-		var cacheItem int64
-		toPass = append(toPass, &cacheItem)
-	}
-
+	toPass := allocateCacheTargets[int64](len(channelIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.reaction.rootStore.channelMemberCountsCache, channelIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -522,8 +521,13 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	if err != nil {
 		return err
 	}
-	// For redis, directly decrement member count
-	s.InvalidateMemberCount(channelId)
+
+	// For redis, directly decrement member count.
+	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		s.rootStore.doDecrementCache(externalCache, channelId, 1)
+	} else {
+		s.InvalidateMemberCount(channelId)
+	}
 	return nil
 }
 
@@ -532,7 +536,11 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	if err != nil {
 		return err
 	}
-	// For redis, directly decrement member count
-	s.InvalidateMemberCount(channelId)
+	// For redis, directly decrement member count.
+	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		s.rootStore.doDecrementCache(externalCache, channelId, len(userIds))
+	} else {
+		s.InvalidateMemberCount(channelId)
+	}
 	return nil
 }

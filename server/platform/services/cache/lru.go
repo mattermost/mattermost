@@ -220,11 +220,6 @@ func (l *LRU) get(key string, value any) error {
 		_, err := u.UnmarshalMsg(val)
 		*v = &u
 		return err
-	case *map[string]*model.User:
-		var u model.UserMap
-		_, err := u.UnmarshalMsg(val)
-		*v = u
-		return err
 	}
 
 	// Slow path for other structs.

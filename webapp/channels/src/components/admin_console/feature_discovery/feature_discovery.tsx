@@ -15,7 +15,6 @@ import {EmbargoedEntityTrialError} from 'components/admin_console/license_settin
 import AlertBanner from 'components/alert_banner';
 import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -147,10 +146,10 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         // by default we assume is not cloud, so the cta button is Start Trial (which will request a trial license)
         let ctaPrimaryButton = (
             <StartTrialBtn
-                message={Utils.localizeMessage(
-                    'admin.ldap_feature_discovery.call_to_action.primary',
-                    'Start trial',
-                )}
+                message={Utils.localizeMessage({
+                    id: 'admin.ldap_feature_discovery.call_to_action.primary',
+                    defaultMessage: 'Start trial',
+                })}
                 telemetryId={`start_self_hosted_trial_from_${this.props.featureName}`}
                 btnClass='btn btn-primary'
                 renderAsButton={true}
@@ -287,7 +286,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         }
                         message={
                             <>
-                                <FormattedMarkdownMessage
+                                <FormattedMessage
                                     id='admin.featureDiscovery.WarningDescription'
                                     defaultMessage='Your License is being updated to give you full access to all the Enterprise Features. This page will automatically refresh once the license update is complete. Please wait '
                                 />
